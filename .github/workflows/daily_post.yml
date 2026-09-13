@@ -1,0 +1,30 @@
+name: Ежедневный пост в Telegram
+
+on:
+  schedule:
+    # 07:00 по Москве = 04:00 UTC (расписание GitHub Actions всегда в UTC)
+    - cron: "0 4 * * *"
+  workflow_dispatch: {}  # позволяет запустить вручную кнопкой на GitHub, для проверки
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Скачать код репозитория
+        uses: actions/checkout@v4
+
+      - name: Установить Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Установить зависимости
+        run: pip install -r requirements.txt
+
+      - name: Запустить бота
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
+        run: python post_daily_coupon.py
