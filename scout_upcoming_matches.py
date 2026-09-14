@@ -18,11 +18,12 @@
 
 import os
 import json
+import time
 from datetime import datetime, timedelta, timezone
 
 import gspread
 from google.oauth2.service_account import Credentials
-from anthropic import Anthropic
+from anthropic import Anthropic, APIStatusError
 
 MOSCOW_TZ = timezone(timedelta(hours=3))
 DAYS_AHEAD = 1  # только сегодняшние матчи — на 2 дня вперёд почти всё дублировалось назавтра
@@ -145,7 +146,9 @@ def get_recently_researched(spreadsheet):
 
 
 def research_match(client, home, away, date_str):
-    """Просит Claude найти свежий контекст по конкретному матчу через веб-поиск."""
+    """Просит Claude найти свежий контекст по конкретному матчу через веб-поиск.
+    При превышении лимита обращений к серверным инструментам — ждёт и повторяет
+    попытку (до 3 раз), это временное ограничение, а не постоянный запрет."""
     prompt = (
         f"Найди свежие новости (за последние 1-2 недели) о хоккейных клубах КХЛ "
         f"«{home}» и «{away}» перед их матчем {date_str}. Меня интересует конкретно: "
@@ -154,15 +157,28 @@ def research_match(client, home, away, date_str):
         f"Если по какой-то из этих тем ничего значимого не нашлось — так и скажи, не выдумывай. "
         f"Ответь коротко, 3-5 предложений, по существу, без общих фраз о команде."
     )
-    response = client.messages.create(
-        model=MODEL,
-        max_tokens=1024,
-        tools=[{"type": "web_search_20260209", "name": "web_search", "max_uses": 3}],
-        messages=[{"role": "user", "content": prompt}],
-    )
-    # собираем весь текстовый вывод (может быть несколько text-блоков вперемешку с поиском)
-    text_parts = [block.text for block in response.content if block.type == "text"]
-    return " ".join(text_parts).strip()
+
+    for attempt in range(3):
+        try:
+            response = client.messages.create(
+                model=MODEL,
+                max_tokens=1024,
+                tools=[{"type": "web_search_20260209", "name": "web_search", "max_uses": 3}],
+                messages=[{"role": "user", "content": prompt}],
+            )
+            text_parts = [block.text for block in response.content if block.type == "text"]
+            text = " ".join(text_parts).strip()
+            if text:
+                return text
+            return "(агент не вернул текстовый ответ по этому матчу — возможно, стоит проверить вручную)"
+        except APIStatusError as e:
+            if "rate" in str(e).lower() or "limit" in str(e).lower():
+                wait = 20 * (attempt + 1)
+                print(f"  Похоже на превышение лимита запросов, жду {wait} сек. и пробую снова...")
+                time.sleep(wait)
+                continue
+            return f"(ошибка при обращении к Claude: {e})"
+    return "(не удалось получить ответ после нескольких попыток — лимит запросов не сбросился вовремя)"
 
 
 def write_context(spreadsheet, results):
@@ -209,11 +225,13 @@ def main():
 
     client = Anthropic()  # берёт ANTHROPIC_API_KEY из переменной окружения сама
     results = []
-    for m in matches:
+    for i, m in enumerate(matches):
         print(f"Ищу контекст: {m['home']} — {m['away']} ({m['date']})")
         summary = research_match(client, m["home"], m["away"], m["date"])
         results.append({**m, "summary": summary})
         print(f"  -> {summary[:120]}...")
+        if i < len(matches) - 1:
+            time.sleep(8)  # небольшая пауза между матчами, чтобы не упираться в лимит запросов
 
     write_context(spreadsheet, results)
     print("Готово, записано в лист «Контекст и новости».")
