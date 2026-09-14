@@ -52,8 +52,11 @@ def get_win_chances(spreadsheet):
             continue
         home, away = row[col["Хозяева"]].strip(), row[col["Гости"]].strip()
         try:
-            ch = float(row[col["Шансы Хозяев, %"]].replace(",", "."))
-            ca = float(row[col["Шансы Гостей, %"]].replace(",", "."))
+            ch = float(row[col["Шансы Хозяев, %"]].replace(",", ".").replace("%", "").strip())
+            ca = float(row[col["Шансы Гостей, %"]].replace(",", ".").replace("%", "").strip())
+            if ch <= 1 and ca <= 1:  # значения пришли как доля (0.626), а не процент (62.6) — приводим к единому виду
+                ch *= 100
+                ca *= 100
         except (ValueError, AttributeError):
             continue
         chances[f"{match_date.strftime('%d.%m.%Y')}|{home}|{away}"] = (ch, ca)
@@ -207,6 +210,10 @@ def main():
     print(f"Найдено предстоящих матчей: {len(matches)}")
 
     chances = get_win_chances(spreadsheet)
+    print(f"Загружено прогнозов из листа '{PREDICTIONS_SHEET_NAME}': {len(chances)}")
+    if chances:
+        sample = list(chances.items())[:3]
+        print(f"Примеры: {sample}")
     close_matches = []
     for m in matches:
         key = f"{m['date']}|{m['home']}|{m['away']}"
