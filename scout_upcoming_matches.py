@@ -25,12 +25,38 @@ from google.oauth2.service_account import Credentials
 from anthropic import Anthropic
 
 MOSCOW_TZ = timezone(timedelta(hours=3))
-DAYS_AHEAD = 2  # смотрим на матчи в ближайшие N дней (сегодня + завтра)
+DAYS_AHEAD = 1  # только сегодняшние матчи — на 2 дня вперёд почти всё дублировалось назавтра
 CONTEXT_SHEET_NAME = "Контекст и новости"
 PREDICTIONS_SHEET_NAME = "прогнозы"
 RESULTS_SHEET_NAME = "результаты матчей"
+DEDUPE_HOURS = 20  # не разведывать один и тот же матч повторно чаще, чем раз в столько часов
+CLOSE_MATCH_MIN_CHANCE = 40  # разведываем только матчи, где у аутсайдера от 40% и выше (т.е. не хуже 60/40)
 
-MODEL = "claude-sonnet-5"  # для экономии можно заменить на claude-haiku-4-5-20251001
+MODEL = "claude-haiku-4-5-20251001"  # дешевле Sonnet, для этой задачи (найти + коротко резюмировать) достаточно
+
+
+def get_win_chances(spreadsheet):
+    """Читает лист "прогнозы" и возвращает словарь "дата|хозяева|гости" -> (шансы хозяев, шансы гостей)."""
+    ws = spreadsheet.worksheet(PREDICTIONS_SHEET_NAME)
+    rows = ws.get_all_values()
+    header = rows[0]
+    col = {name: header.index(name) for name in ("Дата", "Хозяева", "Гости", "Шансы Хозяев, %", "Шансы Гостей, %")}
+
+    chances = {}
+    for row in rows[1:]:
+        if len(row) <= col["Шансы Гостей, %"]:
+            continue
+        match_date = parse_date(row[col["Дата"]])
+        if not match_date:
+            continue
+        home, away = row[col["Хозяева"]].strip(), row[col["Гости"]].strip()
+        try:
+            ch = float(row[col["Шансы Хозяев, %"]].replace(",", "."))
+            ca = float(row[col["Шансы Гостей, %"]].replace(",", "."))
+        except (ValueError, AttributeError):
+            continue
+        chances[f"{match_date.strftime('%d.%m.%Y')}|{home}|{away}"] = (ch, ca)
+    return chances
 
 
 def connect_to_spreadsheet():
@@ -84,6 +110,40 @@ def get_upcoming_matches(spreadsheet):
     return matches
 
 
+def get_recently_researched(spreadsheet):
+    """Возвращает множество ключей "дата|хозяева|гости" для матчей, которые уже
+    разведывались за последние DEDUPE_HOURS часов — их пропускаем, чтобы не
+    платить дважды за один и тот же (скорее всего, не изменившийся) контекст."""
+    try:
+        ws = spreadsheet.worksheet(CONTEXT_SHEET_NAME)
+    except gspread.WorksheetNotFound:
+        return set()
+
+    rows = ws.get_all_values()
+    if len(rows) < 2:
+        return set()
+    header = rows[0]
+    col = {name: header.index(name) for name in ("Дата обновления", "Дата матча", "Матч")}
+
+    now = datetime.now(MOSCOW_TZ)
+    recent = set()
+    for row in rows[1:]:
+        if len(row) <= col["Матч"]:
+            continue
+        try:
+            updated_at = datetime.strptime(row[col["Дата обновления"]], "%d.%m.%Y %H:%M").replace(tzinfo=MOSCOW_TZ)
+        except ValueError:
+            continue
+        if (now - updated_at).total_seconds() > DEDUPE_HOURS * 3600:
+            continue
+        match_str = row[col["Матч"]]
+        if " — " not in match_str:
+            continue
+        home, away = match_str.split(" — ", 1)
+        recent.add(f"{row[col['Дата матча']]}|{home}|{away}")
+    return recent
+
+
 def research_match(client, home, away, date_str):
     """Просит Claude найти свежий контекст по конкретному матчу через веб-поиск."""
     prompt = (
@@ -97,7 +157,7 @@ def research_match(client, home, away, date_str):
     response = client.messages.create(
         model=MODEL,
         max_tokens=1024,
-        tools=[{"type": "web_search_20260209", "name": "web_search", "max_uses": 5}],
+        tools=[{"type": "web_search_20260209", "name": "web_search", "max_uses": 3}],
         messages=[{"role": "user", "content": prompt}],
     )
     # собираем весь текстовый вывод (может быть несколько text-блоков вперемешку с поиском)
@@ -125,10 +185,26 @@ def write_context(spreadsheet, results):
 def main():
     spreadsheet = connect_to_spreadsheet()
     matches = get_upcoming_matches(spreadsheet)
-    print(f"Найдено предстоящих матчей для разведки: {len(matches)}")
+    print(f"Найдено предстоящих матчей: {len(matches)}")
+
+    chances = get_win_chances(spreadsheet)
+    close_matches = []
+    for m in matches:
+        key = f"{m['date']}|{m['home']}|{m['away']}"
+        ch, ca = chances.get(key, (None, None))
+        if ch is None:
+            continue  # нет прогноза для этого матча — пропускаем, разведывать нечего сравнивать
+        if min(ch, ca) >= CLOSE_MATCH_MIN_CHANCE:
+            close_matches.append(m)
+    print(f"Из них близких по прогнозу (аутсайдер {CLOSE_MATCH_MIN_CHANCE}%+): {len(close_matches)}")
+    matches = close_matches
+
+    recently_done = get_recently_researched(spreadsheet)
+    matches = [m for m in matches if f"{m['date']}|{m['home']}|{m['away']}" not in recently_done]
+    print(f"После отсечения уже разведанных за последние {DEDUPE_HOURS} ч.: {len(matches)}")
 
     if not matches:
-        print("Матчей в ближайшие дни нет — заканчиваем без записи.")
+        print("Новых близких матчей для разведки нет — заканчиваем без записи.")
         return
 
     client = Anthropic()  # берёт ANTHROPIC_API_KEY из переменной окружения сама
