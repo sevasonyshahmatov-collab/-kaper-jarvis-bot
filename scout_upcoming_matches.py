@@ -124,7 +124,7 @@ def get_recently_researched(spreadsheet):
     if len(rows) < 2:
         return set()
     header = rows[0]
-    col = {name: header.index(name) for name in ("Дата обновления", "Дата матча", "Матч")}
+    col = {name: header.index(name) for name in ("Дата обновления", "Дата матча", "Матч", "Сводка")}
 
     now = datetime.now(MOSCOW_TZ)
     recent = set()
@@ -137,6 +137,9 @@ def get_recently_researched(spreadsheet):
             continue
         if (now - updated_at).total_seconds() > DEDUPE_HOURS * 3600:
             continue
+        summary = row[col["Сводка"]] if len(row) > col["Сводка"] else ""
+        if not summary.strip() or summary.strip().startswith("("):
+            continue  # прошлая попытка была неудачной (пусто или сообщение об ошибке) — не считаем сделанной, пробуем снова
         match_str = row[col["Матч"]]
         if " — " not in match_str:
             continue
