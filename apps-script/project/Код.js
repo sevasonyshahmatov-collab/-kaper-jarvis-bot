@@ -169,6 +169,7 @@ function onOpen() {
 /** Отдельное меню для роликов экспертов (общее для КХЛ и НХЛ). */
 function videoMenu_(ui, title) {
   ui.createMenu(title)
+    .addItem('🎬 Вставить видео (ссылка → сразу разбор в Gemini)', 'videoInsert_')
     .addItem('➕ Добавить ролик (открыть список ссылок)', 'videoOpenList_')
     .addItem('▶️ Разобрать новые ролики (Gemini)', 'videoAnalyzeNow_')
     .addItem('🔁 Разобрать все ролики заново', 'videoReanalyzeNow_')
@@ -10465,6 +10466,8 @@ function modelFormCheck_() {
  * 🎬 ВИДЕО ЭКСПЕРТОВ (YouTube) → РАСКЛАД СИЛ → СТАРТОВЫЙ РЕЙТИНГ
  *
  *  • Лист «Видео_эксперты»: ссылки на открытые ролики YouTube — вставляйте в колонку A на свободную строку.
+ *    Проще — кнопка «🎬 Вставить видео»: спросит ссылку, впишет её сюда и сразу отдаст ролик Gemini.
+ *    Ролик про другую лигу (НХЛ в таблице КХЛ и наоборот) узнаётся по первым двум кускам — дальше лимит не тратится.
  *    Разбираются только новые ролики; чтобы разобрать ролик заново — очистите его ячейку «Статус».
  *  • Gemini (тот же ключ GEMINI_KEY) «смотрит» ролик по ссылке — скачивать ничего не нужно. Длинный ролик режется на
  *    куски по 15 минут; прогресс сохраняется; перегрузка или лимит Google — продолжение само через 10/30 минут.
@@ -10503,6 +10506,27 @@ var PICKS_SHEET = 'Прогнозы_экспертов';
 var PICKS_COLS = 15;
 var PICKS_WAIT_DAYS = 21;                 // матч без даты ищем в течение 3 недель после разбора
 
+var VIDEO_START_MS = 150000;              // новый кусок ролика — только в первые 2,5 минуты запуска (кусок идёт до 2 минут)
+var VIDEO_DEADLINE_MS = 290000;           // к этой минуте запуска — никаких повторов запроса (лимит Apps Script — 6 минут)
+var VIDEO_OTHER_MAX = 2;                  // столько кусков подряд «ролик про другую лигу» — и хватит тратить лимит
+
+/** Ссылка, которую Gemini понимает надёжнее всего: youtube.com/watch?v=ID (без youtu.be и хвостов ?si=…). */
+function videoCanon_(id) { return 'https://www.youtube.com/watch?v=' + id; }
+
+/** Другая лига: Gemini назвал лигу ролика, и это не лига этой таблицы. */
+function videoOtherLeague_(s) {
+  var l = String(s || '').toUpperCase().replace(/NHL/g, 'НХЛ').replace(/KHL/g, 'КХЛ');
+  return !!l && l.indexOf(VIDEO_LEAGUE) < 0 && /НХЛ|КХЛ|ВХЛ|МХЛ|AHL|АХЛ|ДРУГ|OTHER/.test(l);
+}
+function videoOtherName_() { return VIDEO_LEAGUE === 'КХЛ' ? 'НХЛ' : 'КХЛ'; }
+
+/** Счётчики «пустых» кусков подряд живут между запусками (раньше обнулялись, и ролик без команд шёл до 4 часов). */
+function videoRunState_(id, st) {
+  var p = PropertiesService.getScriptProperties(), k = 'VIDEO_RUN_' + id;
+  if (st === undefined) { try { return JSON.parse(p.getProperty(k) || 'null') || { empty: 0, other: 0, league: '' }; } catch (e) { return { empty: 0, other: 0, league: '' }; } }
+  if (st === null) p.deleteProperty(k); else p.setProperty(k, JSON.stringify(st));
+}
+
 function videoIdOf_(url) { var m = String(url || '').match(/(?:[?&]v=|youtu\.be\/|shorts\/|live\/|embed\/)([A-Za-z0-9_-]{11})/); return m ? m[1] : null; }
 function videoMmss_(s) { s = Math.max(0, Math.round(Number(s) || 0)); var h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + ('0' + m).slice(-2) : m) + ':' + ('0' + x).slice(-2); }
 
@@ -10518,8 +10542,23 @@ function videoList_(ss) {
   }
   var n = sh.getLastRow() - 1;
   if (n < 1) return { sh: sh, list: [] };
+  // Таблицы умеют прятать адрес под подписью («Лидеры и аутсайдеры НХЛ…») — тогда в тексте ячейки ролика нет,
+  // и адрес надо доставать из самой ссылки. Иначе строка молча выпадает из разбора.
+  var rich = [];
+  try { rich = sh.getRange(2, 1, n, 1).getRichTextValues(); } catch (e) { rich = []; }
+  var linkOf = function (i) {
+    var v = rich[i] && rich[i][0];
+    if (!v) return '';
+    var u = '';
+    try { u = v.getLinkUrl() || ''; } catch (e) { u = ''; }
+    if (u) return u;
+    try { (v.getRuns() || []).forEach(function (run) { if (!u) { try { u = run.getLinkUrl() || ''; } catch (e2) {} } }); } catch (e3) {}
+    return u;
+  };
   var list = sh.getRange(2, 1, n, 6).getValues().map(function (r, i) {
-    return { row: i + 2, url: String(r[0]).trim(), id: videoIdOf_(r[0]), who: String(r[1] || '').trim(), status: String(r[2] || ''), done: Number(r[3]) || 0, len: Number(r[4]) || 0, found: Number(r[5]) || 0 };
+    var text = String(r[0]).trim(), id = videoIdOf_(text), url = text;
+    if (!id) { var u = linkOf(i); if (u) { id = videoIdOf_(u); url = u; } }
+    return { row: i + 2, url: url, id: id, who: String(r[1] || '').trim(), status: String(r[2] || ''), done: Number(r[3]) || 0, len: Number(r[4]) || 0, found: Number(r[5]) || 0 };
   }).filter(function (v) { return v.id; });
   return { sh: sh, list: list };
 }
@@ -10567,7 +10606,8 @@ function videoPrompt_(from, to) {
     'match_picks — ТОЛЬКО когда автор прямо говорит, кто победит в конкретном предстоящем матче: хозяева, гости, дата (если названа), за кого он, ' +
     'уверенность и почему. Победа — с учётом овертайма и буллитов.\n' +
     'Верни JSON строго такого вида (тексты на русском, каждое поле до 200 знаков):\n' +
-    '{"author":"кто ведёт ролик, если назван","video_type":"расклад / подкаст-новости / обзор матча / превью / прогнозы на матчи / пресс-конференция / другое",' +
+    '{"author":"кто ведёт ролик, если назван","league":"о какой лиге в основном ' + (to ? 'этот фрагмент' : 'ролик') + ': КХЛ, НХЛ, другая или \"\"",' +
+    '"video_type":"расклад / подкаст-новости / обзор матча / превью / прогнозы на матчи / пресс-конференция / другое",' +
     '"clip_empty":' + (to ? 'true, если этого фрагмента в ролике нет (он за концом ролика), иначе false' : 'false') + ',' +
     '"teams":[{"team":"' + (names.length ? 'название из списка' : 'полное название клуба') + '","group":"","place_num":null,"score":null,"place":"как автор сказал о месте, или \"\"",' +
     '"playoff":"да, нет, на грани или \"\"","injuries":"","roster":"","goalie":"","coach":"","form":"","outlook":"","plus":"","minus":"",' +
@@ -10576,7 +10616,7 @@ function videoPrompt_(from, to) {
 }
 
 /** Один запрос к Gemini с роликом (или его куском). {author, teams:[...], model} */
-function videoGeminiClip_(url, from, to) {
+function videoGeminiClip_(url, from, to, deadline) {
   var p = agentProps_(), key = p.getProperty('GEMINI_KEY');
   if (!key) throw new Error('нет ключа GEMINI_KEY');
   var model = videoModel_();
@@ -10596,7 +10636,9 @@ function videoGeminiClip_(url, from, to) {
   var models = [model], alt = videoAltModel_(model), resp = null;
   if (alt) models.push(alt);
   for (var mi = 0; mi < models.length; mi++) {
+    if (mi && deadline && Date.now() > deadline) break;                     // на запасную модель времени уже нет
     for (var attempt = 0; attempt < 3; attempt++) {
+      if (attempt && deadline && Date.now() + 10000 * attempt > deadline) break;   // повтор не успеет до лимита 6 минут
       if (attempt) Utilities.sleep(10000 * attempt);
       resp = send(false, models[mi]);
       if (resp.getResponseCode() === 400) resp = send(true, models[mi]);  // модель не понимает fps/разрешение — без них
@@ -10619,7 +10661,7 @@ function videoGeminiClip_(url, from, to) {
   try { obj = JSON.parse(out); } catch (e) { var j = out.match(/\{[\s\S]*\}/); obj = j ? JSON.parse(j[0]) : {}; }
   if (Array.isArray(obj)) obj = { teams: obj };
   var teams = videoTeams_(obj.teams || obj.команды), picks = videoPicks_(obj.match_picks);
-  return { author: String(obj.author || ''), type: String(obj.video_type || '').slice(0, 40), clipEmpty: obj.clip_empty === true,
+  return { author: String(obj.author || ''), league: String(obj.league || '').slice(0, 40), type: String(obj.video_type || '').slice(0, 40), clipEmpty: obj.clip_empty === true,
     teams: teams, picks: picks, unknown: (teams.unknown || []).concat(picks.unknown || []), total: Array.isArray(obj.teams) ? obj.teams.length : 0, model: model, raw: out };
 }
 
@@ -10763,6 +10805,8 @@ function videoAnalyzeAll_(auto) {
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(5000)) { if (!auto) uiAlert_('Разбор видео уже идёт — подождите пару минут.'); return { busy: true }; }
   var t0 = Date.now(), L = videoList_(ss), raw = videoRawSheet_(ss), errs = [], clips = 0, stop = false, stopWait = 30, model = '', picksN = 0;
+  // страховка: если запуск оборвётся на лимите 6 минут (тогда код ниже не выполнится), разбор продолжится сам через 8 минут
+  if (L.list.some(function (v) { return !/^готово/.test(v.status); })) videoScheduleContinue_(8);
   L.list.forEach(function (v) {
     if (/^ошибка/.test(v.status)) { v.status = ''; v.resume = true; L.sh.getRange(v.row, 3).setValue(''); }   // прошлые ошибки — продолжаем с того же места
     else if (!v.status && v.done) v.done = 0;          // статус очистили руками — разбираем ролик с начала
@@ -10771,7 +10815,7 @@ function videoAnalyzeAll_(auto) {
     for (var i = 0; i < L.list.length && !stop; i++) {
       var v = L.list[i];
       if (/^готово/.test(v.status)) continue;
-      if (Date.now() - t0 > VIDEO_TIME_BUDGET_MS) break;
+      if (Date.now() - t0 > VIDEO_START_MS) break;
       if (!v.len) {
         var info = videoInfo_(v.id);
         v.len = info.len;
@@ -10779,12 +10823,12 @@ function videoAnalyzeAll_(auto) {
         if (v.len) L.sh.getRange(v.row, 5).setValue(v.len);
         if (info.pub) try { L.sh.getRange(1, 9).setValue('Дата ролика'); L.sh.getRange(v.row, 9).setValue(info.pub); } catch (e) {}
       }
-      if (!v.done) { videoRawClear_(raw, v.url); videoPicksClear_(ss, v.url); v.found = 0; }
-      var emptyRun = 0;
-      while (Date.now() - t0 < VIDEO_TIME_BUDGET_MS) {
+      if (!v.done) { videoRawClear_(raw, v.url); videoPicksClear_(ss, v.url); v.found = 0; videoRunState_(v.id, null); }
+      var rs = videoRunState_(v.id), emptyRun = rs.empty || 0;
+      while (Date.now() - t0 < VIDEO_START_MS) {
         // длина неизвестна — всё равно кусками по 15 минут, пока ролик не кончится (кусок за концом — пустой или ошибка 4xx)
         var from = v.done, to = v.len ? Math.min(v.len, from + VIDEO_CLIP_SEC) : from + VIDEO_CLIP_SEC, res, ended = false;
-        try { res = videoGeminiClip_(v.url, from, to); }
+        try { res = videoGeminiClip_(videoCanon_(v.id), from, to, t0 + VIDEO_DEADLINE_MS); }
         catch (e) {
           if (!v.len && from > 0 && /кодом 4\d\d/.test(e.message) && !/429/.test(e.message)) ended = true;
           else {
@@ -10801,8 +10845,8 @@ function videoAnalyzeAll_(auto) {
           }
         }
         if (ended) {                                         // ролик кончился раньше, чем мы думали
-          L.sh.getRange(v.row, 3).setValue('готово' + (v.found ? '' : ' — Gemini не нашёл в ролике команд'));
-          v.status = 'готово'; break;
+          L.sh.getRange(v.row, 3).setValue('готово' + (v.found ? '' : rs.other ? ' — ролик про ' + (rs.league || videoOtherName_()) + ', а не про ' + VIDEO_LEAGUE : ' — Gemini не нашёл в ролике команд'));
+          v.status = 'готово'; videoRunState_(v.id, null); break;
         }
         clips++; model = res.model;
         if (clips === 1) try { p.deleteProperty('VIDEO_429_STREAK'); } catch (e) {}
@@ -10826,18 +10870,26 @@ function videoAnalyzeAll_(auto) {
         try { L.sh.getRange(1, 8).setValue('Ответ Gemini (для проверки)'); L.sh.getRange(v.row, 8).setValue(String(res.raw).slice(0, 20000)); } catch (e) {}
         v.done = to;
         emptyRun = res.teams.length || res.picks.length ? 0 : emptyRun + 1;
+        // ролик про другую лигу (НХЛ в таблице КХЛ и наоборот): команды этой лиги в нём не ищутся — не тратим лимит до конца ролика
+        var other = !res.teams.length && !res.picks.length && videoOtherLeague_(res.league);
+        rs = { empty: emptyRun, other: other ? (rs.other || 0) + 1 : 0, league: other ? res.league : rs.league };
+        var wrong = !v.found && rs.other >= VIDEO_OTHER_MAX;
         // конец ролика неизвестной длины: Gemini говорит «фрагмента нет» (или ошибка 4xx выше); запасной предел — час без единой команды
-        var fin = v.len ? v.done >= v.len : (res.clipEmpty || emptyRun >= 4 || v.done >= VIDEO_BLIND_MAX_SEC);
-        var note = (fin && !v.found ? (v.total ? ' — команды не узнал' : ' — Gemini не нашёл в ролике команд') : '') + (v.unknown.length ? ' (не узнал: ' + v.unknown.slice(0, 8).join(', ') + ')' : '');
+        var fin = wrong || (v.len ? v.done >= v.len : (res.clipEmpty || emptyRun >= 4 || v.done >= VIDEO_BLIND_MAX_SEC));
+        if (fin) videoRunState_(v.id, null); else videoRunState_(v.id, rs);
+        var note = (fin && !v.found ? (wrong ? ' — ролик про ' + res.league + ', а не про ' + VIDEO_LEAGUE + ': вставьте его в таблицу ' + videoOtherName_() :
+          v.total ? ' — команды не узнал' : ' — Gemini не нашёл в ролике команд') : '') + (v.unknown.length ? ' (не узнал: ' + v.unknown.slice(0, 8).join(', ') + ')' : '');
         L.sh.getRange(v.row, 3, 1, 5).setValues([[(fin ? 'готово' : 'разобрано ' + videoMmss_(v.done) + (v.len ? ' из ' + videoMmss_(v.len) : ' (длина неизвестна, идём дальше)')) + note, v.done, v.len || '', v.found, mskNow_()]]);
-        if (fin && (!v.found || v.unknown.length)) errs.push('ролик ' + (i + 1) + ': найдено команд ' + v.found + (v.unknown.length ? ', не узнал: ' + v.unknown.slice(0, 8).join(', ') : v.total ? '' : ' — Gemini вернул пустой список (ответ — в колонке H листа «' + VIDEO_SHEET + '»)'));
+        if (fin && wrong) errs.push('ролик ' + (i + 1) + ' — про ' + res.league + ', а это таблица ' + VIDEO_LEAGUE + ': вставьте его в таблицу ' + videoOtherName_() +
+          ' (меню «🎬 ' + videoOtherName_() + ' · Видео» → «Вставить видео»)');
+        else if (fin && (!v.found || v.unknown.length)) errs.push('ролик ' + (i + 1) + ': найдено команд ' + v.found + (v.unknown.length ? ', не узнал: ' + v.unknown.slice(0, 8).join(', ') : v.total ? '' : ' — Gemini вернул пустой список (ответ — в колонке H листа «' + VIDEO_SHEET + '»)'));
         if (fin) { v.status = 'готово'; break; }
       }
     }
   } finally { lock.releaseLock(); }
   var left = L.list.filter(function (v) { return !/^готово/.test(v.status); });
   var errLeft = left.filter(function (v) { return /^ошибка/.test(String(L.sh.getRange(v.row, 3).getValue())); }).length;
-  var more = left.length - errLeft > 0 && (clips > 0 || stop);
+  var more = left.length - errLeft > 0 && (clips > 0 || stop || Date.now() - t0 > VIDEO_START_MS);
   if (more) videoScheduleContinue_(stop ? stopWait : 1);
   else try { ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'videoContinue_') ScriptApp.deleteTrigger(t); }); } catch (e) {}
   var sum = preseasonBuild_(ss);
@@ -11161,6 +11213,27 @@ function expertPicksFor_(ss, m) {
     out.push('🎬 ' + (String(r[1] || 'эксперт').split(' — ')[0]) + ': за «' + r[6] + '»' + (r[7] ? ' (' + r[7] + ')' : '') + (r[8] ? ' — ' + String(r[8]).slice(0, 120) : ''));
   });
   return out.slice(0, 3);
+}
+
+/** Кнопка «🎬 Вставить видео»: спросить ссылку, вписать её в список и сразу отдать ролик Gemini на разбор. */
+function videoInsert_() {
+  var ui = SpreadsheetApp.getUi();
+  var r = ui.prompt('🎬 Вставить видео · ' + VIDEO_LEAGUE, 'Ссылка на открытый ролик YouTube (youtube.com/watch?v=… или youtu.be/…).\n' +
+    'После «ОК» ролик сразу уйдёт в Gemini: команды, травмы, составы, форма и прогнозы эксперта попадут в досье команд и агенту к матчам.', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  var text = String(r.getResponseText() || '').trim(), id = videoIdOf_(text);
+  if (!id) { ui.alert('Не похоже на ссылку на ролик YouTube: «' + text.slice(0, 120) + '».\nНужна ссылка вида youtube.com/watch?v=… или youtu.be/…'); return; }
+  var ss = SpreadsheetApp.getActive(), L = videoList_(ss);
+  var same = L.list.filter(function (v) { return v.id === id; })[0];
+  if (same && /^готово/.test(same.status)) {
+    if (ui.alert('Этот ролик уже разобран (строка ' + same.row + ': «' + same.status.slice(0, 120) + '»). Разобрать заново?', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+    L.sh.getRange(same.row, 3, 1, 5).setValues([['', '', same.len || '', '', '']]);
+    videoRunState_(id, null);
+  } else if (!same) {
+    L.sh.getRange(Math.max(2, L.sh.getLastRow() + 1), 1).setValue(videoCanon_(id));
+  }
+  try { ss.toast('Ролик отправлен в Gemini. Итог появится здесь через 1–4 минуты; длинный ролик разберётся частями сам.', '🎬 Видео', 15); } catch (e) {}
+  videoAnalyzeAll_(false);
 }
 
 /** Кнопка «Добавить ролик»: открыть список ссылок на первой свободной строке. */
