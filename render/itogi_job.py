@@ -15,14 +15,21 @@
 import html
 import json
 import os
+import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 MARKS = {'', 'ОТ', 'Б', 'ОТ/Б'}
-LEAGUE_TITLE = {'KHL': '🏒 <b>КХЛ · итоги дня</b>', 'NHL': '🇺🇸 <b>НХЛ · итоги ночи</b>'}
-MATCHI_TITLE = {'KHL': '🏒 <b>КХЛ · матчи дня</b>', 'NHL': '🇺🇸 <b>НХЛ · матчи дня</b>'}
+# подписи — без эмодзи: анимированные (премиум) бот в канал поставить не может, а обычные решили не ставить
+LEAGUE_TITLE = {'KHL': '<b>КХЛ · итоги дня</b>', 'NHL': '<b>НХЛ · итоги ночи</b>'}
+MATCHI_TITLE = {'KHL': '<b>КХЛ · матчи дня</b>', 'NHL': '<b>НХЛ · матчи дня</b>'}
+EMOJI = re.compile('(?:[\U0001F1E6-\U0001F1FF]|[\U0001F000-\U0001FAFF]|[\u2600-\u27BF]|[\u2B00-\u2BFF]|\uFE0F|\u200D)+ ?')
+
+
+def no_emoji(text):
+    return re.sub(r'(?m)^[ \t]+', '', EMOJI.sub('', text))
 
 
 def load_payload():
@@ -134,6 +141,7 @@ def main():
             text += '\n\n' + extra
         else:
             after = extra
+    text, after = no_emoji(text), no_emoji(after)
     print('нарисовано:', out, '— матчей', len(items))
     if extra:
         print('подпись:\n' + text + ('\n--- отдельным сообщением:\n' + after if after else ''))

@@ -7352,7 +7352,7 @@ function liveUpdate_(now) {
   cands.forEach(function (m) {
     var prev = state.m[m.id] || {};
     if (!picks[m.day]) picks[m.day] = livePicks_(ss, m.day);
-    var s = { phase: 'wait', key: 'w', sh: prev.sh, sa: prev.sa, ot: prev.ot, pick: picks[m.day][m.home + '|' + m.away] || '' };
+    var s = { phase: 'wait', key: 'w', sh: prev.sh, sa: prev.sa, ot: prev.ot, mk: prev.mk, pick: picks[m.day][m.home + '|' + m.away] || '' };
     if (prev.key === 'f') { s.phase = 'done'; s.key = 'f'; }                              // финальный счёт уже есть
     else if (m.mins >= 0) {
       s.phase = 'live'; s.key = 'l';
@@ -7364,13 +7364,13 @@ function liveUpdate_(now) {
           try {
             var r = UrlFetchApp.fetch(it.url, { muteHttpExceptions: true, headers: SPORTS_UA });
             var res = r.getResponseCode() === 200 ? mpParseMatchPage_(r.getContentText(), it) : null;
-            if (res) { s.phase = 'done'; s.key = 'f'; s.sh = res.homeGoals; s.sa = res.awayGoals; s.ot = res.ot; }
+            if (res) { s.phase = 'done'; s.key = 'f'; s.sh = res.homeGoals; s.sa = res.awayGoals; s.ot = res.ot; s.mk = res.mark; }
           } catch (e) { /* попробуем через 5 минут */ }
         }
       }
       if (s.key !== 'f' && m.mins >= LIVE_WINDOW_MIN) { s.phase = 'done'; s.key = 'd'; }   // 4 часа, а счёта нет
     }
-    state.m[m.id] = { key: s.key, sh: s.sh, sa: s.sa, ot: s.ot };
+    state.m[m.id] = { key: s.key, sh: s.sh, sa: s.sa, ot: s.ot, mk: s.mk };
     (days[m.day] = days[m.day] || []).push({ m: m, s: s });
   });
 
@@ -7413,7 +7413,7 @@ function liveUpdate_(now) {
   var doneItems = {};
   doneDays.forEach(function (d) {
     doneItems[d] = days[d].filter(function (x) { return x.s.key === 'f' && liveHas_(x.s.sh) && liveHas_(x.s.sa); })
-      .map(function (x) { return { home: x.m.home, away: x.m.away, sh: Number(x.s.sh), sa: Number(x.s.sa), mark: x.s.ot ? 'ОТ/Б' : '' }; });
+      .map(function (x) { return { home: x.m.home, away: x.m.away, sh: Number(x.s.sh), sa: Number(x.s.sa), mark: x.s.mk || (x.s.ot ? 'ОТ/Б' : '') }; });
   });
   return { matches: started.length, posted: posted, edited: edited, text: text, fetched: fetched, doneDays: doneDays, doneItems: doneItems };
 }
@@ -8149,7 +8149,7 @@ function mpParseMatchPage_(html, item) {
   var text = html.slice(at, at + 15000).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
   var sc = text.match(/\s(\d{1,2})\s+(\d{1,2})\s+(ОТ|Б|OT|SO)?\s*\d{1,2}-\d{1,2}/);
   if (!sc) return null;
-  return { homeGoals: Number(sc[1]), awayGoals: Number(sc[2]), ot: !!sc[3] };
+  return { homeGoals: Number(sc[1]), awayGoals: Number(sc[2]), ot: !!sc[3], mark: sc[3] ? (/^(Б|SO)$/.test(sc[3]) ? 'Б' : 'ОТ') : '' };
 }
 
 /**
@@ -12831,7 +12831,7 @@ function testItogiToChannel() {
  *  таблица только передаёт счёт: событие repository_dispatch «itogi» в репозиторий ITOGI_REPO.
  *  Нужно один раз: свойство GITHUB_TOKEN (меню → «🔑 Подключить GitHub для постеров») и секрет TG_BOT_TOKEN
  *  в настройках репозитория. Без токена ничего не отправляется и ничего не ломается.
- *  КХЛ — сразу после последнего матча дня (LIVE видит финальный счёт у всех); НХЛ — в 10:00 МСК, когда ночь доиграна.
+ *  КХЛ — в 00:00 МСК после игрового дня (счёт — из LIVE, когда у всех матчей финал); НХЛ — в 10:00 МСК, когда ночь доиграна.
  *  Постер приходит только вам (TG_ADMIN_ID); в канал — сами, когда посмотрите.
  * ==========================================================================*/
 var ITOGI_REPO = 'sevasonyshahmatov-collab/-kaper-jarvis-bot';
@@ -12918,17 +12918,43 @@ function itogiSetToken_() {
     '\nПроверьте: «🖼 Постер «Итоги дня» → мне» — картинка придёт через 1–2 минуты.');
 }
 
-/** КХЛ: у всех матчей дня финальный счёт — заказать постер (один раз за день). */
+/** КХЛ: у всех матчей дня финальный счёт — счёт запоминаем, а постер заказываем в 00:00 МСК (разовым запуском). */
+var ITOGI_READY = 'ITOGI_READY_';            // + день: счёт матчей дня, ждёт полуночи
+var ITOGI_MIDNIGHT_FN = 'itogiMidnightKhl_';
 function itogiAutoKhl_(lv) {
-  var p = PropertiesService.getScriptProperties();
+  var p = PropertiesService.getScriptProperties(), any = false;
   lv.doneDays.forEach(function (day) {
-    if (p.getProperty(ITOGI_PROP + day)) return;
+    var items = (lv.doneItems || {})[day];
+    if (p.getProperty(ITOGI_PROP + day) || !items || !items.length) return;
+    var key = ITOGI_READY + day, prev = p.getProperty(key);
+    if (prev === JSON.stringify(items)) return;
+    p.setProperty(key, JSON.stringify(items));
+    any = true;
+  });
+  if (!any) return;
+  // ближайшая полночь по МСК (МСК = UTC+3 круглый год); если она уже прошла — через минуту
+  var next = Date.parse(addDaysKey_(mskNow_('yyyy-MM-dd'), 1) + 'T00:00:00+03:00');
+  if (next - Date.now() > 20 * 3600000) next = Date.now() + 60000;
+  try {
+    ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === ITOGI_MIDNIGHT_FN) ScriptApp.deleteTrigger(t); });
+    ScriptApp.newTrigger(ITOGI_MIDNIGHT_FN).timeBased().at(new Date(Math.max(next, Date.now() + 60000))).create();
+  } catch (e) { autoNotifyAdmin_('⚠ КХЛ: не получилось поставить запуск постера «Итоги дня» на 00:00 МСК: ' + e.message); }
+}
+
+/** 00:00 МСК: заказать постер «Итоги дня» за доигранные дни. */
+function itogiMidnightKhl_() {
+  try { ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === ITOGI_MIDNIGHT_FN) ScriptApp.deleteTrigger(t); }); } catch (e) {}
+  var p = PropertiesService.getScriptProperties();
+  p.getKeys().filter(function (k) { return k.indexOf(ITOGI_READY) === 0; }).sort().forEach(function (k) {
+    var day = k.slice(ITOGI_READY.length), items = null;
+    try { items = JSON.parse(p.getProperty(k) || 'null'); } catch (e) { items = null; }
+    if (p.getProperty(ITOGI_PROP + day) || !items || !items.length) { p.deleteProperty(k); return; }
     try {
-      var r = itogiDispatch_('KHL', day, (lv.doneItems || {})[day]);
-      if (r.sent) autoMark_('liveUpdateAuto_', true, 'постер «Итоги дня» за ' + day + ' заказан (матчей ' + r.sent + ')');
-    } catch (e) {
-      p.setProperty(ITOGI_PROP + day, 'ошибка');                    // не стучимся каждые 5 минут
-      autoNotifyAdmin_('⚠ КХЛ: постер «Итоги дня» не заказан: ' + e.message + '. Можно вручную: меню «📣 КХЛ · ТГ группа» → «🖼 Постер «Итоги дня» → мне».');
+      var r = itogiDispatch_('KHL', day, items);
+      if (r.sent) { p.deleteProperty(k); autoMark_('liveUpdateAuto_', true, 'постер «Итоги дня» за ' + day + ' заказан (матчей ' + r.sent + ')'); }
+    } catch (e2) {
+      p.deleteProperty(k); p.setProperty(ITOGI_PROP + day, 'ошибка');
+      autoNotifyAdmin_('⚠ КХЛ: постер «Итоги дня» не заказан: ' + e2.message + '. Можно вручную: меню «📣 КХЛ · ТГ группа» → «🖼 Постер «Итоги дня» → мне».');
     }
   });
 }
@@ -12937,46 +12963,18 @@ function itogiAutoKhl_(lv) {
  * 🖼 ПОСТЕР «МАТЧИ ДНЯ» → ВАМ В TELEGRAM
  *  Так же, как «Итоги дня»: рисует GitHub Actions (формат «Колонки»), таблица передаёт матчи, время и линию П1/Х/П2.
  *  Приходит вместе с карточками матчей (bannersAuto_): КХЛ — утром в день матчей, НХЛ — вечером перед ночью.
- *  Подпись — готовая для канала: «02:30 | 🛩️Филадельфия — Питтсбург🐧» по строке на матч и «Время московское.»;
- *  эмодзи клубов — лист «Эмодзи_клубов» (правьте как хотите; недостающие клубы допишутся сами).
+ *  Подпись — готовая для канала: «02:30 | Филадельфия — Питтсбург» по строке на матч и «Время московское.».
+ *  Без эмодзи: анимированные (премиум) смайлики бот в канал поставить не может, а обычные решили не ставить.
  * ==========================================================================*/
 var MATCHI_PROP = 'MATCHI_POSTER_';          // + день: постер «Матчи дня» за этот день уже заказан
-var MATCHI_EMOJI_NHL_ = [['Анахайм', '🦆'], ['Бостон', '🐻'], ['Баффало', '🦬'], ['Калгари', '🔥'], ['Каролина', '🌀'],
-  ['Чикаго', '🪶'], ['Колорадо', '⛰️'], ['Коламбус', '💣'], ['Даллас', '⭐'], ['Детройт', '🐙'], ['Эдмонтон', '🛢️'],
-  ['Флорида', '🐆'], ['Лос-Анджелес', '👑'], ['Миннесота', '🌲'], ['Монреаль', '⚜️'], ['Нэшвилл', '🎸'], ['Нью-Джерси', '😈'],
-  ['Айлендерс', '🟠'], ['Рейнджерс', '🗽'], ['Оттава', '🏛️'], ['Филадельфия', '🛩️'], ['Питтсбург', '🐧'], ['Сан-Хосе', '🦈'],
-  ['Сиэтл', '🦑'], ['Сент-Луис', '🎵'], ['Тампа-Бэй', '⚡'], ['Торонто', '🍁'], ['Юта', '🦣'], ['Ванкувер', '🐋'],
-  ['Вегас', '⚔️'], ['Вашингтон', '🦅'], ['Виннипег', '✈️']];
-
-/** Эмодзи клубов с листа «Эмодзи_клубов»; клубы своей лиги, которых там нет, дописываются значениями по умолчанию. */
-function matchiEmoji_(ss) {
-  var def = ITOGI_LEAGUE === 'NHL' ? MATCHI_EMOJI_NHL_ : POST_EMOJI_DEFAULT, sh = ss.getSheetByName(POST_EMOJI_SHEET), out = {};
-  if (!sh) {
-    sh = ss.insertSheet(POST_EMOJI_SHEET);
-    sh.getRange(1, 1, 1, 2).setValues([['Команда', 'Эмодзи']]).setFontWeight('bold');
-    sh.setFrozenRows(1);
-    sh.getRange(1, 4).setValue('Эмодзи клубов для подписей к постам. Меняйте на свои — следующий пост возьмёт новые.');
-  }
-  if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues().forEach(function (r) { if (r[0]) out[String(r[0]).trim()] = String(r[1] || '').trim(); });
-  var miss = def.filter(function (d) { return !(d[0] in out); });
-  if (miss.length) {
-    sh.getRange(Math.max(sh.getLastRow(), 1) + 1, 1, miss.length, 2).setValues(miss);
-    miss.forEach(function (d) { out[d[0]] = d[1]; });
-  }
-  return out;
-}
-
 /** Матчи дня для постера: [{home, away, time, odds: [П1, Х, П2] | null}] — по времени начала. */
 function matchiItems_(ss, day) {
   return bannerData_(ss, day).map(function (b) { return { home: b.home, away: b.away, time: String(b.time || '').slice(0, 5), odds: b.odds || null }; });
 }
 
-/** Подпись для канала: «02:30 | 🛩️Филадельфия — Питтсбург🐧», … «Время московское.» */
+/** Подпись для канала: «02:30 | Филадельфия — Питтсбург», … «Время московское.» — без эмодзи. */
 function matchiCaption_(ss, items) {
-  var emo = matchiEmoji_(ss);
-  return items.map(function (it) {
-    return (it.time ? it.time + ' | ' : '') + escHtml_((emo[it.home] || '') + it.home + ' — ' + it.away + (emo[it.away] || ''));
-  }).join('\n') + '\n\nВремя московское.';
+  return items.map(function (it) { return (it.time ? it.time + ' | ' : '') + escHtml_(it.home + ' — ' + it.away); }).join('\n') + '\n\nВремя московское.';
 }
 
 function matchiDispatch_(ss, day) {
@@ -13011,3 +13009,8 @@ function matchiPosterNow_() {
 
 /** К подписи постера «Итоги дня»: в КХЛ дополнительного блока нет (россиян отдельно не выделяем). */
 function itogiExtra_(ss, dayKey, items) { return ''; }
+
+/** Убрать эмодзи из подписи к постеру (флаги, 🧤 и т.п.): анимированные бот в канал не ставит, а обычные не нужны. */
+function itogiNoEmoji_(t) {
+  return String(t || '').replace(/(?:[\u{1F1E6}-\u{1F1FF}]|[\u{1F000}-\u{1FAFF}]|[\u{2600}-\u{27BF}]|[\u{2B00}-\u{2BFF}]|\u{FE0F}|\u{200D})+ ?/gu, '').replace(/^[ \t]+/gm, '');
+}
