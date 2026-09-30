@@ -270,7 +270,7 @@ def _minimal(items, path, league, title, date_title):
 
 
 # ------------------------------------------------------------------ 5. ЛЁД (Exo 2 Italic)
-def _ice(items, path, league, title, date_title, frost=False, colored=False, logos=False):
+def _ice(items, path, league, title, date_title, frost=False, colored=False, logos=False, over=False):
     ROW, gap, head, foot = 128, 16, 262, 96
     H = head + len(items) * (ROW + gap) - gap + foot
     red, navy = (214, 40, 57), (16, 34, 70)
@@ -292,18 +292,22 @@ def _ice(items, path, league, title, date_title, frost=False, colored=False, log
         y0 = head + i * (ROW + gap)
         cy = (y0 + ROW / 2) * S
         home_win = it['sh'] > it['sa']
-        card = _team_plate(it['home'], it['away'], (W - 64) * S, ROW * S, 22 * S, logos) if colored else Image.new('RGBA', ((W - 64) * S, ROW * S), (0, 0, 0, 0))
+        card = _team_plate(it['home'], it['away'], (W - 64) * S, ROW * S, 22 * S, logos and not over) if colored else Image.new('RGBA', ((W - 64) * S, ROW * S), (0, 0, 0, 0))
         if not colored:
             ImageDraw.Draw(card).rounded_rectangle((0, 0, card.width - 1, card.height - 1), radius=22 * S, fill=(255, 255, 255, 215))
         poster._shadowed(ov, card, (32 * S, y0 * S), blur=12 * S, off=(0, 5 * S), color=(30, 60, 110, 70 if colored else 55))
-        nx = 72 if logos else 152                   # логотип внутри плашки — отдельного кружка нет, название ближе к краю
-        if not logos:
+        nx = 196 if over else 72 if logos else 152  # внутри плашки — название у края; поверх — за логотипом
+        if over:                                    # эмблема поверх плашки: там же, где «вплавленная», но в цвете, с обводкой-наклейкой и тенью
+            for team, cx0, ang in ((it['home'], 32 + ROW * 0.60, 10), (it['away'], W - 32 - ROW * 0.60, -10)):
+                e = _sticker(poster._raw_emblem(team, int(ROW * 1.0 * S), int(ROW * 1.0 * S)), 5 * S).rotate(ang, Image.BICUBIC, expand=True)
+                poster._shadowed(ov, e, (int(cx0 * S - e.width / 2), int(cy - e.height / 2)), blur=10 * S, off=(0, 6 * S), color=(0, 0, 0, 120))
+        elif not logos:
             rs._emblem(ov, it['home'], 100 * S, cy, 80)
             rs._emblem(ov, it['away'], (W - 100) * S, cy, 80)
         d = ImageDraw.Draw(ov)
         for team, x, anchor, won in ((it['home'], nx, 'lm', home_win), (it['away'], W - nx, 'rm', not home_win)):
             name = rs._short(team)
-            f = fit(name, EXOI, 36 * S if logos else 34 * S, 300 * S if logos else 230 * S, 800)
+            f = fit(name, EXOI, 34 * S if over else 36 * S if logos else 34 * S, 200 * S if over else 300 * S if logos else 230 * S, 800)
             if colored:                               # белым по клубному цвету, с лёгкой тенью
                 d.text((x * S, cy + 2 * S), name, font=f, anchor=anchor, fill=(0, 0, 0, 90))
                 d.text((x * S, cy), name, font=f, anchor=anchor, fill=(255, 255, 255, 255 if won else 175))
@@ -342,6 +346,20 @@ def _ice(items, path, league, title, date_title, frost=False, colored=False, log
     out = poster._canvas_texture(out, 0.2)
     out.save(path, quality=95, subsampling=0, optimize=True)
     return path
+
+
+def _sticker(e, border):
+    """Белая обводка по контуру эмблемы, как у наклейки: отделяет тёмный логотип от фона того же цвета."""
+    pad = border + 2
+    big = Image.new('RGBA', (e.width + 2 * pad, e.height + 2 * pad), (0, 0, 0, 0))
+    big.paste(e, (pad, pad))
+    a = big.getchannel('A').point(lambda v: 255 if v > 60 else 0).filter(ImageFilter.MaxFilter(2 * (border // 2) + 1))
+    for _ in range(max(0, border // 6)):
+        a = a.filter(ImageFilter.MaxFilter(5))
+    a = a.filter(ImageFilter.GaussianBlur(1))
+    out = Image.new('RGBA', big.size, (255, 255, 255, 0))
+    out.putalpha(a)
+    return Image.alpha_composite(out, big)
 
 
 def _team_plate(home, away, w, h, radius, logos=False):
@@ -455,7 +473,9 @@ STYLES = {'arena': _arena, 'digital': _digital, 'gazeta': _gazeta, 'minimal': _m
           'ice_color': lambda *a: _ice(*a, colored=True),
           'ice_frost_color': lambda *a: _ice(*a, frost=True, colored=True),
           'ice_logo': lambda *a: _ice(*a, colored=True, logos=True),
-          'ice_frost_logo': lambda *a: _ice(*a, frost=True, colored=True, logos=True)}
+          'ice_frost_logo': lambda *a: _ice(*a, frost=True, colored=True, logos=True),
+          'ice_logo_over': lambda *a: _ice(*a, colored=True, logos=True, over=True),
+          'ice_frost_logo_over': lambda *a: _ice(*a, frost=True, colored=True, logos=True, over=True)}
 
 
 def render(items, path, style='arena', league='KHL', title='ИТОГИ ДНЯ', date_title=None):
