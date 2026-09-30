@@ -4885,94 +4885,156 @@ function syncPredictionRows_() {
   return toAdd.length;
 }
 
-/** Пункт меню и утреннее автообновление: всё, что нужно после игрового дня. */
-function runAfterGameDay_(e) {
-  var ss = SpreadsheetApp.getActive();
-  var steps = [];
-  var auto = !!(e && e.triggerUid);            // запуск по расписанию (у кнопки меню аргументов нет)
-  if (auto) autoStart_('runAfterGameDay_');
-  var problem = /ошибк|не найден|не получилось|не удалось|не нашлось/i;
+/**
+ * Пункт меню и утреннее автообновление: всё, что нужно после игрового дня.
+ *
+ * Шагов много, и целиком они не укладываются в лимит Google — 6 минут на один запуск
+ * (по журналу выполнений обрывалось 26, 27, 29 и 30.09 ровно на 360 с, без итога и без
+ * сообщения). Поэтому обновление идёт частями: новый шаг начинается, только если с начала
+ * запуска прошло меньше AGD_STEP_START_MS; иначе состояние сохраняется в свойствах скрипта,
+ * и через минуту разовый запуск runAfterGameDayContinue_ продолжает со следующего шага.
+ */
+var AGD_STATE_KEY = 'AGD_STATE';
+var AGD_STEP_START_MS = 150000;             // новый шаг — только в первые 2,5 минуты запуска
+var AGD_SAFE_MS = 300000;                   // к 5-й минуте шаг должен закончиться (лимит — 6)
+var AGD_CONTINUE_FN = 'runAfterGameDayContinue_';
 
-  var step = function (name, fn) {
-    var before = QUIET_LOG_.length;
-    try {
-      var out = fn();
-      var msgs = QUIET_LOG_.slice(before);
-      var warn = msgs.filter(function (m) { return problem.test(m); });
-      steps.push({ name: name, ok: warn.length === 0, out: out, msgs: msgs, err: warn.length ? warn[0] : null });
-    } catch (e) {
-      steps.push({ name: name, ok: false, msgs: QUIET_LOG_.slice(before), err: e.message });
-    }
-  };
+function runAfterGameDay_(e) {
+  var auto = !!(e && e.triggerUid);            // запуск по расписанию (у кнопки меню аргументов нет)
+  agdClearContinue_();
+  PropertiesService.getScriptProperties().deleteProperty(AGD_STATE_KEY);
+  return agdRun_({ auto: auto, i: 0, lines: [], failed: 0, part: 1, begun: Date.now() });
+}
+
+/** Разовый запуск через минуту после предыдущей части. */
+function runAfterGameDayContinue_() {
+  agdClearContinue_();
+  var p = PropertiesService.getScriptProperties(), state = null;
+  try { state = JSON.parse(p.getProperty(AGD_STATE_KEY) || 'null'); } catch (e) { state = null; }
+  p.deleteProperty(AGD_STATE_KEY);
+  if (!state || Date.now() - state.begun > 3 * 3600000) return;   // продолжать нечего или слишком давно
+  state.part++;
+  return agdRun_(state);
+}
+
+function agdClearContinue_() {
+  try { ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === AGD_CONTINUE_FN) ScriptApp.deleteTrigger(t); }); } catch (e) {}
+}
+
+/** Шаги по порядку: [название, функция(мс до безопасной границы)]. Список должен быть одинаковым во всех частях. */
+function agdSteps_(ss) {
+  var s = [
+    ['Границы диапазонов в формулах', function () { return repairFormulaBounds_(ss); }],
+    ['Даты и известные ошибки расписания', function () {
+      return { fixedDates: repairShiftedDates_(), corrections: applyKnownCorrections_(), moved: mergeRescheduled_(ss) };
+    }],
+    ['Результаты и рейтинг Elo', function () {
+      updateResultsFromWeb();
+      computeAndWriteElo_(true);   // всегда: матч мог попасть в таблицу и без sports.ru (исправления, ручной ввод)
+      updateLeagueRates_(true);
+    }],
+    ['Календарь сезона с sports.ru', function () { return syncScheduleFromWeb_(); }],
+    ['Новые матчи в прогнозах (на ' + SYNC_HORIZON_DAYS + ' дней)', function () { return syncPredictionRows_(); }],
+    ['Результативность дома / в гостях', function () { setupHomeAwayScoringSplit_(); }],
+    ['Формулы модели, П1/Х/П2, тоталы', function () {
+      applyProbabilityFormula_(ss.getSheetByName('прогнозы'));
+      setupRegulationAndTotals_();
+    }],
+    ['Точность прогнозов', function () { showAccuracySummary_(); }],
+    ['Проверка выводов агента', function () { return agentSignalsReview_(ss); }],
+    ['Прогнозы экспертов из роликов', function () { return expertPicksSettle_(ss); }],
+    ['Составы сыгранных матчей', function (left) {
+      // сбор составов сам следит за временем: даём ему не больше, чем осталось до безопасной границы
+      var r = lineupsCollect_(ss, Math.max(30000, Math.min(150000, left - 30000))); lineupKeyRender_(ss); return r;
+    }]
+  ];
+  if (PIPELINE_EXTRA_NAME) s.push([PIPELINE_EXTRA_NAME, function () { return pipelineExtra_(ss); }]);
+  s.push(
+    ['Банкролл', function () { updateBankrollSimulation_(); }],
+    ['История турнирной таблицы', function () { computeStandingsHistory_(); }],
+    ['События дня в купоне', function () { updateAllEventsForDay_(); }],
+    ['Архив линий прошлого сезона', function () { return loadHistOddsIfNeeded_(); }],
+    ['Мои поправки к рейтингу', function () { tweaksApply_(true); tweaksRankingRender_(); return tweaksRender_(); }],
+    ['Коэффициенты рынка', function () { return updateMarketOdds_(true); }]
+  );
+  if (publicPageOn_()) s.push(['Публичная страница точности', function () { return publicPageUpdate_(ss, false); }]);
+  if (PIPELINE_GAME) s.push(['Игра «Угадай победителей»', function () { return gameAfterResults_(); }]);
+  return s;
+}
+
+function agdRun_(state) {
+  var ss = SpreadsheetApp.getActive(), t0 = Date.now();
+  if (state.auto) autoStart_('runAfterGameDay_');
+  var problem = /ошибк|не найден|не получилось|не удалось|не нашлось/i;
+  var steps = agdSteps_(ss);
 
   QUIET_ = true;
   QUIET_LOG_ = [];
   try {
-    step('Границы диапазонов в формулах', function () { return repairFormulaBounds_(ss); });
-    step('Даты и известные ошибки расписания', function () {
-      return { fixedDates: repairShiftedDates_(), corrections: applyKnownCorrections_(), moved: mergeRescheduled_(ss) };
-    });
-    step('Результаты и рейтинг Elo', function () {
-      updateResultsFromWeb();
-      computeAndWriteElo_(true);   // всегда: матч мог попасть в таблицу и без sports.ru (исправления, ручной ввод)
-      updateLeagueRates_(true);
-    });
-    step('Календарь сезона с sports.ru', function () { return syncScheduleFromWeb_(); });
-    step('Новые матчи в прогнозах (на ' + SYNC_HORIZON_DAYS + ' дней)', function () { return syncPredictionRows_(); });
-    step('Результативность дома / в гостях', function () { setupHomeAwayScoringSplit_(); });
-    step('Формулы модели, П1/Х/П2, тоталы', function () {
-      applyProbabilityFormula_(ss.getSheetByName('прогнозы'));
-      setupRegulationAndTotals_();
-    });
-    step('Точность прогнозов', function () { showAccuracySummary_(); });
-    step('Проверка выводов агента', function () { return agentSignalsReview_(ss); });
-    step('Прогнозы экспертов из роликов', function () { return expertPicksSettle_(ss); });
-    step('Составы сыгранных матчей', function () { var r = lineupsCollect_(ss, 150000); lineupKeyRender_(ss); return r; });
-    if (PIPELINE_EXTRA_NAME) step(PIPELINE_EXTRA_NAME, function () { return pipelineExtra_(ss); });
-    step('Банкролл', function () { updateBankrollSimulation_(); });
-    step('История турнирной таблицы', function () { computeStandingsHistory_(); });
-    step('События дня в купоне', function () { updateAllEventsForDay_(); });
-    step('Архив линий прошлого сезона', function () { return loadHistOddsIfNeeded_(); });
-    step('Мои поправки к рейтингу', function () { tweaksApply_(true); tweaksRankingRender_(); return tweaksRender_(); });
-    step('Коэффициенты рынка', function () { return updateMarketOdds_(true); });
-    if (publicPageOn_()) step('Публичная страница точности', function () { return publicPageUpdate_(ss, false); });
-    if (PIPELINE_GAME) step('Игра «Угадай победителей»', function () { return gameAfterResults_(); });
+    while (state.i < steps.length && Date.now() - t0 < AGD_STEP_START_MS) {
+      var name = steps[state.i][0], before = QUIET_LOG_.length, s0 = Date.now(), s;
+      try {
+        var out = steps[state.i][1](AGD_SAFE_MS - (Date.now() - t0));
+        var msgs = QUIET_LOG_.slice(before);
+        var warn = msgs.filter(function (m) { return problem.test(m); });
+        s = { name: name, ok: warn.length === 0, out: out, msgs: msgs, err: warn.length ? warn[0] : null };
+      } catch (e) {
+        s = { name: name, ok: false, msgs: QUIET_LOG_.slice(before), err: e.message };
+      }
+      var sec = Math.round((Date.now() - s0) / 1000);
+      state.lines.push((agdLine_(s) + (sec >= 10 ? ' (' + sec + ' с)' : '')).slice(0, 400));
+      if (!s.ok) state.failed++;
+      state.i++;
+    }
   } finally {
     QUIET_ = false;
   }
-  try { sheetsDecorate_(ss, false); } catch (e) { /* цвета вкладок — не критично */ }
 
-  // --- сводка ---
-  var lines = [];
+  if (state.i < steps.length) {
+    // время запуска на исходе — остальное через минуту отдельным запуском
+    PropertiesService.getScriptProperties().setProperty(AGD_STATE_KEY, JSON.stringify(state));
+    ScriptApp.newTrigger(AGD_CONTINUE_FN).timeBased().after(60 * 1000).create();
+    if (!state.auto && state.part === 1) uiAlert_('Сделано шагов: ' + state.i + ' из ' + steps.length + '. Остальное продолжится само через минуту ' +
+      '(у Google лимит 6 минут на один запуск). Итог пришлю в Telegram.');
+    return { pending: steps.length - state.i };
+  }
+  return agdFinish_(ss, state);
+}
+
+/** Строка сводки по одному шагу. */
+function agdLine_(s) {
   var firstLine = function (m) { return String(m || '').split('\n')[0].trim(); };
-  steps.forEach(function (s) {
-    var detail = '';
-    if (!s.ok) detail = ' — ' + firstLine(s.err);
-    else if (s.name.indexOf('Результаты') === 0 && s.msgs.length) {
-      var rm = s.msgs.filter(function (m) { return /матч\(ей\) обновлено/.test(m); });
-      detail = ' — ' + firstLine(rm.length ? rm[rm.length - 1] : s.msgs[s.msgs.length - 1]);
-    }
-    else if (s.name.indexOf('Новые матчи') === 0) detail = ' — добавлено: ' + (s.out || 0);
-    else if (s.name.indexOf('Составы') === 0 && s.out) detail = ' — добавлено матчей: ' + s.out.added + (s.out.pending ? ', осталось ' + s.out.pending + ' (догрузятся завтра или кнопкой в меню «Агент»)' : '');
-    else if (s.name.indexOf('Проверка выводов') === 0 && s.out) detail = ' — проверено новых выводов: ' + s.out.checked + (s.out.checked ? ', подтвердилось: ' + s.out.hits : '');
-    else if (s.name.indexOf('Прогнозы экспертов') === 0 && s.out) detail = s.out.settled ? ' — проверено новых: ' + s.out.checked + '; ' + s.out.lines.slice(0, 3).join('; ') : ' — пока нечего проверять';
-    else if (s.name.indexOf('Игра') === 0 && s.out) detail = s.out.skipped ? ' — не подключена' : ' — подсчитано прогнозов: ' + s.out.settled + (s.out.sent.length ? ', в канал: ' + s.out.sent.join(', ') : '');
-    else if (s.name.indexOf('Коэффициенты') === 0 && s.out) detail = ' — линий: ' + s.out.lines + ', ближайших матчей с линией: ' + s.out.withOdds + ' из ' + s.out.upcoming;
-    else if (s.name.indexOf('Даты') === 0 && s.out) {
-      var parts = [];
-      if (s.out.fixedDates) parts.push('исправлено дат: ' + s.out.fixedDates);
-      if (s.out.corrections.length) parts.push(s.out.corrections.join('; '));
-      if (s.out.moved && s.out.moved.length) parts.push('перенесённые матчи: ' + s.out.moved.join('; '));
-      detail = parts.length ? ' — ' + parts.join('; ') : ' — всё в порядке';
-    }
-    else if (s.name.indexOf('Календарь') === 0 && s.out) {
-      detail = ' — новых матчей: ' + s.out.added;
-      if (s.out.unknown.length) detail += '\n     не распознаны команды: ' + s.out.unknown.slice(0, 5).join('; ');
-      if (s.out.notOnWeb.length) detail += '\n     есть в таблице, но нет в календаре сайта (перенос?): ' + s.out.notOnWeb.slice(0, 5).join('; ') +
-        (s.out.notOnWeb.length > 5 ? ' и ещё ' + (s.out.notOnWeb.length - 5) : '');
-    }
-    lines.push((s.ok ? '✓ ' : '⚠ ') + s.name + detail);
-  });
+  var detail = '';
+  if (!s.ok) detail = ' — ' + firstLine(s.err);
+  else if (s.name.indexOf('Результаты') === 0 && s.msgs.length) {
+    var rm = s.msgs.filter(function (m) { return /матч\(ей\) обновлено/.test(m); });
+    detail = ' — ' + firstLine(rm.length ? rm[rm.length - 1] : s.msgs[s.msgs.length - 1]);
+  }
+  else if (s.name.indexOf('Новые матчи') === 0) detail = ' — добавлено: ' + (s.out || 0);
+  else if (s.name.indexOf('Составы') === 0 && s.out) detail = ' — добавлено матчей: ' + s.out.added + (s.out.pending ? ', осталось ' + s.out.pending + ' (догрузятся завтра или кнопкой в меню «Агент»)' : '');
+  else if (s.name.indexOf('Проверка выводов') === 0 && s.out) detail = ' — проверено новых выводов: ' + s.out.checked + (s.out.checked ? ', подтвердилось: ' + s.out.hits : '');
+  else if (s.name.indexOf('Прогнозы экспертов') === 0 && s.out) detail = s.out.settled ? ' — проверено новых: ' + s.out.checked + '; ' + s.out.lines.slice(0, 3).join('; ') : ' — пока нечего проверять';
+  else if (s.name.indexOf('Игра') === 0 && s.out) detail = s.out.skipped ? ' — не подключена' : ' — подсчитано прогнозов: ' + s.out.settled + (s.out.sent.length ? ', в канал: ' + s.out.sent.join(', ') : '');
+  else if (s.name.indexOf('Коэффициенты') === 0 && s.out) detail = ' — линий: ' + s.out.lines + ', ближайших матчей с линией: ' + s.out.withOdds + ' из ' + s.out.upcoming;
+  else if (s.name.indexOf('Даты') === 0 && s.out) {
+    var parts = [];
+    if (s.out.fixedDates) parts.push('исправлено дат: ' + s.out.fixedDates);
+    if (s.out.corrections.length) parts.push(s.out.corrections.join('; '));
+    if (s.out.moved && s.out.moved.length) parts.push('перенесённые матчи: ' + s.out.moved.join('; '));
+    detail = parts.length ? ' — ' + parts.join('; ') : ' — всё в порядке';
+  }
+  else if (s.name.indexOf('Календарь') === 0 && s.out) {
+    detail = ' — новых матчей: ' + s.out.added;
+    if (s.out.unknown.length) detail += '\n     не распознаны команды: ' + s.out.unknown.slice(0, 5).join('; ');
+    if (s.out.notOnWeb.length) detail += '\n     есть в таблице, но нет в календаре сайта (перенос?): ' + s.out.notOnWeb.slice(0, 5).join('; ') +
+      (s.out.notOnWeb.length > 5 ? ' и ещё ' + (s.out.notOnWeb.length - 5) : '');
+  }
+  return (s.ok ? '✓ ' : '⚠ ') + s.name + detail;
+}
+
+function agdFinish_(ss, state) {
+  try { sheetsDecorate_(ss, false); } catch (e) { /* цвета вкладок — не критично */ }
+  var lines = state.lines;
 
   var extra = [];
   try {
@@ -4994,17 +5056,19 @@ function runAfterGameDay_(e) {
     }
   } catch (e) { /* сводка без горизонта */ }
 
-  var failed = steps.filter(function (s) { return !s.ok; }).length;
-  var text = (failed ? 'Готово, но ' + failed + ' шаг(а) с проблемой — подробности ниже.' : 'Всё обновлено.') + '\n\n' +
+  var failed = state.failed;
+  var parts = state.part > 1 ? ' (в ' + state.part + ' ' + ruPlural_(state.part, 'часть', 'части', 'частей') + ')' : '';
+  var text = (failed ? 'Готово' + parts + ', но ' + failed + ' шаг(а) с проблемой — подробности ниже.' : 'Всё обновлено' + parts + '.') + '\n\n' +
     lines.join('\n') + (extra.length ? '\n\n' + extra.join('\n') : '');
-  if (auto) {
-    autoMark_('runAfterGameDay_', !failed, failed ? failed + ' шаг(а) с проблемой' : 'всё обновлено');
+  if (state.auto) {
+    autoMark_('runAfterGameDay_', !failed, (failed ? failed + ' шаг(а) с проблемой' : 'всё обновлено') + parts);
     try { ensureAutomation_(false); } catch (e2) { /* триггеры проверим в следующий раз */ }
     try { autoRender_(ss); } catch (e3) { /* лист статуса не обязателен */ }
     if (failed) autoNotifyAdmin_('⚠ Утреннее обновление таблицы: ' + failed + ' шаг(а) с проблемой\n\n' +
       lines.filter(function (l) { return l.indexOf('⚠') === 0; }).join('\n'));
-  } else uiAlert_(text);
-  return { steps: steps, text: text };
+  } else if (state.part === 1) uiAlert_(text);
+  else autoNotifyAdmin_('🏒 Обновление, запущенное из меню, закончено\n\n' + text);
+  return { text: text };
 }
 
 /* ============================================================================
