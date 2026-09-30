@@ -11045,6 +11045,8 @@ var KHL_APP_STATS_ = null;
 function khlAppStatsCached_(ss) { if (!KHL_APP_STATS_) { try { KHL_APP_STATS_ = khlAppTeamStats_(ss || SpreadsheetApp.getActive()); } catch (e) { KHL_APP_STATS_ = {}; } } return KHL_APP_STATS_; }
 
 function khlPct_(x) { return x === null || x === undefined ? '—' : Math.round(x * 1000) / 10 + '%'; }
+/** Доля для ячейки листа: число (0.576), а не текст «57.6%» — формат процента ставится на столбец. */
+function khlPctVal_(x) { return x === null || x === undefined ? '—' : Math.round(x * 1000) / 1000; }
 function khlNum_(x, d) { return x === null || x === undefined ? '—' : Math.round(x * Math.pow(10, d || 1)) / Math.pow(10, d || 1); }
 
 /** Строка о команде для агента/досье. */
@@ -11066,13 +11068,43 @@ function khlAppRender_(ss, T) {
   sh.getRange(1, 1, 1, head.length).setValues([head]).setFontWeight('bold');
   var now = mskNow_(), rows = Object.keys(T).sort(function (a, b) { return (T[b].cfPct || 0) - (T[a].cfPct || 0); }).map(function (k) {
     var t = T[k];
-    return [k, t.gp, khlNum_(t.sf / t.gp), khlNum_(t.sa / t.gp), t.sf5 === null ? '—' : khlNum_(t.sf5) + ' / ' + khlNum_(t.sa5), khlPct_(t.cfPct), khlPct_(t.ppPct), khlPct_(t.pkPct),
-      khlPct_(t.foPct), khlPct_(t.svPct), khlPct_(t.shPct), khlNum_(t.pdo), khlPct_(t.atkPct), khlNum_(t.pim / t.gp), t.mainGoalie ? t.mainGoalie + ' (' + t.mainGoalieGp + ')' : '—', t.lastGoalie || '—', now];
+    return [k, t.gp, khlNum_(t.sf / t.gp), khlNum_(t.sa / t.gp), t.sf5 === null ? '—' : khlNum_(t.sf5) + ' / ' + khlNum_(t.sa5), khlPctVal_(t.cfPct), khlPctVal_(t.ppPct), khlPctVal_(t.pkPct),
+      khlPctVal_(t.foPct), khlPctVal_(t.svPct), khlPctVal_(t.shPct), khlNum_(t.pdo), khlPctVal_(t.atkPct), khlNum_(t.pim / t.gp), t.mainGoalie ? t.mainGoalie + ' (' + t.mainGoalieGp + ')' : '—', t.lastGoalie || '—', now];
   });
-  if (rows.length) sh.getRange(2, 1, rows.length, head.length).setValues(rows);
+  if (rows.length) {
+    sh.getRange(2, 1, rows.length, head.length).setValues(rows);
+    // проценты пишем числами: текст «57.6%» в русской локали не число, и формулы его не прочтут
+    [6, 7, 8, 9, 10, 11, 13].forEach(function (c) { sh.getRange(2, c, rows.length, 1).setNumberFormat('0.0%'); });
+  }
   sh.getRange(rows.length + 3, 1).setValue('Источник: официальное приложение КХЛ (khl.api.webcaster.pro). Доля всех бросков > 50% — команда чаще бросает, чем соперник. ' +
     'PDO = % отражённых + реализация бросков; сильно выше 100 — вероятно, везение, которое обычно проходит.').setFontColor('#666666');
   try { sh.setFrozenRows(1); } catch (e) {}
+}
+
+/**
+ * Data!K:N (броски, штраф, большинство, меньшинство) — из официального приложения КХЛ.
+ * Раньше эти столбцы тянулись из Parser_Data, где лежали неверные числа
+ * (19–74 броска «за сезон» вместо ~30 за игру). Ни одна формула модели на
+ * K:N не ссылается — это справочные столбцы, теперь хотя бы с верными числами.
+ * Пишутся значения, а не формулы: лист Parser_Data больше не нужен.
+ */
+function khlAppToData_(ss, T) {
+  var sh = ss.getSheetByName('Data');
+  if (!sh || sh.getLastRow() < 2) return;
+  var names = sh.getRange(2, 1, Math.min(sh.getLastRow() - 1, 40), 1).getValues();
+  var n = 0;
+  names.forEach(function (r, i) { if (String(r[0]).trim()) n = i + 1; });
+  if (!n) return;
+  var round = function (x, d) { var p = Math.pow(10, d); return Math.round(x * p) / p; };
+  var rows = names.slice(0, n).map(function (r) {
+    var t = T[String(r[0]).trim()];
+    if (!t || !t.gp) return ['', '', '', ''];
+    return [round(t.sf / t.gp, 1), round(t.pim / t.gp, 1),
+      t.ppPct === null ? '' : round(t.ppPct, 3), t.pkPct === null ? '' : round(t.pkPct, 3)];
+  });
+  sh.getRange(1, 11, 1, 4).setValues([['Броски за игру', 'Штраф за игру, мин', 'Большинство, %', 'Меньшинство, %']]);
+  sh.getRange(2, 11, n, 4).setValues(rows);
+  sh.getRange(2, 13, n, 2).setNumberFormat('0.0%');
 }
 
 /** Шаг «Обновить всё» и кнопка. */
@@ -11082,6 +11114,7 @@ function khlAppUpdate_(ss, maxNew) {
   KHL_APP_STATS_ = null;
   var T = khlAppStatsCached_(ss);
   khlAppRender_(ss, T);
+  try { khlAppToData_(ss, T); } catch (e) { /* Data!K:N — справочные, на прогноз не влияют */ }
   return 'приложение КХЛ: новых матчей ' + s.added + (s.pending ? ', догрузятся позже ' + s.pending : '') + ', команд в статистике ' + Object.keys(T).length;
 }
 function khlStatsNow_() {
