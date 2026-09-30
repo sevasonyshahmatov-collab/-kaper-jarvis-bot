@@ -12208,7 +12208,7 @@ var AUTO_JOBS = [
   { fn: 'updateMarketOddsAuto_', kind: 'hours', every: 2, what: 'Коэффициенты рынка (Pinnacle, NHL) и «Лучший прогноз»' },
   { fn: 'nhlEveningAuto_', kind: 'day', hour: 23, what: 'Канал: «прогнозы на ночь» (шансы, лучший прогноз, вратари, вывод агента) + вам расхождения модели и рынка' },
   { fn: 'nhlGoaliesAuto_', kind: 'hours', every: 1, what: 'До начала матчей (19:00–07:00 МСК): сменились вратари — правка поста в канале и сообщение вам' },
-  { fn: 'nhlMorningAuto_', kind: 'day', hour: 14, what: 'Канал: «итоги ночи» (счёт, что угадали, точность сезона)' },
+  { fn: 'nhlMorningAuto_', kind: 'day', hour: 14, what: 'Канал: «итоги ночи» (счёт матчей и «Наши»)' },
   { fn: 'scoutAuto_', kind: 'hours', every: 1, what: 'Разведчик: новые посты и новости по командам ближайших матчей → лист «Факты»' },
   { fn: 'scoutReportAuto_', kind: 'minutes', every: 15, what: 'Разведчик: итог вам за ~1,5 ч до каждого матча' },
   { fn: 'powerAuto_', kind: 'week', hour: 21, what: 'Канал: «Сила команд» по понедельникам (рейтинг и изменения мест за неделю)' },
@@ -12774,19 +12774,13 @@ function nhlMorningPost_(target, dayKey) {
   dayKey = dayKey || Utilities.formatDate(new Date(), 'Europe/Moscow', 'yyyy-MM-dd');
   var f = nhlDayForecasts_(ss, dayKey).filter(function (x) { return x.played; });
   if (!f.length) return { sent: 0, matches: 0 };
-  var mOk = 0, mN = 0, bOk = 0, bN = 0;
+  // только счёт матчей ночи и «Наши» — без отметок прогнозов и точности (по вашему решению от 30.09)
   var lines = f.map(function (x) {
-    var homeWon = x.hg > x.ag, parts = [escHtml_(x.home + ' — ' + x.away) + ' <b>' + x.hg + ':' + x.ag + '</b>' + (x.ot ? ' ОТ/Б' : '')];
-    if ((x.mark === '✅' || x.mark === '❌') && x.honest) { mN++; if (x.mark === '✅') mOk++; parts.push('прогноз ' + x.mark); }
-    if (x.bestH) { var hit = (x.bestH >= 0.5) === homeWon; bN++; if (hit) bOk++; parts.push('лучший ' + (hit ? '✅' : '❌')); }
-    return parts.join(' · ');
+    return escHtml_(x.home + ' — ' + x.away) + ' <b>' + x.hg + ':' + x.ag + '</b>' + (x.ot ? ' ОТ/Б' : '');
   });
-  var season = nhlSeasonAccuracy_(ss), ours = '';
+  var ours = '';
   try { ours = nhlOursText_(ss, dayKey, f); } catch (e) { ours = ''; }
-  var text = '🇺🇸 <b>НХЛ · итоги ночи</b> · ' + escHtml_(ruDayTitle_(dayKey).toLowerCase()) + '\n\n' + lines.join('\n') + '\n\n' + (ours ? ours + '\n\n' : '') +
-    (mN ? 'За ночь мои прогнозы: ' + mOk + ' из ' + mN + (bN ? ', лучший прогноз ' + bOk + ' из ' + bN : '') + '.\n' : '') +
-    (season.n ? 'С начала сезона: ' + season.ok + ' из ' + season.n + ' (' + Math.round(season.ok / season.n * 100) + '%)' +
-      (season.bn ? ', лучший прогноз ' + season.bok + ' из ' + season.bn + ' (' + Math.round(season.bok / season.bn * 100) + '%)' : '') + '.' : '');
+  var text = '🇺🇸 <b>НХЛ · итоги ночи</b> · ' + escHtml_(ruDayTitle_(dayKey).toLowerCase()) + '\n\n' + lines.join('\n') + (ours ? '\n\n' + ours : '');
   var chat = target === 'channel' ? nhlChannelId_() : p.getProperty('TG_ADMIN_ID');
   if (!chat) throw new Error(target === 'channel' ? 'не указан канал: Настройки → «Ключи и Telegram для НХЛ»' : 'не указан ваш Telegram ID');
   var r = tg_('sendMessage', { chat_id: chat, text: target === 'channel' ? text : '👀 ПРОБНЫЙ ПОСТ (в канал не ушёл)\n\n' + text, parse_mode: 'HTML', disable_web_page_preview: true });
