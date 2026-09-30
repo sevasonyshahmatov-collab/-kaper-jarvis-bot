@@ -13746,7 +13746,7 @@ function itogiPosterNow_() {
   if (!day) { uiAlert_('На листе «' + SHEET_RESULTS + '» нет сыгранных матчей.'); return; }
   var items = itogiItemsFromResults_(ss, day);
   try {
-    var r = itogiDispatch_(ITOGI_LEAGUE, day, items);
+    var r = itogiDispatch_(ITOGI_LEAGUE, day, itogiMarksNhl_(day, items));
     if (r.skipped) { uiAlert_('Постер не заказан: ' + r.skipped + '.' + (/GitHub/.test(r.skipped) ? ' Подключите: «🔑 Подключить GitHub для постеров».' : '')); return; }
     uiAlert_('Постер «Итоги дня» за ' + day.split('-').reverse().join('.') + ' (матчей: ' + r.sent + ') рисуется — придёт вам в Telegram через 1–2 минуты.');
   } catch (e) { uiAlert_('Не получилось: ' + e.message); }
@@ -13776,7 +13776,7 @@ function itogiAutoNhl_(day) {
   try {
     var f = nhlDayForecasts_(SpreadsheetApp.getActive(), day), played = f.filter(function (x) { return x.played; });
     if (!played.length) return;
-    var r = itogiDispatch_('NHL', day, played.map(function (x) { return { home: x.home, away: x.away, sh: Number(x.hg), sa: Number(x.ag), mark: x.ot ? 'ОТ/Б' : '' }; }));
+    var r = itogiDispatch_('NHL', day, itogiMarksNhl_(day, played.map(function (x) { return { home: x.home, away: x.away, sh: Number(x.hg), sa: Number(x.ag), mark: x.ot ? 'ОТ/Б' : '' }; })));
     if (r.sent) autoMark_('nhlMorningAuto_', true, 'постер «Итоги ночи» заказан (матчей ' + r.sent + (played.length < f.length ? ' из ' + f.length : '') + ')');
   } catch (e) {
     p.setProperty(ITOGI_PROP + day, 'ошибка');
@@ -13838,4 +13838,19 @@ function itogiExtra_(ss, dayKey, items) { return itogiNoEmoji_(nhlOursText_(ss, 
 /** Убрать эмодзи из подписи к постеру (флаги, 🧤 и т.п.): анимированные бот в канал не ставит, а обычные не нужны. */
 function itogiNoEmoji_(t) {
   return String(t || '').replace(/(?:[\u{1F1E6}-\u{1F1FF}]|[\u{1F000}-\u{1FAFF}]|[\u{2600}-\u{27BF}]|[\u{2B00}-\u{2BFF}]|\u{FE0F}|\u{200D})+ ?/gu, '').replace(/^[ \t]+/gm, '');
+}
+
+/** «ОТ/Б» → «ОТ» или «Б» по данным НХЛ (как закончился матч); не нашли матч — оставляем «ОТ/Б». */
+function itogiMarksNhl_(day, items) {
+  var kind = {};
+  try {
+    [addDaysKey_(day, -1), day].forEach(function (d) {
+      nhlGamesOf_(nhlGet_('score/' + d)).forEach(function (g) {
+        var h = nhlTeamOf_(g.homeTeam), a = nhlTeamOf_(g.awayTeam);
+        var last = String((g.gameOutcome && g.gameOutcome.lastPeriodType) || '').toUpperCase();
+        if (h && a && (last === 'OT' || last === 'SO')) kind[h + '|' + a] = last === 'SO' ? 'Б' : 'ОТ';
+      });
+    });
+  } catch (e) { /* без данных НХЛ — общая пометка */ }
+  return items.map(function (it) { var k = kind[it.home + '|' + it.away]; if (it.mark && k) it.mark = k; return it; });
 }
