@@ -49,11 +49,11 @@ def _header(d, league, title, date_title):
     rs._brand(d, W * S / 2, 58 * S, league, dark_text=True)
     d.text((W * S / 2, 136 * S), title, font=F(EXOI, 76 * S, 900), anchor='mm', fill=NAVY + (255,))
     if date_title:
-        spaced(d, (W * S / 2, 206 * S), date_title.upper(), F(EXOI, 22 * S, 700), (60, 80, 112, 255), 3 * S)
+        spaced(d, (W * S / 2, 206 * S), date_title.upper(), F(EXOI, 22 * S, 700), (40, 58, 92, 255), 3 * S)
 
 
 def _footer(d, H):
-    d.text((W * S / 2, (H - 70) * S), FOOT_TEXT, font=F(EXOI, 13 * S, 700), anchor='mm', fill=(90, 104, 128, 255))
+    d.text((W * S / 2, (H - 70) * S), FOOT_TEXT, font=F(EXOI, 13 * S, 800), anchor='mm', fill=(34, 50, 84, 255))
     spaced(d, (W * S / 2, (H - 40) * S), '@jarvibet', F(EXOI, 24 * S, 800), RED + (255,), 2 * S)
 
 
@@ -142,8 +142,8 @@ def render(items, path, style='crown', league='KHL', title='МАТЧИ ДНЯ', 
                 w = fo.getlength(lab) + 20 * S
                 x1 = x * S if anchor == 'lm' else x * S - w
                 d.rounded_rectangle((x1, cy + 18 * S, x1 + w, cy + 46 * S), radius=14 * S,
-                                    fill=(255, 255, 255, 250) if hot else (255, 255, 255, 150))
-                d.text((x1 + w / 2, cy + 32 * S), lab, font=fo, anchor='mm', fill=_ink(fc) + (255,) if hot else GREY + (255,))
+                                    fill=(255, 255, 255, 250) if hot else (222, 228, 237, 255))
+                d.text((x1 + w / 2, cy + 32 * S), lab, font=fo, anchor='mm', fill=_ink(fc) + (255,) if hot else (92, 102, 122, 255))
             d.rounded_rectangle((cx - 96 * S, cy - 44 * S, cx + 96 * S, cy + 44 * S), radius=44 * S, fill=(255, 255, 255, 250),
                                 outline=fc + (255,), width=4 * S)
             d.text((cx, cy - 10 * S), it.get('time', ''), font=F(RUSSO, 40 * S), anchor='mm', fill=NAVY + (255,))

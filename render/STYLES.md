@@ -24,6 +24,18 @@ rs2.render(items, 'itogi.jpg', style='ice_logo', league='KHL', date_title='по�
 - `results_styles2.render(..., style='ice_logo_over')` — цветные плашки, логотипы-наклейки, шайбы
 - `results_ice3.render(..., layout='winner')` — ЦВЕТ ПОБЕДЫ
 
+## Фон-«ткань» для всех форматов «Лёд» (bg_silk)
+
+`with bg_silk.use(mode): <любой render из results_ice2 / results_ice3 / results_styles2 (ice*) / preview_ice>` —
+перелив как у шёлка (`poster._fluid_bg`) и неровная текстура холста (`poster._canvas_texture`), как у баннеров «Бока».
+
+| mode | фон |
+|---|---|
+| `ice` | светлый лёд с переливом и текстурой, иней сверху |
+| `silver` | серебро → графит |
+| `league` | цвета лиги: КХЛ кремово-золотой → стальной, НХЛ серебро → ледяной голубой |
+| `twilight` | светлый верх, тёмно-синий шёлк под матчами, светлый низ |
+
 ## Матчи дня (до игры) в тех же трёх форматах (preview_ice)
 
 `preview_ice.render(items, path, style=..., league=..., date_title=...)`,

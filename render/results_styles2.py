@@ -270,24 +270,33 @@ def _minimal(items, path, league, title, date_title):
 
 
 # ------------------------------------------------------------------ 5. ЛЁД (Exo 2 Italic)
-def _ice(items, path, league, title, date_title, frost=False, colored=False, logos=False, over=False):
-    ROW, gap, head, foot = 128, 16, 262, 96
-    H = head + len(items) * (ROW + gap) - gap + foot
-    red, navy = (214, 40, 57), (16, 34, 70)
+def _ice_bg(H, league):
+    """Фон «Лёд»: светлый градиент и разметка площадки. Подменяется модулем bg_silk."""
     bg = rs._gradient(W, H, (236, 244, 251), (205, 224, 240), glow=(255, 255, 255, 120), glow_xy=(0.3, 0.1), glow_r=0.6)
+
     def rink(g):                                     # разметка площадки
         g.line(((0, H * 0.52), (W, H * 0.52)), fill=(214, 40, 57, 70), width=10)
         for y in (H * 0.30, H * 0.74):
             g.line(((0, y), (W, y)), fill=(40, 90, 200, 55), width=10)
         g.ellipse((W / 2 - 150, H * 0.52 - 150, W / 2 + 150, H * 0.52 + 150), outline=(40, 90, 200, 55), width=5)
     bg = _layered(bg, rink)
-    bg = rs._watermark(bg, league, (16, 34, 70), 0.06)
+    return rs._watermark(bg, league, (16, 34, 70), 0.06)
+
+
+ICE_BG = _ice_bg
+
+
+def _ice(items, path, league, title, date_title, frost=False, colored=False, logos=False, over=False):
+    ROW, gap, head, foot = 128, 16, 262, 96
+    H = head + len(items) * (ROW + gap) - gap + foot
+    red, navy = (214, 40, 57), (16, 34, 70)
+    bg = ICE_BG(H, league)
     ov = _canvas(H)
     d = ImageDraw.Draw(ov)
     rs._brand(d, W * S / 2, 58 * S, league, dark_text=True)
     d.text((W * S / 2, 136 * S), title, font=F(EXOI, 76 * S, 900), anchor='mm', fill=navy + (255,))
     if date_title:
-        spaced(d, (W * S / 2, 204 * S), date_title.upper(), F(EXOI, 22 * S, 600), (70, 90, 120, 255), 3 * S)
+        spaced(d, (W * S / 2, 204 * S), date_title.upper(), F(EXOI, 22 * S, 600), (40, 58, 92, 255), 3 * S)
     for i, it in enumerate(items):
         y0 = head + i * (ROW + gap)
         cy = (y0 + ROW / 2) * S

@@ -183,7 +183,7 @@ def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date
     rs._brand(d, W * S / 2, 58 * S, league, dark_text=True)
     d.text((W * S / 2, 136 * S), title, font=F(EXOI, 76 * S, 900), anchor='mm', fill=NAVY + (255,))
     if date_title:
-        spaced(d, (W * S / 2, 206 * S), date_title.upper(), F(EXOI, 22 * S, 700), (60, 80, 112, 255), 3 * S)
+        spaced(d, (W * S / 2, 206 * S), date_title.upper(), F(EXOI, 22 * S, 700), (40, 58, 92, 255), 3 * S)
     center = CENTERS[variant]
     dark_center = sum(center) < 300
     cx = W / 2 * S
