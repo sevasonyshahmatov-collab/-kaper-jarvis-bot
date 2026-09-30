@@ -128,8 +128,8 @@ def _plate(home, away, w, h, radius, home_win, center, cw=0.27, loser='desat'):
     return img
 
 
-def _logo(ov, team, cx, cy, ang, faded=False):
-    e = poster._raw_emblem(team, int(ROW * S), int(ROW * S))
+def _logo(ov, team, cx, cy, ang, faded=False, size=None):
+    e = poster._raw_emblem(team, int((size or ROW) * S), int((size or ROW) * S))
     if faded:                                     # логотип проигравшего: серый и полупрозрачный
         g = e.convert('L').convert('RGBA')
         g.putalpha(e.getchannel('A').point(lambda v: int(v * 0.62)))
