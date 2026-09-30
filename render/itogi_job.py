@@ -10,6 +10,8 @@
 Рисуем формат «Колонки» (preview_ice, style='columns').
 "extra" (необязательно, HTML) — дописывается к подписи: у НХЛ это «🇷🇺 Наши» (результативность россиян).
 Не влезает в лимит подписи Telegram (1024 знака) — уходит отдельным сообщением сразу после фото.
+"chats" — куда отправить (канал и группа у автоматики, ваш чат у кнопок); нет — "chat".
+Картинка не нарисовалась — в те же чаты уходит подпись текстом (итоги не пропадут), задание помечается ошибкой.
 Без TG_BOT_TOKEN — только сохраняем картинку (для проверки: python render/itogi_job.py payload.json).
 """
 import html
@@ -121,18 +123,12 @@ def main():
     payload = load_payload()
     kind = str(payload.get('kind') or os.environ.get('EVENT_KIND') or 'itogi').lower()
     league, items, date_title, chat = (clean_matchi if kind == 'matchi' else clean)(payload)
-    if league == 'NHL':
-        import nhl
-        nhl.register()
-    out = os.path.join(os.getcwd(), '%s_%s.jpg' % (kind, league.lower()))
+    # куда: список chats (канал и группа — автоматика, или ваш чат — кнопки меню); старые события — один chat
+    chats = [str(c).strip() for c in (payload.get('chats') or [chat]) if str(c or '').strip()]
+    # подпись — до рисования: если картинка не получится, её же опубликуем текстом
     if kind == 'matchi':
-        import preview_ice as pv
-        pv.render(items, out, style='columns', league=league, date_title=date_title or None)
-        # подпись собирает таблица (эмодзи клубов — её лист «Эмодзи_клубов»); нет — своя, без эмодзи
         text = str(payload.get('caption') or '').strip()[:1000] or caption_matchi(league, items, date_title)
     else:
-        import results_ice2 as ri
-        ri.render(items, out, variant=10, league=league, date_title=date_title or None)
         text = caption(league, items, date_title)
     extra = str(payload.get('extra') or '').strip()[:3500] if kind != 'matchi' else ''
     after = ''
@@ -142,19 +138,45 @@ def main():
         else:
             after = extra
     text, after = no_emoji(text), no_emoji(after)
-    print('нарисовано:', out, '— матчей', len(items))
-    if extra:
-        print('подпись:\n' + text + ('\n--- отдельным сообщением:\n' + after if after else ''))
+    print('подпись:\n' + text + ('\n--- отдельным сообщением:\n' + after if after else ''))
+
+    out = os.path.join(os.getcwd(), '%s_%s.jpg' % (kind, league.lower()))
+    drawn = True
+    try:
+        if league == 'NHL':
+            import nhl
+            nhl.register()
+        if kind == 'matchi':
+            import preview_ice as pv
+            pv.render(items, out, style='columns', league=league, date_title=date_title or None)
+        else:
+            import results_ice2 as ri
+            ri.render(items, out, variant=10, league=league, date_title=date_title or None)
+        print('нарисовано:', out, '— матчей', len(items))
+    except Exception as e:                      # noqa: BLE001 — любая ошибка рисования: публикуем текст
+        drawn = False
+        print('картинка не нарисовалась:', repr(e))
+
     token = os.environ.get('TG_BOT_TOKEN')
     if not token:
-        print('TG_BOT_TOKEN не задан — картинка только сохранена')
+        print('TG_BOT_TOKEN не задан — в Telegram ничего не отправлено')
         return
-    if not chat:
-        raise SystemExit('не указан чат (chat) для отправки')
-    send_photo(token, chat, out, text)
-    if after:
-        send_message(token, chat, after)
-    print('отправлено в Telegram')
+    if not chats:
+        raise SystemExit('не указан чат (chat / chats) для отправки')
+    errors = []
+    for c in chats:
+        try:
+            if drawn:
+                send_photo(token, c, out, text)
+                if after:
+                    send_message(token, c, after)
+            else:
+                send_message(token, c, text + ('\n\n' + after if after else ''))
+            print('отправлено в', c)
+        except SystemExit as e:
+            errors.append('%s: %s' % (c, e))
+    if errors or not drawn:
+        raise SystemExit('; '.join(errors) or 'картинка не нарисовалась — опубликован текст')
 
 
 if __name__ == '__main__':
