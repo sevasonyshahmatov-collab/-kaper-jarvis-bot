@@ -5102,6 +5102,7 @@ function updateMarketOdds_(silent) {
   if (mk.code !== 200 || !mk.data) throw new Error('не удалось получить коэффициенты: рынки ответили кодом ' + mk.code);
 
   var parsed = parseMarketLines_(mu.data, mk.data);
+  try { nhlFixStartTimes_(parsed.lines); } catch (e) { /* без расписания — время как у линии, с поправкой ниже */ }
   var written = writeOddsLog_(ss, parsed.lines, new Date());
   try { writeBestForecast_(ss); } catch (e) { /* лучший прогноз не мешает коэффициентам */ }
   try { renderBriefSheet_(ss); } catch (e) { /* витрина не мешает коэффициентам */ }
@@ -5118,6 +5119,42 @@ function updateMarketOdds_(silent) {
   if (!silent) uiAlert_(msg);
   return { lines: parsed.lines.length, updated: written.updated, closed: written.closed, unknown: parsed.unknown,
            upcoming: vs.upcoming, withOdds: vs.withOdds, message: msg };
+}
+
+/**
+ * Время начала — по официальному расписанию НХЛ, а не по линии: Pinnacle ставит матчам НХЛ «время вбрасывания»
+ * с запасом в 7–8 минут (02:37 вместо 02:30, 05:07 вместо 05:00), и оно попадало в таблицу, посты и постеры.
+ * Матч ищем в расписании НХЛ (любой тип: предсезонка, чемпионат, плей-офф) по хозяевам, гостям и близкому времени;
+ * не нашёлся — срезаем запас линии: минуты :05–:09 и :35–:39 округляем вниз до :00 / :30.
+ */
+function nhlFixStartTimes_(lines) {
+  var official = {}, days = {};
+  lines.forEach(function (L) { days[Utilities.formatDate(L.start, 'America/New_York', 'yyyy-MM-dd')] = true; });
+  Object.keys(days).sort().forEach(function (d) {
+    if (official[d + '|seen']) return;
+    var data = null; try { data = nhlGet_('schedule/' + d); } catch (e) { data = null; }
+    nhlGamesOf_(data).forEach(function (g) {
+      var st = g.startTimeUTC ? new Date(g.startTimeUTC) : null, h = nhlTeamOf_(g.homeTeam), a = nhlTeamOf_(g.awayTeam);
+      if (!st || isNaN(st.getTime()) || !h || !a) return;
+      (official[h + '|' + a] = official[h + '|' + a] || []).push(st);
+      official[Utilities.formatDate(st, 'America/New_York', 'yyyy-MM-dd') + '|seen'] = true;   // неделя расписания уже есть — дни внутри не запрашиваем
+    });
+    official[d + '|seen'] = true;
+  });
+  var fixed = 0;
+  lines.forEach(function (L) {
+    var best = null;
+    (official[L.home + '|' + L.away] || []).forEach(function (st) {
+      var diff = Math.abs(st.getTime() - L.start.getTime());
+      if (diff <= 3 * 3600000 && (!best || diff < Math.abs(best.getTime() - L.start.getTime()))) best = st;
+    });
+    if (!best) {
+      var m = L.start.getUTCMinutes() % 30;
+      if (m >= 5 && m <= 9) best = new Date(L.start.getTime() - m * 60000 - L.start.getUTCSeconds() * 1000);
+    }
+    if (best && best.getTime() !== L.start.getTime()) { L.start = best; fixed++; }
+  });
+  return fixed;
 }
 
 /** Для триггера раз в 2 часа: тихо, без окон. */
