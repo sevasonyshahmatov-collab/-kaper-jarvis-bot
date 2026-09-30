@@ -6559,7 +6559,8 @@ function gamePostMatches_(silent) {
   if (!res.ok) throw new Error('Telegram не принял пост: ' + (res.description || 'нет ответа'));
   props.setProperty('GAME_LAST_POST', JSON.stringify({ chat: res.result.chat.id, msg: res.result.message_id, ids: matches.map(function (m) { return m.id; }) }));
   dailyMark_('game');
-  if (!silent) uiAlert_('Опубликовано в канал: ' + matches.length + ' матч(ей) с кнопками.');
+  var inGroup = tgGroupSend_({ text: gamePostText_(matches), parse_mode: 'HTML', reply_markup: gameKeyboard_(matches, gameReadPicks_(ss)) });
+  if (!silent) uiAlert_('Опубликовано в канал' + (inGroup ? ' и группу' : '') + ': ' + matches.length + ' матч(ей) с кнопками.');
   return { posted: true, matches: matches.length };
 }
 function gamePostMatchesAuto_() {
@@ -6568,6 +6569,43 @@ function gamePostMatchesAuto_() {
   autoStart_('gamePostMatchesAuto_');
   QUIET_ = true;
   try { gamePostMatches_(true); autoMark_('gamePostMatchesAuto_', true, 'пост «матчи дня»'); } catch (e) { Logger.log('Игра: ' + e.message); autoMark_('gamePostMatchesAuto_', false, e.message); } finally { QUIET_ = false; }
+}
+
+/* ---------------------- группа: копии постов канала ----------------------
+ * Группа привязывается командой /group, которую админ канала пишет в самой группе
+ * (/group_off — отвязать). В группу идут «Угадай победителей» (с кнопками) и
+ * «Матчи дня · результаты» — там без отметок прогнозов, только счёт.
+ * Логотипы клубов (премиум-эмодзи) в группе показываются, если их разрешит Telegram;
+ * если нет — tg_ сам отправит пост с обычными кружками. */
+function tgGroup_() { return PropertiesService.getScriptProperties().getProperty('TG_GROUP') || ''; }
+
+/** Отправить копию в группу, если она привязана. Ошибка группы не мешает посту в канале. */
+function tgGroupSend_(payload) {
+  var group = tgGroup_();
+  if (!group) return null;
+  payload.chat_id = group;
+  try {
+    var r = tg_('sendMessage', payload);
+    if (!r.ok) PropertiesService.getScriptProperties().setProperty('TG_GROUP_LAST_ERROR', mskNow_() + ' · ' + (r.description || ''));
+    return r.ok ? r : null;
+  } catch (e) { return null; }
+}
+
+/** Сообщения из групп: только /group, /group_off и переезд группы в супергруппу (у неё меняется id). */
+function tgGroupMessage_(msg) {
+  var p = PropertiesService.getScriptProperties(), chat = String(msg.chat.id);
+  if (msg.migrate_to_chat_id && p.getProperty('TG_GROUP') === chat) { p.setProperty('TG_GROUP', String(msg.migrate_to_chat_id)); return; }
+  if (!msg.text) return;
+  var cmd = String(msg.text).trim().split(/\s+/)[0].toLowerCase().replace(/@.*/, '');
+  if (cmd !== '/group' && cmd !== '/group_off') return;
+  if (!msg.from || !tgIsChannelAdmin_(msg.from.id)) { tgRaw_('sendMessage', { chat_id: chat, text: 'Привязать группу может только админ канала.' }); return; }
+  if (cmd === '/group_off') {
+    if (p.getProperty('TG_GROUP') === chat) p.deleteProperty('TG_GROUP');
+    tgRaw_('sendMessage', { chat_id: chat, text: 'Готово: посты сюда больше не дублируются.' });
+    return;
+  }
+  p.setProperty('TG_GROUP', chat);
+  tgRaw_('sendMessage', { chat_id: chat, text: '✅ Группа привязана. Сюда будут приходить копии постов канала: «Угадай победителей» и «Матчи дня · результаты» (со счётом, без отметок прогнозов).\n\nОтвязать — /group_off' });
 }
 
 /** Выбор Джарвиса = фаворит модели; обновляется до начала матча вместе с моделью. */
@@ -6632,6 +6670,7 @@ function gameHandleUpdate_(update) {
     return;
   }
   var msg = update.message;
+  if (msg && msg.chat && (msg.chat.type === 'group' || msg.chat.type === 'supergroup')) { tgGroupMessage_(msg); return; }
   if (!msg || !msg.text || !msg.chat || msg.chat.type !== 'private') return;
   var words = String(msg.text).trim().split(/\s+/);
   var cmd = words[0].toLowerCase().replace(/@.*/, '');
@@ -7231,12 +7270,14 @@ function liveCandidates_(ss, now) {
 function livePct_(p) { return Math.round(p * 100) + '%'; }
 function liveHas_(x) { return x !== null && x !== undefined && x !== ''; }
 
-/** Текст поста «Матчи дня»: счёт появляется сразу после финальной сирены. */
-function liveText_(day, items, now) {
+/** Текст поста «Матчи дня»: счёт появляется сразу после финальной сирены.
+ *  clean — версия для группы: только счёт, без отметок прогнозов. */
+function liveText_(day, items, now, clean) {
   var lines = ['🏒 <b>МАТЧИ ДНЯ · РЕЗУЛЬТАТЫ</b>', ruDayTitle_(day).toLowerCase(), ''];
   var hit = 0, miss = 0;
   items.forEach(function (it) {
     var m = it.m, s = it.s;
+    if (clean) s = { phase: s.phase, sh: s.sh, sa: s.sa, ot: s.ot, pick: '' };
     if (s.phase === 'done' && liveHas_(s.sh) && liveHas_(s.sa)) {
       lines.push('🏁 <b>' + escHtml_(m.home) + ' ' + s.sh + ':' + s.sa + ' ' + escHtml_(m.away) + '</b>' + (s.ot ? ' (ОТ/Б)' : ''));
       if (s.pick) {
@@ -7332,29 +7373,35 @@ function liveUpdate_(now) {
   });
 
   var posted = false, edited = false, text = '';
-  Object.keys(days).sort().forEach(function (day) {
-    var items = days[day];
-    if (!items.some(function (it) { return it.s.phase !== 'wait'; })) return;
-    var sig = items.map(function (it) { return it.m.id + ':' + it.s.key; }).join(',');    // пост трогаем только при изменениях
-    var mid = state.msg[day];
-    if (mid && state.sig[day] === sig) return;
-    text = liveText_(day, items, now);
+  var group = tgGroup_();
+  state.gmsg = state.gmsg || {}; state.gsig = state.gsig || {};
+  // пост в чате: выпустить или переписать, только если что-то изменилось
+  var sync = function (chat, day, body, sig, msgs, sigs) {
+    var mid = msgs[day];
+    if (mid && sigs[day] === sig) return;
     if (mid) {
-      var r = tg_('editMessageText', { chat_id: channel, message_id: mid, text: text, parse_mode: 'HTML', disable_web_page_preview: true });
+      var r = tg_('editMessageText', { chat_id: chat, message_id: mid, text: body, parse_mode: 'HTML', disable_web_page_preview: true });
       if (r.ok || /not modified/i.test(r.description || '')) edited = true;
       else if (/not found|can't be edited/i.test(r.description || '')) mid = null;   // пост удалили — выпустим заново
     }
     if (!mid) {
-      var p = tg_('sendMessage', { chat_id: channel, text: text, parse_mode: 'HTML', disable_web_page_preview: true, disable_notification: true });
-      if (p.ok) { state.msg[day] = p.result.message_id; posted = true; }
+      var p = tg_('sendMessage', { chat_id: chat, text: body, parse_mode: 'HTML', disable_web_page_preview: true, disable_notification: true });
+      if (p.ok) { msgs[day] = p.result.message_id; posted = true; }
     }
-    if (state.msg[day]) state.sig[day] = sig;
+    if (msgs[day]) sigs[day] = sig;
+  };
+  Object.keys(days).sort().forEach(function (day) {
+    var items = days[day];
+    if (!items.some(function (it) { return it.s.phase !== 'wait'; })) return;
+    var sig = items.map(function (it) { return it.m.id + ':' + it.s.key; }).join(',');    // пост трогаем только при изменениях
+    if (!(state.msg[day] && state.sig[day] === sig)) { text = liveText_(day, items, now); sync(channel, day, text, sig, state.msg, state.sig); }
+    if (group) { try { sync(group, day, liveText_(day, items, now, true), sig, state.gmsg, state.gsig); } catch (e) { /* группа не мешает каналу */ } }
   });
 
   var keep = {}; cands.forEach(function (m) { keep[m.id] = true; });
   Object.keys(state.m).forEach(function (id) { if (!keep[id]) delete state.m[id]; });
   var minDay = Utilities.formatDate(new Date(now.getTime() - 2 * 86400000), 'Europe/Moscow', 'yyyy-MM-dd');
-  ['msg', 'sig'].forEach(function (k) { Object.keys(state[k]).forEach(function (d) { if (d < minDay) delete state[k][d]; }); });
+  ['msg', 'sig', 'gmsg', 'gsig'].forEach(function (k) { Object.keys(state[k]).forEach(function (d) { if (d < minDay) delete state[k][d]; }); });
   props.setProperty('LIVE_STATE', JSON.stringify(state));
   // день, где у всех матчей финальный счёт (или 4 часа прошло), — можно подводить итоги игры
   var doneDays = Object.keys(days).filter(function (d) {
