@@ -10,6 +10,10 @@ style:
   'crown'    — как «КОРОНА»: тёмная панель табло в центре со временем и линией, корона над логотипом фаворита. Tektur.
   'pucks'    — как «цветные плашки с шайбами»: коэффициенты П1 и П2 в шайбах, у фаворита чёрная. Exo 2 Italic.
   'favorite' — как «ЦВЕТ ПОБЕДЫ»: окрашена только сторона фаворита, время в белой таблетке. Russo One.
+Только логотипы, без названий (как «Итоги дня» 10–12), шрифты «Боков» — Oswald, Unbounded, Manrope:
+  'cells'    — светлые ячейки с логотипом во всю ячейку, тёмное табло: время, под ним П1 · Х · П2, фаворит золотом.
+  'grid'     — скошенные ячейки как в сетке плей-офф: плашки цвета клуба с П1 и П2 (у фаворита крупнее), время в таблетке сверху, Х снизу.
+  'columns'  — ячейки в цвете клуба, логотип во всю колонку, тёмное табло как у 'cells'.
 """
 import numpy as np
 from PIL import Image, ImageDraw
@@ -18,7 +22,8 @@ import poster
 import recap
 import results_styles as rs
 from results_styles2 import F, fit, club, spaced, _layered, _team_plate, TEK, RUSSO, EXOI
-from results_ice2 import _background, _plate, _logo, _crown, NAVY, RED
+from results_ice2 import _background, _plate, _logo, _crown, _cells, MANROPE, NAVY, RED
+from results_styles2 import OSW, UNB
 from results_ice3 import _grad_box, _name, _ink, LIGHT, GREY, GOLD
 
 S, W = rs.S, rs.W
@@ -61,9 +66,63 @@ def _odds_txt(v):
     return '—' if v is None else '%.2f' % v
 
 
+CELLS = {'cells': 10, 'grid': 11, 'columns': 12}
+
+
+def _render_cells(items, path, style, league, title, date_title):
+    """Афиша в формате ячеек-логотипов: команда видна только эмблемой, в центре — время и линия."""
+    variant = CELLS[style]
+    H = HEAD + len(items) * (ROW + GAP) - GAP + FOOT
+    bg = _background(H, league)
+    ov = Image.new('RGBA', (W * S, H * S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(ov)
+    rs._brand(d, W * S / 2, 58 * S, league, dark_text=True)
+    spaced(d, (W * S / 2, 138 * S), title, F(OSW, 84 * S, 700), NAVY + (255,), 3 * S)
+    if date_title:
+        spaced(d, (W * S / 2, 206 * S), date_title.upper(), F(MANROPE, 21 * S, 800), (40, 58, 92, 255), 3 * S)
+    cx = W / 2 * S
+    for i, it in enumerate(items):
+        y0 = HEAD + i * (ROW + GAP)
+        cy = (y0 + ROW / 2) * S
+        fav = _fav(it)
+        o = it.get('odds') or (None, None, None)
+        card = _cells(it, True, variant, (12, 14, 20), pre=True)
+        if variant == 11:
+            card, X, sk = card
+        poster._shadowed(ov, card, (32 * S, y0 * S), blur=12 * S, off=(0, 5 * S), color=(30, 60, 110, 70))
+        d = ImageDraw.Draw(ov)
+        if variant == 11:                          # П1 и П2 в плашках цвета клуба
+            for (x0, x1), lab, v, hot in (((X[2], X[3]), 'П1', o[0], fav == -1), ((X[4], X[5]), 'П2', o[2], fav == 1)):
+                x = 32 * S + (x0 + x1 + sk) / 2
+                d.text((x, cy - 24 * S), lab, font=F(MANROPE, 14 * S, 800), anchor='mm', fill=(255, 255, 255, 190))
+                d.text((x, cy + 12 * S), _odds_txt(v), font=F(UNB, 30 * S if hot else 26 * S, 800 if hot else 600), anchor='mm',
+                       fill=(255, 255, 255, 255) if hot else (255, 255, 255, 185), stroke_width=(3 * S if hot else 0), stroke_fill=(0, 0, 0, 110))
+            sx = cx + sk / 2 - 6 * S               # шов между плашками
+            for ty, txt, f in ((cy - 50 * S, it.get('time', ''), F(UNB, 16 * S, 700)), (cy + 50 * S, 'Х ' + _odds_txt(o[1]), F(MANROPE, 14 * S, 800))):
+                if ty > cy:
+                    sx -= 2 * sk / 3               # внизу шов левее из-за скоса
+                w = f.getlength(txt) + 22 * S
+                d.rounded_rectangle((sx - w / 2, ty - 13 * S, sx + w / 2, ty + 13 * S), radius=9 * S, fill=(12, 14, 20, 245),
+                                    outline=(255, 255, 255, 200), width=S)
+                d.text((sx, ty), txt, font=f, anchor='mm', fill=(255, 236, 170, 255) if ty < cy else (220, 226, 236, 255))
+            continue
+        d.text((cx, cy - 20 * S), it.get('time', ''), font=F(UNB, 40 * S, 700), anchor='mm', fill=(255, 255, 255, 255))
+        for k, dx, lab in ((0, -86, 'П1'), (1, 0, 'Х'), (2, 86, 'П2')):
+            hot = (k == 0 and fav == -1) or (k == 2 and fav == 1)
+            x = cx + dx * S
+            d.text((x, cy + 18 * S), lab, font=F(MANROPE, 12 * S, 800), anchor='mm', fill=(120, 128, 142, 255))
+            d.text((x, cy + 40 * S), _odds_txt(o[k]), font=F(MANROPE, 21 * S, 800), anchor='mm',
+                   fill=(255, 208, 90, 255) if hot else (200, 206, 216, 255))
+    d.text((W * S / 2, (H - 70) * S), FOOT_TEXT, font=F(MANROPE, 13 * S, 800), anchor='mm', fill=(34, 50, 84, 255))
+    spaced(d, (W * S / 2, (H - 40) * S), '@jarvibet', F(UNB, 20 * S, 700), RED + (255,), 2 * S)
+    return rs._finish(bg, ov, H, path, grain=0.2)
+
+
 def render(items, path, style='crown', league='KHL', title='МАТЧИ ДНЯ', date_title=None):
     league = league.upper()
     items = rs._resolve(items, league)
+    if style in CELLS:
+        return _render_cells(items, path, style, league, title, date_title)
     H = HEAD + len(items) * (ROW + GAP) - GAP + FOOT
     bg = _bg_plain(H, league) if style == 'pucks' else _background(H, league)
     ov = Image.new('RGBA', (W * S, H * S), (0, 0, 0, 0))

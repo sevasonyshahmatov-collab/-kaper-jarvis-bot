@@ -233,21 +233,25 @@ def _poly_mask(w, h, pts):
     return np.asarray(m, np.float32) / 255
 
 
-def _cells(it, hw, variant, center):
+def _cells(it, hw, variant, center, pre=False):
     """Ячейки «как в сетке плей-офф»: команда показана только логотипом во всю ячейку, без названия.
     10 — светлые ячейки и тёмное табло по центру, у края табло полоска цвета клуба;
     11 — скошенные ячейки как в сетке КХЛ: белая ячейка с логотипом + плашка счёта в цвете клуба;
-    12 — как 8, но без названий: ячейки в цвете клуба, логотип во всю колонку."""
+    12 — как 8, но без названий: ячейки в цвете клуба, логотип во всю колонку.
+    pre=True — до матча: обе команды в полном цвете, проигравшего нет."""
     w, h, r = (W - 64) * S, ROW * S, 22 * S
     home, away = it['home'], it['away']
     if variant == 12:
-        card = _plate(home, away, w, h, r, hw, center, loser='dark')
-        _fill(card, home, 'left', 'color' if hw else 'ghost')
-        _fill(card, away, 'right', 'color' if not hw else 'ghost')
+        card = _plate(home, away, w, h, r, hw, center, loser='none' if pre else 'dark')
+        _fill(card, home, 'left', 'color' if hw or pre else 'ghost')
+        _fill(card, away, 'right', 'color' if not hw or pre else 'ghost')
         return card
     lose = lambda c: tuple(int(v) for v in (np.array(c, np.float32) * 0.3 + np.mean(c) * 0.7) * 0.75)
     ch, ca = club(home), club(away)
-    ch, ca = (ch, lose(ca)) if hw else (lose(ch), ca)
+    if pre:
+        hw = None                                           # обе стороны «победители»: логотипы в цвете
+    else:
+        ch, ca = (ch, lose(ca)) if hw else (lose(ch), ca)
     a = np.zeros((h, w, 4), np.float32)
     if variant == 10:
         half = int(w * (1 - 0.27) / 2)
@@ -259,7 +263,7 @@ def _cells(it, hw, variant, center):
         for team, x0, x1, won in ((home, 0, half - band, hw), (away, w - half + band, w, not hw)):
             m = np.zeros((h, w), np.float32)
             m[:, x0:x1] = 1
-            _paint(a, team, x0, x1, m, 'full' if won else 'fade')
+            _paint(a, team, x0, x1, m, 'full' if won or pre else 'fade')
         m = Image.new('L', (w, h), 0)
         ImageDraw.Draw(m).rounded_rectangle((0, 0, w - 1, h - 1), radius=r, fill=250)
         a[..., 3] = np.asarray(m, np.float32)
@@ -283,7 +287,7 @@ def _cells(it, hw, variant, center):
             col = np.broadcast_to(col, (h, w, 3))
             a[..., :3] = a[..., :3] * (1 - m[..., None]) + col * m[..., None]
         else:
-            _paint(a, team, x0 + sk // 2, x1 + sk // 2, m, 'full' if won else 'fade')
+            _paint(a, team, x0 + sk // 2, x1 + sk // 2, m, 'full' if won or pre else 'fade')
         alpha = np.maximum(alpha, m)
     a[..., 3] = alpha * 250
     return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA'), X, sk
