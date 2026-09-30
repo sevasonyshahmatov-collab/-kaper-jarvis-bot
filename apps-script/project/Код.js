@@ -1633,7 +1633,7 @@ function sheetGroupsBase_() {
     { icon: '⬜', name: 'служебные (скрыты)', color: '#cccccc', hide: true, sheets: ['Data', SHEET_ELO, 'Parser_Data', 'Форма_расчет', 'Результаты 2025-26', 'Таблица 2025-26',
       'Броски_кэш', 'Броски_debug', 'Выездные_серии', 'Статистика_debug', SHEET_ODDS_LOG, HIST_ODDS_SHEET, GAME_PLAYERS, GAME_PICKS, LIVE_LOG, DOSSIER_LOG,
       SIGNAL_SHEET, LINEUP_SHEET, LINEUP_WATCH_SHEET, VIDEO_RAW_SHEET, SCOUT_SEEN_SHEET, NEWS_LIVE_SHEET, 'Таблица_история', 'Самопроверка', SHEET_CONTEXT,
-      DIAG_SHEET, NEWS_DIAG_SHEET, LINEUP_DIAG_SHEET, 'Диагностика_НХЛ', 'КХЛ_матчи_приложение', 'Диагностика_КХЛ_приложение', 'Статистика_НХЛ_история'] }
+      DIAG_SHEET, NEWS_DIAG_SHEET, LINEUP_DIAG_SHEET, 'Диагностика_НХЛ', 'КХЛ_матчи_приложение', 'Диагностика_КХЛ_приложение', 'Статистика_НХЛ_история', AUTO_LOG_SHEET] }
   ];
 }
 
@@ -4890,6 +4890,7 @@ function runAfterGameDay_(e) {
   var ss = SpreadsheetApp.getActive();
   var steps = [];
   var auto = !!(e && e.triggerUid);            // запуск по расписанию (у кнопки меню аргументов нет)
+  if (auto) autoStart_('runAfterGameDay_');
   var problem = /ошибк|не найден|не получилось|не удалось|не нашлось/i;
 
   var step = function (name, fn) {
@@ -5489,6 +5490,7 @@ function updateMarketOdds_(silent) {
 
 /** Для триггера раз в 2 часа: тихо, без окон. */
 function updateMarketOddsAuto_() {
+  autoStart_('updateMarketOddsAuto_');
   QUIET_ = true;
   try { var r = updateMarketOdds_(true) || {}; autoMark_('updateMarketOddsAuto_', !r.error, r.error ? r.error : 'линий: ' + (r.lines || 0) + ', матчей с линией: ' + (r.withOdds || 0)); }
   catch (e) { autoMark_('updateMarketOddsAuto_', false, e.message); }
@@ -6499,6 +6501,7 @@ function gamePostMatches_(silent) {
 function gamePostMatchesAuto_() {
   var p = PropertiesService.getScriptProperties();
   if (!p.getProperty('TG_BOT_TOKEN') || !p.getProperty('TG_CHANNEL')) return;   // игра не подключена
+  autoStart_('gamePostMatchesAuto_');
   QUIET_ = true;
   try { gamePostMatches_(true); autoMark_('gamePostMatchesAuto_', true, 'пост «матчи дня»'); } catch (e) { Logger.log('Игра: ' + e.message); autoMark_('gamePostMatchesAuto_', false, e.message); } finally { QUIET_ = false; }
 }
@@ -8671,11 +8674,112 @@ var AUTO_JOBS = [
   { fn: 'monthlyAuto_', kind: 'month', hour: 4, what: 'Раз в месяц (1-го числа): самопроверка факторов модели' }
 ];
 
-function autoMark_(fn, ok, msg) {
-  var p = PropertiesService.getScriptProperties(), st = {};
-  try { st = JSON.parse(p.getProperty('AUTO_STATUS') || '{}'); } catch (e) { st = {}; }
-  st[fn] = { t: mskNow_('dd.MM HH:mm'), ok: !!ok, msg: String(msg || '').slice(0, 160) };
-  p.setProperty('AUTO_STATUS', JSON.stringify(st));
+/* Журнал автоматики.
+ * Каждый итог запуска (autoMark_) теперь: 1) сохраняется в AUTO_STATUS под замком — раньше
+ * параллельные запуски (LIVE каждые 5 мин, разведчик, посты) затирали отметки друг друга;
+ * 2) дописывается строкой в скрытый лист «Журнал_автоматики» — видна история, а не только последний раз;
+ * 3) сразу обновляет свою строку на листе «Автоматика» — раньше лист перерисовывался только утром;
+ * 4) при ошибке шлёт сообщение админу (не чаще раза в AUTO_NOTIFY_GAP_H часов на задачу).
+ * Долгие задачи отмечают старт (autoStart_). Если Google оборвал запуск по лимиту 6 минут,
+ * catch не срабатывает и итога нет — это ловит autoWatchdog_ (вызывается из разведчика раз в 15 мин). */
+var AUTO_LOG_SHEET = 'Журнал_автоматики';
+var AUTO_LOG_KEEP = 1000;          // строк истории в журнале
+var AUTO_NOTIFY_GAP_H = 3;         // не чаще раза в 3 ч сообщать об ошибке одной и той же задачи
+var AUTO_STUCK_MIN = 10;           // запуск без итога дольше 10 мин — считаем оборванным
+var AUTO_DAILY_LATE_H = 26;        // «Обновить всё» без успешного итога дольше 26 ч — сообщаем
+// эти задачи сами шлют админу подробное сообщение об ошибке — второе не нужно
+var AUTO_SELF_NOTIFY = { runAfterGameDay_: 1, agentDailyBriefAuto_: 1, bannersAuto_: 1, powerAuto_: 1 };
+
+/** Читает AUTO_STATUS, даёт его изменить и сохраняет — под замком документа. */
+function autoStatusUpdate_(change) {
+  var lock = LockService.getDocumentLock(), locked = false;
+  try { locked = lock.tryLock(5000); } catch (e) { locked = false; }
+  try {
+    var p = PropertiesService.getScriptProperties(), st = {};
+    try { st = JSON.parse(p.getProperty('AUTO_STATUS') || '{}'); } catch (e) { st = {}; }
+    var out = change(st);
+    p.setProperty('AUTO_STATUS', JSON.stringify(st));
+    return out;
+  } finally { if (locked) lock.releaseLock(); }
+}
+
+function autoJobWhat_(fn) {
+  for (var i = 0; i < AUTO_JOBS.length; i++) if (AUTO_JOBS[i].fn === fn) return AUTO_JOBS[i].what;
+  return fn;
+}
+
+/** Отметка «задача началась» — чтобы заметить запуск, который Google оборвал без итога. */
+function autoStart_(fn) {
+  try { autoStatusUpdate_(function (st) { var s = st[fn] = st[fn] || {}; s.s = Date.now(); }); } catch (e) {}
+}
+
+/** force — сообщить админу, даже если задача обычно шлёт своё сообщение сама (оборванный запуск). */
+function autoMark_(fn, ok, msg, force) {
+  msg = String(msg || '').slice(0, 160);
+  var notify = autoStatusUpdate_(function (st) {
+    var s = st[fn] = st[fn] || {};
+    s.t = mskNow_('dd.MM HH:mm'); s.ok = !!ok; s.msg = msg; delete s.s;
+    if (ok) { s.lastOk = Date.now(); return false; }
+    if ((AUTO_SELF_NOTIFY[fn] && !force) || (s.n && Date.now() - s.n < AUTO_NOTIFY_GAP_H * 3600000)) return false;
+    s.n = Date.now();
+    return true;
+  });
+  try { autoLogRow_(fn, ok, msg); } catch (e) { /* журнал не обязателен */ }
+  if (notify) autoNotifyAdmin_('⚠ Автоматика: ' + autoJobWhat_(fn) + '\n\n' + msg);
+}
+
+/** Строка в «Журнал_автоматики» + своя строка на листе «Автоматика». */
+function autoLogRow_(fn, ok, msg) {
+  var ss = SpreadsheetApp.getActive(), now = mskNow_('dd.MM.yyyy HH:mm');
+  var sh = ss.getSheetByName(AUTO_LOG_SHEET);
+  if (!sh) {
+    sh = ss.insertSheet(AUTO_LOG_SHEET);
+    sh.getRange(1, 1, 1, 4).setValues([['Время (МСК)', 'Задача', 'Итог', 'Подробности']]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+    try { sh.hideSheet(); } catch (e) {}
+  }
+  sh.appendRow([now, autoJobWhat_(fn), ok ? '✓' : '⚠', msg]);
+  var extra = sh.getLastRow() - 1 - AUTO_LOG_KEEP;
+  if (extra > 50) sh.deleteRows(2, extra);   // чистим пачками, а не каждой строкой
+
+  var i = -1;
+  for (var k = 0; k < AUTO_JOBS.length; k++) if (AUTO_JOBS[k].fn === fn) i = k;
+  var auto = ss.getSheetByName(AUTO_SHEET);
+  if (i < 0 || !auto) return;
+  // строки задач идут с 5-й в порядке AUTO_JOBS; если лист старого вида — перерисовать целиком
+  if (String(auto.getRange(5 + i, 1).getValue()) !== AUTO_JOBS[i].what) { autoRender_(ss); return; }
+  auto.getRange(5 + i, 4, 1, 2).setValues([[mskNow_('dd.MM HH:mm'), (ok ? '✓ ' : '⚠ ') + msg]]);
+}
+
+/**
+ * Ищет запуски, которые начались, но так и не записали итог (Google обрывает запуск
+ * по лимиту времени без всякой ошибки в коде), и «Обновить всё», которое давно не
+ * проходило успешно. Отмечает их в журнале и сообщает админу.
+ */
+function autoWatchdog_() {
+  var now = Date.now(), found = [];
+  autoStatusUpdate_(function (st) {
+    Object.keys(st).forEach(function (fn) {
+      var s = st[fn];
+      if (s && s.s && now - s.s > AUTO_STUCK_MIN * 60000) {
+        found.push({ fn: fn, msg: 'запуск начался в ' + Utilities.formatDate(new Date(s.s), 'Europe/Moscow', 'dd.MM HH:mm') +
+          ' МСК и не завершился — вероятно, оборван по лимиту времени Google (6 минут)' });
+        delete s.s;
+      }
+    });
+    var d = st.runAfterGameDay_ = st.runAfterGameDay_ || {};
+    var dayKey = mskNow_('yyyy-MM-dd');
+    if (d.lastOk && now - d.lastOk > AUTO_DAILY_LATE_H * 3600000 && d.lateDay !== dayKey) {
+      d.lateDay = dayKey;
+      found.push({ fn: 'runAfterGameDay_', msg: 'последнее успешное обновление — ' +
+        Utilities.formatDate(new Date(d.lastOk), 'Europe/Moscow', 'dd.MM HH:mm') + ' МСК, больше ' + AUTO_DAILY_LATE_H + ' ч назад', late: true });
+    }
+  });
+  found.forEach(function (f) {
+    if (f.late) { try { autoLogRow_(f.fn, false, f.msg); } catch (e) {} autoNotifyAdmin_('⚠ Автоматика: ' + autoJobWhat_(f.fn) + '\n\n' + f.msg); }
+    else autoMark_(f.fn, false, f.msg, true);
+  });
+  return found.length;
 }
 
 function autoNotifyAdmin_(text) {
@@ -8732,7 +8836,8 @@ function autoRender_(ss) {
   var rows = AUTO_JOBS.map(function (j) {
     var s = st[j.fn];
     var state = !autoJobOn_(j) ? '— не подключено' : have === null ? '?' : have[j.fn] ? '✅ включено' : '❌ нет';
-    return [j.what, autoSchedText_(j), state, s ? s.t : '—', s ? (s.ok ? '✓ ' : '⚠ ') + s.msg : ''];
+    var result = s && s.s ? '⏳ идёт с ' + Utilities.formatDate(new Date(s.s), 'Europe/Moscow', 'HH:mm') : s && s.t ? (s.ok ? '✓ ' : '⚠ ') + s.msg : '';
+    return [j.what, autoSchedText_(j), state, s && s.t ? s.t : '—', result];
   });
   var sh = ss.getSheetByName(AUTO_SHEET) || ss.insertSheet(AUTO_SHEET);
   sh.clear();
@@ -8755,6 +8860,7 @@ function installAllAutomation_() {
 
 /** Раз в неделю: досье всех команд заново (кредиты поиска тратятся только на команды без свежих новостей). */
 function weeklyAuto_() {
+  autoStart_('weeklyAuto_');
   try { PropertiesService.getScriptProperties().deleteProperty('DOSSIER_PASS'); var r = dossierFillAll_(true, true) || {}; autoMark_('weeklyAuto_', true, 'досье: обновлено ' + (r.done || 0) + (r.left ? ', остальные — следующими запусками' : '')); }
   catch (e) { autoMark_('weeklyAuto_', false, e.message); }
 }
@@ -8763,6 +8869,7 @@ function autoStatusNow_() { var ss = SpreadsheetApp.getActive(); autoRender_(ss)
 
 /** Раз в месяц: самопроверка факторов модели (результат — на листе «Самопроверка»). */
 function monthlyAuto_() {
+  autoStart_('monthlyAuto_');
   QUIET_ = true;
   try { selfCheckFactors_(); autoMark_('monthlyAuto_', true, 'самопроверка факторов выполнена'); }
   catch (e) { autoMark_('monthlyAuto_', false, e.message); }
@@ -9549,6 +9656,7 @@ function tgSendLong_(chat, html) {
 
 /** Для триггера (13:00 по Красноярску). */
 function agentDailyBriefAuto_() {
+  autoStart_('agentDailyBriefAuto_');
   try { var r = agentDailyBrief_() || {}; autoMark_('agentDailyBriefAuto_', !r.errors && !r.sendError, agentBriefStatus_(r)); }
   catch (e) { console.log('agent: ' + e.message); autoMark_('agentDailyBriefAuto_', false, e.message); autoNotifyAdmin_('⚠ Сводка агента не собралась: ' + e.message); }
 }
@@ -9972,6 +10080,7 @@ function bannersSend_(target, dayKey, limit) {
 /* ---- расписание и меню ---- */
 var BANNER_DAYS_AHEAD = 2;        // карточки готовим на сегодня и ещё на столько дней вперёд
 function bannersAuto_() {
+  autoStart_('bannersAuto_');
   var sent = 0, err = '';
   for (var i = 0; i <= BANNER_DAYS_AHEAD; i++) {
     var day = addDaysKey_(bannersDay_(), i);
@@ -11474,12 +11583,14 @@ function scoutReportText_(ss, matches, title) {
 function scoutAuto_() {
   var h = Number(Utilities.formatDate(new Date(), 'Europe/Moscow', 'H'));
   if (SCOUT_QUIET_HOURS.indexOf(h) >= 0) return;
+  autoStart_('scoutAuto_');
   try { var r = scoutCollect_(SpreadsheetApp.getActive()); autoMark_('scoutAuto_', true, r.skipped ? r.skipped : 'новых постов: ' + r.items + ', фактов: ' + r.facts); }
   catch (e) { autoMark_('scoutAuto_', false, e.message); }
 }
 
 /** Каждые 15 минут: у кого матч через ~1,5 часа — свежий сбор и итог вам (матчи одного времени — одним сообщением). */
 function scoutReportAuto_() {
+  try { autoWatchdog_(); } catch (e) { console.log('watchdog: ' + e.message); }   // оборванные запуски других задач
   var ss = SpreadsheetApp.getActive(), p = agentProps_(), now = Date.now(), to = p.getProperty('TG_ADMIN_ID');
   if (!to) return;
   var sent = {}; try { sent = JSON.parse(p.getProperty('SCOUT_SENT') || '{}'); } catch (e) { sent = {}; }
@@ -12185,6 +12296,7 @@ function powerPost_(target) {
 }
 function powerAuto_() {
   if (PropertiesService.getScriptProperties().getProperty(dailyKey_('power'))) return;
+  autoStart_('powerAuto_');
   try { powerPost_('channel'); autoMark_('powerAuto_', true, '«Сила команд» опубликована'); }
   catch (e) { autoMark_('powerAuto_', false, e.message); autoNotifyAdmin_('⚠ «Сила команд» не ушла: ' + e.message); }
 }
