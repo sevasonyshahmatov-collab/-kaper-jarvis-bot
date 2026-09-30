@@ -235,18 +235,8 @@ def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date
         d = ImageDraw.Draw(ov)
         for team, x, anchor, won in ((it['home'], 196, 'lm', hw), (it['away'], W - 196, 'rm', not hw)):
             name = rs._short(team)
-            if side:                               # по центру своей половины плашки — ровно во всех строках, пусть и поверх логотипа
-                half = (W - 64) * 0.5 * (1 - 0.27)             # ширина цветной половины (центр — 27% плашки)
-                x, anchor = (32 + half / 2, 'mm') if anchor == 'lm' else (W - 32 - half / 2, 'mm')
-                f = fit(name, OSW, 40 * S, (half - 40) * S, 700)
-                d.text((x * S, cy + 3 * S), name, font=f, anchor=anchor, fill=(0, 0, 0, 120))
-                # тёмный контур: текст читается и там, где ложится на логотип
-                d.text((x * S, cy), name, font=f, anchor=anchor, fill=(255, 255, 255, 255 if won else 170),
-                       stroke_width=3 * S, stroke_fill=(10, 14, 24, 235))
-                continue
-            else:
-                f = fit(name, EXOI, 34 * S, 196 * S, 800 if won else 700)
-                d.text((x * S, cy + 2 * S), name, font=f, anchor=anchor, fill=(0, 0, 0, 90))
+            f = fit(name, OSW, 40 * S, 196 * S, 700) if side else fit(name, EXOI, 34 * S, 196 * S, 800 if won else 700)
+            d.text((x * S, cy + 2 * S), name, font=f, anchor=anchor, fill=(0, 0, 0, 90))
             d.text((x * S, cy), name, font=f, anchor=anchor, fill=(255, 255, 255, 255 if won else 150))
             if won and variant == 2:
                 spaced(d, (x * S, cy + 32 * S), 'ПОБЕДА', F(EXOI, 14 * S, 800), gold + (255,), 2 * S, anchor='l' if anchor == 'lm' else 'r')
