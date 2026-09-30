@@ -7271,7 +7271,7 @@ function livePct_(p) { return Math.round(p * 100) + '%'; }
 function liveHas_(x) { return x !== null && x !== undefined && x !== ''; }
 
 /** Текст поста «Матчи дня»: счёт появляется сразу после финальной сирены.
- *  clean — версия для группы: только счёт, без отметок прогнозов. */
+ *  clean — только счёт, без отметок прогнозов (так публикуется в канал и группу). */
 function liveText_(day, items, now, clean) {
   var lines = ['🏒 <b>МАТЧИ ДНЯ · РЕЗУЛЬТАТЫ</b>', ruDayTitle_(day).toLowerCase(), ''];
   var hit = 0, miss = 0;
@@ -7394,7 +7394,8 @@ function liveUpdate_(now) {
     var items = days[day];
     if (!items.some(function (it) { return it.s.phase !== 'wait'; })) return;
     var sig = items.map(function (it) { return it.m.id + ':' + it.s.key; }).join(',');    // пост трогаем только при изменениях
-    if (!(state.msg[day] && state.sig[day] === sig)) { text = liveText_(day, items, now); sync(channel, day, text, sig, state.msg, state.sig); }
+    // в канале — только счёт, без отметок прогнозов (по вашему решению от 30.09)
+    if (!(state.msg[day] && state.sig[day] === sig)) { text = liveText_(day, items, now, true); sync(channel, day, text, sig, state.msg, state.sig); }
     if (group) { try { sync(group, day, liveText_(day, items, now, true), sig, state.gmsg, state.gsig); } catch (e) { /* группа не мешает каналу */ } }
   });
 
