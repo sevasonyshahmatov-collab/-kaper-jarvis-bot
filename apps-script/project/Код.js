@@ -12570,3 +12570,29 @@ function powerPostNow_() {
   if (dailyAlready_('power', '«Сила команд»')) return;
   try { powerPost_('channel'); uiAlert_('«Сила команд» опубликована в канале.'); } catch (e) { uiAlert_('Не получилось: ' + e.message); }
 }
+
+/* ------------------------- тест: «Итоги дня» с картинкой -------------------------
+ * Картинки нарисованы набором JARVIS (render/, results_ice2 variant 7) и лежат на Диске.
+ * testItogiToMe — сначала себе в личку, testItogiToChannel — в канал. Запуск из редактора скрипта. */
+var TEST_ITOGI_ = [
+  { file: '1U-73M76KwADIFCDhQRrQczKhWa1Y2OGm',
+    caption: '🏒 <b>КХЛ · итоги дня</b> · вторник, 29 сентября\n\nАмур — Нефтехимик <b>1:0</b>\nЦСКА — СКА <b>6:5</b>' },
+  { file: '1XY_11DKOOOthT-wk5WK-KkUz6rSnXVfu',
+    caption: '🇺🇸 <b>НХЛ · итоги ночи</b> · среда, 30 сентября\n\nКаролина — Флорида <b>0:1</b> ОТ/Б\nТоронто — Монреаль <b>2:3</b>\n' +
+      'Бостон — Рейнджерс <b>3:0</b>\nЭдмонтон — Ванкувер <b>5:6</b> ОТ/Б\nВегас — Чикаго <b>5:2</b>' }
+];
+function testItogiSend_(chat) {
+  if (!chat) throw new Error('не указан чат');
+  TEST_ITOGI_.forEach(function (t) { tgSendPhotos_(chat, [DriveApp.getFileById(t.file).getBlob()], t.caption); });
+  return TEST_ITOGI_.length;
+}
+function testItogiToMe() {
+  var n = testItogiSend_(PropertiesService.getScriptProperties().getProperty('TG_ADMIN_ID'));
+  uiAlert_('Отправлено вам в личку: ' + n + ' поста с картинками.');
+}
+function testItogiToChannel() {
+  var ui = SpreadsheetApp.getUi();
+  if (ui.alert('Опубликовать тестовые «Итоги дня» (КХЛ 29.09 и НХЛ 30.09) в канал?', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var n = testItogiSend_(bannerChannel_());
+  uiAlert_('Опубликовано в канал: ' + n + ' поста с картинками.');
+}
