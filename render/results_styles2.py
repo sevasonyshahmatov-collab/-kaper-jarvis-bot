@@ -270,7 +270,7 @@ def _minimal(items, path, league, title, date_title):
 
 
 # ------------------------------------------------------------------ 5. ЛЁД (Exo 2 Italic)
-def _ice(items, path, league, title, date_title, frost=False, colored=False):
+def _ice(items, path, league, title, date_title, frost=False, colored=False, logos=False):
     ROW, gap, head, foot = 128, 16, 262, 96
     H = head + len(items) * (ROW + gap) - gap + foot
     red, navy = (214, 40, 57), (16, 34, 70)
@@ -292,16 +292,18 @@ def _ice(items, path, league, title, date_title, frost=False, colored=False):
         y0 = head + i * (ROW + gap)
         cy = (y0 + ROW / 2) * S
         home_win = it['sh'] > it['sa']
-        card = _team_plate(it['home'], it['away'], (W - 64) * S, ROW * S, 22 * S) if colored else Image.new('RGBA', ((W - 64) * S, ROW * S), (0, 0, 0, 0))
+        card = _team_plate(it['home'], it['away'], (W - 64) * S, ROW * S, 22 * S, logos) if colored else Image.new('RGBA', ((W - 64) * S, ROW * S), (0, 0, 0, 0))
         if not colored:
             ImageDraw.Draw(card).rounded_rectangle((0, 0, card.width - 1, card.height - 1), radius=22 * S, fill=(255, 255, 255, 215))
         poster._shadowed(ov, card, (32 * S, y0 * S), blur=12 * S, off=(0, 5 * S), color=(30, 60, 110, 70 if colored else 55))
-        rs._emblem(ov, it['home'], 100 * S, cy, 80)
-        rs._emblem(ov, it['away'], (W - 100) * S, cy, 80)
+        nx = 72 if logos else 152                   # логотип внутри плашки — отдельного кружка нет, название ближе к краю
+        if not logos:
+            rs._emblem(ov, it['home'], 100 * S, cy, 80)
+            rs._emblem(ov, it['away'], (W - 100) * S, cy, 80)
         d = ImageDraw.Draw(ov)
-        for team, x, anchor, won in ((it['home'], 152, 'lm', home_win), (it['away'], W - 152, 'rm', not home_win)):
+        for team, x, anchor, won in ((it['home'], nx, 'lm', home_win), (it['away'], W - nx, 'rm', not home_win)):
             name = rs._short(team)
-            f = fit(name, EXOI, 34 * S, 230 * S, 800)
+            f = fit(name, EXOI, 36 * S if logos else 34 * S, 300 * S if logos else 230 * S, 800)
             if colored:                               # белым по клубному цвету, с лёгкой тенью
                 d.text((x * S, cy + 2 * S), name, font=f, anchor=anchor, fill=(0, 0, 0, 90))
                 d.text((x * S, cy), name, font=f, anchor=anchor, fill=(255, 255, 255, 255 if won else 175))
@@ -314,7 +316,7 @@ def _ice(items, path, league, title, date_title, frost=False, colored=False):
             d.ellipse((px - r, cy - r, px + r, cy + r), fill=(18, 20, 26, 255) if won else (226, 232, 240, 255))
             d.text((px, cy - 2 * S), str(val), font=F(EXOI, 52 * S, 900), anchor='mm', fill=(255, 255, 255, 255) if won else (120, 130, 148, 255))
         if it.get('mark'):                          # под названием победителя, между шайбами места нет
-            x, anchor = (152, 'lm') if home_win else (W - 152, 'rm')
+            x, anchor = (nx, 'lm') if home_win else (W - nx, 'rm')
             t, f = rs.MARK_TEXT[it['mark']], F(EXOI, 16 * S, 800)
             if colored:                               # на клубном цвете красный текст теряется — белый на тёмной плашке
                 w = f.getlength(t) + 16 * S
@@ -342,14 +344,26 @@ def _ice(items, path, league, title, date_title, frost=False, colored=False):
     return path
 
 
-def _team_plate(home, away, w, h, radius):
-    """Плашка матча: слева цвет хозяев, справа цвет гостей, плавный переход в центре и «ледяной» блик сверху."""
+def _team_plate(home, away, w, h, radius, logos=False):
+    """Плашка матча: слева цвет хозяев, справа цвет гостей, плавный переход в центре и «ледяной» блик сверху.
+    logos — эмблемы клубов «вплавлены» в плашку: крупно, срезаны краем, тон-в-тон с цветом клуба."""
     xs = np.linspace(0, 1, w, dtype=np.float32)
     k = np.clip((xs - 0.40) / 0.20, 0, 1)[None, :, None]          # переход в центральной пятой части
     a = np.array(club(home), np.float32) * (1 - k) + np.array(club(away), np.float32) * k
     a = np.repeat(a, h, axis=0)
     ys = np.linspace(0, 1, h, dtype=np.float32)[:, None, None]
     a = a * (0.82 + 0.18 * (1 - ys))                                 # чуть темнее книзу
+    if logos:
+        for team, cx, ang in ((home, h * 0.66, 10), (away, w - h * 0.66, -10)):
+            e = poster._raw_emblem(team, int(h * 1.55), int(h * 1.55)).rotate(ang, Image.BICUBIC, expand=True)
+            gray = np.asarray(e.convert('L'), np.float32) / 255
+            al = np.asarray(e.getchannel('A'), np.float32) / 255 * 0.72
+            x0, y0 = int(cx - e.width / 2), int(h * 0.52 - e.height / 2)
+            xa, ya, xb, yb = max(0, x0), max(0, y0), min(w, x0 + e.width), min(h, y0 + e.height)
+            g = gray[ya - y0:yb - y0, xa - x0:xb - x0, None]
+            k = al[ya - y0:yb - y0, xa - x0:xb - x0, None]
+            # тон-в-тон: светлые части эмблемы осветляют цвет клуба, тёмные — затемняют
+            a[ya:yb, xa:xb] = a[ya:yb, xa:xb] * (1 - k) + a[ya:yb, xa:xb] * (0.55 + 0.85 * g) * k
     a = a + (255 - a) * np.clip(0.22 - ys * 0.5, 0, 1)               # блик сверху
     img = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGB').convert('RGBA')
     m = Image.new('L', (w, h), 0)
@@ -439,7 +453,9 @@ def _frost(img, reach=140, seed=11):
 STYLES = {'arena': _arena, 'digital': _digital, 'gazeta': _gazeta, 'minimal': _minimal, 'ice': _ice,
           'ice_frost': lambda *a: _ice(*a, frost=True),
           'ice_color': lambda *a: _ice(*a, colored=True),
-          'ice_frost_color': lambda *a: _ice(*a, frost=True, colored=True)}
+          'ice_frost_color': lambda *a: _ice(*a, frost=True, colored=True),
+          'ice_logo': lambda *a: _ice(*a, colored=True, logos=True),
+          'ice_frost_logo': lambda *a: _ice(*a, frost=True, colored=True, logos=True)}
 
 
 def render(items, path, style='arena', league='KHL', title='ИТОГИ ДНЯ', date_title=None):
