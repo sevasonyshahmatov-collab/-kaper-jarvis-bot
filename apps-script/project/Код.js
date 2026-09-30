@@ -6637,6 +6637,14 @@ function gameHandleUpdate_(update) {
   var cmd = words[0].toLowerCase().replace(/@.*/, '');
   var arg = (words[1] || '').toLowerCase();
   var chat = msg.chat.id;
+  botEnsureCommands_();
+  if (cmd === '/today' || cmd === '/team' || cmd === '/table') {
+    var info;
+    try { info = cmd === '/today' ? botTodayText_(ss) : cmd === '/table' ? botTableText_(ss) : botTeamText_(ss, words.slice(1).join(' ')); }
+    catch (e) { info = '⚠️ Не получилось: ' + escHtml_(e.message); }
+    tg_('sendMessage', { chat_id: chat, parse_mode: 'HTML', text: info, disable_web_page_preview: true });
+    return;
+  }
   if (cmd === '/scout') {
     if (!tgIsChannelAdmin_(msg.from.id)) { tgAdminDenied_(chat, msg.from.id); return; }
     tg_('sendMessage', { chat_id: chat, text: '🔎 Смотрю, что нового…' });
@@ -6697,7 +6705,9 @@ function gameHandleUpdate_(update) {
       '🎯 <b>' + GAME_TITLE + '</b>\n\nУгадывай, кто победит в матчах КХЛ (с учётом ОТ и буллитов), и следи за своим банком.\n\n' +
       '• Каждый выбор — виртуальная ставка ' + GAME_STAKE + ' ₽ по коэффициенту на кнопке. Стартовый банк у всех — ' + GAME_START_BANK.toLocaleString('ru-RU') + ' ₽.\n' +
       '• Передумать можно до начала матча.' + (GAME_WEEKLY_POST ? '\n• Победитель недели — у кого больше угаданных исходов. Приз — ' + escHtml_(GAME_PRIZE) + '.' : '') + '\n\n' +
-      'Команды:\n/matches — матчи с кнопками\n/me — мой счёт и банк\n/history — история ставок и банк по дням\n\nПосле каждого игрового дня я буду присылать тебе личные итоги.' });
+      'Команды:\n/matches — матчи с кнопками\n/me — мой счёт и банк\n/history — история ставок и банк по дням\n\n' +
+      'Прогнозы и статистика:\n/today — матчи сегодня: шансы и коэффициенты\n/team Ак Барс — карточка команды\n/table — турнирная таблица\n\n' +
+      'После каждого игрового дня я буду присылать тебе личные итоги.' });
     gameSendMatches_(ss, chat);
   } else if (cmd === '/matches') {
     gameSendMatches_(ss, chat);
@@ -6729,6 +6739,149 @@ function gameRefreshKeyboard_(ss, message) {
   var list = ids.map(function (id) { return byId[id]; }).filter(function (m) { return m; });
   if (!list.length) return;
   tg_('editMessageReplyMarkup', { chat_id: message.chat.id, message_id: message.message_id, reply_markup: gameKeyboard_(list, gameReadPicks_(ss)) });
+}
+
+/* ------------------- команды в личке: /today, /team, /table -------------------
+ * Только чтение таблицы — лимиты ИИ и поиска не тратятся. */
+var BOT_CMDS_VERSION = '1';   // поменяйте, если меняется список команд, — меню Telegram обновится само
+
+/** Меню команд в Telegram (кнопка «/» у поля ввода). Ставится один раз на версию списка. */
+function botEnsureCommands_() {
+  var p = PropertiesService.getScriptProperties();
+  if (p.getProperty('BOT_CMDS_V') === BOT_CMDS_VERSION) return;
+  var r = tg_('setMyCommands', { commands: [
+    { command: 'today', description: 'Матчи сегодня: шансы и коэффициенты' },
+    { command: 'team', description: 'Карточка команды: /team Ак Барс' },
+    { command: 'table', description: 'Турнирная таблица' },
+    { command: 'matches', description: 'Игра: матчи с кнопками' },
+    { command: 'me', description: 'Игра: мой счёт и банк' },
+    { command: 'history', description: 'Игра: история ставок' },
+    { command: 'help', description: 'Все команды' }
+  ] });
+  if (r && r.ok) p.setProperty('BOT_CMDS_V', BOT_CMDS_VERSION);
+}
+
+/** Матчи с fromKey по toKey (МСК) из «прогнозов», за одно чтение листов: [{day, home, away, time, pJ, pB, odds, score}]. */
+function botMatches_(ss, fromKey, toKey) {
+  var prog = ss.getSheetByName('прогнозы');
+  if (!prog) return [];
+  var last = lastMatchRow_(prog);
+  if (last < 2) return [];
+  var vals = prog.getRange(2, 1, last - 1, COL_BEST_P).getValues();
+  var odds = {}; try { odds = readOddsLog_(ss); } catch (e) { odds = {}; }
+  var res = {}, rs = ss.getSheetByName(SHEET_RESULTS);
+  if (rs && rs.getLastRow() >= 2) rs.getRange(2, 1, rs.getLastRow() - 1, 7).getValues().forEach(function (r) {
+    if (!(r[0] instanceof Date) || String(r[1]).trim() !== 'Сыгран' || typeof r[4] !== 'number') return;
+    res[sheetDayKey_(r[0]) + '|' + String(r[2]).trim() + '|' + String(r[3]).trim()] = r[4] + ':' + r[5] + (r[6] === true || String(r[6]).toUpperCase() === 'TRUE' ? ' (ОТ/Б)' : '');
+  });
+  var out = [];
+  vals.forEach(function (v) {
+    if (!(v[0] instanceof Date) || !v[1] || !v[2] || typeof v[3] !== 'number') return;
+    var dayKey = sheetDayKey_(v[0]);
+    if (dayKey < fromKey || dayKey > toKey) return;
+    var home = String(v[1]).trim(), away = String(v[2]).trim(), o = null;
+    [dayKey, addDaysKey_(dayKey, -1), addDaysKey_(dayKey, 1)].forEach(function (k) { o = o || odds[k + '|' + home + '|' + away] || null; });
+    out.push({ day: dayKey, home: home, away: away, time: o && o.time ? o.time : '', pJ: v[3],
+      pB: typeof v[COL_BEST_P - 1] === 'number' ? v[COL_BEST_P - 1] : null, odds: o && o.regOdds ? o.regOdds : null,
+      score: res[dayKey + '|' + home + '|' + away] || '' });
+  });
+  out.sort(function (a, b) { return a.day !== b.day ? (a.day < b.day ? -1 : 1) : (a.time < b.time ? -1 : a.time > b.time ? 1 : 0); });
+  return out;
+}
+
+function botPick_(m, p) { return p === null ? '—' : escHtml_(p >= 0.5 ? m.home : m.away) + ' ' + Math.round(Math.max(p, 1 - p) * 100) + '%'; }
+
+/** /today — матчи сегодня; если сегодня пусто — ближайший игровой день в пределах недели. */
+function botTodayText_(ss) {
+  var today = agentMskDay_(), all = botMatches_(ss, today, addDaysKey_(today, 7));
+  if (!all.length) return '🏒 В ближайшую неделю матчей в таблице нет.';
+  var day = all[0].day, list = all.filter(function (m) { return m.day === day; });
+  var head = day === today ? '🏒 <b>КХЛ сегодня</b> · ' + briefDay_(day) : '🏒 Сегодня матчей нет. Ближайшие — <b>' + briefDay_(day) + '</b>';
+  var lines = list.map(function (m) {
+    return '<b>' + teamMark_(m.home) + ' — ' + teamMark_(m.away) + '</b>' + (m.time ? ' · ' + escHtml_(m.time) + ' МСК' : '') +
+      (m.score ? '\n🏁 Счёт: ' + escHtml_(m.score) : '') +
+      '\n🤖 Джарвис: ' + botPick_(m, m.pJ) + (m.pB !== null ? ' · ⭐ Лучший: ' + botPick_(m, m.pB) : '') +
+      (m.odds ? '\n📈 П1 / Х / П2: ' + m.odds.map(function (x) { return x.toFixed(2); }).join(' / ') : '');
+  });
+  return head + '\n\n' + lines.join('\n\n') +
+    '\n\n<i>Шансы — на победу с учётом ОТ и буллитов. Лучший прогноз — 75% линии букмекера + 25% Джарвиса.</i>';
+}
+
+/** Название клуба из запроса: каноничное, из «Справочника команд» (включая старые названия), по началу или части слова. */
+function botFindTeam_(ss, query) {
+  var norm = function (s) { return String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/[«»"'.]/g, '').replace(/\s+/g, ' ').trim(); };
+  var q = norm(query);
+  if (!q) return { list: [] };
+  var names = [], sh = ss.getSheetByName(SHEET_TEAMS);
+  if (sh && sh.getLastRow() >= 2) sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues().forEach(function (r) {
+    var canon = String(r[0]).trim(); if (!canon) return;
+    [canon].concat(String(r[1] || '').split(/[,;]/)).forEach(function (a) { if (norm(a)) names.push({ canon: canon, alias: norm(a) }); });
+  });
+  var pick = function (test) {
+    var seen = {}, out = [];
+    names.forEach(function (n) { if (test(n.alias) && !seen[n.canon]) { seen[n.canon] = 1; out.push(n.canon); } });
+    return out;
+  };
+  var list = pick(function (a) { return a === q; });
+  if (!list.length) list = pick(function (a) { return a.indexOf(q) === 0; });
+  if (!list.length) list = pick(function (a) { return a.indexOf(q) >= 0; });
+  return { list: list };
+}
+
+/** /team Название — карточка команды. */
+function botTeamText_(ss, query) {
+  if (!String(query || '').trim()) return 'Напишите название после команды, например: <code>/team Ак Барс</code>';
+  var found = botFindTeam_(ss, query).list;
+  if (!found.length) return 'Не нашёл команду «' + escHtml_(query) + '». Попробуйте, например: <code>/team Ак Барс</code>, <code>/team ЦСКА</code>, <code>/team Динамо Москва</code>';
+  if (found.length > 1) return 'Под «' + escHtml_(query) + '» подходит несколько команд: ' + found.map(escHtml_).join(', ') + '. Уточните название.';
+  var team = found[0], out = ['🏒 <b>' + teamMark_(team) + '</b>'];
+
+  var tsh = ss.getSheetByName('Таблица');
+  if (tsh && tsh.getLastRow() >= 2) {
+    var rows = tsh.getRange(2, 1, Math.min(tsh.getLastRow() - 1, 30), 11).getValues();
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i]; if (String(r[1]).trim() !== team) continue;
+      var diff = Number(r[8]);
+      out.push('📋 ' + r[0] + '-е место · ' + r[3] + ' ' + ruPlural_(Number(r[3]), 'очко', 'очка', 'очков') + ' за ' + r[2] + ' ' + ruPlural_(Number(r[2]), 'игру', 'игры', 'игр') +
+        ' · победы ' + r[4] + ', поражения ' + r[5] + ' · шайбы ' + r[6] + ':' + r[7] + ' (' + (diff > 0 ? '+' : '') + diff + ')');
+      if (String(r[9]).trim()) out.push('📈 Форма (последние 6): ' + escHtml_(r[9]));
+      if (typeof r[10] === 'number') out.push('💪 Рейтинг силы: ' + Math.round(r[10]) + ' из 100');
+      break;
+    }
+  }
+
+  var T = {}; try { T = khlAppStatsCached_(ss); } catch (e) { T = {}; }
+  var t = T[team];
+  if (t && t.gp) {
+    out.push('📊 Броски в створ за игру: ' + khlNum_(t.sf / t.gp) + ' — пропускает ' + khlNum_(t.sa / t.gp) +
+      '\n🎯 Большинство ' + khlPct_(t.ppPct) + ' · меньшинство ' + khlPct_(t.pkPct) + ' · % отражённых ' + khlPct_(t.svPct) +
+      (t.mainGoalie ? '\n🥅 Основной вратарь: ' + escHtml_(t.mainGoalie) + ' (' + t.mainGoalieGp + ' из ' + t.gp + ')' +
+        (t.lastGoalie && t.lastGoalie !== t.mainGoalie ? ', в последнем матче — ' + escHtml_(t.lastGoalie) : '') : ''));
+  }
+
+  // ближайший матч с прогнозом
+  var today = agentMskDay_();
+  var next = botMatches_(ss, today, addDaysKey_(today, 14)).filter(function (x) { return !x.score && (x.home === team || x.away === team); })[0];
+  if (next) {
+    var home = next.home === team, pT = home ? next.pJ : 1 - next.pJ;
+    out.push('🗓 Ближайший матч: ' + briefDay_(next.day) + (next.time ? ', ' + escHtml_(next.time) + ' МСК' : '') + ' — ' +
+      (home ? 'дома с ' : 'в гостях у ') + teamMark_(home ? next.away : next.home) +
+      '\n🤖 Шанс на победу по Джарвису: ' + Math.round(pT * 100) + '%' +
+      (next.pB !== null ? ' · ⭐ лучший прогноз: ' + Math.round((home ? next.pB : 1 - next.pB) * 100) + '%' : ''));
+  }
+  return out.join('\n');
+}
+
+/** /table — турнирная таблица с листа «Таблица». */
+function botTableText_(ss) {
+  var sh = ss.getSheetByName('Таблица');
+  if (!sh || sh.getLastRow() < 2) return 'Таблица пока не заполнена.';
+  var rows = sh.getRange(2, 1, Math.min(sh.getLastRow() - 1, 30), 9).getValues().filter(function (r) { return String(r[1]).trim(); });
+  var lines = rows.map(function (r) {
+    var diff = Number(r[8]);
+    return r[0] + '. ' + teamMark_(String(r[1]).trim()) + ' — <b>' + r[3] + '</b> (' + r[2] + ' и, ' + (diff > 0 ? '+' : '') + diff + ')';
+  });
+  return '🏆 <b>Турнирная таблица КХЛ</b>\n<i>место. команда — очки (игры, разница шайб)</i>\n\n' + lines.join('\n');
 }
 
 /* --------------------------- подсчёт и рейтинги --------------------------- */
