@@ -180,10 +180,13 @@ def _check(d, cx, cy, r):
            fill=(255, 255, 255, 255), width=int(r / 3.2), joint='curve')
 
 
-def _mark(d, cx, cy, mark, dark_bg):
+MANROPE = 'Manrope[wght].ttf'
+
+
+def _mark(d, cx, cy, mark, dark_bg, side=False):
     if not mark:
         return
-    t, f = rs.MARK_TEXT[mark], F(EXOI, 14 * S, 800)
+    t, f = rs.MARK_TEXT[mark], (F(MANROPE, 13 * S, 800) if side else F(EXOI, 14 * S, 800))
     w = f.getlength(t) + 16 * S
     d.rounded_rectangle((cx - w / 2, cy - 11 * S, cx + w / 2, cy + 11 * S), radius=8 * S,
                         fill=(255, 255, 255, 235) if dark_bg else (16, 22, 34, 230))
@@ -205,9 +208,13 @@ def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date
     ov = Image.new('RGBA', (W * S, H * S), (0, 0, 0, 0))
     d = ImageDraw.Draw(ov)
     rs._brand(d, W * S / 2, 58 * S, league, dark_text=True)
-    d.text((W * S / 2, 136 * S), title, font=F(EXOI, 76 * S, 900), anchor='mm', fill=NAVY + (255,))
+    side = variant == 7                            # шрифты «Боков»: Oswald — названия, Unbounded — цифры, Manrope — подписи
+    if side:
+        spaced(d, (W * S / 2, 138 * S), title, F(OSW, 84 * S, 700), NAVY + (255,), 3 * S)
+    else:
+        d.text((W * S / 2, 136 * S), title, font=F(EXOI, 76 * S, 900), anchor='mm', fill=NAVY + (255,))
     if date_title:
-        spaced(d, (W * S / 2, 206 * S), date_title.upper(), F(EXOI, 22 * S, 700), (40, 58, 92, 255), 3 * S)
+        spaced(d, (W * S / 2, 206 * S), date_title.upper(), F(MANROPE, 21 * S, 800) if side else F(EXOI, 22 * S, 700), (40, 58, 92, 255), 3 * S)
     center = CENTERS[variant]
     dark_center = sum(center) < 300
     cx = W / 2 * S
@@ -228,7 +235,7 @@ def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date
         d = ImageDraw.Draw(ov)
         for team, x, anchor, won in ((it['home'], 196, 'lm', hw), (it['away'], W - 196, 'rm', not hw)):
             name = rs._short(team)
-            f = fit(name, EXOI, 34 * S, 196 * S, 800 if won else 700)
+            f = fit(name, OSW, 40 * S, 196 * S, 700) if side else fit(name, EXOI, 34 * S, 196 * S, 800 if won else 700)
             d.text((x * S, cy + 2 * S), name, font=f, anchor=anchor, fill=(0, 0, 0, 90))
             d.text((x * S, cy), name, font=f, anchor=anchor, fill=(255, 255, 255, 255 if won else 150))
             if won and variant == 2:
@@ -260,16 +267,19 @@ def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date
         elif variant in (4, 7):                    # КОРОНА (7 — без короны, проигравший силуэтом)
             glow = Image.new('RGBA', ov.size, (0, 0, 0, 0))
             gd = ImageDraw.Draw(glow)
-            fn = F(TEK, 72 * S, 800, 100)
+            if side:
+                fn, fl, fc = F(UNB, 58 * S, 700), F(UNB, 44 * S, 500), F(UNB, 36 * S, 500)
+            else:
+                fn, fl, fc = F(TEK, 72 * S, 800, 100), F(TEK, 56 * S, 600, 100), F(TEK, 44 * S, 700, 100)
             gd.text((cx + ws * 44 * S, cy), str(wv), font=fn, anchor='mm', fill=gold + (230,))
             ov.alpha_composite(glow.filter(ImageFilter.GaussianBlur(12 * S)))
             d = ImageDraw.Draw(ov)
             d.text((cx + ws * 44 * S, cy), str(wv), font=fn, anchor='mm', fill=(255, 236, 170, 255))
-            d.text((cx - ws * 44 * S, cy), str(lv), font=F(TEK, 56 * S, 600, 100), anchor='mm', fill=(96, 104, 118, 255))
-            d.text((cx, cy - 4 * S), ':', font=F(TEK, 44 * S, 700, 100), anchor='mm', fill=(96, 104, 118, 255))
+            d.text((cx - ws * 44 * S, cy), str(lv), font=fl, anchor='mm', fill=(96, 104, 118, 255))
+            d.text((cx, cy - 4 * S), ':', font=fc, anchor='mm', fill=(96, 104, 118, 255))
             if variant == 4:
                 _crown(d, (lx if hw else rx), cy - 62 * S, S, gold + (255,))
-            _mark(d, cx, cy + 46 * S, it.get('mark'), True)
+            _mark(d, cx, cy + 46 * S, it.get('mark'), True, side)
         elif variant == 5:                         # ШАЙБА
             wx, lxs = cx + ws * 46 * S, cx - ws * 54 * S
             r1, r2 = 50 * S, 32 * S
@@ -290,5 +300,5 @@ def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date
             _check(d, (lx + 46 * S) if hw else (rx - 46 * S), cy - 42 * S, 17 * S)
             if it.get('mark'):
                 d.text((lx2, cy + 34 * S), rs.MARK_TEXT[it['mark']], font=F(EXOI, 12 * S, 800), anchor='mm', fill=RED + (255,))
-    spaced(d, (W * S / 2, (H - 42) * S), '@jarvibet', F(EXOI, 24 * S, 800), RED + (255,), 2 * S)
+    spaced(d, (W * S / 2, (H - 42) * S), '@jarvibet', F(UNB, 20 * S, 700) if side else F(EXOI, 24 * S, 800), RED + (255,), 2 * S)
     return rs._finish(bg, ov, H, path, grain=0.2)
