@@ -107,6 +107,8 @@ def _plate(home, away, w, h, radius, home_win, center, cw=0.27, loser='desat'):
     ch, ca = np.array(club(home), np.float32), np.array(club(away), np.float32)
 
     def lose(c):
+        if loser == 'none':                        # до матча: обе половины в полном цвете
+            return c
         g = c.mean()
         return (c * 0.35 + g * 0.65) * 0.82 if loser == 'desat' else c * 0.5
 

@@ -18,6 +18,23 @@ rs2.render(items, 'itogi.jpg', style='ice_logo', league='KHL', date_title='по�
 | `ice_logo_over` | results_styles2 | «Лёд»: плашки в цветах клубов, эмблемы поверх плашки — в цвете, с обводкой-наклейкой и тенью |
 | `ice_frost_logo_over` | results_styles2 | то же + иней по краям |
 
+## ⭐ Выбранные итоги (30.09.2026, второй раунд)
+
+- `results_ice2.render(..., variant=4)` — КОРОНА
+- `results_styles2.render(..., style='ice_logo_over')` — цветные плашки, логотипы-наклейки, шайбы
+- `results_ice3.render(..., layout='winner')` — ЦВЕТ ПОБЕДЫ
+
+## Матчи дня (до игры) в тех же трёх форматах (preview_ice)
+
+`preview_ice.render(items, path, style=..., league=..., date_title=...)`,
+items = `[dict(home, away, time='19:30', odds=(П1, Х, П2))]`. Вместо победителя выделен фаворит (меньший кэф).
+
+| style | по мотивам | что показано |
+|---|---|---|
+| `crown` | КОРОНА | тёмная панель: время крупно, П1/Х/П2 под ним, кэф фаворита золотой, корона над его логотипом |
+| `pucks` | ice_logo_over | П1 и П2 в шайбах (у фаворита чёрная), время сверху, ничья снизу |
+| `favorite` | ЦВЕТ ПОБЕДЫ | окрашена сторона фаворита, время в таблетке, П1/П2 под названиями команд |
+
 ## «Лёд» — шесть способов показать победителя (results_ice2)
 
 `results_ice2.render(items, path, variant=1..6, league=...)` — логотипы поверх плашек, нейтральный центр,
