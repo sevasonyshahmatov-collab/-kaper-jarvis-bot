@@ -15,6 +15,12 @@ variant:
   4 КОРОНА    — тёмная панель табло, светящаяся цифра победителя, золотая корона над его логотипом. Tektur.
   5 ШАЙБА     — светлый центр, у победителя большая чёрная шайба, у проигравшего маленькая. Exo 2 Italic.
   6 ГАЛОЧКА   — светло-серый центр, цифра победителя подчёркнута его цветом, зелёная галочка на логотипе. Montserrat.
+  7 БОКА      — базовый: табло 4 без короны, логотип победителя стикером, проигравшего — силуэтом в плашке; шрифты «Боков».
+  8 / 9       — логотип во всю цветную колонку (срезан краями), название поверх с контуром; проигравший — силуэт / тёмный.
+Только логотипы, без названий (как в сетке плей-офф):
+  10 ЯЧЕЙКИ   — светлые ячейки, логотип во всю ячейку, проигравший серым; тёмное табло 7, полоска цвета клуба у табло.
+  11 СЕТКА    — скошенные ячейки как в сетке КХЛ: белая ячейка с логотипом + плашка счёта в цвете клуба.
+  12 КОЛОНКИ  — ячейки в цвете клуба, логотип во всю колонку, проигравший — силуэт; табло 7.
 """
 import math
 
@@ -164,6 +170,125 @@ def _embed(card, team, side, ang=None):
     card.paste(Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA'))
 
 
+def _fill(card, team, side, mode):
+    """Эмблема во всю цветную колонку: крупно, срезана краями плашки и центром.
+    mode: 'color' — в полном цвете (чуть притемнена, чтобы читалось название), 'dim' — обесцвечена,
+    'ghost' — силуэт тон-в-тон с плашкой."""
+    w, h = card.size
+    half = int(w * (1 - 0.27) / 2)                           # ширина цветной колонки
+    e = poster._raw_emblem(team, int(half * 1.05), int(h * 1.9))
+    x0 = (0 if side == 'left' else w - half) + (half - e.width) // 2
+    y0 = (h - e.height) // 2
+    a = np.asarray(card, np.float32).copy()
+    em = np.zeros((h, w, 4), np.float32)
+    xa, ya, xb, yb = max(0, x0), max(0, y0), min(w, x0 + e.width), min(h, y0 + e.height)
+    em[ya:yb, xa:xb] = np.asarray(e, np.float32)[ya - y0:yb - y0, xa - x0:xb - x0]
+    col = np.zeros(w, bool)
+    col[:half] = side == 'left'
+    col[w - half:] = side == 'right'
+    k = em[..., 3:] / 255 * col[None, :, None]
+    rgb, erg = a[..., :3], em[..., :3]
+    if mode == 'ghost':
+        g = erg.mean(axis=2, keepdims=True) / 255
+        out = rgb * (0.55 + 0.85 * g)
+        k = k * 0.72
+    elif mode == 'dim':
+        out = (erg * 0.3 + erg.mean(axis=2, keepdims=True) * 0.7) * 0.55
+        k = k * 0.85
+    else:
+        out = erg * 0.82                                    # чуть темнее — белое название на логотипе читается
+        k = k * 0.95
+    a[..., :3] = rgb * (1 - k) + out * k
+    card.paste(Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA'))
+
+
+def _paint(a, team, x0, x1, mask, mode, grow=1.1):
+    """Эмблема во всю ячейку [x0, x1): крупно, по центру, срезана маской ячейки (mask — доля 0..1, h×w).
+    mode: 'full' — в полном цвете, 'fade' — серый полупрозрачный силуэт проигравшего."""
+    h, w = mask.shape
+    e = poster._raw_emblem(team, int((x1 - x0) * grow), int(h * 1.85))
+    ex, ey = int((x0 + x1 - e.width) / 2), (h - e.height) // 2
+    em = np.zeros((h, w, 4), np.float32)
+    xa, ya, xb, yb = max(0, ex), max(0, ey), min(w, ex + e.width), min(h, ey + e.height)
+    em[ya:yb, xa:xb] = np.asarray(e, np.float32)[ya - ey:yb - ey, xa - ex:xb - ex]
+    k = em[..., 3:] / 255 * mask[..., None]
+    erg = em[..., :3]
+    if mode == 'fade':
+        out, k = erg.mean(axis=2, keepdims=True) * 0.6 + 70, k * 0.42
+    else:
+        out = erg
+    a[..., :3] = a[..., :3] * (1 - k) + out * k
+
+
+def _light(h, w):
+    """Светлая ледяная заливка ячейки: белая сверху, чуть голубее книзу."""
+    ys = np.linspace(0, 1, h, dtype=np.float32)[:, None, None]
+    top, bot = np.array((252, 253, 255), np.float32), np.array((222, 230, 241), np.float32)
+    return np.repeat(top * (1 - ys) + bot * ys, w, axis=1)
+
+
+def _poly_mask(w, h, pts):
+    m = Image.new('L', (w, h), 0)
+    ImageDraw.Draw(m).polygon(pts, fill=255)
+    return np.asarray(m, np.float32) / 255
+
+
+def _cells(it, hw, variant, center):
+    """Ячейки «как в сетке плей-офф»: команда показана только логотипом во всю ячейку, без названия.
+    10 — светлые ячейки и тёмное табло по центру, у края табло полоска цвета клуба;
+    11 — скошенные ячейки как в сетке КХЛ: белая ячейка с логотипом + плашка счёта в цвете клуба;
+    12 — как 8, но без названий: ячейки в цвете клуба, логотип во всю колонку."""
+    w, h, r = (W - 64) * S, ROW * S, 22 * S
+    home, away = it['home'], it['away']
+    if variant == 12:
+        card = _plate(home, away, w, h, r, hw, center, loser='dark')
+        _fill(card, home, 'left', 'color' if hw else 'ghost')
+        _fill(card, away, 'right', 'color' if not hw else 'ghost')
+        return card
+    lose = lambda c: tuple(int(v) for v in (np.array(c, np.float32) * 0.3 + np.mean(c) * 0.7) * 0.75)
+    ch, ca = club(home), club(away)
+    ch, ca = (ch, lose(ca)) if hw else (lose(ch), ca)
+    a = np.zeros((h, w, 4), np.float32)
+    if variant == 10:
+        half = int(w * (1 - 0.27) / 2)
+        band = 10 * S
+        a[..., :3] = _light(h, w)
+        a[:, half:w - half, :3] = center
+        a[:, half - band:half, :3] = ch                     # полоска цвета клуба у табло
+        a[:, w - half:w - half + band, :3] = ca
+        for team, x0, x1, won in ((home, 0, half - band, hw), (away, w - half + band, w, not hw)):
+            m = np.zeros((h, w), np.float32)
+            m[:, x0:x1] = 1
+            _paint(a, team, x0, x1, m, 'full' if won else 'fade')
+        m = Image.new('L', (w, h), 0)
+        ImageDraw.Draw(m).rounded_rectangle((0, 0, w - 1, h - 1), radius=r, fill=250)
+        a[..., 3] = np.asarray(m, np.float32)
+        card = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA')
+        ImageDraw.Draw(card).rounded_rectangle((0, 0, w - 1, h - 1), radius=r, outline=(255, 255, 255, 170), width=max(2, h // 60))
+        return card
+    # 11 — скошенные ячейки: [логотип][счёт] [счёт][логотип]
+    sk = 30 * S
+    we = w - sk
+    cut = [0, 0.372, 0.378, 0.494, 0.506, 0.622, 0.628, 1.0]
+    X = [int(v * we) for v in cut]
+    seg = lambda x0, x1: [(x0 + sk, 0), (x1 + sk, 0), (x1, h), (x0, h)]
+    a[..., :3] = _light(h, w)
+    ys = np.linspace(0, 1, h, dtype=np.float32)[:, None, None]
+    alpha = np.zeros((h, w), np.float32)
+    for (x0, x1), fill, team, won in (((X[0], X[1]), None, home, hw), ((X[2], X[3]), ch, None, hw),
+                                      ((X[4], X[5]), ca, None, not hw), ((X[6], X[7]), None, away, not hw)):
+        m = _poly_mask(w, h, seg(x0, x1))
+        if fill is not None:
+            col = np.array(fill, np.float32) * (1.08 - 0.2 * ys)
+            col = np.broadcast_to(col, (h, w, 3))
+            a[..., :3] = a[..., :3] * (1 - m[..., None]) + col * m[..., None]
+        else:
+            _paint(a, team, x0 + sk // 2, x1 + sk // 2, m, 'full' if won else 'fade')
+        alpha = np.maximum(alpha, m)
+    a[..., 3] = alpha * 250
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA'), X, sk
+
+
 def _crown(d, cx, cy, s, color):
     w, h = 34 * s, 24 * s
     pts = [(cx - w / 2, cy + h / 2), (cx - w / 2, cy - h / 4), (cx - w / 4, cy + h / 12), (cx, cy - h / 2),
@@ -193,9 +318,22 @@ def _mark(d, cx, cy, mark, dark_bg, side=False):
     d.text((cx, cy), t, font=f, anchor='mm', fill=(16, 22, 34, 255) if dark_bg else (255, 255, 255, 255))
 
 
+def _score7(ov, cx, cy, wv, lv, ws, mark, gold):
+    """Табло варианта 7: светящаяся золотая цифра победителя (Unbounded), серая — проигравшего."""
+    glow = Image.new('RGBA', ov.size, (0, 0, 0, 0))
+    ImageDraw.Draw(glow).text((cx + ws * 44 * S, cy), str(wv), font=F(UNB, 58 * S, 700), anchor='mm', fill=gold + (230,))
+    ov.alpha_composite(glow.filter(ImageFilter.GaussianBlur(12 * S)))
+    d = ImageDraw.Draw(ov)
+    d.text((cx + ws * 44 * S, cy), str(wv), font=F(UNB, 58 * S, 700), anchor='mm', fill=(255, 236, 170, 255))
+    d.text((cx - ws * 44 * S, cy), str(lv), font=F(UNB, 44 * S, 500), anchor='mm', fill=(96, 104, 118, 255))
+    d.text((cx, cy - 4 * S), ':', font=F(UNB, 36 * S, 500), anchor='mm', fill=(96, 104, 118, 255))
+    _mark(d, cx, cy + 46 * S, mark, True, True)
+
+
 # ------------------------------------------------------------------ сборка
-CENTERS = {1: (20, 24, 34), 2: (242, 245, 250), 3: (20, 24, 34), 4: (12, 14, 20), 5: (242, 245, 250), 6: (226, 231, 238), 7: (12, 14, 20)}
-LOSER = {1: 'desat', 2: 'dark', 3: 'desat', 4: 'dark', 5: 'desat', 6: 'desat', 7: 'dark'}
+CENTERS = {1: (20, 24, 34), 2: (242, 245, 250), 3: (20, 24, 34), 4: (12, 14, 20), 5: (242, 245, 250), 6: (226, 231, 238), 7: (12, 14, 20), 8: (12, 14, 20), 9: (12, 14, 20),
+           10: (12, 14, 20), 11: (12, 14, 20), 12: (12, 14, 20)}
+LOSER = {1: 'desat', 2: 'dark', 3: 'desat', 4: 'dark', 5: 'desat', 6: 'desat', 7: 'dark', 8: 'dark', 9: 'dark', 10: 'dark', 11: 'dark', 12: 'dark'}
 
 
 def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date_title=None):
@@ -208,7 +346,7 @@ def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date
     ov = Image.new('RGBA', (W * S, H * S), (0, 0, 0, 0))
     d = ImageDraw.Draw(ov)
     rs._brand(d, W * S / 2, 58 * S, league, dark_text=True)
-    side = variant == 7                            # шрифты «Боков»: Oswald — названия, Unbounded — цифры, Manrope — подписи
+    side = variant >= 7                    # шрифты «Боков»: Oswald — названия, Unbounded — цифры, Manrope — подписи
     if side:
         spaced(d, (W * S / 2, 138 * S), title, F(OSW, 84 * S, 700), NAVY + (255,), 3 * S)
     else:
@@ -222,26 +360,48 @@ def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date
         y0 = HEAD + i * (ROW + GAP)
         cy = (y0 + ROW / 2) * S
         hw = it['sh'] > it['sa']
+        wv, lv = (it['sh'], it['sa']) if hw else (it['sa'], it['sh'])
+        ws = -1 if hw else 1                       # сторона победителя: -1 слева, 1 справа
+        if variant >= 10:                          # только логотипы, без названий
+            card = _cells(it, hw, variant, center)
+            if variant == 11:
+                card, X, sk = card
+            poster._shadowed(ov, card, (32 * S, y0 * S), blur=12 * S, off=(0, 5 * S), color=(30, 60, 110, 70))
+            if variant == 11:                      # цифры в плашках цвета клуба
+                for (x0, x1), v, won in (((X[2], X[3]), it['sh'], hw), ((X[4], X[5]), it['sa'], not hw)):
+                    x = 32 * S + (x0 + x1 + sk) / 2
+                    d.text((x, cy + 2 * S), str(v), font=F(UNB, 58 * S if won else 48 * S, 800 if won else 600), anchor='mm',
+                           fill=(255, 255, 255, 255 if won else 150), stroke_width=(2 * S if won else 0), stroke_fill=(0, 0, 0, 60))
+                _mark(d, cx + sk / 2 - 6 * S, cy + 50 * S, it.get('mark'), True, side)
+                continue
+            _score7(ov, cx, cy, wv, lv, ws, it.get('mark'), gold)
+            d = ImageDraw.Draw(ov)
+            continue
         card = _plate(it['home'], it['away'], (W - 64) * S, ROW * S, 22 * S, hw, center, loser=LOSER[variant])
         if variant == 7:                           # логотип проигравшего «уходит» в плашку силуэтом
             _embed(card, it['away'] if hw else it['home'], 'right' if hw else 'left')
+        if variant in (8, 9):                      # логотипы во всю колонку, срезаны краями плашки
+            _fill(card, it['home'], 'left', 'color' if hw else ('ghost' if variant == 8 else 'dim'))
+            _fill(card, it['away'], 'right', 'color' if not hw else ('ghost' if variant == 8 else 'dim'))
         poster._shadowed(ov, card, (32 * S, y0 * S), blur=12 * S, off=(0, 5 * S), color=(30, 60, 110, 70))
         lx, rx = (32 + ROW * 0.60) * S, (W - 32 - ROW * 0.60) * S
         fade = variant in (3, 5)
-        if not (variant == 7 and not hw):
+        if variant not in (8, 9) and not (variant == 7 and not hw):
             _logo(ov, it['home'], lx, cy, 10, faded=fade and not hw)
-        if not (variant == 7 and hw):
+        if variant not in (8, 9) and not (variant == 7 and hw):
             _logo(ov, it['away'], rx, cy, -10, faded=fade and hw)
         d = ImageDraw.Draw(ov)
         for team, x, anchor, won in ((it['home'], 196, 'lm', hw), (it['away'], W - 196, 'rm', not hw)):
             name = rs._short(team)
             f = fit(name, OSW, 40 * S, 196 * S, 700) if side else fit(name, EXOI, 34 * S, 196 * S, 800 if won else 700)
             d.text((x * S, cy + 2 * S), name, font=f, anchor=anchor, fill=(0, 0, 0, 90))
+            if variant in (8, 9):                  # название лежит на логотипе — с тёмным контуром
+                d.text((x * S, cy), name, font=f, anchor=anchor, fill=(255, 255, 255, 255 if won else 180),
+                       stroke_width=3 * S, stroke_fill=(10, 14, 24, 220))
+                continue
             d.text((x * S, cy), name, font=f, anchor=anchor, fill=(255, 255, 255, 255 if won else 150))
             if won and variant == 2:
                 spaced(d, (x * S, cy + 32 * S), 'ПОБЕДА', F(EXOI, 14 * S, 800), gold + (255,), 2 * S, anchor='l' if anchor == 'lm' else 'r')
-        wv, lv = (it['sh'], it['sa']) if hw else (it['sa'], it['sh'])
-        ws = -1 if hw else 1                       # сторона победителя: -1 слева, 1 справа
         if variant == 1:                           # КАПСУЛА
             fb, fs = F(RUSSO, 66 * S), F(RUSSO, 44 * S)
             d.text((cx + ws * 38 * S, cy), str(wv), font=fb, anchor='mm', fill=gold + (255,))
@@ -264,7 +424,7 @@ def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date
             t = 16 * S                              # стрелка в сторону победителя
             d.polygon([(cx + ws * t, cy), (cx - ws * t * 0.7, cy - t), (cx - ws * t * 0.7, cy + t)], fill=gold + (255,))
             _mark(d, cx, cy + 46 * S, it.get('mark'), True)
-        elif variant in (4, 7):                    # КОРОНА (7 — без короны, проигравший силуэтом)
+        elif variant in (4, 7, 8, 9):              # КОРОНА (7–9 — без короны)
             glow = Image.new('RGBA', ov.size, (0, 0, 0, 0))
             gd = ImageDraw.Draw(glow)
             if side:
