@@ -270,7 +270,7 @@ def _minimal(items, path, league, title, date_title):
 
 
 # ------------------------------------------------------------------ 5. ЛЁД (Exo 2 Italic)
-def _ice(items, path, league, title, date_title):
+def _ice(items, path, league, title, date_title, frost=False, colored=False):
     ROW, gap, head, foot = 128, 16, 262, 96
     H = head + len(items) * (ROW + gap) - gap + foot
     red, navy = (214, 40, 57), (16, 34, 70)
@@ -292,16 +292,21 @@ def _ice(items, path, league, title, date_title):
         y0 = head + i * (ROW + gap)
         cy = (y0 + ROW / 2) * S
         home_win = it['sh'] > it['sa']
-        card = Image.new('RGBA', ((W - 64) * S, ROW * S), (0, 0, 0, 0))
-        ImageDraw.Draw(card).rounded_rectangle((0, 0, card.width - 1, card.height - 1), radius=22 * S, fill=(255, 255, 255, 215))
-        poster._shadowed(ov, card, (32 * S, y0 * S), blur=12 * S, off=(0, 5 * S), color=(30, 60, 110, 55))
+        card = _team_plate(it['home'], it['away'], (W - 64) * S, ROW * S, 22 * S) if colored else Image.new('RGBA', ((W - 64) * S, ROW * S), (0, 0, 0, 0))
+        if not colored:
+            ImageDraw.Draw(card).rounded_rectangle((0, 0, card.width - 1, card.height - 1), radius=22 * S, fill=(255, 255, 255, 215))
+        poster._shadowed(ov, card, (32 * S, y0 * S), blur=12 * S, off=(0, 5 * S), color=(30, 60, 110, 70 if colored else 55))
         rs._emblem(ov, it['home'], 100 * S, cy, 80)
         rs._emblem(ov, it['away'], (W - 100) * S, cy, 80)
         d = ImageDraw.Draw(ov)
         for team, x, anchor, won in ((it['home'], 152, 'lm', home_win), (it['away'], W - 152, 'rm', not home_win)):
             name = rs._short(team)
-            d.text((x * S, cy), name, font=fit(name, EXOI, 34 * S, 230 * S, 800), anchor=anchor,
-                   fill=navy + (255,) if won else (140, 152, 172, 255))
+            f = fit(name, EXOI, 34 * S, 230 * S, 800)
+            if colored:                               # белым по клубному цвету, с лёгкой тенью
+                d.text((x * S, cy + 2 * S), name, font=f, anchor=anchor, fill=(0, 0, 0, 90))
+                d.text((x * S, cy), name, font=f, anchor=anchor, fill=(255, 255, 255, 255 if won else 175))
+            else:
+                d.text((x * S, cy), name, font=f, anchor=anchor, fill=navy + (255,) if won else (140, 152, 172, 255))
         # «шайбы» со счётом
         for k, (val, won) in enumerate(((it['sh'], home_win), (it['sa'], not home_win))):
             px = (W / 2 + (-52 if k == 0 else 52)) * S
@@ -310,12 +315,131 @@ def _ice(items, path, league, title, date_title):
             d.text((px, cy - 2 * S), str(val), font=F(EXOI, 52 * S, 900), anchor='mm', fill=(255, 255, 255, 255) if won else (120, 130, 148, 255))
         if it.get('mark'):                          # под названием победителя, между шайбами места нет
             x, anchor = (152, 'lm') if home_win else (W - 152, 'rm')
-            d.text((x * S, cy + 34 * S), rs.MARK_TEXT[it['mark']], font=F(EXOI, 16 * S, 800), anchor=anchor, fill=red + (255,))
-    spaced(d, (W * S / 2, (H - 42) * S), '@jarvibet', F(EXOI, 24 * S, 800), red + (255,), 2 * S)
-    return rs._finish(bg, ov, H, path, grain=0.2)
+            t, f = rs.MARK_TEXT[it['mark']], F(EXOI, 16 * S, 800)
+            if colored:                               # на клубном цвете красный текст теряется — белый на тёмной плашке
+                w = f.getlength(t) + 16 * S
+                x1 = x * S if anchor == 'lm' else x * S - w
+                d.rounded_rectangle((x1, cy + 24 * S, x1 + w, cy + 46 * S), radius=8 * S, fill=(12, 16, 26, 200))
+                d.text((x1 + w / 2, cy + 35 * S), t, font=f, anchor='mm', fill=(255, 255, 255, 255))
+            else:
+                d.text((x * S, cy + 34 * S), t, font=f, anchor=anchor, fill=red + (255,))
+    if not frost:
+        spaced(d, (W * S / 2, (H - 42) * S), '@jarvibet', F(EXOI, 24 * S, 800), red + (255,), 2 * S)
+        return rs._finish(bg, ov, H, path, grain=0.2)
+    out = _frost(Image.alpha_composite(bg, ov.resize((W, H), Image.LANCZOS)))
+    # подпись — поверх инея, с мягкой светлой подложкой, иначе тонет
+    tag = Image.new('RGBA', (W * S, H * S), (0, 0, 0, 0))
+    td = ImageDraw.Draw(tag)
+    f = F(EXOI, 24 * S, 800)
+    spaced(td, (W * S / 2, (H - 42) * S), '@jarvibet', f, (255, 255, 255, 255), 2 * S)
+    halo = tag.filter(ImageFilter.GaussianBlur(10 * S))
+    spaced(td, (W * S / 2, (H - 42) * S), '@jarvibet', f, red + (255,), 2 * S)
+    out = Image.alpha_composite(out, Image.alpha_composite(halo, halo).resize((W, H), Image.LANCZOS))
+    out = Image.alpha_composite(out, tag.resize((W, H), Image.LANCZOS))
+    out = out.convert('RGB').filter(ImageFilter.UnsharpMask(radius=1.0, percent=40, threshold=2))
+    out = poster._canvas_texture(out, 0.2)
+    out.save(path, quality=95, subsampling=0, optimize=True)
+    return path
 
 
-STYLES = {'arena': _arena, 'digital': _digital, 'gazeta': _gazeta, 'minimal': _minimal, 'ice': _ice}
+def _team_plate(home, away, w, h, radius):
+    """Плашка матча: слева цвет хозяев, справа цвет гостей, плавный переход в центре и «ледяной» блик сверху."""
+    xs = np.linspace(0, 1, w, dtype=np.float32)
+    k = np.clip((xs - 0.40) / 0.20, 0, 1)[None, :, None]          # переход в центральной пятой части
+    a = np.array(club(home), np.float32) * (1 - k) + np.array(club(away), np.float32) * k
+    a = np.repeat(a, h, axis=0)
+    ys = np.linspace(0, 1, h, dtype=np.float32)[:, None, None]
+    a = a * (0.82 + 0.18 * (1 - ys))                                 # чуть темнее книзу
+    a = a + (255 - a) * np.clip(0.22 - ys * 0.5, 0, 1)               # блик сверху
+    img = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGB').convert('RGBA')
+    m = Image.new('L', (w, h), 0)
+    ImageDraw.Draw(m).rounded_rectangle((0, 0, w - 1, h - 1), radius=radius, fill=242)
+    img.putalpha(m)
+    ImageDraw.Draw(img).rounded_rectangle((0, 0, w - 1, h - 1), radius=radius, outline=(255, 255, 255, 150), width=max(2, h // 60))
+    return img
+
+
+def _noise(W, H, rng, scales=((6, 0.45), (14, 0.25), (34, 0.18), (80, 0.12))):
+    """Фрактальный шум 0..1 — неровная граница инея."""
+    n = np.zeros((H, W), np.float32)
+    for sc, amp in scales:
+        g = (rng.random((H // sc + 3, W // sc + 3)) * 255).astype(np.uint8)
+        n += np.asarray(Image.fromarray(g).resize((W + 3 * sc, H + 3 * sc), Image.BICUBIC), np.float32)[:H, :W] / 255 * amp
+    return (n - n.min()) / (n.max() - n.min() + 1e-6)
+
+
+def _frost(img, reach=140, seed=11):
+    """Иней по краям: неровная морозная кромка, узоры-«папоротники» и блёстки."""
+    import math
+    W_, H_ = img.size
+    rng = np.random.default_rng(seed)
+    yy, xx = np.mgrid[0:H_, 0:W_].astype(np.float32)
+    dist = np.minimum(np.minimum(xx, W_ - 1 - xx), np.minimum(yy, H_ - 1 - yy))
+    n = _noise(W_, H_, rng)
+    m = np.clip(1 - dist / (reach * (0.45 + 1.0 * n)), 0, 1) ** 1.5          # неровная граница
+    hf = np.asarray(Image.fromarray((rng.random((H_, W_)) * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.8)), np.float32) / 255
+    alpha = np.clip(m * (0.62 + 0.55 * hf), 0, 1) * 0.95
+    col = np.stack([230 + 25 * n, 240 + 15 * n, 250 + 5 * n], -1)
+    frost = np.dstack([np.clip(col, 0, 255), alpha * 255]).astype(np.uint8)
+    layer = Image.fromarray(frost, 'RGBA').filter(ImageFilter.GaussianBlur(1.2))
+
+    # морозные узоры: ветвящиеся штрихи от краёв внутрь
+    lines = Image.new('RGBA', (W_, H_), (0, 0, 0, 0))
+    ld = ImageDraw.Draw(lines)
+
+    def fern(x, y, ang, length, depth):
+        if depth < 0 or length < 6:
+            return
+        x2, y2 = x + math.cos(ang) * length, y + math.sin(ang) * length
+        ld.line(((x, y), (x2, y2)), fill=(255, 255, 255, 170 - (2 - depth) * 40), width=max(1, depth + 1))
+        steps = int(rng.integers(2, 5))
+        for j in range(1, steps + 1):
+            t = j / (steps + 1)
+            bx, by = x + (x2 - x) * t, y + (y2 - y) * t
+            for sgn in (-1, 1):
+                fern(bx, by, ang + sgn * rng.uniform(0.6, 1.0), length * rng.uniform(0.28, 0.45), depth - 1)
+
+    for _ in range(int((W_ + H_) / 16)):
+        side = rng.integers(4)
+        if side == 0:
+            x, y, ang = rng.uniform(0, W_), 0, math.pi / 2
+        elif side == 1:
+            x, y, ang = rng.uniform(0, W_), H_ - 1, -math.pi / 2
+        elif side == 2:
+            x, y, ang = 0, rng.uniform(0, H_), 0.0
+        else:
+            x, y, ang = W_ - 1, rng.uniform(0, H_), math.pi
+        fern(x, y, ang + rng.uniform(-0.7, 0.7), rng.uniform(30, 85), 2)
+    la = np.asarray(lines, np.float32)
+    la[..., 3] *= np.clip(m * 1.6, 0, 1)                                     # узоры гаснут к центру
+    lines = Image.fromarray(la.astype(np.uint8), 'RGBA')
+
+    # блёстки
+    sp = Image.new('RGBA', (W_, H_), (0, 0, 0, 0))
+    sd = ImageDraw.Draw(sp)
+    for _ in range(int(W_ * H_ / 900)):
+        x, y = int(rng.integers(W_)), int(rng.integers(H_))
+        if m[y, x] > 0.25:
+            r = rng.uniform(0.6, 1.8)
+            sd.ellipse((x - r, y - r, x + r, y + r), fill=(255, 255, 255, int(160 + 90 * m[y, x])))
+    # «толща льда» под инеем: голубая тень, иначе белый иней теряется на светлом фоне
+    deep = np.dstack([np.full((H_, W_), 120, np.float32), np.full((H_, W_), 172, np.float32),
+                      np.full((H_, W_), 226, np.float32), np.clip(m * 1.25, 0, 1) ** 1.2 * 150]).astype(np.uint8)
+    under = Image.fromarray(deep, 'RGBA').filter(ImageFilter.GaussianBlur(6))
+    # узоры: голубой контур под белой сердцевиной
+    halo = Image.fromarray(np.dstack([np.full((H_, W_), 90, np.uint8), np.full((H_, W_), 150, np.uint8),
+                                      np.full((H_, W_), 215, np.uint8), np.asarray(lines.getchannel('A'))]), 'RGBA').filter(ImageFilter.GaussianBlur(1.6))
+    out = Image.alpha_composite(img.convert('RGBA'), under)
+    out = Image.alpha_composite(out, layer)
+    out = Image.alpha_composite(out, halo)
+    out = Image.alpha_composite(out, lines)
+    return Image.alpha_composite(out, sp)
+
+
+STYLES = {'arena': _arena, 'digital': _digital, 'gazeta': _gazeta, 'minimal': _minimal, 'ice': _ice,
+          'ice_frost': lambda *a: _ice(*a, frost=True),
+          'ice_color': lambda *a: _ice(*a, colored=True),
+          'ice_frost_color': lambda *a: _ice(*a, frost=True, colored=True)}
 
 
 def render(items, path, style='arena', league='KHL', title='ИТОГИ ДНЯ', date_title=None):
