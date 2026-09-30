@@ -13194,10 +13194,46 @@ var TG_GROUP_NHL_ = [
   ['3 · Карточки матчей ночи → группа', 'dailyCardsChannel_', '-'],
   ['4 · «Сила команд» → группа (пн)', 'powerPostNow_', '-'],
   null,
+  ['🖼 Готовый постер → мне в личку', 'posterToMe_', '-'],
+  ['🖼 Готовый постер → группа', 'posterToChannel_', '-'],
+  null,
   ['🌐 Публичная страница точности (создать / обновить)', 'publicPageNow_'],
   null,
   ['❓ Что куда публикуется', 'dailyHelp_']
 ];
+/* 🖼 ГОТОВЫЙ ПОСТЕР: картинку и подпись к ней кладу на Google Диск, файл POSTER_QUEUE_FILE = {file: id картинки, caption, title}.
+ * Кнопки меню «📣 НХЛ · ТГ группа»: сначала вам в личку, потом — с подтверждением — в канал NHL_CHANNEL.
+ * Новый постер — новый файл на Диске, код менять не нужно; повторная публикация того же постера — только после второго «Да». */
+var POSTER_QUEUE_FILE = 'jarvis_poster_nhl.json';
+function posterQueue_() {
+  var it = DriveApp.getFilesByName(POSTER_QUEUE_FILE), f = null, x;
+  while (it.hasNext()) { x = it.next(); if (!x.isTrashed() && (!f || x.getLastUpdated() > f.getLastUpdated())) f = x; }
+  if (!f) throw new Error('на Google Диске нет файла ' + POSTER_QUEUE_FILE + ' — готового постера пока нет');
+  var q = JSON.parse(f.getBlob().getDataAsString());
+  if (!q || !q.file) throw new Error('в файле ' + POSTER_QUEUE_FILE + ' не указана картинка');
+  return q;
+}
+function posterToMe_() {
+  try {
+    var q = posterQueue_(), to = PropertiesService.getScriptProperties().getProperty('TG_ADMIN_ID');
+    if (!to) throw new Error('не указан TG_ADMIN_ID');
+    tgSendPhotos_(to, [DriveApp.getFileById(q.file).getBlob()], q.caption || '');
+    uiAlert_('Отправлено вам в личку: «' + (q.title || 'постер') + '». Если всё хорошо — «🖼 Готовый постер → группа».');
+  } catch (e) { uiAlert_('Не получилось: ' + e.message); }
+}
+function posterToChannel_() {
+  var ch = nhlChannelId_();
+  if (!ch) { uiAlert_('Канал не указан (свойство NHL_CHANNEL).'); return; }
+  try {
+    var q = posterQueue_(), ui = SpreadsheetApp.getUi(), p = PropertiesService.getScriptProperties(), key = 'POSTER_SENT_' + q.file;
+    if (ui.alert('Опубликовать в ' + ch + ' «' + (q.title || 'постер') + '» с подписью:\n\n' + String(q.caption || '').replace(/<[^>]+>/g, ''), ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+    if (p.getProperty(key) && ui.alert('Этот постер уже публиковали (' + p.getProperty(key) + ' МСК). Опубликовать ещё раз?', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+    tgSendPhotos_(ch, [DriveApp.getFileById(q.file).getBlob()], q.caption || '');
+    p.setProperty(key, mskNow_());
+    uiAlert_('Опубликовано в ' + ch + ': «' + (q.title || 'постер') + '».');
+  } catch (e) { uiAlert_('Не получилось: ' + e.message); }
+}
+
 function dailyEvening_() { if (dailyAlready_('evening', 'Пост «прогнозы на ночь»')) return; nhlPublishEveningNow_(); }
 function dailyMorning_() {
   var day = Utilities.formatDate(new Date(), 'Europe/Moscow', 'yyyy-MM-dd');
