@@ -177,6 +177,7 @@ function videoMenu_(ui, title) {
     .addItem('📊 Точность экспертов из роликов', 'expertPicksReportNow_')
     .addItem('📋 Что вытащили из роликов (сводка по командам)', 'videoOpenSummary_')
     .addSeparator()
+    .addItem('🔄 Учесть видео в прогнозах сейчас', 'videoApplyNow_')
     .addItem('✅ Применить расклад к стартовому рейтингу', 'preseasonApply_')
     .addItem('↩️ Вернуть прежний стартовый рейтинг', 'preseasonRevert_')
     .addToUi();
@@ -7460,7 +7461,7 @@ var TWEAK_DEFAULT_DAYS = 7;    // на сколько дней ставится 
 var TWEAK_ROWS = 200;          // сколько строк отведено под поправки
 var TWEAKS_HEADER = ['Команда', 'Поправка (очки рейтинга)', 'Действует до', 'Причина', 'Поставлено (МСК)'];
 var TWEAK_REASONS = ['запасной вратарь', 'вернулся основной вратарь', 'травмы / нет лидеров', 'вернулись лидеры',
-  'смена тренера', 'усталость / перелёты', 'мотивация / настрой', 'другое'];
+  'смена тренера', 'усталость / перелёты', 'мотивация / настрой', 'видео экспертов', 'другое'];
 
 /** Включены ли поправки (можно выключить, если окажется, что они мешают). */
 function tweaksOn_() {
@@ -10478,7 +10479,8 @@ function modelFormCheck_() {
  *      по его местам (мест нет — по оценке 1–10) и получают их же нынешние стартовые рейтинги в этом порядке:
  *      средний уровень и разброс не меняются — меняется только порядок. Несколько роликов — среднее.
  *      Итог = 2/3 нынешнего стартового рейтинга + 1/3 «по экспертам». Цифру можно поправить руками.
- *  • В модель это попадает ТОЛЬКО по кнопке «Применить расклад к стартовому рейтингу» (вернуть — соседней кнопкой).
+ *  • В модель это попадает САМО через минуту после разбора (см. «Видео в расчётах» ниже): расклад — в стартовый рейтинг,
+ *    новости о травмах, вратарях и форме — в поправки на неделю. «Вернуть прежний стартовый рейтинг» выключает автоучёт.
  *    Прогнозы сыгранных матчей заморожены и не меняются; Elo пересчитывается с начала сезона и дальше
  *    считается только по результатам.
  *  • Любой ролик (расклад, подкаст, обзор, пресс-конференция): по каждой команде — травмы, переходы, вратари, тренер
@@ -10498,7 +10500,7 @@ var VIDEO_WEIGHT = 1 / 3;                 // доля мнения экспер�
 var VIDEO_TIME_BUDGET_MS = 270000;        // сколько работать за один запуск (у Apps Script лимит 6 минут)
 var VIDEO_CONTEXT_DAYS = 45;              // сколько дней после разбора мнение экспертов показывать агенту
 var PRESEASON_BACKUP_PROP = 'PRESEASON_BACKUP';
-var RAW_COLS = 19;                        // «Видео_разбор»: …, Минута, Место (число), Список эксперта, Травмы, Переходы, Тренер, Форма, Ожидания, Тип ролика
+var RAW_COLS = 21;                        // «Видео_разбор»: …, Минута, Место (число), Список эксперта, Травмы, Переходы, Тренер, Форма, Ожидания, Тип ролика
 var PRE_PROP_COL = 12;                    // сводка: колонка «С учётом видео»
 var PRE_COLS = 21;
 var VIDEO_BLIND_MAX_SEC = 4 * 3600;       // длина ролика неизвестна — идём кусками, но не дальше 4 часов
@@ -10508,6 +10510,11 @@ var PICKS_WAIT_DAYS = 21;                 // матч без даты ищем �
 
 var VIDEO_START_MS = 150000;              // новый кусок ролика — только в первые 2,5 минуты запуска (кусок идёт до 2 минут)
 var VIDEO_DEADLINE_MS = 290000;           // к этой минуте запуска — никаких повторов запроса (лимит Apps Script — 6 минут)
+var VIDEO_TWEAK_MAX = 15;                 // предел поправки из роликов, очков рейтинга (+25 ≈ +3,5% к шансам)
+var VIDEO_TWEAK_DAYS = 7;                 // сколько дней после ролика действует поправка из него
+var VIDEO_TWEAK_REASON = 'видео экспертов';   // причина на листе «Мои поправки»: по ней табло покажет, помогают ли
+var PRESEASON_APPLIED_PROP = 'PRESEASON_APPLIED'; // какой стартовый рейтинг расклад поставил в прошлый раз
+var VIDEO_AUTO_OFF_PROP = 'VIDEO_AUTO_OFF';   // «да» — видео в расчёты само не идёт (после «Вернуть прежний стартовый рейтинг»)
 var VIDEO_OTHER_MAX = 2;                  // столько кусков подряд «ролик про другую лигу» — и хватит тратить лимит
 
 /** Ссылка, которую Gemini понимает надёжнее всего: youtube.com/watch?v=ID (без youtu.be и хвостов ?si=…). */
@@ -10517,6 +10524,10 @@ function videoCanon_(id) { return 'https://www.youtube.com/watch?v=' + id; }
 function videoOtherLeague_(s) {
   var l = String(s || '').toUpperCase().replace(/NHL/g, 'НХЛ').replace(/KHL/g, 'КХЛ');
   return !!l && l.indexOf(VIDEO_LEAGUE) < 0 && /НХЛ|КХЛ|ВХЛ|МХЛ|AHL|АХЛ|ДРУГ|OTHER/.test(l);
+}
+function videoImpact_(x) {
+  var n = x === null || x === undefined || x === '' ? NaN : Number(x);
+  return isFinite(n) && Math.round(n) ? Math.max(-VIDEO_TWEAK_MAX, Math.min(VIDEO_TWEAK_MAX, Math.round(n))) : '';
 }
 function videoOtherName_() { return VIDEO_LEAGUE === 'КХЛ' ? 'НХЛ' : 'КХЛ'; }
 
@@ -10599,6 +10610,10 @@ function videoPrompt_(from, to) {
     '  injuries — кто травмирован, дисквалифицирован или не играет и на сколько; roster — приходы, уходы, обмены, аренды, вызовы из фарма; ' +
     'goalie — кто в воротах, конкуренция вратарей; coach — тренер, тактика, звенья, большинство; form — как команда играет сейчас (по словам автора); ' +
     'outlook — чего автор ждёт от команды; plus / minus — сильные и слабые стороны.\n' +
+    '  impact — целое число от -' + VIDEO_TWEAK_MAX + ' до ' + VIDEO_TWEAK_MAX + ': насколько сказанное в ролике (травмы и возвращения, вратари, переходы, форма, тренер) ' +
+    'меняет силу команды в БЛИЖАЙШИХ матчах по сравнению с её обычным уровнем. -' + VIDEO_TWEAK_MAX + ' — нет основного вратаря и нескольких лидеров; ' +
+    '-5 — выбыл один важный игрок; +5 — вернулся лидер; 0 — не меняет или неясно. Оценка общей силы на сезон сюда НЕ входит (она — в score). ' +
+    'impact_why — коротко, почему (до 100 знаков).\n' +
     '  Если автор расставляет команды по местам: group — какой список (дивизион, конференция или «вся лига»), place_num — место целым числом (1 — первое); ' +
     'если идёт по порядку мест (например, с последнего к первому) — место следует из порядка; у разных команд одного списка места разные. Иначе place_num = null.\n' +
     '  score — оценка силы команды по словам автора от 1 до 10 (10 — главный претендент на титул, 5 — борьба за плей-офф, 1 — худшая команда лиги); ' +
@@ -10610,7 +10625,7 @@ function videoPrompt_(from, to) {
     '"video_type":"расклад / подкаст-новости / обзор матча / превью / прогнозы на матчи / пресс-конференция / другое",' +
     '"clip_empty":' + (to ? 'true, если этого фрагмента в ролике нет (он за концом ролика), иначе false' : 'false') + ',' +
     '"teams":[{"team":"' + (names.length ? 'название из списка' : 'полное название клуба') + '","group":"","place_num":null,"score":null,"place":"как автор сказал о месте, или \"\"",' +
-    '"playoff":"да, нет, на грани или \"\"","injuries":"","roster":"","goalie":"","coach":"","form":"","outlook":"","plus":"","minus":"",' +
+    '"playoff":"да, нет, на грани или \"\"","injuries":"","roster":"","goalie":"","coach":"","form":"","outlook":"","plus":"","minus":"","impact":0,"impact_why":"",' +
     '"time":"мм:сс от начала всего ролика, где начинается разговор о команде"}],' +
     '"match_picks":[{"home":"хозяева","away":"гости","date":"дд.мм или \"\"","pick":"название команды, за которую автор","confidence":"низкая / средняя / высокая","reason":"почему","time":"мм:сс"}]}';
 }
@@ -10735,7 +10750,8 @@ function videoTeams_(arr) {
     var pn = t && t.place_num !== null && t.place_num !== '' ? Number(t.place_num) : NaN;
     return ru ? { team: ru, score: isFinite(sc) && sc >= 1 && sc <= 10 ? Math.round(sc * 10) / 10 : '', pn: isFinite(pn) && pn >= 1 && pn <= 40 ? Math.round(pn) : '',
       group: clip(t.group, 60), place: clip(t.place, 80), playoff: clip(t.playoff, 20), plus: clip(t.plus, 250), minus: clip(t.minus, 250), goalie: clip(t.goalie, 200),
-      injuries: clip(t.injuries, 250), roster: clip(t.roster, 250), coach: clip(t.coach, 250), form: clip(t.form, 250), outlook: clip(t.outlook, 250), time: clip(t.time, 10) } : null;
+      injuries: clip(t.injuries, 250), roster: clip(t.roster, 250), coach: clip(t.coach, 250), form: clip(t.form, 250), outlook: clip(t.outlook, 250), time: clip(t.time, 10),
+      impact: videoImpact_(t.impact), why: clip(t.impact_why, 120) } : null;
   }).filter(Boolean);
   out.unknown = unknown;                                   // названия, которые не нашлись в справочнике — покажем в статусе
   return out;
@@ -10762,7 +10778,8 @@ function videoPicks_(arr) {
 function videoRawSheet_(ss) {
   var sh = ss.getSheetByName(VIDEO_RAW_SHEET) || ss.insertSheet(VIDEO_RAW_SHEET);
   sh.getRange(1, 1, 1, RAW_COLS).setValues([['Ролик', 'Эксперт', 'Фрагмент', 'Команда', 'Оценка 1–10', 'Место', 'Плей-офф', 'Плюсы', 'Минусы', 'Вратари', 'Минута', 'Место (число)', 'Список эксперта',
-    'Травмы / кто не играет', 'Переходы и состав', 'Тренер и тактика', 'Форма', 'Ожидания эксперта', 'Тип ролика']]).setFontWeight('bold');
+    'Травмы / кто не играет', 'Переходы и состав', 'Тренер и тактика', 'Форма', 'Ожидания эксперта', 'Тип ролика',
+    'Влияние на ближайшие матчи (очки рейтинга)', 'Почему (влияние)']]).setFontWeight('bold');
   return sh;
 }
 
@@ -10855,7 +10872,7 @@ function videoAnalyzeAll_(auto) {
         if (res.teams.length) {
           // минута — текстом (иначе таблица превращает «27:22» в «1 день 3:22»)
           var rows = res.teams.map(function (t) { return [v.url, v.who, label, t.team, t.score, t.place, t.playoff, t.plus, t.minus, t.goalie, t.time ? "'" + t.time : '', t.pn, t.group,
-            t.injuries, t.roster, t.coach, t.form, t.outlook, res.type]; });
+            t.injuries, t.roster, t.coach, t.form, t.outlook, res.type, t.impact, t.why]; });
           raw.getRange(raw.getLastRow() + 1, 1, rows.length, RAW_COLS).setValues(rows);
         }
         if (res.picks.length) {
@@ -10891,6 +10908,8 @@ function videoAnalyzeAll_(auto) {
   var errLeft = left.filter(function (v) { return /^ошибка/.test(String(L.sh.getRange(v.row, 3).getValue())); }).length;
   var more = left.length - errLeft > 0 && (clips > 0 || stop || Date.now() - t0 > VIDEO_START_MS);
   if (more) videoScheduleContinue_(stop ? stopWait : 1);
+  var toModel = !more && clips > 0 && agentProps_().getProperty(VIDEO_AUTO_OFF_PROP) !== 'да';
+  if (toModel) videoScheduleApply_();
   else try { ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'videoContinue_') ScriptApp.deleteTrigger(t); }); } catch (e) {}
   var sum = preseasonBuild_(ss);
   var msg = '🎬 Видео экспертов: разобрано кусков ' + clips + (model ? ' (' + model + ')' : '') + '. Готово роликов: ' + (L.list.length - left.length) + ' из ' + L.list.length + '.' +
@@ -10905,7 +10924,9 @@ function videoAnalyzeAll_(auto) {
     (sum.teams && !sum.scored ? '\nМест и оценок в роликах нет (похоже, это обсуждение новостей, а не расклад по местам) — стартовый рейтинг не меняется.' : '') +
     (sum.dup && sum.dup.length ? '\n⚠ Повторяются места в дивизионе (проверьте лист «' + PRESEASON_SHEET + '», можно поправить цифры руками): ' + sum.dup.slice(0, 4).join('; ') + '.' : '') +
     (sum.changes.length ? '\nСильнее всего изменится стартовый рейтинг: ' + sum.changes.slice(0, 5).map(function (c) { return c.team + ' ' + c.cur + '→' + c.prop; }).join(', ') + '.' : '') +
-    '\nВ модель это попадёт только после кнопки «Применить расклад к стартовому рейтингу».';
+    (toModel ? '\nЧерез минуту это само попадёт в расчёты: расклад мест — в стартовый рейтинг (доля видео ' + Math.round(VIDEO_WEIGHT * 100) + '%), ' +
+      'новости о травмах, вратарях и форме — в поправки на ' + VIDEO_TWEAK_DAYS + ' дней (до ±' + VIDEO_TWEAK_MAX + ' очков). Итог пришлю в Telegram.' :
+      more ? '' : '\nАвтоучёт видео выключен — включится кнопкой «Применить расклад к стартовому рейтингу».');
   if (!auto) uiAlert_(msg);
   else if (!more) { var to2 = p.getProperty('TG_ADMIN_ID'); if (to2) try { tg_('sendMessage', { chat_id: to2, text: msg }); } catch (e) {} }
   return { clips: clips, left: left.length, errors: errs, summary: sum, more: more };
@@ -11017,7 +11038,7 @@ function preseasonBuild_(ss) {
   var sh = ss.getSheetByName(PRESEASON_SHEET) || ss.insertSheet(PRESEASON_SHEET);
   sh.clear();
   var head = ['Команда', 'Список эксперта', 'Место в списке (эксперт)', 'Оценка силы (1–10)', 'Как сказано о месте', 'Плей-офф', 'Плюсы', 'Минусы', 'Вратари', 'Где в роликах',
-    'Стартовый рейтинг (исходный)', 'С учётом видео (можно поправить)', 'Изменение', 'Применено', 'Дата ролика / разбора',
+    'Стартовый рейтинг (исходный)', 'С учётом видео (ставится само)', 'Изменение', 'Применено', 'Дата ролика / разбора',
     'Травмы / кто не играет', 'Переходы и состав', 'Тренер и тактика', 'Форма', 'Ожидания эксперта', 'Тип роликов'];
   sh.getRange(1, 1, 1, head.length).setValues([head]).setFontWeight('bold');
   var applied = preseasonBackup_() !== null;
@@ -11062,6 +11083,10 @@ function preseasonApply_() {
   if (ui && ui.alert(text, ui.ButtonSet.YES_NO) !== ui.Button.YES) return { applied: 0, canceled: true };
   agentProps_().setProperty(PRESEASON_BACKUP_PROP, JSON.stringify(bak));
   ch.forEach(function (c) { teams.getRange(c.row, 3).setValue(c.to); });
+  var lastSet = {}; try { lastSet = JSON.parse(agentProps_().getProperty(PRESEASON_APPLIED_PROP) || '{}') || {}; } catch (e6) { lastSet = {}; }
+  ch.forEach(function (c) { lastSet[c.team] = c.to; });
+  agentProps_().setProperty(PRESEASON_APPLIED_PROP, JSON.stringify(lastSet));
+  agentProps_().deleteProperty(VIDEO_AUTO_OFF_PROP);
   var eloMsg = ''; try { computeAndWriteElo_(true); eloMsg = ' Elo пересчитан.'; } catch (e4) { eloMsg = ' Elo не пересчитался: ' + e4.message + ' — нажмите «Обновить всё».'; }
   try { preseasonBuild_(ss); } catch (e5) {}
   uiAlert_('Готово: стартовый рейтинг изменён у ' + ch.length + ' команд.' + eloMsg);
@@ -11075,11 +11100,128 @@ function preseasonRevert_() {
   var start = preseasonStartRatings_(ss), n = 0;
   Object.keys(bak).forEach(function (t) { if (start[t] && start[t].val !== Number(bak[t])) { teams.getRange(start[t].row, 3).setValue(Number(bak[t])); n++; } });
   agentProps_().deleteProperty(PRESEASON_BACKUP_PROP);
+  agentProps_().deleteProperty(PRESEASON_APPLIED_PROP);
+  agentProps_().setProperty(VIDEO_AUTO_OFF_PROP, 'да');
   try { computeAndWriteElo_(true); } catch (e) {}
   try { preseasonBuild_(ss); } catch (e2) {}
-  uiAlert_('Стартовый рейтинг возвращён к прежнему у ' + n + ' команд, Elo пересчитан.');
+  uiAlert_('Стартовый рейтинг возвращён к прежнему у ' + n + ' команд, Elo пересчитан.\n\nАвтоучёт видео выключен: новые ролики в расчёты сами не пойдут ' +
+    '(поправки из роликов, которые уже стоят, доживут до своей даты — их можно удалить на листе «' + SHEET_TWEAKS + '»). Включить — кнопкой «Применить расклад к стартовому рейтингу».');
   return { reverted: n };
 }
+
+/* ── 🎬 → 📈 Видео в расчётах: после разбора роликов (через минуту, отдельным запуском — Elo считается долго) ──
+ *  1) расклад экспертов по местам сам идёт в стартовый рейтинг (доля VIDEO_WEIGHT), Elo пересчитывается с начала сезона;
+ *     если стартовый рейтинг команды с прошлого раза поменяли руками или другой кнопкой — новое значение и есть исходное;
+ *  2) новости из роликов (травмы, вратари, форма) — поправки на листе «Мои поправки» с причиной VIDEO_TWEAK_REASON:
+ *     до ±VIDEO_TWEAK_MAX очков, на VIDEO_TWEAK_DAYS дней после ролика, только для несыгранных матчей.
+ *     Табло на том же листе покажет, помогают ли они; выключить все поправки — меню «Мои поправки».
+ *  Прошлые прогнозы заморожены и не меняются. «Вернуть прежний стартовый рейтинг» выключает автоучёт. */
+function preseasonAutoApply_(ss) {
+  ss = ss || SpreadsheetApp.getActive();
+  var p = agentProps_(), teams = ss.getSheetByName(SHEET_TEAMS);
+  if (p.getProperty(VIDEO_AUTO_OFF_PROP) === 'да' || !teams) return { applied: 0 };
+  var start = preseasonStartRatings_(ss), bak = preseasonBackup_(), last = {};
+  try { last = JSON.parse(p.getProperty(PRESEASON_APPLIED_PROP) || '{}') || {}; } catch (e) { last = {}; }
+  if (bak) {
+    Object.keys(last).forEach(function (t) { if (start[t] && start[t].val !== Number(last[t])) bak[t] = start[t].val; });
+    p.setProperty(PRESEASON_BACKUP_PROP, JSON.stringify(bak));
+  }
+  preseasonBuild_(ss);
+  var sh = ss.getSheetByName(PRESEASON_SHEET);
+  if (!sh || sh.getLastRow() < 2) return { applied: 0 };
+  bak = bak || {};
+  var ch = [];
+  sh.getRange(2, 1, sh.getLastRow() - 1, PRE_PROP_COL).getValues().forEach(function (r) {
+    var t = String(r[0]).trim(), pv = r[PRE_PROP_COL - 1], v = Number(pv);
+    if (!t || pv === '' || !isFinite(v) || !start[t]) return;
+    v = Math.max(1, Math.min(100, Math.round(v)));
+    if (bak[t] === undefined) bak[t] = start[t].val;
+    last[t] = v;
+    if (v !== start[t].val) ch.push({ team: t, row: start[t].row, from: start[t].val, to: v });
+  });
+  if (!Object.keys(bak).length) return { applied: 0 };
+  p.setProperty(PRESEASON_BACKUP_PROP, JSON.stringify(bak));
+  p.setProperty(PRESEASON_APPLIED_PROP, JSON.stringify(last));
+  if (!ch.length) return { applied: 0 };
+  ch.forEach(function (c) { teams.getRange(c.row, 3).setValue(c.to); });
+  var eloErr = ''; try { computeAndWriteElo_(true); } catch (e2) { eloErr = e2.message; }
+  try { preseasonBuild_(ss); } catch (e3) {}
+  return { applied: ch.length, changes: ch, eloErr: eloErr };
+}
+
+/** Новости из свежих роликов → поправки на листе «Мои поправки». {set: ['Команда +5 (почему)', …]} */
+function videoTweaksSync_(ss) {
+  ss = ss || SpreadsheetApp.getActive();
+  if (agentProps_().getProperty(VIDEO_AUTO_OFF_PROP) === 'да') return { set: [] };
+  var raw = ss.getSheetByName(VIDEO_RAW_SHEET);
+  if (!raw || raw.getLastRow() < 2) return { set: [] };
+  var when = {}, L = videoList_(ss);
+  if (L.sh.getLastRow() > 1) {
+    var lv = L.sh.getRange(2, 1, L.sh.getLastRow() - 1, 9).getValues();
+    L.list.forEach(function (v) { var r = lv[v.row - 2] || []; when[v.url] = videoDate_(r[8]) || videoDate_(r[6]); });   // дата ролика, иначе — дата разбора
+  }
+  var now = new Date(), by = {};
+  raw.getRange(2, 1, raw.getLastRow() - 1, RAW_COLS).getValues().forEach(function (r) {
+    var t = String(r[3]).trim(), imp = r[19] === '' ? NaN : Number(r[19]), d = when[String(r[0]).trim()];
+    if (!t || !isFinite(imp) || !imp || !d || now - d > VIDEO_TWEAK_DAYS * 86400000) return;
+    var b = by[t] = by[t] || { sum: 0, n: 0, why: [], d: d };
+    b.sum += imp; b.n++;
+    if (r[20] && b.why.indexOf(String(r[20])) < 0) b.why.push(String(r[20]));
+    if (d > b.d) b.d = d;
+  });
+  var teams = Object.keys(by);
+  if (!teams.length) return { set: [] };
+  var sh = ensureTweaksSheet_(ss), n = Math.min(TWEAK_ROWS, Math.max(sh.getLastRow() - 1, 0));
+  var vals = n ? sh.getRange(2, 1, n, TWEAKS_HEADER.length).getValues() : [];
+  var today = new Date(now.getFullYear(), now.getMonth(), now.getDate()), set = [];
+  teams.forEach(function (t) {
+    var b = by[t], delta = Math.max(-VIDEO_TWEAK_MAX, Math.min(VIDEO_TWEAK_MAX, Math.round(b.sum / b.n)));
+    if (!delta) return;
+    var u = new Date(b.d.getTime() + VIDEO_TWEAK_DAYS * 86400000), until = new Date(u.getFullYear(), u.getMonth(), u.getDate());
+    if (until < today) return;
+    var row = -1, i;
+    // та же команда, та же причина и поправка ещё действует — обновляем её; иначе — новая строка (старые остаются для табло)
+    for (i = 0; i < vals.length && row < 0; i++) if (String(vals[i][0]).trim() === t && String(vals[i][3]).trim() === VIDEO_TWEAK_REASON && vals[i][2] instanceof Date && vals[i][2] >= today) row = i;
+    for (i = 0; i < vals.length && row < 0; i++) if (!String(vals[i][0]).trim() && String(vals[i][1]).trim() === '') row = i;
+    if (row < 0) { if (vals.length >= TWEAK_ROWS) return; vals.push(TWEAKS_HEADER.map(function () { return ''; })); row = vals.length - 1; }
+    var old = vals[row];
+    if (String(old[0]).trim() === t && Number(old[1]) === delta && old[2] instanceof Date && old[2].getTime() === until.getTime()) return;   // уже стоит такая же
+    vals[row] = [t, delta, until, VIDEO_TWEAK_REASON, mskNow_()].concat(old.slice(5));
+    set.push(t + ' ' + (delta > 0 ? '+' : '') + delta + (b.why.length ? ' (' + b.why[0].slice(0, 70) + ')' : ''));
+  });
+  if (set.length) { sh.getRange(2, 1, vals.length, TWEAKS_HEADER.length).setValues(vals); tweaksApply_(true); }
+  return { set: set };
+}
+
+/** Текст итога: что из видео попало в расчёты. verbose — отвечать и когда ничего не изменилось (кнопка). */
+function videoApply_(verbose) {
+  if (agentProps_().getProperty(VIDEO_AUTO_OFF_PROP) === 'да')
+    return verbose ? 'Автоучёт видео выключен (после «Вернуть прежний стартовый рейтинг»). Включить — кнопкой «Применить расклад к стартовому рейтингу».' : '';
+  var ss = SpreadsheetApp.getActive(), a = {}, tw = {}, lines = [];
+  try { a = preseasonAutoApply_(ss); } catch (e) { lines.push('Расклад экспертов: не получилось — ' + e.message); }
+  try { tw = videoTweaksSync_(ss); } catch (e2) { lines.push('Поправки из роликов: не получилось — ' + e2.message); }
+  if (a.applied) lines.push('Стартовый рейтинг по раскладу экспертов изменён у ' + a.applied + ' команд: ' +
+    a.changes.slice().sort(function (x, y) { return Math.abs(y.to - y.from) - Math.abs(x.to - x.from); }).slice(0, 6).map(function (c) { return c.team + ' ' + c.from + '→' + c.to; }).join(', ') +
+    (a.changes.length > 6 ? '…' : '') + '.' + (a.eloErr ? ' Elo не пересчитался: ' + a.eloErr : ' Elo пересчитан.'));
+  if (tw.set && tw.set.length) lines.push('Поправки из роликов на ' + VIDEO_TWEAK_DAYS + ' дней (лист «' + SHEET_TWEAKS + '»): ' + tw.set.slice(0, 8).join('; ') + (tw.set.length > 8 ? '…' : '') + '.');
+  if (!lines.length) return verbose ? '🎬 Видео → прогнозы: новых изменений нет — расклад уже учтён, а свежих новостей о силе команд в роликах нет.' : '';
+  return '🎬 ' + VIDEO_LEAGUE + ' · видео учтено в прогнозах\n' + lines.join('\n') +
+    '\nПрошлые прогнозы не меняются. Помогают ли поправки из роликов — табло на листе «' + SHEET_TWEAKS + '» (причина «' + VIDEO_TWEAK_REASON + '»).';
+}
+function videoScheduleApply_() {
+  try {
+    ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'videoApplyRun_') ScriptApp.deleteTrigger(t); });
+    ScriptApp.newTrigger('videoApplyRun_').timeBased().after(60 * 1000).create();
+  } catch (e) { /* нет прав на триггеры — кнопка «Учесть видео в прогнозах сейчас» */ }
+}
+function videoApplyRun_() {
+  try { ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'videoApplyRun_') ScriptApp.deleteTrigger(t); }); } catch (e) {}
+  var msg = '';
+  try { msg = videoApply_(false); } catch (e2) { msg = '🎬 Видео → прогнозы: ошибка — ' + e2.message; }
+  var to = agentProps_().getProperty('TG_ADMIN_ID');
+  if (msg && to) try { tg_('sendMessage', { chat_id: to, text: msg }); } catch (e3) {}
+}
+function videoApplyNow_() { uiAlert_(videoApply_(true)); }
 
 /** Для агента: что эксперты говорили о командах (VIDEO_CONTEXT_DAYS дней после разбора). */
 var PRESEASON_CTX_ = null;
