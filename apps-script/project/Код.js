@@ -12856,6 +12856,7 @@ function itogiDispatch_(league, dayKey, items, kind, caption) {
   if (!items || !items.length) return { skipped: 'нет сыгранных матчей' };
   var cp = { kind: kind, league: league, day: dayKey, date_title: ruDayTitle_(dayKey).toLowerCase(), chat: String(chat), items: items };
   if (caption) cp.caption = caption;
+  if (kind === 'itogi') { var ex = ''; try { ex = itogiExtra_(SpreadsheetApp.getActive(), dayKey, items); } catch (e) { ex = ''; } if (ex) cp.extra = ex; }
   var r = itogiGithub_('post', '/repos/' + ITOGI_REPO + '/dispatches', { event_type: kind, client_payload: cp });
   if (r.getResponseCode() !== 204) throw new Error('GitHub ответил ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 200));
   var pref = kind === 'matchi' ? MATCHI_PROP : ITOGI_PROP, old = addDaysKey_(dayKey, -10);
@@ -13007,3 +13008,6 @@ function matchiPosterNow_() {
     uiAlert_('Постер «Матчи дня» на ' + day.split('-').reverse().join('.') + ' (матчей: ' + r.sent + ') рисуется — придёт вам в Telegram через 1–2 минуты.');
   } catch (e) { uiAlert_('Не получилось: ' + e.message); }
 }
+
+/** К подписи постера «Итоги дня»: в КХЛ дополнительного блока нет (россиян отдельно не выделяем). */
+function itogiExtra_(ss, dayKey, items) { return ''; }

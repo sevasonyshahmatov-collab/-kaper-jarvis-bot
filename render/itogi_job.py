@@ -8,6 +8,8 @@
 «Матчи дня» — то же с "kind": "matchi" (событие «matchi»), в items вместо счёта время и линия в основное время:
     {"home": "Спартак", "away": "Трактор", "time": "19:30", "odds": [1.84, 4.37, 3.91] | null}
 Рисуем формат «Колонки» (preview_ice, style='columns').
+"extra" (необязательно, HTML) — дописывается к подписи: у НХЛ это «🇷🇺 Наши» (результативность россиян).
+Не влезает в лимит подписи Telegram (1024 знака) — уходит отдельным сообщением сразу после фото.
 Без TG_BOT_TOKEN — только сохраняем картинку (для проверки: python render/itogi_job.py payload.json).
 """
 import html
@@ -86,6 +88,18 @@ def caption(league, items, date_title):
     return head + '\n\n' + '\n'.join(lines)
 
 
+CAPTION_MAX = 1024
+
+
+def send_message(token, chat, text):
+    import requests
+    r = requests.post('https://api.telegram.org/bot%s/sendMessage' % token, timeout=60,
+                      data={'chat_id': chat, 'text': text, 'parse_mode': 'HTML', 'disable_web_page_preview': 'true'})
+    j = r.json() if r.headers.get('content-type', '').startswith('application/json') else {}
+    if not j.get('ok'):
+        raise SystemExit('Telegram: %s' % (j.get('description') or r.status_code))
+
+
 def send_photo(token, chat, path, text):
     import requests
     with open(path, 'rb') as f:
@@ -113,7 +127,16 @@ def main():
         import results_ice2 as ri
         ri.render(items, out, variant=10, league=league, date_title=date_title or None)
         text = caption(league, items, date_title)
+    extra = str(payload.get('extra') or '').strip()[:3500] if kind != 'matchi' else ''
+    after = ''
+    if extra:
+        if len(text) + 2 + len(extra) <= CAPTION_MAX:
+            text += '\n\n' + extra
+        else:
+            after = extra
     print('нарисовано:', out, '— матчей', len(items))
+    if extra:
+        print('подпись:\n' + text + ('\n--- отдельным сообщением:\n' + after if after else ''))
     token = os.environ.get('TG_BOT_TOKEN')
     if not token:
         print('TG_BOT_TOKEN не задан — картинка только сохранена')
@@ -121,6 +144,8 @@ def main():
     if not chat:
         raise SystemExit('не указан чат (chat) для отправки')
     send_photo(token, chat, out, text)
+    if after:
+        send_message(token, chat, after)
     print('отправлено в Telegram')
 
 
