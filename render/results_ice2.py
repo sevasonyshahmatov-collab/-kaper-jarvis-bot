@@ -140,6 +140,30 @@ def _logo(ov, team, cx, cy, ang, faded=False, size=None):
     poster._shadowed(ov, e, (int(cx - e.width / 2), int(cy - e.height / 2)), blur=10 * S, off=(0, 6 * S), color=(0, 0, 0, 90 if faded else 120))
 
 
+def _embed(card, team, side, ang=None):
+    """Эмблема «вплавлена» в свою половину плашки тон-в-тон, как в ice_logo: крупно, наклонно, срезана краем."""
+    w, h = card.size
+    a = np.asarray(card, np.float32).copy()
+    e = poster._raw_emblem(team, int(h * 1.55), int(h * 1.55))
+    ang = ang if ang is not None else (10 if side == 'left' else -10)
+    e = e.rotate(ang, Image.BICUBIC, expand=True)
+    gray = np.asarray(e.convert('L'), np.float32) / 255
+    al = np.asarray(e.getchannel('A'), np.float32) / 255 * 0.72
+    cx = h * 0.66 if side == 'left' else w - h * 0.66
+    x0, y0 = int(cx - e.width / 2), int(h * 0.52 - e.height / 2)
+    xa, ya, xb, yb = max(0, x0), max(0, y0), min(w, x0 + e.width), min(h, y0 + e.height)
+    lim = int(w * 0.36) if side == 'left' else int(w * 0.64)       # не заходить на тёмный центр со счётом
+    if side == 'left':
+        xb = min(xb, lim)
+    else:
+        xa = max(xa, lim)
+    g = gray[ya - y0:yb - y0, xa - x0:xb - x0, None]
+    k = al[ya - y0:yb - y0, xa - x0:xb - x0, None]
+    rgb = a[ya:yb, xa:xb, :3]
+    a[ya:yb, xa:xb, :3] = rgb * (1 - k) + rgb * (0.55 + 0.85 * g) * k
+    card.paste(Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA'))
+
+
 def _crown(d, cx, cy, s, color):
     w, h = 34 * s, 24 * s
     pts = [(cx - w / 2, cy + h / 2), (cx - w / 2, cy - h / 4), (cx - w / 4, cy + h / 12), (cx, cy - h / 2),
@@ -167,8 +191,8 @@ def _mark(d, cx, cy, mark, dark_bg):
 
 
 # ------------------------------------------------------------------ сборка
-CENTERS = {1: (20, 24, 34), 2: (242, 245, 250), 3: (20, 24, 34), 4: (12, 14, 20), 5: (242, 245, 250), 6: (226, 231, 238)}
-LOSER = {1: 'desat', 2: 'dark', 3: 'desat', 4: 'dark', 5: 'desat', 6: 'desat'}
+CENTERS = {1: (20, 24, 34), 2: (242, 245, 250), 3: (20, 24, 34), 4: (12, 14, 20), 5: (242, 245, 250), 6: (226, 231, 238), 7: (12, 14, 20)}
+LOSER = {1: 'desat', 2: 'dark', 3: 'desat', 4: 'dark', 5: 'desat', 6: 'desat', 7: 'dark'}
 
 
 def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date_title=None):
@@ -192,11 +216,15 @@ def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date
         cy = (y0 + ROW / 2) * S
         hw = it['sh'] > it['sa']
         card = _plate(it['home'], it['away'], (W - 64) * S, ROW * S, 22 * S, hw, center, loser=LOSER[variant])
+        if variant == 7:                           # логотип проигравшего «уходит» в плашку силуэтом
+            _embed(card, it['away'] if hw else it['home'], 'right' if hw else 'left')
         poster._shadowed(ov, card, (32 * S, y0 * S), blur=12 * S, off=(0, 5 * S), color=(30, 60, 110, 70))
         lx, rx = (32 + ROW * 0.60) * S, (W - 32 - ROW * 0.60) * S
         fade = variant in (3, 5)
-        _logo(ov, it['home'], lx, cy, 10, faded=fade and not hw)
-        _logo(ov, it['away'], rx, cy, -10, faded=fade and hw)
+        if not (variant == 7 and not hw):
+            _logo(ov, it['home'], lx, cy, 10, faded=fade and not hw)
+        if not (variant == 7 and hw):
+            _logo(ov, it['away'], rx, cy, -10, faded=fade and hw)
         d = ImageDraw.Draw(ov)
         for team, x, anchor, won in ((it['home'], 196, 'lm', hw), (it['away'], W - 196, 'rm', not hw)):
             name = rs._short(team)
@@ -229,7 +257,7 @@ def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date
             t = 16 * S                              # стрелка в сторону победителя
             d.polygon([(cx + ws * t, cy), (cx - ws * t * 0.7, cy - t), (cx - ws * t * 0.7, cy + t)], fill=gold + (255,))
             _mark(d, cx, cy + 46 * S, it.get('mark'), True)
-        elif variant == 4:                         # КОРОНА
+        elif variant in (4, 7):                    # КОРОНА (7 — без короны, проигравший силуэтом)
             glow = Image.new('RGBA', ov.size, (0, 0, 0, 0))
             gd = ImageDraw.Draw(glow)
             fn = F(TEK, 72 * S, 800, 100)
@@ -239,7 +267,8 @@ def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date
             d.text((cx + ws * 44 * S, cy), str(wv), font=fn, anchor='mm', fill=(255, 236, 170, 255))
             d.text((cx - ws * 44 * S, cy), str(lv), font=F(TEK, 56 * S, 600, 100), anchor='mm', fill=(96, 104, 118, 255))
             d.text((cx, cy - 4 * S), ':', font=F(TEK, 44 * S, 700, 100), anchor='mm', fill=(96, 104, 118, 255))
-            _crown(d, (lx if hw else rx), cy - 62 * S, S, gold + (255,))
+            if variant == 4:
+                _crown(d, (lx if hw else rx), cy - 62 * S, S, gold + (255,))
             _mark(d, cx, cy + 46 * S, it.get('mark'), True)
         elif variant == 5:                         # ШАЙБА
             wx, lxs = cx + ws * 46 * S, cx - ws * 54 * S
