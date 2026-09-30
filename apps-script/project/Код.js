@@ -169,6 +169,7 @@ function onOpen() {
 /** Отдельное меню для роликов экспертов (общее для КХЛ и НХЛ). */
 function videoMenu_(ui, title) {
   ui.createMenu(title)
+    .addItem('🎬 Вставить видео (ссылка → сразу разбор в Gemini)', 'videoInsert_')
     .addItem('➕ Добавить ролик (открыть список ссылок)', 'videoOpenList_')
     .addItem('▶️ Разобрать новые ролики (Gemini)', 'videoAnalyzeNow_')
     .addItem('🔁 Разобрать все ролики заново', 'videoReanalyzeNow_')
@@ -176,6 +177,7 @@ function videoMenu_(ui, title) {
     .addItem('📊 Точность экспертов из роликов', 'expertPicksReportNow_')
     .addItem('📋 Что вытащили из роликов (сводка по командам)', 'videoOpenSummary_')
     .addSeparator()
+    .addItem('🔄 Учесть видео в прогнозах сейчас', 'videoApplyNow_')
     .addItem('✅ Применить расклад к стартовому рейтингу', 'preseasonApply_')
     .addItem('↩️ Вернуть прежний стартовый рейтинг', 'preseasonRevert_')
     .addToUi();
@@ -6559,7 +6561,8 @@ function gamePostMatches_(silent) {
   if (!res.ok) throw new Error('Telegram не принял пост: ' + (res.description || 'нет ответа'));
   props.setProperty('GAME_LAST_POST', JSON.stringify({ chat: res.result.chat.id, msg: res.result.message_id, ids: matches.map(function (m) { return m.id; }) }));
   dailyMark_('game');
-  if (!silent) uiAlert_('Опубликовано в канал: ' + matches.length + ' матч(ей) с кнопками.');
+  var inGroup = tgGroupSend_({ text: gamePostText_(matches), parse_mode: 'HTML', reply_markup: gameKeyboard_(matches, gameReadPicks_(ss)) });
+  if (!silent) uiAlert_('Опубликовано в канал' + (inGroup ? ' и группу' : '') + ': ' + matches.length + ' матч(ей) с кнопками.');
   return { posted: true, matches: matches.length };
 }
 function gamePostMatchesAuto_() {
@@ -6568,6 +6571,43 @@ function gamePostMatchesAuto_() {
   autoStart_('gamePostMatchesAuto_');
   QUIET_ = true;
   try { gamePostMatches_(true); autoMark_('gamePostMatchesAuto_', true, 'пост «матчи дня»'); } catch (e) { Logger.log('Игра: ' + e.message); autoMark_('gamePostMatchesAuto_', false, e.message); } finally { QUIET_ = false; }
+}
+
+/* ---------------------- группа: копии постов канала ----------------------
+ * Группа привязывается командой /group, которую админ канала пишет в самой группе
+ * (/group_off — отвязать). В группу идут «Угадай победителей» (с кнопками) и
+ * «Матчи дня · результаты» — там без отметок прогнозов, только счёт.
+ * Логотипы клубов (премиум-эмодзи) в группе показываются, если их разрешит Telegram;
+ * если нет — tg_ сам отправит пост с обычными кружками. */
+function tgGroup_() { return PropertiesService.getScriptProperties().getProperty('TG_GROUP') || ''; }
+
+/** Отправить копию в группу, если она привязана. Ошибка группы не мешает посту в канале. */
+function tgGroupSend_(payload) {
+  var group = tgGroup_();
+  if (!group) return null;
+  payload.chat_id = group;
+  try {
+    var r = tg_('sendMessage', payload);
+    if (!r.ok) PropertiesService.getScriptProperties().setProperty('TG_GROUP_LAST_ERROR', mskNow_() + ' · ' + (r.description || ''));
+    return r.ok ? r : null;
+  } catch (e) { return null; }
+}
+
+/** Сообщения из групп: только /group, /group_off и переезд группы в супергруппу (у неё меняется id). */
+function tgGroupMessage_(msg) {
+  var p = PropertiesService.getScriptProperties(), chat = String(msg.chat.id);
+  if (msg.migrate_to_chat_id && p.getProperty('TG_GROUP') === chat) { p.setProperty('TG_GROUP', String(msg.migrate_to_chat_id)); return; }
+  if (!msg.text) return;
+  var cmd = String(msg.text).trim().split(/\s+/)[0].toLowerCase().replace(/@.*/, '');
+  if (cmd !== '/group' && cmd !== '/group_off') return;
+  if (!msg.from || !tgIsChannelAdmin_(msg.from.id)) { tgRaw_('sendMessage', { chat_id: chat, text: 'Привязать группу может только админ канала.' }); return; }
+  if (cmd === '/group_off') {
+    if (p.getProperty('TG_GROUP') === chat) p.deleteProperty('TG_GROUP');
+    tgRaw_('sendMessage', { chat_id: chat, text: 'Готово: посты сюда больше не дублируются.' });
+    return;
+  }
+  p.setProperty('TG_GROUP', chat);
+  tgRaw_('sendMessage', { chat_id: chat, text: '✅ Группа привязана. Сюда будут приходить копии постов канала: «Угадай победителей» и «Матчи дня · результаты» (со счётом, без отметок прогнозов).\n\nОтвязать — /group_off' });
 }
 
 /** Выбор Джарвиса = фаворит модели; обновляется до начала матча вместе с моделью. */
@@ -6632,11 +6672,20 @@ function gameHandleUpdate_(update) {
     return;
   }
   var msg = update.message;
+  if (msg && msg.chat && (msg.chat.type === 'group' || msg.chat.type === 'supergroup')) { tgGroupMessage_(msg); return; }
   if (!msg || !msg.text || !msg.chat || msg.chat.type !== 'private') return;
   var words = String(msg.text).trim().split(/\s+/);
   var cmd = words[0].toLowerCase().replace(/@.*/, '');
   var arg = (words[1] || '').toLowerCase();
   var chat = msg.chat.id;
+  botEnsureCommands_();
+  if (cmd === '/today' || cmd === '/team' || cmd === '/table') {
+    var info;
+    try { info = cmd === '/today' ? botTodayText_(ss) : cmd === '/table' ? botTableText_(ss) : botTeamText_(ss, words.slice(1).join(' ')); }
+    catch (e) { info = '⚠️ Не получилось: ' + escHtml_(e.message); }
+    tg_('sendMessage', { chat_id: chat, parse_mode: 'HTML', text: info, disable_web_page_preview: true });
+    return;
+  }
   if (cmd === '/scout') {
     if (!tgIsChannelAdmin_(msg.from.id)) { tgAdminDenied_(chat, msg.from.id); return; }
     tg_('sendMessage', { chat_id: chat, text: '🔎 Смотрю, что нового…' });
@@ -6697,7 +6746,9 @@ function gameHandleUpdate_(update) {
       '🎯 <b>' + GAME_TITLE + '</b>\n\nУгадывай, кто победит в матчах КХЛ (с учётом ОТ и буллитов), и следи за своим банком.\n\n' +
       '• Каждый выбор — виртуальная ставка ' + GAME_STAKE + ' ₽ по коэффициенту на кнопке. Стартовый банк у всех — ' + GAME_START_BANK.toLocaleString('ru-RU') + ' ₽.\n' +
       '• Передумать можно до начала матча.' + (GAME_WEEKLY_POST ? '\n• Победитель недели — у кого больше угаданных исходов. Приз — ' + escHtml_(GAME_PRIZE) + '.' : '') + '\n\n' +
-      'Команды:\n/matches — матчи с кнопками\n/me — мой счёт и банк\n/history — история ставок и банк по дням\n\nПосле каждого игрового дня я буду присылать тебе личные итоги.' });
+      'Команды:\n/matches — матчи с кнопками\n/me — мой счёт и банк\n/history — история ставок и банк по дням\n\n' +
+      'Прогнозы и статистика:\n/today — матчи сегодня: шансы и коэффициенты\n/team Ак Барс — карточка команды\n/table — турнирная таблица\n\n' +
+      'После каждого игрового дня я буду присылать тебе личные итоги.' });
     gameSendMatches_(ss, chat);
   } else if (cmd === '/matches') {
     gameSendMatches_(ss, chat);
@@ -6729,6 +6780,149 @@ function gameRefreshKeyboard_(ss, message) {
   var list = ids.map(function (id) { return byId[id]; }).filter(function (m) { return m; });
   if (!list.length) return;
   tg_('editMessageReplyMarkup', { chat_id: message.chat.id, message_id: message.message_id, reply_markup: gameKeyboard_(list, gameReadPicks_(ss)) });
+}
+
+/* ------------------- команды в личке: /today, /team, /table -------------------
+ * Только чтение таблицы — лимиты ИИ и поиска не тратятся. */
+var BOT_CMDS_VERSION = '1';   // поменяйте, если меняется список команд, — меню Telegram обновится само
+
+/** Меню команд в Telegram (кнопка «/» у поля ввода). Ставится один раз на версию списка. */
+function botEnsureCommands_() {
+  var p = PropertiesService.getScriptProperties();
+  if (p.getProperty('BOT_CMDS_V') === BOT_CMDS_VERSION) return;
+  var r = tg_('setMyCommands', { commands: [
+    { command: 'today', description: 'Матчи сегодня: шансы и коэффициенты' },
+    { command: 'team', description: 'Карточка команды: /team Ак Барс' },
+    { command: 'table', description: 'Турнирная таблица' },
+    { command: 'matches', description: 'Игра: матчи с кнопками' },
+    { command: 'me', description: 'Игра: мой счёт и банк' },
+    { command: 'history', description: 'Игра: история ставок' },
+    { command: 'help', description: 'Все команды' }
+  ] });
+  if (r && r.ok) p.setProperty('BOT_CMDS_V', BOT_CMDS_VERSION);
+}
+
+/** Матчи с fromKey по toKey (МСК) из «прогнозов», за одно чтение листов: [{day, home, away, time, pJ, pB, odds, score}]. */
+function botMatches_(ss, fromKey, toKey) {
+  var prog = ss.getSheetByName('прогнозы');
+  if (!prog) return [];
+  var last = lastMatchRow_(prog);
+  if (last < 2) return [];
+  var vals = prog.getRange(2, 1, last - 1, COL_BEST_P).getValues();
+  var odds = {}; try { odds = readOddsLog_(ss); } catch (e) { odds = {}; }
+  var res = {}, rs = ss.getSheetByName(SHEET_RESULTS);
+  if (rs && rs.getLastRow() >= 2) rs.getRange(2, 1, rs.getLastRow() - 1, 7).getValues().forEach(function (r) {
+    if (!(r[0] instanceof Date) || String(r[1]).trim() !== 'Сыгран' || typeof r[4] !== 'number') return;
+    res[sheetDayKey_(r[0]) + '|' + String(r[2]).trim() + '|' + String(r[3]).trim()] = r[4] + ':' + r[5] + (r[6] === true || String(r[6]).toUpperCase() === 'TRUE' ? ' (ОТ/Б)' : '');
+  });
+  var out = [];
+  vals.forEach(function (v) {
+    if (!(v[0] instanceof Date) || !v[1] || !v[2] || typeof v[3] !== 'number') return;
+    var dayKey = sheetDayKey_(v[0]);
+    if (dayKey < fromKey || dayKey > toKey) return;
+    var home = String(v[1]).trim(), away = String(v[2]).trim(), o = null;
+    [dayKey, addDaysKey_(dayKey, -1), addDaysKey_(dayKey, 1)].forEach(function (k) { o = o || odds[k + '|' + home + '|' + away] || null; });
+    out.push({ day: dayKey, home: home, away: away, time: o && o.time ? o.time : '', pJ: v[3],
+      pB: typeof v[COL_BEST_P - 1] === 'number' ? v[COL_BEST_P - 1] : null, odds: o && o.regOdds ? o.regOdds : null,
+      score: res[dayKey + '|' + home + '|' + away] || '' });
+  });
+  out.sort(function (a, b) { return a.day !== b.day ? (a.day < b.day ? -1 : 1) : (a.time < b.time ? -1 : a.time > b.time ? 1 : 0); });
+  return out;
+}
+
+function botPick_(m, p) { return p === null ? '—' : escHtml_(p >= 0.5 ? m.home : m.away) + ' ' + Math.round(Math.max(p, 1 - p) * 100) + '%'; }
+
+/** /today — матчи сегодня; если сегодня пусто — ближайший игровой день в пределах недели. */
+function botTodayText_(ss) {
+  var today = agentMskDay_(), all = botMatches_(ss, today, addDaysKey_(today, 7));
+  if (!all.length) return '🏒 В ближайшую неделю матчей в таблице нет.';
+  var day = all[0].day, list = all.filter(function (m) { return m.day === day; });
+  var head = day === today ? '🏒 <b>КХЛ сегодня</b> · ' + briefDay_(day) : '🏒 Сегодня матчей нет. Ближайшие — <b>' + briefDay_(day) + '</b>';
+  var lines = list.map(function (m) {
+    return '<b>' + teamMark_(m.home) + ' — ' + teamMark_(m.away) + '</b>' + (m.time ? ' · ' + escHtml_(m.time) + ' МСК' : '') +
+      (m.score ? '\n🏁 Счёт: ' + escHtml_(m.score) : '') +
+      '\n🤖 Джарвис: ' + botPick_(m, m.pJ) + (m.pB !== null ? ' · ⭐ Лучший: ' + botPick_(m, m.pB) : '') +
+      (m.odds ? '\n📈 П1 / Х / П2: ' + m.odds.map(function (x) { return x.toFixed(2); }).join(' / ') : '');
+  });
+  return head + '\n\n' + lines.join('\n\n') +
+    '\n\n<i>Шансы — на победу с учётом ОТ и буллитов. Лучший прогноз — 75% линии букмекера + 25% Джарвиса.</i>';
+}
+
+/** Название клуба из запроса: каноничное, из «Справочника команд» (включая старые названия), по началу или части слова. */
+function botFindTeam_(ss, query) {
+  var norm = function (s) { return String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/[«»"'.]/g, '').replace(/\s+/g, ' ').trim(); };
+  var q = norm(query);
+  if (!q) return { list: [] };
+  var names = [], sh = ss.getSheetByName(SHEET_TEAMS);
+  if (sh && sh.getLastRow() >= 2) sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues().forEach(function (r) {
+    var canon = String(r[0]).trim(); if (!canon) return;
+    [canon].concat(String(r[1] || '').split(/[,;]/)).forEach(function (a) { if (norm(a)) names.push({ canon: canon, alias: norm(a) }); });
+  });
+  var pick = function (test) {
+    var seen = {}, out = [];
+    names.forEach(function (n) { if (test(n.alias) && !seen[n.canon]) { seen[n.canon] = 1; out.push(n.canon); } });
+    return out;
+  };
+  var list = pick(function (a) { return a === q; });
+  if (!list.length) list = pick(function (a) { return a.indexOf(q) === 0; });
+  if (!list.length) list = pick(function (a) { return a.indexOf(q) >= 0; });
+  return { list: list };
+}
+
+/** /team Название — карточка команды. */
+function botTeamText_(ss, query) {
+  if (!String(query || '').trim()) return 'Напишите название после команды, например: <code>/team Ак Барс</code>';
+  var found = botFindTeam_(ss, query).list;
+  if (!found.length) return 'Не нашёл команду «' + escHtml_(query) + '». Попробуйте, например: <code>/team Ак Барс</code>, <code>/team ЦСКА</code>, <code>/team Динамо Москва</code>';
+  if (found.length > 1) return 'Под «' + escHtml_(query) + '» подходит несколько команд: ' + found.map(escHtml_).join(', ') + '. Уточните название.';
+  var team = found[0], out = ['🏒 <b>' + teamMark_(team) + '</b>'];
+
+  var tsh = ss.getSheetByName('Таблица');
+  if (tsh && tsh.getLastRow() >= 2) {
+    var rows = tsh.getRange(2, 1, Math.min(tsh.getLastRow() - 1, 30), 11).getValues();
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i]; if (String(r[1]).trim() !== team) continue;
+      var diff = Number(r[8]);
+      out.push('📋 ' + r[0] + '-е место · ' + r[3] + ' ' + ruPlural_(Number(r[3]), 'очко', 'очка', 'очков') + ' за ' + r[2] + ' ' + ruPlural_(Number(r[2]), 'игру', 'игры', 'игр') +
+        ' · победы ' + r[4] + ', поражения ' + r[5] + ' · шайбы ' + r[6] + ':' + r[7] + ' (' + (diff > 0 ? '+' : '') + diff + ')');
+      if (String(r[9]).trim()) out.push('📈 Форма (последние 6): ' + escHtml_(r[9]));
+      if (typeof r[10] === 'number') out.push('💪 Рейтинг силы: ' + Math.round(r[10]) + ' из 100');
+      break;
+    }
+  }
+
+  var T = {}; try { T = khlAppStatsCached_(ss); } catch (e) { T = {}; }
+  var t = T[team];
+  if (t && t.gp) {
+    out.push('📊 Броски в створ за игру: ' + khlNum_(t.sf / t.gp) + ' — пропускает ' + khlNum_(t.sa / t.gp) +
+      '\n🎯 Большинство ' + khlPct_(t.ppPct) + ' · меньшинство ' + khlPct_(t.pkPct) + ' · % отражённых ' + khlPct_(t.svPct) +
+      (t.mainGoalie ? '\n🥅 Основной вратарь: ' + escHtml_(t.mainGoalie) + ' (' + t.mainGoalieGp + ' из ' + t.gp + ')' +
+        (t.lastGoalie && t.lastGoalie !== t.mainGoalie ? ', в последнем матче — ' + escHtml_(t.lastGoalie) : '') : ''));
+  }
+
+  // ближайший матч с прогнозом
+  var today = agentMskDay_();
+  var next = botMatches_(ss, today, addDaysKey_(today, 14)).filter(function (x) { return !x.score && (x.home === team || x.away === team); })[0];
+  if (next) {
+    var home = next.home === team, pT = home ? next.pJ : 1 - next.pJ;
+    out.push('🗓 Ближайший матч: ' + briefDay_(next.day) + (next.time ? ', ' + escHtml_(next.time) + ' МСК' : '') + ' — ' +
+      (home ? 'дома с ' : 'в гостях у ') + teamMark_(home ? next.away : next.home) +
+      '\n🤖 Шанс на победу по Джарвису: ' + Math.round(pT * 100) + '%' +
+      (next.pB !== null ? ' · ⭐ лучший прогноз: ' + Math.round((home ? next.pB : 1 - next.pB) * 100) + '%' : ''));
+  }
+  return out.join('\n');
+}
+
+/** /table — турнирная таблица с листа «Таблица». */
+function botTableText_(ss) {
+  var sh = ss.getSheetByName('Таблица');
+  if (!sh || sh.getLastRow() < 2) return 'Таблица пока не заполнена.';
+  var rows = sh.getRange(2, 1, Math.min(sh.getLastRow() - 1, 30), 9).getValues().filter(function (r) { return String(r[1]).trim(); });
+  var lines = rows.map(function (r) {
+    var diff = Number(r[8]);
+    return r[0] + '. ' + teamMark_(String(r[1]).trim()) + ' — <b>' + r[3] + '</b> (' + r[2] + ' и, ' + (diff > 0 ? '+' : '') + diff + ')';
+  });
+  return '🏆 <b>Турнирная таблица КХЛ</b>\n<i>место. команда — очки (игры, разница шайб)</i>\n\n' + lines.join('\n');
 }
 
 /* --------------------------- подсчёт и рейтинги --------------------------- */
@@ -7078,12 +7272,14 @@ function liveCandidates_(ss, now) {
 function livePct_(p) { return Math.round(p * 100) + '%'; }
 function liveHas_(x) { return x !== null && x !== undefined && x !== ''; }
 
-/** Текст поста «Матчи дня»: счёт появляется сразу после финальной сирены. */
-function liveText_(day, items, now) {
+/** Текст поста «Матчи дня»: счёт появляется сразу после финальной сирены.
+ *  clean — только счёт, без отметок прогнозов (так публикуется в канал и группу). */
+function liveText_(day, items, now, clean) {
   var lines = ['🏒 <b>МАТЧИ ДНЯ · РЕЗУЛЬТАТЫ</b>', ruDayTitle_(day).toLowerCase(), ''];
   var hit = 0, miss = 0;
   items.forEach(function (it) {
     var m = it.m, s = it.s;
+    if (clean) s = { phase: s.phase, sh: s.sh, sa: s.sa, ot: s.ot, pick: '' };
     if (s.phase === 'done' && liveHas_(s.sh) && liveHas_(s.sa)) {
       lines.push('🏁 <b>' + escHtml_(m.home) + ' ' + s.sh + ':' + s.sa + ' ' + escHtml_(m.away) + '</b>' + (s.ot ? ' (ОТ/Б)' : ''));
       if (s.pick) {
@@ -7179,35 +7375,47 @@ function liveUpdate_(now) {
   });
 
   var posted = false, edited = false, text = '';
-  Object.keys(days).sort().forEach(function (day) {
-    var items = days[day];
-    if (!items.some(function (it) { return it.s.phase !== 'wait'; })) return;
-    var sig = items.map(function (it) { return it.m.id + ':' + it.s.key; }).join(',');    // пост трогаем только при изменениях
-    var mid = state.msg[day];
-    if (mid && state.sig[day] === sig) return;
-    text = liveText_(day, items, now);
+  var group = tgGroup_();
+  state.gmsg = state.gmsg || {}; state.gsig = state.gsig || {};
+  // пост в чате: выпустить или переписать, только если что-то изменилось
+  var sync = function (chat, day, body, sig, msgs, sigs) {
+    var mid = msgs[day];
+    if (mid && sigs[day] === sig) return;
     if (mid) {
-      var r = tg_('editMessageText', { chat_id: channel, message_id: mid, text: text, parse_mode: 'HTML', disable_web_page_preview: true });
+      var r = tg_('editMessageText', { chat_id: chat, message_id: mid, text: body, parse_mode: 'HTML', disable_web_page_preview: true });
       if (r.ok || /not modified/i.test(r.description || '')) edited = true;
       else if (/not found|can't be edited/i.test(r.description || '')) mid = null;   // пост удалили — выпустим заново
     }
     if (!mid) {
-      var p = tg_('sendMessage', { chat_id: channel, text: text, parse_mode: 'HTML', disable_web_page_preview: true, disable_notification: true });
-      if (p.ok) { state.msg[day] = p.result.message_id; posted = true; }
+      var p = tg_('sendMessage', { chat_id: chat, text: body, parse_mode: 'HTML', disable_web_page_preview: true, disable_notification: true });
+      if (p.ok) { msgs[day] = p.result.message_id; posted = true; }
     }
-    if (state.msg[day]) state.sig[day] = sig;
+    if (msgs[day]) sigs[day] = sig;
+  };
+  Object.keys(days).sort().forEach(function (day) {
+    var items = days[day];
+    if (!items.some(function (it) { return it.s.phase !== 'wait'; })) return;
+    var sig = items.map(function (it) { return it.m.id + ':' + it.s.key; }).join(',');    // пост трогаем только при изменениях
+    // в канале — только счёт, без отметок прогнозов (по вашему решению от 30.09)
+    if (!(state.msg[day] && state.sig[day] === sig)) { text = liveText_(day, items, now, true); sync(channel, day, text, sig, state.msg, state.sig); }
+    if (group) { try { sync(group, day, liveText_(day, items, now, true), sig, state.gmsg, state.gsig); } catch (e) { /* группа не мешает каналу */ } }
   });
 
   var keep = {}; cands.forEach(function (m) { keep[m.id] = true; });
   Object.keys(state.m).forEach(function (id) { if (!keep[id]) delete state.m[id]; });
   var minDay = Utilities.formatDate(new Date(now.getTime() - 2 * 86400000), 'Europe/Moscow', 'yyyy-MM-dd');
-  ['msg', 'sig'].forEach(function (k) { Object.keys(state[k]).forEach(function (d) { if (d < minDay) delete state[k][d]; }); });
+  ['msg', 'sig', 'gmsg', 'gsig'].forEach(function (k) { Object.keys(state[k]).forEach(function (d) { if (d < minDay) delete state[k][d]; }); });
   props.setProperty('LIVE_STATE', JSON.stringify(state));
   // день, где у всех матчей финальный счёт (или 4 часа прошло), — можно подводить итоги игры
   var doneDays = Object.keys(days).filter(function (d) {
     var it = days[d]; return it.every(function (x) { return x.s.key === 'f' || x.s.key === 'd'; }) && it.some(function (x) { return x.s.key === 'f'; });
   });
-  return { matches: started.length, posted: posted, edited: edited, text: text, fetched: fetched, doneDays: doneDays };
+  var doneItems = {};
+  doneDays.forEach(function (d) {
+    doneItems[d] = days[d].filter(function (x) { return x.s.key === 'f' && liveHas_(x.s.sh) && liveHas_(x.s.sa); })
+      .map(function (x) { return { home: x.m.home, away: x.m.away, sh: Number(x.s.sh), sa: Number(x.s.sa), mark: x.s.ot ? 'ОТ/Б' : '' }; });
+  });
+  return { matches: started.length, posted: posted, edited: edited, text: text, fetched: fetched, doneDays: doneDays, doneItems: doneItems };
 }
 
 /** Для триггера раз в 5 минут. */
@@ -7219,6 +7427,7 @@ function liveUpdateAuto_() {
     try { lv = liveUpdate_(new Date()); } catch (e) { console.log('live: ' + e.message); autoMark_('liveUpdateAuto_', false, 'LIVE: ' + e.message); }
     try { lw = lineupWatch_(new Date()); } catch (e) { console.log('lineups: ' + e.message); autoMark_('liveUpdateAuto_', false, 'заявки: ' + e.message); }
     if (lv && lv.doneDays && lv.doneDays.length && PIPELINE_GAME) { try { gameEarlySettle_(lv.doneDays); } catch (e) { console.log('game early: ' + e.message); } }
+    if (lv && lv.doneDays && lv.doneDays.length) itogiAutoKhl_(lv);
     if ((lv && (lv.posted || lv.edited)) || (lw && lw.checked)) autoMark_('liveUpdateAuto_', true, (lv && lv.matches ? 'LIVE: матчей ' + lv.matches + '. ' : '') + (lw && lw.checked ? 'заявки: проверено ' + lw.checked + ', отправлено ' + lw.sent : ''));
     // раз в сутки: доставить недостающие запуски (после вставки нового кода нажимать ничего не нужно)
     var pp = PropertiesService.getScriptProperties(), today = mskNow_('yyyy-MM-dd');
@@ -7258,7 +7467,7 @@ var TWEAK_DEFAULT_DAYS = 7;    // на сколько дней ставится 
 var TWEAK_ROWS = 200;          // сколько строк отведено под поправки
 var TWEAKS_HEADER = ['Команда', 'Поправка (очки рейтинга)', 'Действует до', 'Причина', 'Поставлено (МСК)'];
 var TWEAK_REASONS = ['запасной вратарь', 'вернулся основной вратарь', 'травмы / нет лидеров', 'вернулись лидеры',
-  'смена тренера', 'усталость / перелёты', 'мотивация / настрой', 'другое'];
+  'смена тренера', 'усталость / перелёты', 'мотивация / настрой', 'видео экспертов', 'другое'];
 
 /** Включены ли поправки (можно выключить, если окажется, что они мешают). */
 function tweaksOn_() {
@@ -10264,6 +10473,8 @@ function modelFormCheck_() {
  * 🎬 ВИДЕО ЭКСПЕРТОВ (YouTube) → РАСКЛАД СИЛ → СТАРТОВЫЙ РЕЙТИНГ
  *
  *  • Лист «Видео_эксперты»: ссылки на открытые ролики YouTube — вставляйте в колонку A на свободную строку.
+ *    Проще — кнопка «🎬 Вставить видео»: спросит ссылку, впишет её сюда и сразу отдаст ролик Gemini.
+ *    Ролик про другую лигу (НХЛ в таблице КХЛ и наоборот) узнаётся по первым двум кускам — дальше лимит не тратится.
  *    Разбираются только новые ролики; чтобы разобрать ролик заново — очистите его ячейку «Статус».
  *  • Gemini (тот же ключ GEMINI_KEY) «смотрит» ролик по ссылке — скачивать ничего не нужно. Длинный ролик режется на
  *    куски по 15 минут; прогресс сохраняется; перегрузка или лимит Google — продолжение само через 10/30 минут.
@@ -10274,7 +10485,8 @@ function modelFormCheck_() {
  *      по его местам (мест нет — по оценке 1–10) и получают их же нынешние стартовые рейтинги в этом порядке:
  *      средний уровень и разброс не меняются — меняется только порядок. Несколько роликов — среднее.
  *      Итог = 2/3 нынешнего стартового рейтинга + 1/3 «по экспертам». Цифру можно поправить руками.
- *  • В модель это попадает ТОЛЬКО по кнопке «Применить расклад к стартовому рейтингу» (вернуть — соседней кнопкой).
+ *  • В модель это попадает САМО через минуту после разбора (см. «Видео в расчётах» ниже): расклад — в стартовый рейтинг,
+ *    новости о травмах, вратарях и форме — в поправки на неделю. «Вернуть прежний стартовый рейтинг» выключает автоучёт.
  *    Прогнозы сыгранных матчей заморожены и не меняются; Elo пересчитывается с начала сезона и дальше
  *    считается только по результатам.
  *  • Любой ролик (расклад, подкаст, обзор, пресс-конференция): по каждой команде — травмы, переходы, вратари, тренер
@@ -10294,13 +10506,43 @@ var VIDEO_WEIGHT = 1 / 3;                 // доля мнения экспер�
 var VIDEO_TIME_BUDGET_MS = 270000;        // сколько работать за один запуск (у Apps Script лимит 6 минут)
 var VIDEO_CONTEXT_DAYS = 45;              // сколько дней после разбора мнение экспертов показывать агенту
 var PRESEASON_BACKUP_PROP = 'PRESEASON_BACKUP';
-var RAW_COLS = 19;                        // «Видео_разбор»: …, Минута, Место (число), Список эксперта, Травмы, Переходы, Тренер, Форма, Ожидания, Тип ролика
+var RAW_COLS = 21;                        // «Видео_разбор»: …, Минута, Место (число), Список эксперта, Травмы, Переходы, Тренер, Форма, Ожидания, Тип ролика
 var PRE_PROP_COL = 12;                    // сводка: колонка «С учётом видео»
 var PRE_COLS = 21;
 var VIDEO_BLIND_MAX_SEC = 4 * 3600;       // длина ролика неизвестна — идём кусками, но не дальше 4 часов
 var PICKS_SHEET = 'Прогнозы_экспертов';
 var PICKS_COLS = 15;
 var PICKS_WAIT_DAYS = 21;                 // матч без даты ищем в течение 3 недель после разбора
+
+var VIDEO_START_MS = 150000;              // новый кусок ролика — только в первые 2,5 минуты запуска (кусок идёт до 2 минут)
+var VIDEO_DEADLINE_MS = 290000;           // к этой минуте запуска — никаких повторов запроса (лимит Apps Script — 6 минут)
+var VIDEO_TWEAK_MAX = 15;                 // предел поправки из роликов, очков рейтинга (+25 ≈ +3,5% к шансам)
+var VIDEO_TWEAK_DAYS = 7;                 // сколько дней после ролика действует поправка из него
+var VIDEO_TWEAK_REASON = 'видео экспертов';   // причина на листе «Мои поправки»: по ней табло покажет, помогают ли
+var PRESEASON_APPLIED_PROP = 'PRESEASON_APPLIED'; // какой стартовый рейтинг расклад поставил в прошлый раз
+var VIDEO_AUTO_OFF_PROP = 'VIDEO_AUTO_OFF';   // «да» — видео в расчёты само не идёт (после «Вернуть прежний стартовый рейтинг»)
+var VIDEO_OTHER_MAX = 2;                  // столько кусков подряд «ролик про другую лигу» — и хватит тратить лимит
+
+/** Ссылка, которую Gemini понимает надёжнее всего: youtube.com/watch?v=ID (без youtu.be и хвостов ?si=…). */
+function videoCanon_(id) { return 'https://www.youtube.com/watch?v=' + id; }
+
+/** Другая лига: Gemini назвал лигу ролика, и это не лига этой таблицы. */
+function videoOtherLeague_(s) {
+  var l = String(s || '').toUpperCase().replace(/NHL/g, 'НХЛ').replace(/KHL/g, 'КХЛ');
+  return !!l && l.indexOf(VIDEO_LEAGUE) < 0 && /НХЛ|КХЛ|ВХЛ|МХЛ|AHL|АХЛ|ДРУГ|OTHER/.test(l);
+}
+function videoImpact_(x) {
+  var n = x === null || x === undefined || x === '' ? NaN : Number(x);
+  return isFinite(n) && Math.round(n) ? Math.max(-VIDEO_TWEAK_MAX, Math.min(VIDEO_TWEAK_MAX, Math.round(n))) : '';
+}
+function videoOtherName_() { return VIDEO_LEAGUE === 'КХЛ' ? 'НХЛ' : 'КХЛ'; }
+
+/** Счётчики «пустых» кусков подряд живут между запусками (раньше обнулялись, и ролик без команд шёл до 4 часов). */
+function videoRunState_(id, st) {
+  var p = PropertiesService.getScriptProperties(), k = 'VIDEO_RUN_' + id;
+  if (st === undefined) { try { return JSON.parse(p.getProperty(k) || 'null') || { empty: 0, other: 0, league: '' }; } catch (e) { return { empty: 0, other: 0, league: '' }; } }
+  if (st === null) p.deleteProperty(k); else p.setProperty(k, JSON.stringify(st));
+}
 
 function videoIdOf_(url) { var m = String(url || '').match(/(?:[?&]v=|youtu\.be\/|shorts\/|live\/|embed\/)([A-Za-z0-9_-]{11})/); return m ? m[1] : null; }
 function videoMmss_(s) { s = Math.max(0, Math.round(Number(s) || 0)); var h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + ('0' + m).slice(-2) : m) + ':' + ('0' + x).slice(-2); }
@@ -10317,8 +10559,23 @@ function videoList_(ss) {
   }
   var n = sh.getLastRow() - 1;
   if (n < 1) return { sh: sh, list: [] };
+  // Таблицы умеют прятать адрес под подписью («Лидеры и аутсайдеры НХЛ…») — тогда в тексте ячейки ролика нет,
+  // и адрес надо доставать из самой ссылки. Иначе строка молча выпадает из разбора.
+  var rich = [];
+  try { rich = sh.getRange(2, 1, n, 1).getRichTextValues(); } catch (e) { rich = []; }
+  var linkOf = function (i) {
+    var v = rich[i] && rich[i][0];
+    if (!v) return '';
+    var u = '';
+    try { u = v.getLinkUrl() || ''; } catch (e) { u = ''; }
+    if (u) return u;
+    try { (v.getRuns() || []).forEach(function (run) { if (!u) { try { u = run.getLinkUrl() || ''; } catch (e2) {} } }); } catch (e3) {}
+    return u;
+  };
   var list = sh.getRange(2, 1, n, 6).getValues().map(function (r, i) {
-    return { row: i + 2, url: String(r[0]).trim(), id: videoIdOf_(r[0]), who: String(r[1] || '').trim(), status: String(r[2] || ''), done: Number(r[3]) || 0, len: Number(r[4]) || 0, found: Number(r[5]) || 0 };
+    var text = String(r[0]).trim(), id = videoIdOf_(text), url = text;
+    if (!id) { var u = linkOf(i); if (u) { id = videoIdOf_(u); url = u; } }
+    return { row: i + 2, url: url, id: id, who: String(r[1] || '').trim(), status: String(r[2] || ''), done: Number(r[3]) || 0, len: Number(r[4]) || 0, found: Number(r[5]) || 0 };
   }).filter(function (v) { return v.id; });
   return { sh: sh, list: list };
 }
@@ -10359,6 +10616,10 @@ function videoPrompt_(from, to) {
     '  injuries — кто травмирован, дисквалифицирован или не играет и на сколько; roster — приходы, уходы, обмены, аренды, вызовы из фарма; ' +
     'goalie — кто в воротах, конкуренция вратарей; coach — тренер, тактика, звенья, большинство; form — как команда играет сейчас (по словам автора); ' +
     'outlook — чего автор ждёт от команды; plus / minus — сильные и слабые стороны.\n' +
+    '  impact — целое число от -' + VIDEO_TWEAK_MAX + ' до ' + VIDEO_TWEAK_MAX + ': насколько сказанное в ролике (травмы и возвращения, вратари, переходы, форма, тренер) ' +
+    'меняет силу команды в БЛИЖАЙШИХ матчах по сравнению с её обычным уровнем. -' + VIDEO_TWEAK_MAX + ' — нет основного вратаря и нескольких лидеров; ' +
+    '-5 — выбыл один важный игрок; +5 — вернулся лидер; 0 — не меняет или неясно. Оценка общей силы на сезон сюда НЕ входит (она — в score). ' +
+    'impact_why — коротко, почему (до 100 знаков).\n' +
     '  Если автор расставляет команды по местам: group — какой список (дивизион, конференция или «вся лига»), place_num — место целым числом (1 — первое); ' +
     'если идёт по порядку мест (например, с последнего к первому) — место следует из порядка; у разных команд одного списка места разные. Иначе place_num = null.\n' +
     '  score — оценка силы команды по словам автора от 1 до 10 (10 — главный претендент на титул, 5 — борьба за плей-офф, 1 — худшая команда лиги); ' +
@@ -10366,16 +10627,17 @@ function videoPrompt_(from, to) {
     'match_picks — ТОЛЬКО когда автор прямо говорит, кто победит в конкретном предстоящем матче: хозяева, гости, дата (если названа), за кого он, ' +
     'уверенность и почему. Победа — с учётом овертайма и буллитов.\n' +
     'Верни JSON строго такого вида (тексты на русском, каждое поле до 200 знаков):\n' +
-    '{"author":"кто ведёт ролик, если назван","video_type":"расклад / подкаст-новости / обзор матча / превью / прогнозы на матчи / пресс-конференция / другое",' +
+    '{"author":"кто ведёт ролик, если назван","league":"о какой лиге в основном ' + (to ? 'этот фрагмент' : 'ролик') + ': КХЛ, НХЛ, другая или \"\"",' +
+    '"video_type":"расклад / подкаст-новости / обзор матча / превью / прогнозы на матчи / пресс-конференция / другое",' +
     '"clip_empty":' + (to ? 'true, если этого фрагмента в ролике нет (он за концом ролика), иначе false' : 'false') + ',' +
     '"teams":[{"team":"' + (names.length ? 'название из списка' : 'полное название клуба') + '","group":"","place_num":null,"score":null,"place":"как автор сказал о месте, или \"\"",' +
-    '"playoff":"да, нет, на грани или \"\"","injuries":"","roster":"","goalie":"","coach":"","form":"","outlook":"","plus":"","minus":"",' +
+    '"playoff":"да, нет, на грани или \"\"","injuries":"","roster":"","goalie":"","coach":"","form":"","outlook":"","plus":"","minus":"","impact":0,"impact_why":"",' +
     '"time":"мм:сс от начала всего ролика, где начинается разговор о команде"}],' +
     '"match_picks":[{"home":"хозяева","away":"гости","date":"дд.мм или \"\"","pick":"название команды, за которую автор","confidence":"низкая / средняя / высокая","reason":"почему","time":"мм:сс"}]}';
 }
 
 /** Один запрос к Gemini с роликом (или его куском). {author, teams:[...], model} */
-function videoGeminiClip_(url, from, to) {
+function videoGeminiClip_(url, from, to, deadline) {
   var p = agentProps_(), key = p.getProperty('GEMINI_KEY');
   if (!key) throw new Error('нет ключа GEMINI_KEY');
   var model = videoModel_();
@@ -10395,7 +10657,9 @@ function videoGeminiClip_(url, from, to) {
   var models = [model], alt = videoAltModel_(model), resp = null;
   if (alt) models.push(alt);
   for (var mi = 0; mi < models.length; mi++) {
+    if (mi && deadline && Date.now() > deadline) break;                     // на запасную модель времени уже нет
     for (var attempt = 0; attempt < 3; attempt++) {
+      if (attempt && deadline && Date.now() + 10000 * attempt > deadline) break;   // повтор не успеет до лимита 6 минут
       if (attempt) Utilities.sleep(10000 * attempt);
       resp = send(false, models[mi]);
       if (resp.getResponseCode() === 400) resp = send(true, models[mi]);  // модель не понимает fps/разрешение — без них
@@ -10418,7 +10682,7 @@ function videoGeminiClip_(url, from, to) {
   try { obj = JSON.parse(out); } catch (e) { var j = out.match(/\{[\s\S]*\}/); obj = j ? JSON.parse(j[0]) : {}; }
   if (Array.isArray(obj)) obj = { teams: obj };
   var teams = videoTeams_(obj.teams || obj.команды), picks = videoPicks_(obj.match_picks);
-  return { author: String(obj.author || ''), type: String(obj.video_type || '').slice(0, 40), clipEmpty: obj.clip_empty === true,
+  return { author: String(obj.author || ''), league: String(obj.league || '').slice(0, 40), type: String(obj.video_type || '').slice(0, 40), clipEmpty: obj.clip_empty === true,
     teams: teams, picks: picks, unknown: (teams.unknown || []).concat(picks.unknown || []), total: Array.isArray(obj.teams) ? obj.teams.length : 0, model: model, raw: out };
 }
 
@@ -10492,7 +10756,8 @@ function videoTeams_(arr) {
     var pn = t && t.place_num !== null && t.place_num !== '' ? Number(t.place_num) : NaN;
     return ru ? { team: ru, score: isFinite(sc) && sc >= 1 && sc <= 10 ? Math.round(sc * 10) / 10 : '', pn: isFinite(pn) && pn >= 1 && pn <= 40 ? Math.round(pn) : '',
       group: clip(t.group, 60), place: clip(t.place, 80), playoff: clip(t.playoff, 20), plus: clip(t.plus, 250), minus: clip(t.minus, 250), goalie: clip(t.goalie, 200),
-      injuries: clip(t.injuries, 250), roster: clip(t.roster, 250), coach: clip(t.coach, 250), form: clip(t.form, 250), outlook: clip(t.outlook, 250), time: clip(t.time, 10) } : null;
+      injuries: clip(t.injuries, 250), roster: clip(t.roster, 250), coach: clip(t.coach, 250), form: clip(t.form, 250), outlook: clip(t.outlook, 250), time: clip(t.time, 10),
+      impact: videoImpact_(t.impact), why: clip(t.impact_why, 120) } : null;
   }).filter(Boolean);
   out.unknown = unknown;                                   // названия, которые не нашлись в справочнике — покажем в статусе
   return out;
@@ -10519,7 +10784,8 @@ function videoPicks_(arr) {
 function videoRawSheet_(ss) {
   var sh = ss.getSheetByName(VIDEO_RAW_SHEET) || ss.insertSheet(VIDEO_RAW_SHEET);
   sh.getRange(1, 1, 1, RAW_COLS).setValues([['Ролик', 'Эксперт', 'Фрагмент', 'Команда', 'Оценка 1–10', 'Место', 'Плей-офф', 'Плюсы', 'Минусы', 'Вратари', 'Минута', 'Место (число)', 'Список эксперта',
-    'Травмы / кто не играет', 'Переходы и состав', 'Тренер и тактика', 'Форма', 'Ожидания эксперта', 'Тип ролика']]).setFontWeight('bold');
+    'Травмы / кто не играет', 'Переходы и состав', 'Тренер и тактика', 'Форма', 'Ожидания эксперта', 'Тип ролика',
+    'Влияние на ближайшие матчи (очки рейтинга)', 'Почему (влияние)']]).setFontWeight('bold');
   return sh;
 }
 
@@ -10562,6 +10828,8 @@ function videoAnalyzeAll_(auto) {
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(5000)) { if (!auto) uiAlert_('Разбор видео уже идёт — подождите пару минут.'); return { busy: true }; }
   var t0 = Date.now(), L = videoList_(ss), raw = videoRawSheet_(ss), errs = [], clips = 0, stop = false, stopWait = 30, model = '', picksN = 0;
+  // страховка: если запуск оборвётся на лимите 6 минут (тогда код ниже не выполнится), разбор продолжится сам через 8 минут
+  if (L.list.some(function (v) { return !/^готово/.test(v.status); })) videoScheduleContinue_(8);
   L.list.forEach(function (v) {
     if (/^ошибка/.test(v.status)) { v.status = ''; v.resume = true; L.sh.getRange(v.row, 3).setValue(''); }   // прошлые ошибки — продолжаем с того же места
     else if (!v.status && v.done) v.done = 0;          // статус очистили руками — разбираем ролик с начала
@@ -10570,7 +10838,7 @@ function videoAnalyzeAll_(auto) {
     for (var i = 0; i < L.list.length && !stop; i++) {
       var v = L.list[i];
       if (/^готово/.test(v.status)) continue;
-      if (Date.now() - t0 > VIDEO_TIME_BUDGET_MS) break;
+      if (Date.now() - t0 > VIDEO_START_MS) break;
       if (!v.len) {
         var info = videoInfo_(v.id);
         v.len = info.len;
@@ -10578,12 +10846,12 @@ function videoAnalyzeAll_(auto) {
         if (v.len) L.sh.getRange(v.row, 5).setValue(v.len);
         if (info.pub) try { L.sh.getRange(1, 9).setValue('Дата ролика'); L.sh.getRange(v.row, 9).setValue(info.pub); } catch (e) {}
       }
-      if (!v.done) { videoRawClear_(raw, v.url); videoPicksClear_(ss, v.url); v.found = 0; }
-      var emptyRun = 0;
-      while (Date.now() - t0 < VIDEO_TIME_BUDGET_MS) {
+      if (!v.done) { videoRawClear_(raw, v.url); videoPicksClear_(ss, v.url); v.found = 0; videoRunState_(v.id, null); }
+      var rs = videoRunState_(v.id), emptyRun = rs.empty || 0;
+      while (Date.now() - t0 < VIDEO_START_MS) {
         // длина неизвестна — всё равно кусками по 15 минут, пока ролик не кончится (кусок за концом — пустой или ошибка 4xx)
         var from = v.done, to = v.len ? Math.min(v.len, from + VIDEO_CLIP_SEC) : from + VIDEO_CLIP_SEC, res, ended = false;
-        try { res = videoGeminiClip_(v.url, from, to); }
+        try { res = videoGeminiClip_(videoCanon_(v.id), from, to, t0 + VIDEO_DEADLINE_MS); }
         catch (e) {
           if (!v.len && from > 0 && /кодом 4\d\d/.test(e.message) && !/429/.test(e.message)) ended = true;
           else {
@@ -10600,8 +10868,8 @@ function videoAnalyzeAll_(auto) {
           }
         }
         if (ended) {                                         // ролик кончился раньше, чем мы думали
-          L.sh.getRange(v.row, 3).setValue('готово' + (v.found ? '' : ' — Gemini не нашёл в ролике команд'));
-          v.status = 'готово'; break;
+          L.sh.getRange(v.row, 3).setValue('готово' + (v.found ? '' : rs.other ? ' — ролик про ' + (rs.league || videoOtherName_()) + ', а не про ' + VIDEO_LEAGUE : ' — Gemini не нашёл в ролике команд'));
+          v.status = 'готово'; videoRunState_(v.id, null); break;
         }
         clips++; model = res.model;
         if (clips === 1) try { p.deleteProperty('VIDEO_429_STREAK'); } catch (e) {}
@@ -10610,7 +10878,7 @@ function videoAnalyzeAll_(auto) {
         if (res.teams.length) {
           // минута — текстом (иначе таблица превращает «27:22» в «1 день 3:22»)
           var rows = res.teams.map(function (t) { return [v.url, v.who, label, t.team, t.score, t.place, t.playoff, t.plus, t.minus, t.goalie, t.time ? "'" + t.time : '', t.pn, t.group,
-            t.injuries, t.roster, t.coach, t.form, t.outlook, res.type]; });
+            t.injuries, t.roster, t.coach, t.form, t.outlook, res.type, t.impact, t.why]; });
           raw.getRange(raw.getLastRow() + 1, 1, rows.length, RAW_COLS).setValues(rows);
         }
         if (res.picks.length) {
@@ -10625,19 +10893,29 @@ function videoAnalyzeAll_(auto) {
         try { L.sh.getRange(1, 8).setValue('Ответ Gemini (для проверки)'); L.sh.getRange(v.row, 8).setValue(String(res.raw).slice(0, 20000)); } catch (e) {}
         v.done = to;
         emptyRun = res.teams.length || res.picks.length ? 0 : emptyRun + 1;
+        // ролик про другую лигу (НХЛ в таблице КХЛ и наоборот): команды этой лиги в нём не ищутся — не тратим лимит до конца ролика
+        var other = !res.teams.length && !res.picks.length && videoOtherLeague_(res.league);
+        rs = { empty: emptyRun, other: other ? (rs.other || 0) + 1 : 0, league: other ? res.league : rs.league };
+        var wrong = !v.found && rs.other >= VIDEO_OTHER_MAX;
         // конец ролика неизвестной длины: Gemini говорит «фрагмента нет» (или ошибка 4xx выше); запасной предел — час без единой команды
-        var fin = v.len ? v.done >= v.len : (res.clipEmpty || emptyRun >= 4 || v.done >= VIDEO_BLIND_MAX_SEC);
-        var note = (fin && !v.found ? (v.total ? ' — команды не узнал' : ' — Gemini не нашёл в ролике команд') : '') + (v.unknown.length ? ' (не узнал: ' + v.unknown.slice(0, 8).join(', ') + ')' : '');
+        var fin = wrong || (v.len ? v.done >= v.len : (res.clipEmpty || emptyRun >= 4 || v.done >= VIDEO_BLIND_MAX_SEC));
+        if (fin) videoRunState_(v.id, null); else videoRunState_(v.id, rs);
+        var note = (fin && !v.found ? (wrong ? ' — ролик про ' + res.league + ', а не про ' + VIDEO_LEAGUE + ': вставьте его в таблицу ' + videoOtherName_() :
+          v.total ? ' — команды не узнал' : ' — Gemini не нашёл в ролике команд') : '') + (v.unknown.length ? ' (не узнал: ' + v.unknown.slice(0, 8).join(', ') + ')' : '');
         L.sh.getRange(v.row, 3, 1, 5).setValues([[(fin ? 'готово' : 'разобрано ' + videoMmss_(v.done) + (v.len ? ' из ' + videoMmss_(v.len) : ' (длина неизвестна, идём дальше)')) + note, v.done, v.len || '', v.found, mskNow_()]]);
-        if (fin && (!v.found || v.unknown.length)) errs.push('ролик ' + (i + 1) + ': найдено команд ' + v.found + (v.unknown.length ? ', не узнал: ' + v.unknown.slice(0, 8).join(', ') : v.total ? '' : ' — Gemini вернул пустой список (ответ — в колонке H листа «' + VIDEO_SHEET + '»)'));
+        if (fin && wrong) errs.push('ролик ' + (i + 1) + ' — про ' + res.league + ', а это таблица ' + VIDEO_LEAGUE + ': вставьте его в таблицу ' + videoOtherName_() +
+          ' (меню «🎬 ' + videoOtherName_() + ' · Видео» → «Вставить видео»)');
+        else if (fin && (!v.found || v.unknown.length)) errs.push('ролик ' + (i + 1) + ': найдено команд ' + v.found + (v.unknown.length ? ', не узнал: ' + v.unknown.slice(0, 8).join(', ') : v.total ? '' : ' — Gemini вернул пустой список (ответ — в колонке H листа «' + VIDEO_SHEET + '»)'));
         if (fin) { v.status = 'готово'; break; }
       }
     }
   } finally { lock.releaseLock(); }
   var left = L.list.filter(function (v) { return !/^готово/.test(v.status); });
   var errLeft = left.filter(function (v) { return /^ошибка/.test(String(L.sh.getRange(v.row, 3).getValue())); }).length;
-  var more = left.length - errLeft > 0 && (clips > 0 || stop);
+  var more = left.length - errLeft > 0 && (clips > 0 || stop || Date.now() - t0 > VIDEO_START_MS);
   if (more) videoScheduleContinue_(stop ? stopWait : 1);
+  var toModel = !more && clips > 0 && agentProps_().getProperty(VIDEO_AUTO_OFF_PROP) !== 'да';
+  if (toModel) videoScheduleApply_();
   else try { ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'videoContinue_') ScriptApp.deleteTrigger(t); }); } catch (e) {}
   var sum = preseasonBuild_(ss);
   var msg = '🎬 Видео экспертов: разобрано кусков ' + clips + (model ? ' (' + model + ')' : '') + '. Готово роликов: ' + (L.list.length - left.length) + ' из ' + L.list.length + '.' +
@@ -10652,7 +10930,9 @@ function videoAnalyzeAll_(auto) {
     (sum.teams && !sum.scored ? '\nМест и оценок в роликах нет (похоже, это обсуждение новостей, а не расклад по местам) — стартовый рейтинг не меняется.' : '') +
     (sum.dup && sum.dup.length ? '\n⚠ Повторяются места в дивизионе (проверьте лист «' + PRESEASON_SHEET + '», можно поправить цифры руками): ' + sum.dup.slice(0, 4).join('; ') + '.' : '') +
     (sum.changes.length ? '\nСильнее всего изменится стартовый рейтинг: ' + sum.changes.slice(0, 5).map(function (c) { return c.team + ' ' + c.cur + '→' + c.prop; }).join(', ') + '.' : '') +
-    '\nВ модель это попадёт только после кнопки «Применить расклад к стартовому рейтингу».';
+    (toModel ? '\nЧерез минуту это само попадёт в расчёты: расклад мест — в стартовый рейтинг (доля видео ' + Math.round(VIDEO_WEIGHT * 100) + '%), ' +
+      'новости о травмах, вратарях и форме — в поправки на ' + VIDEO_TWEAK_DAYS + ' дней (до ±' + VIDEO_TWEAK_MAX + ' очков). Итог пришлю в Telegram.' :
+      more ? '' : '\nАвтоучёт видео выключен — включится кнопкой «Применить расклад к стартовому рейтингу».');
   if (!auto) uiAlert_(msg);
   else if (!more) { var to2 = p.getProperty('TG_ADMIN_ID'); if (to2) try { tg_('sendMessage', { chat_id: to2, text: msg }); } catch (e) {} }
   return { clips: clips, left: left.length, errors: errs, summary: sum, more: more };
@@ -10764,7 +11044,7 @@ function preseasonBuild_(ss) {
   var sh = ss.getSheetByName(PRESEASON_SHEET) || ss.insertSheet(PRESEASON_SHEET);
   sh.clear();
   var head = ['Команда', 'Список эксперта', 'Место в списке (эксперт)', 'Оценка силы (1–10)', 'Как сказано о месте', 'Плей-офф', 'Плюсы', 'Минусы', 'Вратари', 'Где в роликах',
-    'Стартовый рейтинг (исходный)', 'С учётом видео (можно поправить)', 'Изменение', 'Применено', 'Дата ролика / разбора',
+    'Стартовый рейтинг (исходный)', 'С учётом видео (ставится само)', 'Изменение', 'Применено', 'Дата ролика / разбора',
     'Травмы / кто не играет', 'Переходы и состав', 'Тренер и тактика', 'Форма', 'Ожидания эксперта', 'Тип роликов'];
   sh.getRange(1, 1, 1, head.length).setValues([head]).setFontWeight('bold');
   var applied = preseasonBackup_() !== null;
@@ -10809,6 +11089,10 @@ function preseasonApply_() {
   if (ui && ui.alert(text, ui.ButtonSet.YES_NO) !== ui.Button.YES) return { applied: 0, canceled: true };
   agentProps_().setProperty(PRESEASON_BACKUP_PROP, JSON.stringify(bak));
   ch.forEach(function (c) { teams.getRange(c.row, 3).setValue(c.to); });
+  var lastSet = {}; try { lastSet = JSON.parse(agentProps_().getProperty(PRESEASON_APPLIED_PROP) || '{}') || {}; } catch (e6) { lastSet = {}; }
+  ch.forEach(function (c) { lastSet[c.team] = c.to; });
+  agentProps_().setProperty(PRESEASON_APPLIED_PROP, JSON.stringify(lastSet));
+  agentProps_().deleteProperty(VIDEO_AUTO_OFF_PROP);
   var eloMsg = ''; try { computeAndWriteElo_(true); eloMsg = ' Elo пересчитан.'; } catch (e4) { eloMsg = ' Elo не пересчитался: ' + e4.message + ' — нажмите «Обновить всё».'; }
   try { preseasonBuild_(ss); } catch (e5) {}
   uiAlert_('Готово: стартовый рейтинг изменён у ' + ch.length + ' команд.' + eloMsg);
@@ -10822,11 +11106,128 @@ function preseasonRevert_() {
   var start = preseasonStartRatings_(ss), n = 0;
   Object.keys(bak).forEach(function (t) { if (start[t] && start[t].val !== Number(bak[t])) { teams.getRange(start[t].row, 3).setValue(Number(bak[t])); n++; } });
   agentProps_().deleteProperty(PRESEASON_BACKUP_PROP);
+  agentProps_().deleteProperty(PRESEASON_APPLIED_PROP);
+  agentProps_().setProperty(VIDEO_AUTO_OFF_PROP, 'да');
   try { computeAndWriteElo_(true); } catch (e) {}
   try { preseasonBuild_(ss); } catch (e2) {}
-  uiAlert_('Стартовый рейтинг возвращён к прежнему у ' + n + ' команд, Elo пересчитан.');
+  uiAlert_('Стартовый рейтинг возвращён к прежнему у ' + n + ' команд, Elo пересчитан.\n\nАвтоучёт видео выключен: новые ролики в расчёты сами не пойдут ' +
+    '(поправки из роликов, которые уже стоят, доживут до своей даты — их можно удалить на листе «' + SHEET_TWEAKS + '»). Включить — кнопкой «Применить расклад к стартовому рейтингу».');
   return { reverted: n };
 }
+
+/* ── 🎬 → 📈 Видео в расчётах: после разбора роликов (через минуту, отдельным запуском — Elo считается долго) ──
+ *  1) расклад экспертов по местам сам идёт в стартовый рейтинг (доля VIDEO_WEIGHT), Elo пересчитывается с начала сезона;
+ *     если стартовый рейтинг команды с прошлого раза поменяли руками или другой кнопкой — новое значение и есть исходное;
+ *  2) новости из роликов (травмы, вратари, форма) — поправки на листе «Мои поправки» с причиной VIDEO_TWEAK_REASON:
+ *     до ±VIDEO_TWEAK_MAX очков, на VIDEO_TWEAK_DAYS дней после ролика, только для несыгранных матчей.
+ *     Табло на том же листе покажет, помогают ли они; выключить все поправки — меню «Мои поправки».
+ *  Прошлые прогнозы заморожены и не меняются. «Вернуть прежний стартовый рейтинг» выключает автоучёт. */
+function preseasonAutoApply_(ss) {
+  ss = ss || SpreadsheetApp.getActive();
+  var p = agentProps_(), teams = ss.getSheetByName(SHEET_TEAMS);
+  if (p.getProperty(VIDEO_AUTO_OFF_PROP) === 'да' || !teams) return { applied: 0 };
+  var start = preseasonStartRatings_(ss), bak = preseasonBackup_(), last = {};
+  try { last = JSON.parse(p.getProperty(PRESEASON_APPLIED_PROP) || '{}') || {}; } catch (e) { last = {}; }
+  if (bak) {
+    Object.keys(last).forEach(function (t) { if (start[t] && start[t].val !== Number(last[t])) bak[t] = start[t].val; });
+    p.setProperty(PRESEASON_BACKUP_PROP, JSON.stringify(bak));
+  }
+  preseasonBuild_(ss);
+  var sh = ss.getSheetByName(PRESEASON_SHEET);
+  if (!sh || sh.getLastRow() < 2) return { applied: 0 };
+  bak = bak || {};
+  var ch = [];
+  sh.getRange(2, 1, sh.getLastRow() - 1, PRE_PROP_COL).getValues().forEach(function (r) {
+    var t = String(r[0]).trim(), pv = r[PRE_PROP_COL - 1], v = Number(pv);
+    if (!t || pv === '' || !isFinite(v) || !start[t]) return;
+    v = Math.max(1, Math.min(100, Math.round(v)));
+    if (bak[t] === undefined) bak[t] = start[t].val;
+    last[t] = v;
+    if (v !== start[t].val) ch.push({ team: t, row: start[t].row, from: start[t].val, to: v });
+  });
+  if (!Object.keys(bak).length) return { applied: 0 };
+  p.setProperty(PRESEASON_BACKUP_PROP, JSON.stringify(bak));
+  p.setProperty(PRESEASON_APPLIED_PROP, JSON.stringify(last));
+  if (!ch.length) return { applied: 0 };
+  ch.forEach(function (c) { teams.getRange(c.row, 3).setValue(c.to); });
+  var eloErr = ''; try { computeAndWriteElo_(true); } catch (e2) { eloErr = e2.message; }
+  try { preseasonBuild_(ss); } catch (e3) {}
+  return { applied: ch.length, changes: ch, eloErr: eloErr };
+}
+
+/** Новости из свежих роликов → поправки на листе «Мои поправки». {set: ['Команда +5 (почему)', …]} */
+function videoTweaksSync_(ss) {
+  ss = ss || SpreadsheetApp.getActive();
+  if (agentProps_().getProperty(VIDEO_AUTO_OFF_PROP) === 'да') return { set: [] };
+  var raw = ss.getSheetByName(VIDEO_RAW_SHEET);
+  if (!raw || raw.getLastRow() < 2) return { set: [] };
+  var when = {}, L = videoList_(ss);
+  if (L.sh.getLastRow() > 1) {
+    var lv = L.sh.getRange(2, 1, L.sh.getLastRow() - 1, 9).getValues();
+    L.list.forEach(function (v) { var r = lv[v.row - 2] || []; when[v.url] = videoDate_(r[8]) || videoDate_(r[6]); });   // дата ролика, иначе — дата разбора
+  }
+  var now = new Date(), by = {};
+  raw.getRange(2, 1, raw.getLastRow() - 1, RAW_COLS).getValues().forEach(function (r) {
+    var t = String(r[3]).trim(), imp = r[19] === '' ? NaN : Number(r[19]), d = when[String(r[0]).trim()];
+    if (!t || !isFinite(imp) || !imp || !d || now - d > VIDEO_TWEAK_DAYS * 86400000) return;
+    var b = by[t] = by[t] || { sum: 0, n: 0, why: [], d: d };
+    b.sum += imp; b.n++;
+    if (r[20] && b.why.indexOf(String(r[20])) < 0) b.why.push(String(r[20]));
+    if (d > b.d) b.d = d;
+  });
+  var teams = Object.keys(by);
+  if (!teams.length) return { set: [] };
+  var sh = ensureTweaksSheet_(ss), n = Math.min(TWEAK_ROWS, Math.max(sh.getLastRow() - 1, 0));
+  var vals = n ? sh.getRange(2, 1, n, TWEAKS_HEADER.length).getValues() : [];
+  var today = new Date(now.getFullYear(), now.getMonth(), now.getDate()), set = [];
+  teams.forEach(function (t) {
+    var b = by[t], delta = Math.max(-VIDEO_TWEAK_MAX, Math.min(VIDEO_TWEAK_MAX, Math.round(b.sum / b.n)));
+    if (!delta) return;
+    var u = new Date(b.d.getTime() + VIDEO_TWEAK_DAYS * 86400000), until = new Date(u.getFullYear(), u.getMonth(), u.getDate());
+    if (until < today) return;
+    var row = -1, i;
+    // та же команда, та же причина и поправка ещё действует — обновляем её; иначе — новая строка (старые остаются для табло)
+    for (i = 0; i < vals.length && row < 0; i++) if (String(vals[i][0]).trim() === t && String(vals[i][3]).trim() === VIDEO_TWEAK_REASON && vals[i][2] instanceof Date && vals[i][2] >= today) row = i;
+    for (i = 0; i < vals.length && row < 0; i++) if (!String(vals[i][0]).trim() && String(vals[i][1]).trim() === '') row = i;
+    if (row < 0) { if (vals.length >= TWEAK_ROWS) return; vals.push(TWEAKS_HEADER.map(function () { return ''; })); row = vals.length - 1; }
+    var old = vals[row];
+    if (String(old[0]).trim() === t && Number(old[1]) === delta && old[2] instanceof Date && old[2].getTime() === until.getTime()) return;   // уже стоит такая же
+    vals[row] = [t, delta, until, VIDEO_TWEAK_REASON, mskNow_()].concat(old.slice(5));
+    set.push(t + ' ' + (delta > 0 ? '+' : '') + delta + (b.why.length ? ' (' + b.why[0].slice(0, 70) + ')' : ''));
+  });
+  if (set.length) { sh.getRange(2, 1, vals.length, TWEAKS_HEADER.length).setValues(vals); tweaksApply_(true); }
+  return { set: set };
+}
+
+/** Текст итога: что из видео попало в расчёты. verbose — отвечать и когда ничего не изменилось (кнопка). */
+function videoApply_(verbose) {
+  if (agentProps_().getProperty(VIDEO_AUTO_OFF_PROP) === 'да')
+    return verbose ? 'Автоучёт видео выключен (после «Вернуть прежний стартовый рейтинг»). Включить — кнопкой «Применить расклад к стартовому рейтингу».' : '';
+  var ss = SpreadsheetApp.getActive(), a = {}, tw = {}, lines = [];
+  try { a = preseasonAutoApply_(ss); } catch (e) { lines.push('Расклад экспертов: не получилось — ' + e.message); }
+  try { tw = videoTweaksSync_(ss); } catch (e2) { lines.push('Поправки из роликов: не получилось — ' + e2.message); }
+  if (a.applied) lines.push('Стартовый рейтинг по раскладу экспертов изменён у ' + a.applied + ' команд: ' +
+    a.changes.slice().sort(function (x, y) { return Math.abs(y.to - y.from) - Math.abs(x.to - x.from); }).slice(0, 6).map(function (c) { return c.team + ' ' + c.from + '→' + c.to; }).join(', ') +
+    (a.changes.length > 6 ? '…' : '') + '.' + (a.eloErr ? ' Elo не пересчитался: ' + a.eloErr : ' Elo пересчитан.'));
+  if (tw.set && tw.set.length) lines.push('Поправки из роликов на ' + VIDEO_TWEAK_DAYS + ' дней (лист «' + SHEET_TWEAKS + '»): ' + tw.set.slice(0, 8).join('; ') + (tw.set.length > 8 ? '…' : '') + '.');
+  if (!lines.length) return verbose ? '🎬 Видео → прогнозы: новых изменений нет — расклад уже учтён, а свежих новостей о силе команд в роликах нет.' : '';
+  return '🎬 ' + VIDEO_LEAGUE + ' · видео учтено в прогнозах\n' + lines.join('\n') +
+    '\nПрошлые прогнозы не меняются. Помогают ли поправки из роликов — табло на листе «' + SHEET_TWEAKS + '» (причина «' + VIDEO_TWEAK_REASON + '»).';
+}
+function videoScheduleApply_() {
+  try {
+    ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'videoApplyRun_') ScriptApp.deleteTrigger(t); });
+    ScriptApp.newTrigger('videoApplyRun_').timeBased().after(60 * 1000).create();
+  } catch (e) { /* нет прав на триггеры — кнопка «Учесть видео в прогнозах сейчас» */ }
+}
+function videoApplyRun_() {
+  try { ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'videoApplyRun_') ScriptApp.deleteTrigger(t); }); } catch (e) {}
+  var msg = '';
+  try { msg = videoApply_(false); } catch (e2) { msg = '🎬 Видео → прогнозы: ошибка — ' + e2.message; }
+  var to = agentProps_().getProperty('TG_ADMIN_ID');
+  if (msg && to) try { tg_('sendMessage', { chat_id: to, text: msg }); } catch (e3) {}
+}
+function videoApplyNow_() { uiAlert_(videoApply_(true)); }
 
 /** Для агента: что эксперты говорили о командах (VIDEO_CONTEXT_DAYS дней после разбора). */
 var PRESEASON_CTX_ = null;
@@ -10962,6 +11363,27 @@ function expertPicksFor_(ss, m) {
   return out.slice(0, 3);
 }
 
+/** Кнопка «🎬 Вставить видео»: спросить ссылку, вписать её в список и сразу отдать ролик Gemini на разбор. */
+function videoInsert_() {
+  var ui = SpreadsheetApp.getUi();
+  var r = ui.prompt('🎬 Вставить видео · ' + VIDEO_LEAGUE, 'Ссылка на открытый ролик YouTube (youtube.com/watch?v=… или youtu.be/…).\n' +
+    'После «ОК» ролик сразу уйдёт в Gemini: команды, травмы, составы, форма и прогнозы эксперта попадут в досье команд и агенту к матчам.', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  var text = String(r.getResponseText() || '').trim(), id = videoIdOf_(text);
+  if (!id) { ui.alert('Не похоже на ссылку на ролик YouTube: «' + text.slice(0, 120) + '».\nНужна ссылка вида youtube.com/watch?v=… или youtu.be/…'); return; }
+  var ss = SpreadsheetApp.getActive(), L = videoList_(ss);
+  var same = L.list.filter(function (v) { return v.id === id; })[0];
+  if (same && /^готово/.test(same.status)) {
+    if (ui.alert('Этот ролик уже разобран (строка ' + same.row + ': «' + same.status.slice(0, 120) + '»). Разобрать заново?', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+    L.sh.getRange(same.row, 3, 1, 5).setValues([['', '', same.len || '', '', '']]);
+    videoRunState_(id, null);
+  } else if (!same) {
+    L.sh.getRange(Math.max(2, L.sh.getLastRow() + 1), 1).setValue(videoCanon_(id));
+  }
+  try { ss.toast('Ролик отправлен в Gemini. Итог появится здесь через 1–4 минуты; длинный ролик разберётся частями сам.', '🎬 Видео', 15); } catch (e) {}
+  videoAnalyzeAll_(false);
+}
+
 /** Кнопка «Добавить ролик»: открыть список ссылок на первой свободной строке. */
 function videoOpenList_() {
   var ss = SpreadsheetApp.getActive(), L = videoList_(ss);
@@ -10991,6 +11413,11 @@ var TG_GROUP_KHL_ = [
   ['3 · Счёт после матчей в пост «Матчи дня» → группа', 'liveUpdateNow_', 'liveUpdateAuto_'],
   ['4 · Игра: подвести итоги (личные итоги игрокам)', 'gameSettleNow_', '-'],
   ['5 · «Сила команд» → группа (пн)', 'powerPostNow_', '-'],
+  null,
+  ['🖼 Тест «Итоги дня» с картинкой → мне в личку', 'testItogiToMe', '-'],
+  ['🖼 Тест «Итоги дня» с картинкой → группа', 'testItogiToChannel', '-'],
+  ['🖼 Постер «Итоги дня» → мне (последний игровой день)', 'itogiPosterNow_', '-'],
+  ['🔑 Подключить GitHub для постеров', 'itogiSetToken_', '-'],
   null,
   ['Игра: подключить бота и канал (настройка)', 'gameConnect_'],
   ['Игра: проверить связь с ботом', 'gameDiagnose_'],
@@ -12368,4 +12795,135 @@ function powerPreviewNow_() { try { powerPost_('admin'); uiAlert_('Пробны�
 function powerPostNow_() {
   if (dailyAlready_('power', '«Сила команд»')) return;
   try { powerPost_('channel'); uiAlert_('«Сила команд» опубликована в канале.'); } catch (e) { uiAlert_('Не получилось: ' + e.message); }
+}
+
+/* ------------------------- тест: «Итоги дня» с картинкой -------------------------
+ * Картинки нарисованы набором JARVIS (render/, results_ice2 variant 7) и лежат на Диске.
+ * testItogiToMe — сначала себе в личку, testItogiToChannel — в канал. Запуск из редактора скрипта. */
+var TEST_ITOGI_ = [
+  { file: '1U-73M76KwADIFCDhQRrQczKhWa1Y2OGm',
+    caption: '🏒 <b>КХЛ · итоги дня</b> · вторник, 29 сентября\n\nАмур — Нефтехимик <b>1:0</b>\nЦСКА — СКА <b>6:5</b>' },
+  { file: '1XY_11DKOOOthT-wk5WK-KkUz6rSnXVfu',
+    caption: '🇺🇸 <b>НХЛ · итоги ночи</b> · среда, 30 сентября\n\nКаролина — Флорида <b>0:1</b> ОТ/Б\nТоронто — Монреаль <b>2:3</b>\n' +
+      'Бостон — Рейнджерс <b>3:0</b>\nЭдмонтон — Ванкувер <b>5:6</b> ОТ/Б\nВегас — Чикаго <b>5:2</b>' }
+];
+function testItogiSend_(chat) {
+  if (!chat) throw new Error('не указан чат');
+  TEST_ITOGI_.forEach(function (t) { tgSendPhotos_(chat, [DriveApp.getFileById(t.file).getBlob()], t.caption); });
+  return TEST_ITOGI_.length;
+}
+function testItogiToMe() {
+  var n = testItogiSend_(PropertiesService.getScriptProperties().getProperty('TG_ADMIN_ID'));
+  uiAlert_('Отправлено вам в личку: ' + n + ' поста с картинками.');
+}
+function testItogiToChannel() {
+  var ui = SpreadsheetApp.getUi();
+  if (ui.alert('Опубликовать тестовые «Итоги дня» (КХЛ 29.09 и НХЛ 30.09) в канал?', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var n = testItogiSend_(bannerChannel_());
+  uiAlert_('Опубликовано в канал: ' + n + ' поста с картинками.');
+}
+
+/* ==========================================================================
+ * 🖼 ПОСТЕР «ИТОГИ ДНЯ» → ВАМ В TELEGRAM
+ *  Картинку рисует GitHub Actions (render/itogi_job.py, формат «Ячейки»: логотипы во всю ячейку, проигравший — серым),
+ *  таблица только передаёт счёт: событие repository_dispatch «itogi» в репозиторий ITOGI_REPO.
+ *  Нужно один раз: свойство GITHUB_TOKEN (меню → «🔑 Подключить GitHub для постеров») и секрет TG_BOT_TOKEN
+ *  в настройках репозитория. Без токена ничего не отправляется и ничего не ломается.
+ *  КХЛ — сразу после последнего матча дня (LIVE видит финальный счёт у всех); НХЛ — в 10:00 МСК, когда ночь доиграна.
+ *  Постер приходит только вам (TG_ADMIN_ID); в канал — сами, когда посмотрите.
+ * ==========================================================================*/
+var ITOGI_REPO = 'sevasonyshahmatov-collab/-kaper-jarvis-bot';
+var ITOGI_LEAGUE = 'KHL';
+var ITOGI_PROP = 'ITOGI_POSTER_';            // + день (yyyy-MM-dd): постер за этот день уже заказан
+
+function itogiGithub_(method, path, body) {
+  var tok = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
+  if (!tok) return null;
+  var o = { method: method, muteHttpExceptions: true, contentType: 'application/json',
+    headers: { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' } };
+  if (body) o.payload = JSON.stringify(body);
+  return UrlFetchApp.fetch('https://api.github.com' + path, o);
+}
+
+/** Заказать постер: {sent} или {skipped: причина}. items: [{home, away, sh, sa, mark}] */
+function itogiDispatch_(league, dayKey, items) {
+  var p = PropertiesService.getScriptProperties(), chat = p.getProperty('TG_ADMIN_ID');
+  if (!p.getProperty('GITHUB_TOKEN')) return { skipped: 'GitHub не подключён' };
+  if (!chat) return { skipped: 'не указан ваш Telegram ID (TG_ADMIN_ID)' };
+  if (!items || !items.length) return { skipped: 'нет сыгранных матчей' };
+  var r = itogiGithub_('post', '/repos/' + ITOGI_REPO + '/dispatches', { event_type: 'itogi', client_payload: {
+    league: league, day: dayKey, date_title: ruDayTitle_(dayKey).toLowerCase(), chat: String(chat), items: items } });
+  if (r.getResponseCode() !== 204) throw new Error('GitHub ответил ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 200));
+  p.setProperty(ITOGI_PROP + dayKey, mskNow_());
+  var old = addDaysKey_(dayKey, -10);
+  p.getKeys().forEach(function (k) { if (k.indexOf(ITOGI_PROP) === 0 && k.slice(ITOGI_PROP.length) < old) p.deleteProperty(k); });
+  return { sent: items.length };
+}
+
+/** Сыгранные матчи дня с листа результатов: [{home, away, sh, sa, mark}] */
+function itogiItemsFromResults_(ss, dayKey) {
+  var sh = ss.getSheetByName(SHEET_RESULTS), out = [];
+  if (!sh || sh.getLastRow() < 2) return out;
+  sh.getRange(2, 1, sh.getLastRow() - 1, 7).getValues().forEach(function (r) {
+    if (!(r[0] instanceof Date) || sheetDayKey_(r[0]) !== dayKey || String(r[1]).trim() !== 'Сыгран') return;
+    if (r[4] === '' || r[5] === '' || !isFinite(Number(r[4])) || !isFinite(Number(r[5]))) return;
+    var ot = r[6] === true || /^(да|true|от|б)/i.test(String(r[6]).trim());
+    out.push({ home: String(r[2]).trim(), away: String(r[3]).trim(), sh: Number(r[4]), sa: Number(r[5]), mark: ot ? 'ОТ/Б' : '' });
+  });
+  return out;
+}
+
+/** Последний день (не позже сегодняшнего по МСК), где есть сыгранные матчи. */
+function itogiLastDay_(ss) {
+  var sh = ss.getSheetByName(SHEET_RESULTS), today = mskNow_('yyyy-MM-dd'), best = '';
+  if (!sh || sh.getLastRow() < 2) return '';
+  sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues().forEach(function (r) {
+    if (!(r[0] instanceof Date) || String(r[1]).trim() !== 'Сыгран') return;
+    var k = sheetDayKey_(r[0]); if (k <= today && k > best) best = k;
+  });
+  return best;
+}
+
+/** Кнопка: постер за последний игровой день — вам в Telegram (через 1–2 минуты). */
+function itogiPosterNow_() {
+  var ss = SpreadsheetApp.getActive(), day = itogiLastDay_(ss);
+  if (!day) { uiAlert_('На листе «' + SHEET_RESULTS + '» нет сыгранных матчей.'); return; }
+  var items = itogiItemsFromResults_(ss, day);
+  try {
+    var r = itogiDispatch_(ITOGI_LEAGUE, day, items);
+    if (r.skipped) { uiAlert_('Постер не заказан: ' + r.skipped + '.' + (/GitHub/.test(r.skipped) ? ' Подключите: «🔑 Подключить GitHub для постеров».' : '')); return; }
+    uiAlert_('Постер «Итоги дня» за ' + day.split('-').reverse().join('.') + ' (матчей: ' + r.sent + ') рисуется — придёт вам в Telegram через 1–2 минуты.');
+  } catch (e) { uiAlert_('Не получилось: ' + e.message); }
+}
+
+/** Кнопка: сохранить токен GitHub и проверить доступ к репозиторию. */
+function itogiSetToken_() {
+  var ui = SpreadsheetApp.getUi();
+  var r = ui.prompt('🔑 GitHub для постеров', 'Токен GitHub (fine-grained, только репозиторий ' + ITOGI_REPO + ', права Contents: Read and write).\n' +
+    'Он нужен, чтобы таблица могла попросить GitHub нарисовать постер. Пусто — отключить.', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  var p = PropertiesService.getScriptProperties(), tok = String(r.getResponseText() || '').trim();
+  if (!tok) { p.deleteProperty('GITHUB_TOKEN'); uiAlert_('GitHub отключён: постеры «Итоги дня» не заказываются.'); return; }
+  p.setProperty('GITHUB_TOKEN', tok);
+  var t = itogiGithub_('get', '/repos/' + ITOGI_REPO);
+  var ok = t && t.getResponseCode() === 200, push = false;
+  try { push = ok && JSON.parse(t.getContentText()).permissions.push === true; } catch (e) { push = false; }
+  if (!ok) { p.deleteProperty('GITHUB_TOKEN'); uiAlert_('Токен не подошёл: GitHub ответил ' + (t ? t.getResponseCode() : '—') + '. Проверьте, что выбран репозиторий ' + ITOGI_REPO + '.'); return; }
+  uiAlert_('GitHub подключён' + (push ? '.' : ', но у токена нет права записи (Contents: Read and write) — без него GitHub не примет заказ постера.') +
+    '\nПроверьте: «🖼 Постер «Итоги дня» → мне» — картинка придёт через 1–2 минуты.');
+}
+
+/** КХЛ: у всех матчей дня финальный счёт — заказать постер (один раз за день). */
+function itogiAutoKhl_(lv) {
+  var p = PropertiesService.getScriptProperties();
+  lv.doneDays.forEach(function (day) {
+    if (p.getProperty(ITOGI_PROP + day)) return;
+    try {
+      var r = itogiDispatch_('KHL', day, (lv.doneItems || {})[day]);
+      if (r.sent) autoMark_('liveUpdateAuto_', true, 'постер «Итоги дня» за ' + day + ' заказан (матчей ' + r.sent + ')');
+    } catch (e) {
+      p.setProperty(ITOGI_PROP + day, 'ошибка');                    // не стучимся каждые 5 минут
+      autoNotifyAdmin_('⚠ КХЛ: постер «Итоги дня» не заказан: ' + e.message + '. Можно вручную: меню «📣 КХЛ · ТГ группа» → «🖼 Постер «Итоги дня» → мне».');
+    }
+  });
 }

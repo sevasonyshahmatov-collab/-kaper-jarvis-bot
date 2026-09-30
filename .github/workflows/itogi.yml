@@ -1,0 +1,37 @@
+# Постер «Итоги дня» (КХЛ / НХЛ): таблица шлёт счёт событием repository_dispatch «itogi»,
+# здесь картинка рисуется набором render/ и уходит в Telegram (render/itogi_job.py).
+# Нужен секрет репозитория TG_BOT_TOKEN — токен того же бота, что и у таблиц.
+name: Итоги дня — постер
+
+on:
+  repository_dispatch:
+    types: [itogi]
+  workflow_dispatch:
+    inputs:
+      payload:
+        description: 'JSON: {"league":"KHL","date_title":"среда, 30 сентября","chat":"<id>","items":[{"home":"…","away":"…","sh":1,"sa":0,"mark":""}]}'
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: itogi-${{ github.event.client_payload.league || 'manual' }}-${{ github.event.client_payload.day || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  poster:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install "pillow>=11" numpy requests
+      - name: Нарисовать и отправить
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          PAYLOAD: ${{ toJSON(github.event.client_payload) }}
+          INPUT_PAYLOAD: ${{ github.event.inputs.payload }}
+        run: python render/itogi_job.py
