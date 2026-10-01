@@ -12,7 +12,7 @@
 Не влезает в лимит подписи Telegram (1024 знака) — уходит отдельным сообщением сразу после фото.
 «Итоги игрового дня» КХЛ + НХЛ одним постом — "kind": "itogi2" (событие «itogi2»):
     {"leagues": [{"league": "KHL", "date_title": "…", "items": [...]}, {"league": "NHL", ...}], "date_title": "…", "chats": [...]}
-Два баннера «Ячейки» альбомом, в подписи — счёт всех матчей по лигам.
+Два баннера «Ячейки» альбомом, в подписи — счёт всех матчей по лигам; "after_text" (HTML) — пост «Игроки дня» сразу следом.
 "chats" — куда отправить (канал и группа у автоматики, ваш чат у кнопок); нет — "chat".
 Картинка не нарисовалась — в те же чаты уходит подпись текстом (итоги не пропадут), задание помечается ошибкой.
 Без TG_BOT_TOKEN — только сохраняем картинку (для проверки: python render/itogi_job.py payload.json).
@@ -162,7 +162,9 @@ def main_both(payload):
     if len(text) > CAPTION_MAX:                  # большой день: альбом без подписи, счёт — следом сообщением
         text, after = '', text
     chats = [str(c).strip() for c in (payload.get('chats') or [payload.get('chat')]) if str(c or '').strip()]
-    print('подпись:\n' + (text or after))
+    # «Игроки дня» — отдельным сообщением сразу следом за итогами (порядок в канале гарантирован)
+    players = no_emoji(str(payload.get('after_text') or '').strip())[:4000]
+    print('подпись:\n' + (text or after) + ('\n--- следом:\n' + players if players else ''))
     paths, drawn = [], True
     try:
         import results_ice2 as ri
@@ -195,6 +197,8 @@ def main_both(payload):
                     send_message(token, c, after)
             else:
                 send_message(token, c, text or after)
+            if players:
+                send_message(token, c, players)
             print('отправлено в', c)
         except SystemExit as e:
             errors.append('%s: %s' % (c, e))
