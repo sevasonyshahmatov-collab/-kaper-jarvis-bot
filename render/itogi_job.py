@@ -86,20 +86,24 @@ def clean_matchi(payload):
     return league, items, str(payload.get('date_title') or '').strip(), str(payload.get('chat') or '').strip()
 
 
-MATCHI_PER_POSTER = 5        # больше — делим на постеры поровну (9 → 5+4, 7 → 4+3, 6 → 3+3, 12 → 6+6)
-MATCHI_MAX_PER_POSTER = 6    # больше 6 на постер не кладём — тогда постеров три и больше (13 → 5+4+4)
+MATCHI_PER_POSTER = 5        # больше — делим на постеры
+MATCHI_FIRST_MAX = 6         # на первом постере (с заголовком «МАТЧИ ДНЯ» и датой) — не больше 6
+MATCHI_CONT_MAX = 7          # на продолжении заголовка нет — помещается на матч больше
 
 
 def split_matchi(items):
-    """Матчи дня по постерам: до 5 — один; больше — поровну на 2 (или больше, если на постер выходит больше 6), первые — крупнее."""
+    """Матчи дня по постерам. До 5 — один. Больше — поровну на два, первый крупнее (9 → 5+4, 7 → 4+3, 12 → 6+6);
+    первый — не больше 6, продолжение (без заголовка) — не больше 7 (13 → 6+7). Не влезает в два — три и больше (14 → 6+4+4)."""
     n = len(items)
     if n <= MATCHI_PER_POSTER:
         return [items]
-    g = max(2, -(-n // MATCHI_MAX_PER_POSTER))
-    out, i = [], 0
+    first = min(MATCHI_FIRST_MAX, -(-n // 2))
+    rest = items[first:]
+    g = max(1, -(-len(rest) // MATCHI_CONT_MAX))
+    out, i = [items[:first]], 0
     for k in range(g):
-        size = n // g + (1 if k < n % g else 0)
-        out.append(items[i:i + size])
+        size = len(rest) // g + (1 if k < len(rest) % g else 0)
+        out.append(rest[i:i + size])
         i += size
     return out
 
@@ -257,7 +261,7 @@ def main():
     text, after = no_emoji(text), no_emoji(after)
     print('подпись:\n' + text + ('\n--- отдельным сообщением:\n' + after if after else ''))
 
-    # «Матчи дня»: больше 5 матчей — несколько постеров поровну (одним постом-альбомом); итоги — всегда один баннер
+    # «Матчи дня»: больше 5 матчей — несколько постеров одним постом-альбомом (продолжение — без заголовка); итоги — всегда один баннер
     groups = split_matchi(items) if kind == 'matchi' else [items]
     outs = [os.path.join(os.getcwd(), '%s_%s%s.jpg' % (kind, league.lower(), '_%d' % (k + 1) if len(groups) > 1 else ''))
             for k in range(len(groups))]
@@ -270,7 +274,7 @@ def main():
         for grp, path in zip(groups, outs):
             if kind == 'matchi':
                 import preview_ice as pv
-                pv.render(grp, path, style='columns', league=league, date_title=date_title or None)
+                pv.render(grp, path, style='columns', league=league, date_title=date_title or None, cont=path != outs[0])
             else:
                 import results_ice2 as ri
                 ri.render(grp, path, variant=10, league=league, date_title=date_title or None)
