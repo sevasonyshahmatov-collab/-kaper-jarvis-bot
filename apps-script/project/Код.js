@@ -7436,6 +7436,7 @@ function liveUpdateAuto_() {
     try { lw = lineupWatch_(new Date()); } catch (e) { console.log('lineups: ' + e.message); autoMark_('liveUpdateAuto_', false, 'заявки: ' + e.message); }
     if (lv && lv.doneDays && lv.doneDays.length && PIPELINE_GAME) { try { gameEarlySettle_(lv.doneDays); } catch (e) { console.log('game early: ' + e.message); } }
     if (lv && lv.doneDays && lv.doneDays.length) itogiAutoKhl_(lv);
+    try { if (Number(mskNow_('HH')) >= MATCHI_HOUR_MSK) matchiAuto_(bannersDay_()); } catch (e) { console.log('матчи дня: ' + e.message); }   // «Матчи дня» КХЛ — с 09:00 МСК
     if ((lv && (lv.posted || lv.edited)) || (lw && lw.checked)) autoMark_('liveUpdateAuto_', true, (lv && lv.matches ? 'LIVE: матчей ' + lv.matches + '. ' : '') + (lw && lw.checked ? 'заявки: проверено ' + lw.checked + ', отправлено ' + lw.sent : ''));
     // раз в сутки: доставить недостающие запуски (после вставки нового кода нажимать ничего не нужно)
     var pp = PropertiesService.getScriptProperties(), today = mskNow_('yyyy-MM-dd');
@@ -10361,7 +10362,6 @@ function bannersSend_(target, dayKey, limit) {
 var BANNER_DAYS_AHEAD = 2;        // карточки готовим на сегодня и ещё на столько дней вперёд
 function bannersAuto_() {
   autoStart_('bannersAuto_');
-  matchiAuto_(bannersDay_());
   var sent = 0, err = '';
   for (var i = 0; i <= BANNER_DAYS_AHEAD; i++) {
     var day = addDaysKey_(bannersDay_(), i);
@@ -13044,11 +13044,13 @@ function khlStatsText_(ss, day) {
 /* ==========================================================================
  * 🖼 ПОСТЕР «МАТЧИ ДНЯ» → ВАМ В TELEGRAM
  *  Так же, как «Итоги дня»: рисует GitHub Actions (формат «Колонки»), таблица передаёт матчи, время и линию П1/Х/П2.
- *  Публикуется в канал вместе с карточками матчей (bannersAuto_): КХЛ — в 05:00 МСК в день матчей, НХЛ — в 17:00 МСК перед ночью.
+ *  Публикуется в канал: КХЛ — в 09:00 МСК в день матчей, НХЛ — в 18:00 МСК перед ночью (проверка — в частых запусках:
+ *  LIVE у КХЛ каждые 5 минут, разведчик у НХЛ каждые 15; один раз за день).
  *  Подпись — готовая для канала: «02:30 | Филадельфия — Питтсбург» по строке на матч и «Время московское.».
  *  Без эмодзи: анимированные (премиум) смайлики бот в канал поставить не может, а обычные решили не ставить.
  * ==========================================================================*/
-var MATCHI_PROP = 'MATCHI_POSTER_';          // + день: постер «Матчи дня» за этот день уже заказан
+var MATCHI_PROP = 'MATCHI_POSTER_';
+var MATCHI_HOUR_MSK = 9;                    // с этого часа по МСК публикуем «Матчи дня»          // + день: постер «Матчи дня» за этот день уже заказан
 /** Матчи дня для постера: [{home, away, time, odds: [П1, Х, П2] | null}] — по времени начала. */
 function matchiItems_(ss, day) {
   return bannerData_(ss, day).map(function (b) { return { home: b.home, away: b.away, time: String(b.time || '').slice(0, 5), odds: b.odds || null }; });
@@ -13072,6 +13074,7 @@ function matchiAuto_(day) {
   try {
     var r = matchiDispatch_(SpreadsheetApp.getActive(), day, 'channel');
     if (r.sent) autoMark_('bannersAuto_', true, 'постер «Матчи дня» за ' + day + ' → канал (матчей ' + r.sent + ')');
+    else if (r.skipped) p.setProperty(MATCHI_PROP + day, 'пропущен: ' + r.skipped);
   } catch (e) {
     p.setProperty(MATCHI_PROP + day, 'ошибка');
     autoNotifyAdmin_('⚠ ' + VIDEO_LEAGUE + ': постер «Матчи дня» не заказан: ' + e.message + '. Можно вручную: меню «📣 … · ТГ группа» → «🖼 Постер «Матчи дня» → мне».');
