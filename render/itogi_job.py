@@ -86,6 +86,24 @@ def clean_matchi(payload):
     return league, items, str(payload.get('date_title') or '').strip(), str(payload.get('chat') or '').strip()
 
 
+MATCHI_PER_POSTER = 5        # больше — делим на постеры поровну (9 → 5+4, 7 → 4+3, 6 → 3+3, 12 → 6+6)
+MATCHI_MAX_PER_POSTER = 6    # больше 6 на постер не кладём — тогда постеров три и больше (13 → 5+4+4)
+
+
+def split_matchi(items):
+    """Матчи дня по постерам: до 5 — один; больше — поровну на 2 (или больше, если на постер выходит больше 6), первые — крупнее."""
+    n = len(items)
+    if n <= MATCHI_PER_POSTER:
+        return [items]
+    g = max(2, -(-n // MATCHI_MAX_PER_POSTER))
+    out, i = [], 0
+    for k in range(g):
+        size = n // g + (1 if k < n % g else 0)
+        out.append(items[i:i + size])
+        i += size
+    return out
+
+
 def caption_matchi(league, items, date_title):
     """«02:30 | Филадельфия — Питтсбург» по строке на матч и «Время московское.» (как в канале)."""
     lines = ['%s%s — %s' % (html.escape(i['time']) + ' | ' if i['time'] else '', html.escape(i['home']), html.escape(i['away']))
@@ -239,19 +257,24 @@ def main():
     text, after = no_emoji(text), no_emoji(after)
     print('подпись:\n' + text + ('\n--- отдельным сообщением:\n' + after if after else ''))
 
-    out = os.path.join(os.getcwd(), '%s_%s.jpg' % (kind, league.lower()))
+    # «Матчи дня»: больше 5 матчей — несколько постеров поровну (одним постом-альбомом); итоги — всегда один баннер
+    groups = split_matchi(items) if kind == 'matchi' else [items]
+    outs = [os.path.join(os.getcwd(), '%s_%s%s.jpg' % (kind, league.lower(), '_%d' % (k + 1) if len(groups) > 1 else ''))
+            for k in range(len(groups))]
+    out = outs[0]
     drawn = True
     try:
         if league == 'NHL':
             import nhl
             nhl.register()
-        if kind == 'matchi':
-            import preview_ice as pv
-            pv.render(items, out, style='columns', league=league, date_title=date_title or None)
-        else:
-            import results_ice2 as ri
-            ri.render(items, out, variant=10, league=league, date_title=date_title or None)
-        print('нарисовано:', out, '— матчей', len(items))
+        for grp, path in zip(groups, outs):
+            if kind == 'matchi':
+                import preview_ice as pv
+                pv.render(grp, path, style='columns', league=league, date_title=date_title or None)
+            else:
+                import results_ice2 as ri
+                ri.render(grp, path, variant=10, league=league, date_title=date_title or None)
+        print('нарисовано:', ', '.join(outs), '— матчей', '+'.join(str(len(g)) for g in groups))
     except Exception as e:                      # noqa: BLE001 — любая ошибка рисования: публикуем текст
         drawn = False
         print('картинка не нарисовалась:', repr(e))
@@ -266,7 +289,10 @@ def main():
     for c in chats:
         try:
             if drawn:
-                send_photo(token, c, out, text)
+                if len(outs) > 1:
+                    send_album(token, c, outs, text)
+                else:
+                    send_photo(token, c, out, text)
                 if after:
                     send_message(token, c, after)
             else:
