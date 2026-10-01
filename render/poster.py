@@ -977,6 +977,8 @@ def render_cards(home, away, info, path, W=1280, H=640, grain=1.0, seed=None):
         while ft.getlength(name) > 440 * S and size > 34 * S:
             size -= 2 * S; ft = _f7('team', size)
         d.text((cx, (y1 + 214) * S), name, font=ft, fill=(255, 255, 255, 255), anchor='mm')
+        if not t:  # без статистики — только эмблема и название
+            continue
         d.text((cx, (y1 + 260) * S), t['line'].upper(), font=_f7('info', 17 * S), fill=(214, 220, 230, 255), anchor='mm')
         # разделитель + форма
         d.line((cx - 150 * S, (y1 + 284) * S, cx + 150 * S, (y1 + 284) * S), fill=(255, 255, 255, 36), width=S)
@@ -989,20 +991,20 @@ def render_cards(home, away, info, path, W=1280, H=640, grain=1.0, seed=None):
     ft = _f7('time', 24 * S); tw = ft.getlength(info['when'])
     L, ld = _layer_draw(ov)
     ld.rounded_rectangle((WW / 2 - tw / 2 - 30 * S, 490 * S, WW / 2 + tw / 2 + 30 * S, 542 * S), radius=26 * S, fill=(8, 12, 20, 210), outline=ACC + (220,), width=2 * S)
-    odds = info['odds']; labels = ['П1', 'Х', 'П2']
-    best = min(range(3), key=lambda i: odds[i])
+    odds = info.get('odds'); labels = ['П1', 'Х', 'П2']
+    best = min(range(3), key=lambda i: odds[i]) if odds else 0
     cw = 132 * S; gapc = 16 * S; xo = WW / 2 - (3 * cw + 2 * gapc) / 2
-    for i in range(3):
+    for i in range(3 if odds else 0):
         bx = (xo + i * (cw + gapc), 558 * S, xo + i * (cw + gapc) + cw, 602 * S)
         ld.rounded_rectangle(bx, radius=22 * S, fill=(8, 12, 20, 180), outline=(ACC + (230,)) if i == best else (255, 255, 255, 70), width=2 * S)
     ov.alpha_composite(L); d = ImageDraw.Draw(ov)
     d.text((WW / 2, 516 * S), info['when'], font=ft, fill=(255, 255, 255, 255), anchor='mm')
     fl = _f7('info', 16 * S); fn = _f7('num', 22 * S)
-    for i in range(3):
+    for i in range(3 if odds else 0):
         cx0 = xo + i * (cw + gapc)
         d.text((cx0 + 26 * S, 580 * S), labels[i], font=_f7('info', 14 * S), fill=(170, 178, 192, 255), anchor='lm')
         d.text((cx0 + cw - 22 * S, 580 * S), '%.2f' % odds[i], font=fn, fill=(ACC + (255,)) if i == best else (255, 255, 255, 255), anchor='rm')
-    d.text((WW / 2, 622 * S), 'КОЭФФИЦИЕНТЫ В ОСНОВНОЕ ВРЕМЯ ПО ДАННЫМ АНАЛИТИЧЕСКОЙ ТАБЛИЦЫ', font=_f7('info', 11 * S), fill=(196, 202, 214, 255), anchor='mm')
+    if odds: d.text((WW / 2, 622 * S), 'КОЭФФИЦИЕНТЫ В ОСНОВНОЕ ВРЕМЯ ПО ДАННЫМ АНАЛИТИЧЕСКОЙ ТАБЛИЦЫ', font=_f7('info', 11 * S), fill=(196, 202, 214, 255), anchor='mm')
     ov = ov.resize((W, H), Image.LANCZOS)
     Image.alpha_composite(bg, ov).convert('RGB').save(path, optimize=True)
     return path
