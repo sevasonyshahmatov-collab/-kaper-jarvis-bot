@@ -10924,6 +10924,7 @@ function scoutAuto_() {
 
 /** Каждые 15 минут: у кого матч через ~1,5 часа — свежий сбор и итог вам (матчи одного времени — одним сообщением). */
 function scoutReportAuto_() {
+  try { nhlNightDoneAuto_(); } catch (e0) { console.log('итоги дня: ' + e0.message); }
   var ss = SpreadsheetApp.getActive(), p = agentProps_(), now = Date.now(), to = p.getProperty('TG_ADMIN_ID');
   if (!to) return;
   var sent = {}; try { sent = JSON.parse(p.getProperty('SCOUT_SENT') || '{}'); } catch (e) { sent = {}; }
@@ -13083,7 +13084,9 @@ function nhlGoaliesAuto_() {
 function nhlMorningAuto_() {
   if (nhlNotReady_(true)) return;
   var p = PropertiesService.getScriptProperties(), day = Utilities.formatDate(new Date(), 'Europe/Moscow', 'yyyy-MM-dd');
+  try { nhlNightDoneAuto_(true); } catch (e0) { console.log('итоги дня: ' + e0.message); }   // общий пост не вышел ночью — последняя попытка
   itogiAutoNhl_(day);
+  try { playersDayAuto_(day); } catch (e1) { autoNotifyAdmin_('⚠ Пост «Игроки дня» не ушёл: ' + e1.message); }
   if (!nhlChannelId_() || p.getProperty('NHL_MORNING_' + day)) return;
   try { var r = nhlMorningPost_('channel', day); if (r.sent) p.setProperty('NHL_MORNING_' + day, '1'); autoMark_('nhlMorningAuto_', true, r.matches ? 'итоги: матчей ' + r.matches : 'сыгранных матчей нет'); }
   catch (e) { autoMark_('nhlMorningAuto_', false, e.message); autoNotifyAdmin_('⚠ НХЛ: пост «итоги ночи» не ушёл: ' + e.message); }
@@ -13241,6 +13244,8 @@ var TG_GROUP_NHL_ = [
   ['4 · «Сила команд» → группа (пн)', 'powerPostNow_', '-'],
   null,
   ['🖼 Постер «Матчи дня» → мне (ближайший игровой день)', 'matchiPosterNow_', '-'],
+  ['🖼 Общий пост «Итоги игрового дня» КХЛ + НХЛ → мне', 'itogiBothNow_', '-'],
+  ['📊 Пост «Игроки дня» → мне', 'playersDayNow_', '-'],
   ['🖼 Постер «Итоги дня» → мне (последний игровой день)', 'itogiPosterNow_', '-'],
   ['🔑 Подключить GitHub для постеров', 'itogiSetToken_', '-'],
   ['🖼 Готовый постер → мне в личку', 'posterToMe_', '-'],
@@ -13689,7 +13694,8 @@ function nhlOursText_(ss, dayKey, matches) {
  *  таблица только передаёт счёт: событие repository_dispatch «itogi» в репозиторий ITOGI_REPO.
  *  Нужно один раз: свойство GITHUB_TOKEN (меню → «🔑 Подключить GitHub для постеров») и секрет TG_BOT_TOKEN
  *  в настройках репозитория. Без токена ничего не отправляется и ничего не ломается.
- *  КХЛ — сразу после последнего матча дня (LIVE видит финальный счёт у всех); НХЛ — в 10:00 МСК, когда ночь доиграна.
+ *  Обычно — ОБЩИЙ пост КХЛ + НХЛ, как только доиграна ночь (см. «ОБЩИЙ ПОСТ КХЛ + НХЛ»); отдельный постер НХЛ в 10:00 МСК —
+ *  только если общий не вышел.
  *  Автоматика публикует постер сразу в канал (КХЛ — ещё и в привязанную группу); кнопки «→ мне» — только вам, для проверки.
  *  Не нарисовался — GitHub публикует в канал подпись текстом, чтобы итоги не пропали.
  * ==========================================================================*/
@@ -13848,8 +13854,8 @@ function matchiPosterNow_() {
   } catch (e) { uiAlert_('Не получилось: ' + e.message); }
 }
 
-/** К подписи постера «Итоги ночи»: результативность россиян («Наши»), как в посте «итоги ночи», но без эмодзи. */
-function itogiExtra_(ss, dayKey, items) { return itogiNoEmoji_(nhlOursText_(ss, dayKey, items)); }
+/** К подписи постера «Итоги ночи» ничего не добавляем: «Наши» выходят отдельным постом «Игроки дня» в 10:00 МСК. */
+function itogiExtra_(ss, dayKey, items) { return ''; }
 
 /** Убрать эмодзи из подписи к постеру (флаги, 🧤 и т.п.): анимированные бот в канал не ставит, а обычные не нужны. */
 function itogiNoEmoji_(t) {
@@ -13957,3 +13963,128 @@ function tweaksAcceptNow_() {
 }
 
 function tweaksOpen_() { var ss = SpreadsheetApp.getActive(); tweaksRankingRender_(ss); sheetOpen_(SHEET_TWEAKS); }
+
+/* ==========================================================================
+ * 🤝 ОБЩИЙ ПОСТ КХЛ + НХЛ: таблицы передают друг другу данные через файл на Google Диске (SHARED_FILE)
+ *  КХЛ в 00:00 МСК кладёт туда счёт игрового дня (если ночью есть НХЛ), после утреннего обновления — «лучших игроков дня».
+ *  НХЛ, как только доиграна ночь, публикует ОДИН пост: два баннера (КХЛ + НХЛ) и счёт всех матчей в подписи;
+ *  в 10:00 МСК — пост «Игроки дня»: лучшие в КХЛ и наши в НХЛ.
+ *  Страховки: ночью нет НХЛ — КХЛ публикует свои итоги сам в 00:00; НХЛ к 12:00 МСК не опубликовал — КХЛ публикует сам.
+ * ==========================================================================*/
+var SHARED_FILE = 'jarvis_itogi_khl.json';
+
+/** {file, data} — данные общего файла (нет файла — data = {}). */
+function sharedRead_() {
+  var it = DriveApp.getFilesByName(SHARED_FILE), f = null, x;
+  while (it.hasNext()) { x = it.next(); if (!x.isTrashed() && (!f || x.getLastUpdated() > f.getLastUpdated())) f = x; }
+  var data = {};
+  if (f) { try { data = JSON.parse(f.getBlob().getDataAsString()) || {}; } catch (e) { data = {}; } }
+  return { file: f, data: data };
+}
+function sharedWrite_(data) {
+  var cur = sharedRead_(), txt = JSON.stringify(data);
+  if (cur.file) cur.file.setContent(txt); else DriveApp.createFile(SHARED_FILE, txt, 'application/json');
+}
+/** Слить данные с тем, что уже в файле (поля, которых нет в patch, не трогаем). */
+function sharedPatch_(patch) {
+  var d = sharedRead_().data || {};
+  Object.keys(patch).forEach(function (k) { d[k] = patch[k]; });
+  sharedWrite_(d);
+  return d;
+}
+function uniqChats_(a) { var seen = {}; return a.map(String).filter(function (c) { if (!c || seen[c]) return false; seen[c] = 1; return true; }); }
+
+/** Матчи ночи из API НХЛ: американская дата us (= день КХЛ) → {all, final, items:[{home, away, sh, sa, mark}]}. */
+function nhlNightGames_(us) {
+  var games = nhlGamesOf_(nhlGet_('score/' + us)).filter(function (g) { return !g.gameScheduleState || g.gameScheduleState === 'OK'; });
+  games.sort(function (a, b) { return String(a.startTimeUTC).localeCompare(String(b.startTimeUTC)); });
+  var items = [], fin = 0;
+  games.forEach(function (g) {
+    var done = NHL_FINAL[String(g.gameState || '').toUpperCase()] && typeof (g.homeTeam || {}).score === 'number';
+    if (!done) return;
+    fin++;
+    var h = nhlTeamOf_(g.homeTeam), a = nhlTeamOf_(g.awayTeam);
+    var last = String((g.gameOutcome && g.gameOutcome.lastPeriodType) || (g.periodDescriptor && g.periodDescriptor.periodType) || '').toUpperCase();
+    if (h && a) items.push({ home: h, away: a, sh: g.homeTeam.score, sa: g.awayTeam.score, mark: last === 'SO' ? 'Б' : last === 'OT' ? 'ОТ' : '' });
+  });
+  return { all: games.length, final: fin, items: items };
+}
+
+/** Каждые 15 минут (вместе с разведчиком) с 03:00 до 13:00 МСК: ночь доиграна — один пост с двумя баннерами КХЛ + НХЛ.
+ *  last = true (из «итогов ночи» в 10:00) — публикуем и с недоигранными матчами (перенос, сбой счёта). */
+function nhlNightDoneAuto_(last) {
+  var msk = mskNow_('yyyy-MM-dd'), h = Number(mskNow_('HH')), p = PropertiesService.getScriptProperties();
+  if (h < 3 || h >= 13 || p.getProperty(ITOGI_PROP + msk) || !p.getProperty('GITHUB_TOKEN')) return;
+  var us = addDaysKey_(msk, -1), n = nhlNightGames_(us);
+  if (!n.all || !n.items.length || (n.final < n.all && !last)) return;     // ночи нет или ещё играют
+  var r = itogiBothDispatch_(us, msk, n.items, 'channel');
+  if (r.sent) {
+    p.setProperty(ITOGI_PROP + msk, mskNow_());
+    p.setProperty('NHL_MORNING_' + msk, '1'); try { dailyMark_('morning'); } catch (e) {}   // текстовые «итоги ночи» больше не нужны
+    autoMark_('nhlMorningAuto_', true, 'общий пост «Итоги игрового дня» → канал (КХЛ: ' + r.khl + ', НХЛ: ' + r.nhl + (n.final < n.all ? ' из ' + n.all : '') + ')');
+  }
+}
+
+/** Заказать общий пост: баннеры КХЛ (из общего файла, если он за этот день) и НХЛ. target: 'channel' | 'admin'. */
+function itogiBothDispatch_(us, msk, nhlItems, target) {
+  var p = PropertiesService.getScriptProperties(), d = sharedRead_().data || {};
+  var khl = d.day === us && d.items && d.items.length && (target !== 'channel' || !d.posted) ? d.items : [];
+  var chats = target === 'channel' ? uniqChats_(posterChannels_().concat(khl.length ? d.chats || [] : [])) : [p.getProperty('TG_ADMIN_ID')].filter(Boolean);
+  if (!chats.length) return { skipped: 'некуда публиковать' };
+  var title = ruDayTitle_(us).toLowerCase(), leagues = [];
+  if (khl.length) leagues.push({ league: 'KHL', date_title: title, items: khl });
+  if (nhlItems.length) leagues.push({ league: 'NHL', date_title: title, items: nhlItems });
+  if (!leagues.length) return { skipped: 'нет сыгранных матчей' };
+  var r = itogiGithub_('post', '/repos/' + ITOGI_REPO + '/dispatches', { event_type: 'itogi2', client_payload: {
+    kind: 'itogi2', day: us, date_title: title, chat: String(chats[0]), chats: chats, leagues: leagues } });
+  if (!r) return { skipped: 'GitHub не подключён' };
+  if (r.getResponseCode() !== 204) throw new Error('GitHub ответил ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 200));
+  if (target === 'channel' && khl.length) { try { sharedPatch_({ posted: 'combined' }); } catch (e) {} }
+  return { sent: khl.length + nhlItems.length, khl: khl.length, nhl: nhlItems.length };
+}
+
+/** Кнопка: общий пост за последнюю ночь — вам (через 1–2 минуты). */
+function itogiBothNow_() {
+  try {
+    var msk = mskNow_('yyyy-MM-dd'), us = addDaysKey_(msk, -1), n = nhlNightGames_(us);
+    if (!n.items.length) { us = addDaysKey_(us, -1); n = nhlNightGames_(us); }
+    var r = itogiBothDispatch_(us, msk, n.items, 'admin');
+    if (r.skipped) { uiAlert_('Пост не заказан: ' + r.skipped + '.'); return; }
+    uiAlert_('Общий пост за ' + us.split('-').reverse().join('.') + ' (КХЛ: ' + r.khl + ', НХЛ: ' + r.nhl + ' матчей) рисуется — придёт вам через 1–2 минуты.' +
+      (r.khl ? '' : '\n\nСчёта КХЛ за этот день в общем файле нет: он появляется в 00:00 МСК после игрового дня КХЛ.'));
+  } catch (e) { uiAlert_('Не получилось: ' + e.message); }
+}
+
+/* ── 📊 «Игроки дня» (10:00 МСК): лучшие игроки КХЛ (из общего файла) и наши в НХЛ — одним постом, без эмодзи ── */
+function playersDayText_(day) {
+  var ss = SpreadsheetApp.getActive(), us = addDaysKey_(day, -1), d = sharedRead_().data || {}, parts = [];
+  var khlOk = d.stats_day === us && d.stats;
+  if (khlOk) parts.push(d.stats);
+  var f = nhlDayForecasts_(ss, day).filter(function (x) { return x.played; }), ours = '';
+  try { ours = f.length ? itogiNoEmoji_(nhlOursText_(ss, day, f)) : ''; } catch (e) { ours = ''; }
+  if (ours) parts.push(ours.replace(/^\s*<b>Наши<\/b>/, '<b>НХЛ · наши</b>'));
+  if (!parts.length) return { text: '', chats: [] };
+  return { text: '<b>Игроки дня</b> · ' + escHtml_(ruDayTitle_(us).toLowerCase()) + '\n\n' + parts.join('\n\n'),
+           chats: uniqChats_(posterChannels_().concat(khlOk ? d.stats_chats || [] : [])) };
+}
+function playersDayAuto_(day) {
+  var p = PropertiesService.getScriptProperties(), key = 'PLAYERS_DAY_' + day;
+  if (p.getProperty(key)) return;
+  var t = playersDayText_(day);
+  if (!t.text) return;
+  var sent = 0, errs = [];
+  t.chats.forEach(function (c) {
+    var r = tgRaw_('sendMessage', { chat_id: c, text: t.text, parse_mode: 'HTML', disable_web_page_preview: true });
+    if (r && r.ok) sent++; else errs.push(c + ': ' + ((r && r.description) || 'нет ответа'));
+  });
+  if (sent) p.setProperty(key, mskNow_());
+  autoMark_('nhlMorningAuto_', !errs.length, 'пост «Игроки дня»: отправлен в ' + sent + ' из ' + t.chats.length + (errs.length ? ' (' + errs.join('; ') + ')' : ''));
+}
+function playersDayNow_() {
+  try {
+    var day = mskNow_('yyyy-MM-dd'), t = playersDayText_(day), to = PropertiesService.getScriptProperties().getProperty('TG_ADMIN_ID');
+    if (!t.text) { uiAlert_('Для поста «Игроки дня» пока нет данных: КХЛ — после утреннего обновления таблицы КХЛ, НХЛ — после утреннего обновления этой таблицы.'); return; }
+    var r = tgRaw_('sendMessage', { chat_id: to, text: '👀 ПРОБНЫЙ ПОСТ (в канал не ушёл)\n\n' + t.text, parse_mode: 'HTML', disable_web_page_preview: true });
+    uiAlert_(r && r.ok ? 'Пробный пост «Игроки дня» отправлен вам в Telegram.' : 'Telegram: ' + ((r && r.description) || 'нет ответа'));
+  } catch (e) { uiAlert_('Не получилось: ' + e.message); }
+}

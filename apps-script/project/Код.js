@@ -5065,6 +5065,7 @@ function agdFinish_(ss, state) {
     }
   } catch (e) { /* сводка без горизонта */ }
 
+  try { khlStatsShare_(ss); } catch (e) { lines.push('⚠ Игроки дня для общего поста: ' + e.message); }
   var failed = state.failed;
   var parts = state.part > 1 ? ' (в ' + state.part + ' ' + ruPlural_(state.part, 'часть', 'части', 'частей') + ')' : '';
   var text = (failed ? 'Готово' + parts + ', но ' + failed + ' шаг(а) с проблемой — подробности ниже.' : 'Всё обновлено' + parts + '.') + '\n\n' +
@@ -12838,7 +12839,8 @@ function testItogiToChannel() {
  *  таблица только передаёт счёт: событие repository_dispatch «itogi» в репозиторий ITOGI_REPO.
  *  Нужно один раз: свойство GITHUB_TOKEN (меню → «🔑 Подключить GitHub для постеров») и секрет TG_BOT_TOKEN
  *  в настройках репозитория. Без токена ничего не отправляется и ничего не ломается.
- *  КХЛ — в 00:00 МСК после игрового дня (счёт — из LIVE, когда у всех матчей финал); НХЛ — в 10:00 МСК, когда ночь доиграна.
+ *  КХЛ — в 00:00 МСК счёт дня уходит в общий файл, и таблица НХЛ публикует ОБЩИЙ пост КХЛ + НХЛ, как только доиграна ночь
+ *  (ночью НХЛ нет — КХЛ публикует сам в 00:00; общего поста к 12:00 нет — тоже сам). См. «ОБЩИЙ ПОСТ КХЛ + НХЛ».
  *  Автоматика публикует постер сразу в канал (КХЛ — ещё и в привязанную группу); кнопки «→ мне» — только вам, для проверки.
  *  Не нарисовался — GitHub публикует в канал подпись текстом, чтобы итоги не пропали.
  * ==========================================================================*/
@@ -12952,7 +12954,8 @@ function itogiAutoKhl_(lv) {
   } catch (e) { autoNotifyAdmin_('⚠ КХЛ: не получилось поставить запуск постера «Итоги дня» на 00:00 МСК: ' + e.message); }
 }
 
-/** 00:00 МСК: заказать постер «Итоги дня» за доигранные дни. */
+/** 00:00 МСК: итоги за доигранные дни. Ночью есть НХЛ — кладём счёт в общий файл, общий пост выпустит таблица НХЛ;
+ *  НХЛ нет — публикуем постер КХЛ сами, как раньше. */
 function itogiMidnightKhl_() {
   try { ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === ITOGI_MIDNIGHT_FN) ScriptApp.deleteTrigger(t); }); } catch (e) {}
   var p = PropertiesService.getScriptProperties();
@@ -12961,13 +12964,81 @@ function itogiMidnightKhl_() {
     try { items = JSON.parse(p.getProperty(k) || 'null'); } catch (e) { items = null; }
     if (p.getProperty(ITOGI_PROP + day) || !items || !items.length) { p.deleteProperty(k); return; }
     try {
+      if (khlNhlNightGames_(day) !== 0) {                    // ночью играет НХЛ (или не знаем) — общий пост
+        sharedPatch_({ day: day, date_title: ruDayTitle_(day).toLowerCase(), items: items, chats: posterChannels_(), posted: '' });
+        p.deleteProperty(k); p.setProperty(ITOGI_PROP + day, 'ждёт НХЛ');
+        khlFallbackSchedule_(day);
+        autoMark_('liveUpdateAuto_', true, 'итоги ' + day + ' (матчей ' + items.length + ') ждут НХЛ — общий пост выйдет, когда доиграет ночь');
+        return;
+      }
       var r = itogiDispatch_('KHL', day, items, 'itogi', '', 'channel');
-      if (r.sent) { p.deleteProperty(k); autoMark_('liveUpdateAuto_', true, 'постер «Итоги дня» за ' + day + ' → канал (матчей ' + r.sent + ')'); }
+      if (r.sent) { p.deleteProperty(k); autoMark_('liveUpdateAuto_', true, 'постер «Итоги дня» за ' + day + ' → канал (матчей ' + r.sent + '; НХЛ ночью нет)'); }
     } catch (e2) {
       p.deleteProperty(k); p.setProperty(ITOGI_PROP + day, 'ошибка');
-      autoNotifyAdmin_('⚠ КХЛ: постер «Итоги дня» не заказан: ' + e2.message + '. Можно вручную: меню «📣 КХЛ · ТГ группа» → «🖼 Постер «Итоги дня» → мне».');
+      autoNotifyAdmin_('⚠ КХЛ: итоги дня не опубликованы: ' + e2.message + '. Можно вручную: меню «📣 КХЛ · ТГ группа» → «🖼 Постер «Итоги дня» → мне».');
     }
   });
+}
+
+/** Сколько матчей НХЛ в ночь после игрового дня КХЛ (американская дата = день КХЛ). Не узнали — -1. */
+function khlNhlNightGames_(day) {
+  try {
+    var r = UrlFetchApp.fetch('https://api-web.nhle.com/v1/score/' + day, { muteHttpExceptions: true, headers: { Accept: 'application/json' } });
+    if (r.getResponseCode() !== 200) return -1;
+    var g = (JSON.parse(r.getContentText()).games || []).filter(function (x) { return !x.gameScheduleState || x.gameScheduleState === 'OK'; });
+    return g.length;
+  } catch (e) { return -1; }
+}
+
+/** Страховка: в 12:00 МСК следующего дня общего поста нет — публикуем итоги КХЛ сами. */
+var ITOGI_FALLBACK_FN = 'itogiKhlFallback_';
+function khlFallbackSchedule_(day) {
+  try {
+    ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === ITOGI_FALLBACK_FN) ScriptApp.deleteTrigger(t); });
+    var at = Date.parse(addDaysKey_(day, 1) + 'T12:00:00+03:00');
+    ScriptApp.newTrigger(ITOGI_FALLBACK_FN).timeBased().at(new Date(Math.max(at, Date.now() + 60000))).create();
+  } catch (e) { autoNotifyAdmin_('⚠ КХЛ: не получилось поставить страховку для итогов дня: ' + e.message); }
+}
+function itogiKhlFallback_() {
+  try { ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === ITOGI_FALLBACK_FN) ScriptApp.deleteTrigger(t); }); } catch (e) {}
+  var sh = sharedRead_(), d = sh.data || {}, p = PropertiesService.getScriptProperties();
+  if (!d.day || d.posted || !d.items || !d.items.length) return;
+  try {
+    var r = itogiDispatch_('KHL', d.day, d.items, 'itogi', '', 'channel');
+    if (r.sent) { sharedPatch_({ posted: 'khl' }); autoMark_('liveUpdateAuto_', true, 'итоги ' + d.day + ' → канал отдельно (общего поста с НХЛ к 12:00 не было)'); }
+  } catch (e2) { autoNotifyAdmin_('⚠ КХЛ: итоги дня ' + d.day + ' не опубликованы: ' + e2.message); }
+}
+
+/** После утреннего обновления: «лучшие игроки дня» КХЛ (по листу составов) — в общий файл для поста «Игроки дня». */
+var KHL_STATS_TOP = 7;
+function khlStatsShare_(ss) {
+  ss = ss || SpreadsheetApp.getActive();
+  var day = addDaysKey_(mskNow_('yyyy-MM-dd'), -1), text = khlStatsText_(ss, day);
+  sharedPatch_({ stats_day: day, stats: text, stats_chats: posterChannels_() });
+  return text;
+}
+function khlStatsText_(ss, day) {
+  var lu = ss.getSheetByName(LINEUP_SHEET);
+  if (!lu || lu.getLastRow() < 2) return '';
+  var sk = [], gk = [];
+  lu.getRange(2, 1, lu.getLastRow() - 1, 12).getValues().forEach(function (r) {
+    if (signalDay_(r[0]) !== day) return;
+    var team = String(r[3]).trim(), name = String(r[6]).trim(); if (!name) return;
+    if (String(r[4]) === 'G') {
+      var sa = Number(r[10]), sv = Number(r[11]);
+      if (sa >= 15) gk.push({ name: name, team: team, sa: sa, sv: sv, pct: sv / sa });
+    } else {
+      var g = Number(r[8]) || 0, a = Number(r[9]) || 0;
+      if (g + a > 0) sk.push({ name: name, team: team, g: g, a: a });
+    }
+  });
+  if (!sk.length && !gk.length) return '';
+  sk.sort(function (x, y) { return (y.g + y.a) - (x.g + x.a) || y.g - x.g; });
+  gk.sort(function (x, y) { return y.pct - x.pct || y.sv - x.sv; });
+  var lines = sk.slice(0, KHL_STATS_TOP).map(function (x) { return escHtml_(x.name + ' (' + x.team + ') — ' + x.g + '+' + x.a); });
+  var best = gk.filter(function (x) { return x.sv === x.sa; }).concat(gk.filter(function (x) { return x.sv !== x.sa; })).slice(0, 2);
+  if (best.length) lines.push('Вратари: ' + escHtml_(best.map(function (x) { return x.name + ' (' + x.team + ') — ' + x.sv + ' ' + ruPlural_(x.sv, 'сейв', 'сейва', 'сейвов') + ' из ' + x.sa + (x.sv === x.sa ? ', сухой матч' : ''); }).join('; ')));
+  return '<b>КХЛ · лучшие игроки</b>\n' + lines.join('\n');
 }
 
 /* ==========================================================================
@@ -13112,3 +13183,33 @@ function tweaksAcceptNow_() {
 }
 
 function tweaksOpen_() { var ss = SpreadsheetApp.getActive(); tweaksRankingRender_(ss); sheetOpen_(SHEET_TWEAKS); }
+
+/* ==========================================================================
+ * 🤝 ОБЩИЙ ПОСТ КХЛ + НХЛ: таблицы передают друг другу данные через файл на Google Диске (SHARED_FILE)
+ *  КХЛ в 00:00 МСК кладёт туда счёт игрового дня (если ночью есть НХЛ), после утреннего обновления — «лучших игроков дня».
+ *  НХЛ, как только доиграна ночь, публикует ОДИН пост: два баннера (КХЛ + НХЛ) и счёт всех матчей в подписи;
+ *  в 10:00 МСК — пост «Игроки дня»: лучшие в КХЛ и наши в НХЛ.
+ *  Страховки: ночью нет НХЛ — КХЛ публикует свои итоги сам в 00:00; НХЛ к 12:00 МСК не опубликовал — КХЛ публикует сам.
+ * ==========================================================================*/
+var SHARED_FILE = 'jarvis_itogi_khl.json';
+
+/** {file, data} — данные общего файла (нет файла — data = {}). */
+function sharedRead_() {
+  var it = DriveApp.getFilesByName(SHARED_FILE), f = null, x;
+  while (it.hasNext()) { x = it.next(); if (!x.isTrashed() && (!f || x.getLastUpdated() > f.getLastUpdated())) f = x; }
+  var data = {};
+  if (f) { try { data = JSON.parse(f.getBlob().getDataAsString()) || {}; } catch (e) { data = {}; } }
+  return { file: f, data: data };
+}
+function sharedWrite_(data) {
+  var cur = sharedRead_(), txt = JSON.stringify(data);
+  if (cur.file) cur.file.setContent(txt); else DriveApp.createFile(SHARED_FILE, txt, 'application/json');
+}
+/** Слить данные с тем, что уже в файле (поля, которых нет в patch, не трогаем). */
+function sharedPatch_(patch) {
+  var d = sharedRead_().data || {};
+  Object.keys(patch).forEach(function (k) { d[k] = patch[k]; });
+  sharedWrite_(d);
+  return d;
+}
+function uniqChats_(a) { var seen = {}; return a.map(String).filter(function (c) { if (!c || seen[c]) return false; seen[c] = 1; return true; }); }

@@ -1,11 +1,11 @@
-# Постеры «Итоги дня» и «Матчи дня» (КХЛ / НХЛ): таблица шлёт данные событием repository_dispatch «itogi» / «matchi»,
+# Постеры «Итоги дня», «Матчи дня» и общий пост КХЛ + НХЛ: таблица шлёт данные событием repository_dispatch «itogi» / «matchi» / «itogi2»,
 # здесь картинка рисуется набором render/ и уходит в Telegram (render/itogi_job.py).
 # Нужен секрет репозитория TG_BOT_TOKEN — токен того же бота, что и у таблиц.
 name: Постеры «Итоги дня» и «Матчи дня»
 
 on:
   repository_dispatch:
-    types: [itogi, matchi]
+    types: [itogi, matchi, itogi2]
   workflow_dispatch:
     inputs:
       payload:
