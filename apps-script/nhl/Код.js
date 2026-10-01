@@ -4770,7 +4770,7 @@ function runAfterGameDay_(e) {
     step('История турнирной таблицы', function () { computeStandingsHistory_(); });
     step('События дня в купоне', function () { updateAllEventsForDay_(); });
     step('Архив линий прошлого сезона', function () { return loadHistOddsIfNeeded_(); });
-    step('Мои поправки к рейтингу', function () { tweaksApply_(true); tweaksRankingRender_(); return tweaksRender_(); });
+    step('Мои поправки к рейтингу', function () { tweaksFromRanking_(); tweaksApply_(true); tweaksRankingRender_(); return tweaksRender_(); });
     step('Коэффициенты рынка', function () { return updateMarketOdds_(true); });
     if (publicPageOn_()) step('Публичная страница точности', function () { return publicPageUpdate_(ss, false); });
     if (PIPELINE_GAME) step('Игра «Угадай победителей»', function () { return gameAfterResults_(); });
@@ -6791,7 +6791,7 @@ var TWEAK_DEFAULT_DAYS = 7;    // на сколько дней ставится 
 var TWEAK_ROWS = 200;          // сколько строк отведено под поправки
 var TWEAKS_HEADER = ['Команда', 'Поправка (очки рейтинга)', 'Действует до', 'Причина', 'Поставлено (МСК)'];
 var TWEAK_REASONS = ['запасной вратарь', 'вернулся основной вратарь', 'травмы / нет лидеров', 'вернулись лидеры',
-  'смена тренера', 'усталость / перелёты', 'мотивация / настрой', 'видео экспертов', 'другое'];
+  'смена тренера', 'усталость / перелёты', 'мотивация / настрой', 'видео экспертов', 'вручную (рейтинг)', 'другое'];
 
 /** Включены ли поправки (можно выключить, если окажется, что они мешают). */
 function tweaksOn_() {
@@ -7032,14 +7032,8 @@ function tweaksRender_(ss) {
   return { evaluated: rows.length };
 }
 
-/** Пункт меню: поправки в силу + пересчёт табло. */
-function tweaksUpdateNow_() {
-  var r = tweaksApply_(true);
-  var s = tweaksRender_();
-  tweaksRankingRender_();
-  uiAlert_('Мои поправки: учтены в ' + r.rows + ' несыгранных матчах. Оценено сыгранных матчей с поправкой: ' + s.evaluated + '.' +
-    (tweaksOn_() ? '' : '\n\nСейчас поправки ВЫКЛЮЧЕНЫ — прогнозы считаются без них.'));
-}
+/** Прежний пункт «Учесть мои поправки» — теперь то же, что «✅ Принять поправки». */
+function tweaksUpdateNow_() { tweaksAcceptNow_(); }
 
 /* ----------------------- общий рейтинг команд по местам ----------------------- */
 var RANK_COL = 16;              // P — начало блока рейтинга на листе «Мои поправки»
@@ -7116,13 +7110,13 @@ function tweaksRankingRender_(ss, now) {
     return { teams: 0 };
   }
   var out = [['РЕЙТИНГ КОМАНД  ·  все ' + rows.length, '', '', '', '', '', ''],
-             ['стрелки — движение за неделю по сравнению с ' + (rows[0].prevDate ? tweakDM_(rows[0].prevDate) : '—') +
-              '; место считается по рейтингу с вашей поправкой', '', '', '', '', '', ''],
-             ['Место', 'Команда', 'Рейтинг', 'За неделю', 'Моя поправка', 'Итог с поправкой', 'Места']];
+             ['✏️ Впишите число в «Моя поправка» (пусто — без поправки) и нажмите меню «✍️ Поправки» → «✅ Принять поправки». ' +
+              'Стрелки — движение за неделю по сравнению с ' + (rows[0].prevDate ? tweakDM_(rows[0].prevDate) : '—') + '; место — по рейтингу с поправкой', '', '', '', '', '', ''],
+             ['Место', 'Команда', 'Рейтинг', 'За неделю', 'Моя поправка ✏️', 'Итог с поправкой', 'Места']];
   var colors = [['#1a4fd6', '', '', '', '', '', ''], ['#5a6472', '', '', '', '', '', ''], ['', '', '', '', '', '', '']];
   rows.forEach(function (r) {
     var arrow = function (v) { return v === null ? '—' : (v > 0 ? '▲ ' : (v < 0 ? '▼ ' : '— ')) + (v ? Math.abs(v) : ''); };
-    out.push([r.place, r.team, r.elo, arrow(r.dElo), r.tweak ? (r.tweak > 0 ? '+' : '') + r.tweak : '', r.total, arrow(r.dPlace)]);
+    out.push([r.place, r.team, r.elo, arrow(r.dElo), r.tweak ? Math.round(r.tweak) : '', r.total, arrow(r.dPlace)]);
     var col = function (v) { return v === null || v === 0 ? '#5a6472' : (v > 0 ? '#137333' : '#c5221f'); };
     colors.push(['#000000', '#000000', '#000000', col(r.dElo), r.tweak ? col(r.tweak) : '#000000', '#000000', col(r.dPlace)]);
   });
@@ -7130,6 +7124,11 @@ function tweaksRankingRender_(ss, now) {
   sh.getRange(1, RANK_COL, out.length, 7).setFontColors(colors);
   sh.getRange(1, RANK_COL, 1, 7).setFontWeight('bold').setFontSize(12);
   sh.getRange(3, RANK_COL, 1, 7).setFontWeight('bold');
+  try {                                                         // поле ввода: жёлтое, числа со знаком
+    sh.getRange(4, RANK_COL, Math.max(sh.getMaxRows() - 3, 1), 7).setBackground(null);
+    sh.getRange(4, RANK_COL + 4, rows.length, 1).setBackground('#fff4c2').setNumberFormat('+0;-0;0').setHorizontalAlignment('center');
+    sh.getRange(3, RANK_COL + 4).setBackground('#ffe38a');
+  } catch (e) { /* оформление не мешает рейтингу */ }
   [70, 190, 90, 110, 130, 140, 90].forEach(function (w, i) { sh.setColumnWidth(RANK_COL + i, w); });
   return { teams: rows.length };
 }
@@ -10068,6 +10067,7 @@ function videoTweaksSync_(ss) {
     if (!delta) return;
     var u = new Date(b.d.getTime() + VIDEO_TWEAK_DAYS * 86400000), until = new Date(u.getFullYear(), u.getMonth(), u.getDate());
     if (until < today) return;
+    if (vals.some(function (v) { return String(v[0]).trim() === t && String(v[3]).trim() === TWEAK_RANK_REASON && v[2] instanceof Date && v[2] >= today; })) return;   // вы поставили своё число — видео не перебивает
     var row = -1, i;
     // та же команда, та же причина и поправка ещё действует — обновляем её; иначе — новая строка (старые остаются для табло)
     for (i = 0; i < vals.length && row < 0; i++) if (String(vals[i][0]).trim() === t && String(vals[i][3]).trim() === VIDEO_TWEAK_REASON && vals[i][2] instanceof Date && vals[i][2] >= today) row = i;
@@ -10285,7 +10285,7 @@ var DAILY_KHL_ = [
   null,
   ['1 · Обновить всё после игрового дня', 'runAfterGameDay_'],
   ['2 · Обновить коэффициенты', 'updateMarketOdds_'],
-  ['3 · Учесть мои поправки', 'tweaksUpdateNow_', 'runAfterGameDay_'],
+  ['3 · ✅ Принять мои поправки', 'tweaksAcceptNow_', 'runAfterGameDay_'],
   null,
   ['❓ Как пользоваться меню', 'dailyHelp_']
 ];
@@ -10924,6 +10924,7 @@ function scoutAuto_() {
 
 /** Каждые 15 минут: у кого матч через ~1,5 часа — свежий сбор и итог вам (матчи одного времени — одним сообщением). */
 function scoutReportAuto_() {
+  try { nhlNightDoneAuto_(); } catch (e0) { console.log('итоги дня: ' + e0.message); }
   var ss = SpreadsheetApp.getActive(), p = agentProps_(), now = Date.now(), to = p.getProperty('TG_ADMIN_ID');
   if (!to) return;
   var sent = {}; try { sent = JSON.parse(p.getProperty('SCOUT_SENT') || '{}'); } catch (e) { sent = {}; }
@@ -12385,12 +12386,19 @@ function nhlKeysSetup_() {
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
   dailyMenu_(ui, '📅 НХЛ · Ежедневно', DAILY_NHL_);
+  ui.createMenu('✍️ Поправки')
+    .addItem('✅ Принять поправки', 'tweaksAcceptNow_')
+    .addItem('Открыть лист «Мои поправки»', 'tweaksOpen_')
+    .addSeparator()
+    .addItem('Выключить поправки', 'tweaksTurnOff_')
+    .addItem('Включить поправки', 'tweaksTurnOn_')
+    .addToUi();
   // Три отдельных меню в строке меню таблицы — по тому, куда уходит результат:
   //   «НХЛ-парсер» — только таблица; «📩 НХЛ → мне в ТГ» — личка от бота; «📣 НХЛ · ТГ группа» — всё, что публикуется в группу (канал).
   ui.createMenu('НХЛ-парсер')
     .addItem('🏒 Обновить всё после игрового дня', 'runAfterGameDay_')
     .addItem('📈 Обновить коэффициенты', 'updateMarketOdds_')
-    .addItem('✍️ Учесть мои поправки', 'tweaksUpdateNow_')
+    .addItem('✅ Принять мои поправки', 'tweaksAcceptNow_')
     .addItem('📊 Статистика НХЛ, xG, травмы, вратари', 'nhlStatsNow_')
     .addItem('🆚 Сравнение нашей модели с NeurHL', 'neurhlNow_')
     .addSubMenu(ui.createMenu('🎯 Стартовый рейтинг')
@@ -13076,7 +13084,9 @@ function nhlGoaliesAuto_() {
 function nhlMorningAuto_() {
   if (nhlNotReady_(true)) return;
   var p = PropertiesService.getScriptProperties(), day = Utilities.formatDate(new Date(), 'Europe/Moscow', 'yyyy-MM-dd');
+  try { nhlNightDoneAuto_(true); } catch (e0) { console.log('итоги дня: ' + e0.message); }   // общий пост не вышел ночью — последняя попытка
   itogiAutoNhl_(day);
+  try { playersDayAuto_(day); } catch (e1) { autoNotifyAdmin_('⚠ Пост «Игроки дня» не ушёл: ' + e1.message); }
   if (!nhlChannelId_() || p.getProperty('NHL_MORNING_' + day)) return;
   try { var r = nhlMorningPost_('channel', day); if (r.sent) p.setProperty('NHL_MORNING_' + day, '1'); autoMark_('nhlMorningAuto_', true, r.matches ? 'итоги: матчей ' + r.matches : 'сыгранных матчей нет'); }
   catch (e) { autoMark_('nhlMorningAuto_', false, e.message); autoNotifyAdmin_('⚠ НХЛ: пост «итоги ночи» не ушёл: ' + e.message); }
@@ -13223,7 +13233,7 @@ var DAILY_NHL_ = [
   null,
   ['1 · Обновить всё после ночи матчей', 'runAfterGameDay_'],
   ['2 · Обновить коэффициенты', 'updateMarketOdds_'],
-  ['3 · Учесть мои поправки', 'tweaksUpdateNow_', 'runAfterGameDay_'],
+  ['3 · ✅ Принять мои поправки', 'tweaksAcceptNow_', 'runAfterGameDay_'],
   null,
   ['❓ Как пользоваться меню', 'dailyHelp_']
 ];
@@ -13234,6 +13244,8 @@ var TG_GROUP_NHL_ = [
   ['4 · «Сила команд» → группа (пн)', 'powerPostNow_', '-'],
   null,
   ['🖼 Постер «Матчи дня» → мне (ближайший игровой день)', 'matchiPosterNow_', '-'],
+  ['🖼 Общий пост «Итоги игрового дня» КХЛ + НХЛ → мне', 'itogiBothNow_', '-'],
+  ['📊 Пост «Игроки дня» → мне', 'playersDayNow_', '-'],
   ['🖼 Постер «Итоги дня» → мне (последний игровой день)', 'itogiPosterNow_', '-'],
   ['🔑 Подключить GitHub для постеров', 'itogiSetToken_', '-'],
   ['🖼 Готовый постер → мне в личку', 'posterToMe_', '-'],
@@ -13682,7 +13694,8 @@ function nhlOursText_(ss, dayKey, matches) {
  *  таблица только передаёт счёт: событие repository_dispatch «itogi» в репозиторий ITOGI_REPO.
  *  Нужно один раз: свойство GITHUB_TOKEN (меню → «🔑 Подключить GitHub для постеров») и секрет TG_BOT_TOKEN
  *  в настройках репозитория. Без токена ничего не отправляется и ничего не ломается.
- *  КХЛ — сразу после последнего матча дня (LIVE видит финальный счёт у всех); НХЛ — в 10:00 МСК, когда ночь доиграна.
+ *  Обычно — ОБЩИЙ пост КХЛ + НХЛ, как только доиграна ночь (см. «ОБЩИЙ ПОСТ КХЛ + НХЛ»); отдельный постер НХЛ в 10:00 МСК —
+ *  только если общий не вышел.
  *  Автоматика публикует постер сразу в канал (КХЛ — ещё и в привязанную группу); кнопки «→ мне» — только вам, для проверки.
  *  Не нарисовался — GitHub публикует в канал подпись текстом, чтобы итоги не пропали.
  * ==========================================================================*/
@@ -13841,8 +13854,8 @@ function matchiPosterNow_() {
   } catch (e) { uiAlert_('Не получилось: ' + e.message); }
 }
 
-/** К подписи постера «Итоги ночи»: результативность россиян («Наши»), как в посте «итоги ночи», но без эмодзи. */
-function itogiExtra_(ss, dayKey, items) { return itogiNoEmoji_(nhlOursText_(ss, dayKey, items)); }
+/** К подписи постера «Итоги ночи» ничего не добавляем: «Наши» выходят отдельным постом «Игроки дня» в 10:00 МСК. */
+function itogiExtra_(ss, dayKey, items) { return ''; }
 
 /** Убрать эмодзи из подписи к постеру (флаги, 🧤 и т.п.): анимированные бот в канал не ставит, а обычные не нужны. */
 function itogiNoEmoji_(t) {
@@ -13866,3 +13879,212 @@ function itogiMarksNhl_(day, items) {
 
 /** Куда публикует автоматика постеров: канал НХЛ. */
 function posterChannels_() { return [bannerChannel_()].filter(Boolean); }
+
+/* ==========================================================================
+ * ✅ ПРИНЯТЬ ПОПРАВКИ — одна кнопка
+ *  В рейтинге справа на листе «Мои поправки» колонка «Моя поправка» — итог действующих поправок команды.
+ *  Впишите туда новое число (или очистите ячейку, чтобы снять поправку) и нажмите меню «✍️ Поправки» → «✅ Принять поправки»:
+ *   • у изменённых команд действующие строки слева закрываются вчерашним днём (история для табло «помогают ли» остаётся),
+ *     и ставится одна строка с новым числом на TWEAK_DEFAULT_DAYS дней, причина TWEAK_RANK_REASON;
+ *   • строки слева можно по-прежнему писать руками — со своей причиной и сроком; кнопка принимает и их;
+ *   • сразу пересчитываются шансы несыгранных матчей («прогнозы»), «Лучший прогноз», «Прогнозы — кратко»,
+ *     «Коэффициенты», выбор Джарвиса в игре, табло «помогают ли» и сам рейтинг. Прошлые прогнозы не меняются.
+ *  Вписали и не нажали — утреннее обновление примет вписанное само (чтобы ввод не пропал при перерисовке рейтинга).
+ * ==========================================================================*/
+var TWEAK_RANK_REASON = 'вручную (рейтинг)';
+
+/** Разобрать вписанное в «Моя поправка»: '' → 0, '+15' → 15, '−20' → -20; не число → null. */
+function tweakParse_(x) {
+  if (x === '' || x === null || x === undefined) return 0;
+  if (typeof x === 'number') return isFinite(x) ? Math.round(x) : null;
+  var s = String(x).trim().replace(/\s/g, '').replace(/[−–—]/g, '-').replace(',', '.');
+  if (!s) return 0;
+  return /^[+-]?\d+(\.\d+)?$/.test(s) ? Math.round(Number(s)) : null;
+}
+
+/** Вписанное в рейтинге → строки слева. Возвращает {changed: ['Торонто 0 → +20', …], bad: ['Сочи: «abc»']}. */
+function tweaksFromRanking_(ss, sh, now) {
+  ss = ss || SpreadsheetApp.getActive(); sh = sh || ensureTweaksSheet_(ss); now = now || new Date();
+  var out = { changed: [], bad: [] }, n = Math.max(sh.getLastRow() - 3, 0);
+  if (!n || String(sh.getRange(3, RANK_COL + 1).getValue()).trim() !== 'Команда') return out;   // рейтинга на листе нет
+  var rank = sh.getRange(4, RANK_COL, n, 5).getValues();
+  var today = new Date(now.getFullYear(), now.getMonth(), now.getDate()), yesterday = new Date(today.getTime() - 86400000);
+  var until = new Date(today.getTime() + TWEAK_DEFAULT_DAYS * 86400000);
+  var rows = Math.min(TWEAK_ROWS, Math.max(sh.getLastRow() - 1, 0));
+  var vals = rows ? sh.getRange(2, 1, rows, TWEAKS_HEADER.length).getValues() : [];
+  var active = function (r) { return String(r[0]).trim() && Number(r[1]) && r[2] instanceof Date && r[2].getTime() + 86400000 >= now.getTime(); };
+  var total = {};
+  vals.forEach(function (r) { if (active(r)) { var t = String(r[0]).trim(); total[t] = (total[t] || 0) + Math.round(Number(r[1])); } });
+  var dirty = false;
+  rank.forEach(function (r) {
+    var team = String(r[1]).trim(); if (!team) return;
+    var want = tweakParse_(r[4]);
+    if (want === null) { out.bad.push(team + ': «' + String(r[4]).slice(0, 20) + '»'); return; }
+    want = Math.max(-TWEAK_LIMIT, Math.min(TWEAK_LIMIT, want));
+    var cur = total[team] || 0;
+    if (want === cur) return;
+    vals.forEach(function (v) { if (active(v) && String(v[0]).trim() === team) v[2] = yesterday; });   // прежние — закрыть
+    if (want) {
+      var i = 0; while (i < vals.length && (String(vals[i][0]).trim() || String(vals[i][1]).trim())) i++;
+      if (i >= TWEAK_ROWS) { out.bad.push(team + ': нет места на листе (строк больше ' + TWEAK_ROWS + ')'); return; }
+      if (i === vals.length) vals.push(TWEAKS_HEADER.map(function () { return ''; }));
+      vals[i] = [team, want, until, TWEAK_RANK_REASON, mskNow_()].concat(vals[i].slice(5));
+    }
+    out.changed.push(team + ' ' + (cur > 0 ? '+' : '') + cur + ' → ' + (want > 0 ? '+' : '') + want);
+    dirty = true;
+  });
+  if (dirty) sh.getRange(2, 1, vals.length, TWEAKS_HEADER.length).setValues(vals);
+  return out;
+}
+
+/** Кнопка «✅ Принять поправки»: вписанное — в силу, и сразу всё, что от поправок зависит. */
+function tweaksAcceptNow_() {
+  var ss = SpreadsheetApp.getActive(), now = new Date(), lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) { uiAlert_('Таблица сейчас занята другим обновлением — нажмите «Принять поправки» ещё раз через минуту.'); return; }
+  var ch = { changed: [], bad: [] }, rows = 0, done = [], fail = [];
+  try {
+    ch = tweaksFromRanking_(ss, ensureTweaksSheet_(ss), now);
+    rows = tweaksApply_(true).rows;
+    SpreadsheetApp.flush();                                  // формулы шансов пересчитаны — дальше читаем уже новые цифры
+    [['«Лучший прогноз»', function () { writeBestForecast_(ss); }],
+     ['«Прогнозы — кратко»', function () { renderBriefSheet_(ss); }],
+     ['«Коэффициенты»', function () { renderMarketSheets_(); }],
+     ['выбор Джарвиса в игре', function () { if (ss.getSheetByName(GAME_PICKS)) gameSyncJarvis_(ss); }],
+     ['табло «помогают ли»', function () { tweaksRender_(ss); }],
+     ['рейтинг', function () { tweaksRankingRender_(ss, now); }]].forEach(function (x) {
+      try { x[1](); done.push(x[0]); } catch (e) { fail.push(x[0] + ': ' + e.message); }
+    });
+  } finally { lock.releaseLock(); }
+  uiAlert_((ch.changed.length ? '✅ Поправки приняты:\n' + ch.changed.join('\n') + '\n(действуют ' + TWEAK_DEFAULT_DAYS + ' дней)\n\n' : '✅ Поправки учтены.\n\n') +
+    'Пересчитано: шансы ' + rows + ' несыгранных матчей, ' + done.join(', ') + '.' +
+    (ch.bad.length ? '\n\n⚠ Не понял число: ' + ch.bad.join('; ') + ' — впишите целое число, например 20 или -15.' : '') +
+    (fail.length ? '\n\n⚠ Не обновилось: ' + fail.join('; ') : '') +
+    (tweaksOn_() ? '' : '\n\nСейчас поправки ВЫКЛЮЧЕНЫ (меню «✍️ Поправки» → «Включить поправки») — прогнозы считаются без них.'));
+}
+
+function tweaksOpen_() { var ss = SpreadsheetApp.getActive(); tweaksRankingRender_(ss); sheetOpen_(SHEET_TWEAKS); }
+
+/* ==========================================================================
+ * 🤝 ОБЩИЙ ПОСТ КХЛ + НХЛ: таблицы передают друг другу данные через файл на Google Диске (SHARED_FILE)
+ *  КХЛ в 00:00 МСК кладёт туда счёт игрового дня (если ночью есть НХЛ), после утреннего обновления — «лучших игроков дня».
+ *  НХЛ, как только доиграна ночь, публикует ОДИН пост: два баннера (КХЛ + НХЛ) и счёт всех матчей в подписи;
+ *  в 10:00 МСК — пост «Игроки дня»: лучшие в КХЛ и наши в НХЛ.
+ *  Страховки: ночью нет НХЛ — КХЛ публикует свои итоги сам в 00:00; НХЛ к 12:00 МСК не опубликовал — КХЛ публикует сам.
+ * ==========================================================================*/
+var SHARED_FILE = 'jarvis_itogi_khl.json';
+
+/** {file, data} — данные общего файла (нет файла — data = {}). */
+function sharedRead_() {
+  var it = DriveApp.getFilesByName(SHARED_FILE), f = null, x;
+  while (it.hasNext()) { x = it.next(); if (!x.isTrashed() && (!f || x.getLastUpdated() > f.getLastUpdated())) f = x; }
+  var data = {};
+  if (f) { try { data = JSON.parse(f.getBlob().getDataAsString()) || {}; } catch (e) { data = {}; } }
+  return { file: f, data: data };
+}
+function sharedWrite_(data) {
+  var cur = sharedRead_(), txt = JSON.stringify(data);
+  if (cur.file) cur.file.setContent(txt); else DriveApp.createFile(SHARED_FILE, txt, 'application/json');
+}
+/** Слить данные с тем, что уже в файле (поля, которых нет в patch, не трогаем). */
+function sharedPatch_(patch) {
+  var d = sharedRead_().data || {};
+  Object.keys(patch).forEach(function (k) { d[k] = patch[k]; });
+  sharedWrite_(d);
+  return d;
+}
+function uniqChats_(a) { var seen = {}; return a.map(String).filter(function (c) { if (!c || seen[c]) return false; seen[c] = 1; return true; }); }
+
+/** Матчи ночи из API НХЛ: американская дата us (= день КХЛ) → {all, final, items:[{home, away, sh, sa, mark}]}. */
+function nhlNightGames_(us) {
+  var games = nhlGamesOf_(nhlGet_('score/' + us)).filter(function (g) { return !g.gameScheduleState || g.gameScheduleState === 'OK'; });
+  games.sort(function (a, b) { return String(a.startTimeUTC).localeCompare(String(b.startTimeUTC)); });
+  var items = [], fin = 0;
+  games.forEach(function (g) {
+    var done = NHL_FINAL[String(g.gameState || '').toUpperCase()] && typeof (g.homeTeam || {}).score === 'number';
+    if (!done) return;
+    fin++;
+    var h = nhlTeamOf_(g.homeTeam), a = nhlTeamOf_(g.awayTeam);
+    var last = String((g.gameOutcome && g.gameOutcome.lastPeriodType) || (g.periodDescriptor && g.periodDescriptor.periodType) || '').toUpperCase();
+    if (h && a) items.push({ home: h, away: a, sh: g.homeTeam.score, sa: g.awayTeam.score, mark: last === 'SO' ? 'Б' : last === 'OT' ? 'ОТ' : '' });
+  });
+  return { all: games.length, final: fin, items: items };
+}
+
+/** Каждые 15 минут (вместе с разведчиком) с 03:00 до 13:00 МСК: ночь доиграна — один пост с двумя баннерами КХЛ + НХЛ.
+ *  last = true (из «итогов ночи» в 10:00) — публикуем и с недоигранными матчами (перенос, сбой счёта). */
+function nhlNightDoneAuto_(last) {
+  var msk = mskNow_('yyyy-MM-dd'), h = Number(mskNow_('HH')), p = PropertiesService.getScriptProperties();
+  if (h < 3 || h >= 13 || p.getProperty(ITOGI_PROP + msk) || !p.getProperty('GITHUB_TOKEN')) return;
+  var us = addDaysKey_(msk, -1), n = nhlNightGames_(us);
+  if (!n.all || !n.items.length || (n.final < n.all && !last)) return;     // ночи нет или ещё играют
+  var r = itogiBothDispatch_(us, msk, n.items, 'channel');
+  if (r.sent) {
+    p.setProperty(ITOGI_PROP + msk, mskNow_());
+    p.setProperty('NHL_MORNING_' + msk, '1'); try { dailyMark_('morning'); } catch (e) {}   // текстовые «итоги ночи» больше не нужны
+    autoMark_('nhlMorningAuto_', true, 'общий пост «Итоги игрового дня» → канал (КХЛ: ' + r.khl + ', НХЛ: ' + r.nhl + (n.final < n.all ? ' из ' + n.all : '') + ')');
+  }
+}
+
+/** Заказать общий пост: баннеры КХЛ (из общего файла, если он за этот день) и НХЛ. target: 'channel' | 'admin'. */
+function itogiBothDispatch_(us, msk, nhlItems, target) {
+  var p = PropertiesService.getScriptProperties(), d = sharedRead_().data || {};
+  var khl = d.day === us && d.items && d.items.length && (target !== 'channel' || !d.posted) ? d.items : [];
+  var chats = target === 'channel' ? uniqChats_(posterChannels_().concat(khl.length ? d.chats || [] : [])) : [p.getProperty('TG_ADMIN_ID')].filter(Boolean);
+  if (!chats.length) return { skipped: 'некуда публиковать' };
+  var title = ruDayTitle_(us).toLowerCase(), leagues = [];
+  if (khl.length) leagues.push({ league: 'KHL', date_title: title, items: khl });
+  if (nhlItems.length) leagues.push({ league: 'NHL', date_title: title, items: nhlItems });
+  if (!leagues.length) return { skipped: 'нет сыгранных матчей' };
+  var r = itogiGithub_('post', '/repos/' + ITOGI_REPO + '/dispatches', { event_type: 'itogi2', client_payload: {
+    kind: 'itogi2', day: us, date_title: title, chat: String(chats[0]), chats: chats, leagues: leagues } });
+  if (!r) return { skipped: 'GitHub не подключён' };
+  if (r.getResponseCode() !== 204) throw new Error('GitHub ответил ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 200));
+  if (target === 'channel' && khl.length) { try { sharedPatch_({ posted: 'combined' }); } catch (e) {} }
+  return { sent: khl.length + nhlItems.length, khl: khl.length, nhl: nhlItems.length };
+}
+
+/** Кнопка: общий пост за последнюю ночь — вам (через 1–2 минуты). */
+function itogiBothNow_() {
+  try {
+    var msk = mskNow_('yyyy-MM-dd'), us = addDaysKey_(msk, -1), n = nhlNightGames_(us);
+    if (!n.items.length) { us = addDaysKey_(us, -1); n = nhlNightGames_(us); }
+    var r = itogiBothDispatch_(us, msk, n.items, 'admin');
+    if (r.skipped) { uiAlert_('Пост не заказан: ' + r.skipped + '.'); return; }
+    uiAlert_('Общий пост за ' + us.split('-').reverse().join('.') + ' (КХЛ: ' + r.khl + ', НХЛ: ' + r.nhl + ' матчей) рисуется — придёт вам через 1–2 минуты.' +
+      (r.khl ? '' : '\n\nСчёта КХЛ за этот день в общем файле нет: он появляется в 00:00 МСК после игрового дня КХЛ.'));
+  } catch (e) { uiAlert_('Не получилось: ' + e.message); }
+}
+
+/* ── 📊 «Игроки дня» (10:00 МСК): лучшие игроки КХЛ (из общего файла) и наши в НХЛ — одним постом, без эмодзи ── */
+function playersDayText_(day) {
+  var ss = SpreadsheetApp.getActive(), us = addDaysKey_(day, -1), d = sharedRead_().data || {}, parts = [];
+  var khlOk = d.stats_day === us && d.stats;
+  if (khlOk) parts.push(d.stats);
+  var f = nhlDayForecasts_(ss, day).filter(function (x) { return x.played; }), ours = '';
+  try { ours = f.length ? itogiNoEmoji_(nhlOursText_(ss, day, f)) : ''; } catch (e) { ours = ''; }
+  if (ours) parts.push(ours.replace(/^\s*<b>Наши<\/b>/, '<b>НХЛ · наши</b>'));
+  if (!parts.length) return { text: '', chats: [] };
+  return { text: '<b>Игроки дня</b> · ' + escHtml_(ruDayTitle_(us).toLowerCase()) + '\n\n' + parts.join('\n\n'),
+           chats: uniqChats_(posterChannels_().concat(khlOk ? d.stats_chats || [] : [])) };
+}
+function playersDayAuto_(day) {
+  var p = PropertiesService.getScriptProperties(), key = 'PLAYERS_DAY_' + day;
+  if (p.getProperty(key)) return;
+  var t = playersDayText_(day);
+  if (!t.text) return;
+  var sent = 0, errs = [];
+  t.chats.forEach(function (c) {
+    var r = tgRaw_('sendMessage', { chat_id: c, text: t.text, parse_mode: 'HTML', disable_web_page_preview: true });
+    if (r && r.ok) sent++; else errs.push(c + ': ' + ((r && r.description) || 'нет ответа'));
+  });
+  if (sent) p.setProperty(key, mskNow_());
+  autoMark_('nhlMorningAuto_', !errs.length, 'пост «Игроки дня»: отправлен в ' + sent + ' из ' + t.chats.length + (errs.length ? ' (' + errs.join('; ') + ')' : ''));
+}
+function playersDayNow_() {
+  try {
+    var day = mskNow_('yyyy-MM-dd'), t = playersDayText_(day), to = PropertiesService.getScriptProperties().getProperty('TG_ADMIN_ID');
+    if (!t.text) { uiAlert_('Для поста «Игроки дня» пока нет данных: КХЛ — после утреннего обновления таблицы КХЛ, НХЛ — после утреннего обновления этой таблицы.'); return; }
+    var r = tgRaw_('sendMessage', { chat_id: to, text: '👀 ПРОБНЫЙ ПОСТ (в канал не ушёл)\n\n' + t.text, parse_mode: 'HTML', disable_web_page_preview: true });
+    uiAlert_(r && r.ok ? 'Пробный пост «Игроки дня» отправлен вам в Telegram.' : 'Telegram: ' + ((r && r.description) || 'нет ответа'));
+  } catch (e) { uiAlert_('Не получилось: ' + e.message); }
+}

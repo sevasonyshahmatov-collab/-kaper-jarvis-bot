@@ -10,6 +10,9 @@
 Рисуем формат «Колонки» (preview_ice, style='columns').
 "extra" (необязательно, HTML) — дописывается к подписи: у НХЛ это «🇷🇺 Наши» (результативность россиян).
 Не влезает в лимит подписи Telegram (1024 знака) — уходит отдельным сообщением сразу после фото.
+«Итоги игрового дня» КХЛ + НХЛ одним постом — "kind": "itogi2" (событие «itogi2»):
+    {"leagues": [{"league": "KHL", "date_title": "…", "items": [...]}, {"league": "NHL", ...}], "date_title": "…", "chats": [...]}
+Два баннера «Ячейки» альбомом, в подписи — счёт всех матчей по лигам.
 "chats" — куда отправить (канал и группа у автоматики, ваш чат у кнопок); нет — "chat".
 Картинка не нарисовалась — в те же чаты уходит подпись текстом (итоги не пропадут), задание помечается ошибкой.
 Без TG_BOT_TOKEN — только сохраняем картинку (для проверки: python render/itogi_job.py payload.json).
@@ -109,6 +112,96 @@ def send_message(token, chat, text):
         raise SystemExit('Telegram: %s' % (j.get('description') or r.status_code))
 
 
+def send_album(token, chat, paths, text):
+    """Альбом из нескольких фото; подпись — под альбомом (у первого фото)."""
+    import requests
+    media, files = [], {}
+    for i, path in enumerate(paths):
+        m = {'type': 'photo', 'media': 'attach://p%d' % i}
+        if i == 0 and text:
+            m.update(caption=text, parse_mode='HTML')
+        media.append(m)
+        files['p%d' % i] = open(path, 'rb')
+    try:
+        r = requests.post('https://api.telegram.org/bot%s/sendMediaGroup' % token, timeout=90,
+                          data={'chat_id': chat, 'media': json.dumps(media, ensure_ascii=False)}, files=files)
+    finally:
+        for f in files.values():
+            f.close()
+    j = r.json() if r.headers.get('content-type', '').startswith('application/json') else {}
+    if not j.get('ok'):
+        raise SystemExit('Telegram: %s' % (j.get('description') or r.status_code))
+
+
+def caption_both(blocks, date_title):
+    """Подпись общего поста: «Итоги игрового дня · дата», затем по лиге: название и счёт матчей."""
+    parts = ['<b>Итоги игрового дня</b>' + (' · ' + html.escape(date_title) if date_title else '')]
+    for league, items in blocks:
+        lines = ['%s — %s <b>%d:%d</b>%s' % (html.escape(i['home']), html.escape(i['away']), i['sh'], i['sa'],
+                                              ' ' + i['mark'] if i['mark'] else '') for i in items]
+        parts.append('<b>%s</b>\n%s' % ('КХЛ' if league == 'KHL' else 'НХЛ', '\n'.join(lines)))
+    return '\n\n'.join(parts)
+
+
+def main_both(payload):
+    """Общий пост: баннер на каждую лигу (КХЛ первым), альбомом, подпись — счёт всех матчей."""
+    blocks = []
+    for lg in payload.get('leagues') or []:
+        try:
+            league, items, title, _ = clean(dict(lg, chat=''))
+        except SystemExit as e:
+            print('пропускаю лигу:', e)
+            continue
+        blocks.append((league, items, title))
+    if not blocks:
+        raise SystemExit('в данных нет ни одного сыгранного матча')
+    blocks.sort(key=lambda b: 0 if b[0] == 'KHL' else 1)
+    date_title = str(payload.get('date_title') or blocks[0][2] or '').strip()
+    text = no_emoji(caption_both([(b[0], b[1]) for b in blocks], date_title))
+    after = ''
+    if len(text) > CAPTION_MAX:                  # большой день: альбом без подписи, счёт — следом сообщением
+        text, after = '', text
+    chats = [str(c).strip() for c in (payload.get('chats') or [payload.get('chat')]) if str(c or '').strip()]
+    print('подпись:\n' + (text or after))
+    paths, drawn = [], True
+    try:
+        import results_ice2 as ri
+        for league, items, title in blocks:
+            if league == 'NHL':
+                import nhl
+                nhl.register()
+            out = os.path.join(os.getcwd(), 'itogi2_%s.jpg' % league.lower())
+            ri.render(items, out, variant=10, league=league, date_title=title or date_title or None)
+            paths.append(out)
+        print('нарисовано:', ', '.join(paths))
+    except Exception as e:                       # noqa: BLE001 — не нарисовалось: публикуем текстом
+        drawn = False
+        print('картинки не нарисовались:', repr(e))
+    token = os.environ.get('TG_BOT_TOKEN')
+    if not token:
+        print('TG_BOT_TOKEN не задан — в Telegram ничего не отправлено')
+        return
+    if not chats:
+        raise SystemExit('не указан чат (chat / chats) для отправки')
+    errors = []
+    for c in chats:
+        try:
+            if drawn:
+                if len(paths) == 1:
+                    send_photo(token, c, paths[0], text)
+                else:
+                    send_album(token, c, paths, text)
+                if after:
+                    send_message(token, c, after)
+            else:
+                send_message(token, c, text or after)
+            print('отправлено в', c)
+        except SystemExit as e:
+            errors.append('%s: %s' % (c, e))
+    if errors or not drawn:
+        raise SystemExit('; '.join(errors) or 'картинки не нарисовались — опубликован текст')
+
+
 def send_photo(token, chat, path, text):
     import requests
     with open(path, 'rb') as f:
@@ -122,6 +215,8 @@ def send_photo(token, chat, path, text):
 def main():
     payload = load_payload()
     kind = str(payload.get('kind') or os.environ.get('EVENT_KIND') or 'itogi').lower()
+    if kind == 'itogi2':
+        return main_both(payload)
     league, items, date_title, chat = (clean_matchi if kind == 'matchi' else clean)(payload)
     # куда: список chats (канал и группа — автоматика, или ваш чат — кнопки меню); старые события — один chat
     chats = [str(c).strip() for c in (payload.get('chats') or [chat]) if str(c or '').strip()]
