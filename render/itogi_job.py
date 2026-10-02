@@ -86,21 +86,26 @@ def clean_matchi(payload):
     return league, items, str(payload.get('date_title') or '').strip(), str(payload.get('chat') or '').strip()
 
 
-MATCHI_PER_POSTER = 6        # до 6 матчей — один крупный постер; больше — делим на несколько в одном альбоме
-MATCHI_MAX = 6               # на постере в альбоме — не больше 6 (у всех постеров альбома одинаковая шапка и высота)
+MATCHI_PER_POSTER = 5        # больше — делим на постеры
+MATCHI_FIRST_MAX = 6         # на первом постере — не больше 6
+MATCHI_CONT_MAX = 7          # на продолжении — не больше 7
 
 
 def split_matchi(items):
-    """Матчи дня по постерам. До 6 — один. Больше — поровну, первый крупнее (7 → 4+3, 9 → 5+4, 13 → 5+4+4).
-    У всех постеров альбома шапка «МАТЧИ ДНЯ» и высота одинаковые — плашки на одном уровне."""
+    """Матчи дня по постерам. До 5 — один. Больше — поровну на два, первый крупнее (9 → 5+4, 7 → 4+3, 12 → 6+6);
+    первый — не больше 6, продолжение — не больше 7 (13 → 6+7). Не влезает в два — три и больше (14 → 6+4+4).
+    У всех постеров альбома шапка и высота одинаковые (rows=), поэтому при равном числе матчей (3+3, 4+4, 6+6)
+    плашки лежат на одном уровне; при неравном — верх строк всё равно совпадает, разница только внизу."""
     n = len(items)
     if n <= MATCHI_PER_POSTER:
         return [items]
-    g = -(-n // MATCHI_MAX)
-    out, i = [], 0
+    first = min(MATCHI_FIRST_MAX, -(-n // 2))
+    rest = items[first:]
+    g = max(1, -(-len(rest) // MATCHI_CONT_MAX))
+    out, i = [items[:first]], 0
     for k in range(g):
-        size = n // g + (1 if k < n % g else 0)
-        out.append(items[i:i + size])
+        size = len(rest) // g + (1 if k < len(rest) % g else 0)
+        out.append(rest[i:i + size])
         i += size
     return out
 
