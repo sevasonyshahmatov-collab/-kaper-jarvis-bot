@@ -7349,6 +7349,9 @@ function livePicks_(ss, day) {
 
 /** Один шаг (раз в 5 минут): отметить начавшиеся матчи, подтянуть финальный счёт с sports.ru, при изменениях — переписать пост. */
 var LIVE_SCORE_FROM_MIN = 115;     // раньше чем через столько минут после начала финального счёта не бывает — страницу не трогаем
+// LIVE-пост со счётом в канале и группе убран (решение 02.10: «от этого отходим»). Счёт по-прежнему отслеживается каждые
+// 5 минут — по нему выходят «Итоги дня» в 00:00, «Игроки дня» и подсчёт игры. true — вернуть пост.
+var LIVE_POST = false;
 function liveUpdate_(now) {
   now = now || new Date();
   var ss = SpreadsheetApp.getActive();
@@ -7357,7 +7360,7 @@ function liveUpdate_(now) {
   var cands = liveCandidates_(ss, now);
   var started = cands.filter(function (m) { return m.mins > -2 && m.mins < LIVE_WINDOW_MIN; });
   if (!started.length) return { matches: 0, posted: false, edited: false, text: '' };
-  if (!props.getProperty('TG_BOT_TOKEN') || !channel) return { matches: started.length, posted: false, edited: false, text: '', error: 'бот не подключен' };
+  if (LIVE_POST && (!props.getProperty('TG_BOT_TOKEN') || !channel)) return { matches: started.length, posted: false, edited: false, text: '', error: 'бот не подключен' };
 
   var state = {};
   try { state = JSON.parse(props.getProperty('LIVE_STATE') || '{}'); } catch (e) { state = {}; }
@@ -7407,7 +7410,7 @@ function liveUpdate_(now) {
     }
     if (msgs[day]) sigs[day] = sig;
   };
-  Object.keys(days).sort().forEach(function (day) {
+  if (LIVE_POST) Object.keys(days).sort().forEach(function (day) {
     var items = days[day];
     if (!items.some(function (it) { return it.s.phase !== 'wait'; })) return;
     var sig = items.map(function (it) { return it.m.id + ':' + it.s.key; }).join(',');    // пост трогаем только при изменениях
@@ -7458,7 +7461,8 @@ function liveUpdateAuto_() {
 function liveUpdateNow_() {
   var r;
   try { r = liveUpdate_(new Date()); } catch (e) { uiAlert_('LIVE: ошибка — ' + e.message); return; }
-  if (!r.matches) { uiAlert_('Сейчас нет идущих матчей. Пост «Матчи дня» выйдет сам, когда начнётся первый матч дня.'); return; }
+  if (!r.matches) { uiAlert_('Сейчас нет идущих матчей.'); return; }
+  if (!LIVE_POST) { uiAlert_('Идущих матчей: ' + r.matches + '. LIVE-пост со счётом убран — счёт отслеживается только для «Итогов дня».'); return; }
   if (r.error) { uiAlert_('Идущих матчей: ' + r.matches + ', но ' + r.error + ' (меню «📣 КХЛ · ТГ группа» → «Игра: подключить бота и канал»).'); return; }
   uiAlert_('Идущих матчей: ' + r.matches + '. ' + (r.posted ? 'Пост опубликован.' : r.edited ? 'Пост обновлён.' : 'Новых результатов нет — пост не трогали.'));
 }
@@ -8953,7 +8957,7 @@ var AUTO_JOBS = [
   { fn: 'bannersAuto_', kind: 'day', hour: 9, what: 'Карточки матчей дня (картинки) — вам в Telegram' },
   { fn: 'agentDailyBriefAuto_', kind: 'day', hour: 13, what: 'Агент: сводка по матчам дня в личку (новости, досье, заявки прошлых матчей)' },
   { fn: 'updateMarketOddsAuto_', kind: 'hours', every: 2, what: 'Коэффициенты рынка и «Лучший прогноз»' },
-  { fn: 'liveUpdateAuto_', kind: 'minutes', every: 5, what: 'LIVE-пост во время матчей + заявки за час до матча (🟢🟡🔴 в личку)' },
+  { fn: 'liveUpdateAuto_', kind: 'minutes', every: 5, what: 'Счёт матчей для «Итогов дня» (00:00) и «Игроков дня» + заявки за час до матча (🟢🟡🔴 в личку); LIVE-пост в канал убран' },
   { fn: 'scoutAuto_', kind: 'hours', every: 1, what: 'Разведчик: новые посты и новости по командам ближайших матчей → лист «Факты» (ночью по МСК спит)' },
   { fn: 'scoutReportAuto_', kind: 'minutes', every: 15, what: 'Разведчик: итог вам за ~1,5 ч до каждого матча' },
   { fn: 'weeklyAuto_', kind: 'week', hour: 5, what: 'Раз в неделю (пн): досье всех команд заново' },
@@ -11428,12 +11432,9 @@ var DAILY_KHL_ = [
 var TG_GROUP_KHL_ = [
   ['1 · Карточки матчей дня → группа', 'dailyCardsChannel_', '-'],
   ['2 · Игра «матчи дня» → группа', 'dailyGamePost_', 'gamePostMatchesAuto_'],
-  ['3 · Счёт после матчей в пост «Матчи дня» → группа', 'liveUpdateNow_', 'liveUpdateAuto_'],
-  ['4 · Игра: подвести итоги (личные итоги игрокам)', 'gameSettleNow_', '-'],
-  ['5 · «Сила команд» → группа (пн)', 'powerPostNow_', '-'],
+  ['3 · Игра: подвести итоги (личные итоги игрокам)', 'gameSettleNow_', '-'],
+  ['4 · «Сила команд» → группа (пн)', 'powerPostNow_', '-'],
   null,
-  ['🖼 Тест «Итоги дня» с картинкой → мне в личку', 'testItogiToMe', '-'],
-  ['🖼 Тест «Итоги дня» с картинкой → группа', 'testItogiToChannel', '-'],
   ['🖼 Постер «Матчи дня» → мне (ближайший игровой день)', 'matchiPosterNow_', '-'],
   ['🖼 Постер «Матчи дня» → группа (ближайший игровой день)', 'matchiPosterGroup_', '-'],
   ['🖼 Постер «Итоги дня» → мне (последний игровой день)', 'itogiPosterNow_', '-'],

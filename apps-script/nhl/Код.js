@@ -12474,8 +12474,8 @@ var AUTO_JOBS = [
   { fn: 'runAfterGameDay_', kind: 'day', hour: 13, what: 'Обновить всё после игрового дня: результаты, Elo, календарь, прогнозы, точность, составы, ключевые игроки, проверка выводов агента, банкролл' },
   { fn: 'agentDailyBriefAuto_', kind: 'day', hour: AGENT_HOUR, what: 'Агент: сводка по матчам ближайшей ночи в личку (новости, досье, составы прошлых матчей)' },
   { fn: 'updateMarketOddsAuto_', kind: 'hours', every: 2, what: 'Коэффициенты рынка (Pinnacle, NHL) и «Лучший прогноз»' },
-  { fn: 'nhlEveningAuto_', kind: 'day', hour: 23, what: 'Канал: «прогнозы на ночь» (шансы, лучший прогноз, вратари, вывод агента) + вам расхождения модели и рынка' },
-  { fn: 'nhlGoaliesAuto_', kind: 'hours', every: 1, what: 'До начала матчей (19:00–07:00 МСК): сменились вратари — правка поста в канале и сообщение вам' },
+  { fn: 'nhlEveningAuto_', kind: 'day', hour: 23, what: 'Вам: расхождения модели и рынка на ночь, запомнить вратарей (пост «прогнозы на ночь» в канал убран)' },
+  { fn: 'nhlGoaliesAuto_', kind: 'hours', every: 1, what: 'До начала матчей (19:00–07:00 МСК): сменились вратари — сообщение вам' },
   { fn: 'nhlMorningAuto_', kind: 'day', hour: 14, what: 'Канал: «итоги ночи» (счёт матчей и «Наши»)' },
   { fn: 'scoutAuto_', kind: 'hours', every: 1, what: 'Разведчик: новые посты и новости по командам ближайших матчей → лист «Факты»' },
   { fn: 'scoutReportAuto_', kind: 'minutes', every: 15, what: 'Разведчик: итог вам за ~1,5 ч до каждого матча' },
@@ -13013,7 +13013,7 @@ function nhlGoalieRefresh_() {
   if (h >= 8 && h < 19) return { skipped: 'вне окна' };
   var ss = SpreadsheetApp.getActive(), p = PropertiesService.getScriptProperties(), dayKey = nhlBriefDay_();
   var st = null; try { st = JSON.parse(p.getProperty('NHL_POST_' + dayKey) || 'null'); } catch (e) { st = null; }
-  if (!st || !st.ids || !st.ids.length) return { skipped: 'поста нет' };
+  if (!st || !st.sig) return { skipped: 'поста нет' };
   NHL_BUNDLE_ = null;
   var b = nhlBundle_(true, [dayKey]), blocks = nhlEveningBlocks_(ss, dayKey, b.starters), changed = [], before = JSON.stringify(st.sig || {});
   st.sig = st.sig || {};
@@ -13027,12 +13027,12 @@ function nhlGoalieRefresh_() {
   });
   if (JSON.stringify(st.sig) === before) return { edited: 0 };                 // вратари те же — пост не трогаем
   var head = '🇺🇸 <b>НХЛ · прогнозы на ночь</b> · ' + escHtml_(ruDayTitle_(dayKey).toLowerCase()) + ' (МСК)';
-  var msgs = nhlPack_(head, blocks.map(function (x) { return x.text; }), NHL_EVENING_FOOT), edited = 0;
-  if (msgs.length === st.ids.length) {
+  var msgs = nhlPack_(head, blocks.map(function (x) { return x.text; }), NHL_EVENING_FOOT), edited = 0, post = !!(st.ids && st.ids.length);
+  if (post && msgs.length === st.ids.length) {
     msgs.forEach(function (t, i) { var r = tg_('editMessageText', { chat_id: st.chat, message_id: st.ids[i], text: t, parse_mode: 'HTML', disable_web_page_preview: true }); if (r && r.ok) edited++; });
   }
   p.setProperty('NHL_POST_' + dayKey, JSON.stringify(st));
-  if (changed.length) autoNotifyAdmin_('🥅 НХЛ: изменились вратари (пост в канале ' + (edited ? 'обновлён' : 'НЕ обновлён — проверьте') + '):\n' + changed.join('\n'));
+  if (changed.length) autoNotifyAdmin_('🥅 НХЛ: изменились вратари' + (post ? ' (пост в канале ' + (edited ? 'обновлён' : 'НЕ обновлён — проверьте') + ')' : '') + ':\n' + changed.join('\n'));
   return { edited: edited, changed: changed.length };
 }
 
@@ -13078,11 +13078,31 @@ function nhlSeasonAccuracy_(ss) {
 }
 
 /* ---- запуски по расписанию и кнопки меню ---- */
+// Пост «прогнозы на ночь» в канал убран (решение 02.10: «от этого отходим») — в канал идут постер «Матчи дня» и ваши прогнозы.
+// В 23:00 запуск остаётся ради вас: запоминает вратарей ночи (дальше раз в час — сообщение о смене) и шлёт расхождения модели и рынка.
+var NHL_EVENING_POST = false;
 function nhlEveningAuto_() {
   if (nhlNotReady_(true)) return;
+  if (!NHL_EVENING_POST) {
+    try { var g = nhlGoalieBaseline_(); autoMark_('nhlEveningAuto_', true, 'пост в канал выключен; вратарей запомнено: ' + g.matches + (g.notes ? ', расхождений с рынком вам: ' + g.notes : '')); }
+    catch (e0) { autoMark_('nhlEveningAuto_', false, e0.message); }
+    return;
+  }
   if (!nhlChannelId_()) { autoMark_('nhlEveningAuto_', true, 'канал не указан — пост не публикуется'); return; }
   try { var r = nhlEveningPost_('channel'); autoMark_('nhlEveningAuto_', true, r.matches ? 'опубликовано: матчей ' + r.matches + ', сообщений ' + r.sent : 'матчей нет'); }
   catch (e) { autoMark_('nhlEveningAuto_', false, e.message); autoNotifyAdmin_('⚠ НХЛ: пост «прогнозы на ночь» не ушёл: ' + e.message); }
+}
+/** Без поста в канале: запомнить вратарей ночи (для сообщений о смене) и отправить вам расхождения модели и рынка. */
+function nhlGoalieBaseline_(dayKey) {
+  var ss = SpreadsheetApp.getActive(), p = PropertiesService.getScriptProperties();
+  dayKey = dayKey || nhlBriefDay_();
+  NHL_BUNDLE_ = null;
+  var b = nhlBundle_(true, [dayKey]), blocks = nhlEveningBlocks_(ss, dayKey, b.starters), sig = {};
+  blocks.forEach(function (x) { sig[x.match.home + '|' + x.match.away] = x.sig; });
+  if (blocks.length) p.setProperty('NHL_POST_' + dayKey, JSON.stringify({ chat: '', ids: [], sig: sig }));
+  var notes = 0;
+  try { notes = blocks.length ? nhlDivergenceNote_(ss, dayKey) : 0; } catch (e) { notes = 0; }
+  return { matches: blocks.length, notes: notes };
 }
 function nhlGoaliesAuto_() {
   try { var r = nhlGoalieRefresh_(); if (!r.skipped) autoMark_('nhlGoaliesAuto_', true, 'правок поста: ' + (r.edited || 0) + ', смен вратарей: ' + (r.changed || 0)); }
@@ -13246,9 +13266,8 @@ var DAILY_NHL_ = [
 ];
 var TG_GROUP_NHL_ = [
   ['1 · Итоги ночи → группа', 'dailyMorning_', 'nhlMorningAuto_'],
-  ['2 · Прогнозы на ночь → группа', 'dailyEvening_', 'nhlEveningAuto_'],
-  ['3 · Карточки матчей ночи → группа', 'dailyCardsChannel_', '-'],
-  ['4 · «Сила команд» → группа (пн)', 'powerPostNow_', '-'],
+  ['2 · Карточки матчей ночи → группа', 'dailyCardsChannel_', '-'],
+  ['3 · «Сила команд» → группа (пн)', 'powerPostNow_', '-'],
   null,
   ['🖼 Постер «Матчи дня» → мне (ближайший игровой день)', 'matchiPosterNow_', '-'],
   ['🖼 Постер «Матчи дня» → группа (ближайший игровой день)', 'matchiPosterGroup_', '-'],
