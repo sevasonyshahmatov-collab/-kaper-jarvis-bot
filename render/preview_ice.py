@@ -22,7 +22,8 @@ import poster
 import recap
 import results_styles as rs
 from results_styles2 import F, fit, club, spaced, _layered, _team_plate, TEK, RUSSO, EXOI
-from results_ice2 import _background, _plate, _logo, _crown, _cells, MANROPE, NAVY, RED
+from results_ice2 import _background, _plate, _logo, _crown, _cells, _brand_big, MANROPE, NAVY, RED
+from results_ice2 import _layout as _layout_ri
 from results_styles2 import OSW, UNB
 from results_ice3 import _grad_box, _name, _ink, LIGHT, GREY, GOLD
 
@@ -69,34 +70,21 @@ def _odds_txt(v):
 CELLS = {'cells': 10, 'grid': 11, 'columns': 12}
 
 
-PORTRAIT_H = 1350       # 4:5 — в альбоме Telegram портретные постеры встают рядом и крупно
-ROW_MAX = 280           # выше ячейка — уже перебор
-
-
-def _layout(n, rows):
-    """Высота ячейки, верх первой ячейки и высота постера. rows — сколько мест под матчи
-    (в альбоме у всех постеров одинаково = самый длинный), поэтому плашки на соседних постерах на одном уровне."""
-    rows = max(rows or 0, n, 1)
-    avail = PORTRAIT_H - HEAD - FOOT
-    row = int(min(ROW_MAX, (avail + GAP) / rows - GAP))
-    block = rows * (row + GAP) - GAP
-    if rows >= 3:
-        return row, HEAD + (avail - block) // 2, PORTRAIT_H
-    return row, HEAD, HEAD + block + FOOT
-
-
 def _render_cells(items, path, style, league, title, date_title, cont=False, rows=None):
     """Афиша в формате ячеек-логотипов: команда видна только эмблемой, в центре — время и линия.
-    cont=True — продолжение (второй и следующие постеры дня): без заголовка и даты, но ячейки на тех же местах.
+    cont=True — продолжение (второй и следующие постеры дня): вместо заголовка и даты крупно «JARVIS | KHL/NHL»,
+    ячейки на тех же местах.
     rows — число мест под матчи (общее для всех постеров альбома)."""
     variant = CELLS[style]
-    row, top, H = _layout(len(items), rows)
+    row, top, H = _layout_ri(len(items), rows, HEAD, FOOT)
     k = min(row / ROW, 1.35)                       # текст на табло растёт с ячейкой, но не шире табло
     bg = _background(H, league)
     ov = Image.new('RGBA', (W * S, H * S), (0, 0, 0, 0))
     d = ImageDraw.Draw(ov)
-    rs._brand(d, W * S / 2, 58 * S, league, dark_text=True)
-    if not cont:
+    if cont:
+        _brand_big(d, W * S / 2, 132 * S, league)
+    else:
+        rs._brand(d, W * S / 2, 58 * S, league, dark_text=True)
         spaced(d, (W * S / 2, 138 * S), title, F(OSW, 84 * S, 700), NAVY + (255,), 3 * S)
         if date_title:
             spaced(d, (W * S / 2, 206 * S), date_title.upper(), F(MANROPE, 21 * S, 800), (40, 58, 92, 255), 3 * S)
