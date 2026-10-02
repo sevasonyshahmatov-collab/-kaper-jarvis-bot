@@ -233,13 +233,13 @@ def _poly_mask(w, h, pts):
     return np.asarray(m, np.float32) / 255
 
 
-def _cells(it, hw, variant, center, pre=False):
+def _cells(it, hw, variant, center, pre=False, row=None):
     """Ячейки «как в сетке плей-офф»: команда показана только логотипом во всю ячейку, без названия.
     10 — светлые ячейки и тёмное табло по центру, у края табло полоска цвета клуба;
     11 — скошенные ячейки как в сетке КХЛ: белая ячейка с логотипом + плашка счёта в цвете клуба;
     12 — как 8, но без названий: ячейки в цвете клуба, логотип во всю колонку.
-    pre=True — до матча: обе команды в полном цвете, проигравшего нет."""
-    w, h, r = (W - 64) * S, ROW * S, 22 * S
+    pre=True — до матча: обе команды в полном цвете, проигравшего нет. row — высота ячейки (по умолчанию ROW)."""
+    w, h, r = (W - 64) * S, int((row or ROW) * S), 22 * S
     home, away = it['home'], it['away']
     if variant == 12:
         card = _plate(home, away, w, h, r, hw, center, loser='none' if pre else 'dark')

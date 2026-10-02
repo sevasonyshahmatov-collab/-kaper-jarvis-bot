@@ -69,15 +69,29 @@ def _odds_txt(v):
 CELLS = {'cells': 10, 'grid': 11, 'columns': 12}
 
 
-HEAD_CONT = 110          # постер-продолжение: только шапка JARVIS | лига, без «МАТЧИ ДНЯ» и даты (+1 матч по высоте)
+PORTRAIT_H = 1350       # 4:5 — в альбоме Telegram портретные постеры встают рядом и крупно
+ROW_MAX = 280           # выше ячейка — уже перебор
 
 
-def _render_cells(items, path, style, league, title, date_title, cont=False):
+def _layout(n, rows):
+    """Высота ячейки, верх первой ячейки и высота постера. rows — сколько мест под матчи
+    (в альбоме у всех постеров одинаково = самый длинный), поэтому плашки на соседних постерах на одном уровне."""
+    rows = max(rows or 0, n, 1)
+    avail = PORTRAIT_H - HEAD - FOOT
+    row = int(min(ROW_MAX, (avail + GAP) / rows - GAP))
+    block = rows * (row + GAP) - GAP
+    if rows >= 3:
+        return row, HEAD + (avail - block) // 2, PORTRAIT_H
+    return row, HEAD, HEAD + block + FOOT
+
+
+def _render_cells(items, path, style, league, title, date_title, cont=False, rows=None):
     """Афиша в формате ячеек-логотипов: команда видна только эмблемой, в центре — время и линия.
-    cont=True — продолжение (второй и следующие постеры дня): без заголовка и даты, матчи сразу под шапкой."""
+    cont=True — продолжение (второй и следующие постеры дня): без заголовка и даты, но ячейки на тех же местах.
+    rows — число мест под матчи (общее для всех постеров альбома)."""
     variant = CELLS[style]
-    head = HEAD_CONT if cont else HEAD
-    H = head + len(items) * (ROW + GAP) - GAP + FOOT
+    row, top, H = _layout(len(items), rows)
+    k = min(row / ROW, 1.35)                       # текст на табло растёт с ячейкой, но не шире табло
     bg = _background(H, league)
     ov = Image.new('RGBA', (W * S, H * S), (0, 0, 0, 0))
     d = ImageDraw.Draw(ov)
@@ -88,11 +102,11 @@ def _render_cells(items, path, style, league, title, date_title, cont=False):
             spaced(d, (W * S / 2, 206 * S), date_title.upper(), F(MANROPE, 21 * S, 800), (40, 58, 92, 255), 3 * S)
     cx = W / 2 * S
     for i, it in enumerate(items):
-        y0 = head + i * (ROW + GAP)
-        cy = (y0 + ROW / 2) * S
+        y0 = top + i * (row + GAP)
+        cy = (y0 + row / 2) * S
         fav = _fav(it)
         o = it.get('odds') or (None, None, None)
-        card = _cells(it, True, variant, (12, 14, 20), pre=True)
+        card = _cells(it, True, variant, (12, 14, 20), pre=True, row=row)
         if variant == 11:
             card, X, sk = card
         poster._shadowed(ov, card, (32 * S, y0 * S), blur=12 * S, off=(0, 5 * S), color=(30, 60, 110, 70))
@@ -112,23 +126,23 @@ def _render_cells(items, path, style, league, title, date_title, cont=False):
                                     outline=(255, 255, 255, 200), width=S)
                 d.text((sx, ty), txt, font=f, anchor='mm', fill=(255, 236, 170, 255) if ty < cy else (220, 226, 236, 255))
             continue
-        d.text((cx, cy - 20 * S), it.get('time', ''), font=F(UNB, 40 * S, 700), anchor='mm', fill=(255, 255, 255, 255))
-        for k, dx, lab in ((0, -86, 'П1'), (1, 0, 'Х'), (2, 86, 'П2')):
-            hot = (k == 0 and fav == -1) or (k == 2 and fav == 1)
+        d.text((cx, cy - 20 * k * S), it.get('time', ''), font=F(UNB, int(40 * k) * S, 700), anchor='mm', fill=(255, 255, 255, 255))
+        for j, dx, lab in ((0, -86, 'П1'), (1, 0, 'Х'), (2, 86, 'П2')):
+            hot = (j == 0 and fav == -1) or (j == 2 and fav == 1)
             x = cx + dx * S
-            d.text((x, cy + 18 * S), lab, font=F(MANROPE, 12 * S, 800), anchor='mm', fill=(120, 128, 142, 255))
-            d.text((x, cy + 40 * S), _odds_txt(o[k]), font=F(MANROPE, 21 * S, 800), anchor='mm',
+            d.text((x, cy + 18 * k * S), lab, font=F(MANROPE, int(12 * k) * S, 800), anchor='mm', fill=(120, 128, 142, 255))
+            d.text((x, cy + 40 * k * S), _odds_txt(o[j]), font=F(MANROPE, int(21 * k) * S, 800), anchor='mm',
                    fill=(255, 208, 90, 255) if hot else (200, 206, 216, 255))
     d.text((W * S / 2, (H - 70) * S), FOOT_TEXT, font=F(MANROPE, 13 * S, 800), anchor='mm', fill=(34, 50, 84, 255))
     spaced(d, (W * S / 2, (H - 40) * S), '@jarvibet', F(UNB, 20 * S, 700), RED + (255,), 2 * S)
     return rs._finish(bg, ov, H, path, grain=0.2)
 
 
-def render(items, path, style='crown', league='KHL', title='МАТЧИ ДНЯ', date_title=None, cont=False):
+def render(items, path, style='crown', league='KHL', title='МАТЧИ ДНЯ', date_title=None, cont=False, rows=None):
     league = league.upper()
     items = rs._resolve(items, league)
     if style in CELLS:
-        return _render_cells(items, path, style, league, title, date_title, cont)
+        return _render_cells(items, path, style, league, title, date_title, cont, rows)
     H = HEAD + len(items) * (ROW + GAP) - GAP + FOOT
     bg = _bg_plain(H, league) if style == 'pucks' else _background(H, league)
     ov = Image.new('RGBA', (W * S, H * S), (0, 0, 0, 0))
