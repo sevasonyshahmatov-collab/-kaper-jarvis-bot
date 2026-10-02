@@ -4747,14 +4747,17 @@ function runAfterGameDay_(e) {
   try {
     step('Границы диапазонов в формулах', function () { return repairFormulaBounds_(ss); });
     step('Даты и известные ошибки расписания', function () {
-      return { fixedDates: repairShiftedDates_(), corrections: applyKnownCorrections_(), moved: mergeRescheduled_(ss) };
+      return { fixedDates: repairShiftedDates_(), corrections: applyKnownCorrections_() };
     });
+    // календарь — до результатов: доигранный матч, которого нет в таблице, добавится и сразу получит счёт
+    step('Календарь сезона (API НХЛ)', function () { return syncScheduleFromWeb_(); });
     step('Результаты и рейтинг Elo', function () {
       updateResultsFromWeb();
+      var moved = mergeRescheduled_(ss);   // переносы — после результатов: матчи ночи уже «Сыгран»
       computeAndWriteElo_(true);   // всегда: матч мог попасть в таблицу и без sports.ru (исправления, ручной ввод)
       updateLeagueRates_(true);
+      return { moved: moved };
     });
-    step('Календарь сезона (API НХЛ)', function () { return syncScheduleFromWeb_(); });
     step('Новые матчи в прогнозах (на ' + SYNC_HORIZON_DAYS + ' дней)', function () { return syncPredictionRows_(); });
     step('Результативность дома / в гостях', function () { setupHomeAwayScoringSplit_(); });
     step('Формулы модели, П1/Х/П2, тоталы', function () {
@@ -4785,9 +4788,10 @@ function runAfterGameDay_(e) {
   steps.forEach(function (s) {
     var detail = '';
     if (!s.ok) detail = ' — ' + firstLine(s.err);
-    else if (s.name.indexOf('Результаты') === 0 && s.msgs.length) {
+    else if (s.name.indexOf('Результаты') === 0 && (s.msgs.length || (s.out && s.out.moved && s.out.moved.length))) {
       var rm = s.msgs.filter(function (m) { return /матч\(ей\) обновлено/.test(m); });
-      detail = ' — ' + firstLine(rm.length ? rm[rm.length - 1] : s.msgs[s.msgs.length - 1]);
+      detail = s.msgs.length ? ' — ' + firstLine(rm.length ? rm[rm.length - 1] : s.msgs[s.msgs.length - 1]) : '';
+      if (s.out && s.out.moved && s.out.moved.length) detail += (detail ? '; ' : ' — ') + 'перенесённые матчи: ' + s.out.moved.join('; ');
     }
     else if (s.name.indexOf('Новые матчи') === 0) detail = ' — добавлено: ' + (s.out || 0);
     else if (s.name.indexOf('Составы') === 0 && s.out) detail = ' — добавлено матчей: ' + s.out.added + (s.out.pending ? ', осталось ' + s.out.pending + ' (догрузятся завтра или кнопкой в меню «Агент»)' : '');
@@ -9280,8 +9284,8 @@ function bannersToChannelNow_() {
 
 /* ── Перенесённые матчи ──
  * Календарь добавляет перенесённый матч новой строкой (новая дата), а старая остаётся «Запланирован» навсегда —
- * вместе с прогнозом, который так и не будет проверен. Если у той же пары есть строка через 1–10 дней после
- * прошедшей даты, это перенос: старой строке ставим новую дату (и счёт, если он уже пришёл в новую строку),
+ * вместе с прогнозом, который так и не будет проверен. Если строка так и осталась без счёта через 2 дня после даты
+ * (запускается после загрузки результатов) и у той же пары есть строка через 1–10 дней после неё, это перенос: старой строке ставим новую дату (и счёт, если он уже пришёл в новую строку),
  * новую строку очищаем; в «прогнозах» дату переносим так же. Прогноз остаётся тем, что был сделан до матча. */
 function mergeRescheduled_(ss) {
   ss = ss || SpreadsheetApp.getActive();
@@ -9291,7 +9295,9 @@ function mergeRescheduled_(ss) {
     .filter(function (x) { return x.d && x.h && x.a; });
   var used = {};
   rows.forEach(function (old) {
-    if (old.st !== 'Запланирован' || old.d >= today || used[old.i]) return;
+    // только если счёта нет и через 2 дня: вчерашний матч без счёта — это обычно ещё не подгруженный результат,
+    // а та же пара через пару дней — второй матч серии (Автомобилист — Амур 02.10 и 04.10), а не перенос
+    if (old.st !== 'Запланирован' || old.d > addDaysKey_(today, -2) || used[old.i]) return;
     var nw = rows.filter(function (x) {
       return x.i !== old.i && !used[x.i] && x.h === old.h && x.a === old.a && x.d > old.d && x.d <= addDaysKey_(old.d, 10);
     })[0];
@@ -11849,7 +11855,7 @@ function syncScheduleFromWeb_() {
   if (!games.length && from > NHL_SEASON_TO) return { added: 0, notOnWeb: [], unknown: [], last: null };
   if (!games.length) throw new Error('API НХЛ не вернул матчей регулярного чемпионата (сезон ещё не опубликован или API недоступен)');
   var web = {}, coveredTo = '';
-  games.forEach(function (x) { web[x.iso + '|' + x.home + '|' + x.away] = { key: x.iso, home: x.home, away: x.away }; if (x.iso > coveredTo) coveredTo = x.iso; });
+  games.forEach(function (x) { web[x.iso + '|' + x.home + '|' + x.away] = { key: x.iso, home: x.home, away: x.away, final: !!x.final }; if (x.iso > coveredTo) coveredTo = x.iso; });
   var v = sh.getDataRange().getValues(), hdr = v[0];
   var cD = hdr.indexOf('Дата'), cH = hdr.indexOf('Хозяева'), cA = hdr.indexOf('Гости');
   var existing = {}, lastTeamRow = 1, notOnWeb = [];
@@ -11863,7 +11869,8 @@ function syncScheduleFromWeb_() {
     if (key2 >= today && key2 <= coveredTo && !web[full]) notOnWeb.push(key2.slice(8, 10) + '.' + key2.slice(5, 7) + ' ' + home + ' — ' + away);
   }
   var toAdd = [];
-  for (var wk in web) if (!existing[wk] && web[wk].key >= today) toAdd.push(web[wk]);
+  // будущие матчи и доигранные за последние дни, которых нет в таблице (строку могли ошибочно стереть) — счёт проставят «Результаты»
+  for (var wk in web) if (!existing[wk] && (web[wk].key >= today || web[wk].final)) toAdd.push(web[wk]);
   toAdd.sort(function (x, y) { return x.key < y.key ? -1 : x.key > y.key ? 1 : (x.home < y.home ? -1 : 1); });
   if (toAdd.length) nhlAppendResultRows_(sh, lastTeamRow, toAdd);
   return { added: toAdd.length, notOnWeb: notOnWeb, unknown: [], last: toAdd.length ? toAdd[toAdd.length - 1].key : null };
