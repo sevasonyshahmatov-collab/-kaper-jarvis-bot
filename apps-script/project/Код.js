@@ -47,6 +47,25 @@ function eloTeamK_(n, baseK, boost, games) {
   if (!(boost > 0) || !(games > 0)) return baseK;
   return baseK * (1 + boost * Math.max(0, 1 - (n || 0) / games));
 }
+/* ── Модель v2 (03.10.2026): по бэктесту на 548 матчах 2025-26 и 115 матчах 2026-27 (против линии букмекера):
+ *  • предсезонный рейтинг входит в Elo сжатым к середине (×0.8): разброс 4…93 делал модель переуверенной —
+ *    матчи «80–90%» выигрывались в 64–75% случаев;
+ *  • поправка формы выключена: и в прошлом сезоне, и в этом без неё точнее (серии уже учтены в Elo, форма их удваивала);
+ *  • поправка «по игре»: ожидаемая разница шайб по броскам (броски в створ за минус броски против × средняя реализация лиги).
+ *    Команда, которая перебрасывает соперников, но не забивает, получает плюс; та, что выигрывает при меньшем числе
+ *    бросков (везёт с реализацией и вратарём, высокий PDO), — минус. Доверие растёт с числом матчей: n/(n+8);
+ *  • чувствительность $M$3: 90 → 100.
+ *  Brier 2026-27: 0.2290 → 0.2247 (обе половины сезона лучше), 2025-26: 0.2279 → 0.2265; на 70 матчах с линией 0.2267 → 0.2178
+ *  (линия 0.2212). Выключить — меню «КХЛ-парсер» → Настройки → «🧮 Модель v2: выключить» (MODEL_V2 = off). */
+var ELO_START_SHRINK = 0.8;   // доля предсезонного отрыва от середины (50), с которой команда начинает сезон в Elo
+var PLAY_ADJ_WEIGHT = 0.5;    // вес «ожидаемой разницы шайб по броскам» в рейтинге
+var PLAY_ADJ_N0 = 8;          // доверие к броскам: n/(n + 8) — после 8 матчей наполовину
+var PLAY_ADJ_GPP = 33;        // 1 шайба разницы за игру ≈ 33 пункта рейтинга (при чувствительности 100 это ~68% на победу)
+var PLAY_ADJ_CAP = 12;        // предел поправки, пунктов рейтинга
+var MODEL_V2_SCALE = 100;     // чувствительность $M$3 в модели v2 (была 90)
+var COL_PLAY = 59;            // BG — «Поправка по игре (Х-Г)» на листе «прогнозы»
+function modelV2On_() { return PropertiesService.getScriptProperties().getProperty('MODEL_V2') !== 'off'; }
+
 var FORM_WINDOW = 8;      // сколько последних игр ТЕКУЩЕГО сезона учитывать во взвешенной форме
 var FORM_SCALE = 20;      // множитель перевода "перфоманс минус ожидание" в шкалу рейтинга —
                             // подобран заново под новую (более узкую) дельта-шкалу, чтобы сохранить
@@ -151,6 +170,8 @@ function onOpen() {
       .addItem('Выключить автоматику', 'removeDailyTrigger_')
       .addItem('Поправка формы: включить в прогноз', 'modelFormOn_')
       .addItem('Поправка формы: выключить', 'modelFormOff_')
+      .addItem('🧮 Модель v2 (броски, без формы): выключить', 'modelV2Off_')
+      .addItem('🧮 Модель v2: включить', 'modelV2On2_')
       .addItem('Применить самую точную модель', 'applyBestModel_')
       .addItem('Указать API-ключ Anthropic', 'setAnthropicApiKey_')
       .addItem('Навести порядок: цвета вкладок, скрыть служебные листы', 'tidyUpSheets_')
@@ -576,7 +597,7 @@ function computeAndWriteElo_(silent) {
     // случайно попавшая в этот столбец заметка) не должны считаться командой
     if (!name || typeof rawRating !== 'number') continue;
     var startRating = rawRating;
-    elo[name] = ELO_BASE + (startRating - 50) * ELO_SCALE;
+    elo[name] = ELO_BASE + (startRating - 50) * (modelV2On_() ? ELO_START_SHRINK : 1) * ELO_SCALE;
     teamOrder.push(name);
   }
 
@@ -685,11 +706,16 @@ function computeAndWriteElo_(silent) {
   } else {
     eloSh.clearContents();
   }
-  eloSh.getRange(1, 1, 1, 4).setValues([['Команда', 'Elo', 'Игр учтено', 'Поправка формы (посл. ' + FORM_WINDOW + ')']]);
+  var play = {};
+  try { play = playAdjByTeam_(ss, games); } catch (e) { play = {}; }
+  eloSh.getRange(1, 1, 1, 9).setValues([['Команда', 'Elo', 'Игр учтено', 'Поправка формы (посл. ' + FORM_WINDOW + ')',
+    'Поправка по игре (броски)', 'Матчей с бросками', 'Доля бросков, %', 'PDO (реализация + отражённые)', 'Шайбы за игру: факт − ожидание по броскам']]);
   var rows = teamOrder.map(function (name) {
-    return [name, Math.round(elo[name] * 10) / 10, gamesPlayed[name] || 0, formAdj[name] || 0];
+    var q = play[name] || {};
+    return [name, Math.round(elo[name] * 10) / 10, gamesPlayed[name] || 0, formAdj[name] || 0,
+      modelV2On_() ? (q.adj || 0) : 0, q.n || 0, q.share === undefined ? '' : q.share, q.pdo === undefined ? '' : q.pdo, q.luck === undefined ? '' : q.luck];
   });
-  eloSh.getRange(2, 1, rows.length, 4).setValues(rows);
+  eloSh.getRange(2, 1, rows.length, 9).setValues(rows);
 
   // Рейтинг силы (Data!T) — тот самый, по которому считаются все прогнозы, —
   // записываем напрямую числом из только что посчитанного Elo.
@@ -708,6 +734,40 @@ function computeAndWriteElo_(silent) {
       'Рейтинг силы (Data!T) обновлён для ' + ratingsWritten + ' команд — теперь прогнозы считаются по фактическим ' +
       'результатам сезона, а не по предсезонным оценкам.');
   }
+}
+
+/** Поправка «по игре» по броскам в створ этого сезона (лист составов: у вратаря «броски по воротам» = броски соперника).
+ *  {команда: {adj, n, share, pdo, luck}}: adj — пункты рейтинга (см. PLAY_ADJ_*), share — доля бросков команды, %,
+ *  pdo — реализация + % отражённых (100 — норма), luck — шайбы за игру сверх ожидания по броскам (плюс — везёт). */
+function playAdjByTeam_(ss, games) {
+  var lu = ss.getSheetByName(LINEUP_SHEET), out = {};
+  if (!lu || lu.getLastRow() < 2) return out;
+  var shots = {};                                                     // день|хозяева|гости|команда → броски ПО ЕЁ воротам
+  lu.getRange(2, 1, lu.getLastRow() - 1, 11).getValues().forEach(function (r) {
+    if (String(r[4]) !== 'G' || !(Number(r[10]) > 0)) return;
+    var k = signalDay_(r[0]) + '|' + String(r[1]).trim() + '|' + String(r[2]).trim() + '|' + String(r[3]).trim();
+    shots[k] = (shots[k] || 0) + Number(r[10]);
+  });
+  var st = {}, lg = { sf: 0, g: 0 };
+  games.forEach(function (g) {
+    if (!(g.date instanceof Date)) return;
+    var base = sheetDayKey_(g.date) + '|' + g.home + '|' + g.away, sh = shots[base + '|' + g.away], sa = shots[base + '|' + g.home];
+    if (!(sh > 0) || !(sa > 0)) return;                                // нет бросков хотя бы одной стороны — матч не берём
+    [[g.home, sh, sa, g.hg, g.ag], [g.away, sa, sh, g.ag, g.hg]].forEach(function (x) {
+      var c = st[x[0]] = st[x[0]] || { n: 0, sf: 0, sa: 0, gf: 0, ga: 0 };
+      c.n++; c.sf += x[1]; c.sa += x[2]; c.gf += x[3]; c.ga += x[4];
+    });
+    lg.sf += sh + sa; lg.g += g.hg + g.ag;
+  });
+  if (!lg.sf) return out;
+  var lsh = lg.g / lg.sf, r1 = function (x) { return Math.round(x * 10) / 10; };
+  Object.keys(st).forEach(function (t) {
+    var c = st[t], xgd = (c.sf - c.sa) / c.n * lsh, gd = (c.gf - c.ga) / c.n;
+    var adj = c.n / (c.n + PLAY_ADJ_N0) * PLAY_ADJ_GPP * PLAY_ADJ_WEIGHT * xgd;
+    out[t] = { adj: Math.max(-PLAY_ADJ_CAP, Math.min(PLAY_ADJ_CAP, Math.round(adj * 100) / 100)), n: c.n,
+      share: r1(c.sf / (c.sf + c.sa) * 100), pdo: r1((c.gf / c.sf + 1 - c.ga / c.sa) * 100), luck: Math.round((gd - xgd) * 100) / 100 };
+  });
+  return out;
 }
 
 /**
@@ -3862,6 +3922,7 @@ function probabilityFormulaTemplate_(withoutTweak) {
   if (modelUseForm_()) terms.push('AC{R}');
   if (MODEL_USE_ROAD) terms.push('AS{R}');
   if (MODEL_USE_DENSITY) terms.push('AV{R}');
+  if (modelV2On_()) terms.push('BG{R}');                                  // поправка по игре (броски), модель v2
   return '=IF(OR(B{R}="";C{R}="");"";ROUND(MAX(8/100;MIN(92/100;1/(1+10^(-(' +
          '(INDEX(Data!$T$2:$T$23;MATCH(B{R};Data!$A$2:$A$23;0)))' +
          '+' + terms.join('+') +
@@ -3880,6 +3941,7 @@ function applyBestModel_() {
   if (modelUseForm_()) used.push('форма');
   if (MODEL_USE_ROAD) used.push('выездная серия');
   if (MODEL_USE_DENSITY) used.push('плотность календаря');
+  if (modelV2On_()) used.push('игра по броскам');
   uiAlert_(
     'Формула шансов обновлена в ' + n + ' несыгранных матчах.\n\n' +
     'Теперь в расчёте: ' + used.join(', ') + '.\n\n' +
@@ -3896,6 +3958,8 @@ function applyBestModel_() {
  */
 function applyProbabilityFormula_(sh) {
   var rows = openPredictionRows_(sh);
+  playColumnSetup_(sh, rows);
+  if (sh.getRange(1, COL_PROB_BASE).getValue()) setFormulaOnOpenRows_(sh, COL_PROB_BASE, probabilityFormulaTemplate_(true), rows);   // шанс без моей поправки — той же моделью
   setFormulaOnOpenRows_(sh, 4, probabilityFormulaTemplate_(), rows);
   setFormulaOnOpenRows_(sh, 5, '=IF(OR(B{R}="";C{R}="");"";1-D{R})', rows);
   return rows.length;
@@ -7446,6 +7510,7 @@ function liveUpdateAuto_() {
     try { lw = lineupWatch_(new Date()); } catch (e) { console.log('lineups: ' + e.message); autoMark_('liveUpdateAuto_', false, 'заявки: ' + e.message); }
     if (lv && lv.doneDays && lv.doneDays.length && PIPELINE_GAME) { try { gameEarlySettle_(lv.doneDays); } catch (e) { console.log('game early: ' + e.message); } }
     if (lv && lv.doneDays && lv.doneDays.length) itogiAutoKhl_(lv);
+    try { var m2 = modelV2Ensure_(); if (m2) autoMark_('liveUpdateAuto_', true, m2); } catch (e) { console.log('модель v2: ' + e.message); }
     try { if (Number(mskNow_('HH')) >= MATCHI_HOUR_MSK) matchiAuto_(bannersDay_()); } catch (e) { console.log('матчи дня: ' + e.message); }   // «Матчи дня» КХЛ — с 09:00 МСК
     if ((lv && (lv.posted || lv.edited)) || (lw && lw.checked)) autoMark_('liveUpdateAuto_', true, (lv && lv.matches ? 'LIVE: матчей ' + lv.matches + '. ' : '') + (lw && lw.checked ? 'заявки: проверено ' + lw.checked + ', отправлено ' + lw.sent : ''));
     // раз в сутки: доставить недостающие запуски (после вставки нового кода нажимать ничего не нужно)
@@ -10462,6 +10527,61 @@ function modelFormSet_(on) {
 }
 function modelFormOn_() { modelFormSet_(true); }
 function modelFormOff_() { modelFormSet_(false); }
+
+/** Столбец BG «Поправка по игре (Х-Г)»: разница поправок команд с листа Elo (столбец E) — в несыгранных строках. */
+function playColumnSetup_(sh, rows) {
+  sh.getRange(1, COL_PLAY).setValue('Поправка по игре (Х-Г)');
+  setFormulaOnOpenRows_(sh, COL_PLAY,
+    '=IFERROR(INDEX(Elo!$E$2:$E$23;MATCH($B{R};Elo!$A$2:$A$23;0));0)-IFERROR(INDEX(Elo!$E$2:$E$23;MATCH($C{R};Elo!$A$2:$A$23;0));0)', rows || openPredictionRows_(sh));
+}
+
+/** Переход на модель v2 — один раз, сам (из частого запуска LIVE): форма выкл. (с отметкой даты для честной проверки),
+ *  чувствительность 100, Elo заново (сжатый старт + броски), формулы шансов в несыгранных матчах. */
+function modelV2Ensure_() {
+  var p = PropertiesService.getScriptProperties();
+  if (p.getProperty('MODEL_V2') || !modelV2On_()) return '';
+  var ss = SpreadsheetApp.getActive(), pr = ss.getSheetByName('прогнозы');
+  if (!pr) return '';
+  p.setProperty('MODEL_V2', 'on ' + mskNow_());                           // сразу: второй раз сам не запустится, даже если упадёт
+  var old = Number(pr.getRange('M3').getValue()) || 90, n = 0;
+  try {
+    p.setProperty('MODEL_V2_PREV_M3', String(old));
+    p.setProperty('MODEL_V2_PREV_FORM', modelUseForm_() ? '1' : '0');
+    if (modelUseForm_()) modelFormQuiet_(false);
+    pr.getRange('M3').setValue(MODEL_V2_SCALE);
+    computeAndWriteElo_(true);
+    n = applyProbabilityFormula_(pr);
+  } catch (e) {
+    autoNotifyAdmin_('⚠ КХЛ: переход на модель v2 не завершился: ' + e.message + '. Повторить: «КХЛ-парсер» → Настройки → «🧮 Модель v2: включить».');
+    throw e;
+  }
+  autoNotifyAdmin_('🧮 КХЛ: включена модель v2 — без поправки формы, сжатый предсезонный рейтинг, поправка по игре (броски), чувствительность ' +
+    old + ' → ' + MODEL_V2_SCALE + '. Пересчитаны шансы в ' + n + ' несыгранных матчах. Выключить: «КХЛ-парсер» → Настройки → «🧮 Модель v2: выключить».');
+  return 'модель v2: ' + n + ' матчей';
+}
+/** Форма вкл/выкл без окна (для модели v2) — с той же отметкой даты, что и в меню. */
+function modelFormQuiet_(on) {
+  var pp = PropertiesService.getScriptProperties(), log = [];
+  try { log = JSON.parse(pp.getProperty('MODEL_FORM_LOG') || '[]'); } catch (e) { log = []; }
+  log.push([todayKey_(), on ? 1 : 0]);
+  pp.setProperty('MODEL_FORM_LOG', JSON.stringify(log.slice(-50)));
+  pp.setProperty('MODEL_USE_FORM', on ? '1' : '0');
+}
+/** Меню: выключить / включить модель v2. Выключение возвращает прежние чувствительность и форму. */
+function modelV2Off_() {
+  var p = PropertiesService.getScriptProperties(), ss = SpreadsheetApp.getActive(), pr = ss.getSheetByName('прогнозы');
+  p.setProperty('MODEL_V2', 'off');
+  if (pr) pr.getRange('M3').setValue(Number(p.getProperty('MODEL_V2_PREV_M3')) || 90);
+  if (p.getProperty('MODEL_V2_PREV_FORM') === '1') modelFormQuiet_(true);
+  computeAndWriteElo_(true);
+  var n = pr ? applyProbabilityFormula_(pr) : 0;
+  uiAlert_('Модель v2 выключена: вернулись прежняя чувствительность, форма (если была) и полный предсезонный рейтинг. Пересчитано матчей: ' + n + '.');
+}
+function modelV2On2_() {
+  PropertiesService.getScriptProperties().deleteProperty('MODEL_V2');
+  var r = modelV2Ensure_();
+  uiAlert_(r ? 'Модель v2 включена (' + r + ').' : 'Модель v2 уже включена.');
+}
 
 /** Бесплатная проверка: как угадывали бы честные прогнозы этого сезона с поправкой формы и без неё. */
 function modelFormCheck_() {
