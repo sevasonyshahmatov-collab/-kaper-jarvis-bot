@@ -13244,9 +13244,10 @@ var TG_GROUP_NHL_ = [
   ['4 · «Сила команд» → группа (пн)', 'powerPostNow_', '-'],
   null,
   ['🖼 Постер «Матчи дня» → мне (ближайший игровой день)', 'matchiPosterNow_', '-'],
-  ['🖼 Общий пост «Итоги игрового дня» КХЛ + НХЛ → мне', 'itogiBothNow_', '-'],
+  ['🖼 Постер «Матчи дня» → группа (ближайший игровой день)', 'matchiPosterGroup_', '-'],
   ['📊 Пост «Игроки дня» → мне', 'playersDayNow_', '-'],
   ['🖼 Постер «Итоги дня» → мне (последний игровой день)', 'itogiPosterNow_', '-'],
+  ['🖼 Постер «Итоги дня» → группа (последний игровой день)', 'itogiPosterGroup_', '-'],
   ['🔑 Подключить GitHub для постеров', 'itogiSetToken_', '-'],
   ['🖼 Готовый постер → мне в личку', 'posterToMe_', '-'],
   ['🖼 Готовый постер → группа', 'posterToChannel_', '-'],
@@ -13715,7 +13716,7 @@ function itogiGithub_(method, path, body) {
 /** Заказать постер: {sent} или {skipped: причина}. kind: 'itogi' (items: [{home, away, sh, sa, mark}]) или 'matchi'.
  *  target: 'admin' — вам в личку (кнопки меню, для проверки), 'channel' — в канал (и группу), как публикует автоматика.
  *  Отметка «за этот день уже заказан» ставится только для канала — проверка себе не мешает автопубликации. */
-function itogiDispatch_(league, dayKey, items, kind, caption, target) {
+function itogiDispatch_(league, dayKey, items, kind, caption, target, more) {
   kind = kind || 'itogi';
   var p = PropertiesService.getScriptProperties(), chats = target === 'channel' ? posterChannels_() : [p.getProperty('TG_ADMIN_ID')].filter(Boolean);
   if (!p.getProperty('GITHUB_TOKEN')) return { skipped: 'GitHub не подключён' };
@@ -13724,6 +13725,7 @@ function itogiDispatch_(league, dayKey, items, kind, caption, target) {
   if (!items || !items.length) return { skipped: 'нет сыгранных матчей' };
   var cp = { kind: kind, league: league, day: dayKey, date_title: ruDayTitle_(dayKey).toLowerCase(), chat: String(chat), chats: chats.map(String), items: items };
   if (caption) cp.caption = caption;
+  Object.keys(more || {}).forEach(function (k) { if (more[k]) cp[k] = more[k]; });   // after_text / after_chats — пост следом
   if (kind === 'itogi') { var ex = ''; try { ex = itogiExtra_(SpreadsheetApp.getActive(), dayKey, items); } catch (e) { ex = ''; } if (ex) cp.extra = ex; }
   var r = itogiGithub_('post', '/repos/' + ITOGI_REPO + '/dispatches', { event_type: kind, client_payload: cp });
   if (r.getResponseCode() !== 204) throw new Error('GitHub ответил ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 200));
@@ -13757,16 +13759,25 @@ function itogiLastDay_(ss) {
   return best;
 }
 
-/** Кнопка: постер за последний игровой день — вам в Telegram (через 1–2 минуты). */
-function itogiPosterNow_() {
-  var ss = SpreadsheetApp.getActive(), day = itogiLastDay_(ss);
+/** Кнопка: постер за последний игровой день — вам в Telegram (через 1–2 минуты); target 'channel' — в группу. */
+function itogiPosterNow_(target) {
+  var ss = SpreadsheetApp.getActive(), day = itogiLastDay_(ss), toGroup = target === 'channel';
   if (!day) { uiAlert_('На листе «' + SHEET_RESULTS + '» нет сыгранных матчей.'); return; }
   var items = itogiItemsFromResults_(ss, day);
+  if (toGroup && !posterConfirm_('«Итоги дня» за ' + day.split('-').reverse().join('.') + ' (матчей: ' + items.length + ')', ITOGI_PROP + day)) return;
   try {
-    var r = itogiDispatch_(ITOGI_LEAGUE, day, itogiMarksNhl_(day, items));
+    var r = itogiDispatch_(ITOGI_LEAGUE, day, itogiMarksNhl_(day, items), 'itogi', '', toGroup ? 'channel' : '');
     if (r.skipped) { uiAlert_('Постер не заказан: ' + r.skipped + '.' + (/GitHub/.test(r.skipped) ? ' Подключите: «🔑 Подключить GitHub для постеров».' : '')); return; }
-    uiAlert_('Постер «Итоги дня» за ' + day.split('-').reverse().join('.') + ' (матчей: ' + r.sent + ') рисуется — придёт вам в Telegram через 1–2 минуты.');
+    uiAlert_('Постер «Итоги дня» за ' + day.split('-').reverse().join('.') + ' (матчей: ' + r.sent + ') рисуется — ' + (toGroup ? 'появится в группе' : 'придёт вам в Telegram') + ' через 1–2 минуты.');
   } catch (e) { uiAlert_('Не получилось: ' + e.message); }
+}
+function itogiPosterGroup_() { itogiPosterNow_('channel'); }
+
+/** Перед публикацией в группу по кнопке: спросить; если за этот день постер уже выходил — предупредить о повторе. */
+function posterConfirm_(what, key) {
+  var ui = SpreadsheetApp.getUi(), done = String(PropertiesService.getScriptProperties().getProperty(key) || '');
+  return ui.alert('Опубликовать постер ' + what + ' в группу?' + (/^\d/.test(done) ? '\n\nЗа этот день постер уже публиковался (' + done + ') — будет повтор.' : ''),
+    ui.ButtonSet.YES_NO) === ui.Button.YES;
 }
 
 /** Кнопка: сохранить токен GitHub и проверить доступ к репозиторию. */
@@ -13846,16 +13857,18 @@ function matchiAuto_(day) {
   }
 }
 
-/** Кнопка: постер на ближайший игровой день — вам в Telegram (через 1–2 минуты). */
-function matchiPosterNow_() {
-  var ss = SpreadsheetApp.getActive(), day = bannersDay_();
+/** Кнопка: постер на ближайший игровой день — вам в Telegram (через 1–2 минуты); target 'channel' — в группу. */
+function matchiPosterNow_(target) {
+  var ss = SpreadsheetApp.getActive(), day = bannersDay_(), toGroup = target === 'channel';
   for (var i = 0; i < 7 && !agentMatchesOfDay_(ss, day).length; i++) day = addDaysKey_(day, 1);
+  if (toGroup && !posterConfirm_('«Матчи дня» на ' + day.split('-').reverse().join('.'), MATCHI_PROP + day)) return;
   try {
-    var r = matchiDispatch_(ss, day);
+    var r = matchiDispatch_(ss, day, toGroup ? 'channel' : '');
     if (r.skipped) { uiAlert_('Постер не заказан: ' + r.skipped + '.' + (/GitHub/.test(r.skipped) ? ' Подключите: «🔑 Подключить GitHub для постеров».' : '')); return; }
-    uiAlert_('Постер «Матчи дня» на ' + day.split('-').reverse().join('.') + ' (матчей: ' + r.sent + ') рисуется — придёт вам в Telegram через 1–2 минуты.');
+    uiAlert_('Постер «Матчи дня» на ' + day.split('-').reverse().join('.') + ' (матчей: ' + r.sent + ') рисуется — ' + (toGroup ? 'появится в группе' : 'придёт вам в Telegram') + ' через 1–2 минуты.');
   } catch (e) { uiAlert_('Не получилось: ' + e.message); }
 }
+function matchiPosterGroup_() { matchiPosterNow_('channel'); }
 
 /** К подписи постера «Итоги ночи» ничего не добавляем: «Наши» выходят отдельным постом «Игроки дня» в 10:00 МСК. */
 function itogiExtra_(ss, dayKey, items) { return ''; }
@@ -14013,25 +14026,27 @@ function nhlNightGames_(us) {
   return { all: games.length, final: fin, items: items };
 }
 
-/** Каждые 15 минут (вместе с разведчиком) с 03:00 до 13:00 МСК: ночь доиграна — один пост с двумя баннерами КХЛ + НХЛ.
+/** Каждые 15 минут (вместе с разведчиком) с 03:00 до 13:00 МСК: ночь доиграна — постер «Итоги дня» НХЛ в канал
+ *  (КХЛ публикует свои итоги сам в 00:00), следом — пост «Игроки дня» (лучшие КХЛ + наши в НХЛ).
  *  last = true (из «итогов ночи» в 10:00) — публикуем и с недоигранными матчами (перенос, сбой счёта). */
 function nhlNightDoneAuto_(last) {
   var msk = mskNow_('yyyy-MM-dd'), h = Number(mskNow_('HH')), p = PropertiesService.getScriptProperties();
   if (h < 3 || h >= 13 || p.getProperty(ITOGI_PROP + msk) || !p.getProperty('GITHUB_TOKEN')) return;
   var us = addDaysKey_(msk, -1), n = nhlNightGames_(us);
   if (!n.all || !n.items.length || (n.final < n.all && !last)) return;     // ночи нет или ещё играют
-  var after = '';
-  try { after = playersDayText_(msk, nhlOursFromApi_(msk, n.items)).text; } catch (e0) { after = ''; }
-  var r = itogiBothDispatch_(us, msk, n.items, 'channel', after);
+  var t = { text: '', chats: [] };
+  try { t = playersDayText_(msk, nhlOursFromApi_(msk, n.items)); } catch (e0) { t = { text: '', chats: [] }; }
+  var items = n.items.map(function (i) { return { home: i.home, away: i.away, sh: i.sh, sa: i.sa, mark: i.mark }; });
+  var r = itogiDispatch_('NHL', msk, items, 'itogi', '', 'channel', { after_text: t.text, after_chats: t.text ? t.chats : null });
   if (r.sent) {
-    p.setProperty(ITOGI_PROP + msk, mskNow_());
-    if (after) p.setProperty('PLAYERS_DAY_' + msk, mskNow_() + ' (вместе с итогами)');   // в 10:00 второй раз не публикуем
+    if (t.text) p.setProperty('PLAYERS_DAY_' + msk, mskNow_() + ' (вместе с итогами)');   // в 10:00 второй раз не публикуем
     p.setProperty('NHL_MORNING_' + msk, '1'); try { dailyMark_('morning'); } catch (e) {}   // текстовые «итоги ночи» больше не нужны
-    autoMark_('nhlMorningAuto_', true, 'общий пост «Итоги игрового дня» → канал (КХЛ: ' + r.khl + ', НХЛ: ' + r.nhl + (n.final < n.all ? ' из ' + n.all : '') + ')');
+    autoMark_('nhlMorningAuto_', true, 'постер «Итоги дня» НХЛ → канал (матчей ' + r.sent + (n.final < n.all ? ' из ' + n.all : '') + ')' + (t.text ? ' + «Игроки дня»' : ''));
   }
 }
 
-/** Заказать общий пост: баннеры КХЛ (из общего файла, если он за этот день) и НХЛ. target: 'channel' | 'admin'. */
+/** Заказать общий пост: баннеры КХЛ (из общего файла, если он за этот день) и НХЛ. target: 'channel' | 'admin'.
+ *  Автоматика им больше не пользуется (итоги лиг выходят отдельно) — только кнопка проверки. */
 function itogiBothDispatch_(us, msk, nhlItems, target, afterText) {
   var p = PropertiesService.getScriptProperties(), d = sharedRead_().data || {};
   var khl = d.day === us && d.items && d.items.length && (target !== 'channel' || !d.posted) ? d.items : [];

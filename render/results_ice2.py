@@ -28,6 +28,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 import poster
+import recap
 import results_styles as rs
 from results_styles2 import F, fit, club, spaced, _sticker, _layered, _noise, OSW, TEK, RUSSO, UNB, EXOI
 
@@ -312,26 +313,59 @@ def _check(d, cx, cy, r):
 MANROPE = 'Manrope[wght].ttf'
 
 
-def _mark(d, cx, cy, mark, dark_bg, side=False):
+def _mark(d, cx, cy, mark, dark_bg, side=False, k=1.0):
     if not mark:
         return
-    t, f = rs.MARK_TEXT[mark], (F(MANROPE, 13 * S, 800) if side else F(EXOI, 14 * S, 800))
-    w = f.getlength(t) + 16 * S
-    d.rounded_rectangle((cx - w / 2, cy - 11 * S, cx + w / 2, cy + 11 * S), radius=8 * S,
+    t, f = rs.MARK_TEXT[mark], (F(MANROPE, int(13 * k) * S, 800) if side else F(EXOI, 14 * S, 800))
+    w, hh = f.getlength(t) + 16 * k * S, 11 * k * S
+    d.rounded_rectangle((cx - w / 2, cy - hh, cx + w / 2, cy + hh), radius=8 * S,
                         fill=(255, 255, 255, 235) if dark_bg else (16, 22, 34, 230))
     d.text((cx, cy), t, font=f, anchor='mm', fill=(16, 22, 34, 255) if dark_bg else (255, 255, 255, 255))
 
 
-def _score7(ov, cx, cy, wv, lv, ws, mark, gold):
-    """Табло варианта 7: светящаяся золотая цифра победителя (Unbounded), серая — проигравшего."""
+def _score7(ov, cx, cy, wv, lv, ws, mark, gold, k=1.0):
+    """Табло варианта 7: светящаяся золотая цифра победителя (Unbounded), серая — проигравшего. k — масштаб."""
     glow = Image.new('RGBA', ov.size, (0, 0, 0, 0))
-    ImageDraw.Draw(glow).text((cx + ws * 44 * S, cy), str(wv), font=F(UNB, 58 * S, 700), anchor='mm', fill=gold + (230,))
+    big, small, dx = int(58 * k) * S, int(44 * k) * S, 44 * k * S
+    ImageDraw.Draw(glow).text((cx + ws * dx, cy), str(wv), font=F(UNB, big, 700), anchor='mm', fill=gold + (230,))
     ov.alpha_composite(glow.filter(ImageFilter.GaussianBlur(12 * S)))
     d = ImageDraw.Draw(ov)
-    d.text((cx + ws * 44 * S, cy), str(wv), font=F(UNB, 58 * S, 700), anchor='mm', fill=(255, 236, 170, 255))
-    d.text((cx - ws * 44 * S, cy), str(lv), font=F(UNB, 44 * S, 500), anchor='mm', fill=(96, 104, 118, 255))
-    d.text((cx, cy - 4 * S), ':', font=F(UNB, 36 * S, 500), anchor='mm', fill=(96, 104, 118, 255))
-    _mark(d, cx, cy + 46 * S, mark, True, True)
+    d.text((cx + ws * dx, cy), str(wv), font=F(UNB, big, 700), anchor='mm', fill=(255, 236, 170, 255))
+    d.text((cx - ws * dx, cy), str(lv), font=F(UNB, small, 500), anchor='mm', fill=(96, 104, 118, 255))
+    d.text((cx, cy - 4 * k * S), ':', font=F(UNB, int(36 * k) * S, 500), anchor='mm', fill=(96, 104, 118, 255))
+    _mark(d, cx, cy + 46 * k * S, mark, True, True, k)
+
+
+# ------------------------------------------------------------------ раскладка постеров-ячеек (итоги и матчи дня)
+PORTRAIT_H = 1350       # 4:5 — в альбоме Telegram портретные постеры встают рядом и крупно
+ROW_MAX = 280           # выше ячейка — уже перебор
+BIG_TAG = {'KHL': 'KHL', 'NHL': 'NHL'}
+
+
+def _layout(n, rows, head=HEAD, foot=FOOT):
+    """Высота ячейки, верх первой ячейки и высота постера. rows — сколько мест под матчи
+    (в альбоме у всех постеров одинаково = самый длинный), поэтому плашки на соседних постерах на одном уровне."""
+    rows = max(rows or 0, n, 1)
+    avail = PORTRAIT_H - head - foot
+    row = int(min(ROW_MAX, (avail + GAP) / rows - GAP))
+    block = rows * (row + GAP) - GAP
+    if rows >= 3:
+        return row, head + (avail - block) // 2, PORTRAIT_H
+    return row, head, head + block + foot
+
+
+def _brand_big(d, cx, y, league, size=78):
+    """Крупная шапка «JARVIS | KHL» на постере-продолжении — на месте заголовка и даты."""
+    fb = recap._fr('brand', size * S)
+    sp, bar = int(size * 0.12) * S, int(size * 0.62) * S
+    tag = BIG_TAG[league]
+    w1 = sum(fb.getlength(c) for c in 'JARVIS') + sp * 5
+    w2 = sum(fb.getlength(c) for c in tag) + sp * (len(tag) - 1)
+    x0 = cx - (w1 + 2 * bar + w2) / 2
+    poster._spaced(d, (x0, y), 'JARVIS', fb, NAVY + (255,), sp)
+    hb = size * 0.48 * S
+    d.rounded_rectangle((x0 + w1 + bar - 2.5 * S, y - hb, x0 + w1 + bar + 2.5 * S, y + hb), radius=2 * S, fill=NAVY + (150,))
+    poster._spaced(d, (x0 + w1 + 2 * bar, y), tag, fb, rs._deepen(rs.ACCENT[league]) + (255,), sp)
 
 
 # ------------------------------------------------------------------ сборка
@@ -340,34 +374,45 @@ CENTERS = {1: (20, 24, 34), 2: (242, 245, 250), 3: (20, 24, 34), 4: (12, 14, 20)
 LOSER = {1: 'desat', 2: 'dark', 3: 'desat', 4: 'dark', 5: 'desat', 6: 'desat', 7: 'dark', 8: 'dark', 9: 'dark', 10: 'dark', 11: 'dark', 12: 'dark'}
 
 
-def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date_title=None):
+def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date_title=None, cont=False, rows=None):
+    """Варианты 10–12 (ячейки): портретный постер, ячейки растут под число матчей; rows — мест под матчи
+    (общее для всех постеров альбома — плашки на одном уровне); cont=True — продолжение: вместо заголовка
+    и даты крупно «JARVIS | KHL/NHL»."""
     league = league.upper()
     items = rs._resolve(items, league)
     acc = rs.ACCENT[league]
     gold = (255, 194, 61)
-    H = HEAD + len(items) * (ROW + GAP) - GAP + FOOT
+    if variant >= 10:
+        row, top, H = _layout(len(items), rows)
+    else:
+        cont, row, top = False, ROW, HEAD
+        H = HEAD + len(items) * (ROW + GAP) - GAP + FOOT
+    k = min(row / ROW, 1.35)
     bg = _background(H, league)
     ov = Image.new('RGBA', (W * S, H * S), (0, 0, 0, 0))
     d = ImageDraw.Draw(ov)
-    rs._brand(d, W * S / 2, 58 * S, league, dark_text=True)
     side = variant >= 7                    # шрифты «Боков»: Oswald — названия, Unbounded — цифры, Manrope — подписи
-    if side:
-        spaced(d, (W * S / 2, 138 * S), title, F(OSW, 84 * S, 700), NAVY + (255,), 3 * S)
+    if cont:
+        _brand_big(d, W * S / 2, 132 * S, league)
     else:
-        d.text((W * S / 2, 136 * S), title, font=F(EXOI, 76 * S, 900), anchor='mm', fill=NAVY + (255,))
-    if date_title:
-        spaced(d, (W * S / 2, 206 * S), date_title.upper(), F(MANROPE, 21 * S, 800) if side else F(EXOI, 22 * S, 700), (40, 58, 92, 255), 3 * S)
+        rs._brand(d, W * S / 2, 58 * S, league, dark_text=True)
+        if side:
+            spaced(d, (W * S / 2, 138 * S), title, F(OSW, 84 * S, 700), NAVY + (255,), 3 * S)
+        else:
+            d.text((W * S / 2, 136 * S), title, font=F(EXOI, 76 * S, 900), anchor='mm', fill=NAVY + (255,))
+        if date_title:
+            spaced(d, (W * S / 2, 206 * S), date_title.upper(), F(MANROPE, 21 * S, 800) if side else F(EXOI, 22 * S, 700), (40, 58, 92, 255), 3 * S)
     center = CENTERS[variant]
     dark_center = sum(center) < 300
     cx = W / 2 * S
     for i, it in enumerate(items):
-        y0 = HEAD + i * (ROW + GAP)
-        cy = (y0 + ROW / 2) * S
+        y0 = top + i * (row + GAP)
+        cy = (y0 + row / 2) * S
         hw = it['sh'] > it['sa']
         wv, lv = (it['sh'], it['sa']) if hw else (it['sa'], it['sh'])
         ws = -1 if hw else 1                       # сторона победителя: -1 слева, 1 справа
         if variant >= 10:                          # только логотипы, без названий
-            card = _cells(it, hw, variant, center)
+            card = _cells(it, hw, variant, center, row=row)
             if variant == 11:
                 card, X, sk = card
             poster._shadowed(ov, card, (32 * S, y0 * S), blur=12 * S, off=(0, 5 * S), color=(30, 60, 110, 70))
@@ -378,7 +423,7 @@ def render(items, path, variant=1, league='KHL', title='ИТОГИ ДНЯ', date
                            fill=(255, 255, 255, 255 if won else 150), stroke_width=(2 * S if won else 0), stroke_fill=(0, 0, 0, 60))
                 _mark(d, cx + sk / 2 - 6 * S, cy + 50 * S, it.get('mark'), True, side)
                 continue
-            _score7(ov, cx, cy, wv, lv, ws, it.get('mark'), gold)
+            _score7(ov, cx, cy, wv, lv, ws, it.get('mark'), gold, k)
             d = ImageDraw.Draw(ov)
             continue
         card = _plate(it['home'], it['away'], (W - 64) * S, ROW * S, 22 * S, hw, center, loser=LOSER[variant])

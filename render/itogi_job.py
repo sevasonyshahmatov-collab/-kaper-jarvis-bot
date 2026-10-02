@@ -4,6 +4,9 @@
     {"league": "KHL" | "NHL", "day": "2026-09-30", "date_title": "среда, 30 сентября", "chat": "<id>",
      "items": [{"home": "Амур", "away": "Нефтехимик", "sh": 1, "sa": 0, "mark": "" | "ОТ" | "Б" | "ОТ/Б"}]}
 Рисуем формат «Ячейки» (results_ice2, variant 10) и отправляем фото в чат chat ботом TG_BOT_TOKEN (секрет репозитория).
+Больше 5 матчей — несколько постеров одним альбомом, как у «Матчей дня» (split_matchi).
+"after_text" (HTML) — отдельный пост сразу следом (у НХЛ — «Игроки дня»); "after_chats" — куда его отправить
+(по умолчанию — туда же, куда итоги).
 
 «Матчи дня» — то же с "kind": "matchi" (событие «matchi»), в items вместо счёта время и линия в основное время:
     {"home": "Спартак", "away": "Трактор", "time": "19:30", "odds": [1.84, 4.37, 3.91] | null}
@@ -91,7 +94,7 @@ MATCHI_MAX = 7               # больше 7 на одном постере н�
 
 
 def split_matchi(items):
-    """Матчи дня по постерам. До 5 — один. Больше — поровну, первый крупнее (6 → 3+3, 7 → 4+3, 9 → 5+4,
+    """Матчи дня и итоги дня по постерам. До 5 — один. Больше — поровну, первый крупнее (6 → 3+3, 7 → 4+3, 9 → 5+4,
     13 → 7+6); не влезает в два по 7 — три и больше (15 → 5+5+5, 16 → 6+5+5).
     Все постеры альбома одного размера, ячейки на одних местах (preview_ice rows=)."""
     n = len(items)
@@ -192,9 +195,12 @@ def main_both(payload):
             if league == 'NHL':
                 import nhl
                 nhl.register()
-            out = os.path.join(os.getcwd(), 'itogi2_%s.jpg' % league.lower())
-            ri.render(items, out, variant=10, league=league, date_title=title or date_title or None)
-            paths.append(out)
+            groups = split_matchi(items)
+            for k, grp in enumerate(groups):
+                out = os.path.join(os.getcwd(), 'itogi2_%s%s.jpg' % (league.lower(), '_%d' % (k + 1) if len(groups) > 1 else ''))
+                ri.render(grp, out, variant=10, league=league, date_title=title or date_title or None, cont=k > 0,
+                          rows=max(len(g) for g in groups))
+                paths.append(out)
         print('нарисовано:', ', '.join(paths))
     except Exception as e:                       # noqa: BLE001 — не нарисовалось: публикуем текстом
         drawn = False
@@ -257,11 +263,17 @@ def main():
         else:
             after = extra
     text, after = no_emoji(text), no_emoji(after)
-    print('подпись:\n' + text + ('\n--- отдельным сообщением:\n' + after if after else ''))
+    # «Игроки дня» — отдельным сообщением сразу следом за итогами НХЛ
+    players = no_emoji(str(payload.get('after_text') or '').strip())[:4000] if kind != 'matchi' else ''
+    # куда «Игроки дня»: "after_chats" (в нём и каналы КХЛ — там лучшие игроки КХЛ), нет — туда же, куда итоги
+    pchats = [str(c).strip() for c in (payload.get('after_chats') or chats) if str(c or '').strip()] if players else []
+    print('подпись:\n' + text + ('\n--- отдельным сообщением:\n' + after if after else '')
+          + ('\n--- следом:\n' + players if players else ''))
 
-    # «Матчи дня»: больше 5 матчей — несколько постеров одним постом-альбомом (продолжение — без заголовка,
-    # все одного размера, ячейки на одном уровне); итоги — всегда один баннер
-    groups = split_matchi(items) if kind == 'matchi' else [items]
+    # «Матчи дня» и «Итоги дня»: больше 5 матчей — несколько постеров одним постом-альбомом
+    # (все одного размера, ячейки на одном уровне, на продолжении крупно «JARVIS | KHL/NHL»)
+    groups = split_matchi(items)
+    rows = max(len(g) for g in groups)
     outs = [os.path.join(os.getcwd(), '%s_%s%s.jpg' % (kind, league.lower(), '_%d' % (k + 1) if len(groups) > 1 else ''))
             for k in range(len(groups))]
     out = outs[0]
@@ -273,11 +285,10 @@ def main():
         for grp, path in zip(groups, outs):
             if kind == 'matchi':
                 import preview_ice as pv
-                pv.render(grp, path, style='columns', league=league, date_title=date_title or None, cont=path != outs[0],
-                          rows=max(len(g) for g in groups))
+                pv.render(grp, path, style='columns', league=league, date_title=date_title or None, cont=path != outs[0], rows=rows)
             else:
                 import results_ice2 as ri
-                ri.render(grp, path, variant=10, league=league, date_title=date_title or None)
+                ri.render(grp, path, variant=10, league=league, date_title=date_title or None, cont=path != outs[0], rows=rows)
         print('нарисовано:', ', '.join(outs), '— матчей', '+'.join(str(len(g)) for g in groups))
     except Exception as e:                      # noqa: BLE001 — любая ошибка рисования: публикуем текст
         drawn = False
@@ -301,7 +312,17 @@ def main():
                     send_message(token, c, after)
             else:
                 send_message(token, c, text + ('\n\n' + after if after else ''))
+            if c in pchats:
+                send_message(token, c, players)
             print('отправлено в', c)
+        except SystemExit as e:
+            errors.append('%s: %s' % (c, e))
+    for c in pchats:                            # «Игроки дня» в чаты, куда итоги этой лиги не идут (канал и группа КХЛ)
+        if c in chats:
+            continue
+        try:
+            send_message(token, c, players)
+            print('«Игроки дня» отправлены в', c)
         except SystemExit as e:
             errors.append('%s: %s' % (c, e))
     if errors or not drawn:

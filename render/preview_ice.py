@@ -22,7 +22,8 @@ import poster
 import recap
 import results_styles as rs
 from results_styles2 import F, fit, club, spaced, _layered, _team_plate, TEK, RUSSO, EXOI
-from results_ice2 import _background, _plate, _logo, _crown, _cells, MANROPE, NAVY, RED
+from results_ice2 import _background, _plate, _logo, _crown, _cells, _brand_big, MANROPE, NAVY, RED
+from results_ice2 import _layout as _layout_ri
 from results_styles2 import OSW, UNB
 from results_ice3 import _grad_box, _name, _ink, LIGHT, GREY, GOLD
 
@@ -69,47 +70,13 @@ def _odds_txt(v):
 CELLS = {'cells': 10, 'grid': 11, 'columns': 12}
 
 
-PORTRAIT_H = 1350       # 4:5 — в альбоме Telegram портретные постеры встают рядом и крупно
-ROW_MAX = 280           # выше ячейка — уже перебор
-
-
-def _layout(n, rows):
-    """Высота ячейки, верх первой ячейки и высота постера. rows — сколько мест под матчи
-    (в альбоме у всех постеров одинаково = самый длинный), поэтому плашки на соседних постерах на одном уровне."""
-    rows = max(rows or 0, n, 1)
-    avail = PORTRAIT_H - HEAD - FOOT
-    row = int(min(ROW_MAX, (avail + GAP) / rows - GAP))
-    block = rows * (row + GAP) - GAP
-    if rows >= 3:
-        return row, HEAD + (avail - block) // 2, PORTRAIT_H
-    return row, HEAD, HEAD + block + FOOT
-
-
-BIG_TAG = {'KHL': 'KHL', 'NHL': 'NHL'}
-
-
-def _brand_big(d, cx, y, league, size=78):
-    """Крупная шапка «JARVIS | KHL» на постере-продолжении — на месте заголовка «МАТЧИ ДНЯ» и даты."""
-    fb = recap._fr('brand', size * S)
-    sp, bar = int(size * 0.12) * S, int(size * 0.62) * S
-    tag = BIG_TAG[league]
-    w1 = sum(fb.getlength(c) for c in 'JARVIS') + sp * 5
-    w2 = sum(fb.getlength(c) for c in tag) + sp * (len(tag) - 1)
-    x0 = cx - (w1 + 2 * bar + w2) / 2
-    ink = NAVY + (255,)
-    poster._spaced(d, (x0, y), 'JARVIS', fb, ink, sp)
-    hb = size * 0.48 * S
-    d.rounded_rectangle((x0 + w1 + bar - 2.5 * S, y - hb, x0 + w1 + bar + 2.5 * S, y + hb), radius=2 * S, fill=NAVY + (150,))
-    poster._spaced(d, (x0 + w1 + 2 * bar, y), tag, fb, rs._deepen(rs.ACCENT[league]) + (255,), sp)
-
-
 def _render_cells(items, path, style, league, title, date_title, cont=False, rows=None):
     """Афиша в формате ячеек-логотипов: команда видна только эмблемой, в центре — время и линия.
     cont=True — продолжение (второй и следующие постеры дня): вместо заголовка и даты крупно «JARVIS | KHL/NHL»,
     ячейки на тех же местах.
     rows — число мест под матчи (общее для всех постеров альбома)."""
     variant = CELLS[style]
-    row, top, H = _layout(len(items), rows)
+    row, top, H = _layout_ri(len(items), rows, HEAD, FOOT)
     k = min(row / ROW, 1.35)                       # текст на табло растёт с ячейкой, но не шире табло
     bg = _background(H, league)
     ov = Image.new('RGBA', (W * S, H * S), (0, 0, 0, 0))
