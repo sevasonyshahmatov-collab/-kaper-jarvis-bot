@@ -12931,34 +12931,83 @@ function itogiLastDay_(ss) {
   return best;
 }
 
-/** Кнопка: постер за последний игровой день — вам в Telegram (через 1–2 минуты); target 'channel' — в группу. */
+/** Кнопка: постер «Итоги дня» за последний доигранный день — вам в Telegram (через 1–2 минуты); target 'channel' — в группу.
+ *  День берётся по факту (itogiPickDay_): только что доигранный — сразу, не дожидаясь утреннего обновления листа результатов.
+ *  Следом — постер «Игроки дня» («Наши в НХЛ»), если в группу он за этот день ещё не выходил. */
 function itogiPosterNow_(target) {
-  var ss = SpreadsheetApp.getActive(), day = itogiLastDay_(ss), toGroup = target === 'channel';
-  if (!day) { uiAlert_('На листе «' + SHEET_RESULTS + '» нет сыгранных матчей.'); return; }
-  var items = itogiItemsFromResults_(ss, day);
-  if (toGroup && !posterConfirm_('«Итоги дня» за ' + day.split('-').reverse().join('.') + ' (матчей: ' + items.length + ')', ITOGI_PROP + day)) return;
+  var ss = SpreadsheetApp.getActive(), toGroup = target === 'channel', pk = itogiPickDay_(ss);
+  if (!pk) { uiAlert_('Сыгранных матчей пока нет.'); return; }
+  if (!itogiPickOk_(pk)) return;
+  var dd = pk.day.split('-').reverse().join('.');
+  if (toGroup && !posterConfirm_('«Итоги дня» за ' + dd + ' (матчей: ' + pk.items.length + ')', ITOGI_PROP + pk.day)) return;
   try {
-    var r = itogiDispatch_(ITOGI_LEAGUE, day, items, 'itogi', '', toGroup ? 'channel' : '');
+    var p = PropertiesService.getScriptProperties(), pl = [];
+    if (!(toGroup && p.getProperty(PLAYERS_PROP + pk.day))) { try { pl = playersItemsFor_(ss, pk) || []; } catch (e0) { pl = []; } }
+    var r = itogiDispatch_(ITOGI_LEAGUE, pk.day, pk.items, 'itogi', '', toGroup ? 'channel' : '', { players: playersBlock_(ITOGI_LEAGUE, pl) });
     if (r.skipped) { uiAlert_('Постер не заказан: ' + r.skipped + '.' + (/GitHub/.test(r.skipped) ? ' Подключите: «🔑 Подключить GitHub для постеров».' : '')); return; }
-    uiAlert_('Постер «Итоги дня» за ' + day.split('-').reverse().join('.') + ' (матчей: ' + r.sent + ') рисуется — ' + (toGroup ? 'появится в группе' : 'придёт вам в Telegram') + ' через 1–2 минуты.');
+    if (toGroup && pl.length) p.setProperty(PLAYERS_PROP + pk.day, mskNow_() + ' (вместе с итогами, кнопка)');
+    uiAlert_('Постер «Итоги дня» за ' + dd + ' (матчей: ' + r.sent + ')' + (pl.length ? ' и следом «' + PLAYERS_NAME[ITOGI_LEAGUE] + '»' : '') +
+      ' рисуется — ' + (toGroup ? 'появится в группе' : 'придёт вам в Telegram') + ' через 1–2 минуты.');
   } catch (e) { uiAlert_('Не получилось: ' + e.message); }
 }
 function itogiPosterGroup_() { itogiPosterNow_('channel'); }
 
-/** Кнопка: постер «Игроки дня» за последний игровой день — вам (через 1–2 минуты); target 'channel' — в группу. */
+/** Матчи последнего дня ещё идут — спросить, выпускать ли итоги за прошлый доигранный день. */
+function itogiPickOk_(pk) {
+  if (!pk.wait) return true;
+  var ui = SpreadsheetApp.getUi();
+  return ui.alert('Матчи ' + (ITOGI_LEAGUE === 'NHL' ? 'этой ночи' : 'сегодняшнего дня') + ' ещё не доиграны (' + pk.wait.done + ' из ' + pk.wait.all + ') — ' +
+    'их итоги выйдут сами после последнего матча.\n\nВыпустить итоги за прошлый игровой день — ' + pk.day.split('-').reverse().join('.') + '?',
+    ui.ButtonSet.YES_NO) === ui.Button.YES;
+}
+
+/** Кнопка: постер «Игроки дня» («Наши в НХЛ») за последний доигранный день — вам (через 1–2 минуты); target 'channel' — в группу. */
+var PLAYERS_NAME = { KHL: 'Игроки дня', NHL: 'Наши в НХЛ' };
 function playersPosterNow_(target) {
-  var ss = SpreadsheetApp.getActive(), day = itogiLastDay_(ss), toGroup = target === 'channel';
-  if (!day) { uiAlert_('На листе «' + SHEET_RESULTS + '» нет сыгранных матчей.'); return; }
+  var ss = SpreadsheetApp.getActive(), toGroup = target === 'channel', pk = itogiPickDay_(ss);
+  if (!pk) { uiAlert_('Сыгранных матчей пока нет.'); return; }
+  if (!itogiPickOk_(pk)) return;
+  var dd = pk.day.split('-').reverse().join('.'), name = PLAYERS_NAME[ITOGI_LEAGUE];
   try {
-    var items = khlPlayersFromSheet_(ss, day);
-    if (!items.length) items = khlPlayersLive_(day, itogiItemsFromResults_(ss, day)) || [];
-    if (toGroup && !posterConfirm_('«Игроки дня» за ' + day.split('-').reverse().join('.'), PLAYERS_PROP + day)) return;
-    var r = playersDispatch_('KHL', day, items, toGroup ? 'channel' : '');
+    var items = playersItemsFor_(ss, pk) || [];
+    if (!items.length) {
+      uiAlert_('За ' + dd + ' постер «' + name + '» не собрать: ' + (ITOGI_LEAGUE === 'NHL' ? 'у наших нет очков и сыгранных матчей вратарей.' : 'статистики матчей пока нет (на sports.ru она появляется чуть позже финальной сирены).'));
+      return;
+    }
+    if (toGroup && !posterConfirm_('«' + name + '» за ' + dd, PLAYERS_PROP + pk.day)) return;
+    var r = playersDispatch_(ITOGI_LEAGUE, pk.day, items, toGroup ? 'channel' : '');
     if (r.skipped) { uiAlert_('Постер не заказан: ' + r.skipped + '.'); return; }
-    uiAlert_('Постер «Игроки дня» за ' + day.split('-').reverse().join('.') + ' (игроков: ' + r.sent + ') рисуется — ' + (toGroup ? 'появится в группе' : 'придёт вам в Telegram') + ' через 1–2 минуты.');
+    uiAlert_('Постер «' + name + '» за ' + dd + ' (игроков: ' + r.sent + ') рисуется — ' + (toGroup ? 'появится в группе' : 'придёт вам в Telegram') + ' через 1–2 минуты.');
   } catch (e) { uiAlert_('Не получилось: ' + e.message); }
 }
 function playersPosterGroup_() { playersPosterNow_('channel'); }
+
+/** Какой день показывать кнопкам «Итоги дня» / «Игроки дня»: только что доигранный (из LIVE — лист результатов
+ *  обновится лишь утром) или последний с листа результатов. wait — сегодняшние матчи ещё идут. */
+var ITOGI_LAST = 'ITOGI_LAST_KHL';           // {day, items} — последний доигранный день (пишет itogiAutoKhl_)
+function itogiPickDay_(ss) {
+  var p = PropertiesService.getScriptProperties(), sheetDay = itogiLastDay_(ss), today = mskNow_('yyyy-MM-dd'), last = null;
+  try { last = JSON.parse(p.getProperty(ITOGI_LAST) || 'null'); } catch (e) { last = null; }
+  var pk = last && last.day && last.items && last.items.length && last.day > (sheetDay || '') ? { day: last.day, items: last.items, live: true }
+    : sheetDay ? { day: sheetDay, items: itogiItemsFromResults_(ss, sheetDay) } : null;
+  if (pk && pk.day < today) { var pr = khlLiveProgress_(ss, today); if (pr.all && pr.done < pr.all) pk.wait = pr; }
+  return pk;
+}
+/** Сколько матчей дня в линии и у скольких уже финальный счёт (по состоянию LIVE). */
+function khlLiveProgress_(ss, day) {
+  var sh = ss.getSheetByName(SHEET_ODDS_LOG), st = {}, ids = {};
+  if (!sh || sh.getLastRow() < 2) return { all: 0, done: 0 };
+  try { st = (JSON.parse(PropertiesService.getScriptProperties().getProperty('LIVE_STATE') || '{}').m) || {}; } catch (e) { st = {}; }
+  sh.getRange(2, 1, sh.getLastRow() - 1, ODDS_HEADER.length).getValues().forEach(function (r) { if (String(r[2]) === day && r[14]) ids[String(r[14])] = true; });
+  var all = Object.keys(ids);
+  return { all: all.length, done: all.filter(function (id) { return st[id] && (st[id].key === 'f' || st[id].key === 'd'); }).length };
+}
+/** Игроки для постера за выбранный день: с листа составов, а если там ещё нет — со страниц составов sports.ru. */
+function playersItemsFor_(ss, pk) {
+  var items = pk.live ? [] : khlPlayersFromSheet_(ss, pk.day);
+  if (!items.length) items = khlPlayersLive_(pk.day, pk.items) || [];
+  return items;
+}
 
 /** Перед публикацией в группу по кнопке: спросить; если за этот день постер уже выходил — предупредить о повторе. */
 function posterConfirm_(what, key) {
@@ -12991,6 +13040,10 @@ function itogiAutoKhl_(lv) {
   var p = PropertiesService.getScriptProperties(), any = false;
   lv.doneDays.forEach(function (day) {
     var items = (lv.doneItems || {})[day];
+    if (items && items.length) {                             // для кнопок: последний доигранный день, пока лист результатов не обновлён
+      var cur = null; try { cur = JSON.parse(p.getProperty(ITOGI_LAST) || 'null'); } catch (e) { cur = null; }
+      if (!cur || !cur.day || cur.day <= day) p.setProperty(ITOGI_LAST, JSON.stringify({ day: day, items: items }));
+    }
     if (p.getProperty(ITOGI_PROP + day) || !items || !items.length) return;
     var key = ITOGI_READY + day, prev = p.getProperty(key);
     if (prev === JSON.stringify(items)) return;
