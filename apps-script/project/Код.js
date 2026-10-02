@@ -9114,6 +9114,7 @@ function autoLogRow_(fn, ok, msg) {
  * проходило успешно. Отмечает их в журнале и сообщает админу.
  */
 function autoWatchdog_() {
+  try { var vw = videoWatchdog_(); if (vw) console.log('видео: ' + vw); } catch (e) { console.log('видео-сторож: ' + e.message); }
   var now = Date.now(), found = [];
   autoStatusUpdate_(function (st) {
     Object.keys(st).forEach(function (fn) {
@@ -10654,7 +10655,7 @@ var VIDEO_WEIGHT = 1 / 3;                 // доля мнения экспер�
 var VIDEO_TIME_BUDGET_MS = 270000;        // сколько работать за один запуск (у Apps Script лимит 6 минут)
 var VIDEO_CONTEXT_DAYS = 45;              // сколько дней после разбора мнение экспертов показывать агенту
 var PRESEASON_BACKUP_PROP = 'PRESEASON_BACKUP';
-var RAW_COLS = 21;                        // «Видео_разбор»: …, Минута, Место (число), Список эксперта, Травмы, Переходы, Тренер, Форма, Ожидания, Тип ролика
+var RAW_COLS = 22;                        // «Видео_разбор»: …, Минута, Место (число), Список эксперта, Травмы, Переходы, Тренер, Форма, Ожидания, Тип ролика
 var PRE_PROP_COL = 12;                    // сводка: колонка «С учётом видео»
 var PRE_COLS = 21;
 var VIDEO_BLIND_MAX_SEC = 4 * 3600;       // длина ролика неизвестна — идём кусками, но не дальше 4 часов
@@ -10750,7 +10751,7 @@ function videoInfo_(id) {
   return out;
 }
 
-function videoPrompt_(from, to) {
+function videoPrompt_(from, to, memory) {
   var names = [];
   try { names = Object.keys(preseasonStartRatings_(SpreadsheetApp.getActive())); } catch (e) { names = []; }
   var frag = to ? 'фрагмент ролика с ' + videoMmss_(from) + ' по ' + videoMmss_(to) : 'ролик';
@@ -10774,18 +10775,21 @@ function videoPrompt_(from, to) {
     'согласуется с местом. Если автор силу не оценивает — null.\n' +
     'match_picks — ТОЛЬКО когда автор прямо говорит, кто победит в конкретном предстоящем матче: хозяева, гости, дата (если названа), за кого он, ' +
     'уверенность и почему. Победа — с учётом овертайма и буллитов.\n' +
+    (memory ? '\n' + memory + '\nСРАВНИ С ПРОШЛЫМ: для каждой команды из ролика, о которой автор говорил раньше, заполни vs_before — изменилось ли его мнение ' +
+      '(повысил / понизил / подтвердил), что именно и почему, если он объясняет; если противоречит себе без объяснения — так и напиши. ' +
+      'Прошлые слова НЕ переноси в остальные поля: там только то, что сказано в этом ролике. Команды, о которых раньше не говорил, — vs_before "".\n\n' : '') +
     'Верни JSON строго такого вида (тексты на русском, каждое поле до 200 знаков):\n' +
     '{"author":"кто ведёт ролик, если назван","league":"о какой лиге в основном ' + (to ? 'этот фрагмент' : 'ролик') + ': КХЛ, НХЛ, другая или \"\"",' +
     '"video_type":"расклад / подкаст-новости / обзор матча / превью / прогнозы на матчи / пресс-конференция / другое",' +
     '"clip_empty":' + (to ? 'true, если этого фрагмента в ролике нет (он за концом ролика), иначе false' : 'false') + ',' +
     '"teams":[{"team":"' + (names.length ? 'название из списка' : 'полное название клуба') + '","group":"","place_num":null,"score":null,"place":"как автор сказал о месте, или \"\"",' +
-    '"playoff":"да, нет, на грани или \"\"","injuries":"","roster":"","goalie":"","coach":"","form":"","outlook":"","plus":"","minus":"","impact":0,"impact_why":"",' +
+    '"playoff":"да, нет, на грани или \"\"","injuries":"","roster":"","goalie":"","coach":"","form":"","outlook":"","plus":"","minus":"","impact":0,"impact_why":"","vs_before":"",' +
     '"time":"мм:сс от начала всего ролика, где начинается разговор о команде"}],' +
     '"match_picks":[{"home":"хозяева","away":"гости","date":"дд.мм или \"\"","pick":"название команды, за которую автор","confidence":"низкая / средняя / высокая","reason":"почему","time":"мм:сс"}]}';
 }
 
 /** Один запрос к Gemini с роликом (или его куском). {author, teams:[...], model} */
-function videoGeminiClip_(url, from, to, deadline) {
+function videoGeminiClip_(url, from, to, deadline, memory) {
   var p = agentProps_(), key = p.getProperty('GEMINI_KEY');
   if (!key) throw new Error('нет ключа GEMINI_KEY');
   var model = videoModel_();
@@ -10797,7 +10801,7 @@ function videoGeminiClip_(url, from, to, deadline) {
     if (!simple) gc.mediaResolution = 'MEDIA_RESOLUTION_LOW';
     return UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + m + ':generateContent?key=' + encodeURIComponent(key), {
       method: 'post', contentType: 'application/json', muteHttpExceptions: true,
-      payload: JSON.stringify({ contents: [{ role: 'user', parts: [part, { text: videoPrompt_(from, to) }] }], generationConfig: gc })
+      payload: JSON.stringify({ contents: [{ role: 'user', parts: [part, { text: videoPrompt_(from, to, memory) }] }], generationConfig: gc })
     });
   };
   // Перегрузка Google (500/502/503/504) — временная: повторяем с паузой, затем пробуем запасную модель Flash.
@@ -10905,7 +10909,7 @@ function videoTeams_(arr) {
     return ru ? { team: ru, score: isFinite(sc) && sc >= 1 && sc <= 10 ? Math.round(sc * 10) / 10 : '', pn: isFinite(pn) && pn >= 1 && pn <= 40 ? Math.round(pn) : '',
       group: clip(t.group, 60), place: clip(t.place, 80), playoff: clip(t.playoff, 20), plus: clip(t.plus, 250), minus: clip(t.minus, 250), goalie: clip(t.goalie, 200),
       injuries: clip(t.injuries, 250), roster: clip(t.roster, 250), coach: clip(t.coach, 250), form: clip(t.form, 250), outlook: clip(t.outlook, 250), time: clip(t.time, 10),
-      impact: videoImpact_(t.impact), why: clip(t.impact_why, 120) } : null;
+      impact: videoImpact_(t.impact), why: clip(t.impact_why, 120), vs: clip(t.vs_before, 250) } : null;
   }).filter(Boolean);
   out.unknown = unknown;                                   // названия, которые не нашлись в справочнике — покажем в статусе
   return out;
@@ -10933,7 +10937,7 @@ function videoRawSheet_(ss) {
   var sh = ss.getSheetByName(VIDEO_RAW_SHEET) || ss.insertSheet(VIDEO_RAW_SHEET);
   sh.getRange(1, 1, 1, RAW_COLS).setValues([['Ролик', 'Эксперт', 'Фрагмент', 'Команда', 'Оценка 1–10', 'Место', 'Плей-офф', 'Плюсы', 'Минусы', 'Вратари', 'Минута', 'Место (число)', 'Список эксперта',
     'Травмы / кто не играет', 'Переходы и состав', 'Тренер и тактика', 'Форма', 'Ожидания эксперта', 'Тип ролика',
-    'Влияние на ближайшие матчи (очки рейтинга)', 'Почему (влияние)']]).setFontWeight('bold');
+    'Влияние на ближайшие матчи (очки рейтинга)', 'Почему (влияние)', 'Сравнение с прошлыми роликами автора']]).setFontWeight('bold');
   return sh;
 }
 
@@ -10968,6 +10972,172 @@ function videoRawClear_(sh, url) {
   if (keep.length) sh.getRange(2, 1, keep.length, RAW_COLS).setValues(keep.map(function (r) { r[10] = r[10] ? "'" + r[10] : ''; return r; }));
 }
 
+/* ── 🧠 ПАМЯТЬ ПО АВТОРАМ (03.10.2026) ──
+ *  Один эксперт — одно имя: «Майков» и «Маяков» (опечатка в подписи или в ответе Gemini) сводятся к одному автору.
+ *  Перед разбором нового ролика Gemini получает, что этот автор говорил раньше по каждой команде, и отмечает,
+ *  что изменилось и почему (столбец «Сравнение с прошлыми роликами автора» на листе разбора).
+ *  В раскладе (лист «Расклад_экспертов») у каждого автора по каждому списку считается только его САМОЕ СВЕЖЕЕ мнение:
+ *  четыре ролика одного автора не весят как четыре эксперта, а новое мнение заменяет старое.
+ *  Лист «Эксперты_память» — кто что говорил, как менялось мнение, как сбываются его прогнозы на матчи. */
+var EXPERT_MEM_SHEET = 'Эксперты_память';
+var VIDEO_MEM_TEAM_CHARS = 260;            // сколько знаков прошлого мнения по одной команде даём Gemini
+var VIDEO_MEM_MAX_CHARS = 9000;            // и всего
+
+function videoNorm_(s) { return String(s || '').split(' — ')[0].toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
+function videoLev_(a, b) {
+  if (Math.abs(a.length - b.length) > 3) return 99;
+  var p = [], i, j;
+  for (j = 0; j <= b.length; j++) p[j] = j;
+  for (i = 1; i <= a.length; i++) {
+    var c = [i];
+    for (j = 1; j <= b.length; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    p = c;
+  }
+  return p[b.length];
+}
+/** Каноническое имя автора: по всем подписям роликов (самое частое написание из похожих). {нормализованное → имя} */
+function videoAuthors_(ss) {
+  var L = videoList_(ss), groups = [];
+  L.list.forEach(function (v) {
+    var name = String(v.who || '').split(' — ')[0].trim(), n = videoNorm_(name);
+    if (!n) return;
+    var g = groups.filter(function (x) { return x.keys.some(function (k) { return k === n || (k.length >= 6 && n.length >= 6 && videoLev_(k, n) <= 2); }); })[0];
+    if (!g) { g = { keys: [], names: {} }; groups.push(g); }
+    if (g.keys.indexOf(n) < 0) g.keys.push(n);
+    g.names[name] = (g.names[name] || 0) + 1;
+  });
+  var out = {};
+  groups.forEach(function (g) {
+    var best = Object.keys(g.names).sort(function (a, b) { return g.names[b] - g.names[a] || a.length - b.length; })[0];
+    g.keys.forEach(function (k) { out[k] = best; });
+  });
+  return out;
+}
+function videoAuthorOf_(map, who) {
+  var n = videoNorm_(who);
+  if (!n) return '';
+  if (map[n]) return map[n];
+  var k = Object.keys(map).filter(function (x) { return x.length >= 6 && n.length >= 6 && videoLev_(x, n) <= 2; })[0];
+  return k ? map[k] : String(who || '').split(' — ')[0].trim();
+}
+function videoWhenKey_(x) {
+  if (x instanceof Date) return Utilities.formatDate(x, 'Europe/Moscow', 'yyyy-MM-dd');
+  var s = String(x || ''), m = s.match(/(\d{4})-(\d\d)-(\d\d)/) || s.match(/(\d\d)\.(\d\d)\.(\d{4})/);
+  if (!m) return '';
+  return m[1].length === 4 ? m[1] + '-' + m[2] + '-' + m[3] : m[3] + '-' + m[2] + '-' + m[1];
+}
+/** Что автор говорил раньше по командам (последний ролик о команде, не считая url) — текстом для Gemini. '' — роликов не было. */
+function videoAuthorMemory_(ss, who, url) {
+  var raw = ss.getSheetByName(VIDEO_RAW_SHEET), map = videoAuthors_(ss), me = videoAuthorOf_(map, who);
+  if (!me || !raw || raw.getLastRow() < 2) return '';
+  var when = {}, L = videoList_(ss);
+  if (L.sh.getLastRow() > 1) L.sh.getRange(2, 1, L.sh.getLastRow() - 1, 9).getValues().forEach(function (r) { when[String(r[0]).trim()] = videoWhenKey_(r[8] || r[6]); });
+  var last = {};
+  raw.getRange(2, 1, raw.getLastRow() - 1, RAW_COLS).getValues().forEach(function (r) {
+    var u = String(r[0]).trim(), t = String(r[3]).trim();
+    if (!t || u === url || videoAuthorOf_(map, r[1]) !== me) return;
+    var w = when[u] || '';
+    if (!last[t] || w >= last[t].w) {
+      var bits = [r[5] ? 'место: ' + r[5] : '', r[4] !== '' ? 'оценка ' + r[4] + '/10' : '', r[7] ? 'плюсы: ' + r[7] : '', r[8] ? 'минусы: ' + r[8] : '',
+        r[13] ? 'травмы: ' + r[13] : '', r[16] ? 'форма: ' + r[16] : '', r[17] ? 'ожидания: ' + r[17] : ''].filter(Boolean);
+      last[t] = { w: w, text: bits.join('; ').slice(0, VIDEO_MEM_TEAM_CHARS) };
+    }
+  });
+  var teams = Object.keys(last);
+  if (!teams.length) return '';
+  var out = 'ЧТО ЭТОТ АВТОР (' + me + ') ГОВОРИЛ В ПРОШЛЫХ РОЛИКАХ — по командам, самое свежее:\n', n = out.length;
+  teams.sort(function (a, b) { return last[b].w < last[a].w ? -1 : 1; }).forEach(function (t) {
+    var line = '- ' + t + (last[t].w ? ' (ролик от ' + last[t].w.split('-').reverse().join('.') + ')' : '') + ': ' + last[t].text + '\n';
+    if (n + line.length <= VIDEO_MEM_MAX_CHARS) { out += line; n += line.length; }
+  });
+  var pk = videoAuthorPicks_(ss, map)[me];
+  if (pk && pk.done) out += 'Его прогнозы на матчи раньше: проверено ' + pk.done + ', угадано ' + pk.hit + '.\n';
+  return out;
+}
+/** Прогнозы авторов на матчи: {автор: {all, done, hit}} — с листа «Прогнозы_экспертов». */
+function videoAuthorPicks_(ss, map) {
+  var sh = ss.getSheetByName(PICKS_SHEET), out = {};
+  if (!sh || sh.getLastRow() < 2) return out;
+  sh.getRange(2, 1, sh.getLastRow() - 1, PICKS_COLS).getValues().forEach(function (r) {
+    var a = videoAuthorOf_(map, r[1]); if (!a) return;
+    var o = out[a] = out[a] || { all: 0, done: 0, hit: 0 };
+    o.all++;
+    var m = String(r[12] || '');
+    if (/да|✅/i.test(m)) { o.done++; o.hit++; } else if (/нет|❌/i.test(m)) o.done++;
+  });
+  return out;
+}
+/** Лист «Эксперты_память»: по автору и команде — свежее мнение, прежнее и что изменилось; сверху — сводка по авторам. */
+function expertMemoryBuild_(ss) {
+  ss = ss || SpreadsheetApp.getActive();
+  var raw = ss.getSheetByName(VIDEO_RAW_SHEET);
+  if (!raw || raw.getLastRow() < 2) return 0;
+  var map = videoAuthors_(ss), when = {}, L = videoList_(ss);
+  if (L.sh.getLastRow() > 1) L.sh.getRange(2, 1, L.sh.getLastRow() - 1, 9).getValues().forEach(function (r) { when[String(r[0]).trim()] = videoWhenKey_(r[8] || r[6]); });
+  var by = {}, vids = {};
+  raw.getRange(2, 1, raw.getLastRow() - 1, RAW_COLS).getValues().forEach(function (r) {
+    var a = videoAuthorOf_(map, r[1]) || 'без автора', t = String(r[3]).trim(), u = String(r[0]).trim();
+    if (!t) return;
+    (vids[a] = vids[a] || {})[u] = when[u] || '';
+    var k = a + '|' + t, view = [r[5] || (r[11] !== '' ? r[11] + '-е место' : ''), r[4] !== '' ? 'оценка ' + r[4] : '', r[17] || r[16] || ''].filter(Boolean).join(' · ');
+    (by[k] = by[k] || { a: a, t: t, list: [] }).list.push({ w: when[u] || '', view: view, vs: String(r[21] || ''), pn: r[11], sc: r[4] });
+  });
+  var picks = videoAuthorPicks_(ss, map);
+  var sh = ss.getSheetByName(EXPERT_MEM_SHEET) || ss.insertSheet(EXPERT_MEM_SHEET);
+  sh.clear();
+  var head = ['Автор', 'Команда', 'Последнее мнение', 'Когда', 'Прежнее мнение', 'Когда (прежнее)', 'Что изменилось', 'Роликов автора о команде'];
+  var rows = Object.keys(by).map(function (k) {
+    var x = by[k]; x.list.sort(function (p, q) { return p.w < q.w ? 1 : -1; });
+    var cur = x.list[0], prev = x.list.filter(function (y) { return y.w !== cur.w; })[0];
+    var ch = cur.vs || '';
+    if (!ch && prev && cur.pn !== '' && prev.pn !== '' && Number(cur.pn) !== Number(prev.pn)) ch = (Number(cur.pn) < Number(prev.pn) ? 'поднял: ' : 'опустил: ') + prev.pn + '-е → ' + cur.pn + '-е место';
+    return [x.a, x.t, cur.view.slice(0, 300), cur.w, prev ? prev.view.slice(0, 300) : '', prev ? prev.w : '', ch.slice(0, 300), x.list.length];
+  }).sort(function (p, q) { return p[0] < q[0] ? -1 : p[0] > q[0] ? 1 : (p[1] < q[1] ? -1 : 1); });
+  var top = Object.keys(vids).map(function (a) {
+    var ds = Object.keys(vids[a]).map(function (u) { return vids[a][u]; }).filter(Boolean).sort(), pk = picks[a] || {};
+    return [a, 'роликов: ' + Object.keys(vids[a]).length, ds.length ? 'последний: ' + ds[ds.length - 1].split('-').reverse().join('.') : '', '',
+      pk.all ? 'прогнозов на матчи: ' + pk.all + (pk.done ? ', проверено ' + pk.done + ', угадано ' + pk.hit + ' (' + Math.round(pk.hit / pk.done * 100) + '%)' : '') : '', '', '', ''];
+  });
+  sh.getRange(1, 1, 1, head.length).setValues([['АВТОРЫ'].concat(head.slice(1).map(function () { return ''; }))]).setFontWeight('bold');
+  if (top.length) sh.getRange(2, 1, top.length, head.length).setValues(top);
+  var r0 = top.length + 3;
+  sh.getRange(r0, 1, 1, head.length).setValues([head]).setFontWeight('bold');
+  if (rows.length) sh.getRange(r0 + 1, 1, rows.length, head.length).setValues(rows).setWrap(true).setVerticalAlignment('top');
+  try { sh.setFrozenRows(0); sh.setColumnWidth(3, 320); sh.setColumnWidth(5, 320); sh.setColumnWidth(7, 300); } catch (e) {}
+  return rows.length;
+}
+
+/** Ролики, разобранные до 01.10 (без травм, переходов, тренера, формы, ожиданий и влияния), — один раз разобрать заново. */
+function videoUpgradeOld_(ss) {
+  var p = agentProps_();
+  if (p.getProperty('VIDEO_UPGRADE_V2')) return 0;
+  p.setProperty('VIDEO_UPGRADE_V2', mskNow_());
+  var raw = ss.getSheetByName(VIDEO_RAW_SHEET), L = videoList_(ss), rich = {};
+  if (raw && raw.getLastRow() > 1) raw.getRange(2, 1, raw.getLastRow() - 1, RAW_COLS).getValues().forEach(function (r) {
+    var u = String(r[0]).trim(); if (!rich[u]) rich[u] = false;
+    if ([13, 14, 15, 16, 17, 18, 19].some(function (c) { return String(r[c] === null || r[c] === undefined ? '' : r[c]).trim() !== ''; })) rich[u] = true;
+  });
+  var n = 0;
+  L.list.forEach(function (v) {
+    if (/^готово/.test(v.status) && rich[v.url] === false) { L.sh.getRange(v.row, 3, 1, 2).setValues([['', 0]]); n++; }   // статус пуст — разбор с начала
+  });
+  if (n) videoScheduleContinue_(1);
+  return n;
+}
+
+/** Страховка (раз в 15 минут из сторожа автоматики): ролик не доразобран, а продолжение не стоит — поставить. */
+function videoWatchdog_() {
+  var ss = SpreadsheetApp.getActive();
+  if (!agentProps_().getProperty('GEMINI_KEY') || !ss.getSheetByName(VIDEO_SHEET)) return '';
+  var up = 0; try { up = videoUpgradeOld_(ss); } catch (e) { up = 0; }
+  var L = videoList_(ss), todo = L.list.filter(function (v) { return !/^(готово|ошибка)/.test(v.status); });
+  if (!todo.length) return up ? 'старых роликов на полный разбор: ' + up : '';
+  var has = false;
+  try { has = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'videoContinue_'; }); } catch (e) { has = true; }
+  if (!has) videoScheduleContinue_(1);
+  return has ? '' : 'разбор видео продолжен (ждали: ' + todo.length + ')';
+}
+
 /** Кнопка и продолжение: разобрать все неразобранные ролики. */
 function videoAnalyzeAll_(auto) {
   auto = auto === true;
@@ -10999,7 +11169,8 @@ function videoAnalyzeAll_(auto) {
       while (Date.now() - t0 < VIDEO_START_MS) {
         // длина неизвестна — всё равно кусками по 15 минут, пока ролик не кончится (кусок за концом — пустой или ошибка 4xx)
         var from = v.done, to = v.len ? Math.min(v.len, from + VIDEO_CLIP_SEC) : from + VIDEO_CLIP_SEC, res, ended = false;
-        try { res = videoGeminiClip_(videoCanon_(v.id), from, to, t0 + VIDEO_DEADLINE_MS); }
+        if (v.memory === undefined) { try { v.memory = videoAuthorMemory_(ss, v.who, v.url); } catch (em) { v.memory = ''; } }
+        try { res = videoGeminiClip_(videoCanon_(v.id), from, to, t0 + VIDEO_DEADLINE_MS, v.memory); }
         catch (e) {
           if (!v.len && from > 0 && /кодом 4\d\d/.test(e.message) && !/429/.test(e.message)) ended = true;
           else {
@@ -11026,7 +11197,7 @@ function videoAnalyzeAll_(auto) {
         if (res.teams.length) {
           // минута — текстом (иначе таблица превращает «27:22» в «1 день 3:22»)
           var rows = res.teams.map(function (t) { return [v.url, v.who, label, t.team, t.score, t.place, t.playoff, t.plus, t.minus, t.goalie, t.time ? "'" + t.time : '', t.pn, t.group,
-            t.injuries, t.roster, t.coach, t.form, t.outlook, res.type, t.impact, t.why]; });
+            t.injuries, t.roster, t.coach, t.form, t.outlook, res.type, t.impact, t.why, t.vs || '']; });
           raw.getRange(raw.getLastRow() + 1, 1, rows.length, RAW_COLS).setValues(rows);
         }
         if (res.picks.length) {
@@ -11066,6 +11237,7 @@ function videoAnalyzeAll_(auto) {
   if (toModel) videoScheduleApply_();
   else try { ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'videoContinue_') ScriptApp.deleteTrigger(t); }); } catch (e) {}
   var sum = preseasonBuild_(ss);
+  try { expertMemoryBuild_(ss); } catch (e) { console.log('память экспертов: ' + e.message); }
   var msg = '🎬 Видео экспертов: разобрано кусков ' + clips + (model ? ' (' + model + ')' : '') + '. Готово роликов: ' + (L.list.length - left.length) + ' из ' + L.list.length + '.' +
     (more ? (stop ? (stopWait === 10 ? '\nGemini сейчас перегружен (это временно, на стороне Google) — продолжу сам через 10 минут, нажимать ничего не нужно.' :
       stopWait > 10 ? '\nДневной бесплатный лимит Gemini на видео исчерпан (около 8 часов роликов в сутки). Лимит сбрасывается в полночь по Калифорнии — продолжу сам около ' +
@@ -11111,8 +11283,11 @@ function videoScheduleContinue_(minutes) {
   } catch (e) { /* нет прав на триггеры — нажать кнопку ещё раз */ }
 }
 function videoContinue_() {
-  try { ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'videoContinue_') ScriptApp.deleteTrigger(t); }); } catch (e) {}
-  try { videoAnalyzeAll_(true); } catch (e) { console.log('video: ' + e.message); }
+  // страховку ставим ДО запуска: если разбор упадёт или блокировка занята (LIVE, разведчик), цепочка не оборвётся
+  videoScheduleContinue_(8);
+  var r = null;
+  try { r = videoAnalyzeAll_(true); } catch (e) { console.log('video: ' + e.message); }
+  if (r && r.busy) videoScheduleContinue_(3);
 }
 
 /** Стартовые рейтинги из справочника: {команда: {row, val}} */
@@ -11136,22 +11311,34 @@ function preseasonBuild_(ss) {
   var when = {};                                            // ролик → когда разобран
   try { var L = videoList_(ss); if (L.sh.getLastRow() > 1) L.sh.getRange(2, 1, L.sh.getLastRow() - 1, 9).getValues().forEach(function (r) { when[String(r[0]).trim()] = r[8] || r[6]; }); } catch (e) {}   // дата ролика, иначе — дата разбора
   var rawRows = raw && raw.getLastRow() > 1 ? raw.getRange(2, 1, raw.getLastRow() - 1, RAW_COLS).getValues() : [];
+  // память по авторам: в каждом списке автора (дивизион, лига) берём только его самый свежий ролик — новое мнение заменяет старое
+  var amap = {}; try { amap = videoAuthors_(ss); } catch (e) { amap = {}; }
+  var authorOf = function (r) { return videoAuthorOf_(amap, r[1]) || String(r[0]).trim(); };
+  var newest = {};
   // кусок без названия списка: берём список этой команды в том же ролике, а если в ролике список один — его
   var gTeam = {}, gUrl = {};
   rawRows.forEach(function (r) { var g = String(r[12] || '').trim(), u = String(r[0]).trim(); if (!g) return; gTeam[u + '|' + String(r[3]).trim()] = g; (gUrl[u] = gUrl[u] || {})[g.toLowerCase()] = g; });
+  var grpOf = function (r) { var u = String(r[0]).trim(), t = String(r[3]).trim(), g = String(r[12] || '').trim(); if (g) return g; var gs = gUrl[u] ? Object.keys(gUrl[u]) : []; return gTeam[u + '|' + t] || (gs.length === 1 ? gUrl[u][gs[0]] : ''); };
+  rawRows.forEach(function (r) {
+    if (!String(r[3]).trim()) return;
+    var u = String(r[0]).trim(), g = grpOf(r).toLowerCase(), k = authorOf(r) + '|' + (g || 'ролик ' + u), w = videoWhenKey_(when[u]);   // список не назван — ролик сам себе список
+    if (!newest[k] || w > newest[k].w) newest[k] = { u: u, w: w };
+  });
   rawRows.forEach(function (r) {
     var t = String(r[3]).trim(); if (!t) return;
     var url = String(r[0]).trim(), who = String(r[1] || '').split(' — ')[0] || 'ролик', grp = String(r[12] || '').trim();
     if (!grp) { var gs = gUrl[url] ? Object.keys(gUrl[url]) : []; grp = gTeam[url + '|' + t] || (gs.length === 1 ? gUrl[url][gs[0]] : ''); }
     if (!by[t]) { by[t] = { scores: [], place: [], playoff: [], plus: [], minus: [], goalie: [], injuries: [], roster: [], coach: [], form: [], outlook: [], type: [], where: [], lists: [], when: '' }; order.push(t); }
-    var b = by[t];
-    if (r[4] !== '' && isFinite(Number(r[4]))) b.scores.push(Number(r[4]));
+    var b = by[t], akey = authorOf(r) + '|' + (grp ? grp.toLowerCase() : 'ролик ' + url), older = !!(newest[akey] && newest[akey].u !== url);
+    if (!older && r[4] !== '' && isFinite(Number(r[4]))) b.scores.push(Number(r[4]));   // оценка — из свежего ролика автора
     [['place', 5], ['playoff', 6], ['plus', 7], ['minus', 8], ['goalie', 9], ['injuries', 13], ['roster', 14], ['coach', 15], ['form', 16], ['outlook', 17], ['type', 18]].forEach(function (f) { var x = String(r[f[1]] || '').trim(); if (x && b[f[0]].indexOf(x) < 0) b[f[0]].push(x); });
     b.where.push(who + (r[10] ? ' ' + String(r[10]).replace(/^'/, '') : '') + ' ' + url);
     if (when[url]) b.when = when[url];
-    // список эксперта = ролик + то, что он ранжирует (дивизион / конференция / вся лига)
-    var key = url + '|' + grp.toLowerCase();
-    if (!lists[key]) { lists[key] = { label: grp || who, members: {} }; listOrder.push(key); }
+    // список эксперта = автор + то, что он ранжирует (дивизион / конференция / вся лига); места — только из его свежего ролика,
+    // из старых роликов автора остаются только тексты (плюсы, минусы, травмы) — для контекста
+    if (older) return;
+    var key = akey;
+    if (!lists[key]) { lists[key] = { label: (grp ? grp + ' · ' : '') + authorOf(r), members: {} }; listOrder.push(key); }
     var mem = lists[key].members[t] = lists[key].members[t] || { pns: [], scores: [] };
     if (r[11] !== '' && r[11] !== undefined && isFinite(Number(r[11]))) mem.pns.push(Number(r[11]));
     if (r[4] !== '' && isFinite(Number(r[4]))) mem.scores.push(Number(r[4]));
