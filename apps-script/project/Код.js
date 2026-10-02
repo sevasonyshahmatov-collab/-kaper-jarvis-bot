@@ -9862,25 +9862,32 @@ function agentSheet_(ss) {
   return sh;
 }
 
+/** Текст пункта сводки без служебного: номера источников, «[досье]», «нет данных» → ''. */
+function agentPlain_(t) {
+  var s = String(t || '').replace(/\s*\[(?:\d+(?:\s*[,;–-]\s*\d+)*|досье)\]/gi, '').replace(/[ \t]{2,}/g, ' ').trim();
+  return /^(нет данных|н\/д|-|—)?\.?$/i.test(s) ? '' : s;
+}
 function agentMessageText_(dayKey, items, model, usage) {
   var lines = ['🧠 <b>СВОДКА АГЕНТА</b> · ' + escHtml_(ruDayTitle_(dayKey).toLowerCase()), ''];
   items.forEach(function (it) {
     var b = it.brief;
     lines.push('🏒 <b>' + escHtml_(it.m.home + ' — ' + it.m.away) + '</b>' + (it.m.time ? ' · ' + it.m.time + ' МСК' : ''));
     if (it.error) { lines.push('⚠️ не получилось: ' + escHtml_(it.error)); lines.push(''); return; }
-    (b.extra || []).forEach(function (t) { lines.push(escHtml_(t)); });
-    lines.push('🧤 ' + escHtml_(b.goalies));
-    lines.push('🏥 ' + escHtml_(it.m.home) + ': ' + escHtml_(b.home_lineup));
-    lines.push('🏥 ' + escHtml_(it.m.away) + ': ' + escHtml_(b.away_lineup));
-    lines.push('📈 ' + escHtml_(b.form));
-    lines.push('❗ ' + escHtml_(b.key));
-    if (b.leanText) lines.push('🧭 ' + escHtml_(b.leanText));
+    // без номеров источников внутри текста ([2, 14], [досье]) и без пустых пунктов «нет данных» — ссылки остаются строкой ниже
+    var add = function (label, t) { t = agentPlain_(t); if (t) lines.push(label + escHtml_(t)); };
+    (b.extra || []).forEach(function (t) { add('', t); });
+    add('Вратари: ', b.goalies);
+    add(it.m.home + ': ', b.home_lineup);
+    add(it.m.away + ': ', b.away_lineup);
+    add('Форма: ', b.form);
+    add('Главное: ', b.key);
+    if (b.leanText) add('Итог по новостям: ', b.leanText);
     if (b.lineups && b.lineups.length) { lines.push('🧾 <i>заявки прошлых матчей:</i>'); b.lineups.forEach(function (t) { lines.push(escHtml_(t)); }); }
     if (it.keyNote) lines.push('🧍 ' + escHtml_(it.keyNote));
     if (b.links.length) lines.push(b.links.map(function (l) { return '<a href="' + escHtml_(l.url) + '">[' + l.n + ']' + (l.blog ? ' блог' : l.tg ? ' tg' : '') + '</a>'; }).join(' '));
     lines.push('');
   });
-  lines.push('<i>Только факты из найденных статей и досье команд; [n] — источник, «блог» — статья болельщика (менее надёжно). Модель: ' + escHtml_(model || '—') +
+  lines.push('<i>Только факты из найденных статей и досье команд; ссылки [n] — источники, «блог» — статья болельщика (менее надёжно). Модель: ' + escHtml_(model || '—') +
     '. Поиск в этом месяце: ' + usage.used + ' из ' + AGENT_TAVILY_MONTHLY_CAP + ' кредитов.</i>');
   return lines.join('\n');
 }
@@ -12411,7 +12418,7 @@ function postFacts_(ss, m, now) {
     var d = dos[team] || {};
     return { team: team, games: games, week: st.week, rest: st.rest, facts: f.slice(0, 8),
       lineup: kp[team] && kp[team].text ? kp[team].text : '', dossier: [d.form, d.style, d.key].filter(Boolean).join(' · '),
-      proto: postLastProtocol_(ss, team) };
+      proto: null };                                                 // протокол последнего матча посту больше не нужен (03.10)
   };
   return { m: m, odds: o, model: model, home: side(m.home), away: side(m.away) };
 }
@@ -12433,7 +12440,7 @@ function postPick_(f) {
     var edge = mo.pHome - o.pHome, team = edge > 0 ? f.m.home : f.m.away;
     var odd = o.mlOdds ? (edge > 0 ? o.mlOdds[0] : o.mlOdds[1]) : null;
     if (Math.abs(edge) >= POST_EDGE_WIN && odd)
-      out.push({ kind: 'победа', text: 'ПОБЕДА ' + team.toUpperCase() + ' (С ОТ)', odds: odd, edge: Math.abs(edge), why: 'перевес к линии ' + Math.round(Math.abs(edge) * 100) + ' п.п.' });
+      out.push({ kind: 'победа', team: team, text: 'ПОБЕДА ' + team.toUpperCase() + ' С УЧЁТОМ ОТ', odds: odd, edge: Math.abs(edge), why: 'перевес к линии ' + Math.round(Math.abs(edge) * 100) + ' п.п.' });
   }
   if (o.tot && mo.total && o.tot.over !== null && o.tot.over !== undefined) {
     var pUnder = postUnderProb_(mo.total, o.tot.line), mUnder = 1 - o.tot.over;
@@ -12449,45 +12456,123 @@ function postPick_(f) {
   return { main: out[0] || null, alt: out[1] || null };
 }
 
-/* ---------------- запрос к ИИ ---------------- */
+/* ---------------- запрос к ИИ ----------------
+ * С 03.10.2026: пост — не пересказ протоколов, а логика к прогнозу. Код сам считает доводы (броски, «везение» в реализации,
+ * серии, отдых, потери) и даёт ИИ только их — без авторов голов и счёта по периодам. ИИ возвращает JSON
+ * {headline, paragraphs, closing}, а текст собирает код: так в посте не бывает скобок, кавычек и разметки. */
+function postLeague_() { return typeof VIDEO_LEAGUE === 'string' && VIDEO_LEAGUE ? VIDEO_LEAGUE : 'КХЛ'; }
+
+/** Командные показатели игры с листа Elo (модель v2): доля бросков, PDO, шайбы сверх ожидания. Нет столбцов — {}. */
+function postPlayStats_(ss) {
+  var sh = ss.getSheetByName(typeof SHEET_ELO === 'string' ? SHEET_ELO : 'Elo'), out = {};
+  if (!sh || sh.getLastRow() < 2) return out;
+  var v = sh.getRange(1, 1, sh.getLastRow(), Math.max(1, sh.getLastColumn())).getValues(), h = v[0].map(String);
+  var c = function (re) { for (var i = 0; i < h.length; i++) if (re.test(h[i])) return i; return -1; };
+  var cs = c(/^Доля бросков/), cp = c(/^PDO/), cl = c(/^Шайбы за игру: факт/), cn = c(/^Матчей с бросками/);
+  if (cs < 0) return out;
+  v.slice(1).forEach(function (r) {
+    if (!r[0]) return;
+    out[String(r[0]).trim()] = { share: Number(r[cs]) || null, pdo: cp >= 0 ? Number(r[cp]) || null : null, luck: cl >= 0 && r[cl] !== '' ? Number(r[cl]) : null, n: cn >= 0 ? Number(r[cn]) || 0 : 0 };
+  });
+  return out;
+}
+
+/** Серия по последним матчам: {kind: 'W'|'L', n} — сколько подряд побед или поражений. */
+function postStreak_(games) {
+  if (!games.length) return null;
+  var w = games[0].gf > games[0].ga, n = 0;
+  for (var i = 0; i < games.length && (games[i].gf > games[i].ga) === w; i++) n++;
+  return { kind: w ? 'W' : 'L', n: n };
+}
+
+/** Доводы простыми словами — из них ИИ строит логику поста. side: 'home' | 'away'. */
+function postArgs_(f, play) {
+  var out = [], ru = function (n, a, b, c) { return n + ' ' + ruPlural_(n, a, b, c); };
+  [['home', f.home], ['away', f.away]].forEach(function (x) {
+    var s = x[1], t = s.team, q = play[t] || {}, st = postStreak_(s.games || []);
+    if (q.n >= 4 && q.share) {
+      if (q.share >= 54) out.push(t + ' стабильно перебрасывает соперников: ' + Math.round(q.share) + '% бросков в створ в своих матчах сезона');
+      else if (q.share <= 46) out.push(t + ' чаще отбивается, чем атакует: соперники бросают больше (у команды лишь ' + Math.round(q.share) + '% бросков в створ)');
+    }
+    if (q.n >= 4 && q.luck !== null) {
+      if (q.luck >= 0.6) out.push(t + ' забивает заметно больше, чем создаёт, и пропускает меньше, чем позволяет: реализация и вратарь выше своего обычного уровня — такие полосы обычно заканчиваются');
+      else if (q.luck <= -0.6) out.push(t + ' создаёт больше, чем забивает: моменты есть, не идёт реализация или подводит вратарь — такое обычно выправляется');
+    }
+    if (st && st.n >= 3) out.push(t + (st.kind === 'W' ? ' выиграл ' : ' проиграл ') + ru(st.n, 'матч', 'матча', 'матчей') + ' подряд' +
+      (q.n >= 4 && q.luck !== null && ((st.kind === 'W' && q.luck >= 0.4) || (st.kind === 'L' && q.luck <= -0.4)) ? ', но по игре это выглядит не так однозначно' : ''));
+    if (s.rest === 0 || s.rest === 1) out.push(t + ' играет второй день подряд' + (s.week >= 4 ? ', это уже ' + s.week + '-я игра за неделю' : ''));
+    else if (s.week >= 4) out.push(t + ' проводит ' + s.week + '-ю игру за неделю');
+    else if (s.rest >= 4) out.push(t + ' хорошо отдохнул: ' + ru(s.rest, 'день', 'дня', 'дней') + ' без игр');
+    (s.facts || []).filter(function (z) { return /травм|выбыл|дисквал|болезн|не сыграет|пропуст/i.test(z); }).slice(0, 2)
+      .forEach(function (z) { out.push(t + ': ' + z); });
+  });
+  return out;
+}
+
 function postSideText_(s) {
-  var g = s.games.map(function (x) {
-    return Utilities.formatDate(x.date, 'Europe/Moscow', 'dd.MM') + ' ' + (x.home ? 'дома' : 'в гостях') + ' с «' + x.opp + '» ' + x.gf + ':' + x.ga + (x.ot ? ' (ОТ/Б)' : '');
-  }).join('; ');
-  var p = s.proto, lines = ['КОМАНДА: ' + s.team, 'Последние матчи: ' + (g || 'нет данных'),
-    'Игр за 7 дней: ' + s.week + (s.rest === null ? '' : ', дней отдыха после последнего: ' + s.rest)];
-  if (p) {
-    lines.push('Протокол последнего матча: ' + p.home + ' ' + p.score + ' ' + p.away +
-      (p.periods.length ? ' (по периодам ' + p.periods.join(', ') + ')' : '') +
-      (p.shots ? ', броски в створ ' + p.shots[0] + ':' + p.shots[1] : ''));
-    var pp = s.team === p.home ? p.ppHome : p.ppAway;
-    if (pp && pp[1]) lines.push('Большинство в том матче: ' + (pp[0] || 0) + ' из ' + pp[1]);
-    if (p.goals.length) lines.push('Голы того матча: ' + p.goals.map(function (x) {
-      return x.team + ', ' + x.period + '-й период ' + x.time + ' — ' + x.author + (x.assists.length ? ' (' + x.assists.join(', ') + ')' : '') + (x.kind ? ' [' + x.kind + ']' : '');
-    }).join('; '));
-  }
-  if (s.lineup) lines.push('Заявка прошлого матча: ' + s.lineup);
+  var g = s.games.map(function (x) { return (x.gf > x.ga ? 'В' : 'П') + ' ' + x.gf + ':' + x.ga + (x.ot ? ' ОТ/Б' : ''); }).join(', ');
+  var lines = ['КОМАНДА: ' + s.team, 'Последние матчи (свежие первыми): ' + (g || 'нет данных'),
+    'Игр за 7 дней: ' + s.week + (s.rest === null ? '' : ', дней отдыха: ' + s.rest)];
   if (s.facts.length) lines.push('Новости по составу: ' + s.facts.join('; '));
   if (s.dossier) lines.push('Про команду: ' + s.dossier);
   return lines.join('\n');
 }
-function postPrompt_(f, pick, emo) {
-  var m = f.m, head = '🏒КХЛ. ' + (emo[m.home] || '') + m.home.toUpperCase() + ' - ' + m.away.toUpperCase() + (emo[m.away] || '');
-  var bet = pick.main ? 'ПРОГНОЗ: ' + (emo[m.home] || '') + (emo[m.away] || '') + pick.main.text + ' ЗА ' + pick.main.odds : '';
-  return 'Ты ведёшь телеграм-канал с прогнозами на хоккей и пишешь пост о матче КХЛ. Пиши по-русски, от первого лица, спокойно.\n\n' +
-    'СТРОГИЕ ЗАПРЕТЫ. Никогда не упоминай таблицу, модель, алгоритм, расчёты, статистику «по данным», проценты вероятности и коэффициенты в тексте (кроме последней строки). ' +
-    'Не выдумывай ни одной фамилии, даты и счёта — бери только из фактов ниже. Чего нет в фактах — того не пиши. ' +
-    'Не обращайся к читателю («друзья», «подписывайтесь»), не обещай выигрыш, не зови делать ставки.\n\n' +
-    'СТРУКТУРА (6–7 абзацев, пустая строка между ними):\n' +
-    '1. Заголовок ровно такой строкой: ' + head + '\n' +
-    '2–3. Про хозяев: последний матч — как он шёл, кто забивал, что с большинством, кто вернулся или выбыл.\n' +
-    '4–5. Про гостей: то же самое.\n' +
-    '6. Своё рассуждение: график, отдых, что смущает, к чему склоняешься. Здесь можно сомневаться вслух.\n' +
-    (bet ? '7. Последняя строка ровно такая: ' + bet + '\n' : '7. Последняя строка: «Ставку не делаю».\n') +
+function postHead_(m, emo) { return '🏒' + postLeague_() + '. ' + (emo[m.home] || '') + m.home.toUpperCase() + ' - ' + m.away.toUpperCase() + (emo[m.away] || ''); }
+function postBetLine_(m, pick, emo) {
+  return pick.main ? 'ПРОГНОЗ: ' + (emo[pick.main.team] || '') + pick.main.text + ' ЗА ' + pick.main.odds + '✔️' : 'Здесь ставку не делаю.';
+}
+function postPrompt_(f, pick, emo, args) {
+  var m = f.m, L = postLeague_();
+  return 'Ты ведёшь телеграм-канал с прогнозами на хоккей и пишешь пост о матче ' + L + ' ' + m.home + ' — ' + m.away +
+    '. Пиши по-русски, от первого лица, живо и просто, как человек, который смотрит хоккей, а не как сводка.\n\n' +
+    'ЗАДАЧА: читатель должен за полминуты понять, что решает этот матч и почему я склоняюсь к прогнозу. Это рассуждение, а не пересказ протоколов.\n' +
+    'СТРУКТУРА:\n' +
+    '• headline — главная история матча капслоком, 3–8 слов (например «ЛЁТЧИКИ ВЫХОДЯТ НА ЛЁД ЧЕРЕЗ СУТКИ ПОСЛЕ РАЗГРОМА»);\n' +
+    '• paragraphs — 3 абзаца по 2–3 предложения: (1) в чём история матча; (2) ' + (pick.main ? 'почему это за прогноз — два-три довода из списка ДОВОДЫ своими словами' : 'почему здесь нет явного перевеса') +
+    '; (3) что может помешать — честно, коротко;\n' +
+    '• closing — одна короткая фраза-вывод.\n\n' +
+    'ПРАВИЛА ТЕКСТА: не перечисляй счета прошлых матчей и авторов голов; не больше двух фамилий на весь пост и только если игрок правда важен (травма лидера, вратарь); ' +
+    'не больше двух чисел на весь пост, и только понятные («четыре поражения подряд»). Без звёздочек и другой разметки, без эмодзи, без хэштегов, без ссылок, без номеров источников.\n' +
+    'ЗАПРЕТЫ: никогда не упоминай таблицу, модель, алгоритм, расчёты, «по данным», проценты вероятности и коэффициенты. Не выдумывай фамилий, дат и счетов — только из фактов ниже. ' +
+    'Не обращайся к читателю, не обещай выигрыш, не зови делать ставки.\n\n' +
+    (pick.main ? 'К ЧЕМУ СКЛОНЯЕШЬСЯ: ' + (pick.main.team ? 'победа «' + pick.main.team + '» (с учётом овертайма и буллитов)' : pick.main.text.toLowerCase()) + '. Объясни это через игру команд, не через числа.\n' : 'СТАВКУ НЕ ДЕЛАЕШЬ: явного перевеса нет.\n') +
+    (args.length ? 'ДОВОДЫ (бери 2–3 самых сильных):\n- ' + args.join('\n- ') + '\n' : '') +
     '\nФАКТЫ О ХОЗЯЕВАХ\n' + postSideText_(f.home) +
     '\n\nФАКТЫ О ГОСТЯХ\n' + postSideText_(f.away) +
-    '\n\nМАТЧ: ' + m.home + ' — ' + m.away + ', начало ' + (f.odds.startText || m.time || '') + ' МСК.' +
-    (pick.main ? '\nК чему склоняешься: ' + pick.main.text.toLowerCase() + ' (' + pick.main.why + '). Объясни это своими словами, через игру команд, а не через числа.' : '');
+    '\n\nВерни JSON: {"headline":"...","paragraphs":["...","...","..."],"closing":"..."}';
+}
+/** Убрать из куска текста то, чего в посте быть не должно: разметку, ссылки [n], эмодзи, кавычки вокруг всего куска. */
+function postPlain_(t) {
+  return String(t || '')
+    .replace(/\[(?:\d+(?:\s*,\s*\d+)*|досье)\]/gi, '')
+    .replace(/(?:[\u{1F000}-\u{1FAFF}]|[\u{2600}-\u{27BF}]|[\u{1F1E6}-\u{1F1FF}]|\u{FE0F}|\u{200D})/gu, '')
+    .replace(/[*_#`]+/g, '').replace(/^\s*[-•–—]\s+/gm, '').replace(/^\s*["'«]+|["'»]+\s*$/g, '')
+    .replace(/[ \t]{2,}/g, ' ').replace(/\s+([,.!?:;])/g, '$1').trim();
+}
+/** Ответ ИИ → {headline, paragraphs, closing}. Понимает объект, массив абзацев и просто текст. */
+function postParse_(raw) {
+  var s = String(raw || '').trim(), j = null;
+  try { j = JSON.parse(s); } catch (e) {
+    var a = s.indexOf('{'), b = s.lastIndexOf('}');
+    if (a >= 0 && b > a) { try { j = JSON.parse(s.slice(a, b + 1)); } catch (e2) { j = null; } }
+  }
+  if (Array.isArray(j)) j = { paragraphs: j };
+  if (!j || typeof j !== 'object') j = { paragraphs: s.split(/\n{2,}/) };
+  var paras = (Array.isArray(j.paragraphs) ? j.paragraphs : [j.paragraphs || j.text || '']).map(postPlain_).filter(Boolean);
+  return { headline: postPlain_(j.headline || ''), paragraphs: paras, closing: postPlain_(j.closing || '') };
+}
+/** Собрать пост: шапка, заголовок, абзацы, вывод, строка прогноза. Абзацы с запретными словами выбрасываются. */
+function postAssemble_(m, pick, emo, p) {
+  var head = postHead_(m, emo), betLine = postBetLine_(m, pick, emo);
+  var body = p.paragraphs.filter(function (x) {
+    return !POST_BANNED_.test(x) && x !== head && !/^🏒/.test(x) && !/^(КХЛ|НХЛ)\.\s/.test(x) && !/^ПРОГНОЗ:/i.test(x) && !/ставку не делаю/i.test(x);
+  });
+  var parts = [head];
+  if (p.headline && !POST_BANNED_.test(p.headline)) parts.push(p.headline.toUpperCase());
+  parts = parts.concat(body);
+  if (p.closing && !POST_BANNED_.test(p.closing)) parts.push(p.closing);
+  parts.push(betLine);
+  return parts.join('\n\n');
 }
 /** Подчищаем то, чего в посте быть не должно: упоминания таблицы и служебных слов. */
 var POST_BANNED_ = /таблиц|модел|алгоритм|нейросет|по данным|вероятн|наш расч|расч[её]т|датасет|статистическ/i;
@@ -12497,14 +12582,17 @@ function postClean_(text) {
 }
 
 function postBuild_(ss, m, now) {
-  var emo = postEmoji_(ss), f = postFacts_(ss, m, now), pick = postPick_(f);
-  var raw = agentGemini_(postPrompt_(f, pick, emo));
-  var text = postClean_(typeof raw === 'string' ? raw : (raw && raw.text) || '');
-  if (POST_BANNED_.test(text)) {                       // одна попытка переписать, если проскочило
-    raw = agentGemini_(postPrompt_(f, pick, emo) + '\n\nВ прошлый раз ты упомянул расчёты и таблицу — так нельзя. Перепиши без этого.');
-    text = postClean_(typeof raw === 'string' ? raw : (raw && raw.text) || '');
+  var emo = postEmoji_(ss), f = postFacts_(ss, m, now), pick = postPick_(f), play = {};
+  try { play = postPlayStats_(ss); } catch (e) { play = {}; }
+  var args = postArgs_(f, play), prompt = postPrompt_(f, pick, emo, args);
+  var raw = agentGemini_(prompt), p = postParse_(typeof raw === 'string' ? raw : (raw && raw.text) || '');
+  var dirty = function (q) { return [q.headline, q.closing].concat(q.paragraphs).some(function (x) { return POST_BANNED_.test(x); }); };
+  if (dirty(p) || p.paragraphs.length < 2) {                    // одна попытка переписать, если проскочило или ответ пустой
+    raw = agentGemini_(prompt + '\n\nВ прошлый раз ответ не подошёл (упоминание расчётов/таблицы или пустые абзацы). Перепиши по правилам, верни только JSON.');
+    var p2 = postParse_(typeof raw === 'string' ? raw : (raw && raw.text) || '');
+    if (p2.paragraphs.length >= p.paragraphs.length) p = p2;
   }
-  return { text: text, pick: pick, facts: f };
+  return { text: postAssemble_(f.m || m, pick, emo, p), pick: pick, facts: f, args: args };
 }
 
 /** Собрать и отправить пост по одному матчу: карточка, текст, запасной вариант. */
