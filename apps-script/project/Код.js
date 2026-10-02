@@ -4935,14 +4935,17 @@ function agdSteps_(ss) {
   var s = [
     ['Границы диапазонов в формулах', function () { return repairFormulaBounds_(ss); }],
     ['Даты и известные ошибки расписания', function () {
-      return { fixedDates: repairShiftedDates_(), corrections: applyKnownCorrections_(), moved: mergeRescheduled_(ss) };
+      return { fixedDates: repairShiftedDates_(), corrections: applyKnownCorrections_() };
     }],
+    // календарь — до результатов: сыгранный матч, которого нет в таблице, добавится и сразу получит счёт
+    ['Календарь сезона с sports.ru', function () { return syncScheduleFromWeb_(); }],
     ['Результаты и рейтинг Elo', function () {
       updateResultsFromWeb();
+      var moved = mergeRescheduled_(ss);   // переносы — после результатов: вчерашние матчи уже «Сыгран»
       computeAndWriteElo_(true);   // всегда: матч мог попасть в таблицу и без sports.ru (исправления, ручной ввод)
       updateLeagueRates_(true);
+      return { moved: moved };
     }],
-    ['Календарь сезона с sports.ru', function () { return syncScheduleFromWeb_(); }],
     ['Новые матчи в прогнозах (на ' + SYNC_HORIZON_DAYS + ' дней)', function () { return syncPredictionRows_(); }],
     ['Результативность дома / в гостях', function () { setupHomeAwayScoringSplit_(); }],
     ['Формулы модели, П1/Х/П2, тоталы', function () {
@@ -5015,9 +5018,10 @@ function agdLine_(s) {
   var firstLine = function (m) { return String(m || '').split('\n')[0].trim(); };
   var detail = '';
   if (!s.ok) detail = ' — ' + firstLine(s.err);
-  else if (s.name.indexOf('Результаты') === 0 && s.msgs.length) {
+  else if (s.name.indexOf('Результаты') === 0 && (s.msgs.length || (s.out && s.out.moved && s.out.moved.length))) {
     var rm = s.msgs.filter(function (m) { return /матч\(ей\) обновлено/.test(m); });
-    detail = ' — ' + firstLine(rm.length ? rm[rm.length - 1] : s.msgs[s.msgs.length - 1]);
+    detail = s.msgs.length ? ' — ' + firstLine(rm.length ? rm[rm.length - 1] : s.msgs[s.msgs.length - 1]) : '';
+    if (s.out && s.out.moved && s.out.moved.length) detail += (detail ? '; ' : ' — ') + 'перенесённые матчи: ' + s.out.moved.join('; ');
   }
   else if (s.name.indexOf('Новые матчи') === 0) detail = ' — добавлено: ' + (s.out || 0);
   else if (s.name.indexOf('Составы') === 0 && s.out) detail = ' — добавлено матчей: ' + s.out.added + (s.out.pending ? ', осталось ' + s.out.pending + ' (догрузятся завтра или кнопкой в меню «Агент»)' : '');
@@ -5119,6 +5123,7 @@ function parseScheduleEntries_(pageText) {
 }
 
 /** Добавляет в «результаты матчей» будущие матчи из календаря sports.ru. */
+var SYNC_PAST_DAYS = 7;
 function syncScheduleFromWeb_() {
   var ss = SpreadsheetApp.getActive();
   var sh = ss.getSheetByName(SHEET_RESULTS);
@@ -5147,7 +5152,7 @@ function syncScheduleFromWeb_() {
   var coveredTo = '';
   try {
     var now = new Date(), months = [];
-    for (var mi = 0; mi < 3; mi++) months.push(((now.getMonth() + mi) % 12) + 1);
+    for (var mi = -1; mi < 3; mi++) months.push(((now.getMonth() + mi + 12) % 12) + 1);   // и прошлый месяц — для сыгранных, которых нет в таблице
     months.forEach(function (m) {
       var resp = UrlFetchApp.fetch('https://www.sports.ru/hockey/tournament/khl/calendar/2026-2027/?m=' + m,
         { muteHttpExceptions: true, headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36' } });
@@ -5191,9 +5196,11 @@ function syncScheduleFromWeb_() {
     }
   }
 
-  var toAdd = [];
+  // будущие матчи и сыгранные за последнюю неделю, которых нет в таблице (строку могли ошибочно стереть) —
+  // счёт им проставит следующий шаг «Результаты»; перенесённого матча на старой дате в календаре сайта уже нет
+  var toAdd = [], pastFrom = addDaysKey_(today, -SYNC_PAST_DAYS);
   for (var wk in web) {
-    if (existing[wk] || web[wk].key < today) continue;
+    if (existing[wk] || web[wk].key < pastFrom) continue;
     toAdd.push(web[wk]);
   }
   toAdd.sort(function (x, y) { return x.key < y.key ? -1 : x.key > y.key ? 1 : (x.home < y.home ? -1 : 1); });
@@ -10388,8 +10395,8 @@ function bannersToChannelNow_() {
 
 /* ── Перенесённые матчи ──
  * Календарь добавляет перенесённый матч новой строкой (новая дата), а старая остаётся «Запланирован» навсегда —
- * вместе с прогнозом, который так и не будет проверен. Если у той же пары есть строка через 1–10 дней после
- * прошедшей даты, это перенос: старой строке ставим новую дату (и счёт, если он уже пришёл в новую строку),
+ * вместе с прогнозом, который так и не будет проверен. Если строка так и осталась без счёта через 2 дня после даты
+ * (запускается после загрузки результатов) и у той же пары есть строка через 1–10 дней после неё, это перенос: старой строке ставим новую дату (и счёт, если он уже пришёл в новую строку),
  * новую строку очищаем; в «прогнозах» дату переносим так же. Прогноз остаётся тем, что был сделан до матча. */
 function mergeRescheduled_(ss) {
   ss = ss || SpreadsheetApp.getActive();
@@ -10399,7 +10406,9 @@ function mergeRescheduled_(ss) {
     .filter(function (x) { return x.d && x.h && x.a; });
   var used = {};
   rows.forEach(function (old) {
-    if (old.st !== 'Запланирован' || old.d >= today || used[old.i]) return;
+    // только если счёта нет и через 2 дня: вчерашний матч без счёта — это обычно ещё не подгруженный результат,
+    // а та же пара через пару дней — второй матч серии (Автомобилист — Амур 02.10 и 04.10), а не перенос
+    if (old.st !== 'Запланирован' || old.d > addDaysKey_(today, -2) || used[old.i]) return;
     var nw = rows.filter(function (x) {
       return x.i !== old.i && !used[x.i] && x.h === old.h && x.a === old.a && x.d > old.d && x.d <= addDaysKey_(old.d, 10);
     })[0];
@@ -12931,34 +12940,83 @@ function itogiLastDay_(ss) {
   return best;
 }
 
-/** Кнопка: постер за последний игровой день — вам в Telegram (через 1–2 минуты); target 'channel' — в группу. */
+/** Кнопка: постер «Итоги дня» за последний доигранный день — вам в Telegram (через 1–2 минуты); target 'channel' — в группу.
+ *  День берётся по факту (itogiPickDay_): только что доигранный — сразу, не дожидаясь утреннего обновления листа результатов.
+ *  Следом — постер «Игроки дня» («Наши в НХЛ»), если в группу он за этот день ещё не выходил. */
 function itogiPosterNow_(target) {
-  var ss = SpreadsheetApp.getActive(), day = itogiLastDay_(ss), toGroup = target === 'channel';
-  if (!day) { uiAlert_('На листе «' + SHEET_RESULTS + '» нет сыгранных матчей.'); return; }
-  var items = itogiItemsFromResults_(ss, day);
-  if (toGroup && !posterConfirm_('«Итоги дня» за ' + day.split('-').reverse().join('.') + ' (матчей: ' + items.length + ')', ITOGI_PROP + day)) return;
+  var ss = SpreadsheetApp.getActive(), toGroup = target === 'channel', pk = itogiPickDay_(ss);
+  if (!pk) { uiAlert_('Сыгранных матчей пока нет.'); return; }
+  if (!itogiPickOk_(pk)) return;
+  var dd = pk.day.split('-').reverse().join('.');
+  if (toGroup && !posterConfirm_('«Итоги дня» за ' + dd + ' (матчей: ' + pk.items.length + ')', ITOGI_PROP + pk.day)) return;
   try {
-    var r = itogiDispatch_(ITOGI_LEAGUE, day, items, 'itogi', '', toGroup ? 'channel' : '');
+    var p = PropertiesService.getScriptProperties(), pl = [];
+    if (!(toGroup && p.getProperty(PLAYERS_PROP + pk.day))) { try { pl = playersItemsFor_(ss, pk) || []; } catch (e0) { pl = []; } }
+    var r = itogiDispatch_(ITOGI_LEAGUE, pk.day, pk.items, 'itogi', '', toGroup ? 'channel' : '', { players: playersBlock_(ITOGI_LEAGUE, pl) });
     if (r.skipped) { uiAlert_('Постер не заказан: ' + r.skipped + '.' + (/GitHub/.test(r.skipped) ? ' Подключите: «🔑 Подключить GitHub для постеров».' : '')); return; }
-    uiAlert_('Постер «Итоги дня» за ' + day.split('-').reverse().join('.') + ' (матчей: ' + r.sent + ') рисуется — ' + (toGroup ? 'появится в группе' : 'придёт вам в Telegram') + ' через 1–2 минуты.');
+    if (toGroup && pl.length) p.setProperty(PLAYERS_PROP + pk.day, mskNow_() + ' (вместе с итогами, кнопка)');
+    uiAlert_('Постер «Итоги дня» за ' + dd + ' (матчей: ' + r.sent + ')' + (pl.length ? ' и следом «' + PLAYERS_NAME[ITOGI_LEAGUE] + '»' : '') +
+      ' рисуется — ' + (toGroup ? 'появится в группе' : 'придёт вам в Telegram') + ' через 1–2 минуты.');
   } catch (e) { uiAlert_('Не получилось: ' + e.message); }
 }
 function itogiPosterGroup_() { itogiPosterNow_('channel'); }
 
-/** Кнопка: постер «Игроки дня» за последний игровой день — вам (через 1–2 минуты); target 'channel' — в группу. */
+/** Матчи последнего дня ещё идут — спросить, выпускать ли итоги за прошлый доигранный день. */
+function itogiPickOk_(pk) {
+  if (!pk.wait) return true;
+  var ui = SpreadsheetApp.getUi();
+  return ui.alert('Матчи ' + (ITOGI_LEAGUE === 'NHL' ? 'этой ночи' : 'сегодняшнего дня') + ' ещё не доиграны (' + pk.wait.done + ' из ' + pk.wait.all + ') — ' +
+    'их итоги выйдут сами после последнего матча.\n\nВыпустить итоги за прошлый игровой день — ' + pk.day.split('-').reverse().join('.') + '?',
+    ui.ButtonSet.YES_NO) === ui.Button.YES;
+}
+
+/** Кнопка: постер «Игроки дня» («Наши в НХЛ») за последний доигранный день — вам (через 1–2 минуты); target 'channel' — в группу. */
+var PLAYERS_NAME = { KHL: 'Игроки дня', NHL: 'Наши в НХЛ' };
 function playersPosterNow_(target) {
-  var ss = SpreadsheetApp.getActive(), day = itogiLastDay_(ss), toGroup = target === 'channel';
-  if (!day) { uiAlert_('На листе «' + SHEET_RESULTS + '» нет сыгранных матчей.'); return; }
+  var ss = SpreadsheetApp.getActive(), toGroup = target === 'channel', pk = itogiPickDay_(ss);
+  if (!pk) { uiAlert_('Сыгранных матчей пока нет.'); return; }
+  if (!itogiPickOk_(pk)) return;
+  var dd = pk.day.split('-').reverse().join('.'), name = PLAYERS_NAME[ITOGI_LEAGUE];
   try {
-    var items = khlPlayersFromSheet_(ss, day);
-    if (!items.length) items = khlPlayersLive_(day, itogiItemsFromResults_(ss, day)) || [];
-    if (toGroup && !posterConfirm_('«Игроки дня» за ' + day.split('-').reverse().join('.'), PLAYERS_PROP + day)) return;
-    var r = playersDispatch_('KHL', day, items, toGroup ? 'channel' : '');
+    var items = playersItemsFor_(ss, pk) || [];
+    if (!items.length) {
+      uiAlert_('За ' + dd + ' постер «' + name + '» не собрать: ' + (ITOGI_LEAGUE === 'NHL' ? 'у наших нет очков и сыгранных матчей вратарей.' : 'статистики матчей пока нет (на sports.ru она появляется чуть позже финальной сирены).'));
+      return;
+    }
+    if (toGroup && !posterConfirm_('«' + name + '» за ' + dd, PLAYERS_PROP + pk.day)) return;
+    var r = playersDispatch_(ITOGI_LEAGUE, pk.day, items, toGroup ? 'channel' : '');
     if (r.skipped) { uiAlert_('Постер не заказан: ' + r.skipped + '.'); return; }
-    uiAlert_('Постер «Игроки дня» за ' + day.split('-').reverse().join('.') + ' (игроков: ' + r.sent + ') рисуется — ' + (toGroup ? 'появится в группе' : 'придёт вам в Telegram') + ' через 1–2 минуты.');
+    uiAlert_('Постер «' + name + '» за ' + dd + ' (игроков: ' + r.sent + ') рисуется — ' + (toGroup ? 'появится в группе' : 'придёт вам в Telegram') + ' через 1–2 минуты.');
   } catch (e) { uiAlert_('Не получилось: ' + e.message); }
 }
 function playersPosterGroup_() { playersPosterNow_('channel'); }
+
+/** Какой день показывать кнопкам «Итоги дня» / «Игроки дня»: только что доигранный (из LIVE — лист результатов
+ *  обновится лишь утром) или последний с листа результатов. wait — сегодняшние матчи ещё идут. */
+var ITOGI_LAST = 'ITOGI_LAST_KHL';           // {day, items} — последний доигранный день (пишет itogiAutoKhl_)
+function itogiPickDay_(ss) {
+  var p = PropertiesService.getScriptProperties(), sheetDay = itogiLastDay_(ss), today = mskNow_('yyyy-MM-dd'), last = null;
+  try { last = JSON.parse(p.getProperty(ITOGI_LAST) || 'null'); } catch (e) { last = null; }
+  var pk = last && last.day && last.items && last.items.length && last.day > (sheetDay || '') ? { day: last.day, items: last.items, live: true }
+    : sheetDay ? { day: sheetDay, items: itogiItemsFromResults_(ss, sheetDay) } : null;
+  if (pk && pk.day < today) { var pr = khlLiveProgress_(ss, today); if (pr.all && pr.done < pr.all) pk.wait = pr; }
+  return pk;
+}
+/** Сколько матчей дня в линии и у скольких уже финальный счёт (по состоянию LIVE). */
+function khlLiveProgress_(ss, day) {
+  var sh = ss.getSheetByName(SHEET_ODDS_LOG), st = {}, ids = {};
+  if (!sh || sh.getLastRow() < 2) return { all: 0, done: 0 };
+  try { st = (JSON.parse(PropertiesService.getScriptProperties().getProperty('LIVE_STATE') || '{}').m) || {}; } catch (e) { st = {}; }
+  sh.getRange(2, 1, sh.getLastRow() - 1, ODDS_HEADER.length).getValues().forEach(function (r) { if (String(r[2]) === day && r[14]) ids[String(r[14])] = true; });
+  var all = Object.keys(ids);
+  return { all: all.length, done: all.filter(function (id) { return st[id] && (st[id].key === 'f' || st[id].key === 'd'); }).length };
+}
+/** Игроки для постера за выбранный день: с листа составов, а если там ещё нет — со страниц составов sports.ru. */
+function playersItemsFor_(ss, pk) {
+  var items = pk.live ? [] : khlPlayersFromSheet_(ss, pk.day);
+  if (!items.length) items = khlPlayersLive_(pk.day, pk.items) || [];
+  return items;
+}
 
 /** Перед публикацией в группу по кнопке: спросить; если за этот день постер уже выходил — предупредить о повторе. */
 function posterConfirm_(what, key) {
@@ -12991,6 +13049,10 @@ function itogiAutoKhl_(lv) {
   var p = PropertiesService.getScriptProperties(), any = false;
   lv.doneDays.forEach(function (day) {
     var items = (lv.doneItems || {})[day];
+    if (items && items.length) {                             // для кнопок: последний доигранный день, пока лист результатов не обновлён
+      var cur = null; try { cur = JSON.parse(p.getProperty(ITOGI_LAST) || 'null'); } catch (e) { cur = null; }
+      if (!cur || !cur.day || cur.day <= day) p.setProperty(ITOGI_LAST, JSON.stringify({ day: day, items: items }));
+    }
     if (p.getProperty(ITOGI_PROP + day) || !items || !items.length) return;
     var key = ITOGI_READY + day, prev = p.getProperty(key);
     if (prev === JSON.stringify(items)) return;
