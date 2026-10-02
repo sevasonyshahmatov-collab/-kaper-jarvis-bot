@@ -5,6 +5,8 @@
      "items": [{"home": "Амур", "away": "Нефтехимик", "sh": 1, "sa": 0, "mark": "" | "ОТ" | "Б" | "ОТ/Б"}]}
 Рисуем формат «Ячейки» (results_ice2, variant 10) и отправляем фото в чат chat ботом TG_BOT_TOKEN (секрет репозитория).
 Больше 5 матчей — несколько постеров одним альбомом, как у «Матчей дня» (split_matchi).
+"players" — постер «Игроки дня» сразу следом за итогами: {league, title?, items: [{name, team, g, a} | {name, team, sv, sa}],
+caption?, chats?} (players_ice); то же отдельно — "kind": "players" (событие «players»).
 "after_text" (HTML) — отдельный пост сразу следом (у НХЛ — «Игроки дня»); "after_chats" — куда его отправить
 (по умолчанию — туда же, куда итоги).
 
@@ -156,6 +158,94 @@ def send_album(token, chat, paths, text):
         raise SystemExit('Telegram: %s' % (j.get('description') or r.status_code))
 
 
+PLAYERS_TITLE = {'KHL': 'ИГРОКИ ДНЯ', 'NHL': 'НАШИ В НХЛ'}
+PLAYERS_HEAD = {'KHL': 'КХЛ · игроки дня', 'NHL': 'НХЛ · наши'}
+
+
+def clean_players(pl):
+    """Блок «Игроки дня»: {league, items: [{name, team, g, a} | {name, team, sv, sa}], title?, caption?, chats?, date_title?}."""
+    league = str(pl.get('league', '')).upper()
+    if league not in PLAYERS_TITLE:
+        raise SystemExit('неизвестная лига: %r' % league)
+    items = []
+    for it in pl.get('items') or []:
+        name, team = str(it.get('name', '')).strip(), str(it.get('team', '')).strip()
+        if not name or not team:
+            continue
+        try:
+            if it.get('sa') not in (None, ''):
+                items.append(dict(name=name, team=team, sv=int(it.get('sv') or 0), sa=int(it['sa'])))
+            else:
+                items.append(dict(name=name, team=team, g=int(it.get('g') or 0), a=int(it.get('a') or 0)))
+        except (TypeError, ValueError):
+            continue
+    if not items:
+        raise SystemExit('нет игроков')
+    title = str(pl.get('title') or PLAYERS_TITLE[league]).strip()[:30]
+    chats = [str(c).strip() for c in (pl.get('chats') or []) if str(c or '').strip()]
+    return league, items, title, no_emoji(str(pl.get('caption') or '').strip())[:CAPTION_MAX], chats
+
+
+def caption_players(league, items, date_title):
+    """Подпись к постеру «Игроки дня», если таблица её не прислала: строка на игрока."""
+    lines = []
+    for i in items:
+        if 'sa' in i:
+            lines.append('%s (%s) — %d из %d%s' % (html.escape(i['name']), html.escape(i['team']), i['sv'], i['sa'],
+                                                  ', сухой матч' if i['sv'] == i['sa'] else ''))
+        else:
+            lines.append('%s (%s) — %d+%d' % (html.escape(i['name']), html.escape(i['team']), i['g'], i['a']))
+    head = '<b>%s</b>' % PLAYERS_HEAD[league] + (' · ' + html.escape(date_title) if date_title else '')
+    return head + '\n\n' + '\n'.join(lines)
+
+
+def players_post(token, pl, date_title, default_chats):
+    """Постер «Игроки дня» (больше 5 игроков — альбом, как «Матчи дня») с подписью-текстом; не нарисовался — текст.
+    Без token только рисует. Возвращает список ошибок."""
+    try:
+        league, items, title, text, chats = clean_players(pl)
+    except SystemExit as e:
+        print('«Игроки дня» пропущены:', e)
+        return []
+    chats = chats or default_chats
+    date_title = str(pl.get('date_title') or date_title or '').strip()
+    text = text or caption_players(league, items, date_title)
+    groups = split_matchi(items)
+    rows = max(len(g) for g in groups)
+    paths = [os.path.join(os.getcwd(), 'players_%s%s.jpg' % (league.lower(), '_%d' % (k + 1) if len(groups) > 1 else ''))
+             for k in range(len(groups))]
+    drawn = True
+    try:
+        if league == 'NHL':
+            import nhl
+            nhl.register()
+        import players_ice as pli
+        for k, (grp, path) in enumerate(zip(groups, paths)):
+            pli.render(grp, path, league, title=title, date_title=date_title or None, cont=k > 0, rows=rows)
+        print('«Игроки дня» нарисованы:', ', '.join(paths), '— игроков', '+'.join(str(len(g)) for g in groups))
+        print('подпись «Игроки дня»:\n' + text)
+    except Exception as e:                       # noqa: BLE001 — не нарисовалось: публикуем текстом
+        drawn = False
+        print('«Игроки дня» не нарисовались:', repr(e))
+    if not token:
+        return []
+    errors = []
+    for c in chats:
+        try:
+            if not drawn:
+                send_message(token, c, text)
+            elif len(paths) > 1:
+                send_album(token, c, paths, text)
+            else:
+                send_photo(token, c, paths[0], text)
+            print('«Игроки дня» отправлены в', c)
+        except SystemExit as e:
+            errors.append('%s: %s' % (c, e))
+    if not drawn:
+        errors.append('постер «Игроки дня» не нарисовался — опубликован текст')
+    return errors
+
+
 def caption_both(blocks, date_title):
     """Подпись общего поста: «Итоги игрового дня · дата», затем по лиге: название и счёт матчей."""
     parts = ['<b>Итоги игрового дня</b>' + (' · ' + html.escape(date_title) if date_title else '')]
@@ -247,6 +337,17 @@ def main():
     kind = str(payload.get('kind') or os.environ.get('EVENT_KIND') or 'itogi').lower()
     if kind == 'itogi2':
         return main_both(payload)
+    if kind == 'players':                       # «Игроки дня» отдельно (запасной вариант — после утреннего обновления)
+        chats = [str(c).strip() for c in (payload.get('chats') or [payload.get('chat')]) if str(c or '').strip()]
+        token = os.environ.get('TG_BOT_TOKEN')
+        if token and not chats:
+            raise SystemExit('не указан чат (chat / chats) для отправки')
+        errors = players_post(token, payload, payload.get('date_title'), chats)
+        if not token:
+            print('TG_BOT_TOKEN не задан — в Telegram ничего не отправлено')
+        if errors:
+            raise SystemExit('; '.join(errors))
+        return
     league, items, date_title, chat = (clean_matchi if kind == 'matchi' else clean)(payload)
     # куда: список chats (канал и группа — автоматика, или ваш чат — кнопки меню); старые события — один chat
     chats = [str(c).strip() for c in (payload.get('chats') or [chat]) if str(c or '').strip()]
@@ -295,7 +396,10 @@ def main():
         print('картинка не нарисовалась:', repr(e))
 
     token = os.environ.get('TG_BOT_TOKEN')
+    pl = payload.get('players') if kind != 'matchi' else None      # постер «Игроки дня» — следом за итогами
     if not token:
+        if pl:
+            players_post(None, pl, date_title, chats)
         print('TG_BOT_TOKEN не задан — в Telegram ничего не отправлено')
         return
     if not chats:
@@ -325,6 +429,8 @@ def main():
             print('«Игроки дня» отправлены в', c)
         except SystemExit as e:
             errors.append('%s: %s' % (c, e))
+    if pl:
+        errors += players_post(token, pl, date_title, chats)
     if errors or not drawn:
         raise SystemExit('; '.join(errors) or 'картинка не нарисовалась — опубликован текст')
 

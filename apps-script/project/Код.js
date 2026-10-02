@@ -5065,7 +5065,7 @@ function agdFinish_(ss, state) {
     }
   } catch (e) { /* сводка без горизонта */ }
 
-  try { khlStatsShare_(ss); } catch (e) { lines.push('⚠ Игроки дня для общего поста: ' + e.message); }
+  try { var pm = khlPlayersMorning_(ss); if (pm) lines.push('📊 ' + pm); } catch (e) { lines.push('⚠ «Игроки дня»: ' + e.message); }
   var failed = state.failed;
   var parts = state.part > 1 ? ' (в ' + state.part + ' ' + ruPlural_(state.part, 'часть', 'части', 'частей') + ')' : '';
   var text = (failed ? 'Готово' + parts + ', но ' + failed + ' шаг(а) с проблемой — подробности ниже.' : 'Всё обновлено' + parts + '.') + '\n\n' +
@@ -11429,6 +11429,8 @@ var TG_GROUP_KHL_ = [
   ['🖼 Постер «Матчи дня» → группа (ближайший игровой день)', 'matchiPosterGroup_', '-'],
   ['🖼 Постер «Итоги дня» → мне (последний игровой день)', 'itogiPosterNow_', '-'],
   ['🖼 Постер «Итоги дня» → группа (последний игровой день)', 'itogiPosterGroup_', '-'],
+  ['📊 Постер «Игроки дня» → мне (последний игровой день)', 'playersPosterNow_', '-'],
+  ['📊 Постер «Игроки дня» → группа (последний игровой день)', 'playersPosterGroup_', '-'],
   ['🔑 Подключить GitHub для постеров', 'itogiSetToken_', '-'],
   null,
   ['Игра: подключить бота и канал (настройка)', 'gameConnect_'],
@@ -12881,6 +12883,30 @@ function itogiDispatch_(league, dayKey, items, kind, caption, target, more) {
   return { sent: items.length };
 }
 
+/* ── 📊 «Игроки дня» постером (render/players_ice.py, формат как у «Итогов дня») ──
+ *  Обычно уходит тем же заданием сразу следом за итогами лиги (поле players в itogiDispatch_);
+ *  отдельно (событие «players») — запасной вариант после утреннего обновления и кнопки меню. */
+var PLAYERS_PROP = 'PLAYERS_DAY_';            // + день: «Игроки дня» за этот день уже опубликованы
+var PLAYERS_TITLE = { KHL: 'ИГРОКИ ДНЯ', NHL: 'НАШИ В НХЛ' };
+function playersDispatch_(league, dayKey, items, target) {
+  var p = PropertiesService.getScriptProperties(), chats = target === 'channel' ? posterChannels_() : [p.getProperty('TG_ADMIN_ID')].filter(Boolean);
+  if (!p.getProperty('GITHUB_TOKEN')) return { skipped: 'GitHub не подключён' };
+  if (!chats.length) return { skipped: target === 'channel' ? 'канал не указан' : 'не указан ваш Telegram ID (TG_ADMIN_ID)' };
+  if (!items || !items.length) return { skipped: 'нет данных об игроках' };
+  var r = itogiGithub_('post', '/repos/' + ITOGI_REPO + '/dispatches', { event_type: 'players', client_payload: {
+    kind: 'players', league: league, day: dayKey, date_title: ruDayTitle_(dayKey).toLowerCase(), title: PLAYERS_TITLE[league],
+    chat: String(chats[0]), chats: chats.map(String), items: items } });
+  if (r.getResponseCode() !== 204) throw new Error('GitHub ответил ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 200));
+  if (target === 'channel') p.setProperty(PLAYERS_PROP + dayKey, mskNow_());
+  var old = addDaysKey_(dayKey, -10);
+  p.getKeys().forEach(function (k) { if (k.indexOf(PLAYERS_PROP) === 0 && k.slice(PLAYERS_PROP.length) < old) p.deleteProperty(k); });
+  return { sent: items.length };
+}
+/** Блок «Игроки дня» для поля players в itogiDispatch_ (постер уходит следом за итогами). */
+function playersBlock_(league, items) {
+  return items && items.length ? { league: league, title: PLAYERS_TITLE[league], items: items } : null;
+}
+
 /** Сыгранные матчи дня с листа результатов: [{home, away, sh, sa, mark}] */
 function itogiItemsFromResults_(ss, dayKey) {
   var sh = ss.getSheetByName(SHEET_RESULTS), out = [];
@@ -12918,6 +12944,21 @@ function itogiPosterNow_(target) {
   } catch (e) { uiAlert_('Не получилось: ' + e.message); }
 }
 function itogiPosterGroup_() { itogiPosterNow_('channel'); }
+
+/** Кнопка: постер «Игроки дня» за последний игровой день — вам (через 1–2 минуты); target 'channel' — в группу. */
+function playersPosterNow_(target) {
+  var ss = SpreadsheetApp.getActive(), day = itogiLastDay_(ss), toGroup = target === 'channel';
+  if (!day) { uiAlert_('На листе «' + SHEET_RESULTS + '» нет сыгранных матчей.'); return; }
+  try {
+    var items = khlPlayersFromSheet_(ss, day);
+    if (!items.length) items = khlPlayersLive_(day, itogiItemsFromResults_(ss, day)) || [];
+    if (toGroup && !posterConfirm_('«Игроки дня» за ' + day.split('-').reverse().join('.'), PLAYERS_PROP + day)) return;
+    var r = playersDispatch_('KHL', day, items, toGroup ? 'channel' : '');
+    if (r.skipped) { uiAlert_('Постер не заказан: ' + r.skipped + '.'); return; }
+    uiAlert_('Постер «Игроки дня» за ' + day.split('-').reverse().join('.') + ' (игроков: ' + r.sent + ') рисуется — ' + (toGroup ? 'появится в группе' : 'придёт вам в Telegram') + ' через 1–2 минуты.');
+  } catch (e) { uiAlert_('Не получилось: ' + e.message); }
+}
+function playersPosterGroup_() { playersPosterNow_('channel'); }
 
 /** Перед публикацией в группу по кнопке: спросить; если за этот день постер уже выходил — предупредить о повторе. */
 function posterConfirm_(what, key) {
@@ -12966,7 +13007,8 @@ function itogiAutoKhl_(lv) {
   } catch (e) { autoNotifyAdmin_('⚠ КХЛ: не получилось поставить запуск постера «Итоги дня» на 00:00 МСК: ' + e.message); }
 }
 
-/** 00:00 МСК: итоги за доигранные дни — постер КХЛ в канал и группу (НХЛ публикует свои итоги отдельно, утром). */
+/** 00:00 МСК: итоги за доигранные дни — постер КХЛ в канал и группу, следом постер «Игроки дня»
+ *  (НХЛ публикует свои итоги и «Наших» отдельно, утром). */
 function itogiMidnightKhl_() {
   try { ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === ITOGI_MIDNIGHT_FN) ScriptApp.deleteTrigger(t); }); } catch (e) {}
   var p = PropertiesService.getScriptProperties();
@@ -12975,8 +13017,15 @@ function itogiMidnightKhl_() {
     try { items = JSON.parse(p.getProperty(k) || 'null'); } catch (e) { items = null; }
     if (p.getProperty(ITOGI_PROP + day) || !items || !items.length) { p.deleteProperty(k); return; }
     try {
-      var r = itogiDispatch_('KHL', day, items, 'itogi', '', 'channel');
-      if (r.sent) { p.deleteProperty(k); autoMark_('liveUpdateAuto_', true, 'постер «Итоги дня» за ' + day + ' → канал (матчей ' + r.sent + ')'); }
+      var pl = null;                                         // «Игроки дня» — со страниц составов sports.ru, сразу следом за итогами
+      if (!p.getProperty(PLAYERS_PROP + day)) { try { pl = khlPlayersLive_(day, items); } catch (e0) { pl = null; } }
+      var r = itogiDispatch_('KHL', day, items, 'itogi', '', 'channel', { players: playersBlock_('KHL', pl) });
+      if (r.sent) {
+        p.deleteProperty(k);
+        if (pl && pl.length) p.setProperty(PLAYERS_PROP + day, mskNow_() + ' (вместе с итогами)');
+        autoMark_('liveUpdateAuto_', true, 'постер «Итоги дня» за ' + day + ' → канал (матчей ' + r.sent + ')' +
+          (pl && pl.length ? ' + «Игроки дня»' : ' — «Игроки дня» выйдут после утреннего обновления'));
+      }
     } catch (e2) {
       p.deleteProperty(k); p.setProperty(ITOGI_PROP + day, 'ошибка');
       autoNotifyAdmin_('⚠ КХЛ: итоги дня не опубликованы: ' + e2.message + '. Можно вручную: меню «📣 КХЛ · ТГ группа» → «🖼 Постер «Итоги дня» → мне».');
@@ -13015,36 +13064,64 @@ function itogiKhlFallback_() {
   } catch (e2) { autoNotifyAdmin_('⚠ КХЛ: итоги дня ' + d.day + ' не опубликованы: ' + e2.message); }
 }
 
-/** После утреннего обновления: «лучшие игроки дня» КХЛ (по листу составов) — в общий файл для поста «Игроки дня». */
-var KHL_STATS_TOP = 7;
-function khlStatsShare_(ss) {
-  ss = ss || SpreadsheetApp.getActive();
-  var day = addDaysKey_(mskNow_('yyyy-MM-dd'), -1), text = khlStatsText_(ss, day);
-  sharedPatch_({ stats_day: day, stats: text, stats_chats: posterChannels_() });
-  return text;
-}
-function khlStatsText_(ss, day) {
-  var lu = ss.getSheetByName(LINEUP_SHEET);
-  if (!lu || lu.getLastRow() < 2) return '';
+/** «Игроки дня» КХЛ: топ-5 по очкам (при равенстве — по голам) и лучший вратарь (от 15 бросков; сухой матч — первым).
+ *  rows — строки как на листе составов: [дата, хозяева, гости, команда, поз., №, игрок, время, голы, передачи, броски, отражено].
+ *  → [{name, team, g, a} | {name, team, sv, sa}] для постера. */
+var KHL_PLAYERS_TOP = 5;
+function khlPlayersItems_(rows) {
   var sk = [], gk = [];
-  lu.getRange(2, 1, lu.getLastRow() - 1, 12).getValues().forEach(function (r) {
-    if (signalDay_(r[0]) !== day) return;
+  rows.forEach(function (r) {
     var team = String(r[3]).trim(), name = String(r[6]).trim(); if (!name) return;
     if (String(r[4]) === 'G') {
       var sa = Number(r[10]), sv = Number(r[11]);
-      if (sa >= 15) gk.push({ name: name, team: team, sa: sa, sv: sv, pct: sv / sa });
+      if (sa >= 15 && sv >= 0) gk.push({ name: name, team: team, sv: sv, sa: sa });
     } else {
       var g = Number(r[8]) || 0, a = Number(r[9]) || 0;
       if (g + a > 0) sk.push({ name: name, team: team, g: g, a: a });
     }
   });
-  if (!sk.length && !gk.length) return '';
   sk.sort(function (x, y) { return (y.g + y.a) - (x.g + x.a) || y.g - x.g; });
-  gk.sort(function (x, y) { return y.pct - x.pct || y.sv - x.sv; });
-  var lines = sk.slice(0, KHL_STATS_TOP).map(function (x) { return escHtml_(x.name + ' (' + x.team + ') — ' + x.g + '+' + x.a); });
-  var best = gk.filter(function (x) { return x.sv === x.sa; }).concat(gk.filter(function (x) { return x.sv !== x.sa; })).slice(0, 2);
-  if (best.length) lines.push('Вратари: ' + escHtml_(best.map(function (x) { return x.name + ' (' + x.team + ') — ' + x.sv + ' ' + ruPlural_(x.sv, 'сейв', 'сейва', 'сейвов') + ' из ' + x.sa + (x.sv === x.sa ? ', сухой матч' : ''); }).join('; ')));
-  return '<b>КХЛ · лучшие игроки</b>\n' + lines.join('\n');
+  gk.sort(function (x, y) { return y.sv / y.sa - x.sv / x.sa || y.sv - x.sv; });
+  return sk.slice(0, KHL_PLAYERS_TOP).concat(gk.slice(0, 1));
+}
+/** По листу составов (после утреннего обновления). */
+function khlPlayersFromSheet_(ss, day) {
+  var lu = ss.getSheetByName(LINEUP_SHEET);
+  if (!lu || lu.getLastRow() < 2) return [];
+  return khlPlayersItems_(lu.getRange(2, 1, lu.getLastRow() - 1, 12).getValues().filter(function (r) { return signalDay_(r[0]) === day; }));
+}
+/** Прямо со страниц «составы» sports.ru — сразу после матчей, до утреннего обновления. Не у всех матчей дня есть статистика — null. */
+function khlPlayersLive_(day, matches) {
+  var cal = liveCalendar_(day), q = [];
+  matches.forEach(function (m) { var c = cal[m.home + '|' + m.away]; if (c && c.url) q.push({ home: m.home, away: m.away, url: c.url.replace(/\/?$/, '/') + 'lineups/' }); });
+  if (!q.length || q.length < matches.length) return null;
+  var resps = [];
+  try { resps = UrlFetchApp.fetchAll(q.map(function (x) { return { url: x.url, muteHttpExceptions: true, headers: SPORTS_UA }; })); } catch (e) { return null; }
+  var rows = [], ok = 0;
+  q.forEach(function (m, k) {
+    var L = resps[k] && resps[k].getResponseCode() === 200 ? sportsLineupsFromHtml_(resps[k].getContentText()) : { found: false };
+    if (!L.found) return;
+    var stats = false;
+    [['home', m.home], ['away', m.away]].forEach(function (x) {
+      L[x[0]].players.forEach(function (pl) {
+        if (typeof pl.goals === 'number' || typeof pl.saves === 'number') stats = true;
+        rows.push([day, m.home, m.away, x[1], LINEUP_POS[String(pl.rawPos || '').toUpperCase()] || pl.pos || '', String(pl.num || ''), pl.name, '',
+          pl.goals, pl.assists, pl.shotsAgainst, pl.saves]);
+      });
+    });
+    if (stats) ok++;
+  });
+  return ok === q.length ? khlPlayersItems_(rows) : null;
+}
+/** После утреннего обновления: «Игроки дня» за вчера не вышли в 00:00 (на sports.ru ещё не было статистики) — публикуем сейчас.
+ *  Только если итоги дня уже опубликованы — «Игроки дня» идут после них. */
+function khlPlayersMorning_(ss) {
+  var day = addDaysKey_(mskNow_('yyyy-MM-dd'), -1), p = PropertiesService.getScriptProperties();
+  if (p.getProperty(PLAYERS_PROP + day) || !/^\d/.test(String(p.getProperty(ITOGI_PROP + day) || ''))) return '';
+  var items = khlPlayersFromSheet_(ss, day);
+  if (!items.length) return '';
+  var r = playersDispatch_('KHL', day, items, 'channel');
+  return r.sent ? 'постер «Игроки дня» за ' + day.split('-').reverse().join('.') + ' → канал' : '';
 }
 
 /* ==========================================================================

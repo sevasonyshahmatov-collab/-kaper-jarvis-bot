@@ -112,11 +112,12 @@ def render(items, path, league='KHL', title='ИГРОКИ ДНЯ', date_title=No
         parts = str(it['name']).split()
         first, last = (' '.join(parts[:-1]), parts[-1]) if len(parts) > 1 else ('', parts[0] if parts else '')
         fl = fit(last.upper(), OSW, int(46 * k) * S, room, 700)
+        dy = 0 if first else -12 * k * S                     # только фамилия (НХЛ «Наши») — блок выше, по центру
         if first:
             d.text((x, cy - 30 * k * S), first.upper(), font=F(MANROPE, int(15 * k) * S, 800), anchor='lm', fill=(150, 160, 178, 255))
-        d.text((x, cy + 4 * k * S), last.upper(), font=fl, anchor='lm', fill=(255, 255, 255, 255))
+        d.text((x, cy + 4 * k * S + dy), last.upper(), font=fl, anchor='lm', fill=(255, 255, 255, 255))
         sub = ('вратарь · ' if _is_gk(it) else '') + rs._short(it['team'])
-        d.text((x, cy + 40 * k * S), sub.upper(), font=F(MANROPE, int(13 * k) * S, 800), anchor='lm', fill=(120, 128, 142, 255))
+        d.text((x, cy + 40 * k * S + dy), sub.upper(), font=F(MANROPE, int(13 * k) * S, 800), anchor='lm', fill=(120, 128, 142, 255))
         # табло
         sx = 32 * S + w - sw / 2
         if _is_gk(it):
