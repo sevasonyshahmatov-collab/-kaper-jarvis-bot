@@ -69,23 +69,20 @@ def _odds_txt(v):
 CELLS = {'cells': 10, 'grid': 11, 'columns': 12}
 
 
-HEAD_CONT = 110          # постер-продолжение: только шапка JARVIS | лига, без «МАТЧИ ДНЯ» и даты (+1 матч по высоте)
-
-
-def _render_cells(items, path, style, league, title, date_title, cont=False):
+def _render_cells(items, path, style, league, title, date_title, rows=None):
     """Афиша в формате ячеек-логотипов: команда видна только эмблемой, в центре — время и линия.
-    cont=True — продолжение (второй и следующие постеры дня): без заголовка и даты, матчи сразу под шапкой."""
+    rows — сколько строк закладывать по высоте: у постеров одного альбома одинаковая шапка и высота,
+    поэтому плашки лежат на одном уровне и одного размера (Telegram приводит альбом к общей высоте)."""
     variant = CELLS[style]
-    head = HEAD_CONT if cont else HEAD
-    H = head + len(items) * (ROW + GAP) - GAP + FOOT
+    head = HEAD
+    H = head + max(rows or 0, len(items)) * (ROW + GAP) - GAP + FOOT
     bg = _background(H, league)
     ov = Image.new('RGBA', (W * S, H * S), (0, 0, 0, 0))
     d = ImageDraw.Draw(ov)
     rs._brand(d, W * S / 2, 58 * S, league, dark_text=True)
-    if not cont:
-        spaced(d, (W * S / 2, 138 * S), title, F(OSW, 84 * S, 700), NAVY + (255,), 3 * S)
-        if date_title:
-            spaced(d, (W * S / 2, 206 * S), date_title.upper(), F(MANROPE, 21 * S, 800), (40, 58, 92, 255), 3 * S)
+    spaced(d, (W * S / 2, 138 * S), title, F(OSW, 84 * S, 700), NAVY + (255,), 3 * S)
+    if date_title:
+        spaced(d, (W * S / 2, 206 * S), date_title.upper(), F(MANROPE, 21 * S, 800), (40, 58, 92, 255), 3 * S)
     cx = W / 2 * S
     for i, it in enumerate(items):
         y0 = head + i * (ROW + GAP)
@@ -124,11 +121,11 @@ def _render_cells(items, path, style, league, title, date_title, cont=False):
     return rs._finish(bg, ov, H, path, grain=0.2)
 
 
-def render(items, path, style='crown', league='KHL', title='МАТЧИ ДНЯ', date_title=None, cont=False):
+def render(items, path, style='crown', league='KHL', title='МАТЧИ ДНЯ', date_title=None, rows=None):
     league = league.upper()
     items = rs._resolve(items, league)
     if style in CELLS:
-        return _render_cells(items, path, style, league, title, date_title, cont)
+        return _render_cells(items, path, style, league, title, date_title, rows)
     H = HEAD + len(items) * (ROW + GAP) - GAP + FOOT
     bg = _bg_plain(H, league) if style == 'pucks' else _background(H, league)
     ov = Image.new('RGBA', (W * S, H * S), (0, 0, 0, 0))

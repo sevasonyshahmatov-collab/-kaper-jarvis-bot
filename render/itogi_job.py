@@ -86,24 +86,21 @@ def clean_matchi(payload):
     return league, items, str(payload.get('date_title') or '').strip(), str(payload.get('chat') or '').strip()
 
 
-MATCHI_PER_POSTER = 5        # больше — делим на постеры
-MATCHI_FIRST_MAX = 6         # на первом постере (с заголовком «МАТЧИ ДНЯ» и датой) — не больше 6
-MATCHI_CONT_MAX = 7          # на продолжении заголовка нет — помещается на матч больше
+MATCHI_PER_POSTER = 6        # до 6 матчей — один крупный постер; больше — делим на несколько в одном альбоме
+MATCHI_MAX = 6               # на постере в альбоме — не больше 6 (у всех постеров альбома одинаковая шапка и высота)
 
 
 def split_matchi(items):
-    """Матчи дня по постерам. До 5 — один. Больше — поровну на два, первый крупнее (9 → 5+4, 7 → 4+3, 12 → 6+6);
-    первый — не больше 6, продолжение (без заголовка) — не больше 7 (13 → 6+7). Не влезает в два — три и больше (14 → 6+4+4)."""
+    """Матчи дня по постерам. До 6 — один. Больше — поровну, первый крупнее (7 → 4+3, 9 → 5+4, 13 → 5+4+4).
+    У всех постеров альбома шапка «МАТЧИ ДНЯ» и высота одинаковые — плашки на одном уровне."""
     n = len(items)
     if n <= MATCHI_PER_POSTER:
         return [items]
-    first = min(MATCHI_FIRST_MAX, -(-n // 2))
-    rest = items[first:]
-    g = max(1, -(-len(rest) // MATCHI_CONT_MAX))
-    out, i = [items[:first]], 0
+    g = -(-n // MATCHI_MAX)
+    out, i = [], 0
     for k in range(g):
-        size = len(rest) // g + (1 if k < len(rest) % g else 0)
-        out.append(rest[i:i + size])
+        size = n // g + (1 if k < n % g else 0)
+        out.append(items[i:i + size])
         i += size
     return out
 
@@ -261,7 +258,7 @@ def main():
     text, after = no_emoji(text), no_emoji(after)
     print('подпись:\n' + text + ('\n--- отдельным сообщением:\n' + after if after else ''))
 
-    # «Матчи дня»: больше 5 матчей — несколько постеров одним постом-альбомом (продолжение — без заголовка); итоги — всегда один баннер
+    # «Матчи дня»: больше 5 матчей — несколько постеров одним постом-альбомом (у всех одинаковая шапка и высота); итоги — всегда один баннер
     groups = split_matchi(items) if kind == 'matchi' else [items]
     outs = [os.path.join(os.getcwd(), '%s_%s%s.jpg' % (kind, league.lower(), '_%d' % (k + 1) if len(groups) > 1 else ''))
             for k in range(len(groups))]
@@ -274,7 +271,7 @@ def main():
         for grp, path in zip(groups, outs):
             if kind == 'matchi':
                 import preview_ice as pv
-                pv.render(grp, path, style='columns', league=league, date_title=date_title or None, cont=path != outs[0])
+                pv.render(grp, path, style='columns', league=league, date_title=date_title or None, rows=max(len(g) for g in groups))
             else:
                 import results_ice2 as ri
                 ri.render(grp, path, variant=10, league=league, date_title=date_title or None)
