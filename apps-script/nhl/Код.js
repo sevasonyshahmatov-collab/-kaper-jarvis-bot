@@ -11463,7 +11463,8 @@ function postAssemble_(m, pick, emo, p) {
   var parts = [head];
   if (p.headline && !POST_BANNED_.test(p.headline)) parts.push(p.headline.toUpperCase());
   parts = parts.concat(body);
-  if (p.closing && !POST_BANNED_.test(p.closing)) parts.push(p.closing);
+  var close = p.closing && !POST_BANNED_.test(p.closing) ? p.closing.replace(/([^.!?…])$/, '$1.') : '';
+  if (close && !(pick.main ? false : /перевес|ставк|не вижу|нет явного/i.test(close))) parts.push(close);   // без ставки вывод не повторяет «ставку не делаю»
   parts.push(betLine);
   return parts.join('\n\n');
 }
