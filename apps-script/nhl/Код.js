@@ -4420,7 +4420,8 @@ function computeSelfCheck_(seasons, homeBase, scale, otPenalty) {
 /** Пункт меню: считает самопроверку и пишет лист «Самопроверка». */
 function selfCheckFactors_() {
   var ss = SpreadsheetApp.getActive();
-  var ui = SpreadsheetApp.getUi();
+  var ui;                                   // из ежемесячного триггера окна нет — тогда сообщения просто не показываем
+  try { ui = SpreadsheetApp.getUi(); } catch (e) { ui = { alert: function () {} }; }
 
   var teamsSh = ss.getSheetByName(SHEET_TEAMS);
   var start = {};
@@ -8732,25 +8733,32 @@ function agentSheet_(ss) {
   return sh;
 }
 
+/** Текст пункта сводки без служебного: номера источников, «[досье]», «нет данных» → ''. */
+function agentPlain_(t) {
+  var s = String(t || '').replace(/\s*\[(?:\d+(?:\s*[,;–-]\s*\d+)*|досье)\]/gi, '').replace(/[ \t]{2,}/g, ' ').trim();
+  return /^(нет данных|н\/д|-|—)?\.?$/i.test(s) ? '' : s;
+}
 function agentMessageText_(dayKey, items, model, usage) {
   var lines = ['🧠 <b>СВОДКА АГЕНТА</b> · ' + escHtml_(ruDayTitle_(dayKey).toLowerCase()), ''];
   items.forEach(function (it) {
     var b = it.brief;
     lines.push('🏒 <b>' + escHtml_(it.m.home + ' — ' + it.m.away) + '</b>' + (it.m.time ? ' · ' + it.m.time + ' МСК' : ''));
     if (it.error) { lines.push('⚠️ не получилось: ' + escHtml_(it.error)); lines.push(''); return; }
-    (b.extra || []).forEach(function (t) { lines.push(escHtml_(t)); });
-    lines.push('🧤 ' + escHtml_(b.goalies));
-    lines.push('🏥 ' + escHtml_(it.m.home) + ': ' + escHtml_(b.home_lineup));
-    lines.push('🏥 ' + escHtml_(it.m.away) + ': ' + escHtml_(b.away_lineup));
-    lines.push('📈 ' + escHtml_(b.form));
-    lines.push('❗ ' + escHtml_(b.key));
-    if (b.leanText) lines.push('🧭 ' + escHtml_(b.leanText));
+    // без номеров источников внутри текста ([2, 14], [досье]) и без пустых пунктов «нет данных» — ссылки остаются строкой ниже
+    var add = function (label, t) { t = agentPlain_(t); if (t) lines.push(label + escHtml_(t)); };
+    (b.extra || []).forEach(function (t) { add('', t); });
+    add('Вратари: ', b.goalies);
+    add(it.m.home + ': ', b.home_lineup);
+    add(it.m.away + ': ', b.away_lineup);
+    add('Форма: ', b.form);
+    add('Главное: ', b.key);
+    if (b.leanText) add('Итог по новостям: ', b.leanText);
     if (b.lineups && b.lineups.length) { lines.push('🧾 <i>заявки прошлых матчей:</i>'); b.lineups.forEach(function (t) { lines.push(escHtml_(t)); }); }
     if (it.keyNote) lines.push('🧍 ' + escHtml_(it.keyNote));
     if (b.links.length) lines.push(b.links.map(function (l) { return '<a href="' + escHtml_(l.url) + '">[' + l.n + ']' + (l.blog ? ' блог' : l.tg ? ' tg' : '') + '</a>'; }).join(' '));
     lines.push('');
   });
-  lines.push('<i>Только факты из найденных статей и досье команд; [n] — источник, «блог» — статья болельщика (менее надёжно). Модель: ' + escHtml_(model || '—') +
+  lines.push('<i>Только факты из найденных статей и досье команд; ссылки [n] — источники, «блог» — статья болельщика (менее надёжно). Модель: ' + escHtml_(model || '—') +
     '. Поиск в этом месяце: ' + usage.used + ' из ' + AGENT_TAVILY_MONTHLY_CAP + ' кредитов.</i>');
   return lines.join('\n');
 }
@@ -9409,7 +9417,7 @@ var VIDEO_WEIGHT = 1 / 3;                 // доля мнения экспер�
 var VIDEO_TIME_BUDGET_MS = 270000;        // сколько работать за один запуск (у Apps Script лимит 6 минут)
 var VIDEO_CONTEXT_DAYS = 45;              // сколько дней после разбора мнение экспертов показывать агенту
 var PRESEASON_BACKUP_PROP = 'PRESEASON_BACKUP';
-var RAW_COLS = 21;                        // «Видео_разбор»: …, Минута, Место (число), Список эксперта, Травмы, Переходы, Тренер, Форма, Ожидания, Тип ролика
+var RAW_COLS = 22;                        // «Видео_разбор»: …, Минута, Место (число), Список эксперта, Травмы, Переходы, Тренер, Форма, Ожидания, Тип ролика
 var PRE_PROP_COL = 12;                    // сводка: колонка «С учётом видео»
 var PRE_COLS = 21;
 var VIDEO_BLIND_MAX_SEC = 4 * 3600;       // длина ролика неизвестна — идём кусками, но не дальше 4 часов
@@ -9505,7 +9513,7 @@ function videoInfo_(id) {
   return out;
 }
 
-function videoPrompt_(from, to) {
+function videoPrompt_(from, to, memory) {
   var names = [];
   try { names = Object.keys(preseasonStartRatings_(SpreadsheetApp.getActive())); } catch (e) { names = []; }
   var frag = to ? 'фрагмент ролика с ' + videoMmss_(from) + ' по ' + videoMmss_(to) : 'ролик';
@@ -9529,18 +9537,21 @@ function videoPrompt_(from, to) {
     'согласуется с местом. Если автор силу не оценивает — null.\n' +
     'match_picks — ТОЛЬКО когда автор прямо говорит, кто победит в конкретном предстоящем матче: хозяева, гости, дата (если названа), за кого он, ' +
     'уверенность и почему. Победа — с учётом овертайма и буллитов.\n' +
+    (memory ? '\n' + memory + '\nСРАВНИ С ПРОШЛЫМ: для каждой команды из ролика, о которой автор говорил раньше, заполни vs_before — изменилось ли его мнение ' +
+      '(повысил / понизил / подтвердил), что именно и почему, если он объясняет; если противоречит себе без объяснения — так и напиши. ' +
+      'Прошлые слова НЕ переноси в остальные поля: там только то, что сказано в этом ролике. Команды, о которых раньше не говорил, — vs_before "".\n\n' : '') +
     'Верни JSON строго такого вида (тексты на русском, каждое поле до 200 знаков):\n' +
     '{"author":"кто ведёт ролик, если назван","league":"о какой лиге в основном ' + (to ? 'этот фрагмент' : 'ролик') + ': КХЛ, НХЛ, другая или \"\"",' +
     '"video_type":"расклад / подкаст-новости / обзор матча / превью / прогнозы на матчи / пресс-конференция / другое",' +
     '"clip_empty":' + (to ? 'true, если этого фрагмента в ролике нет (он за концом ролика), иначе false' : 'false') + ',' +
     '"teams":[{"team":"' + (names.length ? 'название из списка' : 'полное название клуба') + '","group":"","place_num":null,"score":null,"place":"как автор сказал о месте, или \"\"",' +
-    '"playoff":"да, нет, на грани или \"\"","injuries":"","roster":"","goalie":"","coach":"","form":"","outlook":"","plus":"","minus":"","impact":0,"impact_why":"",' +
+    '"playoff":"да, нет, на грани или \"\"","injuries":"","roster":"","goalie":"","coach":"","form":"","outlook":"","plus":"","minus":"","impact":0,"impact_why":"","vs_before":"",' +
     '"time":"мм:сс от начала всего ролика, где начинается разговор о команде"}],' +
     '"match_picks":[{"home":"хозяева","away":"гости","date":"дд.мм или \"\"","pick":"название команды, за которую автор","confidence":"низкая / средняя / высокая","reason":"почему","time":"мм:сс"}]}';
 }
 
 /** Один запрос к Gemini с роликом (или его куском). {author, teams:[...], model} */
-function videoGeminiClip_(url, from, to, deadline) {
+function videoGeminiClip_(url, from, to, deadline, memory) {
   var p = agentProps_(), key = p.getProperty('GEMINI_KEY');
   if (!key) throw new Error('нет ключа GEMINI_KEY');
   var model = videoModel_();
@@ -9552,7 +9563,7 @@ function videoGeminiClip_(url, from, to, deadline) {
     if (!simple) gc.mediaResolution = 'MEDIA_RESOLUTION_LOW';
     return UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + m + ':generateContent?key=' + encodeURIComponent(key), {
       method: 'post', contentType: 'application/json', muteHttpExceptions: true,
-      payload: JSON.stringify({ contents: [{ role: 'user', parts: [part, { text: videoPrompt_(from, to) }] }], generationConfig: gc })
+      payload: JSON.stringify({ contents: [{ role: 'user', parts: [part, { text: videoPrompt_(from, to, memory) }] }], generationConfig: gc })
     });
   };
   // Перегрузка Google (500/502/503/504) — временная: повторяем с паузой, затем пробуем запасную модель Flash.
@@ -9644,7 +9655,7 @@ function videoTeams_(arr) {
     return ru ? { team: ru, score: isFinite(sc) && sc >= 1 && sc <= 10 ? Math.round(sc * 10) / 10 : '', pn: isFinite(pn) && pn >= 1 && pn <= 40 ? Math.round(pn) : '',
       group: clip(t.group, 60), place: clip(t.place, 80), playoff: clip(t.playoff, 20), plus: clip(t.plus, 250), minus: clip(t.minus, 250), goalie: clip(t.goalie, 200),
       injuries: clip(t.injuries, 250), roster: clip(t.roster, 250), coach: clip(t.coach, 250), form: clip(t.form, 250), outlook: clip(t.outlook, 250), time: clip(t.time, 10),
-      impact: videoImpact_(t.impact), why: clip(t.impact_why, 120) } : null;
+      impact: videoImpact_(t.impact), why: clip(t.impact_why, 120), vs: clip(t.vs_before, 250) } : null;
   }).filter(Boolean);
   out.unknown = unknown;                                   // названия, которые не нашлись в справочнике — покажем в статусе
   return out;
@@ -9672,7 +9683,7 @@ function videoRawSheet_(ss) {
   var sh = ss.getSheetByName(VIDEO_RAW_SHEET) || ss.insertSheet(VIDEO_RAW_SHEET);
   sh.getRange(1, 1, 1, RAW_COLS).setValues([['Ролик', 'Эксперт', 'Фрагмент', 'Команда', 'Оценка 1–10', 'Место', 'Плей-офф', 'Плюсы', 'Минусы', 'Вратари', 'Минута', 'Место (число)', 'Список эксперта',
     'Травмы / кто не играет', 'Переходы и состав', 'Тренер и тактика', 'Форма', 'Ожидания эксперта', 'Тип ролика',
-    'Влияние на ближайшие матчи (очки рейтинга)', 'Почему (влияние)']]).setFontWeight('bold');
+    'Влияние на ближайшие матчи (очки рейтинга)', 'Почему (влияние)', 'Сравнение с прошлыми роликами автора']]).setFontWeight('bold');
   return sh;
 }
 
@@ -9707,6 +9718,172 @@ function videoRawClear_(sh, url) {
   if (keep.length) sh.getRange(2, 1, keep.length, RAW_COLS).setValues(keep.map(function (r) { r[10] = r[10] ? "'" + r[10] : ''; return r; }));
 }
 
+/* ── 🧠 ПАМЯТЬ ПО АВТОРАМ (03.10.2026) ──
+ *  Один эксперт — одно имя: «Майков» и «Маяков» (опечатка в подписи или в ответе Gemini) сводятся к одному автору.
+ *  Перед разбором нового ролика Gemini получает, что этот автор говорил раньше по каждой команде, и отмечает,
+ *  что изменилось и почему (столбец «Сравнение с прошлыми роликами автора» на листе разбора).
+ *  В раскладе (лист «Расклад_экспертов») у каждого автора по каждому списку считается только его САМОЕ СВЕЖЕЕ мнение:
+ *  четыре ролика одного автора не весят как четыре эксперта, а новое мнение заменяет старое.
+ *  Лист «Эксперты_память» — кто что говорил, как менялось мнение, как сбываются его прогнозы на матчи. */
+var EXPERT_MEM_SHEET = 'Эксперты_память';
+var VIDEO_MEM_TEAM_CHARS = 260;            // сколько знаков прошлого мнения по одной команде даём Gemini
+var VIDEO_MEM_MAX_CHARS = 9000;            // и всего
+
+function videoNorm_(s) { return String(s || '').split(' — ')[0].toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
+function videoLev_(a, b) {
+  if (Math.abs(a.length - b.length) > 3) return 99;
+  var p = [], i, j;
+  for (j = 0; j <= b.length; j++) p[j] = j;
+  for (i = 1; i <= a.length; i++) {
+    var c = [i];
+    for (j = 1; j <= b.length; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    p = c;
+  }
+  return p[b.length];
+}
+/** Каноническое имя автора: по всем подписям роликов (самое частое написание из похожих). {нормализованное → имя} */
+function videoAuthors_(ss) {
+  var L = videoList_(ss), groups = [];
+  L.list.forEach(function (v) {
+    var name = String(v.who || '').split(' — ')[0].trim(), n = videoNorm_(name);
+    if (!n) return;
+    var g = groups.filter(function (x) { return x.keys.some(function (k) { return k === n || (k.length >= 6 && n.length >= 6 && videoLev_(k, n) <= 2); }); })[0];
+    if (!g) { g = { keys: [], names: {} }; groups.push(g); }
+    if (g.keys.indexOf(n) < 0) g.keys.push(n);
+    g.names[name] = (g.names[name] || 0) + 1;
+  });
+  var out = {};
+  groups.forEach(function (g) {
+    var best = Object.keys(g.names).sort(function (a, b) { return g.names[b] - g.names[a] || a.length - b.length; })[0];
+    g.keys.forEach(function (k) { out[k] = best; });
+  });
+  return out;
+}
+function videoAuthorOf_(map, who) {
+  var n = videoNorm_(who);
+  if (!n) return '';
+  if (map[n]) return map[n];
+  var k = Object.keys(map).filter(function (x) { return x.length >= 6 && n.length >= 6 && videoLev_(x, n) <= 2; })[0];
+  return k ? map[k] : String(who || '').split(' — ')[0].trim();
+}
+function videoWhenKey_(x) {
+  if (x instanceof Date) return Utilities.formatDate(x, 'Europe/Moscow', 'yyyy-MM-dd');
+  var s = String(x || ''), m = s.match(/(\d{4})-(\d\d)-(\d\d)/) || s.match(/(\d\d)\.(\d\d)\.(\d{4})/);
+  if (!m) return '';
+  return m[1].length === 4 ? m[1] + '-' + m[2] + '-' + m[3] : m[3] + '-' + m[2] + '-' + m[1];
+}
+/** Что автор говорил раньше по командам (последний ролик о команде, не считая url) — текстом для Gemini. '' — роликов не было. */
+function videoAuthorMemory_(ss, who, url) {
+  var raw = ss.getSheetByName(VIDEO_RAW_SHEET), map = videoAuthors_(ss), me = videoAuthorOf_(map, who);
+  if (!me || !raw || raw.getLastRow() < 2) return '';
+  var when = {}, L = videoList_(ss);
+  if (L.sh.getLastRow() > 1) L.sh.getRange(2, 1, L.sh.getLastRow() - 1, 9).getValues().forEach(function (r) { when[String(r[0]).trim()] = videoWhenKey_(r[8] || r[6]); });
+  var last = {};
+  raw.getRange(2, 1, raw.getLastRow() - 1, RAW_COLS).getValues().forEach(function (r) {
+    var u = String(r[0]).trim(), t = String(r[3]).trim();
+    if (!t || u === url || videoAuthorOf_(map, r[1]) !== me) return;
+    var w = when[u] || '';
+    if (!last[t] || w >= last[t].w) {
+      var bits = [r[5] ? 'место: ' + r[5] : '', r[4] !== '' ? 'оценка ' + r[4] + '/10' : '', r[7] ? 'плюсы: ' + r[7] : '', r[8] ? 'минусы: ' + r[8] : '',
+        r[13] ? 'травмы: ' + r[13] : '', r[16] ? 'форма: ' + r[16] : '', r[17] ? 'ожидания: ' + r[17] : ''].filter(Boolean);
+      last[t] = { w: w, text: bits.join('; ').slice(0, VIDEO_MEM_TEAM_CHARS) };
+    }
+  });
+  var teams = Object.keys(last);
+  if (!teams.length) return '';
+  var out = 'ЧТО ЭТОТ АВТОР (' + me + ') ГОВОРИЛ В ПРОШЛЫХ РОЛИКАХ — по командам, самое свежее:\n', n = out.length;
+  teams.sort(function (a, b) { return last[b].w < last[a].w ? -1 : 1; }).forEach(function (t) {
+    var line = '- ' + t + (last[t].w ? ' (ролик от ' + last[t].w.split('-').reverse().join('.') + ')' : '') + ': ' + last[t].text + '\n';
+    if (n + line.length <= VIDEO_MEM_MAX_CHARS) { out += line; n += line.length; }
+  });
+  var pk = videoAuthorPicks_(ss, map)[me];
+  if (pk && pk.done) out += 'Его прогнозы на матчи раньше: проверено ' + pk.done + ', угадано ' + pk.hit + '.\n';
+  return out;
+}
+/** Прогнозы авторов на матчи: {автор: {all, done, hit}} — с листа «Прогнозы_экспертов». */
+function videoAuthorPicks_(ss, map) {
+  var sh = ss.getSheetByName(PICKS_SHEET), out = {};
+  if (!sh || sh.getLastRow() < 2) return out;
+  sh.getRange(2, 1, sh.getLastRow() - 1, PICKS_COLS).getValues().forEach(function (r) {
+    var a = videoAuthorOf_(map, r[1]); if (!a) return;
+    var o = out[a] = out[a] || { all: 0, done: 0, hit: 0 };
+    o.all++;
+    var m = String(r[12] || '');
+    if (/да|✅/i.test(m)) { o.done++; o.hit++; } else if (/нет|❌/i.test(m)) o.done++;
+  });
+  return out;
+}
+/** Лист «Эксперты_память»: по автору и команде — свежее мнение, прежнее и что изменилось; сверху — сводка по авторам. */
+function expertMemoryBuild_(ss) {
+  ss = ss || SpreadsheetApp.getActive();
+  var raw = ss.getSheetByName(VIDEO_RAW_SHEET);
+  if (!raw || raw.getLastRow() < 2) return 0;
+  var map = videoAuthors_(ss), when = {}, L = videoList_(ss);
+  if (L.sh.getLastRow() > 1) L.sh.getRange(2, 1, L.sh.getLastRow() - 1, 9).getValues().forEach(function (r) { when[String(r[0]).trim()] = videoWhenKey_(r[8] || r[6]); });
+  var by = {}, vids = {};
+  raw.getRange(2, 1, raw.getLastRow() - 1, RAW_COLS).getValues().forEach(function (r) {
+    var a = videoAuthorOf_(map, r[1]) || 'без автора', t = String(r[3]).trim(), u = String(r[0]).trim();
+    if (!t) return;
+    (vids[a] = vids[a] || {})[u] = when[u] || '';
+    var k = a + '|' + t, view = [r[5] || (r[11] !== '' ? r[11] + '-е место' : ''), r[4] !== '' ? 'оценка ' + r[4] : '', r[17] || r[16] || ''].filter(Boolean).join(' · ');
+    (by[k] = by[k] || { a: a, t: t, list: [] }).list.push({ w: when[u] || '', view: view, vs: String(r[21] || ''), pn: r[11], sc: r[4] });
+  });
+  var picks = videoAuthorPicks_(ss, map);
+  var sh = ss.getSheetByName(EXPERT_MEM_SHEET) || ss.insertSheet(EXPERT_MEM_SHEET);
+  sh.clear();
+  var head = ['Автор', 'Команда', 'Последнее мнение', 'Когда', 'Прежнее мнение', 'Когда (прежнее)', 'Что изменилось', 'Роликов автора о команде'];
+  var rows = Object.keys(by).map(function (k) {
+    var x = by[k]; x.list.sort(function (p, q) { return p.w < q.w ? 1 : -1; });
+    var cur = x.list[0], prev = x.list.filter(function (y) { return y.w !== cur.w; })[0];
+    var ch = cur.vs || '';
+    if (!ch && prev && cur.pn !== '' && prev.pn !== '' && Number(cur.pn) !== Number(prev.pn)) ch = (Number(cur.pn) < Number(prev.pn) ? 'поднял: ' : 'опустил: ') + prev.pn + '-е → ' + cur.pn + '-е место';
+    return [x.a, x.t, cur.view.slice(0, 300), cur.w, prev ? prev.view.slice(0, 300) : '', prev ? prev.w : '', ch.slice(0, 300), x.list.length];
+  }).sort(function (p, q) { return p[0] < q[0] ? -1 : p[0] > q[0] ? 1 : (p[1] < q[1] ? -1 : 1); });
+  var top = Object.keys(vids).map(function (a) {
+    var ds = Object.keys(vids[a]).map(function (u) { return vids[a][u]; }).filter(Boolean).sort(), pk = picks[a] || {};
+    return [a, 'роликов: ' + Object.keys(vids[a]).length, ds.length ? 'последний: ' + ds[ds.length - 1].split('-').reverse().join('.') : '', '',
+      pk.all ? 'прогнозов на матчи: ' + pk.all + (pk.done ? ', проверено ' + pk.done + ', угадано ' + pk.hit + ' (' + Math.round(pk.hit / pk.done * 100) + '%)' : '') : '', '', '', ''];
+  });
+  sh.getRange(1, 1, 1, head.length).setValues([['АВТОРЫ'].concat(head.slice(1).map(function () { return ''; }))]).setFontWeight('bold');
+  if (top.length) sh.getRange(2, 1, top.length, head.length).setValues(top);
+  var r0 = top.length + 3;
+  sh.getRange(r0, 1, 1, head.length).setValues([head]).setFontWeight('bold');
+  if (rows.length) sh.getRange(r0 + 1, 1, rows.length, head.length).setValues(rows).setWrap(true).setVerticalAlignment('top');
+  try { sh.setFrozenRows(0); sh.setColumnWidth(3, 320); sh.setColumnWidth(5, 320); sh.setColumnWidth(7, 300); } catch (e) {}
+  return rows.length;
+}
+
+/** Ролики, разобранные до 01.10 (без травм, переходов, тренера, формы, ожиданий и влияния), — один раз разобрать заново. */
+function videoUpgradeOld_(ss) {
+  var p = agentProps_();
+  if (p.getProperty('VIDEO_UPGRADE_V2')) return 0;
+  p.setProperty('VIDEO_UPGRADE_V2', mskNow_());
+  var raw = ss.getSheetByName(VIDEO_RAW_SHEET), L = videoList_(ss), rich = {};
+  if (raw && raw.getLastRow() > 1) raw.getRange(2, 1, raw.getLastRow() - 1, RAW_COLS).getValues().forEach(function (r) {
+    var u = String(r[0]).trim(); if (!rich[u]) rich[u] = false;
+    if ([13, 14, 15, 16, 17, 18, 19].some(function (c) { return String(r[c] === null || r[c] === undefined ? '' : r[c]).trim() !== ''; })) rich[u] = true;
+  });
+  var n = 0;
+  L.list.forEach(function (v) {
+    if (/^готово/.test(v.status) && rich[v.url] === false) { L.sh.getRange(v.row, 3, 1, 2).setValues([['', 0]]); n++; }   // статус пуст — разбор с начала
+  });
+  if (n) videoScheduleContinue_(1);
+  return n;
+}
+
+/** Страховка (раз в 15 минут из сторожа автоматики): ролик не доразобран, а продолжение не стоит — поставить. */
+function videoWatchdog_() {
+  var ss = SpreadsheetApp.getActive();
+  if (!agentProps_().getProperty('GEMINI_KEY') || !ss.getSheetByName(VIDEO_SHEET)) return '';
+  var up = 0; try { up = videoUpgradeOld_(ss); } catch (e) { up = 0; }
+  var L = videoList_(ss), todo = L.list.filter(function (v) { return !/^(готово|ошибка)/.test(v.status); });
+  if (!todo.length) return up ? 'старых роликов на полный разбор: ' + up : '';
+  var has = false;
+  try { has = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'videoContinue_'; }); } catch (e) { has = true; }
+  if (!has) videoScheduleContinue_(1);
+  return has ? '' : 'разбор видео продолжен (ждали: ' + todo.length + ')';
+}
+
 /** Кнопка и продолжение: разобрать все неразобранные ролики. */
 function videoAnalyzeAll_(auto) {
   auto = auto === true;
@@ -9738,7 +9915,8 @@ function videoAnalyzeAll_(auto) {
       while (Date.now() - t0 < VIDEO_START_MS) {
         // длина неизвестна — всё равно кусками по 15 минут, пока ролик не кончится (кусок за концом — пустой или ошибка 4xx)
         var from = v.done, to = v.len ? Math.min(v.len, from + VIDEO_CLIP_SEC) : from + VIDEO_CLIP_SEC, res, ended = false;
-        try { res = videoGeminiClip_(videoCanon_(v.id), from, to, t0 + VIDEO_DEADLINE_MS); }
+        if (v.memory === undefined) { try { v.memory = videoAuthorMemory_(ss, v.who, v.url); } catch (em) { v.memory = ''; } }
+        try { res = videoGeminiClip_(videoCanon_(v.id), from, to, t0 + VIDEO_DEADLINE_MS, v.memory); }
         catch (e) {
           if (!v.len && from > 0 && /кодом 4\d\d/.test(e.message) && !/429/.test(e.message)) ended = true;
           else {
@@ -9765,7 +9943,7 @@ function videoAnalyzeAll_(auto) {
         if (res.teams.length) {
           // минута — текстом (иначе таблица превращает «27:22» в «1 день 3:22»)
           var rows = res.teams.map(function (t) { return [v.url, v.who, label, t.team, t.score, t.place, t.playoff, t.plus, t.minus, t.goalie, t.time ? "'" + t.time : '', t.pn, t.group,
-            t.injuries, t.roster, t.coach, t.form, t.outlook, res.type, t.impact, t.why]; });
+            t.injuries, t.roster, t.coach, t.form, t.outlook, res.type, t.impact, t.why, t.vs || '']; });
           raw.getRange(raw.getLastRow() + 1, 1, rows.length, RAW_COLS).setValues(rows);
         }
         if (res.picks.length) {
@@ -9805,6 +9983,7 @@ function videoAnalyzeAll_(auto) {
   if (toModel) videoScheduleApply_();
   else try { ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'videoContinue_') ScriptApp.deleteTrigger(t); }); } catch (e) {}
   var sum = preseasonBuild_(ss);
+  try { expertMemoryBuild_(ss); } catch (e) { console.log('память экспертов: ' + e.message); }
   var msg = '🎬 Видео экспертов: разобрано кусков ' + clips + (model ? ' (' + model + ')' : '') + '. Готово роликов: ' + (L.list.length - left.length) + ' из ' + L.list.length + '.' +
     (more ? (stop ? (stopWait === 10 ? '\nGemini сейчас перегружен (это временно, на стороне Google) — продолжу сам через 10 минут, нажимать ничего не нужно.' :
       stopWait > 10 ? '\nДневной бесплатный лимит Gemini на видео исчерпан (около 8 часов роликов в сутки). Лимит сбрасывается в полночь по Калифорнии — продолжу сам около ' +
@@ -9850,8 +10029,11 @@ function videoScheduleContinue_(minutes) {
   } catch (e) { /* нет прав на триггеры — нажать кнопку ещё раз */ }
 }
 function videoContinue_() {
-  try { ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'videoContinue_') ScriptApp.deleteTrigger(t); }); } catch (e) {}
-  try { videoAnalyzeAll_(true); } catch (e) { console.log('video: ' + e.message); }
+  // страховку ставим ДО запуска: если разбор упадёт или блокировка занята (LIVE, разведчик), цепочка не оборвётся
+  videoScheduleContinue_(8);
+  var r = null;
+  try { r = videoAnalyzeAll_(true); } catch (e) { console.log('video: ' + e.message); }
+  if (r && r.busy) videoScheduleContinue_(3);
 }
 
 /** Стартовые рейтинги из справочника: {команда: {row, val}} */
@@ -9875,22 +10057,34 @@ function preseasonBuild_(ss) {
   var when = {};                                            // ролик → когда разобран
   try { var L = videoList_(ss); if (L.sh.getLastRow() > 1) L.sh.getRange(2, 1, L.sh.getLastRow() - 1, 9).getValues().forEach(function (r) { when[String(r[0]).trim()] = r[8] || r[6]; }); } catch (e) {}   // дата ролика, иначе — дата разбора
   var rawRows = raw && raw.getLastRow() > 1 ? raw.getRange(2, 1, raw.getLastRow() - 1, RAW_COLS).getValues() : [];
+  // память по авторам: в каждом списке автора (дивизион, лига) берём только его самый свежий ролик — новое мнение заменяет старое
+  var amap = {}; try { amap = videoAuthors_(ss); } catch (e) { amap = {}; }
+  var authorOf = function (r) { return videoAuthorOf_(amap, r[1]) || String(r[0]).trim(); };
+  var newest = {};
   // кусок без названия списка: берём список этой команды в том же ролике, а если в ролике список один — его
   var gTeam = {}, gUrl = {};
   rawRows.forEach(function (r) { var g = String(r[12] || '').trim(), u = String(r[0]).trim(); if (!g) return; gTeam[u + '|' + String(r[3]).trim()] = g; (gUrl[u] = gUrl[u] || {})[g.toLowerCase()] = g; });
+  var grpOf = function (r) { var u = String(r[0]).trim(), t = String(r[3]).trim(), g = String(r[12] || '').trim(); if (g) return g; var gs = gUrl[u] ? Object.keys(gUrl[u]) : []; return gTeam[u + '|' + t] || (gs.length === 1 ? gUrl[u][gs[0]] : ''); };
+  rawRows.forEach(function (r) {
+    if (!String(r[3]).trim()) return;
+    var u = String(r[0]).trim(), g = grpOf(r).toLowerCase(), k = authorOf(r) + '|' + (g || 'ролик ' + u), w = videoWhenKey_(when[u]);   // список не назван — ролик сам себе список
+    if (!newest[k] || w > newest[k].w) newest[k] = { u: u, w: w };
+  });
   rawRows.forEach(function (r) {
     var t = String(r[3]).trim(); if (!t) return;
     var url = String(r[0]).trim(), who = String(r[1] || '').split(' — ')[0] || 'ролик', grp = String(r[12] || '').trim();
     if (!grp) { var gs = gUrl[url] ? Object.keys(gUrl[url]) : []; grp = gTeam[url + '|' + t] || (gs.length === 1 ? gUrl[url][gs[0]] : ''); }
     if (!by[t]) { by[t] = { scores: [], place: [], playoff: [], plus: [], minus: [], goalie: [], injuries: [], roster: [], coach: [], form: [], outlook: [], type: [], where: [], lists: [], when: '' }; order.push(t); }
-    var b = by[t];
-    if (r[4] !== '' && isFinite(Number(r[4]))) b.scores.push(Number(r[4]));
+    var b = by[t], akey = authorOf(r) + '|' + (grp ? grp.toLowerCase() : 'ролик ' + url), older = !!(newest[akey] && newest[akey].u !== url);
+    if (!older && r[4] !== '' && isFinite(Number(r[4]))) b.scores.push(Number(r[4]));   // оценка — из свежего ролика автора
     [['place', 5], ['playoff', 6], ['plus', 7], ['minus', 8], ['goalie', 9], ['injuries', 13], ['roster', 14], ['coach', 15], ['form', 16], ['outlook', 17], ['type', 18]].forEach(function (f) { var x = String(r[f[1]] || '').trim(); if (x && b[f[0]].indexOf(x) < 0) b[f[0]].push(x); });
     b.where.push(who + (r[10] ? ' ' + String(r[10]).replace(/^'/, '') : '') + ' ' + url);
     if (when[url]) b.when = when[url];
-    // список эксперта = ролик + то, что он ранжирует (дивизион / конференция / вся лига)
-    var key = url + '|' + grp.toLowerCase();
-    if (!lists[key]) { lists[key] = { label: grp || who, members: {} }; listOrder.push(key); }
+    // список эксперта = автор + то, что он ранжирует (дивизион / конференция / вся лига); места — только из его свежего ролика,
+    // из старых роликов автора остаются только тексты (плюсы, минусы, травмы) — для контекста
+    if (older) return;
+    var key = akey;
+    if (!lists[key]) { lists[key] = { label: (grp ? grp + ' · ' : '') + authorOf(r), members: {} }; listOrder.push(key); }
     var mem = lists[key].members[t] = lists[key].members[t] || { pns: [], scores: [] };
     if (r[11] !== '' && r[11] !== undefined && isFinite(Number(r[11]))) mem.pns.push(Number(r[11]));
     if (r[4] !== '' && isFinite(Number(r[4]))) mem.scores.push(Number(r[4]));
@@ -10929,6 +11123,7 @@ function scoutAuto_() {
 
 /** Каждые 15 минут: у кого матч через ~1,5 часа — свежий сбор и итог вам (матчи одного времени — одним сообщением). */
 function scoutReportAuto_() {
+  try { var vw = videoWatchdog_(); if (vw) console.log('видео: ' + vw); } catch (e) { console.log('видео-сторож: ' + e.message); }
   try { nhlNightDoneAuto_(); } catch (e0) { console.log('итоги дня: ' + e0.message); }
   try { if (Number(mskNow_('HH')) >= MATCHI_HOUR_MSK) matchiAuto_(bannersDay_()); } catch (e1) { console.log('матчи дня: ' + e1.message); }   // «Матчи дня» НХЛ — с 18:00 МСК
   var ss = SpreadsheetApp.getActive(), p = agentProps_(), now = Date.now(), to = p.getProperty('TG_ADMIN_ID');
@@ -11116,7 +11311,7 @@ function postFacts_(ss, m, now) {
     var d = dos[team] || {};
     return { team: team, games: games, week: st.week, rest: st.rest, facts: f.slice(0, 8),
       lineup: kp[team] && kp[team].text ? kp[team].text : '', dossier: [d.form, d.style, d.key].filter(Boolean).join(' · '),
-      proto: postLastProtocol_(ss, team) };
+      proto: null };                                                 // протокол последнего матча посту больше не нужен (03.10)
   };
   return { m: m, odds: o, model: model, home: side(m.home), away: side(m.away) };
 }
@@ -11138,7 +11333,7 @@ function postPick_(f) {
     var edge = mo.pHome - o.pHome, team = edge > 0 ? f.m.home : f.m.away;
     var odd = o.mlOdds ? (edge > 0 ? o.mlOdds[0] : o.mlOdds[1]) : null;
     if (Math.abs(edge) >= POST_EDGE_WIN && odd)
-      out.push({ kind: 'победа', text: 'ПОБЕДА ' + team.toUpperCase() + ' (С ОТ)', odds: odd, edge: Math.abs(edge), why: 'перевес к линии ' + Math.round(Math.abs(edge) * 100) + ' п.п.' });
+      out.push({ kind: 'победа', team: team, text: 'ПОБЕДА ' + team.toUpperCase() + ' С УЧЁТОМ ОТ', odds: odd, edge: Math.abs(edge), why: 'перевес к линии ' + Math.round(Math.abs(edge) * 100) + ' п.п.' });
   }
   if (o.tot && mo.total && o.tot.over !== null && o.tot.over !== undefined) {
     var pUnder = postUnderProb_(mo.total, o.tot.line), mUnder = 1 - o.tot.over;
@@ -11154,45 +11349,123 @@ function postPick_(f) {
   return { main: out[0] || null, alt: out[1] || null };
 }
 
-/* ---------------- запрос к ИИ ---------------- */
+/* ---------------- запрос к ИИ ----------------
+ * С 03.10.2026: пост — не пересказ протоколов, а логика к прогнозу. Код сам считает доводы (броски, «везение» в реализации,
+ * серии, отдых, потери) и даёт ИИ только их — без авторов голов и счёта по периодам. ИИ возвращает JSON
+ * {headline, paragraphs, closing}, а текст собирает код: так в посте не бывает скобок, кавычек и разметки. */
+function postLeague_() { return typeof VIDEO_LEAGUE === 'string' && VIDEO_LEAGUE ? VIDEO_LEAGUE : 'КХЛ'; }
+
+/** Командные показатели игры с листа Elo (модель v2): доля бросков, PDO, шайбы сверх ожидания. Нет столбцов — {}. */
+function postPlayStats_(ss) {
+  var sh = ss.getSheetByName(typeof SHEET_ELO === 'string' ? SHEET_ELO : 'Elo'), out = {};
+  if (!sh || sh.getLastRow() < 2) return out;
+  var v = sh.getRange(1, 1, sh.getLastRow(), Math.max(1, sh.getLastColumn())).getValues(), h = v[0].map(String);
+  var c = function (re) { for (var i = 0; i < h.length; i++) if (re.test(h[i])) return i; return -1; };
+  var cs = c(/^Доля бросков/), cp = c(/^PDO/), cl = c(/^Шайбы за игру: факт/), cn = c(/^Матчей с бросками/);
+  if (cs < 0) return out;
+  v.slice(1).forEach(function (r) {
+    if (!r[0]) return;
+    out[String(r[0]).trim()] = { share: Number(r[cs]) || null, pdo: cp >= 0 ? Number(r[cp]) || null : null, luck: cl >= 0 && r[cl] !== '' ? Number(r[cl]) : null, n: cn >= 0 ? Number(r[cn]) || 0 : 0 };
+  });
+  return out;
+}
+
+/** Серия по последним матчам: {kind: 'W'|'L', n} — сколько подряд побед или поражений. */
+function postStreak_(games) {
+  if (!games.length) return null;
+  var w = games[0].gf > games[0].ga, n = 0;
+  for (var i = 0; i < games.length && (games[i].gf > games[i].ga) === w; i++) n++;
+  return { kind: w ? 'W' : 'L', n: n };
+}
+
+/** Доводы простыми словами — из них ИИ строит логику поста. side: 'home' | 'away'. */
+function postArgs_(f, play) {
+  var out = [], ru = function (n, a, b, c) { return n + ' ' + ruPlural_(n, a, b, c); };
+  [['home', f.home], ['away', f.away]].forEach(function (x) {
+    var s = x[1], t = s.team, q = play[t] || {}, st = postStreak_(s.games || []);
+    if (q.n >= 4 && q.share) {
+      if (q.share >= 54) out.push(t + ' стабильно перебрасывает соперников: ' + Math.round(q.share) + '% бросков в створ в своих матчах сезона');
+      else if (q.share <= 46) out.push(t + ' чаще отбивается, чем атакует: соперники бросают больше (у команды лишь ' + Math.round(q.share) + '% бросков в створ)');
+    }
+    if (q.n >= 4 && q.luck !== null) {
+      if (q.luck >= 0.6) out.push(t + ' забивает заметно больше, чем создаёт, и пропускает меньше, чем позволяет: реализация и вратарь выше своего обычного уровня — такие полосы обычно заканчиваются');
+      else if (q.luck <= -0.6) out.push(t + ' создаёт больше, чем забивает: моменты есть, не идёт реализация или подводит вратарь — такое обычно выправляется');
+    }
+    if (st && st.n >= 3) out.push(t + (st.kind === 'W' ? ' выиграл ' : ' проиграл ') + ru(st.n, 'матч', 'матча', 'матчей') + ' подряд' +
+      (q.n >= 4 && q.luck !== null && ((st.kind === 'W' && q.luck >= 0.4) || (st.kind === 'L' && q.luck <= -0.4)) ? ', но по игре это выглядит не так однозначно' : ''));
+    if (s.rest === 0 || s.rest === 1) out.push(t + ' играет второй день подряд' + (s.week >= 4 ? ', это уже ' + s.week + '-я игра за неделю' : ''));
+    else if (s.week >= 4) out.push(t + ' проводит ' + s.week + '-ю игру за неделю');
+    else if (s.rest >= 4) out.push(t + ' хорошо отдохнул: ' + ru(s.rest, 'день', 'дня', 'дней') + ' без игр');
+    (s.facts || []).filter(function (z) { return /травм|выбыл|дисквал|болезн|не сыграет|пропуст/i.test(z); }).slice(0, 2)
+      .forEach(function (z) { out.push(t + ': ' + z); });
+  });
+  return out;
+}
+
 function postSideText_(s) {
-  var g = s.games.map(function (x) {
-    return Utilities.formatDate(x.date, 'Europe/Moscow', 'dd.MM') + ' ' + (x.home ? 'дома' : 'в гостях') + ' с «' + x.opp + '» ' + x.gf + ':' + x.ga + (x.ot ? ' (ОТ/Б)' : '');
-  }).join('; ');
-  var p = s.proto, lines = ['КОМАНДА: ' + s.team, 'Последние матчи: ' + (g || 'нет данных'),
-    'Игр за 7 дней: ' + s.week + (s.rest === null ? '' : ', дней отдыха после последнего: ' + s.rest)];
-  if (p) {
-    lines.push('Протокол последнего матча: ' + p.home + ' ' + p.score + ' ' + p.away +
-      (p.periods.length ? ' (по периодам ' + p.periods.join(', ') + ')' : '') +
-      (p.shots ? ', броски в створ ' + p.shots[0] + ':' + p.shots[1] : ''));
-    var pp = s.team === p.home ? p.ppHome : p.ppAway;
-    if (pp && pp[1]) lines.push('Большинство в том матче: ' + (pp[0] || 0) + ' из ' + pp[1]);
-    if (p.goals.length) lines.push('Голы того матча: ' + p.goals.map(function (x) {
-      return x.team + ', ' + x.period + '-й период ' + x.time + ' — ' + x.author + (x.assists.length ? ' (' + x.assists.join(', ') + ')' : '') + (x.kind ? ' [' + x.kind + ']' : '');
-    }).join('; '));
-  }
-  if (s.lineup) lines.push('Заявка прошлого матча: ' + s.lineup);
+  var g = s.games.map(function (x) { return (x.gf > x.ga ? 'В' : 'П') + ' ' + x.gf + ':' + x.ga + (x.ot ? ' ОТ/Б' : ''); }).join(', ');
+  var lines = ['КОМАНДА: ' + s.team, 'Последние матчи (свежие первыми): ' + (g || 'нет данных'),
+    'Игр за 7 дней: ' + s.week + (s.rest === null ? '' : ', дней отдыха: ' + s.rest)];
   if (s.facts.length) lines.push('Новости по составу: ' + s.facts.join('; '));
   if (s.dossier) lines.push('Про команду: ' + s.dossier);
   return lines.join('\n');
 }
-function postPrompt_(f, pick, emo) {
-  var m = f.m, head = '🏒КХЛ. ' + (emo[m.home] || '') + m.home.toUpperCase() + ' - ' + m.away.toUpperCase() + (emo[m.away] || '');
-  var bet = pick.main ? 'ПРОГНОЗ: ' + (emo[m.home] || '') + (emo[m.away] || '') + pick.main.text + ' ЗА ' + pick.main.odds : '';
-  return 'Ты ведёшь телеграм-канал с прогнозами на хоккей и пишешь пост о матче КХЛ. Пиши по-русски, от первого лица, спокойно.\n\n' +
-    'СТРОГИЕ ЗАПРЕТЫ. Никогда не упоминай таблицу, модель, алгоритм, расчёты, статистику «по данным», проценты вероятности и коэффициенты в тексте (кроме последней строки). ' +
-    'Не выдумывай ни одной фамилии, даты и счёта — бери только из фактов ниже. Чего нет в фактах — того не пиши. ' +
-    'Не обращайся к читателю («друзья», «подписывайтесь»), не обещай выигрыш, не зови делать ставки.\n\n' +
-    'СТРУКТУРА (6–7 абзацев, пустая строка между ними):\n' +
-    '1. Заголовок ровно такой строкой: ' + head + '\n' +
-    '2–3. Про хозяев: последний матч — как он шёл, кто забивал, что с большинством, кто вернулся или выбыл.\n' +
-    '4–5. Про гостей: то же самое.\n' +
-    '6. Своё рассуждение: график, отдых, что смущает, к чему склоняешься. Здесь можно сомневаться вслух.\n' +
-    (bet ? '7. Последняя строка ровно такая: ' + bet + '\n' : '7. Последняя строка: «Ставку не делаю».\n') +
+function postHead_(m, emo) { return '🏒' + postLeague_() + '. ' + (emo[m.home] || '') + m.home.toUpperCase() + ' - ' + m.away.toUpperCase() + (emo[m.away] || ''); }
+function postBetLine_(m, pick, emo) {
+  return pick.main ? 'ПРОГНОЗ: ' + (emo[pick.main.team] || '') + pick.main.text + ' ЗА ' + pick.main.odds + '✔️' : 'Здесь ставку не делаю.';
+}
+function postPrompt_(f, pick, emo, args) {
+  var m = f.m, L = postLeague_();
+  return 'Ты ведёшь телеграм-канал с прогнозами на хоккей и пишешь пост о матче ' + L + ' ' + m.home + ' — ' + m.away +
+    '. Пиши по-русски, от первого лица, живо и просто, как человек, который смотрит хоккей, а не как сводка.\n\n' +
+    'ЗАДАЧА: читатель должен за полминуты понять, что решает этот матч и почему я склоняюсь к прогнозу. Это рассуждение, а не пересказ протоколов.\n' +
+    'СТРУКТУРА:\n' +
+    '• headline — главная история матча капслоком, 3–8 слов (например «ЛЁТЧИКИ ВЫХОДЯТ НА ЛЁД ЧЕРЕЗ СУТКИ ПОСЛЕ РАЗГРОМА»);\n' +
+    '• paragraphs — 3 абзаца по 2–3 предложения: (1) в чём история матча; (2) ' + (pick.main ? 'почему это за прогноз — два-три довода из списка ДОВОДЫ своими словами' : 'почему здесь нет явного перевеса') +
+    '; (3) что может помешать — честно, коротко;\n' +
+    '• closing — одна короткая фраза-вывод.\n\n' +
+    'ПРАВИЛА ТЕКСТА: не перечисляй счета прошлых матчей и авторов голов; не больше двух фамилий на весь пост и только если игрок правда важен (травма лидера, вратарь); ' +
+    'не больше двух чисел на весь пост, и только понятные («четыре поражения подряд»). Без звёздочек и другой разметки, без эмодзи, без хэштегов, без ссылок, без номеров источников.\n' +
+    'ЗАПРЕТЫ: никогда не упоминай таблицу, модель, алгоритм, расчёты, «по данным», проценты вероятности и коэффициенты. Не выдумывай фамилий, дат и счетов — только из фактов ниже. ' +
+    'Не обращайся к читателю, не обещай выигрыш, не зови делать ставки.\n\n' +
+    (pick.main ? 'К ЧЕМУ СКЛОНЯЕШЬСЯ: ' + (pick.main.team ? 'победа «' + pick.main.team + '» (с учётом овертайма и буллитов)' : pick.main.text.toLowerCase()) + '. Объясни это через игру команд, не через числа.\n' : 'СТАВКУ НЕ ДЕЛАЕШЬ: явного перевеса нет.\n') +
+    (args.length ? 'ДОВОДЫ (бери 2–3 самых сильных):\n- ' + args.join('\n- ') + '\n' : '') +
     '\nФАКТЫ О ХОЗЯЕВАХ\n' + postSideText_(f.home) +
     '\n\nФАКТЫ О ГОСТЯХ\n' + postSideText_(f.away) +
-    '\n\nМАТЧ: ' + m.home + ' — ' + m.away + ', начало ' + (f.odds.startText || m.time || '') + ' МСК.' +
-    (pick.main ? '\nК чему склоняешься: ' + pick.main.text.toLowerCase() + ' (' + pick.main.why + '). Объясни это своими словами, через игру команд, а не через числа.' : '');
+    '\n\nВерни JSON: {"headline":"...","paragraphs":["...","...","..."],"closing":"..."}';
+}
+/** Убрать из куска текста то, чего в посте быть не должно: разметку, ссылки [n], эмодзи, кавычки вокруг всего куска. */
+function postPlain_(t) {
+  return String(t || '')
+    .replace(/\[(?:\d+(?:\s*,\s*\d+)*|досье)\]/gi, '')
+    .replace(/(?:[\u{1F000}-\u{1FAFF}]|[\u{2600}-\u{27BF}]|[\u{1F1E6}-\u{1F1FF}]|\u{FE0F}|\u{200D})/gu, '')
+    .replace(/[*_#`]+/g, '').replace(/^\s*[-•–—]\s+/gm, '').replace(/^\s*["'«]+|["'»]+\s*$/g, '')
+    .replace(/[ \t]{2,}/g, ' ').replace(/\s+([,.!?:;])/g, '$1').trim();
+}
+/** Ответ ИИ → {headline, paragraphs, closing}. Понимает объект, массив абзацев и просто текст. */
+function postParse_(raw) {
+  var s = String(raw || '').trim(), j = null;
+  try { j = JSON.parse(s); } catch (e) {
+    var a = s.indexOf('{'), b = s.lastIndexOf('}');
+    if (a >= 0 && b > a) { try { j = JSON.parse(s.slice(a, b + 1)); } catch (e2) { j = null; } }
+  }
+  if (Array.isArray(j)) j = { paragraphs: j };
+  if (!j || typeof j !== 'object') j = { paragraphs: s.split(/\n{2,}/) };
+  var paras = (Array.isArray(j.paragraphs) ? j.paragraphs : [j.paragraphs || j.text || '']).map(postPlain_).filter(Boolean);
+  return { headline: postPlain_(j.headline || ''), paragraphs: paras, closing: postPlain_(j.closing || '') };
+}
+/** Собрать пост: шапка, заголовок, абзацы, вывод, строка прогноза. Абзацы с запретными словами выбрасываются. */
+function postAssemble_(m, pick, emo, p) {
+  var head = postHead_(m, emo), betLine = postBetLine_(m, pick, emo);
+  var body = p.paragraphs.filter(function (x) {
+    return !POST_BANNED_.test(x) && x !== head && !/^🏒/.test(x) && !/^(КХЛ|НХЛ)\.\s/.test(x) && !/^ПРОГНОЗ:/i.test(x) && !/ставку не делаю/i.test(x);
+  });
+  var parts = [head];
+  if (p.headline && !POST_BANNED_.test(p.headline)) parts.push(p.headline.toUpperCase());
+  parts = parts.concat(body);
+  if (p.closing && !POST_BANNED_.test(p.closing)) parts.push(p.closing);
+  parts.push(betLine);
+  return parts.join('\n\n');
 }
 /** Подчищаем то, чего в посте быть не должно: упоминания таблицы и служебных слов. */
 var POST_BANNED_ = /таблиц|модел|алгоритм|нейросет|по данным|вероятн|наш расч|расч[её]т|датасет|статистическ/i;
@@ -11202,14 +11475,17 @@ function postClean_(text) {
 }
 
 function postBuild_(ss, m, now) {
-  var emo = postEmoji_(ss), f = postFacts_(ss, m, now), pick = postPick_(f);
-  var raw = agentGemini_(postPrompt_(f, pick, emo));
-  var text = postClean_(typeof raw === 'string' ? raw : (raw && raw.text) || '');
-  if (POST_BANNED_.test(text)) {                       // одна попытка переписать, если проскочило
-    raw = agentGemini_(postPrompt_(f, pick, emo) + '\n\nВ прошлый раз ты упомянул расчёты и таблицу — так нельзя. Перепиши без этого.');
-    text = postClean_(typeof raw === 'string' ? raw : (raw && raw.text) || '');
+  var emo = postEmoji_(ss), f = postFacts_(ss, m, now), pick = postPick_(f), play = {};
+  try { play = postPlayStats_(ss); } catch (e) { play = {}; }
+  var args = postArgs_(f, play), prompt = postPrompt_(f, pick, emo, args);
+  var raw = agentGemini_(prompt), p = postParse_(typeof raw === 'string' ? raw : (raw && raw.text) || '');
+  var dirty = function (q) { return [q.headline, q.closing].concat(q.paragraphs).some(function (x) { return POST_BANNED_.test(x); }); };
+  if (dirty(p) || p.paragraphs.length < 2) {                    // одна попытка переписать, если проскочило или ответ пустой
+    raw = agentGemini_(prompt + '\n\nВ прошлый раз ответ не подошёл (упоминание расчётов/таблицы или пустые абзацы). Перепиши по правилам, верни только JSON.');
+    var p2 = postParse_(typeof raw === 'string' ? raw : (raw && raw.text) || '');
+    if (p2.paragraphs.length >= p.paragraphs.length) p = p2;
   }
-  return { text: text, pick: pick, facts: f };
+  return { text: postAssemble_(f.m || m, pick, emo, p), pick: pick, facts: f, args: args };
 }
 
 /** Собрать и отправить пост по одному матчу: карточка, текст, запасной вариант. */
@@ -12474,8 +12750,8 @@ var AUTO_JOBS = [
   { fn: 'runAfterGameDay_', kind: 'day', hour: 13, what: 'Обновить всё после игрового дня: результаты, Elo, календарь, прогнозы, точность, составы, ключевые игроки, проверка выводов агента, банкролл' },
   { fn: 'agentDailyBriefAuto_', kind: 'day', hour: AGENT_HOUR, what: 'Агент: сводка по матчам ближайшей ночи в личку (новости, досье, составы прошлых матчей)' },
   { fn: 'updateMarketOddsAuto_', kind: 'hours', every: 2, what: 'Коэффициенты рынка (Pinnacle, NHL) и «Лучший прогноз»' },
-  { fn: 'nhlEveningAuto_', kind: 'day', hour: 23, what: 'Канал: «прогнозы на ночь» (шансы, лучший прогноз, вратари, вывод агента) + вам расхождения модели и рынка' },
-  { fn: 'nhlGoaliesAuto_', kind: 'hours', every: 1, what: 'До начала матчей (19:00–07:00 МСК): сменились вратари — правка поста в канале и сообщение вам' },
+  { fn: 'nhlEveningAuto_', kind: 'day', hour: 23, what: 'Вам: расхождения модели и рынка на ночь, запомнить вратарей (пост «прогнозы на ночь» в канал убран)' },
+  { fn: 'nhlGoaliesAuto_', kind: 'hours', every: 1, what: 'До начала матчей (19:00–07:00 МСК): сменились вратари — сообщение вам' },
   { fn: 'nhlMorningAuto_', kind: 'day', hour: 14, what: 'Канал: «итоги ночи» (счёт матчей и «Наши»)' },
   { fn: 'scoutAuto_', kind: 'hours', every: 1, what: 'Разведчик: новые посты и новости по командам ближайших матчей → лист «Факты»' },
   { fn: 'scoutReportAuto_', kind: 'minutes', every: 15, what: 'Разведчик: итог вам за ~1,5 ч до каждого матча' },
@@ -13013,7 +13289,7 @@ function nhlGoalieRefresh_() {
   if (h >= 8 && h < 19) return { skipped: 'вне окна' };
   var ss = SpreadsheetApp.getActive(), p = PropertiesService.getScriptProperties(), dayKey = nhlBriefDay_();
   var st = null; try { st = JSON.parse(p.getProperty('NHL_POST_' + dayKey) || 'null'); } catch (e) { st = null; }
-  if (!st || !st.ids || !st.ids.length) return { skipped: 'поста нет' };
+  if (!st || !st.sig) return { skipped: 'поста нет' };
   NHL_BUNDLE_ = null;
   var b = nhlBundle_(true, [dayKey]), blocks = nhlEveningBlocks_(ss, dayKey, b.starters), changed = [], before = JSON.stringify(st.sig || {});
   st.sig = st.sig || {};
@@ -13027,12 +13303,12 @@ function nhlGoalieRefresh_() {
   });
   if (JSON.stringify(st.sig) === before) return { edited: 0 };                 // вратари те же — пост не трогаем
   var head = '🇺🇸 <b>НХЛ · прогнозы на ночь</b> · ' + escHtml_(ruDayTitle_(dayKey).toLowerCase()) + ' (МСК)';
-  var msgs = nhlPack_(head, blocks.map(function (x) { return x.text; }), NHL_EVENING_FOOT), edited = 0;
-  if (msgs.length === st.ids.length) {
+  var msgs = nhlPack_(head, blocks.map(function (x) { return x.text; }), NHL_EVENING_FOOT), edited = 0, post = !!(st.ids && st.ids.length);
+  if (post && msgs.length === st.ids.length) {
     msgs.forEach(function (t, i) { var r = tg_('editMessageText', { chat_id: st.chat, message_id: st.ids[i], text: t, parse_mode: 'HTML', disable_web_page_preview: true }); if (r && r.ok) edited++; });
   }
   p.setProperty('NHL_POST_' + dayKey, JSON.stringify(st));
-  if (changed.length) autoNotifyAdmin_('🥅 НХЛ: изменились вратари (пост в канале ' + (edited ? 'обновлён' : 'НЕ обновлён — проверьте') + '):\n' + changed.join('\n'));
+  if (changed.length) autoNotifyAdmin_('🥅 НХЛ: изменились вратари' + (post ? ' (пост в канале ' + (edited ? 'обновлён' : 'НЕ обновлён — проверьте') + ')' : '') + ':\n' + changed.join('\n'));
   return { edited: edited, changed: changed.length };
 }
 
@@ -13078,11 +13354,31 @@ function nhlSeasonAccuracy_(ss) {
 }
 
 /* ---- запуски по расписанию и кнопки меню ---- */
+// Пост «прогнозы на ночь» в канал убран (решение 02.10: «от этого отходим») — в канал идут постер «Матчи дня» и ваши прогнозы.
+// В 23:00 запуск остаётся ради вас: запоминает вратарей ночи (дальше раз в час — сообщение о смене) и шлёт расхождения модели и рынка.
+var NHL_EVENING_POST = false;
 function nhlEveningAuto_() {
   if (nhlNotReady_(true)) return;
+  if (!NHL_EVENING_POST) {
+    try { var g = nhlGoalieBaseline_(); autoMark_('nhlEveningAuto_', true, 'пост в канал выключен; вратарей запомнено: ' + g.matches + (g.notes ? ', расхождений с рынком вам: ' + g.notes : '')); }
+    catch (e0) { autoMark_('nhlEveningAuto_', false, e0.message); }
+    return;
+  }
   if (!nhlChannelId_()) { autoMark_('nhlEveningAuto_', true, 'канал не указан — пост не публикуется'); return; }
   try { var r = nhlEveningPost_('channel'); autoMark_('nhlEveningAuto_', true, r.matches ? 'опубликовано: матчей ' + r.matches + ', сообщений ' + r.sent : 'матчей нет'); }
   catch (e) { autoMark_('nhlEveningAuto_', false, e.message); autoNotifyAdmin_('⚠ НХЛ: пост «прогнозы на ночь» не ушёл: ' + e.message); }
+}
+/** Без поста в канале: запомнить вратарей ночи (для сообщений о смене) и отправить вам расхождения модели и рынка. */
+function nhlGoalieBaseline_(dayKey) {
+  var ss = SpreadsheetApp.getActive(), p = PropertiesService.getScriptProperties();
+  dayKey = dayKey || nhlBriefDay_();
+  NHL_BUNDLE_ = null;
+  var b = nhlBundle_(true, [dayKey]), blocks = nhlEveningBlocks_(ss, dayKey, b.starters), sig = {};
+  blocks.forEach(function (x) { sig[x.match.home + '|' + x.match.away] = x.sig; });
+  if (blocks.length) p.setProperty('NHL_POST_' + dayKey, JSON.stringify({ chat: '', ids: [], sig: sig }));
+  var notes = 0;
+  try { notes = blocks.length ? nhlDivergenceNote_(ss, dayKey) : 0; } catch (e) { notes = 0; }
+  return { matches: blocks.length, notes: notes };
 }
 function nhlGoaliesAuto_() {
   try { var r = nhlGoalieRefresh_(); if (!r.skipped) autoMark_('nhlGoaliesAuto_', true, 'правок поста: ' + (r.edited || 0) + ', смен вратарей: ' + (r.changed || 0)); }
@@ -13246,9 +13542,8 @@ var DAILY_NHL_ = [
 ];
 var TG_GROUP_NHL_ = [
   ['1 · Итоги ночи → группа', 'dailyMorning_', 'nhlMorningAuto_'],
-  ['2 · Прогнозы на ночь → группа', 'dailyEvening_', 'nhlEveningAuto_'],
-  ['3 · Карточки матчей ночи → группа', 'dailyCardsChannel_', '-'],
-  ['4 · «Сила команд» → группа (пн)', 'powerPostNow_', '-'],
+  ['2 · Карточки матчей ночи → группа', 'dailyCardsChannel_', '-'],
+  ['3 · «Сила команд» → группа (пн)', 'powerPostNow_', '-'],
   null,
   ['🖼 Постер «Матчи дня» → мне (ближайший игровой день)', 'matchiPosterNow_', '-'],
   ['🖼 Постер «Матчи дня» → группа (ближайший игровой день)', 'matchiPosterGroup_', '-'],
