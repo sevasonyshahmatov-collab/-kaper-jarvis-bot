@@ -4656,7 +4656,8 @@ function computeSelfCheck_(seasons, homeBase, scale, otPenalty) {
 /** Пункт меню: считает самопроверку и пишет лист «Самопроверка». */
 function selfCheckFactors_() {
   var ss = SpreadsheetApp.getActive();
-  var ui = SpreadsheetApp.getUi();
+  var ui;                                   // из ежемесячного триггера окна нет — тогда сообщения просто не показываем
+  try { ui = SpreadsheetApp.getUi(); } catch (e) { ui = { alert: function () {} }; }
 
   var teamsSh = ss.getSheetByName(SHEET_TEAMS);
   var start = {};
