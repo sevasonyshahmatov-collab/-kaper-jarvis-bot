@@ -78,11 +78,18 @@ function sheet_(ss, name, create) {
 function sheetOpen_(name) {
   try { var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName(name); if (!sh) return; if (sh.isSheetHidden()) sh.showSheet(); ss.setActiveSheet(sh); } catch (e) {}
 }
+/** Новый лист — 1000 строк и 26 столбцов; запись за границы падает с ошибкой. Расширяем заранее. */
+function ensureSize_(sh, rows, cols) {
+  var mr = sh.getMaxRows(), mc = sh.getMaxColumns();
+  if (rows > mr) sh.insertRowsAfter(mr, rows - mr);
+  if (cols > mc) sh.insertColumnsAfter(mc, cols - mc);
+}
 /** Записать таблицу значений с шапкой (лист очищается). */
 function writeTable_(sh, head, rows, opt) {
   opt = opt || {};
   var top = opt.top || 1;
   if (opt.clear !== false) sh.clear();
+  ensureSize_(sh, top + rows.length + 1, head.length);
   sh.getRange(top, 1, 1, head.length).setValues([head]).setFontWeight('bold').setBackground(opt.headBg || '#0b3d2e').setFontColor('#ffffff').setWrap(true).setVerticalAlignment('middle');
   if (rows.length) {
     // текстовые колонки размечаем ДО записи: иначе таблица превратит счёт «2:1» во время, а «2026-08-16» — в дату

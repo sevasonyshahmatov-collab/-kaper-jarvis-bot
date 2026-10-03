@@ -14,7 +14,8 @@ var SHEET_TABLE = 'Таблица';
 var SHEET_VS = 'Модель vs рынок';
 var SHEET_ACC = 'Точность';
 var PRED_DAYS_AHEAD = 14;
-var PLOG_HEAD = ['ID', 'Начало (UTC)', 'Хозяева', 'Гости', 'Ож. голы Х', 'Ож. голы Г', 'П1', 'Х', 'П2', 'Б1.5', 'Б2.5', 'Б3.5', 'Обе забьют', 'Вероятный счёт', 'Обновлено (МСК)', 'Как получен'];
+var PLOG_HEAD = ['ID', 'Начало (UTC)', 'Хозяева', 'Гости', 'Ож. голы Х', 'Ож. голы Г', 'П1', 'Х', 'П2', 'Б1.5', 'Б2.5', 'Б3.5', 'Обе забьют', 'Вероятный счёт', 'Обновлено (МСК)', 'Как получен',
+  'П1 без поправок', 'Х без поправок', 'П2 без поправок', 'Мои поправки'];
 var PICK_EDGE = 0.05;               // ставка, только если наша оценка выше линии хотя бы на 5 п.п.
 var PICK_ODDS_MIN = 1.45, PICK_ODDS_MAX = 5.5;
 
@@ -24,30 +25,35 @@ function plogRead_(ss) {
   sh.getRange(2, 1, sh.getLastRow() - 1, PLOG_HEAD.length).getValues().forEach(function (r) {
     if (!r[0]) return;
     out[String(r[0])] = { id: String(r[0]), start: String(r[1]), home: r[2], away: r[3], h: Number(r[4]), a: Number(r[5]), p1: Number(r[6]), px: Number(r[7]), p2: Number(r[8]),
-      o15: Number(r[9]), o25: Number(r[10]), o35: Number(r[11]), btts: Number(r[12]), score: String(r[13]), upd: r[14], how: r[15] };
+      o15: Number(r[9]), o25: Number(r[10]), o35: Number(r[11]), btts: Number(r[12]), score: String(r[13]), upd: r[14], how: r[15],
+      raw: r[16] !== '' && r[16] !== undefined ? [Number(r[16]), Number(r[17]), Number(r[18])] : null, tw: String(r[19] || '') };
   });
   return out;
 }
 function plogWrite_(ss, map) {
   var rows = Object.keys(map).map(function (k) { var p = map[k];
     return [p.id, p.start, p.home, p.away, r2_(p.h), r2_(p.a), r2_(p.p1 * 1000) / 1000, r2_(p.px * 1000) / 1000, r2_(p.p2 * 1000) / 1000,
-      r2_(p.o15 * 1000) / 1000, r2_(p.o25 * 1000) / 1000, r2_(p.o35 * 1000) / 1000, r2_(p.btts * 1000) / 1000, p.score, p.upd, p.how]; });
+      r2_(p.o15 * 1000) / 1000, r2_(p.o25 * 1000) / 1000, r2_(p.o35 * 1000) / 1000, r2_(p.btts * 1000) / 1000, p.score, p.upd, p.how,
+      p.raw ? r2_(p.raw[0] * 1000) / 1000 : '', p.raw ? r2_(p.raw[1] * 1000) / 1000 : '', p.raw ? r2_(p.raw[2] * 1000) / 1000 : '', p.tw || '']; });
   rows.sort(function (a, b) { return a[1] < b[1] ? -1 : 1; });
   var sh = sheet_(ss, SHEET_PLOG);
-  writeTable_(sh, PLOG_HEAD, rows, { textCols: [1, 2, 14, 15] });
+  writeTable_(sh, PLOG_HEAD, rows, { textCols: [1, 2, 14, 15, 20] });
   try { sh.hideSheet(); } catch (e) {}
 }
 
 /** Обновить журнал прогнозов: будущие — по свежей модели, сыгранные без прогноза — честно задним числом. */
 function updatePredLog_(ss) {
   var matches = matchesRead_(ss), log = plogRead_(ss), now = new Date(), stamp = mskNow_('dd.MM HH:mm');
-  var fit = modelFitNow_(ss), games = null, newT = null, byDay = {}, fresh = 0, retro = 0;
+  var fit = modelFitNow_(ss), games = null, newT = null, byDay = {}, fresh = 0, retro = 0, tw = [];
+  try { tw = tweaksRead_(ss); } catch (e) { tw = []; }
   matches.forEach(function (m) {
     if (m.status === ST_CANC) return;
     var key = m.id, started = m.start <= now || m.status === ST_PLAYED || m.status === ST_LIVE;
     if (!started && m.start - now <= 60 * 86400000) {
-      var p = modelPredict_(fit, m.home, m.away);
-      log[key] = { id: key, start: m.start.toISOString(), home: m.home, away: m.away, h: p.h, a: p.a, p1: p.p1, px: p.px, p2: p.p2, o15: p.o15, o25: p.o25, o35: p.o35, btts: p.btts, score: p.score, upd: stamp, how: 'до матча' };
+      var dk = dayKey_(m.start), th = tweakFor_(tw, m.home, dk), ta = tweakFor_(tw, m.away, dk), has = th.why.length || ta.why.length;
+      var p = modelPredict_(fit, m.home, m.away, has ? { h: th, a: ta } : null), raw = has ? modelPredict_(fit, m.home, m.away) : null;
+      log[key] = { id: key, start: m.start.toISOString(), home: m.home, away: m.away, h: p.h, a: p.a, p1: p.p1, px: p.px, p2: p.p2, o15: p.o15, o25: p.o25, o35: p.o35, btts: p.btts, score: p.score, upd: stamp, how: 'до матча',
+        raw: raw ? [raw.p1, raw.px, raw.p2] : null, tw: th.why.concat(ta.why).join('; ') };
       fresh++;
     } else if (started && !log[key] && m.status === ST_PLAYED) {
       if (!games) { games = modelAllGames_(ss); newT = modelNewTeams_(ss); }
@@ -80,6 +86,15 @@ function pickFor_(pred, o) {
       if (edge >= PICK_EDGE && x[3] >= PICK_ODDS_MIN && x[3] <= PICK_ODDS_MAX) c.push({ code: x[4], label: x[0], odds: x[3], edge: edge, model: x[1], market: x[2] });
     });
   }
+  var ahL = Number(o['Фора хозяев']), ahH = Number(o['Кэф фора Х']), ahA = Number(o['Кэф фора Г']);
+  if (o['Фора хозяев'] !== '' && o['Фора хозяев'] !== undefined && isFinite(ahL) && ahH > 1 && ahA > 1 && pred.h) {
+    var fa = fairProbs_([ahH, ahA]), ph = modelAh_(pred.h, pred.a, modelParams_().rho, ahL);
+    var sg = function (x) { return (x > 0 ? '+' : x < 0 ? '−' : '') + String(Math.abs(x)).replace('.', ','); };
+    [['Ф1(' + sg(ahL) + ')', ph, fa[0], ahH, 'H' + ahL], ['Ф2(' + sg(-ahL) + ')', 1 - ph, fa[1], ahA, 'A' + (-ahL)]].forEach(function (x) {
+      var edge = x[1] - x[2];
+      if (edge >= PICK_EDGE && x[3] >= PICK_ODDS_MIN && x[3] <= PICK_ODDS_MAX) c.push({ code: x[4], label: x[0], odds: x[3], edge: edge, model: x[1], market: x[2] });
+    });
+  }
   c.sort(function (a, b) { return b.edge - a.edge; });
   return c.length ? { main: c[0], alt: c[1] || null } : null;
 }
@@ -90,6 +105,13 @@ function pickResult_(code, hg, ag) {
   if (code === '1') return hg > ag ? 1 : 0;
   if (code === 'X') return hg === ag ? 1 : 0;
   if (code === '2') return ag > hg ? 1 : 0;
+  var h = String(code).match(/^([HA])(-?[\d.]+)$/);
+  if (h) {                                                                     // азиатская фора
+    var d = h[1] === 'H' ? hg - ag : ag - hg, L = Number(h[2]);
+    var oneH = function (x) { var v = d + x; return v > 1e-9 ? 1 : v < -1e-9 ? 0 : 0.5; };
+    if (Math.abs(L * 2 - Math.round(L * 2)) > 1e-9) return (oneH(L - 0.25) + oneH(L + 0.25)) / 2;
+    return oneH(L);
+  }
   var m = String(code).match(/^([OU])([\d.]+)$/); if (!m) return null;
   var line = Number(m[2]), t = hg + ag;
   var one = function (L) { if (t === L) return 0.5; return (m[1] === 'O') === (t > L) ? 1 : 0; };
@@ -160,19 +182,22 @@ function renderPower_(ss) {
     var gf = Math.exp(fit.mu + fit.H / 2 + a), ga = Math.exp(fit.mu + fit.H / 2 - d);
     return { t: t, power: gf - ga, gf: gf, ga: ga, s: s, n: newT[t] };
   }).sort(function (x, y) { return y.power - x.power; });
+  var ago = powerAgo_(ss, 7);
+  try { powerSnapshot_(ss, rows); } catch (e) { journal_('Сила команд', false, 'история: ' + e.message); }
   var out = rows.map(function (r, i) {
-    var s = r.s;
-    return [i + 1, r.t, r2_(r.power), r2_(r.gf), r2_(r.ga), s.g, s.gf + '–' + s.ga, s.xn ? r2_(s.xf) + '–' + r2_(s.xa) : '',
+    var s = r.s, w = ago[r.t];
+    var move = w ? (w.pos - (i + 1) > 0 ? '▲' + (w.pos - (i + 1)) : w.pos - (i + 1) < 0 ? '▼' + ((i + 1) - w.pos) : '=') : '';
+    return [i + 1, move, r.t, r2_(r.power), w ? r2_(r.power - w.power) : '', r2_(r.gf), r2_(r.ga), s.g, s.gf + '–' + s.ga, s.xn ? r2_(s.xf) + '–' + r2_(s.xa) : '',
       s.xn ? r2_(s.gf - s.xf) : '', s.xn ? r2_(s.xa - s.ga) : '', s.form.slice(-5).join(' '), r.n ? 'новичок АПЛ' : ''];
   });
-  var head = ['Место', 'Команда', 'Сила (разница голов против среднего соперника)', 'Забивает за матч (ожид.)', 'Пропускает за матч (ожид.)', 'Матчей', 'Голы', 'xG за – против',
+  var head = ['Место', 'За неделю', 'Команда', 'Сила (разница голов против среднего соперника)', 'Сила: изменение за неделю', 'Забивает за матч (ожид.)', 'Пропускает за матч (ожид.)', 'Матчей', 'Голы', 'xG за – против',
     'Голы минус xG (реализация)', 'xG против минус пропущенные (вратарь и удача)', 'Форма (последние 5)', 'Примечание'];
   var sh = sheet_(ss, SHEET_POWER);
   sh.clear();
   sh.getRange(1, 1).setValue('СИЛА КОМАНД АПЛ · по модели · обновлено ' + mskNow_()).setFontWeight('bold').setFontSize(12);
   sh.getRange(2, 1).setValue('Сила — сколько голов команда в среднем выиграет у среднего соперника на нейтральном поле. Учитываются и голы, и xG; свежие матчи весят больше. Плюс в «реализации» — забивает больше, чем создаёт (обычно выравнивается).').setFontColor('#666666').setWrap(false);
-  writeTable_(sh, head, out, { top: 4, clear: false, textCols: [7, 8, 11] });
-  try { sh.setColumnWidth(2, 160); sh.setColumnWidths(3, 8, 120); } catch (e) {}
+  writeTable_(sh, head, out, { top: 4, clear: false, textCols: [2, 9, 10, 13] });
+  try { sh.setColumnWidth(3, 160); sh.setColumnWidths(4, 9, 115); } catch (e) {}
   return out.length;
 }
 function renderTable_(ss) {
@@ -233,7 +258,7 @@ function closingOdds_(ss) {
 }
 function accuracyData_(ss) {
   var matches = matchesRead_(ss), log = plogRead_(ss), odds = closingOdds_(ss), W = blendW_();
-  var A = { n: 0, model: { b: 0, l: 0, hit: 0 }, nm: 0, market: { b: 0, l: 0, hit: 0 }, mModel: { b: 0, l: 0 }, blend: { b: 0, l: 0 }, tot: { n: 0, model: 0, market: 0 } };
+  var A = { n: 0, model: { b: 0, l: 0, hit: 0 }, nm: 0, market: { b: 0, l: 0, hit: 0 }, mModel: { b: 0, l: 0 }, blend: { b: 0, l: 0 }, tot: { n: 0, model: 0, market: 0 }, tw: { n: 0, wi: 0, wo: 0 } };
   matches.forEach(function (m) {
     if (m.status !== ST_PLAYED || m.hg === null) return;
     var p = log[m.id]; if (!p) return;
@@ -246,6 +271,7 @@ function accuracyData_(ss) {
       A.mModel.b += brier3_(pm, act); A.mModel.l += ll3_(pm, act); A.blend.b += brier3_(pb, act); A.blend.l += ll3_(pb, act);
       if (f.over !== undefined && f.line === 2.5) { var o = m.hg + m.ag > 2.5 ? 1 : 0; A.tot.n++; A.tot.model += Math.pow(p.o25 - o, 2); A.tot.market += Math.pow(f.over - o, 2); }
     }
+    if (p.raw) { A.tw.n++; A.tw.wi += brier3_(pm, act); A.tw.wo += brier3_(p.raw, act); }
   });
   return A;
 }
@@ -261,6 +287,7 @@ function renderAccuracy_(ss) {
   rows.push(['Букмекер (Pinnacle, без маржи): Brier', f(A.market.b, A.nm), 'логлосс', f(A.market.l, A.nm)]);
   rows.push(['«Лучший прогноз» (' + Math.round(blendW_() * 100) + '% линия + модель): Brier', f(A.blend.b, A.nm), 'логлосс', f(A.blend.l, A.nm)]);
   rows.push(['Тотал 2,5: Brier модели / букмекера', f(A.tot.model, A.tot.n), 'матчей', A.tot.n]);
+  rows.push(['Матчей с моими поправками: Brier с поправками / без', A.tw.n ? f(A.tw.wi, A.tw.n) + ' / ' + f(A.tw.wo, A.tw.n) : '', 'матчей', A.tw.n]);
   var pk = picksStats_(ss);
   rows.push(['', '', '', '']);
   rows.push(['Наших ставок (посты) рассчитано', pk.n, 'выиграно', pk.won]);

@@ -100,29 +100,54 @@ function matchesWrite_(ss, list) {
   return rows.length;
 }
 
-/** Обновить календарь и результаты сезона с ESPN. xG и уже записанные данные сохраняются. */
+/* ---------------- запасной источник: Fantasy Premier League ----------------
+ * Официальный фэнтези-сервис АПЛ: весь календарь сезона, время, счёт. Ударов и xG там нет.
+ * Берём, только если ESPN не ответил. */
+var FPL_BASE = 'https://fantasy.premierleague.com/api';
+function fplSeason_() {
+  var boot = fetchJson_(FPL_BASE + '/bootstrap-static/'), fx = fetchJson_(FPL_BASE + '/fixtures/');
+  if (!boot.data || !fx.data) throw new Error('FPL ответил кодами ' + boot.code + ' / ' + fx.code);
+  var team = {}; (boot.data.teams || []).forEach(function (t) { team[t.id] = teamRu_(t.name); });
+  return fx.data.filter(function (f) { return f.kickoff_time; }).map(function (f) {
+    var st = f.finished || f.finished_provisional ? ST_PLAYED : f.started ? ST_LIVE : ST_SCHED;
+    return { id: 'fpl' + f.id, start: new Date(f.kickoff_time), status: st, home: team[f.team_h] || String(f.team_h), away: team[f.team_a] || String(f.team_a),
+      hg: st === ST_SCHED ? null : f.team_h_score, ag: st === ST_SCHED ? null : f.team_a_score, hs: null, as: null, hst: null, ast: null, poss: null };
+  });
+}
+
+/** Обновить календарь и результаты сезона (ESPN, при сбое — FPL). xG и уже записанные данные сохраняются.
+ *  Матч узнаётся по паре «хозяева|гости»: в сезоне АПЛ каждая пара встречается дома ровно один раз —
+ *  так строки не двоятся, даже если источник сменился или матч перенесли. */
 function updateMatches_(ss, opt) {
   opt = opt || {};
   ss = ss || SpreadsheetApp.getActive();
-  var y = seasonStartYear_(), old = matchesRead_(ss), byId = {};
-  old.forEach(function (m) { byId[m.id] = m; });
-  var from, to;
+  var y = seasonStartYear_(), old = matchesRead_(ss), byKey = {};
+  old.forEach(function (m) { byKey[m.home + '|' + m.away] = m; });
+  var from, to, src = 'ESPN', fresh;
   if (opt.full || !old.length) { from = new Date(Date.UTC(y, 6, 20)); to = new Date(Date.UTC(y + 1, 5, 10)); }
   else { from = new Date(Date.now() - (opt.back || 10) * 86400000); to = new Date(Date.now() + (opt.ahead || 45) * 86400000); }
-  var fresh = espnRange_(from, to), changed = 0, added = 0;
+  try { fresh = espnRange_(from, to); }
+  catch (e) {
+    src = 'FPL';
+    try { fresh = fplSeason_().filter(function (m) { return m.start >= from && m.start <= to; }); }
+    catch (e2) { throw new Error('календарь не загрузился: ' + e.message + '; запасной источник: ' + e2.message); }
+    journal_('Календарь', false, 'ESPN не ответил (' + e.message + ') — взял календарь и счёт из FPL');
+  }
+  var changed = 0, added = 0;
   fresh.forEach(function (m) {
-    var o = byId[m.id];
-    if (!o) { byId[m.id] = m; added++; return; }
-    ['hx', 'ax'].forEach(function (k) { if (m[k] === undefined || m[k] === null) m[k] = o[k]; });
-    ['hs', 'as', 'hst', 'ast', 'poss'].forEach(function (k) { if (m[k] === null && o[k] !== null) m[k] = o[k]; });
+    var k = m.home + '|' + m.away, o = byKey[k];
+    if (!o) { byKey[k] = m; added++; return; }
+    m.id = o.id;                                                    // ID строки не меняется (на него ссылаются прогнозы, линия и посты)
+    ['hx', 'ax'].forEach(function (f) { if (m[f] === undefined || m[f] === null) m[f] = o[f]; });
+    ['hs', 'as', 'hst', 'ast', 'poss'].forEach(function (f) { if ((m[f] === null || m[f] === undefined) && o[f] !== null) m[f] = o[f]; });
     if (o.status !== m.status || o.hg !== m.hg || o.ag !== m.ag || o.start.getTime() !== m.start.getTime()) changed++;
-    byId[m.id] = m;
+    byKey[k] = m;
   });
-  var list = Object.keys(byId).map(function (k) { return byId[k]; });
+  var list = Object.keys(byKey).map(function (k) { return byKey[k]; });
   matchesWrite_(ss, list);
   var unk = Object.keys(UNKNOWN_TEAMS_);
   if (unk.length) journal_('Клубы', false, 'не знаю русского названия: ' + unk.join(', ') + ' — пишу по-английски (можно добавить в TEAM_ALIASES)');
-  return { total: list.length, added: added, changed: changed, played: list.filter(function (m) { return m.status === ST_PLAYED; }).length };
+  return { total: list.length, added: added, changed: changed, src: src, played: list.filter(function (m) { return m.status === ST_PLAYED; }).length };
 }
 
 /* ---------------- Understat: xG ---------------- */

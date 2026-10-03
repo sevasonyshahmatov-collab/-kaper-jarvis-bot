@@ -18,7 +18,7 @@ var MATCHDAY_HOUR = 11;
 function postsTo_() { var v = String(prop_('EPL_POSTS_TO', 'admin')); return /^(admin|channel|both)$/.test(v) ? v : 'admin'; }
 function postsSheet_(ss) {
   var sh = sheet_(ss, SHEET_POSTS);
-  if (sh.getLastRow() === 0) { writeTable_(sh, POST_HEAD, []); sh.getRange(2, 1, 2000, 5).setNumberFormat('@'); sh.getRange(2, 12, 2000, 1).setNumberFormat('@'); }
+  if (sh.getLastRow() === 0) { writeTable_(sh, POST_HEAD, []); ensureSize_(sh, 2001, POST_HEAD.length); sh.getRange(2, 1, 2000, 5).setNumberFormat('@'); sh.getRange(2, 12, 2000, 1).setNumberFormat('@'); }
   return sh;
 }
 
@@ -92,6 +92,8 @@ function postPickText_(pick, m) {
   if (c === '1') return 'ПОБЕДА ' + m.home.toUpperCase();
   if (c === '2') return 'ПОБЕДА ' + m.away.toUpperCase();
   if (c === 'X') return 'НИЧЬЯ';
+  var ah = String(c).match(/^([HA])(-?[\d.]+)$/);
+  if (ah) { var L = Number(ah[2]); return 'ФОРА ' + (ah[1] === 'H' ? m.home : m.away).toUpperCase() + ' (' + (L > 0 ? '+' : L < 0 ? '−' : '') + String(Math.abs(L)).replace('.', ',') + ')'; }
   var t = String(c).match(/^([OU])([\d.]+)$/);
   return t ? 'ТОТАЛ ' + (t[1] === 'O' ? 'БОЛЬШЕ ' : 'МЕНЬШЕ ') + t[2].replace('.', ',') : pick.label;
 }
@@ -230,7 +232,11 @@ function settlePosts_(ss) {
       var o = odds[m.id], close = null;
       if (o && o['Статус'] === ODDS_CLOSED) {
         if (code === '1') close = Number(o['П1']); else if (code === 'X') close = Number(o['Х']); else if (code === '2') close = Number(o['П2']);
-        else { var t = code.match(/^([OU])([\d.]+)$/); if (t && Number(o['Тотал']) === Number(t[2])) close = Number(t[1] === 'O' ? o['Больше'] : o['Меньше']); }
+        else {
+          var t = code.match(/^([OU])([\d.]+)$/), ah = code.match(/^([HA])(-?[\d.]+)$/);
+          if (t && Number(o['Тотал']) === Number(t[2])) close = Number(t[1] === 'O' ? o['Больше'] : o['Меньше']);
+          if (ah && o['Фора хозяев'] !== '' && Number(o['Фора хозяев']) === (ah[1] === 'H' ? Number(ah[2]) : -Number(ah[2]))) close = Number(ah[1] === 'H' ? o['Кэф фора Х'] : o['Кэф фора Г']);
+        }
       }
       if (close) { r[13] = close; r[14] = Math.round((k / close - 1) * 1000) / 10; }
     } else r[12] = 'без ставки';
@@ -331,3 +337,35 @@ function publishMatchdayNow_() {
   if (ui.alert('Опубликовать «Матчи дня» в канал АПЛ?', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
   tgSend_(tgChannel_(), t, { silent: true }); props_().setProperty('MATCHDAY_' + key, mskNow_('HH:mm')); uiAlert_('Опубликовано.');
 }
+
+/* ---------------- «Сила команд» — в канал по понедельникам ---------------- */
+function powerText_(ss) {
+  var sh = ss.getSheetByName(SHEET_POWER); if (!sh) return null;
+  var rows = readTable_(sh, 4); if (rows.length < 10) return null;
+  var lines = rows.slice(0, 20).map(function (r) {
+    var mv = String(r['За неделю'] || ''), arrow = /^▲/.test(mv) ? ' ↑' + mv.slice(1) : /^▼/.test(mv) ? ' ↓' + mv.slice(1) : '';
+    return r['Место'] + '. ' + escHtml_(r['Команда']) + arrow;
+  });
+  var moved = rows.filter(function (r) { return r['Сила: изменение за неделю'] !== ''; })
+    .sort(function (a, b) { return Number(b['Сила: изменение за неделю']) - Number(a['Сила: изменение за неделю']); });
+  var txt = '<b>⚽️ АПЛ · СИЛА КОМАНД</b>\n<i>по игре и результатам, свежие матчи важнее · ' + dayTitle_(dayKey_(new Date())) + '</i>\n\n' + lines.join('\n');
+  if (moved.length >= 2) txt += '\n\nСильнее всех прибавил: ' + escHtml_(moved[0]['Команда']) + '\nСильнее всех просел: ' + escHtml_(moved[moved.length - 1]['Команда']);
+  var se = ss.getSheetByName(SHEET_SEASON);
+  if (se) {
+    var s = readTable_(se, 4);
+    var top = s.filter(function (r) { return r['Чемпион'] && r['Чемпион'] !== '<1%' && r['Чемпион'] !== '0%'; }).slice(0, 4).map(function (r) { return escHtml_(r['Команда']) + ' ' + r['Чемпион']; });
+    var rel = s.slice().sort(function (a, b) { return parseFloat(String(b['Вылет']).replace(/[<>%]/g, '')) - parseFloat(String(a['Вылет']).replace(/[<>%]/g, '')); }).slice(0, 4).map(function (r) { return escHtml_(r['Команда']) + ' ' + r['Вылет']; });
+    if (top.length) txt += '\n\n<b>Шансы на титул:</b> ' + top.join(', ');
+    if (rel.length) txt += '\n<b>Риск вылета:</b> ' + rel.join(', ');
+  }
+  return txt;
+}
+function powerPostAuto_() {
+  if (notReady_()) return;
+  runAuto_('powerPostAuto_', function () {
+    var ss = SpreadsheetApp.getActive(), ch = tgChannel_(); if (!ch) return 'канал АПЛ не указан';
+    var t = powerText_(ss); if (!t) return 'мало данных';
+    tgSend_(ch, t, { silent: true }); return '«Сила команд» опубликована';
+  });
+}
+function previewPowerNow_() { var t = powerText_(SpreadsheetApp.getActive()); if (!t) { uiAlert_('Мало данных.'); return; } tgSend_(tgAdmin_(), t); uiAlert_('Пробный пост «Сила команд» отправлен вам.'); }

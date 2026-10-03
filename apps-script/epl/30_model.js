@@ -102,9 +102,10 @@ function modelFit_(games, asOf, P, newTeams, warm) {
 }
 
 /** Ожидаемые голы в матче. Неизвестная команда — как новичок лиги. */
-function modelLambdas_(fit, home, away, neutral) {
+function modelLambdas_(fit, home, away, neutral, adj) {
   var P = fit.P, aH = fit.att[home] !== undefined ? fit.att[home] : -P.promo, dH = fit.def[home] !== undefined ? fit.def[home] : -P.promo;
   var aA = fit.att[away] !== undefined ? fit.att[away] : -P.promo, dA = fit.def[away] !== undefined ? fit.def[away] : -P.promo;
+  if (adj) { aH += adj.h.a; dH += adj.h.d; aA += adj.a.a; dA += adj.a.d; }          // «Мои поправки»
   return { h: Math.exp(fit.mu + (neutral ? 0 : fit.H) + aH - dA), a: Math.exp(fit.mu + aA - dH) };
 }
 
@@ -145,8 +146,22 @@ function modelOver_(lh, la, rho, line) {
   return (1 - (u + push) / s) / (1 - push / s);      // целая линия: возврат при равенстве
 }
 
-function modelPredict_(fit, home, away) {
-  var l = modelLambdas_(fit, home, away);
+/** Азиатская фора: вероятность выигрыша ставки на хозяев с форой line (без учёта возвратов: как у линии без маржи).
+ *  Четвертные форы (−0,75) — среднее двух половин (−0,5 и −1). */
+function modelAh_(lh, la, rho, line) {
+  if (Math.abs(line * 2 - Math.round(line * 2)) > 1e-9) return (modelAh_(lh, la, rho, line - 0.25) + modelAh_(lh, la, rho, line + 0.25)) / 2;
+  var ph = poissonVec_(lh, 10), pa = poissonVec_(la, 10), w = 0, l = 0;
+  for (var i = 0; i <= 10; i++) for (var j = 0; j <= 10; j++) {
+    var p = ph[i] * pa[j];
+    if (i === 0 && j === 0) p *= 1 - lh * la * rho; else if (i === 0 && j === 1) p *= 1 + lh * rho; else if (i === 1 && j === 0) p *= 1 + la * rho; else if (i === 1 && j === 1) p *= 1 - rho;
+    var x = i - j + line;
+    if (x > 1e-9) w += p; else if (x < -1e-9) l += p;
+  }
+  return w + l > 0 ? w / (w + l) : 0.5;
+}
+
+function modelPredict_(fit, home, away, adj) {
+  var l = modelLambdas_(fit, home, away, false, adj);
   return modelProbs_(l.h, l.a, fit.P.rho, fit.P.maxG);
 }
 

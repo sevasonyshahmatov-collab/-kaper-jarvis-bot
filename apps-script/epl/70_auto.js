@@ -12,6 +12,7 @@ var AUTO_JOBS = [
   { fn: 'oddsAuto_', kind: 'hours', every: 1, what: 'Каждый час: линия Pinnacle, «лучший прогноз», модель против рынка' },
   { fn: 'postAuto_', kind: 'minutes', every: 15, what: 'Пост-прогноз на матч за 2,5–4 часа до начала (куда — в настройках)' },
   { fn: 'matchdayAuto_', kind: 'day', hour: 11, what: '«Матчи дня» в канал АПЛ (в дни матчей)' },
+  { fn: 'powerPostAuto_', kind: 'week', hour: 12, what: 'По понедельникам: «Сила команд» и шансы на титул и вылет — в канал АПЛ' },
   { fn: 'weeklyAuto_', kind: 'week', hour: 5, what: 'По понедельникам: архив сезонов (закрывающие линии), полная сверка календаря' },
   { fn: 'monthlyAuto_', kind: 'month', hour: 4, what: '1-го числа: проверка модели на прошлых сезонах (итог — вам, применение — кнопкой)' }
 ];
@@ -20,10 +21,13 @@ var AUTO_JOBS = [
 function notReady_() { return (propJson_('SETUP', {}) || {}).stage !== 'done'; }
 
 /** Пересчитать модель и все листы, которые от неё зависят. */
-function refreshModelSheets_(ss) {
+function refreshModelSheets_(ss, opt) {
+  opt = opt || {};
   FIT_CACHE_ = null;
   var r = updatePredLog_(ss);
   renderPower_(ss); renderTable_(ss); renderPredictions_(ss); renderVs_(ss);
+  if (opt.season) { try { renderSeason_(ss); } catch (e) { journal_('Прогноз сезона', false, e.message); } }
+  try { cardRender_(ss); } catch (e) { journal_('Карточка команды', false, e.message); }
   try { settlePosts_(ss); } catch (e) { journal_('Посты', false, 'итог ставок: ' + e.message); }
   renderAccuracy_(ss);
   return r;
@@ -36,7 +40,7 @@ function dailyUpdateAuto_() {
     var m = updateMatches_(ss, { back: 10, ahead: 60 }); msg.push('матчей ' + m.total + ' (сыграно ' + m.played + ', изменилось ' + m.changed + ', новых ' + m.added + ')');
     try { var x = updateXg_(ss); msg.push('xG: ' + x.matched); } catch (e) { msg.push('xG: ' + e.message); }
     try { updateOdds_(ss); } catch (e) { msg.push('линия: ' + e.message); }
-    var r = refreshModelSheets_(ss); msg.push('прогнозов ' + r.fresh + (r.retro ? ', задним числом ' + r.retro : ''));
+    var r = refreshModelSheets_(ss, { season: true }); msg.push('прогнозов ' + r.fresh + (r.retro ? ', задним числом ' + r.retro : ''));
     return msg.join('; ');
   });
 }
@@ -67,7 +71,7 @@ function weeklyAuto_() {
     try { var a = updateArchive_(ss); msg.push('архив: ' + a.rows + ' матчей'); } catch (e) { msg.push('архив: ' + e.message); }
     var m = updateMatches_(ss, { full: true }); msg.push('календарь: ' + m.total);
     try { updateXg_(ss); } catch (e) {}
-    refreshModelSheets_(ss);
+    refreshModelSheets_(ss, { season: true });
     return msg.join('; ');
   });
 }

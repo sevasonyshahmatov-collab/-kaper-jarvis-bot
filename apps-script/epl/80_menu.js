@@ -13,8 +13,14 @@ function onOpen() {
       .addItem('Опубликовать «Матчи дня» сейчас', 'publishMatchdayNow_')
       .addItem('Пробный пост «Матчи дня» — мне', 'previewMatchdayNow_')
       .addItem('Пробный пост «Итоги дня» — мне', 'previewResultsNow_')
+      .addItem('Пробный пост «Сила команд» — мне', 'previewPowerNow_')
       .addItem('Куда отправлять посты-прогнозы', 'postsToMenu_')
       .addItem('Автопосты-прогнозы: включить / выключить', 'postToggle_'))
+    .addSubMenu(ui.createMenu('✍️ Мои поправки')
+      .addItem('Открыть лист «Мои поправки»', 'tweaksOpen_')
+      .addItem('✅ Применить поправки (пересчитать прогнозы)', 'tweaksApplyNow_'))
+    .addItem('🏆 Пересчитать прогноз сезона', 'seasonNow_')
+    .addItem('🪪 Карточка команды', 'cardNow_')
     .addSubMenu(ui.createMenu('🧮 Модель')
       .addItem('Проверить модель на прошлых сезонах', 'backtestNow_')
       .addItem('Применить лучший вариант проверки', 'btApplyBest_')
@@ -88,12 +94,12 @@ function setupRun_() {
       else if (st.stage === 'archive') { var a = updateArchive_(ss); msg = a.rows + ' матчей' + (a.errors.length ? ' (не загрузились: ' + a.errors.join('; ') + ')' : ''); }
       else if (st.stage === 'matches') { var m = updateMatches_(ss, { full: true }); msg = m.total + ' матчей, сыграно ' + m.played; }
       else if (st.stage === 'xg') { try { var x = updateXg_(ss); msg = 'xG у ' + x.matched + ' матчей'; } catch (e) { msg = 'xG пока нет (' + e.message + ') — модель возьмёт удары в створ'; } }
-      else if (st.stage === 'model') { props_().setProperty('SETUP_MODEL', '1'); var r = refreshModelSheets_(ss); msg = 'прогнозов ' + r.fresh + ', задним числом ' + r.retro; }
+      else if (st.stage === 'model') { tweaksSheet_(ss); var r = refreshModelSheets_(ss, { season: true }); msg = 'прогнозов ' + r.fresh + ', задним числом ' + r.retro; }
       else if (st.stage === 'odds') { try { var o = updateOdds_(ss); renderPredictions_(ss); renderVs_(ss); msg = 'линий ' + o.lines; } catch (e) { msg = 'линия не загрузилась: ' + e.message; } }
       else if (st.stage === 'backtest') {
         var b = backtestRun_(true, true);
         if (!b.done) { journal_('Настройка', true, 'проверка модели: готово вариантов ' + b.runs + ', продолжаю'); propSetJson_('SETUP', st); setupSchedule_(); return { done: false, text: 'идёт проверка модели' }; }
-        refreshModelSheets_(ss);
+        refreshModelSheets_(ss, { season: true });
         msg = b.best ? btParamsText_(b.best.P) : 'без результата';
       }
       else if (st.stage === 'auto') { ensureAutomation_(true); autoRender_(ss); setupOrder_(ss); msg = AUTO_JOBS.length + ' запусков'; }
@@ -135,6 +141,9 @@ function setupSheets_(ss) {
     ['Модель vs рынок — где модель расходится с линией на ближайшую неделю и есть ли ставка.'],
     ['Сила команд — рейтинг по модели: на сколько голов команда лучше среднего соперника; реализация и «удача» по xG.'],
     ['Таблица — турнирная таблица и очки «по игре» (xPts): кто набрал больше, чем заслужил, и наоборот.'],
+    ['Прогноз сезона — оставшиеся матчи разыграны тысячи раз: ожидаемые очки, шансы на титул, топ-4, еврокубки и вылет.'],
+    ['Карточка команды — выберите клуб в жёлтой ячейке: сила, сезон, шансы, последние и ближайшие матчи.'],
+    ['Мои поправки — ваша поправка атаки и обороны команды на нужные даты (травмы, ротация). Видно, помогает ли она: лист «Точность».'],
     ['Точность — кто точнее: модель, букмекер или их смесь; итог наших ставок и закрытие линии (CLV).'],
     ['Коэффициенты — линия по каждому матчу: первая, при публикации и закрывающая.'],
     ['Посты — что ушло в Telegram, ставка, кэф, итог.'],
@@ -144,14 +153,14 @@ function setupSheets_(ss) {
     [''],
     ['TELEGRAM'],
     ['Посты-прогнозы — за 2,5–4 часа до матча, по умолчанию вам в личку (меню «📣 Канал АПЛ» → «Куда отправлять посты-прогнозы»).'],
-    ['В канал АПЛ: «Матчи дня» в 11:00 МСК в дни матчей и «Итоги дня», когда доигран последний матч.'],
+    ['В канал АПЛ: «Матчи дня» в 11:00 МСК в дни матчей, «Итоги дня», когда доигран последний матч, и по понедельникам «Сила команд» с шансами на титул и вылет.'],
     [''],
     ['ЧЕСТНОСТЬ'],
     ['Прогноз на матч фиксируется до начала и потом не меняется. Точность считается только по таким прогнозам. Ставка предлагается, только если модель выше линии на 5 п.п. и больше.']
   ];
   sh.getRange(1, 1, lines.length, 1).setValues(lines).setWrap(true);
   sh.getRange(1, 1).setFontSize(14).setFontWeight('bold');
-  [4, 16, 20].forEach(function (r) { sh.getRange(r, 1).setFontWeight('bold'); });
+  lines.forEach(function (l, i) { if (i && /^[A-ZА-ЯЁ]+$/.test(l[0])) sh.getRange(i + 1, 1).setFontWeight('bold'); });
   try { sh.setColumnWidth(1, 900); } catch (e) {}
   [SHEET_PRED, SHEET_VS, SHEET_POWER, SHEET_TABLE, SHEET_ACC, SHEET_ODDS, SHEET_POSTS, SHEET_MATCHES, SHEET_BT, AUTO_SHEET, JOURNAL_SHEET].forEach(function (n) { sheet_(ss, n); });
   postsSheet_(ss);
@@ -160,9 +169,9 @@ function setupSheets_(ss) {
   return 'созданы';
 }
 function setupOrder_(ss) {
-  var order = [GUIDE_SHEET, SHEET_PRED, SHEET_VS, SHEET_POWER, SHEET_TABLE, SHEET_ACC, SHEET_ODDS, SHEET_POSTS, SHEET_MATCHES, SHEET_BT, AUTO_SHEET, JOURNAL_SHEET, SHEET_ARCHIVE, SHEET_PLOG];
+  var order = [GUIDE_SHEET, SHEET_PRED, SHEET_VS, SHEET_POWER, SHEET_TABLE, SHEET_SEASON, SHEET_CARD, SHEET_TWEAKS, SHEET_ACC, SHEET_ODDS, SHEET_POSTS, SHEET_MATCHES, SHEET_BT, AUTO_SHEET, JOURNAL_SHEET, SHEET_ARCHIVE, SHEET_PLOG, SHEET_PHIST];
   order.forEach(function (n, i) { var sh = ss.getSheetByName(n); if (!sh) return; try { ss.setActiveSheet(sh); ss.moveActiveSheet(i + 1); } catch (e) {} });
-  var colors = { 'Прогнозы': '#0b3d2e', 'Модель vs рынок': '#0b3d2e', 'Сила команд': '#1a4fd6', 'Таблица': '#1a4fd6', 'Точность': '#b8860b' };
+  var colors = { 'Прогнозы': '#0b3d2e', 'Модель vs рынок': '#0b3d2e', 'Сила команд': '#1a4fd6', 'Таблица': '#1a4fd6', 'Прогноз сезона': '#1a4fd6', 'Карточка команды': '#1a4fd6', 'Мои поправки': '#c2410c', 'Точность': '#b8860b' };
   Object.keys(colors).forEach(function (n) { var sh = ss.getSheetByName(n); if (sh) try { sh.setTabColor(colors[n]); } catch (e) {} });
   try { ss.getSheetByName(SHEET_ARCHIVE).hideSheet(); } catch (e) {}
   try { ss.setActiveSheet(ss.getSheetByName(SHEET_PRED)); } catch (e) {}
@@ -196,3 +205,6 @@ function sourcesCheckNow_() {
   var unk = Object.keys(UNKNOWN_TEAMS_); if (unk.length) out.push('Не знаю русского названия: ' + unk.join(', '));
   uiAlert_(out.join('\n'));
 }
+
+function seasonNow_() { var ss = SpreadsheetApp.getActive(); renderSeason_(ss); try { cardRender_(ss); } catch (e) {} sheetOpen_(SHEET_SEASON); }
+function cardNow_() { var ss = SpreadsheetApp.getActive(); cardRender_(ss); sheetOpen_(SHEET_CARD); }
