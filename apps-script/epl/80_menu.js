@@ -18,7 +18,9 @@ function onOpen() {
       .addItem('Автопосты-прогнозы: включить / выключить', 'postToggle_'))
     .addSubMenu(ui.createMenu('✍️ Мои поправки')
       .addItem('Открыть лист «Мои поправки»', 'tweaksOpen_')
-      .addItem('✅ Применить поправки (пересчитать прогнозы)', 'tweaksApplyNow_'))
+      .addItem('✅ Применить поправки (пересчитать прогнозы)', 'tweaksApplyNow_')
+      .addItem('🩹 Перенести подсказки по травмам', 'injToTweaksNow_'))
+    .addItem('🩹 Травмы и составы', 'injuriesNow_')
     .addItem('🏆 Пересчитать прогноз сезона', 'seasonNow_')
     .addItem('🪪 Карточка команды', 'cardNow_')
     .addSubMenu(ui.createMenu('🧮 Модель')
@@ -61,6 +63,7 @@ var SETUP_STAGES = [
   ['archive', 'архив прошлых сезонов с линиями'],
   ['matches', 'календарь и результаты сезона'],
   ['xg', 'xG сыгранных матчей'],
+  ['injuries', 'травмы и составы'],
   ['model', 'сила команд и прогнозы'],
   ['odds', 'линия букмекера'],
   ['backtest', 'проверка модели на прошлых сезонах'],
@@ -94,6 +97,7 @@ function setupRun_() {
       else if (st.stage === 'archive') { var a = updateArchive_(ss); msg = a.rows + ' матчей' + (a.errors.length ? ' (не загрузились: ' + a.errors.join('; ') + ')' : ''); }
       else if (st.stage === 'matches') { var m = updateMatches_(ss, { full: true }); msg = m.total + ' матчей, сыграно ' + m.played; }
       else if (st.stage === 'xg') { try { var x = updateXg_(ss); msg = 'xG у ' + x.matched + ' матчей'; } catch (e) { msg = 'xG пока нет (' + e.message + ') — модель возьмёт удары в створ'; } }
+      else if (st.stage === 'injuries') { try { var ij = updateInjuries_(ss); msg = 'игроков с отметкой ' + ij.players; } catch (e) { msg = 'не загрузились (' + e.message + ') — посты обойдутся без новостей о составах'; } }
       else if (st.stage === 'model') { tweaksSheet_(ss); var r = refreshModelSheets_(ss, { season: true }); msg = 'прогнозов ' + r.fresh + ', задним числом ' + r.retro; }
       else if (st.stage === 'odds') { try { var o = updateOdds_(ss); renderPredictions_(ss); renderVs_(ss); msg = 'линий ' + o.lines; } catch (e) { msg = 'линия не загрузилась: ' + e.message; } }
       else if (st.stage === 'backtest') {
@@ -143,6 +147,7 @@ function setupSheets_(ss) {
     ['Таблица — турнирная таблица и очки «по игре» (xPts): кто набрал больше, чем заслужил, и наоборот.'],
     ['Прогноз сезона — оставшиеся матчи разыграны тысячи раз: ожидаемые очки, шансы на титул, топ-4, еврокубки и вылет.'],
     ['Карточка команды — выберите клуб в жёлтой ячейке: сила, сезон, шансы, последние и ближайшие матчи.'],
+    ['Травмы — кто из основы не сыграет (официальные данные фэнтези АПЛ) и подсказка поправки: сколько атаки команда теряет без них.'],
     ['Мои поправки — ваша поправка атаки и обороны команды на нужные даты (травмы, ротация). Видно, помогает ли она: лист «Точность».'],
     ['Точность — кто точнее: модель, букмекер или их смесь; итог наших ставок и закрытие линии (CLV).'],
     ['Коэффициенты — линия по каждому матчу: первая, при публикации и закрывающая.'],
@@ -169,7 +174,7 @@ function setupSheets_(ss) {
   return 'созданы';
 }
 function setupOrder_(ss) {
-  var order = [GUIDE_SHEET, SHEET_PRED, SHEET_VS, SHEET_POWER, SHEET_TABLE, SHEET_SEASON, SHEET_CARD, SHEET_TWEAKS, SHEET_ACC, SHEET_ODDS, SHEET_POSTS, SHEET_MATCHES, SHEET_BT, AUTO_SHEET, JOURNAL_SHEET, SHEET_ARCHIVE, SHEET_PLOG, SHEET_PHIST];
+  var order = [GUIDE_SHEET, SHEET_PRED, SHEET_VS, SHEET_POWER, SHEET_TABLE, SHEET_SEASON, SHEET_CARD, SHEET_INJ, SHEET_TWEAKS, SHEET_ACC, SHEET_ODDS, SHEET_POSTS, SHEET_MATCHES, SHEET_BT, AUTO_SHEET, JOURNAL_SHEET, SHEET_ARCHIVE, SHEET_PLOG, SHEET_PHIST];
   order.forEach(function (n, i) { var sh = ss.getSheetByName(n); if (!sh) return; try { ss.setActiveSheet(sh); ss.moveActiveSheet(i + 1); } catch (e) {} });
   var colors = { 'Прогнозы': '#0b3d2e', 'Модель vs рынок': '#0b3d2e', 'Сила команд': '#1a4fd6', 'Таблица': '#1a4fd6', 'Прогноз сезона': '#1a4fd6', 'Карточка команды': '#1a4fd6', 'Мои поправки': '#c2410c', 'Точность': '#b8860b' };
   Object.keys(colors).forEach(function (n) { var sh = ss.getSheetByName(n); if (sh) try { sh.setTabColor(colors[n]); } catch (e) {} });
@@ -201,6 +206,7 @@ function sourcesCheckNow_() {
   t('ESPN (календарь, счёт, удары)', function () { var d = espnRange_(new Date(Date.now() - 7 * 86400000), new Date(Date.now() + 7 * 86400000)); return d.length + ' матчей за ±7 дней'; });
   t('Understat (xG)', function () { var d = understatSeason_(y); return d.filter(function (x) { return x.done; }).length + ' сыгранных матчей с xG'; });
   t('football-data.co.uk (архив и закрывающие линии)', function () { return fdSeason_(y - 1).length + ' матчей прошлого сезона'; });
+  t('Fantasy Premier League (травмы, запасной календарь)', function () { var f = fplPlayers_(); return f.players.length + ' игроков'; });
   t('Pinnacle (линия)', function () { var r = marketFetch_('/leagues/' + marketLeagueId_(false) + '/matchups'); if (!r.data) throw new Error('код ' + r.code); return r.data.length + ' событий'; });
   var unk = Object.keys(UNKNOWN_TEAMS_); if (unk.length) out.push('Не знаю русского названия: ' + unk.join(', '));
   uiAlert_(out.join('\n'));

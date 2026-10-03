@@ -60,6 +60,10 @@ function cardRender_(ss, team) {
     line('Топ-4 (Лига чемпионов)', se['Топ-4 (Лига чемпионов)'], 'топ-7 (еврокубки)', se['Топ-7 (еврокубки)']);
     line('Вылет', se['Вылет']);
   } else line('нет данных');
+  sec('ТРАВМЫ И СОСТАВ');
+  var ij = rowOf_(ss, SHEET_INJ, team);
+  if (ij) { line('Не сыграют (основа)', ij['Не сыграют (основа)']); line('Под вопросом (основа)', ij['Под вопросом (основа)']); line('Подсказка поправки: атака', ij['Подсказка: атака'] || '—', 'оборона', ij['Подсказка: оборона'] || '—'); }
+  else line('нет данных');
   var matches = matchesRead_(ss).filter(function (m) { return m.home === team || m.away === team; }), now = new Date(), log = plogRead_(ss), odds = oddsRead_(ss);
   sec('ПОСЛЕДНИЕ МАТЧИ');
   line('Дата', 'Соперник', 'Где', 'Счёт', 'xG', 'Итог');

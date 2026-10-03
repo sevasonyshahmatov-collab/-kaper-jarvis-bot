@@ -45,6 +45,7 @@ function streakText_(games, team) {
 }
 /** Доводы простыми словами: из них ИИ строит логику поста. */
 function postArgs_(ss, m) {
+  if (!INJ_CACHE_) { try { updateInjuries_(ss); } catch (e) {} }
   var matches = matchesRead_(ss), st = seasonStats_(ss), out = [];
   [[m.home, true], [m.away, false]].forEach(function (x) {
     var t = x[0], s = st[t] || {}, rec = teamRecent_(matches, t, m.start, 6);
@@ -65,6 +66,15 @@ function postArgs_(ss, m) {
       else if (s.g >= 5 && xd <= -3) out.push(t + ' набрал меньше очков, чем заслужил по игре');
     }
     var sk = streakText_(rec, t); if (sk) out.push(sk);
+    try {
+      var R = (INJ_CACHE_ || {})[t];
+      if (R) {
+        var key = R.out.filter(function (z) { return z.role && z.share >= 0.12; });
+        if (key.length) out.push(t + ' без ' + key.map(function (z) { return z.name + ' (' + z.pos + ')'; }).join(' и ') + ' — это заметная часть атаки команды');
+        else if (R.out.filter(function (z) { return z.role; }).length >= 3) out.push(t + ' без нескольких игроков основы');
+        if (R.out.some(function (z) { return z.main_gk; })) out.push(t + ' без основного вратаря');
+      }
+    } catch (e) {}
     var hr = matches.filter(function (q) { return q.status === ST_PLAYED && q.hg !== null && q.start < m.start && (x[1] ? q.home === t : q.away === t); });
     if (hr.length >= 3) {
       var w = hr.filter(function (q) { return x[1] ? q.hg > q.ag : q.ag > q.hg; }).length, l = hr.filter(function (q) { return x[1] ? q.hg < q.ag : q.ag < q.hg; }).length;
@@ -80,9 +90,11 @@ function postSide_(ss, m, team) {
   var matches = matchesRead_(ss), st = seasonStats_(ss)[team] || {}, rec = teamRecent_(matches, team, m.start, 5);
   var table = []; try { table = readTable_(ss.getSheetByName(SHEET_TABLE), 4); } catch (e) { table = []; }
   var pos = table.filter(function (r) { return r['Команда'] === team; })[0];
+  var inj = []; try { inj = injFacts_(ss, team); } catch (e) { inj = []; }
   return 'КОМАНДА: ' + team + (pos ? ' (' + pos['М'] + '-е место, ' + pos['Очки'] + ' очков)' : '') +
     '\nФорма, свежие первыми: ' + (rec.map(function (g) { return g.res; }).join(' ') || 'нет данных') +
-    (st.g ? '\nСезон: ' + st.w + ' побед, ' + st.d + ' ничьих, ' + st.l + ' поражений, мячи ' + st.gf + '–' + st.ga : '');
+    (st.g ? '\nСезон: ' + st.w + ' побед, ' + st.d + ' ничьих, ' + st.l + ' поражений, мячи ' + st.gf + '–' + st.ga : '') +
+    '\nНовости по составу (официальные данные лиги): ' + (inj.length ? inj.join('; ') : 'важных потерь нет');
 }
 
 /* ---------------- текст ---------------- */
@@ -119,7 +131,8 @@ function postPrompt_(ss, m, pickText, args) {
     'СТРУКТУРА:\n• headline — главная история матча капслоком, 3–8 слов;\n' +
     '• paragraphs — 3 абзаца по 2–3 предложения: (1) в чём история матча; (2) ' + (pickText ? 'почему это за прогноз — два-три довода из списка ДОВОДЫ своими словами' : 'почему здесь нет явного перевеса') +
     '; (3) что может помешать — честно, коротко;\n• closing — одна короткая фраза-вывод.\n\n' +
-    'ПРАВИЛА ТЕКСТА: не перечисляй счета прошлых матчей и авторов голов; фамилии игроков не упоминай вообще (у тебя нет свежих новостей о составах, не выдумывай травм и замен); ' +
+    'ПРАВИЛА ТЕКСТА: не перечисляй счета прошлых матчей и авторов голов; игроков называй только из строк «Новости по составу», не больше двух фамилий на весь пост, фамилии пиши по-русски; ' +
+    'не выдумывай травм, замен и возвращений — только то, что есть в новостях; ' +
     'не больше двух чисел на весь пост, и только понятные («три победы подряд»). Без звёздочек и другой разметки, без эмодзи, хэштегов и ссылок.\n' +
     'ЗАПРЕТЫ: никогда не упоминай таблицу, модель, алгоритм, расчёты, xG, «ожидаемые голы», «по данным», проценты вероятности и коэффициенты — говори «создаёт моменты», «позволяет соперникам». ' +
     'Не выдумывай фактов — только из списков ниже. Не обращайся к читателю, не обещай выигрыш, не зови делать ставки.\n\n' +
@@ -176,13 +189,14 @@ function postKey_(m) { return 'POST_' + m.id; }
 function postAuto_() {
   if (prop_('POST_OFF') === '1') return;
   runAuto_('postAuto_', function () {
-    var ss = SpreadsheetApp.getActive(), now = new Date(), t0 = Date.now(), done = 0, err = [];
+    var ss = SpreadsheetApp.getActive(), now = new Date(), t0 = Date.now(), done = 0, err = [], fresh = false;
     matchesRead_(ss).filter(function (m) {
       var mins = (m.start - now) / 60000;
       return m.status === ST_SCHED && mins >= POST_LATE_MIN && mins <= POST_LEAD_MIN && !prop_(postKey_(m));
     }).forEach(function (m) {
       if (Date.now() - t0 > POST_MAX_MS) return;
       props_().setProperty(postKey_(m), mskNow_('dd.MM HH:mm'));
+      if (!fresh) { fresh = true; try { updateInjuries_(ss); } catch (e) { journal_('Травмы', false, e.message); } }   // свежие новости о составах перед постом
       try { if (postSendOne_(ss, m).sent) done++; } catch (e) { err.push(m.home + ' — ' + m.away + ': ' + e.message); }
     });
     if (err.length) throw new Error(err.join('; '));

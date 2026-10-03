@@ -7,7 +7,7 @@
 var AUTO_SHEET = 'Автоматика';
 var TRIGGER_TZ = 'Europe/Moscow';
 var AUTO_JOBS = [
-  { fn: 'dailyUpdateAuto_', kind: 'day', hour: 7, what: 'Утреннее обновление: календарь и результаты, xG, сила команд, прогнозы, таблица, точность' },
+  { fn: 'dailyUpdateAuto_', kind: 'day', hour: 7, what: 'Утреннее обновление: календарь и результаты, xG, травмы, сила команд, прогнозы, прогноз сезона, таблица, точность' },
   { fn: 'liveAuto_', kind: 'hours', every: 1, what: 'Каждый час: счёт свежих матчей, пересчёт прогнозов; когда день доигран — «Итоги дня» в канал' },
   { fn: 'oddsAuto_', kind: 'hours', every: 1, what: 'Каждый час: линия Pinnacle, «лучший прогноз», модель против рынка' },
   { fn: 'postAuto_', kind: 'minutes', every: 15, what: 'Пост-прогноз на матч за 2,5–4 часа до начала (куда — в настройках)' },
@@ -39,6 +39,7 @@ function dailyUpdateAuto_() {
     var ss = SpreadsheetApp.getActive(), msg = [];
     var m = updateMatches_(ss, { back: 10, ahead: 60 }); msg.push('матчей ' + m.total + ' (сыграно ' + m.played + ', изменилось ' + m.changed + ', новых ' + m.added + ')');
     try { var x = updateXg_(ss); msg.push('xG: ' + x.matched); } catch (e) { msg.push('xG: ' + e.message); }
+    try { var inj = updateInjuries_(ss); msg.push('травмы: ' + inj.players); } catch (e) { msg.push('травмы: ' + e.message); }
     try { updateOdds_(ss); } catch (e) { msg.push('линия: ' + e.message); }
     var r = refreshModelSheets_(ss, { season: true }); msg.push('прогнозов ' + r.fresh + (r.retro ? ', задним числом ' + r.retro : ''));
     return msg.join('; ');
