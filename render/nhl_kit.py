@@ -28,6 +28,8 @@ FOOT_PICK = 'прогноз канала · коэффициент на моме
 
 
 def _prep(home, away):
+    if all(t in poster.TEAMS and t not in nhl.TEAMS for t in (home, away)):
+        return home, away                     # клубы КХЛ — как есть, цвета из poster.BANNER
     h, a = nhl.resolve(home), nhl.resolve(away)
     nhl.pair_colors(h, a)
     return h, a
