@@ -8,6 +8,7 @@ function onOpen() {
     .addItem('🔄 Обновить всё', 'updateAllNow_')
     .addItem('📈 Обновить коэффициенты', 'updateOddsNow_')
     .addItem('✍️ Пост-прогноз на матч', 'postNowMenu_')
+    .addItem('🧹 Навести порядок (вкладки и оформление)', 'tidyUpNow_')
     .addSeparator()
     .addSubMenu(ui.createMenu('📣 Канал АПЛ')
       .addItem('Опубликовать «Матчи дня» сейчас', 'publishMatchdayNow_')
@@ -140,7 +141,8 @@ function setupSheets_(ss) {
     ['КАПЕР ДЖАРВИС · АПЛ'],
     ['Та же логика, что в таблицах КХЛ и НХЛ, но модель — футбольная: сила атаки и обороны каждой команды по голам и xG, свежие матчи весят больше.'],
     [''],
-    ['ЛИСТЫ'],
+    ['ЛИСТЫ (цвет вкладки — группа: 🟩 прогнозы и ставки, 🟦 лига и команды, ⬛ ваши настройки; служебные скрыты)'],
+    ['Прогнозы — кратко — главное на одном экране: сыгранные за неделю и ближайшие матчи, исход по модели и «лучший прогноз», кэфы, тотал 2,5, ставка, счёт и угадали ли.'],
     ['Прогнозы — П1/Х/П2, ожидаемые голы, тотал 2,5, «обе забьют», линия Pinnacle и «лучший прогноз» (смесь линии и модели) на 2 недели вперёд и по сыгранным.'],
     ['Модель vs рынок — где модель расходится с линией на ближайшую неделю и есть ли ставка.'],
     ['Сила команд — рейтинг по модели: на сколько голов команда лучше среднего соперника; реализация и «удача» по xG.'],
@@ -165,22 +167,15 @@ function setupSheets_(ss) {
   ];
   sh.getRange(1, 1, lines.length, 1).setValues(lines).setWrap(true);
   sh.getRange(1, 1).setFontSize(14).setFontWeight('bold');
-  lines.forEach(function (l, i) { if (i && /^[A-ZА-ЯЁ]+$/.test(l[0])) sh.getRange(i + 1, 1).setFontWeight('bold'); });
+  lines.forEach(function (l, i) { if (i && /^[A-ZА-ЯЁ]{4,}(\s|$)/.test(l[0])) sh.getRange(i + 1, 1).setFontWeight('bold'); });
   try { sh.setColumnWidth(1, 900); } catch (e) {}
-  [SHEET_PRED, SHEET_VS, SHEET_POWER, SHEET_TABLE, SHEET_ACC, SHEET_ODDS, SHEET_POSTS, SHEET_MATCHES, SHEET_BT, AUTO_SHEET, JOURNAL_SHEET].forEach(function (n) { sheet_(ss, n); });
+  [SHEET_BRIEF, SHEET_PRED, SHEET_VS, SHEET_POWER, SHEET_TABLE, SHEET_ACC, SHEET_ODDS, SHEET_POSTS, SHEET_MATCHES, SHEET_BT, AUTO_SHEET, JOURNAL_SHEET].forEach(function (n) { sheet_(ss, n); });
   postsSheet_(ss);
   var def = ss.getSheetByName('Лист1') || ss.getSheetByName('Sheet1');
   if (def && ss.getSheets().length > 1 && def.getLastRow() === 0) ss.deleteSheet(def);
   return 'созданы';
 }
-function setupOrder_(ss) {
-  var order = [GUIDE_SHEET, SHEET_PRED, SHEET_VS, SHEET_POWER, SHEET_TABLE, SHEET_SEASON, SHEET_CARD, SHEET_INJ, SHEET_TWEAKS, SHEET_ACC, SHEET_ODDS, SHEET_POSTS, SHEET_MATCHES, SHEET_BT, AUTO_SHEET, JOURNAL_SHEET, SHEET_ARCHIVE, SHEET_PLOG, SHEET_PHIST];
-  order.forEach(function (n, i) { var sh = ss.getSheetByName(n); if (!sh) return; try { ss.setActiveSheet(sh); ss.moveActiveSheet(i + 1); } catch (e) {} });
-  var colors = { 'Прогнозы': '#0b3d2e', 'Модель vs рынок': '#0b3d2e', 'Сила команд': '#1a4fd6', 'Таблица': '#1a4fd6', 'Прогноз сезона': '#1a4fd6', 'Карточка команды': '#1a4fd6', 'Мои поправки': '#c2410c', 'Точность': '#b8860b' };
-  Object.keys(colors).forEach(function (n) { var sh = ss.getSheetByName(n); if (sh) try { sh.setTabColor(colors[n]); } catch (e) {} });
-  try { ss.getSheetByName(SHEET_ARCHIVE).hideSheet(); } catch (e) {}
-  try { ss.setActiveSheet(ss.getSheetByName(SHEET_PRED)); } catch (e) {}
-}
+function setupOrder_(ss) { sheetsArrange_(ss); }
 
 /* ---------------- кнопки ---------------- */
 function updateAllNow_() {
@@ -190,7 +185,7 @@ function updateAllNow_() {
   try { var x = updateXg_(ss); msg.push('xG: обновлено ' + x.matched + '.'); } catch (e) { msg.push('xG: ' + e.message); }
   try { var o = updateOdds_(ss); msg.push('Линия: ' + o.lines + ' матчей.'); } catch (e) { msg.push('Линия: ' + e.message); }
   var r = refreshModelSheets_(ss); msg.push('Прогнозов обновлено: ' + r.fresh + '.');
-  sheetOpen_(SHEET_PRED); uiAlert_(msg.join('\n'));
+  sheetOpen_(SHEET_BRIEF); uiAlert_(msg.join('\n'));
 }
 function updateOddsNow_() {
   var ss = SpreadsheetApp.getActive();

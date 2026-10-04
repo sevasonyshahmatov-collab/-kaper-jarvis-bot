@@ -112,3 +112,5 @@
 - Синтаксис: `node -e "new Function(require('fs').readFileSync('apps-script/nhl/Код.js','utf8'))"`.
 - Логику — макетом: загрузить файл в `vm`, подменить `SpreadsheetApp`, `PropertiesService`, `UrlFetchApp`, `ScriptApp`, `DriveApp` простыми объектами (даты создавать внутри контекста vm, иначе `instanceof Date` не сработает).
 - Постеры локально: `python3 render/itogi_job.py payload.json` (без `TG_BOT_TOKEN` только рисует).
+- Макет Google Таблиц: `tools/gas_mock/gas_mock.js` — исполняет код таблиц в node (значения, оформление, строгие границы листа, «2:1» → дата в нетекстовой ячейке),
+  рисует листы в HTML; `node tools/gas_mock/epl_preview.js <папка>` — таблица АПЛ на тестовом сезоне, `node tools/gas_mock/shot.js <папка>` — снимки PNG (Playwright).
