@@ -324,13 +324,13 @@ def cover(path, style='ice', W=1280, H=720, avatar=None):
 
 
 # ------------------------------------------------------------------ предпросмотр
-def preview(avatars, path):
+def preview(avatars, path, name='JARVIS', sub='Итоги дня: КХЛ, 6 матчей', post='МАТЧИ ДНЯ · суббота, 3 октября'):
     """Как аватарки смотрятся в Telegram: крупно в профиле, в списке чатов (светлая и тёмная тема), у поста."""
     cols = len(avatars)
     cw, H = 380, 820
     sheet = Image.new('RGB', (cw * cols + 40, H), (236, 242, 250))
     d = ImageDraw.Draw(sheet)
-    for i, (name, p) in enumerate(avatars):
+    for i, (label, p) in enumerate(avatars):
         av = Image.open(p).convert('RGBA')
         x0 = 20 + i * cw
         cx = x0 + cw / 2
@@ -343,20 +343,20 @@ def preview(avatars, path):
             return a
         big = circ(300)
         sheet.paste(big, (int(cx - 150), 30), big)
-        d.text((cx, 360), name, font=OSW(30), anchor='mm', fill=NAVY)
-        for j, (bgc, txt, sub) in enumerate((((255, 255, 255), (16, 22, 34), (130, 138, 150)), ((24, 33, 45), (240, 244, 250), (130, 150, 170)))):
+        d.text((cx, 360), label, font=OSW(30), anchor='mm', fill=NAVY)
+        for j, (bgc, txt, subc) in enumerate((((255, 255, 255), (16, 22, 34), (130, 138, 150)), ((24, 33, 45), (240, 244, 250), (130, 150, 170)))):
             y = 410 + j * 110
             d.rounded_rectangle((x0 + 10, y, x0 + cw - 10, y + 92), radius=14, fill=bgc)
             s = circ(58)
             sheet.paste(s, (x0 + 26, y + 17), s)
-            d.text((x0 + 98, y + 32), 'JARVIS', font=MAN(22), anchor='lm', fill=txt)
-            d.text((x0 + 98, y + 62), 'Итоги дня: КХЛ, 6 матчей', font=MAN(16), anchor='lm', fill=sub)
+            d.text((x0 + 98, y + 32), name, font=MAN(22), anchor='lm', fill=txt)
+            d.text((x0 + 98, y + 62), sub, font=MAN(16), anchor='lm', fill=subc)
         y = 650
         d.rounded_rectangle((x0 + 10, y, x0 + cw - 10, y + 120), radius=14, fill=(255, 255, 255))
         s = circ(34)
         sheet.paste(s, (x0 + 24, y + 14), s)
-        d.text((x0 + 70, y + 31), 'JARVIS', font=MAN(18), anchor='lm', fill=(30, 110, 200))
-        d.text((x0 + 24, y + 72), 'МАТЧИ ДНЯ · суббота, 3 октября', font=MAN(16), anchor='lm', fill=(16, 22, 34))
+        d.text((x0 + 70, y + 31), name, font=MAN(18), anchor='lm', fill=(30, 110, 200))
+        d.text((x0 + 24, y + 72), post, font=MAN(16), anchor='lm', fill=(16, 22, 34))
     sheet.save(path, quality=92)
     return path
 
