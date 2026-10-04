@@ -643,8 +643,10 @@ def _s_final(m, path, league, title):
 
 
 def _tick(d, x, y, r, ok, col, w):
-    """Галочка (ok) или крестик, нарисованные линиями (не эмодзи)."""
-    if ok:
+    """Галочка (ok), крестик (False) или черта (None — возврат), нарисованные линиями (не эмодзи)."""
+    if ok is None:
+        d.line((x - r * .75, y, x + r * .75, y), fill=col, width=w)
+    elif ok:
         d.line(((x - r, y), (x - r * 0.3, y + r * 0.7), (x + r, y - r * 0.7)), fill=col, width=w, joint='curve')
     else:
         d.line((x - r * .7, y - r * .7, x + r * .7, y + r * .7), fill=col, width=w)
@@ -653,7 +655,7 @@ def _tick(d, x, y, r, ok, col, w):
 
 def _s_verdict(m, path, league, title):
     """РАЗБОР ПРОГНОЗА: верх как у «ИТОГА МАТЧА», ниже карточка прогноза — ставка и кэф, штамп «ЗАШЁЛ» / «НЕ ЗАШЁЛ» / «ВОЗВРАТ»
-    и расчёт строками (pick.checks=[(текст, True | False)]): по чему ставка рассчитана — видно, почему так."""
+    и расчёт строками (pick.checks=[(текст, True | False | None)]): по чему ставка рассчитана — видно, почему так."""
     m = _resolve([m], league)[0]
     H = 1350
     bg, ov = _final_top(m, league, title, H)
@@ -699,7 +701,7 @@ def _s_verdict(m, path, league, title):
         yc = (ys1 + y1) / 2 - lh * (len(checks) - 1) / 2
         for i, (t, ok) in enumerate(checks):
             yy = (yc + i * lh) * S
-            col = GREEN if ok else LOSS
+            col = (120, 128, 142) if ok is None else GREEN if ok else LOSS
             d.ellipse((bx, yy - 15 * S, bx + 30 * S, yy + 15 * S), fill=col + (255,))
             _tick(d, bx + 15 * S, yy, 8 * S, ok, (255, 255, 255, 255), 3 * S)
             d.text((bx + 46 * S, yy), t, font=fc, anchor='lm', fill=INK + (255,))
