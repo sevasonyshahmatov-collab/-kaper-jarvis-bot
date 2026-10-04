@@ -551,10 +551,8 @@ def _s_tape(m, path, league, title):
     return _end(bg, ov, H, path, FOOT_ODDS if o else None)
 
 
-def _s_final(m, path, league, title):
-    """ИТОГ МАТЧА: верх в цвете победителя со счётом, ниже голы по порядку и вердикт прогноза."""
-    m = _resolve([m], league)[0]
-    H = 1350
+def _final_top(m, league, title, H=1350):
+    """Верх «ИТОГА МАТЧА» (до 640 px): фон в цвете победителя, шапка, эмблемы, крупный счёт, плашка «ПОБЕДА …»."""
     hw = m['sh'] > m['sa']
     win = m['home'] if hw else m['away']
     c = np.array(club(win), np.float32)
@@ -594,6 +592,16 @@ def _s_final(m, path, league, title):
     tw = f.getlength(lab) + 40 * S
     d.rounded_rectangle((cx * S - tw / 2, 470 * S, cx * S + tw / 2, 512 * S), radius=21 * S, fill=DARK + (235,))
     d.text((cx * S, 491 * S), lab, font=f, anchor='mm', fill=GOLD_T + (255,))
+    return bg, ov
+
+
+def _s_final(m, path, league, title):
+    """ИТОГ МАТЧА: верх в цвете победителя со счётом, ниже голы по порядку и вердикт прогноза."""
+    m = _resolve([m], league)[0]
+    H = 1350
+    bg, ov = _final_top(m, league, title, H)
+    d = ImageDraw.Draw(ov)
+    cx = W / 2
     # голы
     goals = list(m.get('goals') or [])
     y = 690
@@ -634,10 +642,74 @@ def _s_final(m, path, league, title):
     return _end(bg, ov, H, path)
 
 
+def _tick(d, x, y, r, ok, col, w):
+    """Галочка (ok) или крестик, нарисованные линиями (не эмодзи)."""
+    if ok:
+        d.line(((x - r, y), (x - r * 0.3, y + r * 0.7), (x + r, y - r * 0.7)), fill=col, width=w, joint='curve')
+    else:
+        d.line((x - r * .7, y - r * .7, x + r * .7, y + r * .7), fill=col, width=w)
+        d.line((x - r * .7, y + r * .7, x + r * .7, y - r * .7), fill=col, width=w)
+
+
+def _s_verdict(m, path, league, title):
+    """РАЗБОР ПРОГНОЗА: верх как у «ИТОГА МАТЧА», ниже карточка прогноза — ставка и кэф, штамп «ЗАШЁЛ» / «НЕ ЗАШЁЛ» / «ВОЗВРАТ»
+    и расчёт строками (pick.checks=[(текст, True | False)]): по чему ставка рассчитана — видно, почему так."""
+    m = _resolve([m], league)[0]
+    H = 1350
+    bg, ov = _final_top(m, league, title, H)
+    pk = m.get('pick') or {}
+    hit = pk.get('hit')
+    cx = W / 2
+    y0, y1 = 690, 1258
+    _card(ov, (32 * S, y0 * S, (W - 32) * S, y1 * S), 28 * S, (252, 253, 255, 245))
+    d = ImageDraw.Draw(ov)
+    spaced(d, (cx * S, (y0 + 48) * S), 'ПРОГНОЗ', F(MANROPE, 17 * S, 800), INK + (255,), 4 * S)
+    txt = pk.get('text', '')
+    lift = 0 if pk.get('odds') else 40                                    # без кэфа штамп ближе к прогнозу
+    d.text((cx * S, (y0 + 122 + lift / 4) * S), txt, font=fit(txt, OSW, 68 * S, (W - 150) * S, 700), anchor='mm', fill=NAVY + (255,))
+    if pk.get('odds'):
+        lab = 'КЭФ ' + ('%.2f' % pk['odds']).replace('.', ',')
+        f = F(UNB, 22 * S, 700)
+        tw = f.getlength(lab) + 48 * S
+        yo = y0 + 202
+        d.rounded_rectangle((cx * S - tw / 2, (yo - 25) * S, cx * S + tw / 2, (yo + 25) * S), radius=25 * S, fill=DARK + (255,))
+        d.text((cx * S, yo * S), lab, font=f, anchor='mm', fill=GOLD_T + (255,))
+    # штамп
+    fill = GREEN if hit else LOSS if hit is not None else (120, 128, 142)
+    word = 'ЗАШЁЛ' if hit else 'НЕ ЗАШЁЛ' if hit is not None else 'ВОЗВРАТ'
+    fs = F(OSW, 70 * S, 700)
+    sw = fs.getlength(word) + (150 if hit is not None else 90) * S
+    ys0, ys1 = y0 + 262 - lift, y0 + 372 - lift
+    _card(ov, (cx * S - sw / 2, ys0 * S, cx * S + sw / 2, ys1 * S), 55 * S, fill + (255,))
+    d = ImageDraw.Draw(ov)
+    ym = (ys0 + ys1) / 2
+    if hit is not None:
+        tx = cx * S + 32 * S
+        _tick(d, tx - fs.getlength(word) / 2 - 40 * S, ym * S, 21 * S, hit, (255, 255, 255, 255), 8 * S)
+    else:
+        tx = cx * S
+    d.text((tx, (ym - 3) * S), word, font=fs, anchor='mm', fill=(255, 255, 255, 255))
+    # расчёт
+    checks = list(pk.get('checks') or [])
+    if checks:
+        fc = F(MANROPE, 22 * S, 800)
+        lh = 54
+        bw = max(fc.getlength(t) for t, _ in checks) + 46 * S
+        bx = cx * S - bw / 2
+        yc = (ys1 + y1) / 2 - lh * (len(checks) - 1) / 2
+        for i, (t, ok) in enumerate(checks):
+            yy = (yc + i * lh) * S
+            col = GREEN if ok else LOSS
+            d.ellipse((bx, yy - 15 * S, bx + 30 * S, yy + 15 * S), fill=col + (255,))
+            _tick(d, bx + 15 * S, yy, 8 * S, ok, (255, 255, 255, 255), 3 * S)
+            d.text((bx + 46 * S, yy), t, font=fc, anchor='lm', fill=INK + (255,))
+    return _end(bg, ov, H, path)
+
+
 # ------------------------------------------------------------------ вход
 MATCHI = {'scales': _m_scales, 'rink': _rink, 'pennant': _m_pennant, 'rings': _m_rings}
 ITOGI = {'winner': _r_winner, 'picks': _r_picks, 'numbers': _r_numbers, 'rink': lambda *a: _rink(*a, results=True)}
-SINGLE = {'tape': _s_tape, 'final': _s_final}
+SINGLE = {'tape': _s_tape, 'final': _s_final, 'verdict': _s_verdict}
 
 
 def matchi(items, path, style='scales', league='KHL', title='МАТЧИ ДНЯ', date_title=None, cont=False, rows=None):
@@ -652,4 +724,4 @@ def itogi(items, path, style='winner', league='KHL', title='ИТОГИ ДНЯ', 
 
 def single(m, path, style='tape', league='KHL', title=None):
     league = league.upper()
-    return SINGLE[style](m, path, league, title or ('ИТОГ МАТЧА' if style == 'final' else 'МАТЧ ДНЯ'))
+    return SINGLE[style](m, path, league, title or ('ИТОГ МАТЧА' if style in ('final', 'verdict') else 'МАТЧ ДНЯ'))
