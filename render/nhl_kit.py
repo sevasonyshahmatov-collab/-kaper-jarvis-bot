@@ -165,7 +165,7 @@ def _side(home, away, path, mode, home_info=None, away_info=None, when=None,
 
         y0, y1 = 558 * S, 604 * S
 
-        if mode == 'odds':
+        if mode == 'odds' and odds:                     # линии ещё нет — без строки кэфов
             labels = ['П1', 'Х', 'П2']
             best = min(range(3), key=lambda i: odds[i])
             fl, fn = poster._f7('info', 16 * S), poster._f7('num', 22 * S)
@@ -184,7 +184,7 @@ def _side(home, away, path, mode, home_info=None, away_info=None, when=None,
                 d.text((cx0 + cw - 22 * S, 582 * S), '%.2f' % odds[i], font=fn,
                        fill=(accent + (255,)) if i == best else (255, 255, 255, 255), anchor='rm')
 
-        else:
+        elif mode != 'odds':
             # 'pick' и 'score' делят одну строку: вердикт | ставка | кэф
             cells = []
             if verdict:
@@ -226,7 +226,7 @@ def _side(home, away, path, mode, home_info=None, away_info=None, when=None,
                     x += w + gp
 
         if foot is None:
-            foot = FOOT_ODDS if mode == 'odds' else (FOOT_PICK if mode == 'pick' else '')
+            foot = (FOOT_ODDS if odds else '') if mode == 'odds' else (FOOT_PICK if mode == 'pick' else '')
         if foot:
             d.text((WW / 2, 624 * S), foot, font=poster._f7('info', 14 * S),
                    fill=(196, 202, 214, 255), anchor='mm')
