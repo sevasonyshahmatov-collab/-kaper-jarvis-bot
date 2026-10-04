@@ -7344,7 +7344,8 @@ function liveCandidates_(ss, now) {
     all.push(m);
     if (mins > -2 && mins < LIVE_WINDOW_MIN) activeDays[m.day] = true;
   });
-  var out = all.filter(function (m) { return activeDays[m.day] && m.mins < LIVE_WINDOW_MIN + 60; });
+  // все матчи дня, и давно доигранные тоже: иначе к концу позднего матча ранние выпадали из «Итогов дня» (03.10 ушёл один матч из пяти)
+  var out = all.filter(function (m) { return activeDays[m.day]; });
   out.sort(function (a, b) { return a.start - b.start || (a.home < b.home ? -1 : 1); });
   return out;
 }
@@ -7439,7 +7440,7 @@ function liveUpdate_(now) {
     if (prev.key === 'f') { s.phase = 'done'; s.key = 'f'; }                              // финальный счёт уже есть
     else if (m.mins >= 0) {
       s.phase = 'live'; s.key = 'l';
-      if (m.mins >= LIVE_SCORE_FROM_MIN && fetched < 8) {
+      if (m.mins >= LIVE_SCORE_FROM_MIN && m.mins < LIVE_WINDOW_MIN + 60 && fetched < 8) {   // позже 5 часов страницу не трогаем, как раньше
         if (!cal[m.day]) cal[m.day] = liveCalendar_(m.day);
         var it = cal[m.day][m.home + '|' + m.away];
         if (it) {
