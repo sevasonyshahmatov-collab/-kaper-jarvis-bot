@@ -124,30 +124,33 @@ def _side(home, away, path, mode, home_info=None, away_info=None, when=None,
             d.text((WW / 2 + 46 * S, cy), str(sa), font=fsc, anchor='lm',
                    fill=((255, 255, 255, 255) if sa > sh else (198, 208, 224, 255)))
 
-        # блоки команд по бокам — ширина считается от края эмблемы, чтобы
-        # длинные названия («Нью-Йорк Айлендерс») не наезжали на логотип
-        free = (WW / 2 - gap / 2 - ew) - 64 * S - 18 * S
-
-        def block(team, t, x, align):
-            anc = 'l' if align == 'left' else 'r'
+        # блоки команд по бокам — посередине между краем картинки и эмблемой, по высоте — на центре эмблемы;
+        # ширина считается от настоящего края эмблемы, чтобы длинные названия («Нью-Йорк Айлендерс») не наезжали на логотип
+        def block(team, t, emb, side):
+            if side == 'left':
+                x0, x1 = 64 * S, WW / 2 - gap / 2 - emb.width - 18 * S
+            else:
+                x0, x1 = WW / 2 + gap / 2 + emb.width + 18 * S, WW - 64 * S
+            x = int((x0 + x1) / 2)
             name = poster.SHORT.get(team, team).upper()
             size = 66 * S
             ft = poster._f7('team', size)
-            while ft.getlength(name) > free and size > 26 * S:
+            while ft.getlength(name) > x1 - x0 and size > 26 * S:
                 size -= 2 * S
                 ft = poster._f7('team', size)
-            y = int(250 * S)
-            d.text((x, y), name, font=ft, fill=(255, 255, 255, 255), anchor=anc + 'm')
+            steps = ([int(56 * S)] if t else []) + ([int(44 * S)] if t and t.get('form') else [])
+            y = int(cy - sum(steps) / 2)
+            d.text((x, y), name, font=ft, fill=(255, 255, 255, 255), anchor='mm')
             if t:
-                y += int(56 * S)
+                y += steps[0]
                 d.text((x, y), t.get('line', ''), font=poster._f7('info', 22 * S),
-                       fill=(232, 236, 242, 255), anchor=anc + 'm')
+                       fill=(232, 236, 242, 255), anchor='mm')
                 if t.get('form'):
-                    y += int(44 * S)
-                    poster._form_row(d, x, y, t['form'][-5:], S, align=align)
+                    y += steps[1]
+                    poster._form_row(d, x, y, t['form'][-5:], S, align='center')
 
-        block(h, home_info, int(64 * S), 'left')
-        block(a, away_info, int(WW - 64 * S), 'right')
+        block(h, home_info, e1, 'left')
+        block(a, away_info, e2, 'right')
 
         # время
         if when:

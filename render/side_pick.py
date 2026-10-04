@@ -75,24 +75,25 @@ def _render(m, path, acc, tag, W, H, grain, seed):
                         radius=S, fill=(255, 255, 255, 150))
     _spaced(d, (x0 + w1 + 2 * bar, yb), tag, fb, acc + (255,), sp)
 
-    # блоки команд по бокам
-    def team_block(t, x, align):
-        anc = 'l' if align == 'left' else 'r'
+    # блоки команд по бокам — посередине между краем картинки и эмблемой, по высоте — на центре эмблемы
+    def team_block(t, emb, side):
+        x0, x1 = (64 * S, WW / 2 - gap / 2 - emb.width - 18 * S) if side == 'left' else (WW / 2 + gap / 2 + emb.width + 18 * S, WW - 64 * S)
+        x = int((x0 + x1) / 2)
         name = SHORT.get(t['team'], t['name']).upper()
         size = 66 * S
         ft = poster._f7('team', size)
-        while ft.getlength(name) > 318 * S and size > 34 * S:
+        while ft.getlength(name) > min(318 * S, x1 - x0) and size > 34 * S:
             size -= 2 * S
             ft = poster._f7('team', size)
-        y = int(250 * S)
-        d.text((x, y), name, font=ft, fill=(255, 255, 255, 255), anchor=anc + 'm')
+        y = int(cy - 50 * S)                                   # название, строка и форма — блок высотой 100
+        d.text((x, y), name, font=ft, fill=(255, 255, 255, 255), anchor='mm')
         y += int(56 * S)
-        d.text((x, y), t['line'], font=poster._f7('info', 22 * S), fill=(232, 236, 242, 255), anchor=anc + 'm')
+        d.text((x, y), t['line'], font=poster._f7('info', 22 * S), fill=(232, 236, 242, 255), anchor='mm')
         y += int(44 * S)
-        _form_row(d, x, y, t.get('form', '')[-5:], S, align=align)
+        _form_row(d, x, y, t.get('form', '')[-5:], S, align='center')
 
-    team_block(home, int(64 * S), 'left')
-    team_block(away, int(WW - 64 * S), 'right')
+    team_block(home, e1, 'left')
+    team_block(away, e2, 'right')
 
     # время
     ft = poster._f7('time', 22 * S)
