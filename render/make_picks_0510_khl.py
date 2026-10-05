@@ -12,7 +12,7 @@ DAY = 'понедельник, 5 октября'
 
 BANNERS = [
     ('metallurg_admiral', dict(home='Металлург', away='Адмирал', sh=2, sa=5, mark='', pick=dict(
-        text='ТОТАЛ МАТЧА БОЛЬШЕ 5,5', hit=True,
+        text='ТОТАЛ МАТЧА БОЛЬШЕ 5,5', odds=1.89, hit=True,
         checks=[('2:5 — 7 ГОЛОВ В МАТЧЕ', True)]))),
 ]
 
