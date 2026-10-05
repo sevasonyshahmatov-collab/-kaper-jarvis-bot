@@ -87,6 +87,11 @@ class Sheet {
   getLastColumn() { let m = 0; for (const [k, x] of this.cells) if (x.v !== undefined && x.v !== '') m = Math.max(m, +k.split(',')[1]); return m; }
   getMaxRows() { return this.maxRows; } getMaxColumns() { return this.maxCols; }
   insertRowsAfter(r, n) { this.maxRows += n; return this; } insertColumnsAfter(c, n) { this.maxCols += n; return this; }
+  insertRowsBefore(r, n) {                                             // строки r… сдвигаются вниз, как в Таблице
+    const moved = new Map();
+    for (const [k, x] of this.cells) { const [rr, cc] = k.split(',').map(Number); moved.set((rr >= r ? rr + n : rr) + ',' + cc, x); }
+    this.cells = moved; this.maxRows += n; return this;
+  }
   deleteRows(r, n) {
     const moved = new Map();
     for (const [k, x] of this.cells) { const [rr, cc] = k.split(',').map(Number); if (rr < r) moved.set(k, x); else if (rr >= r + n) moved.set((rr - n) + ',' + cc, x); }

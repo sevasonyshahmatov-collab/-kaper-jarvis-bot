@@ -11245,6 +11245,8 @@ function gameEarlySettle_(days) {
 }
 
 /* ══════════════ ✍️ ПОСТ-ПРОГНОЗ НА МАТЧ — готовый текст вам в личку ══════════════
+ * НХЛ: матчи идут ночью по Москве, поэтому посты на матчи ближайшей ночи приходят вечером — с POST_NIGHT_FROM_H
+ * по МСК (по одному на матч, не позже чем за POST_LATE_MIN минут до начала); дневные матчи — как в КХЛ, за 3–4 часа.
  * За 3–4 часа до каждого матча собираем фактуру и просим ИИ написать пост в вашем стиле:
  * последние игры обеих команд с деталями, кто забивал, что с большинством, кто выбыл и вернулся,
  * график и отдых — и в конце строка «ПРОГНОЗ» с основной ставкой и запасным вариантом.
@@ -11260,14 +11262,18 @@ var POST_HEADER = ['День', 'Начало (МСК)', 'Матч', 'Отпра�
 var POST_EMOJI_SHEET = 'Эмодзи_клубов';
 var POST_LEAD_MIN = 245;            // начинаем готовить за столько минут до начала
 var POST_LATE_MIN = 140;            // и не позже, чем за столько
+var POST_NIGHT_FROM_H = 18;         // НХЛ: с 18:00 МСК (22:00 по Красноярску) — посты на все матчи ближайшей ночи
+var POST_NIGHT_AHEAD_MIN = 14 * 60; // «ближайшая ночь» — матчи, которые начнутся в ближайшие 14 часов
 var POST_EDGE_WIN = 0.05;           // перевес по победителю: 5 п.п. к линии
 var POST_EDGE_TOT = 0.4;            // расхождение по тоталу: 0,4 шайбы
 var POST_LAST_GAMES = 5;            // сколько последних матчей показываем ИИ
 var POST_MAX_MS = 260000;           // за один запуск работаем не дольше (лимит Apps Script — 6 минут)
-var POST_EMOJI_DEFAULT = [['Авангард', '🦅'], ['Автомобилист', '🏎'], ['Адмирал', '⚓'], ['Ак Барс', '🐆'], ['Амур', '🐅'],
-  ['Барыс', '🐆'], ['Динамо Минск', '🦬'], ['Динамо Москва', '⚡'], ['Лада', '🚗'], ['Локомотив', '🚂'], ['Металлург', '🦊'],
-  ['Нефтехимик', '🐺'], ['Салават Юлаев', '🏹'], ['Северсталь', '🐗'], ['Сибирь', '❄️'], ['СКА', '⭐'], ['Сочи', '🌴'],
-  ['Спартак', '🔴'], ['Торпедо', '🛡'], ['Трактор', '⚙️'], ['Шанхайские Драконы', '🐉'], ['ЦСКА', '🐎']];
+var POST_EMOJI_DEFAULT = [['Анахайм', '🦆'], ['Бостон', '🐻'], ['Баффало', '🦬'], ['Калгари', '🔥'], ['Каролина', '🌀'],
+  ['Чикаго', '🪶'], ['Колорадо', '🏔'], ['Коламбус', '💥'], ['Даллас', '⭐'], ['Детройт', '🛞'], ['Эдмонтон', '🛢'],
+  ['Флорида', '🐆'], ['Лос-Анджелес', '👑'], ['Миннесота', '🌲'], ['Монреаль', '⚜️'], ['Нэшвилл', '🐯'], ['Нью-Джерси', '😈'],
+  ['Айлендерс', '🏝'], ['Рейнджерс', '🗽'], ['Оттава', '🏛'], ['Филадельфия', '🟠'], ['Питтсбург', '🐧'], ['Сан-Хосе', '🦈'],
+  ['Сиэтл', '🦑'], ['Сент-Луис', '🎵'], ['Тампа-Бэй', '⚡'], ['Торонто', '🍁'], ['Юта', '🦣'], ['Ванкувер', '🐋'],
+  ['Вегас', '⚔️'], ['Вашингтон', '🦅'], ['Виннипег', '✈️']];
 
 function postEmoji_(ss) {
   var sh = ss.getSheetByName(POST_EMOJI_SHEET);
@@ -11280,6 +11286,12 @@ function postEmoji_(ss) {
   }
   var out = {};
   if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues().forEach(function (r) { if (r[0]) out[String(r[0]).trim()] = String(r[1] || ''); });
+  // лист достался от таблицы КХЛ (клубов НХЛ на нём нет) — дописываем клубы НХЛ, ваши правки не трогаем
+  var miss = POST_EMOJI_DEFAULT.filter(function (x) { return !(x[0] in out); });
+  if (miss.length === POST_EMOJI_DEFAULT.length) {
+    sh.getRange(sh.getLastRow() + 1, 1, miss.length, 2).setValues(miss);
+    miss.forEach(function (x) { out[x[0]] = x[1]; });
+  }
   return out;
 }
 function postSheet_(ss) {
@@ -11566,15 +11578,17 @@ function postSendOne_(ss, m, now) {
   return { sent: true, pick: r.pick.main };
 }
 
-/** Какие матчи пора описывать: начало через POST_LATE_MIN…POST_LEAD_MIN минут, пост ещё не уходил. */
+/** Какие матчи пора описывать: начало через POST_LATE_MIN…POST_LEAD_MIN минут, а с POST_NIGHT_FROM_H по МСК —
+ *  все матчи ближайшей ночи (начало в пределах POST_NIGHT_AHEAD_MIN). Пост по матчу уходит один раз (postSentKey_). */
 function postDue_(ss, now) {
   var sh = ss.getSheetByName(SHEET_ODDS_LOG), out = [];
   if (!sh || sh.getLastRow() < 2) return out;
+  var evening = Number(Utilities.formatDate(now, 'Europe/Moscow', 'H')) >= POST_NIGHT_FROM_H;
   sh.getRange(2, 1, sh.getLastRow() - 1, ODDS_HEADER.length).getValues().forEach(function (r) {
     var start = new Date(String(r[15]));
     if (isNaN(start.getTime())) return;
     var mins = (start - now) / 60000;
-    if (mins < POST_LATE_MIN || mins > POST_LEAD_MIN) return;
+    if (mins < POST_LATE_MIN || mins > (evening ? Math.max(POST_LEAD_MIN, POST_NIGHT_AHEAD_MIN) : POST_LEAD_MIN)) return;
     out.push({ day: String(r[2]), time: String(r[1]).slice(11), home: String(r[3]).trim(), away: String(r[4]).trim() });
   });
   out.sort(function (a, b) { return a.time < b.time ? -1 : 1; });
@@ -11599,10 +11613,10 @@ function postAuto_() {
 /* ---------------- кнопки ---------------- */
 function postNowMenu_() {
   var ss = SpreadsheetApp.getActive(), now = new Date();
-  var day = agentMskDay_(), list = agentMatchesOfDay_(ss, day);
-  if (!list.length) { uiAlert_('Сегодня матчей нет.'); return; }
+  var day = nhlBriefDay_(now), list = agentMatchesOfDay_(ss, day);
+  if (!list.length) { uiAlert_('В ближайшую ночь матчей нет.'); return; }
   var ui = SpreadsheetApp.getUi();
-  var r = ui.prompt('Пост-прогноз', 'Матчи сегодня:\n' + list.map(function (m, i) { return (i + 1) + ') ' + m.time + '  ' + m.home + ' — ' + m.away; }).join('\n') +
+  var r = ui.prompt('Пост-прогноз', 'Матчи ближайшей ночи:\n' + list.map(function (m, i) { return (i + 1) + ') ' + m.time + '  ' + m.home + ' — ' + m.away; }).join('\n') +
     '\n\nНомер матча (или «все»):', ui.ButtonSet.OK_CANCEL);
   if (r.getSelectedButton() !== ui.Button.OK) return;
   var a = String(r.getResponseText() || '').trim().toLowerCase();
@@ -12791,6 +12805,8 @@ function onOpen() {
         .addItem('Мой купон', 'setupMyCouponBuilder_')))
     .addToUi();
   ui.createMenu('📩 НХЛ → мне в ТГ')
+    .addItem('✍️ Пост-прогноз на матч', 'postNowMenu_')
+    .addItem('✍️ Посты-прогнозы: включить / выключить', 'postToggle_')
     .addItem('🧠 Сводка агента на ближайшую ночь (+ лист в таблице)', 'agentBriefNow_')
     .addItem('🔎 Разведчик: что нового сейчас', 'scoutNow_')
     .addItem('📊 «Сила команд» — пробный пост', 'powerPreviewNow_')
@@ -12817,6 +12833,7 @@ var AUTO_JOBS = [
   { fn: 'nhlMorningAuto_', kind: 'day', hour: 14, what: 'Канал: «итоги ночи» (счёт матчей и «Наши»)' },
   { fn: 'scoutAuto_', kind: 'hours', every: 1, what: 'Разведчик: новые посты и новости по командам ближайших матчей → лист «Факты»' },
   { fn: 'scoutReportAuto_', kind: 'minutes', every: 15, what: 'Разведчик: итог вам за ~1,5 ч до каждого матча' },
+  { fn: 'postAuto_', kind: 'minutes', every: 15, what: 'Пост-прогноз на каждый матч вам в личку: на матчи ночи — с 18:00 МСК (22:00 по Красноярску), не позже чем за 2 ч 20 мин до начала' },
   { fn: 'powerAuto_', kind: 'week', hour: 21, what: 'Канал: «Сила команд» по понедельникам (рейтинг и изменения мест за неделю)' },
   { fn: 'bannersAuto_', kind: 'day', hour: 21, what: 'Карточки матчей ближайшей ночи (картинки) — вам в Telegram' },
   { fn: 'weeklyAuto_', kind: 'week', hour: 5, what: 'Раз в неделю (пн): досье всех команд заново + «броски на гол» по статистике НХЛ' },
