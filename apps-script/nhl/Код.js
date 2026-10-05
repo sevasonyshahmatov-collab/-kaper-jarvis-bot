@@ -9568,7 +9568,7 @@ function videoGeminiClip_(url, from, to, deadline, memory) {
   };
   // Перегрузка Google (500/502/503/504) — временная: повторяем с паузой, затем пробуем запасную модель Flash.
   var busy = function (c) { return c === 500 || c === 502 || c === 503 || c === 504; };
-  var models = [model], alt = videoAltModel_(model), resp = null;
+  var models = [model], alt = videoAltModel_(model), resp = null, q429 = [];
   if (alt) models.push(alt);
   for (var mi = 0; mi < models.length; mi++) {
     if (mi && deadline && Date.now() > deadline) break;                     // на запасную модель времени уже нет
@@ -9579,14 +9579,30 @@ function videoGeminiClip_(url, from, to, deadline, memory) {
       if (resp.getResponseCode() === 400) resp = send(true, models[mi]);  // модель не понимает fps/разрешение — без них
       if (!busy(resp.getResponseCode())) break;
     }
-    if (resp.getResponseCode() === 429 && mi < models.length - 1) continue;   // лимит у этой модели — у запасной он свой
+    if (resp.getResponseCode() === 429) {
+      var q = geminiQuota_(resp.getContentText(), models[mi]);
+      q429.push(q);
+      try { p.setProperty('GEMINI_LAST_429', mskNow_() + ' · ' + models[mi] + ' · ' + resp.getContentText().slice(0, 4000)); } catch (e) {}
+      if (q.zero) {                                                          // лимит 0: модель не входит в бесплатный тариф — берём следующую
+        videoNoFree_(models[mi]);
+        var nx = models.length < 4 ? videoNextModel_(models) : '';
+        if (nx) models.push(nx);
+      }
+      if (mi < models.length - 1) continue;                                  // лимит у этой модели — у запасной он свой
+    }
     if (!busy(resp.getResponseCode())) { model = models[mi]; break; }
   }
   var code = resp.getResponseCode(), txt = resp.getContentText();
   if (busy(code)) throw new Error('Gemini перегружен (' + code + ', ' + models.join(' и ') + ') — продолжу позже');
   if (code === 429) {
-    if (/PerDay|per day|daily|YouTube/i.test(txt)) throw new Error('дневной лимит Gemini на видео исчерпан (429) — продолжу после сброса');
-    throw new Error('лимит Gemini в минуту (429) — продолжу позже');
+    var live = q429.filter(function (x) { return !x.zero; }), why = q429.map(function (x) { return x.why; }).join('; ');
+    if (!live.length) throw new Error('дневной лимит: у ключа Gemini нет бесплатного лимита на модели для видео (' + why + ') — продолжу после сброса');
+    if (live.some(function (x) { return !x.day; })) throw new Error('лимит Gemini в минуту (429: ' + why + ') — продолжу позже');
+    throw new Error('дневной лимит Gemini исчерпан (429: ' + why + ') — продолжу после сброса');
+  }
+  if (code === 200 && q429.length && q429[0].zero && model !== models[0]) {  // основная модель стала платной — дальше сразу работающая
+    p.setProperty('GEMINI_VIDEO_MODEL', model);
+    p.deleteProperty('GEMINI_VIDEO_ALT');
   }
   if (code !== 200) throw new Error('Gemini (' + model + ') ответил кодом ' + code + ': ' + txt.slice(0, 300));
   var body = JSON.parse(txt), cand = (body.candidates || [])[0] || {};
@@ -9623,16 +9639,60 @@ function videoModel_() {
 function videoAltModel_(current) {
   var p = agentProps_(), a = p.getProperty('GEMINI_VIDEO_ALT');
   if (a !== null) return a === '-' || a === current ? '' : a;
-  var pick = '';
-  try {
-    var resp = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=' + encodeURIComponent(p.getProperty('GEMINI_KEY')), { muteHttpExceptions: true });
-    if (resp.getResponseCode() !== 200) return '';
-    pick = (JSON.parse(resp.getContentText()).models || []).filter(function (x) {
-      return (x.supportedGenerationMethods || []).indexOf('generateContent') !== -1 && /flash/i.test(x.name) && !/lite|image|tts|audio|live|exp|preview/i.test(x.name);
-    }).map(function (x) { return x.name.replace(/^models\//, ''); }).filter(function (n) { return n !== current && /^gemini-\d/.test(n); }).sort().reverse()[0] || '';
-  } catch (e) { return ''; }
+  var all = videoFlashModels_();
+  if (!all) return '';
+  var nofree = videoNoFree_();
+  var pick = all.filter(function (n) { return n !== current && /^gemini-\d/.test(n) && !nofree[n]; }).sort().reverse()[0] || '';
   p.setProperty('GEMINI_VIDEO_ALT', pick || '-');
   return pick;
+}
+
+/** Модели Flash (не lite), которые умеют generateContent; null — список не получить. */
+function videoFlashModels_() {
+  try {
+    var resp = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=' + encodeURIComponent(agentProps_().getProperty('GEMINI_KEY')), { muteHttpExceptions: true });
+    if (resp.getResponseCode() !== 200) return null;
+    return (JSON.parse(resp.getContentText()).models || []).filter(function (x) {
+      return (x.supportedGenerationMethods || []).indexOf('generateContent') !== -1 && /flash/i.test(x.name) && !/lite|image|tts|audio|live|exp|preview/i.test(x.name);
+    }).map(function (x) { return x.name.replace(/^models\//, ''); });
+  } catch (e) { return null; }
+}
+
+/** Следующая модель Flash вместо той, что без бесплатного лимита: не из tried и не отмеченная. '' — нет такой. */
+function videoNextModel_(tried) {
+  var nofree = videoNoFree_();
+  return (videoFlashModels_() || []).filter(function (n) { return tried.indexOf(n) < 0 && !nofree[n]; })
+    .sort(function (a, b) { return (b === 'gemini-flash-latest') - (a === 'gemini-flash-latest') || (a < b ? 1 : a > b ? -1 : 0); })[0] || '';
+}
+
+/** Модели, у которых Gemini ответил «limit: 0» (нет в бесплатном тарифе): videoNoFree_() — {модель: дата}, videoNoFree_(m) — отметить.
+ *  Отметка живёт 7 дней: Google иногда возвращает модели бесплатный лимит. */
+function videoNoFree_(model) {
+  var p = agentProps_(), map = {}, now = Date.now();
+  try { map = JSON.parse(p.getProperty('GEMINI_NOFREE') || '{}'); } catch (e) { map = {}; }
+  Object.keys(map).forEach(function (m) { if (now - Number(map[m]) > 7 * 864e5) delete map[m]; });
+  if (model) { map[model] = now; if (p.getProperty('GEMINI_VIDEO_ALT') === model) p.deleteProperty('GEMINI_VIDEO_ALT'); }
+  try { p.setProperty('GEMINI_NOFREE', JSON.stringify(map)); } catch (e) {}
+  return map;
+}
+
+/** Что Gemini написал в ответе 429. Дневной лимит отличаем от минутного по названию квоты (…PerDay… / …PerMinute…) — так пишет сам Google.
+ *  {day, zero — «limit: 0», модель не бесплатная, wait — через сколько секунд повторить, why — коротко для сообщения} */
+function geminiQuota_(txt, model) {
+  var e = {}; try { e = JSON.parse(txt).error || {}; } catch (x) { e = {}; }
+  var msg = String(e.message || txt || ''), vs = [], wait = 0;
+  (e.details || []).forEach(function (d) {
+    (d.violations || []).forEach(function (v) { vs.push({ id: String(v.quotaId || ''), metric: String(v.quotaMetric || ''), val: v.quotaValue === undefined ? '' : String(v.quotaValue) }); });
+    if (d.retryDelay) wait = parseFloat(d.retryDelay) || 0;
+  });
+  var lim = msg.match(/limit:\s*(\d+)/);
+  var zero = vs.some(function (v) { return v.val === '0'; }) || !!(lim && lim[1] === '0');
+  var day = vs.length ? vs.some(function (v) { return /PerDay/i.test(v.id); }) : /per ?day|daily|YouTube/i.test(msg);
+  var v = vs.filter(function (x) { return /PerDay/i.test(x.id) === day; })[0] || vs[0] || { id: '', metric: '', val: lim ? lim[1] : '' };
+  var what = /token/i.test(v.id + v.metric) ? 'токенов' : /request/i.test(v.id + v.metric) ? 'запросов' : '';
+  var why = model + ': ' + (zero ? 'лимит 0 — модели нет в бесплатном тарифе' :
+    (v.val ? v.val + ' ' : 'лимит ') + (what ? what + ' ' : '') + (day ? 'в сутки' : 'в минуту'));   // полный ответ — в свойстве GEMINI_LAST_429
+  return { day: day, zero: zero, wait: wait, why: why };
 }
 
 /** Английские написания клубов КХЛ → русские (если Gemini ответит по-английски). */
@@ -9986,7 +10046,8 @@ function videoAnalyzeAll_(auto) {
   try { expertMemoryBuild_(ss); } catch (e) { console.log('память экспертов: ' + e.message); }
   var msg = '🎬 Видео экспертов: разобрано кусков ' + clips + (model ? ' (' + model + ')' : '') + '. Готово роликов: ' + (L.list.length - left.length) + ' из ' + L.list.length + '.' +
     (more ? (stop ? (stopWait === 10 ? '\nGemini сейчас перегружен (это временно, на стороне Google) — продолжу сам через 10 минут, нажимать ничего не нужно.' :
-      stopWait > 10 ? '\nДневной бесплатный лимит Gemini на видео исчерпан (около 8 часов роликов в сутки). Лимит сбрасывается в полночь по Калифорнии — продолжу сам около ' +
+      stopWait > 10 ? '\nДневной бесплатный лимит Gemini исчерпан — какой именно, написано ниже во «Внимание». Лимит считается на проект Google, где создан ключ, и общий для всех таблиц с этим ключом. ' +
+        'Сбрасывается в полночь по Калифорнии — продолжу сам около ' +
         Utilities.formatDate(new Date(Date.now() + stopWait * 60000), 'Asia/Krasnoyarsk', 'HH:mm') + ' по Красноярску, нажимать ничего не нужно. Сводки агента это не задевает — у них своя модель.' :
       '\nGemini упёрся в минутный лимит — продолжу сам через 2 минуты.') : '\nОсталось ' + (left.length - errLeft) + ' — продолжу сам через минуту, нажимать ничего не нужно.') : '') +
     (errs.length ? '\nВнимание: ' + errs.slice(0, 4).join('; ') : '') +
