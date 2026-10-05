@@ -17,6 +17,7 @@ from PIL import Image, ImageDraw
 
 import nhl
 import poster
+import quality
 import recap
 from nhl import ICE
 
@@ -234,8 +235,7 @@ def _side(home, away, path, mode, home_info=None, away_info=None, when=None,
             poster._spaced(d, (WW / 2, 624 * S), handle, poster._f7('info', 13 * S),
                            accent + (255,), 1.6 * S, anchor='m')
 
-        ov = ov.resize((W, H), Image.LANCZOS)
-        out = Image.alpha_composite(bg, ov).convert('RGB')
+        out = quality.compose(bg, ov).convert('RGB')                 # SCALE = 2 — без уменьшения, 2560×1280
         if path.lower().endswith('.png'):
             out.save(path, optimize=True)
         else:

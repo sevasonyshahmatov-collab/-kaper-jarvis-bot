@@ -90,10 +90,10 @@ def _base(W, H, S, seed=5, colors=None):
 
 
 def _finish(bg, ov, W, H, path, grain=0.85):
-    ov = ov.resize((W, H), Image.LANCZOS)
-    out = Image.alpha_composite(bg, ov).convert('RGB')
+    import quality
+    out = quality.compose(bg, ov).convert('RGB')
     out = out.filter(ImageFilter.UnsharpMask(radius=1.0, percent=45, threshold=2))
-    out = _canvas_texture(out, grain)
+    out = quality.texture(out, grain)
     out.save(path, optimize=True) if path.lower().endswith('.png') else out.save(path, quality=97, subsampling=0)
     return path
 

@@ -6,6 +6,7 @@ accent=ICE   — та же сетка, но лига читается по цв�
 from PIL import Image, ImageDraw, ImageFilter
 
 import poster
+import quality
 from poster import (BANNER, SHORT, ACC, _fluid_bg, _canvas_texture, _raw_emblem,
                     _shadowed, _layer_draw, _spaced, _form_row)
 
@@ -129,7 +130,6 @@ def _render(m, path, acc, tag, W, H, grain, seed):
     d.text((WW / 2, 624 * S), m.get('foot', 'прогноз канала · коэффициент на момент публикации'),
            font=poster._f7('info', 14 * S), fill=(196, 202, 214, 255), anchor='mm')
 
-    ov = ov.resize((W, H), Image.LANCZOS)
-    out = Image.alpha_composite(bg, ov).convert('RGB')
+    out = quality.compose(bg, ov).convert('RGB')
     out.save(path, optimize=True) if path.lower().endswith('.png') else out.save(path, quality=96, subsampling=0)
     return path

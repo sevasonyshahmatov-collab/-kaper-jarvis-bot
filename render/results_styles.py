@@ -15,6 +15,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 import poster
+import quality
 import recap
 import league_mark
 
@@ -116,10 +117,10 @@ def _emblem(ov, team, cx, cy, d_pt):
 
 
 def _finish(bg, ov, H, path, grain):
-    out = Image.alpha_composite(bg, ov.resize((W, H), Image.LANCZOS)).convert('RGB')
+    out = quality.compose(bg, ov).convert('RGB')                     # SCALE = 2 — без уменьшения, 2160×…
     out = out.filter(ImageFilter.UnsharpMask(radius=1.0, percent=40, threshold=2))
     if grain:
-        out = poster._canvas_texture(out, grain)
+        out = quality.texture(out, grain)
     out.save(path, quality=95, subsampling=0, optimize=True)
     return path
 
