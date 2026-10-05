@@ -709,6 +709,75 @@ def _s_verdict(m, path, league, title):
     return _end(bg, ov, H, path)
 
 
+# ------------------------------------------------------------------ ЭКСПРЕСС (до игры)
+def _silk_band(ov, box, c1, c2, seed, r):
+    """Полоса-«Бока»: шёлк с переливом из цвета хозяев (слева) в цвет гостей (справа), текстура холста, скругления и тень."""
+    x0, y0, x1, y1 = [int(v) for v in box]
+    w, h = x1 - x0, y1 - y0
+    silk = poster._canvas_texture(poster._fluid_bg(w, h, c1, c2, seed=seed), 0.8)
+    arr = np.clip(np.asarray(silk, np.float32)[..., :3] * 1.12, 0, 255).astype(np.uint8)
+    band = Image.fromarray(arr, 'RGB').convert('RGBA')
+    mask = Image.new('L', (w, h), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, w - 1, h - 1), radius=r, fill=255)
+    band.putalpha(mask)
+    poster._shadowed(ov, band, (x0, y0), blur=14 * S, off=(0, 6 * S), color=(20, 40, 80, 90))
+
+
+def _x_express(items, path, league, title, date_title, odds):
+    """ЭКСПРЕСС: каждый матч — полоса-«Бока» в цветах клубов (эмблемы, названия по центру под ними, время в центре),
+    на нижней кромке — плашка с прогнозом; команда прогноза — с белой обводкой-наклейкой и золотым названием.
+    Внизу карточка с общим кэфом. items: [{home, away, time, pick: команда, text: 'ФОРА (0) В 1-М ПЕРИОДЕ'}]."""
+    H = 1350
+    bg, ov = _start(H, league, title, date_title)
+    n = len(items)
+    top, bottom = 262, 1010                                   # полосы матчей, ниже — карточка кэфа
+    gap = 62
+    bh = (bottom - top - gap * (n - 1)) / n
+    cx = W / 2
+    for i, it in enumerate(items):
+        y0 = top + i * (bh + gap)
+        y1 = y0 + bh
+        ch, ca = club(it['home']), club(it['away'])
+        _silk_band(ov, (32 * S, y0 * S, (W - 32) * S, y1 * S), ch, ca, sum(map(ord, it['home'] + it['away'])) % 997, 30 * S)
+        es = min(200, bh * 0.56)
+        ey = y0 + bh * 0.42
+        for team, x in ((it['home'], 190), (it['away'], W - 190)):
+            ours = team == it.get('pick')
+            e = _emb(team, (es if ours else es * 0.86) * S)
+            _put(ov, _sticker(e, 5 * S) if ours else e, x * S, ey * S, blur=10)
+        d = ImageDraw.Draw(ov)
+        for team, x, c in ((it['home'], 190, ch), (it['away'], W - 190, ca)):
+            ours = team == it.get('pick')
+            tc = _on(c)
+            name = _short(team)
+            d.text((x * S, (ey + es / 2 + 38) * S), name, font=fit(name, OSW, 34 * S, 300 * S, 700), anchor='mm',
+                   fill=(GOLD_T if ours and tc == (255, 255, 255) else tc) + (255,))
+        # время по центру
+        d.rounded_rectangle(((cx - 92) * S, (ey - 40) * S, (cx + 92) * S, (ey + 40) * S), radius=40 * S, fill=DARK + (225,))
+        d.text((cx * S, (ey - 3) * S), it.get('time', ''), font=F(UNB, 34 * S, 700), anchor='mm', fill=(255, 255, 255, 255))
+        d.text((cx * S, (ey + 62) * S), 'МСК', font=F(MANROPE, 15 * S, 800), anchor='mm', fill=(255, 255, 255, 200))
+        # прогноз — плашка на нижней кромке полосы
+        lab = (_short(it['pick']) + ' · ' if it.get('pick') else '') + it.get('text', '')
+        f = fit(lab, OSW, 30 * S, (W - 160) * S, 700)
+        tw = f.getlength(lab) + 64 * S
+        _card(ov, (cx * S - tw / 2, (y1 - 30) * S, cx * S + tw / 2, (y1 + 30) * S), 30 * S, DARK + (255,), outline=GOLD_T + (255,))
+        d = ImageDraw.Draw(ov)
+        d.text((cx * S, (y1 - 2) * S), lab, font=f, anchor='mm', fill=GOLD_T + (255,))
+    # общий кэф
+    y0, y1 = 1066, 1262
+    _card(ov, (32 * S, y0 * S, (W - 32) * S, y1 * S), 28 * S, (252, 253, 255, 245))
+    d = ImageDraw.Draw(ov)
+    spaced(d, (cx * S, (y0 + 46) * S), 'ЭКСПРЕСС · %d %s' % (n, _plural(n, 'СОБЫТИЕ', 'СОБЫТИЯ', 'СОБЫТИЙ')), F(MANROPE, 17 * S, 800), INK + (255,), 4 * S)
+    if odds:
+        lab = 'КЭФ ' + ('%.2f' % odds).replace('.', ',')
+        f = F(UNB, 54 * S, 700)
+        tw = f.getlength(lab) + 90 * S
+        ym = y0 + 124
+        d.rounded_rectangle((cx * S - tw / 2, (ym - 46) * S, cx * S + tw / 2, (ym + 46) * S), radius=46 * S, fill=DARK + (255,))
+        d.text((cx * S, (ym - 2) * S), lab, font=f, anchor='mm', fill=GOLD_T + (255,))
+    return _end(bg, ov, H, path, note='КОЭФФИЦИЕНТ НА МОМЕНТ ПУБЛИКАЦИИ ПРОГНОЗА' if odds else None)
+
+
 # ------------------------------------------------------------------ вход
 MATCHI = {'scales': _m_scales, 'rink': _rink, 'pennant': _m_pennant, 'rings': _m_rings}
 ITOGI = {'winner': _r_winner, 'picks': _r_picks, 'numbers': _r_numbers, 'rink': lambda *a: _rink(*a, results=True)}
@@ -723,6 +792,16 @@ def matchi(items, path, style='scales', league='KHL', title='МАТЧИ ДНЯ',
 def itogi(items, path, style='winner', league='KHL', title='ИТОГИ ДНЯ', date_title=None, cont=False, rows=None):
     league = league.upper()
     return ITOGI[style](_resolve(items, league), path, league, title, date_title, cont, rows)
+
+
+def express(items, path, league='KHL', title='ДВОЙНОЙ ПРОГНОЗ', date_title=None, odds=None):
+    """Экспресс до игры: items = [{home, away, time, pick, text}], odds — общий кэф."""
+    league = league.upper()
+    items = _resolve(items, league)
+    for it in items:
+        if league == 'NHL' and it.get('pick'):
+            it['pick'] = _resolve([dict(home=it['pick'], away=it['pick'])], league)[0]['home']
+    return _x_express(items, path, league, title, date_title, odds)
 
 
 def single(m, path, style='tape', league='KHL', title=None):
