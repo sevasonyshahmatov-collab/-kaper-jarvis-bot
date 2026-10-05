@@ -559,10 +559,11 @@ def _final_top(m, league, title, H=1350):
     bg = _background(H, league)
     top_h = 640
     arr = np.asarray(bg, np.float32).copy()
-    ys = np.linspace(0, 1, top_h, dtype=np.float32)[:, None, None]
-    xs = np.linspace(0, 1, W, dtype=np.float32)[None, :, None]
-    glow = np.exp(-(((xs - (0.25 if hw else 0.75)) * 2.2) ** 2 + ((ys - 0.45) * 2) ** 2))
-    arr[:top_h, :, :3] = c * (0.80 + 0.35 * glow) * (1.05 - 0.15 * ys)
+    # верх — шёлк с переливами и текстурой холста, как фон «Боков»: в цвете победителя, на его стороне светлее
+    hi, lo = tuple(int(v) for v in c), tuple(int(v * 0.62) for v in c)
+    silk = poster._fluid_bg(W, top_h, *((hi, lo) if hw else (lo, hi)), seed=sum(map(ord, m['home'] + m['away'])) % 997)
+    silk = poster._canvas_texture(silk, 0.8)
+    arr[:top_h, :, :3] = np.asarray(silk, np.float32)[..., :3] * 1.12
     edge = np.linspace(1, 0, 40, dtype=np.float32)[:, None, None]            # мягкий переход ко льду
     arr[top_h:top_h + 40, :, :3] = arr[top_h:top_h + 40, :, :3] * (1 - edge * 0.5) + (c * 0.85) * edge * 0.5
     bg = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), bg.mode)
