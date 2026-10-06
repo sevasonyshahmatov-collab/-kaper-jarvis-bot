@@ -50,15 +50,16 @@ def _jpg(path, quality=95):
 def _side(home, away, path, mode, home_info=None, away_info=None, when=None,
           odds=None, pred=None, coef=None, score=None, verdict=None, verdict_color=None,
           foot=None, tag='NHL', accent=ICE, handle='@jarvibet',
-          W=1280, H=640, grain=1.0, seed=None):
-    """mode: 'odds' — линия П1/Х/П2 | 'pick' — прогноз и кэф | 'score' — счёт матча."""
+          W=1280, H=640, grain=1.0, seed=None, scale=2):
+    """mode: 'odds' — линия П1/Х/П2 | 'pick' — прогноз и кэф | 'score' — счёт матча.
+    scale — во сколько раз крупнее рисовать: 2 — 2560×1280 (обычно), 3 — 3840×1920 («4К»)."""
     import numpy as np
     h, a = _prep(home, away)
     c1, c2 = poster.BANNER[h], poster.BANNER[a]
     saved = poster.FONTS7
     poster.FONTS7 = dict(saved, **poster.FONTS_SIDE)
     try:
-        S = 2
+        S = scale
         WW, HH = W * S, H * S
         if seed is None:
             seed = sum(map(ord, h + a)) % 997
@@ -98,9 +99,9 @@ def _side(home, away, path, mode, home_info=None, away_info=None, when=None,
         e1 = poster._raw_emblem(h, ew, eh, plate=needs_plate(h, c1))
         e2 = poster._raw_emblem(a, ew, eh, plate=needs_plate(a, c2))
         poster._shadowed(ov, e1, (int(WW / 2 - gap / 2 - e1.width), cy - e1.height // 2),
-                         blur=26, off=(0, 14), color=(0, 0, 0, 125))
+                         blur=13 * S, off=(0, 7 * S), color=(0, 0, 0, 125))
         poster._shadowed(ov, e2, (int(WW / 2 + gap / 2), cy - e2.height // 2),
-                         blur=26, off=(0, 14), color=(0, 0, 0, 125))
+                         blur=13 * S, off=(0, 7 * S), color=(0, 0, 0, 125))
         d = ImageDraw.Draw(ov)
 
         # шапка JARVIS | NHL
