@@ -588,7 +588,8 @@ def _final_top(m, league, title, H=1350):
     for team, x in ((m['home'], 210), (m['away'], W - 210)):
         d.text((x * S, 548 * S), _short(team), font=fit(_short(team), OSW, 36 * S, 330 * S, 700), anchor='mm', fill=tc + (255 if team == win else 150,))
     mk = rs.MARK_TEXT.get(m.get('mark') or '', '')
-    lab = ('ПОБЕДА ' + _short(win) + (' · ' + mk if mk else ' · ОСНОВНОЕ ВРЕМЯ'))
+    # mark=None — не знаем, было ли ОТ: без приписки про время
+    lab = ('ПОБЕДА ' + _short(win) + ('' if m.get('mark', '') is None else (' · ' + mk if mk else ' · ОСНОВНОЕ ВРЕМЯ')))
     f = F(MANROPE, 17 * S, 800)
     tw = f.getlength(lab) + 40 * S
     d.rounded_rectangle((cx * S - tw / 2, 470 * S, cx * S + tw / 2, 512 * S), radius=21 * S, fill=DARK + (235,))
