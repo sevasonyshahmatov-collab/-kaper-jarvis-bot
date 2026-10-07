@@ -135,6 +135,7 @@ function onOpen() {
     .addItem('Включить поправки', 'tweaksTurnOn_')
     .addToUi();
   ui.createMenu('КХЛ-парсер')
+    .addItem('📈 Что заходит у команд', 'betStatsNow_')
     .addItem('🏒 Обновить всё после игрового дня', 'runAfterGameDay_')
     .addItem('📈 Обновить коэффициенты', 'updateMarketOdds_')
     .addItem('✅ Принять мои поправки', 'tweaksAcceptNow_')
