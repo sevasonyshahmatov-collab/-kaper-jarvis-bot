@@ -12006,6 +12006,21 @@ function betStatsNow_() {
     'Внизу листа — «Конструктор матча»: впишите хозяев и гостей в жёлтые ячейки, и таблица посчитает вероятности ставок на этот матч.');
 }
 
+/** Кнопка меню. Сначала проверка: если в проекте остался старый отдельный файл «Ставки_команд», его функции с теми же
+ *  именами перебивают этот код (нижний файл главнее) — лист строится старым кодом, без конструктора матча. Тогда говорим, что удалить. */
+function betStatsMenu_() {
+  if (betsStale_()) { uiAlert_(BETS_STALE_MSG); return; }
+  betStatsNow_();
+}
+var BETS_STALE_MSG = 'В проекте Apps Script остался старый отдельный файл «Ставки_команд» (или вставлен старый код): он перебивает новый, ' +
+  'поэтому лист «Что заходит» строится без конструктора матча.\n\nРасширения → Apps Script → слева у файла «Ставки_команд» три точки → «Удалить». ' +
+  'Должен остаться один файл «Код». Потом обновите страницу таблицы и нажмите «📈 Что заходит у команд» ещё раз.';
+function betsStale_() { try { return String(betStatsBuild_).indexOf('betsCalcFrame_') < 0; } catch (e) { return false; } }
+/** При открытии таблицы — подсказка внизу экрана, если старый файл перебивает код. */
+function betsStaleWarn_() {
+  try { if (betsStale_()) SpreadsheetApp.getActive().toast(BETS_STALE_MSG.split('\n\n')[0] + ' Удалите его.', '⚠️ Старый файл в проекте', 30); } catch (e) {}
+}
+
 /** Автоматика: раз в день после результатов. */
 function betStatsAuto_() {
   try { var r = betStatsBuild_(SpreadsheetApp.getActive()); autoMark_('betStatsAuto_', true, betStatsStatus_(r)); }
@@ -13495,6 +13510,7 @@ function nhlKeysSetup_() {
 
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
+  betsStaleWarn_();
   dailyMenu_(ui, '📅 НХЛ · Ежедневно', DAILY_NHL_);
   ui.createMenu('✍️ Поправки')
     .addItem('✅ Принять поправки', 'tweaksAcceptNow_')
@@ -13506,7 +13522,7 @@ function onOpen() {
   // Три отдельных меню в строке меню таблицы — по тому, куда уходит результат:
   //   «НХЛ-парсер» — только таблица; «📩 НХЛ → мне в ТГ» — личка от бота; «📣 НХЛ · ТГ группа» — всё, что публикуется в группу (канал).
   ui.createMenu('НХЛ-парсер')
-    .addItem('📈 Что заходит у команд', 'betStatsNow_')
+    .addItem('📈 Что заходит у команд', 'betStatsMenu_')
     .addItem('🏒 Обновить всё после игрового дня', 'runAfterGameDay_')
     .addItem('📈 Обновить коэффициенты', 'updateMarketOdds_')
     .addItem('✅ Принять мои поправки', 'tweaksAcceptNow_')
