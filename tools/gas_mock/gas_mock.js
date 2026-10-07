@@ -22,7 +22,7 @@ class Range {
       throw new Error(name + ': размер данных не совпадает с диапазоном ' + this.nr + '×' + this.nc);
     return v;
   }
-  getRow() { return this.r; } getColumn() { return this.c; } getNumRows() { return this.nr; } getNumColumns() { return this.nc; }
+  getSheet() { return this.sheet; } getRow() { return this.r; } getColumn() { return this.c; } getNumRows() { return this.nr; } getNumColumns() { return this.nc; }
   getA1Notation() { return a1Col(this.c) + this.r + (this.nr > 1 || this.nc > 1 ? ':' + a1Col(this.c + this.nc - 1) + (this.r + this.nr - 1) : ''); }
   setValue(v) { return this._each(c => { c.v = this.sheet._coerce(v, c.nf); }); }
   setValues(v) { this._grid(v, 'setValues'); return this._each((c, i, j) => { c.v = this.sheet._coerce(v[i][j], c.nf); }); }
@@ -34,7 +34,7 @@ class Range {
   setBackground(v) { return this._set('bg', v); } setBackgrounds(v) { return this._setGrid('bg', v, 'setBackgrounds'); }
   setFontColor(v) { return this._set('fc', v); } setFontColors(v) { return this._setGrid('fc', v, 'setFontColors'); }
   setFontWeight(v) { return this._set('fw', v); } setFontWeights(v) { return this._setGrid('fw', v, 'setFontWeights'); }
-  setFontSize(v) { return this._set('fs', v); } setFontStyle(v) { return this._set('fi', v); } setFontLine(v) { return this._set('fl', v); }
+  setFontSize(v) { return this._set('fs', v); } setFontSizes(v) { return this._setGrid('fs', v, 'setFontSizes'); } setFontStyle(v) { return this._set('fi', v); } setFontLine(v) { return this._set('fl', v); }
   setFontFamily(v) { return this._set('ff', v); }
   setNumberFormat(v) { return this._set('nf', v); } setNumberFormats(v) { return this._setGrid('nf', v, 'setNumberFormats'); }
   setHorizontalAlignment(v) { return this._set('ha', v); } setHorizontalAlignments(v) { return this._setGrid('ha', v, 'setHorizontalAlignments'); }
