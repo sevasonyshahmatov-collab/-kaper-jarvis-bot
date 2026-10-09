@@ -11651,6 +11651,7 @@ function postToggle_() {
  *  • Обновляется раз в день автоматикой после результатов (betStatsAuto_ в AUTO_JOBS); вручную — «📈 Что заходит у команд» в меню парсера.
  *  • Под таблицей — «Конструктор матча»: вписываете хозяев и гостей, таблица сама (onEdit) считает вероятности исхода, фор,
  *    тоталов, инд. тоталов и удалений на эту пару и честные кэфы (подробно — у betsCalcModel_ ниже).
+ *  • Тот же расчёт — в боте: подписчик пишет две команды (обе лиги), бот отвечает (betsBotReply_, ниже).
  *
  * Блок одинаковый в таблице КХЛ и в таблице НХЛ: лигу код узнаёт сам (VIDEO_LEAGUE, NHL_TEAMS).
  * ==========================================================================*/
@@ -11665,12 +11666,13 @@ function betsNhl_() { return typeof NHL_TEAMS !== 'undefined' && typeof nhlGet_ 
 function betsLeague_() { return typeof VIDEO_LEAGUE === 'string' && VIDEO_LEAGUE ? VIDEO_LEAGUE : (betsNhl_() ? 'НХЛ' : 'КХЛ'); }
 function betsDayDiff_(a, b) { return Math.round((Date.parse(b + 'T12:00:00Z') - Date.parse(a + 'T12:00:00Z')) / 864e5); }
 function betsDay_(v) { return v instanceof Date ? sheetDayKey_(v) : String(v === null || v === undefined ? '' : v).replace(/^'/, '').trim(); }
+function betsKhlAppSheet_() { return typeof KHLAPP_GAMES_SHEET === 'string' ? KHLAPP_GAMES_SHEET : 'КХЛ_матчи_приложение'; }
 function betsNum_(x) { return x === '' || x === null || x === undefined || isNaN(Number(x)) ? null : Number(x); }
 
 /* ---------------- матчи сезона ---------------- */
 
-/** Сыгранные матчи текущего сезона с первой игры: [{day, home, away, hg, ag, ot}]. */
-function betsSeasonGames_(ss) {
+/** Сыгранные матчи текущего сезона с первой игры: [{day, home, away, hg, ag, ot}]. nhl — лига таблицы ss (по умолчанию — своя). */
+function betsSeasonGames_(ss, nhl) {
   var rs = ss.getSheetByName(SHEET_RESULTS), all = [];
   if (!rs || rs.getLastRow() < 2) return [];
   rs.getRange(2, 1, rs.getLastRow() - 1, 7).getValues().forEach(function (r) {
@@ -11680,22 +11682,25 @@ function betsSeasonGames_(ss) {
     all.push({ day: sheetDayKey_(r[0]), home: home, away: away, hg: r[4], ag: r[5], ot: r[6] === true || String(r[6]).toUpperCase() === 'TRUE' });
   });
   all.sort(function (a, b) { return a.day < b.day ? -1 : a.day > b.day ? 1 : 0; });
-  var from = betsSeasonStart_(ss, all);
+  var from = betsSeasonStart_(ss, all, nhl);
   return all.filter(function (g) { return g.day >= from; });
 }
 
 /** Первый день сезона: НХЛ — начало окна сезона; КХЛ — первый матч в архиве приложения (там только регулярка этого сезона);
  *  запасной путь — первый матч после самого позднего перерыва больше 45 дней (межсезонье). */
-function betsSeasonStart_(ss, all) {
-  if (betsNhl_() && typeof NHL_SEASON_FROM === 'string') return NHL_SEASON_FROM;
-  try {
-    var sh = typeof KHLAPP_GAMES_SHEET === 'string' ? ss.getSheetByName(KHLAPP_GAMES_SHEET) : null, min = '';
-    if (sh && sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues().forEach(function (r) {
-      var d = betsDay_(r[0]);
-      if (/^\d{4}-\d\d-\d\d$/.test(d) && (!min || d < min)) min = d;
-    });
-    if (min) return min;
-  } catch (e) { /* без архива — по перерыву */ }
+function betsSeasonStart_(ss, all, nhl) {
+  if (nhl === undefined) nhl = betsNhl_();
+  if (nhl && betsNhl_() && typeof NHL_SEASON_FROM === 'string') return NHL_SEASON_FROM;
+  if (!nhl) {
+    try {
+      var sh = ss.getSheetByName(betsKhlAppSheet_()), min = '';
+      if (sh && sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues().forEach(function (r) {
+        var d = betsDay_(r[0]);
+        if (/^\d{4}-\d\d-\d\d$/.test(d) && (!min || d < min)) min = d;
+      });
+      if (min) return min;
+    } catch (e) { /* без архива — по перерыву */ }
+  }
   var from = all.length ? all[0].day : '0000-00-00';
   for (var i = 1; i < all.length; i++) if (betsDayDiff_(all[i - 1].day, all[i].day) > 45) from = all[i].day;
   return from;
@@ -11705,7 +11710,7 @@ function betsSeasonStart_(ss, all) {
 
 /** КХЛ: штраф и удаления из архива приложения КХЛ. {день|хозяева|гости: {pimH, pimA, nH, nA}} */
 function betsPenKhl_(ss) {
-  var sh = typeof KHLAPP_GAMES_SHEET === 'string' ? ss.getSheetByName(KHLAPP_GAMES_SHEET) : null, out = {};
+  var sh = ss.getSheetByName(betsKhlAppSheet_()), out = {};
   if (!sh || sh.getLastRow() < 2) return out;
   sh.getRange(2, 1, sh.getLastRow() - 1, 19).getValues().forEach(function (r) {
     var d = betsDay_(r[0]), h = String(r[2]).trim(), a = String(r[3]).trim();
@@ -12043,6 +12048,19 @@ var BETS_CALC_W = 0.5;        // вес модели счёта; остальн�
 var BETS_CALC_MAXG = 12;      // до скольких голов команды считаем счёт
 var BETS_CALC_ROWS = 70;      // сколько строк под ячейками ввода чистится перед новым расчётом
 var BETS_CALC_COLS = 8;       // A…H
+var BETS_NHL_ALIAS = {                // НХЛ: аббревиатура, английское название, прозвища — для ввода «TBL», «lightning», «ойлерз»
+  'Анахайм': 'ana|anaheim ducks|дакс', 'Бостон': 'bos|boston bruins|брюинз', 'Баффало': 'buf|buffalo sabres|сейбрз',
+  'Калгари': 'cgy|calgary flames|флэймз', 'Каролина': 'car|carolina hurricanes|харрикейнз', 'Чикаго': 'chi|chicago blackhawks|блэкхокс',
+  'Колорадо': 'col|colorado avalanche|эвеланш', 'Коламбус': 'cbj|columbus blue jackets|блю джекетс', 'Даллас': 'dal|dallas stars|старз',
+  'Детройт': 'det|detroit red wings|ред уингз', 'Эдмонтон': 'edm|edmonton oilers|ойлерз', 'Флорида': 'fla|florida panthers|пантерз',
+  'Лос-Анджелес': 'lak|la|los angeles kings|кингз|ла', 'Миннесота': 'min|minnesota wild|уайлд', 'Монреаль': 'mtl|montreal canadiens|канадиенс',
+  'Нэшвилл': 'nsh|nashville predators|предаторз', 'Нью-Джерси': 'njd|new jersey devils|дэвилз', 'Айлендерс': 'nyi|new york islanders|айлз',
+  'Рейнджерс': 'nyr|new york rangers', 'Оттава': 'ott|ottawa senators|сенаторз', 'Филадельфия': 'phi|philadelphia flyers|флайерз',
+  'Питтсбург': 'pit|pittsburgh penguins|пингвинз', 'Сан-Хосе': 'sjs|san jose sharks|шаркс', 'Сиэтл': 'sea|seattle kraken|кракен',
+  'Сент-Луис': 'stl|st louis blues|блюз', 'Тампа-Бэй': 'tbl|tampa bay lightning|лайтнинг', 'Торонто': 'tor|toronto maple leafs|мейпл лифс|мэйпл лифс',
+  'Юта': 'uta|utah mammoth|юты|юте|мамонт|маммот', 'Ванкувер': 'van|vancouver canucks|кэнакс', 'Вегас': 'vgk|vegas golden knights|голден найтс',
+  'Вашингтон': 'wsh|washington capitals|кэпиталз|кэпиталс', 'Виннипег': 'wpg|winnipeg jets|джетс'
+};
 
 /** Простой триггер: правка ячеек конструктора на листе «Что заходит» → пересчёт. Другие листы не трогает. */
 function onEdit(e) {
@@ -12082,29 +12100,32 @@ function betsCalcNorm_(s) {
 }
 function betsCalcCompact_(s) { return betsCalcNorm_(s).replace(/[\s\-–—]/g, ''); }
 
-/** Команда по тому, что ввели: имя, начало названия («акб», «сев»), город или прозвище, аббревиатура НХЛ, буквы по порядку. {team} | {err} */
+/** Команда по тому, что ввели: имя, НХЛ-аббревиатура или прозвище, начало названия («акб», «сев»), город, буквы по порядку.
+ *  {team, q} — q: 5 имя, 4 аббревиатура/прозвище, 3 начало названия, 2 город или прозвище из словаря агента, 1 буквы по порядку; | {err} */
 function betsCalcTeam_(input, teams) {
   var s = betsCalcNorm_(input).replace(/(^|\s)мск(?=\s|$)/, '$1москва'), c = s.replace(/[\s\-–—]/g, '');
   if (!s) return { err: '' };
-  var pick = function (list) {
+  var pick = function (list, q) {
     list = list.filter(function (t, i) { return list.indexOf(t) === i; });
-    if (list.length === 1) return { team: list[0] };
+    if (list.length === 1) return { team: list[0], q: q };
     if (list.length > 1) return { err: '«' + String(input).trim() + '» — уточните: ' + list.slice(0, 6).join(' / ') };
     return null;
   };
-  var r = pick(teams.filter(function (t) { return betsCalcNorm_(t) === s || betsCalcCompact_(t) === c; }));
+  var r = pick(teams.filter(function (t) { return betsCalcNorm_(t) === s || betsCalcCompact_(t) === c; }), 5);
   if (r) return r;
-  if (typeof NHL_TEAMS !== 'undefined') {
-    r = pick(NHL_TEAMS.filter(function (t) { return String(t[0]).toLowerCase() === s || (s.length >= 3 && String(t[2]).toLowerCase().indexOf(s) >= 0); })
-      .map(function (t) { return t[1]; }).filter(function (t) { return teams.indexOf(t) >= 0; }));
-    if (r) return r;
-  }
+  r = pick(teams.filter(function (t) {
+    return String(BETS_NHL_ALIAS[t] || '').split('|').some(function (x) {
+      x = betsCalcNorm_(x);
+      return x && (x === s || (s.length >= 3 && (x.indexOf(s) === 0 || x.split(' ').some(function (w) { return w.indexOf(s) === 0; }))));
+    });
+  }), 4);
+  if (r) return r;
   r = pick(teams.filter(function (t) {
     return betsCalcCompact_(t).indexOf(c) === 0 || betsCalcNorm_(t).split(/[\s\-]+/).some(function (w) { return w.indexOf(s) === 0; });
-  }));
+  }), 3);
   if (r) return r;
   if (typeof agentMentions_ === 'function' && typeof AGENT_TEAM_STEMS !== 'undefined') {
-    r = pick(teams.filter(function (t) { return agentMentions_(input, t); }));
+    r = pick(teams.filter(function (t) { return agentMentions_(input, t); }), 2);
     if (r) return r;
   }
   r = pick(teams.filter(function (t) {
@@ -12112,7 +12133,7 @@ function betsCalcTeam_(input, teams) {
     if (c.length < 2 || n.charAt(0) !== c.charAt(0)) return false;
     for (var i = 0; i < n.length && k < c.length; i++) if (n.charAt(i) === c.charAt(k)) k++;
     return k === c.length;
-  }));
+  }), 1);
   return r || { err: 'не нашёл команду «' + String(input).trim() + '»' };
 }
 
@@ -12296,8 +12317,9 @@ function betsCalcMatch_(ctx, H, A) {
     nH: ch[0], nHh: ch[1], nA: ca[0], nAa: ca[1], h2h: h2h };
 }
 
-function betsCalcCtx_(ss) {
-  var games = betsSeasonGames_(ss), pen = betsNhl_() ? betsPenNhlRead_(ss) : betsPenKhl_(ss), T = betsTeamGames_(games, pen);
+function betsCalcCtx_(ss, nhl) {
+  if (nhl === undefined) nhl = betsNhl_();
+  var games = betsSeasonGames_(ss, nhl), pen = nhl ? betsPenNhlRead_(ss) : betsPenKhl_(ss), T = betsTeamGames_(games, pen);
   return { games: games, T: T, lines: betsPenLines_(T) };
 }
 
@@ -12400,6 +12422,159 @@ function betsCalcPaint_(sh, r, out) {
     if (o.s === 'first') sh.getRange(r + i, 1, 1, W).setBorder(true, null, null, null, null, null, '#c3ccd8', SpreadsheetApp.BorderStyle.SOLID);
     if (o.s === 'top') sh.getRange(r + i, 1, 1, W).setBorder(true, null, true, null, null, null, '#137333', SpreadsheetApp.BorderStyle.SOLID);
   });
+}
+
+/* ---------------- бот: шансы на матч ----------------
+ * Подписчик пишет боту две команды — «Ак Барс Северсталь», «Тампа — Флорида», «/match СКА ЦСКА» (первой — хозяева), —
+ * бот отвечает расчётом конструктора матча: исход, победитель с ОТ, ожидаемый счёт, тоталы, форы, инд. тоталы, удаления, ★-ставки.
+ * Лигу бот узнаёт по названиям: своя — из этой таблицы, другая — из таблицы второй лиги по id (BETS_SHEET_IDS; если таблицы
+ * переедут — свойства скрипта BETS_KHL_SHEET_ID / BETS_NHL_SHEET_ID). Списки команд и готовые ответы кэшируются на BETS_BOT_CACHE_S,
+ * чтобы частые запросы не читали таблицы заново. Вызывается из обработчика бота (gameHandleUpdate_ таблицы КХЛ — вебхук там):
+ * команда /match и любой обычный текст в личке.
+ */
+var BETS_SHEET_IDS = { 'КХЛ': '1irgDnokNe9RMTrb_7Pu2tH9XpVHu5tFpdgInFj9IJIs', 'НХЛ': '1wM3qhzSidXTMIqm_yF2obc-Wwqdgk7lo0zPtNFjURSk' };
+var BETS_BOT_CACHE_S = 1200;          // сколько секунд помнить ответ на пару и список команд лиги
+var BETS_BOT_RATE = 15;               // не больше стольких запросов от одного человека за 10 минут — чтобы поток сообщений не тормозил игру
+var BETS_BOT_MEMO = {};               // в пределах одного запуска: лига → данные для расчёта
+var BETS_BOT_HINT = 'Напишите две команды — первой хозяев, например:\n<b>Ак Барс Северсталь</b>\n<b>Тампа — Флорида</b>\n\n' +
+  'Можно коротко: «акб сев», «динамо мн ска», «TBL FLA». Посчитаю шансы на исход, тоталы, форы и удаления по матчам этого сезона.';
+
+/** Таблица лиги: своя — эта, другая — по id. null — не открылась. */
+function betsBotSheet_(league) {
+  if (league === betsLeague_()) return SpreadsheetApp.getActive();
+  var id = PropertiesService.getScriptProperties().getProperty(league === 'НХЛ' ? 'BETS_NHL_SHEET_ID' : 'BETS_KHL_SHEET_ID') || BETS_SHEET_IDS[league];
+  try { return SpreadsheetApp.openById(id); } catch (e) { return null; }
+}
+
+/** Данные лиги для расчёта (читаются один раз за запуск). {games, T, lines} | null */
+function betsBotCtx_(league) {
+  if (BETS_BOT_MEMO[league] !== undefined) return BETS_BOT_MEMO[league];
+  var ss = betsBotSheet_(league), ctx = null;
+  if (ss) { try { ctx = betsCalcCtx_(ss, league === 'НХЛ'); } catch (e) { ctx = null; } }
+  BETS_BOT_MEMO[league] = ctx;
+  return ctx;
+}
+
+/** Команды лиги, сыгравшие в этом сезоне (из кэша, если он есть). */
+function betsBotTeams_(league) {
+  var cache = CacheService.getScriptCache(), key = 'betsbot|t|' + (league === 'НХЛ' ? 'n' : 'k'), v = cache.get(key);
+  if (v) { try { return JSON.parse(v); } catch (e) { /* пересчитаем */ } }
+  var ctx = betsBotCtx_(league), teams = ctx ? Object.keys(ctx.T) : [];
+  if (teams.length) { try { cache.put(key, JSON.stringify(teams), BETS_BOT_CACHE_S); } catch (e) { /* без кэша */ } }
+  return teams;
+}
+
+/** Текст подписчика без команды, кавычек и слов вроде «прогноз на матч». */
+function betsBotClean_(text) {
+  return String(text || '').replace(/^\/\S*/, ' ').replace(/[«»"“”„'`!?()\[\]]/g, ' ')
+    .replace(/(^|\s)(прогнозы?|прогноз[а-я]*|шансы?|матчи?|матч[а-я]*|кто|победит|выиграет|сегодня|завтра|на|игра|расч[её]т|посчитай)(?=\s|$)/gi, ' ')
+    .replace(/\s+/g, ' ').trim();
+}
+
+/** Две команды из текста: по разделителю («—», « - », «vs», запятая) или подбором места разрыва между словами. {h, a, q} | {err} */
+function betsBotPair_(q, teams) {
+  var parts = q.split(/\s*[—–]\s*|\s+-\s*|\s*-\s+|\s+(?:vs\.?|v|против)\s+|\s*[,;:\/|]\s*/i).filter(function (x) { return x && x.trim(); });
+  var cands = [], errs = [];
+  var tryPair = function (l, r) {
+    var a = betsCalcTeam_(l, teams), b = betsCalcTeam_(r, teams);
+    [a, b].forEach(function (x) { if (x.err && /уточните/.test(x.err) && errs.indexOf(x.err) < 0) errs.push(x.err); });
+    if (a.team && b.team && a.team !== b.team) cands.push({ h: a.team, a: b.team, q: Math.min(a.q, b.q), s: a.q + b.q });
+  };
+  if (parts.length === 2) tryPair(parts[0], parts[1]);
+  else if (parts.length === 1) {
+    var w = parts[0].split(/\s+/);
+    for (var i = 1; i < w.length; i++) tryPair(w.slice(0, i).join(' '), w.slice(i).join(' '));
+  }
+  if (!cands.length) return { err: errs.join('\n') };
+  cands.sort(function (x, y) { return y.q - x.q || y.s - x.s; });
+  return cands[0];
+}
+
+function betsBotKey_(team) { return encodeURIComponent(String(team).replace(/\s+/g, '').slice(0, 12)); }
+function betsBotChannel_() {
+  var c = String(PropertiesService.getScriptProperties().getProperty('TG_CHANNEL') || '').trim();
+  return /^@\w{4,}$/.test(c) ? c : '';
+}
+
+/** Ответ бота на текст подписчика (HTML для Telegram). */
+function betsBotReply_(text) {
+  var q = betsBotClean_(text);
+  if (!q) return BETS_BOT_HINT;
+  var own = betsLeague_(), leagues = [own, own === 'НХЛ' ? 'КХЛ' : 'НХЛ'], found = null, errs = [];
+  for (var i = 0; i < leagues.length && !(found && found.p.q >= 2); i++) {      // другую лигу открываем, только если в своей пары нет
+    var teams = betsBotTeams_(leagues[i]);
+    if (!teams.length) continue;
+    var p = betsBotPair_(q, teams);
+    if (p.h) { if (!found || p.q > found.p.q) found = { league: leagues[i], p: p }; }
+    else if (p.err) errs.push(p.err);
+  }
+  if (!found) return (errs.length ? escHtml_(errs.join('\n')) + '\n\n' : '') + BETS_BOT_HINT;
+  var lg = found.league, H = found.p.h, A = found.p.a;
+  var cache = CacheService.getScriptCache(), key = 'betsbot|a|' + (lg === 'НХЛ' ? 'n' : 'k') + '|' + betsBotKey_(H) + '|' + betsBotKey_(A);
+  var hit = cache.get(key);
+  if (hit) return hit;
+  var ctx = betsBotCtx_(lg);
+  if (!ctx) return 'Не получилось открыть данные ' + lg + ' — попробуйте чуть позже.';
+  var res = betsCalcMatch_(ctx, H, A);
+  if (!res) return 'Сыгранных матчей ' + lg + ' в этом сезоне пока нет — считать не по чему.';
+  var out = betsBotFormat_(lg, H, A, res);
+  try { cache.put(key, out, BETS_BOT_CACHE_S); } catch (e) { /* без кэша */ }
+  return out;
+}
+
+/** Расчёт конструктора — коротким сообщением. */
+function betsBotFormat_(lg, H, A, res) {
+  var e = escHtml_, R = {};
+  var pct = function (x) { return Math.round(x * 100) + '%'; };
+  var odd = function (x) { return x > 0.01 ? (1 / x).toFixed(2) : '—'; };
+  var d1 = function (x) { return String(Math.round(x * 10) / 10).replace('.', ','); };
+  res.rows.forEach(function (x) { R[x.t] = x; });
+  var P = function (t) { return R[t] ? pct(R[t].p) : '—'; };
+  var few = Math.min(res.nH, res.nA) < BETS_MIN_GAMES;
+  var top = res.top, topText = top.t.indexOf('Х ') === 0 ? 'ничья в основное время' : 'победа в основное время — ' + e(top.t.indexOf('П1') === 0 ? H : A);
+  var L = [];
+  L.push('🏒 <b>' + e(H) + ' — ' + e(A) + '</b> · ' + lg);
+  L.push('<i>по матчам сезона: ' + e(H) + ' — ' + res.nH + ' (дома ' + res.nHh + '), ' + e(A) + ' — ' + res.nA + ' (в гостях ' + res.nAa + ')' +
+    (few ? ' · матчей мало, оценка грубая' : '') + '</i>');
+  L.push('');
+  var second = res.rows.filter(function (x) { return x.grp === 'res' && x.v && x !== top; }).sort(function (a, b) { return b.p - a.p; })[0];
+  var close = second && top.p - second.p < 0.05;                                  // разница меньше 5 п.п. — честно говорим «чуть»
+  L.push('🎯 <b>' + (close ? 'Чуть вероятнее' : 'Наиболее вероятно') + ':</b> ' + topText + ', <b>' + pct(top.p) + '</b> (честный кэф ' + odd(top.p) + ')');
+  if (res.win) L.push('🏆 Победитель с ОТ и буллитами — ' + e(res.win.t.replace(/^Победа — /, '')) + ', ' + pct(res.win.p) + ' (' + odd(res.win.p) + ')');
+  L.push('📊 Ожидаемый счёт ' + d1(res.lam.h) + ' : ' + d1(res.lam.a) + ' · чаще всего ' + res.score[0] + ':' + res.score[1]);
+  L.push('');
+  L.push('<b>Исход в основное время</b>\nП1 ' + P('П1 — ' + H) + ' · Х ' + P('Х — ничья') + ' · П2 ' + P('П2 — ' + A));
+  L.push('<b>Тотал матча больше</b>\n4,5 — ' + P('ТБ 4,5') + ' · 5,5 — ' + P('ТБ 5,5') + ' · 6,5 — ' + P('ТБ 6,5'));
+  L.push('<b>Победа с разницей 2+ шайбы</b>\n' + e(H) + ' — ' + P('Ф1(−1,5) — ' + H) + ' · ' + e(A) + ' — ' + P('Ф2(−1,5) — ' + A));
+  L.push('<b>Забьёт больше 2,5</b>\n' + e(H) + ' — ' + P('ИТБ 2,5 — ' + H) + ' · ' + e(A) + ' — ' + P('ИТБ 2,5 — ' + A));
+  if (res.pen) {
+    var pm = res.rows.filter(function (x) { return /^ТБ удалений матча/.test(x.t); })[0];
+    L.push('<b>Удаления</b>\nждём ' + d1(res.pen.h + res.pen.a) + ' за матч (в среднем по лиге ' + d1(2 * res.penMu) + ')' +
+      (pm ? ' · больше ' + pm.t.replace(/^ТБ удалений матча /, '') + ' — ' + pct(pm.p) : ''));
+  }
+  L.push('');
+  if (res.best.length) {
+    L.push('★ <b>Выделяется в этой паре</b>');
+    res.best.forEach(function (x) { L.push('• ' + e(x.t) + ': ' + pct(x.p) + ' (честный кэф ' + odd(x.p) + ', в среднем по лиге ' + pct(x.lg) + ')'); });
+  } else L.push('★ Заметно сильнее, чем в среднем по лиге, ничего не выделяется.');
+  L.push('');
+  L.push('<i>Это статистика сезона, а не гарантия: половина — модель счёта по голам команд, половина — как часто ставка заходила у самих команд. ' +
+    'Честный кэф = 1 / вероятность, без маржи букмекера. 18+</i>');
+  var ch = betsBotChannel_();
+  if (ch) L.push('Прогнозы на матчи — в канале ' + ch);
+  return L.join('\n');
+}
+
+/** Ответить подписчику в личке. */
+function betsBotSend_(chat, text) {
+  var cache = CacheService.getScriptCache(), rk = 'betsbot|u|' + chat, n = Number(cache.get(rk) || 0), out;
+  try { cache.put(rk, String(n + 1), 600); } catch (e) { /* без счётчика */ }
+  if (n >= BETS_BOT_RATE) {
+    if (n === BETS_BOT_RATE) tg_('sendMessage', { chat_id: chat, text: 'Много запросов подряд — попробуйте через 10 минут.' });
+    return;
+  }
+  try { out = betsBotReply_(text); } catch (e) { out = '⚠️ Не получилось посчитать: ' + escHtml_(e.message); }
+  tg_('sendMessage', { chat_id: chat, parse_mode: 'HTML', text: out, disable_web_page_preview: true });
 }
 
 /* ══════════════ 📰 НОВОСТНОЙ КАНАЛ: лайв матчей и лента новостей ══════════════

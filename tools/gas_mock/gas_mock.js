@@ -136,7 +136,7 @@ function formatDate(d, tz, f) {
 
 function makeEnv(opt) {
   opt = opt || {};
-  const ss = new Spreadsheet(), props = {}, alerts = [], log = [];
+  const ss = new Spreadsheet(), props = {}, alerts = [], log = [], others = {}, cacheMap = new Map();
   const RealDate = Date, nowMs = opt.now ? new RealDate(opt.now).getTime() : RealDate.now();
   class MockDate extends RealDate { constructor(...a) { if (a.length === 0) super(nowMs); else super(...a); } static now() { return nowMs; } }
   ss.DateCtor = MockDate;
@@ -154,20 +154,24 @@ function makeEnv(opt) {
   const ctx = {
     console: { log: (...a) => log.push(a.join(' ')), error: (...a) => log.push('ERR ' + a.join(' ')) },
     Date: MockDate, Math, JSON, Number, String, Object, Array, RegExp, Error, isFinite, isNaN, parseInt, parseFloat, encodeURIComponent, decodeURIComponent, Map, Set,
-    SpreadsheetApp: { getActive: () => ss, getActiveSpreadsheet: () => ss, getUi: () => ui, flush() {}, BorderStyle: { SOLID: 'SOLID', SOLID_MEDIUM: 'SOLID_MEDIUM', SOLID_THICK: 'SOLID_THICK', DASHED: 'DASHED', DOTTED: 'DOTTED' },
+    SpreadsheetApp: { getActive: () => ss, getActiveSpreadsheet: () => ss, getUi: () => ui, flush() {},
+      openById: id => { if (others[id]) { others[id].opened = (others[id].opened || 0) + 1; return others[id]; } throw new Error('макет: нет доступа к таблице ' + id); }, BorderStyle: { SOLID: 'SOLID', SOLID_MEDIUM: 'SOLID_MEDIUM', SOLID_THICK: 'SOLID_THICK', DASHED: 'DASHED', DOTTED: 'DOTTED' },
       newDataValidation: builder, newConditionalFormatRule: builder, newRichTextValue: builder },
     PropertiesService: { getScriptProperties: () => store, getDocumentProperties: () => store, getUserProperties: () => store },
     Utilities: { formatDate, sleep() {}, base64Encode: s => Buffer.from(String(s)).toString('base64'), newBlob: s => ({ getDataAsString: () => String(s) }),
       computeDigest: () => [], DigestAlgorithm: {}, Charset: {} },
     UrlFetchApp: { fetch: u => { throw new Error('макет: сеть закрыта (' + String(u).slice(0, 60) + ')'); }, fetchAll: () => { throw new Error('макет: сеть закрыта'); } },
     ScriptApp: { getProjectTriggers: () => [], deleteTrigger() {}, newTrigger: () => builder(), getOAuthToken: () => 'mock', WeekDay: { MONDAY: 'MONDAY' } },
-    CacheService: { getScriptCache: () => ({ get: () => null, put() {}, remove() {} }) },
+    CacheService: { getScriptCache: () => (opt.cache ? { get: k => (cacheMap.has(k) ? cacheMap.get(k) : null), put: (k, v) => { cacheMap.set(k, String(v)); },
+      remove: k => { cacheMap.delete(k); } } : { get: () => null, put() {}, remove() {} }) },   // opt.cache — память между вызовами, иначе всегда пусто
     LockService: { getScriptLock: () => ({ tryLock: () => true, waitLock() {}, releaseLock() {} }) },
     Session: { getScriptTimeZone: () => 'Europe/Moscow', getActiveUser: () => ({ getEmail: () => '' }) },
     MailApp: { sendEmail() {} }, DriveApp: {},
   };
   vm.createContext(ctx);
-  return { ctx, ss, props, alerts, log };
+  // вторая таблица для SpreadsheetApp.openById(id): env.addSpreadsheet(id)
+  const addSpreadsheet = id => { const o = new Spreadsheet(); o.DateCtor = MockDate; others[id] = o; return o; };
+  return { ctx, ss, props, alerts, log, addSpreadsheet, cache: cacheMap };
 }
 
 /** Загрузить файлы проекта в контекст — как Apps Script: общий глобальный объём, по порядку. */
