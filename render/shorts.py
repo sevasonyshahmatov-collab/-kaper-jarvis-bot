@@ -454,6 +454,85 @@ def _bell(f, dur=0.9):
     return np.sin(2 * np.pi * f * t + idx * np.sin(2 * np.pi * 3.5 * f * t)) * np.exp(-t / 0.45) * 0.22
 
 
+def _organ(f, dur):
+    """Арена-орган (как на хоккее): гармоники «регистров», дрожание «Лесли»."""
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    x = sum(a * np.sin(2 * np.pi * f * h * t) for h, a in ((1, 1.0), (2, 0.75), (3, 0.5), (4, 0.35), (6, 0.22), (8, 0.15)))
+    trem = 1 + 0.14 * np.sin(2 * np.pi * 6.3 * t)
+    env = np.minimum(1, t / 0.006) * np.clip((dur - t) / 0.03, 0, 1)
+    return np.tanh(x * trem * env * 0.55) * 0.26
+
+
+def _stomp(rng):
+    """Топот трибун: глухой удар с отзвуком арены."""
+    n = int(0.6 * SR)
+    t = np.arange(n) / SR
+    boom = np.sin(2 * np.pi * np.cumsum(52 + 70 * np.exp(-t / 0.025)) / SR) * np.exp(-t / 0.16)
+    thud = _smooth(rng.standard_normal(n), 25) * np.exp(-t / 0.05) * 2.2
+    x = boom + thud
+    out = x.copy()
+    for d, g in ((0.045, 0.35), (0.09, 0.22), (0.15, 0.12)):
+        k = int(d * SR)
+        out[k:] += x[:-k] * g
+    return out * 0.8
+
+
+def _crowd_clap(rng):
+    """Хлопок трибун: много хлопков вразнобой."""
+    n = int(0.3 * SR)
+    out = np.zeros(n)
+    for _ in range(14):
+        k = int(rng.uniform(0, 0.03) * SR)
+        c = _clap(rng)[: n - k]
+        out[k:k + len(c)] += c * rng.uniform(0.15, 0.3)
+    return out
+
+
+def _crowd(rng, dur, level=1.0):
+    """Гул болельщиков: шум в полосе голоса, медленно «дышит»."""
+    n = int(dur * SR)
+    no = rng.standard_normal(n)
+    band = _smooth(no, 6) - _smooth(no, 70)
+    sw = 0.7 + 0.3 * np.sin(np.arange(n) / SR * 0.9 + rng.uniform(0, 6))
+    return band * sw * 0.5 * level
+
+
+def _horn(dur=1.9):
+    """Сирена гола: низкий «рёв» аккордом, как на арене."""
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    x = sum(((t * f * d) % 1) * 2 - 1 for f in (98.0, 123.5, 146.8) for d in (1.0, 1.004))
+    x = _smooth(x, 10)
+    env = np.minimum(1, t / 0.06) * np.clip((dur - t) / 0.35, 0, 1)
+    return np.tanh(x * env * 0.9) * 0.55
+
+
+def _whistle():
+    """Свисток судьи с трелью."""
+    n = int(0.5 * SR)
+    t = np.arange(n) / SR
+    trill = 0.65 + 0.35 * np.sign(np.sin(2 * np.pi * 26 * t))
+    return np.sin(2 * np.pi * 2650 * t) * trill * np.minimum(1, t / 0.01) * np.clip((0.5 - t) / 0.06, 0, 1) * 0.22
+
+
+def _slap(rng):
+    """Щелчок клюшки по шайбе."""
+    n = int(0.12 * SR)
+    t = np.arange(n) / SR
+    no = rng.standard_normal(n)
+    return ((no - _smooth(no, 2)) * np.exp(-t / 0.006) * 0.9 + np.sin(2 * np.pi * 1700 * t) * np.exp(-t / 0.01) * 0.4) * 0.6
+
+
+def _skate(rng, dur=0.4):
+    """Скрежет коньков по льду (торможение)."""
+    n = int(dur * SR)
+    no = rng.standard_normal(n)
+    hi = no - _smooth(no, 3)
+    k = np.arange(n) / n
+    return hi * np.sin(np.pi * k) ** 1.5 * (0.6 + 0.4 * np.sin(2 * np.pi * 37 * k)) * 0.35
+
+
 def _crash(rng):
     n = int(1.6 * SR)
     no = rng.standard_normal(n)
@@ -491,6 +570,9 @@ class _Audio:
         mel_phonk = [[(0, 0), (3, 0), (6, 3), (8, 0), (10, 5), (11, 3), (14, 7)],
                      [(0, 0), (3, 0), (6, 3), (8, 0), (10, -2), (12, 0), (14, 3)]]
         mel_trap = [[(0, 12), (6, 15), (12, 19)], [(0, 17), (6, 15), (10, 12), (12, 10)]]
+        # арена-орган: «ДА-ДА, ДА-ДА-ДА» (ритм кричалки) и ответная фраза вниз; от тоники соль малой октавы
+        organ = [[(0, 2, 12), (2, 2, 12), (6, 2, 15), (8, 2, 17), (10, 4, 19)],
+                 [(0, 2, 19), (2, 2, 17), (4, 2, 15), (6, 2, 14), (8, 6, 12)]]
         st = BEAT / 4
         bar = 16 * st
         n = self.n
@@ -509,6 +591,19 @@ class _Audio:
             for (lb, s, ln, sm, gl) in loop:
                 if lb == bi % 4 and not muted(b0 + s * st):
                     put(bass, b0 + s * st, _808(note(sm), ln * st * 0.98, note(gl) if gl is not None else None))
+            if style == 'hockey':                                      # трибуны: «бум-бум-ХЛОП» + бочка под бас
+                for s in (0, 4):
+                    if not muted(b0 + s * st):
+                        put(drums, b0 + s * st, _stomp(rng))
+                        put(drums, b0 + s * st, kick, 0.7)
+                        kicks.append(b0 + s * st)
+                if not muted(b0 + 8 * st):
+                    put(drums, b0 + 8 * st, _crowd_clap(rng), 1.3)
+                    put(drums, b0 + 8 * st, _snare(rng), 0.5)
+                for s, ln, sm in organ[bi % 2]:
+                    if not muted(b0 + s * st):
+                        put(mel, b0 + s * st, _organ(note(sm) * 4, ln * st * 0.92))
+                continue
             for s in ((0, 10) if style == 'phonk' else (0, 7, 10)):
                 if not muted(b0 + s * st):
                     put(drums, b0 + s * st, kick)
@@ -540,6 +635,17 @@ class _Audio:
             put(drums, t, kick, 1.1)
             put(bass, t, _808(note(0), 2 * BEAT, note(-5)), 1.1)
             kicks.append(t)
+            if style == 'hockey':                                      # гол: сирена и рёв трибун
+                put(mel, t, _horn(), 1.0)
+                cheer = _crowd(rng, 2.6, 2.6) * np.minimum(1, np.arange(int(2.6 * SR)) / SR / 0.15) * np.exp(-np.arange(int(2.6 * SR)) / SR / 1.4)
+                put(drums, t, cheer)
+        if style == 'hockey':                                          # гул арены всё время, громче в напряжении
+            bed = _crowd(rng, n / SR, 0.35)
+            for a, z in mute:
+                i, j = int(a * SR), min(n, int(z * SR))
+                if j > i:
+                    bed[i:j] *= np.linspace(1, 3.2, j - i)
+            drums += bed
         duck = np.ones(n)                                              # мелодия «приседает» под бочку
         for t in kicks:
             i = int(t * SR)
@@ -820,6 +926,8 @@ class _Clip:
         poster.FONTS7 = dict(saved, **poster.FONTS_SIDE)
         try:
             dur = self.build()
+            if getattr(self, 'sound', None):                           # музыка на выбор: 'phonk' | 'trap' | 'hockey'
+                self.music_style = self.sound
             self.dust()
             bg = _background(self.c1, self.c2, self.seed)
             sheen = _sheen()
@@ -828,7 +936,17 @@ class _Clip:
             if music:
                 au.beat(dur, self.mute, self.music_style, self.drops)
             rng = au.rng
+            if self.music_style == 'hockey':
+                au.add(0.0, _whistle())
             for (t, kind, prm) in self.sfx:
+                if self.music_style == 'hockey' and kind in ('whoosh', 'swish', 'impact'):
+                    if kind == 'impact':
+                        au.add(max(0.0, t), _slap(rng))                       # удар — щелчок клюшки и глухой «бум»
+                        au.add(max(0.0, t), _impact(rng, prm or 1.0) * 0.5)
+                    else:                                              # переход — скрежет коньков и щелчок
+                        au.add(max(0.0, t), _skate(rng))
+                        au.add(max(0.0, t + 0.2), _slap(rng), gain=0.8)
+                    continue
                 sig = {'whoosh': lambda: _whoosh(rng), 'swish': lambda: _whoosh(rng, 0.3) * 0.45,
                        'impact': lambda: _impact(rng, prm or 1.0) * 0.7, 'tick': _tick, 'tock': lambda: _tock(bool(prm)),
                        'click': lambda: _click(rng), 'ding': _ding, 'buzz': _buzz, 'riser': lambda: _riser(rng, prm)}[kind]()
@@ -1349,18 +1467,22 @@ class _Kinetic(_Pick):
 STYLES = {'scenes': _Pick, 'stories': _Stories, 'quiz': _Quiz, 'kinetic': _Kinetic}
 
 
-def pick(home, away, when, pred, coef, path, league='KHL', odds=None, hook=None, music=True, seed=None, style='scenes', options=None):
+def pick(home, away, when, pred, coef, path, league='KHL', odds=None, hook=None, music=True, seed=None, style='scenes', options=None,
+         sound=None):
     """Ролик-прогноз. odds — (П1, Х, П2): сцена с линией; нет — без неё. hook — строка над командами.
     style: 'scenes' — динамичные сцены; 'stories' — как истории в Telegram; 'quiz' — «угадай наш прогноз»
     (options — три варианта, среди них pred; нет — pred и победы команд); 'kinetic' — быстрая нарезка крупным текстом."""
     cls = STYLES[style]
-    if style == 'quiz':
-        return cls(home, away, when, pred, coef, odds, hook, league, seed, options=options).render(path, music)
-    return cls(home, away, when, pred, coef, odds, hook, league, seed).render(path, music)
+    clip = cls(home, away, when, pred, coef, odds, hook, league, seed, options=options) if style == 'quiz' else \
+        cls(home, away, when, pred, coef, odds, hook, league, seed)
+    clip.sound = sound
+    return clip.render(path, music)
 
 
 def result(home, away, sh, sa, path, mark='', when=None, pred=None, coef=None, won=None, note=None, league='KHL',
-           music=True, seed=None):
+           music=True, seed=None, sound=None):
     """Ролик-итог: «зашёл или нет?» → прогноз → счёт барабаном → печать «ЗАШЁЛ / НЕ ЗАШЁЛ» (won=None — без печати).
     note — пояснение под печатью («3:3 в основное время — 6 шайб»)."""
-    return _Result(home, away, sh, sa, mark, when, pred, coef, won, note, league, seed).render(path, music)
+    clip = _Result(home, away, sh, sa, mark, when, pred, coef, won, note, league, seed)
+    clip.sound = sound
+    return clip.render(path, music)
