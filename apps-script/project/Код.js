@@ -14960,7 +14960,10 @@ function selfUpdateApi_(method, path, body) {
   try { j = JSON.parse(r.getContentText() || '{}'); } catch (e) { j = {}; }
   if (code === 200) return j;
   var msg = (j.error && j.error.message) || r.getContentText().slice(0, 200);
-  if (/has not been used|is disabled|not enabled|usersettings/i.test(msg)) msg = 'выключен Google Apps Script API — откройте script.google.com/home/usersettings и включите его';
+  // два разных отказа: выключен переключатель в аккаунте (usersettings) или API не включён в проекте Google Cloud скрипта
+  // (у проекта «по умолчанию» включить его нельзя — нужен свой проект Cloud, см. HANDOFF_CODE.md)
+  if (/usersettings|User has not enabled/i.test(msg)) msg = 'выключен Google Apps Script API в аккаунте — включите его на script.google.com/home/usersettings';
+  else if (/has not been used in project|is disabled/i.test(msg)) msg = 'в проекте Google Cloud этого скрипта не включён Apps Script API — нужен свой проект Cloud (Настройки проекта → «Изменить тип проекта»). Ответ Google: ' + msg.slice(0, 160);
   else if (code === 401 || code === 403) msg = 'нет разрешения — нажмите в меню Настройки → «🔄 Автообновление кода из GitHub» и разрешите доступ (' + msg + ')';
   throw new Error(msg);
 }
