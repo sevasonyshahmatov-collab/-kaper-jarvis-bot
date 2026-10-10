@@ -13880,6 +13880,7 @@ function onOpen() {
       .addItem('Смайлики: взять из другой таблицы', 'tgEmojiImportNow_')
       .addItem('Смайлики: отдать в другую таблицу', 'tgEmojiExportNow_')
       .addItem('Включить всю автоматику', 'installAllAutomation_')
+      .addItem('🔄 Автообновление кода из GitHub', 'selfUpdateNow_')
       .addItem('Статус автоматики', 'autoStatusNow_')
       .addItem('Выключить автоматику', 'removeDailyTrigger_')
       .addItem('Поправка формы: включить в прогноз', 'modelFormOn_')
@@ -13913,6 +13914,7 @@ var SHEETS_HIDE_EXTRA = ['Обыграй Джарвиса', 'Угадай поб
  *  • обновление после игрового дня — в 13:00 по Красноярску (09:00 МСК), когда доиграны и матчи Западного побережья;
  *  • сводка агента — в 22:00 по Красноярску (18:00 МСК) на матчи ближайшей ночи, после утренних раскаток. */
 var AUTO_JOBS = [
+  { fn: 'selfUpdateAuto_', kind: 'hours', every: 1, what: 'Новый код таблицы в GitHub — поставить самой (бот — на новую версию)' },
   { fn: 'runAfterGameDay_', kind: 'day', hour: 13, what: 'Обновить всё после игрового дня: результаты, Elo, календарь, прогнозы, точность, составы, ключевые игроки, проверка выводов агента, банкролл' },
   { fn: 'agentDailyBriefAuto_', kind: 'day', hour: AGENT_HOUR, what: 'Агент: сводка по матчам ближайшей ночи в личку (новости, досье, составы прошлых матчей)' },
   { fn: 'updateMarketOddsAuto_', kind: 'hours', every: 2, what: 'Коэффициенты рынка (Pinnacle, NHL) и «Лучший прогноз»' },
@@ -15693,4 +15695,113 @@ function nhlBoxRowsApi_(msk, items) {
     rows = rows.concat(nhlBoxscoreRows_(box, { id: it.id, iso: msk, home: it.home, away: it.away }));
   });
   return rows;
+}
+
+
+/* ══════════════ 🔄 АВТООБНОВЛЕНИЕ КОДА ИЗ GITHUB (включено по решению владельца 10.10.2026) ══════════════
+ * Код таблицы лежит в репозитории (папка SELF_UPDATE_DIR). Раз в час таблица смотрит, не появился ли там новый коммит, — тем же
+ * токеном GITHUB_TOKEN, что заказывает постеры, — и если появился, ставит «Код.js» и appsscript.json в проект через Apps Script API,
+ * а веб-приложение (бот) переводит на новую версию. Вставлять код руками больше не нужно.
+ * Один раз: включить Google Apps Script API (script.google.com/home/usersettings) и нажать в меню Настройки → «🔄 Автообновление кода из GitHub»
+ * (Google спросит разрешение управлять проектами Apps Script).
+ * Защита: неполный файл (короче 300 КБ, без onOpen или без этого блока) не ставится; если новый appsscript.json просит другие разрешения,
+ * сам не ставится — приходит сообщение, обновить кнопкой (сразу попросит подтвердить доступ). Откат — коммитом в GitHub.
+ * Свойства скрипта: SELF_UPDATE_BRANCH — ветка (по умолчанию ниже), SELF_UPDATE_OFF = 1 — выключить.
+ */
+var SELF_UPDATE_DIR = 'apps-script/nhl';      // папка кода этой таблицы в репозитории
+var SELF_UPDATE_BRANCH = 'claude/project-migration-old-account-6e31vz';
+var SELF_UPDATE_PROP = 'SELF_UPDATE_SHA';            // последний поставленный коммит
+var SELF_UPDATE_MIN_LEN = 300000;
+
+function selfUpdateGh_(path, raw) {
+  var tok = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
+  if (!tok) throw new Error('нет токена GitHub: меню «📣 … · ТГ группа» → «🔑 Подключить GitHub для постеров»');
+  var r = UrlFetchApp.fetch('https://api.github.com' + path, { muteHttpExceptions: true,
+    headers: { Authorization: 'Bearer ' + tok, Accept: raw ? 'application/vnd.github.raw' : 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' } });
+  if (r.getResponseCode() !== 200) throw new Error('GitHub ответил ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 150));
+  return raw ? r.getContentText() : JSON.parse(r.getContentText());
+}
+/** Запрос к Apps Script API про этот же проект. */
+function selfUpdateApi_(method, path, body) {
+  var o = { method: method, muteHttpExceptions: true, contentType: 'application/json', headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() } };
+  if (body) o.payload = JSON.stringify(body);
+  var r = UrlFetchApp.fetch('https://script.googleapis.com/v1/projects/' + ScriptApp.getScriptId() + path, o), code = r.getResponseCode(), j = {};
+  try { j = JSON.parse(r.getContentText() || '{}'); } catch (e) { j = {}; }
+  if (code === 200) return j;
+  var msg = (j.error && j.error.message) || r.getContentText().slice(0, 200);
+  if (/has not been used|is disabled|not enabled|usersettings/i.test(msg)) msg = 'выключен Google Apps Script API — откройте script.google.com/home/usersettings и включите его';
+  else if (code === 401 || code === 403) msg = 'нет разрешения — нажмите в меню Настройки → «🔄 Автообновление кода из GitHub» и разрешите доступ (' + msg + ')';
+  throw new Error(msg);
+}
+function selfUpdateScopes_(manifest) { try { return (JSON.parse(manifest).oauthScopes || []).slice().sort().join(' '); } catch (e) { return '?'; } }
+
+/** Поставить код из GitHub, если там новый коммит. o.force — даже тот же коммит; o.scopes — можно и с новыми разрешениями (кнопка). */
+function selfUpdate_(o) {
+  o = o || {};
+  var p = PropertiesService.getScriptProperties(), branch = p.getProperty('SELF_UPDATE_BRANCH') || SELF_UPDATE_BRANCH;
+  var repo = typeof ITOGI_REPO === 'string' ? ITOGI_REPO : 'sevasonyshahmatov-collab/-kaper-jarvis-bot';
+  var commits = selfUpdateGh_('/repos/' + repo + '/commits?per_page=1&sha=' + encodeURIComponent(branch) + '&path=' + encodeURIComponent(SELF_UPDATE_DIR));
+  if (!commits.length) throw new Error('в ветке ' + branch + ' нет папки ' + SELF_UPDATE_DIR);
+  var sha = commits[0].sha, title = String((commits[0].commit || {}).message || '').split('\n')[0];
+  if (!o.force && p.getProperty(SELF_UPDATE_PROP) === sha) return { updated: false, sha: sha, title: title };
+  var code = selfUpdateGh_('/repos/' + repo + '/contents/' + encodeURI(SELF_UPDATE_DIR + '/Код.js') + '?ref=' + sha, true);
+  var manifest = selfUpdateGh_('/repos/' + repo + '/contents/' + encodeURI(SELF_UPDATE_DIR + '/appsscript.json') + '?ref=' + sha, true);
+  if (code.length < SELF_UPDATE_MIN_LEN || code.indexOf('function onOpen(') < 0 || code.indexOf('function selfUpdate_(') < 0)
+    throw new Error('код в коммите ' + sha.slice(0, 7) + ' выглядит неполным — не ставлю');
+  var cur = selfUpdateApi_('get', '/content'), curMan = '';
+  (cur.files || []).forEach(function (f) { if (f.name === 'appsscript') curMan = f.source; });
+  var newScopes = selfUpdateScopes_(manifest) !== selfUpdateScopes_(curMan);
+  if (newScopes && !o.scopes) throw new Error('новый код просит другие разрешения — нажмите в меню Настройки → «🔄 Автообновление кода из GitHub», чтобы поставить и подтвердить доступ');
+  var removed = (cur.files || []).filter(function (f) { return f.name !== 'appsscript' && f.name !== 'Код'; }).map(function (f) { return f.name; });
+  selfUpdateApi_('put', '/content', { files: [{ name: 'appsscript', type: 'JSON', source: manifest }, { name: 'Код', type: 'SERVER_JS', source: code }] });
+  // веб-приложение (бот) работает на зафиксированной версии — переводим его на новую
+  var deps = (selfUpdateApi_('get', '/deployments').deployments || []).filter(function (d) {
+    return d.deploymentConfig && d.deploymentConfig.versionNumber && (d.entryPoints || []).some(function (e) { return e.entryPointType === 'WEB_APP'; });
+  });
+  var ver = null;
+  if (deps.length) {
+    ver = selfUpdateApi_('post', '/versions', { description: 'автообновление ' + sha.slice(0, 7) + ': ' + title.slice(0, 80) }).versionNumber;
+    deps.forEach(function (d) {
+      selfUpdateApi_('put', '/deployments/' + d.deploymentId, { deploymentConfig: { scriptId: ScriptApp.getScriptId(), versionNumber: ver,
+        manifestFileName: 'appsscript', description: d.deploymentConfig.description || ('автообновление ' + sha.slice(0, 7)) } });
+    });
+  }
+  p.setProperty(SELF_UPDATE_PROP, sha);
+  return { updated: true, sha: sha, title: title, version: ver, deployments: deps.length, removed: removed, newScopes: newScopes };
+}
+
+/** Каждый час (AUTO_JOBS): новый код в GitHub — поставить. Ошибка — сообщение вам, одна и та же не чаще раза в сутки. */
+function selfUpdateAuto_() {
+  var p = PropertiesService.getScriptProperties();
+  if (p.getProperty('SELF_UPDATE_OFF') === '1') return;
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(1000)) return;
+  try {
+    var r = selfUpdate_({});
+    p.deleteProperty('SELF_UPDATE_ERR');
+    if (!r.updated) return;
+    autoMark_('selfUpdateAuto_', true, 'код обновлён: ' + r.sha.slice(0, 7) + ' ' + r.title);
+    autoNotifyAdmin_('🔄 ' + VIDEO_LEAGUE + ': код таблицы обновлён автоматически (' + r.sha.slice(0, 7) + ' — ' + r.title + ')' +
+      (r.deployments ? '. Бот переведён на версию ' + r.version : '') + (r.removed.length ? '. Удалены старые файлы: ' + r.removed.join(', ') : '') + '.');
+  } catch (e) {
+    var key = mskNow_('yyyy-MM-dd') + '|' + e.message;
+    try { autoMark_('selfUpdateAuto_', false, e.message); } catch (e2) { /* лист автоматики */ }
+    if (p.getProperty('SELF_UPDATE_ERR') !== key) { p.setProperty('SELF_UPDATE_ERR', key); autoNotifyAdmin_('⚠ ' + VIDEO_LEAGUE + ': автообновление кода не прошло — ' + e.message); }
+  } finally { lock.releaseLock(); }
+}
+
+/** Кнопка: включить автообновление (запуск раз в час) и сразу поставить свежий код. */
+function selfUpdateNow_() {
+  var p = PropertiesService.getScriptProperties();
+  p.deleteProperty('SELF_UPDATE_OFF');
+  var has = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'selfUpdateAuto_'; });
+  if (!has) ScriptApp.newTrigger('selfUpdateAuto_').timeBased().everyHours(1).create();
+  try {
+    var r = selfUpdate_({ scopes: true });
+    uiAlert_('🔄 Автообновление кода включено: таблица раз в час сама забирает новый код из GitHub (ветка ' + (p.getProperty('SELF_UPDATE_BRANCH') || SELF_UPDATE_BRANCH) + ').\n\n' +
+      (r.updated ? 'Сейчас поставлен код ' + r.sha.slice(0, 7) + ' — ' + r.title + '.' + (r.deployments ? ' Бот переведён на версию ' + r.version + '.' : '') +
+        (r.removed.length ? ' Удалены старые файлы: ' + r.removed.join(', ') + '.' : '') + '\nОбновите страницу таблицы, чтобы меню взяло новый код.' +
+        (r.newScopes ? '\n\nНовый код просит другие разрешения: после обновления страницы нажмите любой пункт меню и подтвердите доступ.' : '')
+        : 'Код уже свежий (' + r.sha.slice(0, 7) + ' — ' + r.title + ').'));
+  } catch (e) { uiAlert_('Автообновление включено, но код сейчас не поставился: ' + e.message); }
 }
