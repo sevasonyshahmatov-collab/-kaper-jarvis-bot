@@ -20,6 +20,11 @@ caption?, chats?} (players_ice); то же отдельно — "kind": "players
 Два баннера «Ячейки» альбомом, в подписи — счёт всех матчей по лигам; "after_text" (HTML) — пост «Игроки дня» сразу следом.
 "chats" — куда отправить (канал и группа у автоматики, ваш чат у кнопок); нет — "chat".
 Картинка не нарисовалась — в те же чаты уходит подпись текстом (итоги не пропадут), задание помечается ошибкой.
+«Баннеры матчей дня» в 4К — "kind": "sides" (событие «sides»): каждый матч отдельным баннером в шаблоне «Бока»
+(nhl_kit.preview, как к прогнозам: эмблемы, день и время по МСК, линия П1/Х/П2), 3840×1920:
+    {"league": "KHL" | "NHL", "day": "2026-10-11", "date_title": "воскресенье, 11 октября", "chat": "<ваш id>",
+     "items": [{"home": "Адмирал", "away": "Лада", "day": "2026-10-11", "time": "10:00", "odds": [1.89, 3.72, 3.64] | null}]}
+Уходят вам в личку файлами (альбомы до 10) — без сжатия Telegram; линии ещё нет — баннер без строки коэффициентов.
 Без TG_BOT_TOKEN — только сохраняем картинку (для проверки: python render/itogi_job.py payload.json).
 """
 import html
@@ -360,11 +365,132 @@ def send_photo(token, chat, path, text):
         raise SystemExit('Telegram: %s' % (j.get('description') or r.status_code))
 
 
+SIDES_LEAGUE = {'KHL': 'КХЛ', 'NHL': 'НХЛ'}
+WEEKDAYS = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
+SIDES_PER_GROUP = 10                                # Telegram: в альбоме до 10 файлов
+
+
+def clean_sides(payload):
+    """«Баннеры матчей дня»: лига, день, матчи [{home, away, day, time, odds}] — как у «Матчей дня», плюс дата матча."""
+    league = str(payload.get('league', '')).upper()
+    if league not in SIDES_LEAGUE:
+        raise SystemExit('неизвестная лига: %r' % league)
+    day = str(payload.get('day') or '').strip()[:10]
+    _, items, date_title, chat = clean_matchi(payload)
+    for it, raw in zip(items, [r for r in payload.get('items') or []
+                               if str(r.get('home', '')).strip() and str(r.get('away', '')).strip()]):
+        d = str(raw.get('day') or '').strip()[:10]
+        it['day'] = d if re.match(r'^\d{4}-\d{2}-\d{2}$', d) else day
+    return league, day, items, date_title, chat
+
+
+def side_when(day, time):
+    """«СБ 10.10 · 10:00 МСК» — подпись под эмблемами, как на баннерах к прогнозам."""
+    import datetime
+    try:
+        d = datetime.date.fromisoformat(day)
+        s = '%s %02d.%02d' % (WEEKDAYS[d.weekday()], d.day, d.month)
+    except (TypeError, ValueError):
+        s = ''
+    t = '%s МСК' % time if time else ''
+    return ' · '.join(x for x in (s, t) if x) or None
+
+
+def side_slug(league, team):
+    """Латиница для имени файла: «Ак Барс» → akbars (по эмблемам набора); не нашли — None."""
+    try:
+        import poster
+        if league == 'NHL':
+            import nhl
+            team = nhl.resolve(team)
+        return re.sub(r'[^a-z0-9]+', '', str(poster.TEAMS[team][0]).lower()) or None
+    except Exception:                           # noqa: BLE001 — имя файла не главное
+        return None
+
+
+def side_caption(it):
+    odds = ' · П1 %.2f · Х %.2f · П2 %.2f' % it['odds'] if it['odds'] else ''
+    return '<b>%s — %s</b>\n%s%s' % (html.escape(it['home']), html.escape(it['away']), html.escape(side_when(it['day'], it['time']) or ''), odds)
+
+
+def send_documents(token, chat, docs):
+    """Файлами (без сжатия Telegram): [(путь, подпись)] — альбомами по 10, один файл — sendDocument."""
+    import requests
+    for k in range(0, len(docs), SIDES_PER_GROUP):
+        part = docs[k:k + SIDES_PER_GROUP]
+        files = {'d%d' % i: (os.path.basename(path), open(path, 'rb'), 'image/jpeg') for i, (path, _) in enumerate(part)}
+        try:
+            if len(part) == 1:
+                r = requests.post('https://api.telegram.org/bot%s/sendDocument' % token, timeout=120,
+                                  data={'chat_id': chat, 'caption': part[0][1], 'parse_mode': 'HTML'},
+                                  files={'document': files['d0']})
+            else:
+                media = [{'type': 'document', 'media': 'attach://d%d' % i, 'caption': text, 'parse_mode': 'HTML'}
+                         for i, (_, text) in enumerate(part)]
+                r = requests.post('https://api.telegram.org/bot%s/sendMediaGroup' % token, timeout=180,
+                                  data={'chat_id': chat, 'media': json.dumps(media, ensure_ascii=False)}, files=files)
+        finally:
+            for f in files.values():
+                f[1].close()
+        j = r.json() if r.headers.get('content-type', '').startswith('application/json') else {}
+        if not j.get('ok'):
+            raise SystemExit('Telegram: %s' % (j.get('description') or r.status_code))
+
+
+def main_sides(payload):
+    """Каждый матч дня — баннер «Бока» в 4К (scale=3, 3840×1920) → вам файлами. Не нарисовался один — остальные всё равно уходят."""
+    league, day, items, date_title, chat = clean_sides(payload)
+    import nhl_kit
+    kw = dict(scale=3)
+    if league == 'NHL':
+        import nhl
+        nhl.register()
+    else:
+        import poster
+        kw.update(tag='KXL', accent=poster.ACC)
+    out_dir = os.path.join(os.getcwd(), 'sides_%s_%s' % (league.lower(), day.replace('-', '') or 'day'))
+    os.makedirs(out_dir, exist_ok=True)
+    docs, failed = [], []
+    for k, it in enumerate(items):
+        pair = [side_slug(league, it['home']), side_slug(league, it['away'])]
+        name = '%s_%s_%02d%s.jpg' % (league.lower(), (it['day'] or day).replace('-', ''), k + 1,
+                                     '_' + '_'.join(pair) if all(pair) else '')
+        path = os.path.join(out_dir, name)
+        try:
+            path = nhl_kit.preview(it['home'], it['away'], dict(when=side_when(it['day'] or day, it['time']), odds=it['odds']), path, **kw)
+            docs.append((path, side_caption(it)))
+            print('нарисовано:', path)
+        except Exception as e:                  # noqa: BLE001
+            failed.append('%s — %s' % (it['home'], it['away']))
+            print('не нарисовался %s — %s: %r' % (it['home'], it['away'], e))
+    head = '<b>%s · баннеры матчей дня</b>%s\n%d %s в 4К (3840×1920) — файлами, без сжатия.' % (
+        SIDES_LEAGUE[league], ' · ' + html.escape(date_title) if date_title else '', len(docs),
+        'баннер' if len(docs) % 10 == 1 and len(docs) % 100 != 11 else
+        'баннера' if 2 <= len(docs) % 10 <= 4 and not 12 <= len(docs) % 100 <= 14 else 'баннеров')
+    if failed:
+        head += '\nНе нарисовались: ' + html.escape(', '.join(failed)) + '.'
+    print(head)
+    token = os.environ.get('TG_BOT_TOKEN')
+    if not token:
+        print('TG_BOT_TOKEN не задан — в Telegram ничего не отправлено')
+        return
+    if not chat:
+        raise SystemExit('не указан чат (chat) для отправки')
+    send_message(token, chat, head)
+    if docs:
+        send_documents(token, chat, docs)
+    print('отправлено в', chat, '— баннеров', len(docs))
+    if failed or not docs:
+        raise SystemExit('не нарисовались: ' + ', '.join(failed or ['все']))
+
+
 def main():
     payload = load_payload()
     kind = str(payload.get('kind') or os.environ.get('EVENT_KIND') or 'itogi').lower()
     if kind == 'itogi2':
         return main_both(payload)
+    if kind == 'sides':                         # баннеры «Бока» каждого матча дня в 4К → вам файлами
+        return main_sides(payload)
     if kind == 'players':                       # «Игроки дня» отдельно (запасной вариант — после утреннего обновления)
         chats = [str(c).strip() for c in (payload.get('chats') or [payload.get('chat')]) if str(c or '').strip()]
         token = os.environ.get('TG_BOT_TOKEN')

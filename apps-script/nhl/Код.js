@@ -11627,6 +11627,7 @@ function scoutReportAuto_() {
   try { var vw = videoWatchdog_(); if (vw) console.log('видео: ' + vw); } catch (e) { console.log('видео-сторож: ' + e.message); }
   try { nhlNightDoneAuto_(); } catch (e0) { console.log('итоги дня: ' + e0.message); }
   try { if (Number(mskNow_('HH')) >= MATCHI_HOUR_MSK) matchiAuto_(bannersDay_()); } catch (e1) { console.log('матчи дня: ' + e1.message); }   // «Матчи дня» НХЛ — с 18:00 МСК
+  try { sidesAuto_(bannersDay_()); } catch (e2) { console.log('баннеры 4К: ' + e2.message); }   // баннеры матчей ночи в 4К → вам, с 13:00 МСК
   var ss = SpreadsheetApp.getActive(), p = agentProps_(), now = Date.now(), to = p.getProperty('TG_ADMIN_ID');
   if (!to) return;
   var sent = {}; try { sent = JSON.parse(p.getProperty('SCOUT_SENT') || '{}'); } catch (e) { sent = {}; }
@@ -15155,6 +15156,7 @@ var TG_GROUP_NHL_ = [
   null,
   ['🖼 Постер «Матчи дня» → мне (ближайший игровой день)', 'matchiPosterNow_', '-'],
   ['🖼 Постер «Матчи дня» → группа (ближайший игровой день)', 'matchiPosterGroup_', '-'],
+  ['🖼 Баннеры матчей дня в 4К → мне (каждый матч — файлом)', 'sidesNow_', '-'],
   ['🖼 Постер «Итоги дня» → мне (последний игровой день)', 'itogiPosterNow_', '-'],
   ['🖼 Постер «Итоги дня» → группа (последний игровой день)', 'itogiPosterGroup_', '-'],
   ['📊 Постер «Наши в НХЛ» → мне (последний игровой день)', 'playersPosterNow_', '-'],
@@ -15894,6 +15896,60 @@ function matchiPosterNow_(target) {
   } catch (e) { uiAlert_('Не получилось: ' + e.message); }
 }
 function matchiPosterGroup_() { matchiPosterNow_('channel'); }
+
+/* ==========================================================================
+ * 🖼 БАННЕРЫ МАТЧЕЙ ДНЯ В 4К → ВАМ В TELEGRAM
+ *  Каждый матч дня — отдельный баннер в шаблоне «Бока», как к прогнозам: эмблемы, день и время по МСК, линия П1/Х/П2;
+ *  3840×1920. Рисует GitHub Actions (render/itogi_job.py, событие «sides»), приходят вам в личку файлами — без сжатия.
+ *  Сами — раз в день: в 13:00 МСК накануне ночи матчей (дневные матчи субботы и воскресенья — с 20:00 МСК); линии ещё нет — ждём её до SIDES_WAIT_H ч,
+ *  потом шлём как есть (у матча без линии баннер без строки коэффициентов). В любой момент — кнопкой меню.
+ * ==========================================================================*/
+var SIDES_PROP = 'SIDES_4K_';               // + день: баннеры за этот день уже заказаны
+var SIDES_HOUR_MSK = 13;                // с этого часа по МСК
+var SIDES_WAIT_H = 2;                       // сколько часов ждать линию П1/Х/П2 по всем матчам
+
+/** Заказать баннеры дня вам в личку: {sent, odds} или {skipped: причина}. */
+function sidesDispatch_(ss, day, items) {
+  var p = PropertiesService.getScriptProperties(), chat = p.getProperty('TG_ADMIN_ID');
+  if (!p.getProperty('GITHUB_TOKEN')) return { skipped: 'GitHub не подключён' };
+  if (!chat) return { skipped: 'не указан ваш Telegram ID (TG_ADMIN_ID)' };
+  items = items || matchiItems_(ss, day);
+  if (!items.length) return { skipped: 'матчей нет' };
+  var r = itogiGithub_('post', '/repos/' + ITOGI_REPO + '/dispatches', { event_type: 'sides', client_payload: {
+    kind: 'sides', league: ITOGI_LEAGUE, day: day, date_title: matchiTitle_(day, items), chat: String(chat), items: items } });
+  if (r.getResponseCode() !== 204) throw new Error('GitHub ответил ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 200));
+  var old = addDaysKey_(day, -10);
+  p.getKeys().forEach(function (k) { if (k.indexOf(SIDES_PROP) === 0 && k.slice(SIDES_PROP.length) < old) p.deleteProperty(k); });
+  return { sent: items.length, odds: items.filter(function (it) { return it.odds; }).length };
+}
+
+/** Из частых запусков: один раз за день, с SIDES_HOUR_MSK по МСК (линию ждём до SIDES_WAIT_H ч). */
+function sidesAuto_(day) {
+  var p = PropertiesService.getScriptProperties(), h = Number(mskNow_('HH'));
+  if (h < SIDES_HOUR_MSK || p.getProperty(SIDES_PROP + day)) return;
+  try {
+    var ss = SpreadsheetApp.getActive(), items = matchiItems_(ss, day);
+    if ((!items.length || items.some(function (it) { return !it.odds; })) && h < SIDES_HOUR_MSK + SIDES_WAIT_H) return;   // ждём линию (и расписание)
+    var r = sidesDispatch_(ss, day, items);
+    p.setProperty(SIDES_PROP + day, r.sent ? mskNow_() : 'пропущены: ' + r.skipped);
+    if (r.sent) autoMark_('bannersAuto_', true, 'баннеры матчей дня в 4К за ' + day + ' → вам (матчей ' + r.sent + ', с линией ' + r.odds + ')');
+  } catch (e) {
+    p.setProperty(SIDES_PROP + day, 'ошибка');
+    autoNotifyAdmin_('⚠ ' + VIDEO_LEAGUE + ': баннеры матчей дня в 4К не заказаны: ' + e.message + '. Можно вручную: меню «📣 … · ТГ группа» → «🖼 Баннеры матчей дня в 4К → мне».');
+  }
+}
+
+/** Кнопка: баннеры на ближайший игровой день — вам в Telegram файлами (через 1–2 минуты). */
+function sidesNow_() {
+  var ss = SpreadsheetApp.getActive(), day = bannersDay_();
+  for (var i = 0; i < 7 && !agentMatchesOfDay_(ss, day).length; i++) day = addDaysKey_(day, 1);
+  try {
+    var r = sidesDispatch_(ss, day);
+    if (r.skipped) { uiAlert_('Баннеры не заказаны: ' + r.skipped + '.' + (/GitHub/.test(r.skipped) ? ' Подключите: «🔑 Подключить GitHub для постеров».' : '')); return; }
+    uiAlert_('Баннеры матчей на ' + day.split('-').reverse().join('.') + ' (' + r.sent + ' шт., 4К' + (r.odds < r.sent ? '; линия есть у ' + r.odds + ' из ' + r.sent : '') +
+      ') рисуются — придут вам в Telegram файлами через 1–2 минуты.');
+  } catch (e) { uiAlert_('Не получилось: ' + e.message); }
+}
 
 /** К подписи постера «Итоги ночи» ничего не добавляем: «Наши» выходят отдельным постом «Игроки дня» в 10:00 МСК. */
 function itogiExtra_(ss, dayKey, items) { return ''; }
