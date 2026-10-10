@@ -15,10 +15,11 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 import poster
+import quality
 import recap
 import league_mark
 
-S = 2
+S = quality.S                       # 3 — «4К» (3240×4050 у постера 1080×1350), см. quality.py
 W = 1080
 ACCENT = {'KHL': (255, 194, 61), 'NHL': (122, 202, 255)}
 TAG = {'KHL': 'KXL', 'NHL': 'NHL'}
@@ -116,10 +117,10 @@ def _emblem(ov, team, cx, cy, d_pt):
 
 
 def _finish(bg, ov, H, path, grain):
-    out = Image.alpha_composite(bg, ov.resize((W, H), Image.LANCZOS)).convert('RGB')
+    out = quality.compose(bg, ov).convert('RGB')                     # без уменьшения: 3240×… при S = 3
     out = out.filter(ImageFilter.UnsharpMask(radius=1.0, percent=40, threshold=2))
     if grain:
-        out = poster._canvas_texture(out, grain)
+        out = quality.texture(out, grain)
     out.save(path, quality=95, subsampling=0, optimize=True)
     return path
 

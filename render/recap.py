@@ -6,6 +6,8 @@ render_slate(items, path)  — афиша: время и коэффициент�
 import os
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
+import quality
+
 from poster import (TEAMS, SHORT, BANNER, ACC, _fluid_bg, _canvas_texture,
                     _circle_emblem, _raw_emblem, _shadowed, _layer_draw, _spaced)
 
@@ -90,10 +92,10 @@ def _base(W, H, S, seed=5, colors=None):
 
 
 def _finish(bg, ov, W, H, path, grain=0.85):
-    ov = ov.resize((W, H), Image.LANCZOS)
-    out = Image.alpha_composite(bg, ov).convert('RGB')
+    import quality
+    out = quality.compose(bg, ov).convert('RGB')
     out = out.filter(ImageFilter.UnsharpMask(radius=1.0, percent=45, threshold=2))
-    out = _canvas_texture(out, grain)
+    out = quality.texture(out, grain)
     out.save(path, optimize=True) if path.lower().endswith('.png') else out.save(path, quality=97, subsampling=0)
     return path
 
@@ -112,7 +114,7 @@ def _row_emblems(ov, home, away, cx, cy, S, d=74):
 def render_recap(items, path, title='ИТОГИ ДНЯ', date_title=None, handle='@jarvibet',
                  stake=1.0, W=1080, grain=0.85):
     """items: [{home, away, pred, coef, ok, score}] — ok=True «заход», False «незаход»."""
-    S = 2
+    S = quality.S
     ROW = 152
     head = 300 if not date_title else 348
     foot = 96
@@ -200,7 +202,7 @@ def render_recap(items, path, title='ИТОГИ ДНЯ', date_title=None, handle
 def render_slate(items, path, title='МАТЧИ ДНЯ', date_title=None, handle='@jarvibet',
                  colors=None, W=1080, grain=0.85):
     """items: [{home, away, when, odds:(П1, Х, П2)}] — афиша дня, все матчи на одном баннере."""
-    S = 2
+    S = quality.S
     ROW = 158
     head = 236 if not date_title else 264
     foot = 118
@@ -295,7 +297,7 @@ def render_hits(items, path, date_title, colors=None, express=None, handle=None,
     mark — «ОТ» / «Б» или пусто; colors — пара RGB для фона (по умолчанию из цветов команд).
     """
     import numpy as np
-    S = 2
+    S = quality.S
     WW, HH = W * S, H * S
     n = len(items)
     all_ok = all(it.get('ok', True) for it in items)
@@ -395,7 +397,7 @@ def render_result(home, away, sh, sa, path, verdict=None, verdict_color=None, wh
     """Баннер с итогом матча в стиле «Карточек»: эмблемы, счёт между ними, очки и форма после игры."""
     import numpy as np
     from poster import _form_row
-    S = 2
+    S = quality.S
     WW, HH = W * S, H * S
     c1 = BANNER.get(home, (120, 120, 120))
     c2 = BANNER.get(away, (120, 120, 120))
@@ -492,7 +494,7 @@ def _patch(ov, cx, cy, size, code, fill, edge, S):
 def render_pick(m, path, handle='@jarvibet', W=1280, H=640, grain=1.0, seed=17):
     """Прогноз на матч: монограммы команд, контекст, время и коэффициент."""
     import numpy as np
-    S = 2
+    S = quality.S
     WW, HH = W * S, H * S
     c1, c2 = m.get('colors', ((26, 60, 90), (30, 40, 70)))
 
@@ -564,7 +566,7 @@ def render_cards_pick(home, away, path, info, W=1280, H=640, grain=1.0, seed=Non
     """Те же стеклянные карточки, что в баннерах матчей, но снизу — прогноз и коэффициент."""
     import numpy as np
     from poster import _form_row
-    S = 2
+    S = quality.S
     WW, HH = W * S, H * S
     c1 = BANNER.get(home, (120, 120, 120))
     c2 = BANNER.get(away, (120, 120, 120))
@@ -654,7 +656,7 @@ def render_cards_pick(home, away, path, info, W=1280, H=640, grain=1.0, seed=Non
 def render_results_day(items, path, title='ИТОГИ ДНЯ', date_title=None, handle='@jarvibet',
                        W=1080, grain=0.85):
     """items: [{home, away, sh, sa, mark}] — mark: '' | 'ОТ' | 'Б'."""
-    S = 2
+    S = quality.S
     ROW = 158
     head = 236 if not date_title else 264
     foot = 100
@@ -722,7 +724,7 @@ def render_results_day(items, path, title='ИТОГИ ДНЯ', date_title=None, 
 def render_picks(items, path, date_title, express=None, handle='@jarvibet',
                  title='ПРОГНОЗЫ ДНЯ', W=1080, grain=0.85):
     """items: [{home, away, pred, coef, when}] — постер со ставками до начала матчей."""
-    S = 2
+    S = quality.S
     ROW = 152
     head = 254
     foot = 96

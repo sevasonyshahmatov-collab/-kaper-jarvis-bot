@@ -17,6 +17,7 @@ from PIL import Image, ImageDraw
 
 import nhl
 import poster
+import quality
 import recap
 from nhl import ICE
 
@@ -28,6 +29,8 @@ FOOT_PICK = 'прогноз канала · коэффициент на моме
 
 
 def _prep(home, away):
+    if all(t in poster.TEAMS and t not in nhl.TEAMS for t in (home, away)):
+        return home, away                     # клубы КХЛ — как есть, цвета из poster.BANNER
     h, a = nhl.resolve(home), nhl.resolve(away)
     nhl.pair_colors(h, a)
     return h, a
@@ -47,15 +50,16 @@ def _jpg(path, quality=95):
 def _side(home, away, path, mode, home_info=None, away_info=None, when=None,
           odds=None, pred=None, coef=None, score=None, verdict=None, verdict_color=None,
           foot=None, tag='NHL', accent=ICE, handle='@jarvibet',
-          W=1280, H=640, grain=1.0, seed=None):
-    """mode: 'odds' — линия П1/Х/П2 | 'pick' — прогноз и кэф | 'score' — счёт матча."""
+          W=1280, H=640, grain=1.0, seed=None, scale=None):
+    """mode: 'odds' — линия П1/Х/П2 | 'pick' — прогноз и кэф | 'score' — счёт матча.
+    scale — во сколько раз крупнее рисовать: по умолчанию quality.S = 3 — 3840×1920 («4К»); 2 — 2560×1280."""
     import numpy as np
     h, a = _prep(home, away)
     c1, c2 = poster.BANNER[h], poster.BANNER[a]
     saved = poster.FONTS7
     poster.FONTS7 = dict(saved, **poster.FONTS_SIDE)
     try:
-        S = 2
+        S = scale or quality.S
         WW, HH = W * S, H * S
         if seed is None:
             seed = sum(map(ord, h + a)) % 997
@@ -95,9 +99,9 @@ def _side(home, away, path, mode, home_info=None, away_info=None, when=None,
         e1 = poster._raw_emblem(h, ew, eh, plate=needs_plate(h, c1))
         e2 = poster._raw_emblem(a, ew, eh, plate=needs_plate(a, c2))
         poster._shadowed(ov, e1, (int(WW / 2 - gap / 2 - e1.width), cy - e1.height // 2),
-                         blur=26, off=(0, 14), color=(0, 0, 0, 125))
+                         blur=13 * S, off=(0, 7 * S), color=(0, 0, 0, 125))
         poster._shadowed(ov, e2, (int(WW / 2 + gap / 2), cy - e2.height // 2),
-                         blur=26, off=(0, 14), color=(0, 0, 0, 125))
+                         blur=13 * S, off=(0, 7 * S), color=(0, 0, 0, 125))
         d = ImageDraw.Draw(ov)
 
         # шапка JARVIS | NHL
@@ -122,30 +126,33 @@ def _side(home, away, path, mode, home_info=None, away_info=None, when=None,
             d.text((WW / 2 + 46 * S, cy), str(sa), font=fsc, anchor='lm',
                    fill=((255, 255, 255, 255) if sa > sh else (198, 208, 224, 255)))
 
-        # блоки команд по бокам — ширина считается от края эмблемы, чтобы
-        # длинные названия («Нью-Йорк Айлендерс») не наезжали на логотип
-        free = (WW / 2 - gap / 2 - ew) - 64 * S - 18 * S
-
-        def block(team, t, x, align):
-            anc = 'l' if align == 'left' else 'r'
+        # блоки команд по бокам — посередине между краем картинки и эмблемой, по высоте — на центре эмблемы;
+        # ширина считается от настоящего края эмблемы, чтобы длинные названия («Нью-Йорк Айлендерс») не наезжали на логотип
+        def block(team, t, emb, side):
+            if side == 'left':
+                x0, x1 = 64 * S, WW / 2 - gap / 2 - emb.width - 18 * S
+            else:
+                x0, x1 = WW / 2 + gap / 2 + emb.width + 18 * S, WW - 64 * S
+            x = int((x0 + x1) / 2)
             name = poster.SHORT.get(team, team).upper()
             size = 66 * S
             ft = poster._f7('team', size)
-            while ft.getlength(name) > free and size > 26 * S:
+            while ft.getlength(name) > x1 - x0 and size > 26 * S:
                 size -= 2 * S
                 ft = poster._f7('team', size)
-            y = int(250 * S)
-            d.text((x, y), name, font=ft, fill=(255, 255, 255, 255), anchor=anc + 'm')
+            steps = ([int(56 * S)] if t else []) + ([int(44 * S)] if t and t.get('form') else [])
+            y = int(cy - sum(steps) / 2)
+            d.text((x, y), name, font=ft, fill=(255, 255, 255, 255), anchor='mm')
             if t:
-                y += int(56 * S)
+                y += steps[0]
                 d.text((x, y), t.get('line', ''), font=poster._f7('info', 22 * S),
-                       fill=(232, 236, 242, 255), anchor=anc + 'm')
+                       fill=(232, 236, 242, 255), anchor='mm')
                 if t.get('form'):
-                    y += int(44 * S)
-                    poster._form_row(d, x, y, t['form'][-5:], S, align=align)
+                    y += steps[1]
+                    poster._form_row(d, x, y, t['form'][-5:], S, align='center')
 
-        block(h, home_info, int(64 * S), 'left')
-        block(a, away_info, int(WW - 64 * S), 'right')
+        block(h, home_info, e1, 'left')
+        block(a, away_info, e2, 'right')
 
         # время
         if when:
@@ -160,7 +167,7 @@ def _side(home, away, path, mode, home_info=None, away_info=None, when=None,
 
         y0, y1 = 558 * S, 604 * S
 
-        if mode == 'odds':
+        if mode == 'odds' and odds:                     # линии ещё нет — без строки кэфов
             labels = ['П1', 'Х', 'П2']
             best = min(range(3), key=lambda i: odds[i])
             fl, fn = poster._f7('info', 16 * S), poster._f7('num', 22 * S)
@@ -179,7 +186,7 @@ def _side(home, away, path, mode, home_info=None, away_info=None, when=None,
                 d.text((cx0 + cw - 22 * S, 582 * S), '%.2f' % odds[i], font=fn,
                        fill=(accent + (255,)) if i == best else (255, 255, 255, 255), anchor='rm')
 
-        else:
+        elif mode != 'odds':
             # 'pick' и 'score' делят одну строку: вердикт | ставка | кэф
             cells = []
             if verdict:
@@ -221,7 +228,7 @@ def _side(home, away, path, mode, home_info=None, away_info=None, when=None,
                     x += w + gp
 
         if foot is None:
-            foot = FOOT_ODDS if mode == 'odds' else (FOOT_PICK if mode == 'pick' else '')
+            foot = (FOOT_ODDS if odds else '') if mode == 'odds' else (FOOT_PICK if mode == 'pick' else '')
         if foot:
             d.text((WW / 2, 624 * S), foot, font=poster._f7('info', 14 * S),
                    fill=(196, 202, 214, 255), anchor='mm')
@@ -229,8 +236,7 @@ def _side(home, away, path, mode, home_info=None, away_info=None, when=None,
             poster._spaced(d, (WW / 2, 624 * S), handle, poster._f7('info', 13 * S),
                            accent + (255,), 1.6 * S, anchor='m')
 
-        ov = ov.resize((W, H), Image.LANCZOS)
-        out = Image.alpha_composite(bg, ov).convert('RGB')
+        out = quality.compose(bg, ov).convert('RGB')                 # без уменьшения: 3840×1920 при S = 3
         if path.lower().endswith('.png'):
             out.save(path, optimize=True)
         else:
