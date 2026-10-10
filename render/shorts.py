@@ -734,7 +734,7 @@ class _Clip:
             cmd = ['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '%dx%d' % (W, H),
                    '-r', str(FPS), '-i', '-', '-i', wav, '-shortest',
                    '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p', '-profile:v', 'high',
-                   '-af', 'loudnorm=I=-15:TP=-1.5:LRA=11,alimiter=limit=0.8', '-ar', '44100',          # громкость как у площадок, без перегруза
+                   '-af', 'loudnorm=I=-15:TP=-1.5:LRA=11,alimiter=limit=0.8:level=0', '-ar', '44100',          # громкость как у площадок, без перегруза
                    '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', path]
             pr = subprocess.Popen(cmd, stdin=subprocess.PIPE)
             try:
