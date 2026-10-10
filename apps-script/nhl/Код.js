@@ -13995,7 +13995,7 @@ var SHEETS_HIDE_EXTRA = ['Обыграй Джарвиса', 'Угадай поб
  *  • обновление после игрового дня — в 13:00 по Красноярску (09:00 МСК), когда доиграны и матчи Западного побережья;
  *  • сводка агента — в 22:00 по Красноярску (18:00 МСК) на матчи ближайшей ночи, после утренних раскаток. */
 var AUTO_JOBS = [
-  { fn: 'selfUpdateAuto_', kind: 'hours', every: 1, what: 'Новый код таблицы в GitHub — поставить самой (бот — на новую версию)' },
+  { fn: 'selfUpdateAuto_', kind: 'minutes', every: 5, what: 'Новый код таблицы в GitHub — поставить самой (бот — на новую версию), разовые шаги — через минуту' },
   { fn: 'runAfterGameDay_', kind: 'day', hour: 13, what: 'Обновить всё после игрового дня: результаты, Elo, календарь, прогнозы, точность, составы, ключевые игроки, проверка выводов агента, банкролл' },
   { fn: 'agentDailyBriefAuto_', kind: 'day', hour: AGENT_HOUR, what: 'Агент: сводка по матчам ближайшей ночи в личку (новости, досье, составы прошлых матчей)' },
   { fn: 'updateMarketOddsAuto_', kind: 'hours', every: 2, what: 'Коэффициенты рынка (Pinnacle, NHL) и «Лучший прогноз»' },
@@ -15780,7 +15780,7 @@ function nhlBoxRowsApi_(msk, items) {
 
 
 /* ══════════════ 🔄 АВТООБНОВЛЕНИЕ КОДА ИЗ GITHUB (включено по решению владельца 10.10.2026) ══════════════
- * Код таблицы лежит в репозитории (папка SELF_UPDATE_DIR). Раз в час таблица смотрит, не появился ли там новый коммит, — тем же
+ * Код таблицы лежит в репозитории (папка SELF_UPDATE_DIR). Каждые 5 минут таблица смотрит, не появился ли там новый коммит, — тем же
  * токеном GITHUB_TOKEN, что заказывает постеры, — и если появился, ставит «Код.js» и appsscript.json в проект через Apps Script API,
  * а веб-приложение (бот) переводит на новую версию. Вставлять код руками больше не нужно.
  * Один раз: включить Google Apps Script API (script.google.com/home/usersettings) и нажать в меню Настройки → «🔄 Автообновление кода из GitHub»
@@ -15793,6 +15793,7 @@ var SELF_UPDATE_DIR = 'apps-script/nhl';      // папка кода этой т
 var SELF_UPDATE_BRANCH = 'claude/project-migration-old-account-6e31vz';
 var SELF_UPDATE_PROP = 'SELF_UPDATE_SHA';            // последний поставленный коммит
 var SELF_UPDATE_MIN_LEN = 300000;
+var SELF_UPDATE_EVERY_MIN = 5;                       // как часто смотреть в GitHub (Apps Script умеет 1, 5, 10, 15, 30 минут)
 
 function selfUpdateGh_(path, raw) {
   var tok = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
@@ -15851,6 +15852,8 @@ function selfUpdate_(o) {
     });
   }
   p.setProperty(SELF_UPDATE_PROP, sha);
+  // этот запуск ещё на старом коде — разовые шаги нового кода (selfUpdateAfter_) запустит отдельный триггер через минуту
+  try { ScriptApp.newTrigger('selfUpdateAfter_').timeBased().after(60 * 1000).create(); } catch (eT) { /* сделает следующая проверка */ }
   return { updated: true, sha: sha, title: title, version: ver, deployments: deps.length, removed: removed, newScopes: newScopes };
 }
 
@@ -15860,6 +15863,7 @@ function selfUpdateAuto_() {
   if (p.getProperty('SELF_UPDATE_OFF') === '1') return;
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(1000)) return;
+  try { selfUpdateEnsureTrigger_(); } catch (eE) { console.log('триггер автообновления: ' + eE.message); }
   try { selfUpdateMigrate_(); } catch (eM) { console.log('разовые шаги после обновления: ' + eM.message); }
   try {
     var r = selfUpdate_({});
@@ -15887,15 +15891,32 @@ function selfUpdateMigrate_() {
   }
 }
 
-/** Кнопка: включить автообновление (запуск раз в час) и сразу поставить свежий код. */
+/** Проверка каждые SELF_UPDATE_EVERY_MIN минут: был ежечасный триггер — заменить (один раз, отметка SELF_UPDATE_EVERY). */
+function selfUpdateEnsureTrigger_() {
+  var p = PropertiesService.getScriptProperties(), want = String(SELF_UPDATE_EVERY_MIN);
+  var mine = ScriptApp.getProjectTriggers().filter(function (t) { return t.getHandlerFunction() === 'selfUpdateAuto_'; });
+  if (p.getProperty('SELF_UPDATE_EVERY') === want && mine.length === 1) return false;
+  mine.forEach(function (t) { ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('selfUpdateAuto_').timeBased().everyMinutes(SELF_UPDATE_EVERY_MIN).create();
+  p.setProperty('SELF_UPDATE_EVERY', want);
+  return true;
+}
+/** Через минуту после установки — уже на новом коде: разовые шаги и частота проверки. Одноразовый триггер убирает за собой. */
+function selfUpdateAfter_() {
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'selfUpdateAfter_') ScriptApp.deleteTrigger(t); });
+  try { selfUpdateEnsureTrigger_(); } catch (e) { console.log('триггер автообновления: ' + e.message); }
+  try { selfUpdateMigrate_(); } catch (e2) { autoNotifyAdmin_('⚠ ' + VIDEO_LEAGUE + ': разовые шаги после обновления кода не прошли — ' + e2.message); }
+}
+
+/** Кнопка: включить автообновление (проверка каждые 5 минут) и сразу поставить свежий код. */
 function selfUpdateNow_() {
   var p = PropertiesService.getScriptProperties();
   p.deleteProperty('SELF_UPDATE_OFF');
-  var has = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'selfUpdateAuto_'; });
-  if (!has) ScriptApp.newTrigger('selfUpdateAuto_').timeBased().everyHours(1).create();
+  selfUpdateEnsureTrigger_();
   try {
     var r = selfUpdate_({ scopes: true });
-    uiAlert_('🔄 Автообновление кода включено: таблица раз в час сама забирает новый код из GitHub (ветка ' + (p.getProperty('SELF_UPDATE_BRANCH') || SELF_UPDATE_BRANCH) + ').\n\n' +
+    if (!r.updated) { try { selfUpdateMigrate_(); } catch (eM) { /* сделает следующая проверка */ } }
+    uiAlert_('🔄 Автообновление кода включено: таблица каждые ' + SELF_UPDATE_EVERY_MIN + ' минут сама забирает новый код из GitHub (ветка ' + (p.getProperty('SELF_UPDATE_BRANCH') || SELF_UPDATE_BRANCH) + ').\n\n' +
       (r.updated ? 'Сейчас поставлен код ' + r.sha.slice(0, 7) + ' — ' + r.title + '.' + (r.deployments ? ' Бот переведён на версию ' + r.version + '.' : '') +
         (r.removed.length ? ' Удалены старые файлы: ' + r.removed.join(', ') + '.' : '') + '\nОбновите страницу таблицы, чтобы меню взяло новый код.' +
         (r.newScopes ? '\n\nНовый код просит другие разрешения: после обновления страницы нажмите любой пункт меню и подтвердите доступ.' : '')
