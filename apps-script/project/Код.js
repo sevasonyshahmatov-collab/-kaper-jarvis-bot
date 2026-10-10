@@ -15091,6 +15091,7 @@ function selfUpdateAuto_() {
   if (p.getProperty('SELF_UPDATE_OFF') === '1') return;
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(1000)) return;
+  try { selfUpdateMigrate_(); } catch (eM) { console.log('разовые шаги после обновления: ' + eM.message); }
   try {
     var r = selfUpdate_({});
     p.deleteProperty('SELF_UPDATE_ERR');
@@ -15103,6 +15104,18 @@ function selfUpdateAuto_() {
     try { autoMark_('selfUpdateAuto_', false, e.message); } catch (e2) { /* лист автоматики */ }
     if (p.getProperty('SELF_UPDATE_ERR') !== key) { p.setProperty('SELF_UPDATE_ERR', key); autoNotifyAdmin_('⚠ ' + VIDEO_LEAGUE + ': автообновление кода не прошло — ' + e.message); }
   } finally { lock.releaseLock(); }
+}
+
+/** Разовые шаги, которые новый код должен сделать сразу, не дожидаясь утреннего обновления (их запускает ближайшая часовая проверка).
+ *  TIDY_V2 — «📌 Главная» и порядок вкладок (10.10.2026). */
+function selfUpdateMigrate_() {
+  var p = PropertiesService.getScriptProperties();
+  if (p.getProperty('TIDY_V2') !== '1') {
+    var r = sheetsTidy_(SpreadsheetApp.getActive());
+    p.setProperty('TIDY_V2', '1');
+    autoNotifyAdmin_('🗂 ' + VIDEO_LEAGUE + ': вкладки приведены в порядок — первая «' + SHEET_HOME + '» с оглавлением, скрыто листов: ' + r.hidden.length +
+      '. Вернуть любой: ПКМ по вкладкам → «Показать скрытые листы».');
+  }
 }
 
 /** Кнопка: включить автообновление (запуск раз в час) и сразу поставить свежий код. */
