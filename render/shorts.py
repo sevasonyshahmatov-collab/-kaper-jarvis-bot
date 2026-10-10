@@ -686,6 +686,33 @@ class _Audio:
             w.writeframes(data.tobytes())
 
 
+def _read_wav(path):
+    with wave.open(path) as w:
+        ch, sr = w.getnchannels(), w.getframerate()
+        x = np.frombuffer(w.readframes(w.getnframes()), dtype='<i2').astype(np.float32) / 32768
+    x = x.reshape(-1, ch)
+    if ch == 1:
+        x = np.repeat(x, 2, axis=1)
+    return x, sr
+
+
+def _mix_track(wav, track, start, dur, fx_gain):
+    """В звук ролика (эффекты) подмешать кусок трека со start секунд — только для проверки синхронности, не для загрузки."""
+    fx, sr = _read_wav(wav)
+    tr, sr2 = _read_wav(track)
+    assert sr2 == sr, 'трек нужен в %d Гц' % sr
+    seg = tr[int(start * sr): int(start * sr) + len(fx)]
+    seg = np.pad(seg, ((0, len(fx) - len(seg)), (0, 0)))
+    fade = int(0.3 * sr)
+    seg[-fade:] *= np.linspace(1, 0, fade)[:, None]
+    mix = np.clip(seg + fx * fx_gain, -1, 1)
+    with wave.open(wav, 'wb') as w:
+        w.setnchannels(2)
+        w.setsampwidth(2)
+        w.setframerate(sr)
+        w.writeframes((mix * 32000).astype('<i2').tobytes())
+
+
 # ── ролик ────────────────────────────────────────────────────────────────────
 class _Clip:
     def __init__(self, home, away, league, seed=None):
@@ -906,6 +933,9 @@ class _Clip:
                 fr.alpha_composite(Image.new('RGBA', (W, H), col + (int(255 * al * (1 - u / 0.3) ** 2),)))
         # камера: удар-приближение и тряска
         z, sx, sy = 1.0, 0.0, 0.0
+        for (a, zz, z0, z1) in getattr(self, 'ramps', ()):              # плавный наезд камеры (нарастание трека)
+            if a <= t < zz:
+                z *= z0 + (z1 - z0) * _p(t, a, zz) ** 1.5
         for (tp, s) in self.punch:
             u = t - tp
             if 0 <= u < 0.28:
@@ -968,6 +998,9 @@ class _Clip:
                 au.add(max(0.0, t), sig)
             wav = tempfile.NamedTemporaryFile(suffix='.wav', delete=False).name
             au.write(wav, dur)
+            ext = getattr(self, 'ext_audio', None)
+            if ext:                                                    # предпросмотр с треком: кусок трека + эффекты потише
+                _mix_track(wav, ext[0], ext[1], dur, ext[2])
             cmd = ['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '%dx%d' % (W, H),
                    '-r', str(FPS), '-i', '-', '-i', wav, '-shortest',
                    '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p', '-profile:v', 'high',
@@ -1479,21 +1512,77 @@ class _Kinetic(_Pick):
         return self.tg_cta(a, extra='А ВЫ КАК ДУМАЕТЕ? ПИШИТЕ В КОММЕНТАРИЯХ')
 
 
-STYLES = {'scenes': _Pick, 'stories': _Stories, 'quiz': _Quiz, 'kinetic': _Kinetic}
+class _PickBars(_Pick):
+    """Прогноз под конкретный трек: каждая сцена — один такт (4 доли трека), эмблемы сталкиваются ровно на дропе.
+    Такт 0 — нарастание (крючок, камера наезжает), 1 — дроп (столкновение), 2 — линия, 3 — прогноз по словам,
+    4 — кэф встаёт на долю, 5 — подписка в Telegram (под затишье трека)."""
+
+    def build(self):
+        acc, b = self.accent, BEAT
+        bar = 4 * b
+        B = [k * bar for k in range(7)]
+        hn, an = _names(self)
+        self.ramps = [(0, B[1], 1.0, 1.07)]
+        # 0. нарастание: команды по долям и «прогноз за …»
+        self.el(_text(self.hook or 'ПРОГНОЗ НА МАТЧ', 'info', 30, fill=(230, 234, 242), spacing=8), W / 2, 400, 0, B[1], fade(0.4, 10))
+        self.el(_text(hn, 'team', 170, max_w=980), W / 2, 640, 0, B[1], slam())
+        self.el(_pill('VS', 'brand', 44, (16, 18, 24), acc + (255,), pad=(34, 18)), W / 2, 850, b, B[1], pop(0.25, 0.3))
+        self.el(_text(an, 'team', 170, max_w=980), W / 2, 1060, 2 * b, B[1], slam())
+        self.punch += [(0, 0.03), (2 * b, 0.03)]
+        self.sfx += [(0, 'tick', 0), (b, 'tick', 0), (2 * b, 'tick', 0)]
+        if self.coef:
+            st = _pill('ПРОГНОЗ ЗА %.2f' % float(self.coef), 'num', 58, (255, 255, 255), (220, 40, 60, 255), pad=(40, 20)).rotate(4, resample=Image.BICUBIC, expand=True)
+            self.el(st, W / 2, 1270, 3 * b, B[1], slam(0.2, 2.2))
+            self.punch.append((3 * b, 0.04))
+        # 1. дроп: эмблемы влетают и сталкиваются ровно на ударе
+        self.brand(B[6] + 100)
+        self.teams(B[1] - 0.4, B[1], B[2])
+        self.flashes.append((B[1], 0.35, (255, 255, 255)))
+        if self.when:
+            self.el(_pill(self.when, 'time', 34, (255, 255, 255), (8, 12, 20, 210), acc + (230,)), W / 2, 1080, B[1] + 2 * b, B[2], pop(0.3, 0.6))
+        self.whip(B[2])
+        # 2. линия
+        if self.odds:
+            self.scene_odds(B[2], B[3])
+            self.whip(B[3])
+            k = 3
+        else:
+            k = 2
+        # 3. прогноз по словам на доли, 4. кэф встаёт на долю
+        self.el(_text('НАШ ПРОГНОЗ', 'info', 34, fill=acc, spacing=10), W / 2, 560, B[k], B[k + 2], fade(0.3, 14))
+        nw = len(str(self.pred).split())
+        y, _ = self.words(self.pred, 630, B[k], b if nw <= 4 else b / 2, B[k + 2])
+        if self.coef:
+            land = B[k + 1] + 2 * b
+            self.counter(self.coef, min(y + 130, SAFE_BOTTOM - 180), B[k + 1], land, B[k + 2])
+            self.el(_text('коэффициент на момент публикации', 'info', 22, fill=(196, 202, 214)), W / 2,
+                    min(y + 250, SAFE_BOTTOM - 60), land, B[k + 2], fade(0.3, 0))
+            self.shakes.append((land, 16, 0.35))
+        self.cover_t = B[k + 1] + 3 * b
+        self.whip(B[k + 2])
+        self.tg_cta(B[k + 2], extra='А ВЫ КАК ДУМАЕТЕ? ПИШИТЕ В КОММЕНТАРИЯХ')
+        return B[k + 3]
+
+
+STYLES = {'scenes': _Pick, 'bars': _PickBars, 'stories': _Stories, 'quiz': _Quiz, 'kinetic': _Kinetic}
 
 
 def pick(home, away, when, pred, coef, path, league='KHL', odds=None, hook=None, music=True, seed=None, style='scenes', options=None,
-         sound=None, bpm=None):
+         sound=None, bpm=None, beat=None, track=None, track_start=0.0, fx_gain=0.35):
     """Ролик-прогноз. odds — (П1, Х, П2): сцена с линией; нет — без неё. hook — строка над командами.
     style: 'scenes' — динамичные сцены; 'stories' — как истории в Telegram; 'quiz' — «угадай наш прогноз»
     (options — три варианта, среди них pred; нет — pred и победы команд); 'kinetic' — быстрая нарезка крупным текстом."""
     global BPM, BEAT
     old = _tempo(bpm)
+    if beat:                                                           # точная доля трека (style='bars'): без деления
+        BPM, BEAT = 60.0 / beat, beat
     try:
         cls = STYLES[style]
         clip = cls(home, away, when, pred, coef, odds, hook, league, seed, options=options) if style == 'quiz' else \
             cls(home, away, when, pred, coef, odds, hook, league, seed)
         clip.sound = sound
+        if track:                                                      # предпросмотр с треком (wav 44,1 кГц) с track_start секунд
+            clip.ext_audio = (track, track_start, fx_gain)
         return clip.render(path, music)
     finally:
         BPM, BEAT = old
