@@ -44,6 +44,21 @@ GREEN, RED = nhl_kit.GREEN, nhl_kit.RED
 SR = 44100
 
 
+def _tempo(bpm):
+    """Темп ролика под трек: смены сцен и бит — на его доли. Быстрые треки (фонк 150–170) режем через долю,
+    медленные — на половинках, чтобы сцена держалась 0,4–0,8 с на долю. Возвращает прежний темп."""
+    global BPM, BEAT
+    old = (BPM, BEAT)
+    if bpm:
+        beat = 60.0 / float(bpm)
+        while beat < 0.4:
+            beat *= 2
+        while beat > 0.8:
+            beat /= 2
+        BPM, BEAT = 60.0 / beat, beat
+    return old
+
+
 def _style(league):
     """Шапка и акцент как у баннеров лиги: КХЛ — «JARVIS | KXL» золотом, НХЛ — «JARVIS | NHL» ледяным."""
     if str(league).upper() == 'NHL':
@@ -1468,21 +1483,31 @@ STYLES = {'scenes': _Pick, 'stories': _Stories, 'quiz': _Quiz, 'kinetic': _Kinet
 
 
 def pick(home, away, when, pred, coef, path, league='KHL', odds=None, hook=None, music=True, seed=None, style='scenes', options=None,
-         sound=None):
+         sound=None, bpm=None):
     """Ролик-прогноз. odds — (П1, Х, П2): сцена с линией; нет — без неё. hook — строка над командами.
     style: 'scenes' — динамичные сцены; 'stories' — как истории в Telegram; 'quiz' — «угадай наш прогноз»
     (options — три варианта, среди них pred; нет — pred и победы команд); 'kinetic' — быстрая нарезка крупным текстом."""
-    cls = STYLES[style]
-    clip = cls(home, away, when, pred, coef, odds, hook, league, seed, options=options) if style == 'quiz' else \
-        cls(home, away, when, pred, coef, odds, hook, league, seed)
-    clip.sound = sound
-    return clip.render(path, music)
+    global BPM, BEAT
+    old = _tempo(bpm)
+    try:
+        cls = STYLES[style]
+        clip = cls(home, away, when, pred, coef, odds, hook, league, seed, options=options) if style == 'quiz' else \
+            cls(home, away, when, pred, coef, odds, hook, league, seed)
+        clip.sound = sound
+        return clip.render(path, music)
+    finally:
+        BPM, BEAT = old
 
 
 def result(home, away, sh, sa, path, mark='', when=None, pred=None, coef=None, won=None, note=None, league='KHL',
-           music=True, seed=None, sound=None):
+           music=True, seed=None, sound=None, bpm=None):
     """Ролик-итог: «зашёл или нет?» → прогноз → счёт барабаном → печать «ЗАШЁЛ / НЕ ЗАШЁЛ» (won=None — без печати).
     note — пояснение под печатью («3:3 в основное время — 6 шайб»)."""
-    clip = _Result(home, away, sh, sa, mark, when, pred, coef, won, note, league, seed)
-    clip.sound = sound
-    return clip.render(path, music)
+    global BPM, BEAT
+    old = _tempo(bpm)
+    try:
+        clip = _Result(home, away, sh, sa, mark, when, pred, coef, won, note, league, seed)
+        clip.sound = sound
+        return clip.render(path, music)
+    finally:
+        BPM, BEAT = old
