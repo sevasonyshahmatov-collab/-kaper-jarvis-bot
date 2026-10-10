@@ -4755,11 +4755,12 @@ function runAfterGameDay_(e) {
     step('Результаты и рейтинг Elo', function () {
       updateResultsFromWeb();
       var moved = mergeRescheduled_(ss);   // переносы — после результатов: матчи ночи уже «Сыгран»
+      var gd = {}; try { gd = nhlGameDaysWrite_(ss); } catch (eG) { gd = { error: eG.message }; }   // игровой день — для усталости в модели
       computeAndWriteElo_(true);   // всегда: матч мог попасть в таблицу и без sports.ru (исправления, ручной ввод)
       updateLeagueRates_(true);
       return { moved: moved };
     });
-    step('Новые матчи в прогнозах (на ' + SYNC_HORIZON_DAYS + ' дней)', function () { return syncPredictionRows_(); });
+    step('Новые матчи в прогнозах (на ' + SYNC_HORIZON_DAYS + ' дней)', function () { var n = syncPredictionRows_(); nhlFatigueGameDaySetup_(ss); return n; });
     step('Результативность дома / в гостях', function () { setupHomeAwayScoringSplit_(); });
     step('Формулы модели, П1/Х/П2, тоталы', function () {
       applyProbabilityFormula_(ss.getSheetByName('прогнозы'));
@@ -13194,6 +13195,59 @@ function nhlMatchTime_(ss, day, home, away) {
   }
   return NHL_TIMES_[key] || '';
 }
+/* ---- усталость в модели — по игровому дню ----
+ * Формулы «прогнозов» (V–AB отдых и усталость, AE/AF «прошлая игра в ОТ», AT/AU плотность календаря) раньше брали даты МСК.
+ * У дневных матчей это сбивалось на день: Бостон 08.10 вечером (02:00 МСК 09.10) и 10.10 днём (20:00 МСК 10.10) — «отдых 1 день»,
+ * то есть штраф за второй день подряд, хотя между играми был день; а суббота днём + воскресенье вечером, настоящий
+ * второй день подряд, выглядел как отдых. Теперь в «результатах матчей» есть столбец K — игровой день по Нью-Йорку
+ * (nhlGameDaysWrite_, каждое утро), и формулы несыгранных строк считают отдых по нему (nhlFatigueGameDaySetup_). */
+var NHL_GD_COL = 11;                                // K «результатов матчей»
+var NHL_GD_HEAD = 'Игровой день (по Нью-Йорку)';
+/** Столбец K: игровой день каждого матча. Прошлые матчи считаются один раз, ближние (−3…+горизонт прогнозов) — каждый день заново,
+ *  дальние — пока как ночные (уточнятся, когда подойдут). Строка с перенесённой датой пересчитывается сама. */
+function nhlGameDaysWrite_(ss) {
+  ss = ss || SpreadsheetApp.getActive();
+  var sh = ss.getSheetByName(SHEET_RESULTS);
+  if (!sh || sh.getLastRow() < 2) return { changed: 0 };
+  if (String(sh.getRange(1, NHL_GD_COL).getValue()) !== NHL_GD_HEAD) sh.getRange(1, NHL_GD_COL).setValue(NHL_GD_HEAD).setFontWeight('bold');
+  var n = sh.getLastRow() - 1, v = sh.getRange(2, 1, n, NHL_GD_COL).getValues(), today = todayKey_();
+  var from = addDaysKey_(today, -3), near = addDaysKey_(today, SYNC_HORIZON_DAYS + 2), out = [], changed = 0;
+  v.forEach(function (r) {
+    var cur = r[NHL_GD_COL - 1], home = String(r[2]).trim(), away = String(r[3]).trim();
+    if (!(r[0] instanceof Date) || !home || !away) { out.push([cur instanceof Date ? cur : '']); return; }
+    var day = sheetDayKey_(r[0]), curKey = cur instanceof Date ? sheetDayKey_(cur) : '';
+    if ((curKey === day || curKey === addDaysKey_(day, -1)) && !(day >= from && day <= near)) { out.push([cur]); return; }
+    var gd = addDaysKey_(nhlSlateDay_(day, day <= near ? nhlMatchTime_(ss, day, home, away) : ''), -1);
+    if (gd !== curKey) changed++;
+    out.push([keyToSheetDate_(gd)]);
+  });
+  sh.getRange(2, NHL_GD_COL, n, 1).setValues(out).setNumberFormat('dd.mm.yyyy');
+  return { changed: changed };
+}
+/** Формулы отдыха и усталости по игровому дню — в несыгранных строках «прогнозов» (сыгранные не трогаем). */
+function nhlFatigueGameDaySetup_(ss) {
+  ss = ss || SpreadsheetApp.getActive();
+  var sh = ss.getSheetByName('прогнозы'), res = ss.getSheetByName(SHEET_RESULTS);
+  if (!sh || !res || String(res.getRange(1, NHL_GD_COL).getValue()) !== NHL_GD_HEAD) return 0;
+  var rows = openPredictionRows_(sh);
+  if (!rows.length) return 0;
+  var R = function (c) { return "'" + SHEET_RESULTS + "'!$" + c + '$2:$' + c + '$' + FORMULA_RESULTS_ROWS; };
+  var g = 'LET(s;SUMIFS(' + R('K') + ';' + R('A') + ';$A{R};' + R('C') + ';$B{R};' + R('D') + ';$C{R});IF(s=0;$A{R}-1;s))';   // игровой день этого матча
+  var prev = function (t) { return '=LET(g;' + g + ';MAX(MAXIFS(' + R('K') + ';' + R('C') + ';$' + t + '{R};' + R('K') + ';"<"&g);MAXIFS(' + R('K') + ';' + R('D') + ';$' + t + '{R};' + R('K') + ';"<"&g)))'; };
+  var rest = function (pc) { return '=IF(' + pc + '{R}=0;7;' + g + '-' + pc + '{R})'; };
+  var ot = function (pc, t) { return '=IF(' + pc + '{R}=0;0;IF(SUMPRODUCT((' + R('K') + '=' + pc + '{R})*((' + R('C') + '=$' + t + '{R})+(' + R('D') + '=$' + t + '{R}))*(' + R('G') + '=TRUE))>0;1;0))'; };
+  var dens = function (t) { return '=LET(g;' + g + ';SUMPRODUCT((' + R('K') + '>=g-' + DENSITY_WINDOW_DAYS + ')*(' + R('K') + '<g)*((' + R('C') + '=$' + t + '{R})+(' + R('D') + '=$' + t + '{R}))))'; };
+  setFormulaOnOpenRows_(sh, 22, prev('B'), rows);              // V
+  setFormulaOnOpenRows_(sh, 23, rest('V'), rows);              // W
+  setFormulaOnOpenRows_(sh, 25, prev('C'), rows);              // Y
+  setFormulaOnOpenRows_(sh, 26, rest('Y'), rows);              // Z
+  setFormulaOnOpenRows_(sh, COL_OT_HOME, ot('V', 'B'), rows);  // AE
+  setFormulaOnOpenRows_(sh, COL_OT_AWAY, ot('Y', 'C'), rows);  // AF
+  setFormulaOnOpenRows_(sh, 46, dens('B'), rows);              // AT
+  setFormulaOnOpenRows_(sh, 47, dens('C'), rows);              // AU
+  return rows.length;
+}
+
 /** День для графика команды в постах — игровой день НХЛ (см. выше). */
 function postGameDay_(ss, day, home, away, time) { return nhlSlateDay_(day, time || nhlMatchTime_(ss, day, home, away)); }
 /** Карточка к посту по матчу строится по «ночи», в которую он входит. */

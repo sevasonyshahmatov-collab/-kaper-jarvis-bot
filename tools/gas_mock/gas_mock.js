@@ -58,6 +58,7 @@ class Range {
   // формулы макет не считает: хранит текст; copyTo размножает значения/формулы первой строки источника на весь диапазон
   getFormula() { const c = this.sheet._cell(this.r, this.c); return c && c.f ? c.f : ''; }
   setFormula(f) { return this._set('f', f); }
+  setFormulas(v) { return this._setGrid('f', v, 'setFormulas'); }
   copyTo(dst) { const src = []; for (let j = 0; j < this.nc; j++) src.push(Object.assign({}, this.sheet._cell(this.r, this.c + j) || {}));
     return dst._each((c, i, j) => { const s = src[j % src.length]; if (s.v !== undefined) c.v = s.v; else delete c.v; if (s.f) c.f = s.f; }); }
 }
