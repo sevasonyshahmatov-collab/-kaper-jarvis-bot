@@ -1617,6 +1617,21 @@ function homeMenuRows_() {
   rec.forEach(function (m) { walk(m, 0); });
   return out;
 }
+/** Один клик по названию листа на «Главной» — сразу переход (простой триггер Google: срабатывает на выделение ячейки).
+ *  Ссылки в ячейках остаются запасным вариантом (в мобильном приложении триггер не работает). Скрытый лист сначала показывается. */
+function onSelectionChange(e) {
+  try {
+    var r = e && e.range;
+    if (!r || r.getColumn() > 2 || r.getNumRows() !== 1 || r.getNumColumns() !== 1) return;   // название (A) или описание (B)
+    var sh = r.getSheet();
+    if (sh.getName() !== SHEET_HOME || r.getRow() < 4) return;
+    var cell = r.getColumn() === 1 ? r : sh.getRange(r.getRow(), 1);
+    var name = String(cell.getDisplayValue() || '').trim(), ss = sh.getParent(), to = name && ss.getSheetByName(name);
+    if (!to || to.getName() === SHEET_HOME) return;
+    if (to.isSheetHidden()) to.showSheet();
+    ss.setActiveSheet(to);
+  } catch (err) { /* переход по ссылке остаётся */ }
+}
 /** Нажатие кнопки на «Главной». */
 function homeRun_(n) {
   var map = {}; try { map = JSON.parse(PropertiesService.getScriptProperties().getProperty('HOME_BTNS') || '{}'); } catch (e) { map = {}; }
