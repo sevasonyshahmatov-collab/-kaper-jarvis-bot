@@ -55,6 +55,11 @@ class Range {
   clearContent() { return this._each(c => { delete c.v; }); }
   clearFormat() { return this._each(c => { const v = c.v; for (const k of Object.keys(c)) delete c[k]; if (v !== undefined) c.v = v; }); }
   activate() { return this; }
+  // формулы макет не считает: хранит текст; copyTo размножает значения/формулы первой строки источника на весь диапазон
+  getFormula() { const c = this.sheet._cell(this.r, this.c); return c && c.f ? c.f : ''; }
+  setFormula(f) { return this._set('f', f); }
+  copyTo(dst) { const src = []; for (let j = 0; j < this.nc; j++) src.push(Object.assign({}, this.sheet._cell(this.r, this.c + j) || {}));
+    return dst._each((c, i, j) => { const s = src[j % src.length]; if (s.v !== undefined) c.v = s.v; else delete c.v; if (s.f) c.f = s.f; }); }
 }
 
 class Sheet {
@@ -158,7 +163,9 @@ function makeEnv(opt) {
       openById: id => { if (others[id]) { others[id].opened = (others[id].opened || 0) + 1; return others[id]; } throw new Error('макет: нет доступа к таблице ' + id); }, BorderStyle: { SOLID: 'SOLID', SOLID_MEDIUM: 'SOLID_MEDIUM', SOLID_THICK: 'SOLID_THICK', DASHED: 'DASHED', DOTTED: 'DOTTED' },
       newDataValidation: builder, newConditionalFormatRule: builder, newRichTextValue: builder },
     PropertiesService: { getScriptProperties: () => store, getDocumentProperties: () => store, getUserProperties: () => store },
-    Utilities: { formatDate, sleep() {}, base64Encode: s => Buffer.from(String(s)).toString('base64'), newBlob: s => ({ getDataAsString: () => String(s) }),
+    Utilities: { formatDate,
+      // только 'yyyy-MM-dd' и 'yyyy-MM-dd HH:mm'; Москва — UTC+3, остальное — как UTC
+      parseDate: (t, tz, f) => new MockDate(String(t).replace(' ', 'T') + (String(t).length <= 10 ? 'T00:00:00' : ':00') + (tz === 'Europe/Moscow' ? '+03:00' : 'Z')), sleep() {}, base64Encode: s => Buffer.from(String(s)).toString('base64'), newBlob: s => ({ getDataAsString: () => String(s) }),
       computeDigest: () => [], DigestAlgorithm: {}, Charset: {} },
     UrlFetchApp: { fetch: u => { throw new Error('макет: сеть закрыта (' + String(u).slice(0, 60) + ')'); }, fetchAll: () => { throw new Error('макет: сеть закрыта'); } },
     ScriptApp: { getProjectTriggers: () => [], deleteTrigger() {}, newTrigger: () => builder(), getOAuthToken: () => 'mock', WeekDay: { MONDAY: 'MONDAY' } },

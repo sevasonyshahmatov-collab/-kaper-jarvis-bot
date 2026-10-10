@@ -7454,21 +7454,22 @@ var AGENT_HEADER = ['Дата', 'Матч', 'Хозяева: состав и т�
 function agentProps_() { return PropertiesService.getScriptProperties(); }
 function agentMskDay_(d) { return Utilities.formatDate(d || new Date(), 'Europe/Moscow', 'yyyy-MM-dd'); }
 
-/** Матчи дня (по МСК) из листа результатов: [{home, away, time}] */
+/** Матчи «ночи на dayKey» — одного игрового дня НХЛ (nhlSlateDay_): [{home, away, time, day}], по времени начала.
+ *  day у матча — его собственная дата по МСК (по ней ищутся линия и прогноз): у дневного матча это вечер накануне. */
 function agentMatchesOfDay_(ss, dayKey) {
   var sh = ss.getSheetByName(SHEET_RESULTS);
   if (!sh || sh.getLastRow() < 2) return [];
-  var odds = {};
-  try { odds = readOddsLog_(ss); } catch (e) { odds = {}; }
-  var out = [];
+  var prev = addDaysKey_(dayKey, -1), out = [];
   sh.getRange(2, 1, sh.getLastRow() - 1, 4).getValues().forEach(function (r) {
-    if (!(r[0] instanceof Date) || sheetDayKey_(r[0]) !== dayKey) return;
+    if (!(r[0] instanceof Date)) return;
+    var day = sheetDayKey_(r[0]);
+    if (day !== dayKey && day !== prev) return;
     var home = String(r[2]).trim(), away = String(r[3]).trim();
     if (!home || !away) return;
-    var o = odds[dayKey + '|' + home + '|' + away];
-    out.push({ home: home, away: away, time: o && o.time ? o.time : '', day: dayKey });
+    var time = nhlMatchTime_(ss, day, home, away);
+    if (nhlSlateDay_(day, time) === dayKey) out.push({ home: home, away: away, time: time, day: day });
   });
-  out.sort(function (a, b) { return a.time < b.time ? -1 : 1; });
+  out.sort(function (a, b) { var x = a.day + ' ' + (a.time || '99'), y = b.day + ' ' + (b.time || '99'); return x < y ? -1 : x > y ? 1 : 0; });
   return out;
 }
 
@@ -9059,19 +9060,21 @@ function bannerData_(ss, dayKey) {
     games.push({ key: sheetDayKey_(r[0]), home: String(r[2]).trim(), away: String(r[3]).trim(), hg: Number(r[4]), ag: Number(r[5]), ot: r[6] === true || String(r[6]).toUpperCase() === 'TRUE' });
   });
   games.sort(function (a, b) { return a.key < b.key ? -1 : a.key > b.key ? 1 : 0; });
+  var upTo = dayKey;
   var form = function (team) {
     var out = [];
     games.forEach(function (g) {
-      if (g.key >= dayKey || (g.home !== team && g.away !== team)) return;
+      if (g.key >= upTo || (g.home !== team && g.away !== team)) return;
       var won = g.home === team ? g.hg > g.ag : g.ag > g.hg;
       out.push(g.ot ? (won ? 'ОТВ' : 'ОТП') : (won ? 'В' : 'П'));
     });
     return out.slice(-5);                                                     // свежие — справа
   };
-  matches.sort(function (a, b) { var x = a.time || '99', y = b.time || '99'; return x < y ? -1 : x > y ? 1 : 0; });   // без времени — в конец
+  matches.sort(function (a, b) { var x = (a.day || dayKey) + ' ' + (a.time || '99'), y = (b.day || dayKey) + ' ' + (b.time || '99'); return x < y ? -1 : x > y ? 1 : 0; });   // по началу; без времени — в конец дня
   return matches.map(function (m) {
-    var o = odds[dayKey + '|' + m.home + '|' + m.away] || {};
-    return { home: m.home, away: m.away, day: dayKey, time: m.time || o.time || '',
+    var day = m.day || dayKey, o = odds[day + '|' + m.home + '|' + m.away] || {};
+    upTo = day;                                                               // форма — по матчам до дня этого матча
+    return { home: m.home, away: m.away, day: day, time: m.time || o.time || '',
       h: { name: m.home, pts: (data[m.home] || {}).pts || 0, gp: (data[m.home] || {}).gp || 0, form: form(m.home) },
       a: { name: m.away, pts: (data[m.away] || {}).pts || 0, gp: (data[m.away] || {}).gp || 0, form: form(m.away) },
       odds: o.regOdds || null };
@@ -11320,15 +11323,23 @@ function postTeamGames_(ss, team, n) {
   out.sort(function (x, y) { return y.date - x.date; });
   return out.slice(0, n || POST_LAST_GAMES);
 }
-/** График: игр за 7 дней и дней отдыха — по календарю, а не по часам (в таблице у матчей только дата). */
-function postDayDiff_(a, b) {
-  var f = function (d) { return Date.parse(Utilities.formatDate(d, 'Europe/Moscow', 'yyyy-MM-dd')); };
-  return Math.round((f(a) - f(b)) / 86400000);
-}
-function postSchedule_(games, now) {
-  if (!games.length) return { week: 0, rest: null };
-  var week = games.filter(function (g) { return postDayDiff_(now, g.date) <= 7; }).length;
-  return { week: week, rest: postDayDiff_(now, games[0].date) };
+/** Разница в днях между днями 'yyyy-MM-dd'. */
+function postKeyDiff_(a, b) { return Math.round((Date.parse(a) - Date.parse(b)) / 86400000); }
+/** День матча для графика команды: в КХЛ — дата по Москве. В таблице НХЛ переопределена ниже — игровой день НХЛ. */
+function postGameDay_(ss, day, home, away, time) { return day; }
+/** День, по которому к посту строится карточка матча (в НХЛ переопределена — «ночь», в которую входит матч). */
+function matchCardDay_(m) { return m.day; }
+/**
+ * График команды перед матчем — от дня самого матча, а не от момента, когда пишется пост (до 10.10.2026 считалось от «сейчас»:
+ * посты НХЛ пишутся накануне вечером, и командам с днём отдыха доставалось «второй день подряд»).
+ * games — сыгранные матчи с полем day (игровой день); {week — матчей за 7 дней вместе с этим, rest — дней без игр перед ним, b2b — второй день подряд}.
+ */
+function postSchedule_(games, day) {
+  var prev = games.filter(function (g) { return g.day && g.day < day; });
+  if (!prev.length) return { week: 1, rest: null, b2b: false };
+  var last = prev.reduce(function (a, g) { return g.day > a ? g.day : a; }, ''), gap = postKeyDiff_(day, last);
+  var week = 1 + prev.filter(function (g) { return postKeyDiff_(day, g.day) <= 6; }).length;
+  return { week: week, rest: gap - 1, b2b: gap === 1 };
 }
 /** Детали последнего матча команды из приложения КХЛ: счёт по периодам, броски, большинство, авторы голов. */
 function postLastProtocol_(ss, team) {
@@ -11376,13 +11387,15 @@ function postFacts_(ss, m, now) {
   var facts = []; try { facts = scoutFactsRead_(ss); } catch (e) { facts = []; }
   var kp = {}; try { kp = lineupKeyPlayers_(ss); } catch (e) { kp = {}; }
   var dos = {}; try { dos = dossierRead_(ss); } catch (e) { dos = {}; }
+  var mDay = postGameDay_(ss, m.day, m.home, m.away, m.time);
   var side = function (team) {
     var games = postTeamGames_(ss, team);
-    var st = postSchedule_(games, now);
+    games.forEach(function (g) { g.day = postGameDay_(ss, sheetDayKey_(g.date), g.home ? team : g.opp, g.home ? g.opp : team); });
+    var st = postSchedule_(games, mDay);
     var f = [];
     try { f = scoutFactsFor_(facts, team).map(function (x) { return x.type + ': ' + (x.player ? x.player + ' — ' : '') + x.status; }); } catch (e) { f = []; }
     var d = dos[team] || {};
-    return { team: team, games: games, week: st.week, rest: st.rest, facts: f.slice(0, 8),
+    return { team: team, games: games, week: st.week, rest: st.rest, b2b: st.b2b, facts: f.slice(0, 8),
       lineup: kp[team] && kp[team].text ? kp[team].text : '', dossier: [d.form, d.style, d.key].filter(Boolean).join(' · '),
       proto: null };                                                 // протокол последнего матча посту больше не нужен (03.10)
   };
@@ -11466,9 +11479,9 @@ function postArgs_(f, play) {
     }
     if (st && st.n >= 3) out.push(t + (st.kind === 'W' ? ' выиграл ' : ' проиграл ') + ru(st.n, 'матч', 'матча', 'матчей') + ' подряд' +
       (q.n >= 4 && q.luck !== null && ((st.kind === 'W' && q.luck >= 0.4) || (st.kind === 'L' && q.luck <= -0.4)) ? ', но по игре это выглядит не так однозначно' : ''));
-    if (s.rest === 0 || s.rest === 1) out.push(t + ' играет второй день подряд' + (s.week >= 4 ? ', это уже ' + s.week + '-я игра за неделю' : ''));
+    if (s.b2b) out.push(t + ' играет второй день подряд' + (s.week >= 4 ? ', это уже ' + s.week + '-я игра за неделю' : ''));
     else if (s.week >= 4) out.push(t + ' проводит ' + s.week + '-ю игру за неделю');
-    else if (s.rest >= 4) out.push(t + ' хорошо отдохнул: ' + ru(s.rest, 'день', 'дня', 'дней') + ' без игр');
+    else if (s.rest >= 3) out.push(t + ' хорошо отдохнул: ' + ru(s.rest, 'день', 'дня', 'дней') + ' без игр');
     (s.facts || []).filter(function (z) { return /травм|выбыл|дисквал|болезн|не сыграет|пропуст/i.test(z); }).slice(0, 2)
       .forEach(function (z) { out.push(t + ': ' + z); });
   });
@@ -11478,7 +11491,7 @@ function postArgs_(f, play) {
 function postSideText_(s) {
   var g = s.games.map(function (x) { return (x.gf > x.ga ? 'В' : 'П') + ' ' + x.gf + ':' + x.ga + (x.ot ? ' ОТ/Б' : ''); }).join(', ');
   var lines = ['КОМАНДА: ' + s.team, 'Последние матчи (свежие первыми): ' + (g || 'нет данных'),
-    'Игр за 7 дней: ' + s.week + (s.rest === null ? '' : ', дней отдыха: ' + s.rest)];
+    'Матчей за 7 дней вместе с этим: ' + s.week + (s.rest === null ? '' : s.b2b ? ', вчера тоже играл — второй день подряд' : ', дней без игр перед матчем: ' + s.rest)];
   if (s.facts.length) lines.push('Новости по составу: ' + s.facts.join('; '));
   if (s.dossier) lines.push('Про команду: ' + s.dossier);
   return lines.join('\n');
@@ -11493,12 +11506,12 @@ function postPrompt_(f, pick, emo, args) {
     '. Пиши по-русски, от первого лица, живо и просто, как человек, который смотрит хоккей, а не как сводка.\n\n' +
     'ЗАДАЧА: читатель должен за полминуты понять, что решает этот матч и почему я склоняюсь к прогнозу. Это рассуждение, а не пересказ протоколов.\n' +
     'СТРУКТУРА:\n' +
-    '• headline — главная история матча капслоком, 3–8 слов (например «ЛЁТЧИКИ ВЫХОДЯТ НА ЛЁД ЧЕРЕЗ СУТКИ ПОСЛЕ РАЗГРОМА»);\n' +
+    '• headline — главная история матча капслоком, 3–8 слов (например «ЛЁТЧИКИ ХОТЯТ ОТЫГРАТЬСЯ ЗА РАЗГРОМ»);\n' +
     '• paragraphs — 3 абзаца по 2–3 предложения: (1) в чём история матча; (2) ' + (pick.main ? 'почему это за прогноз — два-три довода из списка ДОВОДЫ своими словами' : 'почему здесь нет явного перевеса') +
     '; (3) что может помешать — честно, коротко;\n' +
     '• closing — одна короткая фраза-вывод.\n\n' +
     'ПРАВИЛА ТЕКСТА: не перечисляй счета прошлых матчей и авторов голов; не больше двух фамилий на весь пост и только если игрок правда важен (травма лидера, вратарь); ' +
-    'не больше двух чисел на весь пост, и только понятные («четыре поражения подряд»). Без звёздочек и другой разметки, без эмодзи, без хэштегов, без ссылок, без номеров источников.\n' +
+    'не больше двух чисел на весь пост, и только понятные («четыре поражения подряд»). Про график и усталость — только то, что сказано в строке «Матчей за 7 дней» в фактах: «второй день подряд» и «через сутки» — лишь если там так и написано. Без звёздочек и другой разметки, без эмодзи, без хэштегов, без ссылок, без номеров источников.\n' +
     'ЗАПРЕТЫ: никогда не упоминай таблицу, модель, алгоритм, расчёты, «по данным», проценты вероятности и коэффициенты. Не выдумывай фамилий, дат и счетов — только из фактов ниже. ' +
     'Не обращайся к читателю, не обещай выигрыш, не зови делать ставки.\n\n' +
     (pick.main ? 'К ЧЕМУ СКЛОНЯЕШЬСЯ: ' + (pick.main.team ? 'победа «' + pick.main.team + '» (с учётом овертайма и буллитов)' : pick.main.text.toLowerCase()) + '. Объясни это через игру команд, не через числа.\n' : 'СТАВКУ НЕ ДЕЛАЕШЬ: явного перевеса нет.\n') +
@@ -11568,7 +11581,7 @@ function postSendOne_(ss, m, now) {
   if (!to) throw new Error('не указан ваш Telegram — напишите боту /agent');
   var r = postBuild_(ss, m, now);
   if (!r.text) return { sent: false };
-  try { var b = bannersBuild_(m.day, 0, [m]); if (b.blobs.length) tgSendPhotos_(to, b.blobs, ''); } catch (e) { console.log('карточка: ' + e.message); }
+  try { var b = bannersBuild_(matchCardDay_(m), 0, [m]); if (b.blobs.length) tgSendPhotos_(to, b.blobs, ''); } catch (e) { console.log('карточка: ' + e.message); }
   tgSendLong_(to, escHtml_(r.text));
   if (r.pick.alt) tgRaw_('sendMessage', { chat_id: to, text: '↔️ Запасной вариант: ' + r.pick.alt.text + ' за ' + r.pick.alt.odds + ' (' + r.pick.alt.why + ')' });
   try { betzonaSend_(to, m, r); } catch (e) { console.log('Betzona: ' + e.message); }       // заготовка для сайта Betzona — публикуете вы
@@ -11668,7 +11681,7 @@ function postNowMenu_() {
   if (!pick.length) { uiAlert_('Не понял номер матча.'); return; }
   var ok = 0, err = [];
   pick.forEach(function (m) {
-    m.day = day;
+    m.day = m.day || day;                                          // у дневного матча — вечер накануне
     try { if (postSendOne_(ss, m, now).sent) ok++; } catch (e) { err.push(m.home + ' — ' + m.away + ': ' + e.message); }
   });
   sheetOpen_(POST_SHEET);
@@ -13152,6 +13165,40 @@ function nhlGamesBetween_(fromIso, toIso, maxMs) {
   return Object.keys(out).map(function (k) { return out[k]; }).sort(function (a, b) { return a.start - b.start; });
 }
 
+/* ---------------- игровой день НХЛ ----------------
+ * Даты в таблице — по Москве, а игровой день НХЛ — американский: вечерние матчи (19:00 по Нью-Йорку) идут ночью по Москве
+ * следующего дня, а дневные — в выходные и праздники (13:00–16:00 по Нью-Йорку) — вечером по Москве того же дня.
+ * «Ночь на D» (так собираются «Матчи дня», карточки, сводки агента и итоги) — один американский игровой день:
+ * матчи даты D до 12:00 МСК и матчи даты D−1 с 12:00 МСК. Раньше бралась только дата D по Москве, и дневные матчи уезжали
+ * в соседнюю ночь: 10.10.2026 Бостон — Филадельфия, Нью-Джерси — Ванкувер и Сан-Хосе — Эдмонтон (20:00–23:00 МСК 10.10)
+ * попали в «Матчи дня» ночи на 10.10 — без времени и за сутки до игры, — а из постера на ночь на 11.10 выпали.
+ * По этому же дню считается и график команды в постах (второй день подряд, отдых): по Москве у дневного матча он сбивается.
+ * Время начала — из журнала линий, нет линии — из расписания НХЛ; не нашлось нигде — матч считаем ночным.
+ */
+var NHL_SLATE_SPLIT = '12:00';                     // матч с этого времени по МСК относится к следующей ночи
+var NHL_TIMES_ = null;                             // в пределах запуска: 'yyyy-MM-dd|Хозяева|Гости' → 'HH:mm' (МСК)
+var NHL_TIMES_API_ = {};                           // дни, за которые расписание НХЛ уже запрошено
+function nhlSlateDay_(day, time) { return time && String(time) >= NHL_SLATE_SPLIT ? addDaysKey_(day, 1) : day; }
+/** Время начала матча по МСК ('HH:mm' или ''): журнал линий, иначе расписание НХЛ (неделя запрашивается один раз за запуск). */
+function nhlMatchTime_(ss, day, home, away) {
+  if (!NHL_TIMES_) {
+    NHL_TIMES_ = {};
+    try { var odds = readOddsLog_(ss); Object.keys(odds).forEach(function (k) { if (odds[k].time) NHL_TIMES_[k] = odds[k].time; }); } catch (e) { /* без журнала */ }
+  }
+  var key = day + '|' + home + '|' + away;
+  if (NHL_TIMES_[key] === undefined && !NHL_TIMES_API_[day]) {
+    var games = [];
+    try { games = nhlGamesBetween_(day, day, 20000); } catch (e) { games = []; }
+    games.forEach(function (x) { NHL_TIMES_API_[x.iso] = true; if (!NHL_TIMES_[x.iso + '|' + x.home + '|' + x.away]) NHL_TIMES_[x.iso + '|' + x.home + '|' + x.away] = x.time; });
+    NHL_TIMES_API_[day] = true;
+  }
+  return NHL_TIMES_[key] || '';
+}
+/** День для графика команды в постах — игровой день НХЛ (см. выше). */
+function postGameDay_(ss, day, home, away, time) { return nhlSlateDay_(day, time || nhlMatchTime_(ss, day, home, away)); }
+/** Карточка к посту по матчу строится по «ночи», в которую он входит. */
+function matchCardDay_(m) { return nhlSlateDay_(m.day, m.time); }
+
 /* ---------------- замены источников КХЛ ---------------- */
 
 /** Календарные страницы sports.ru для НХЛ не нужны — счёт берём из API. */
@@ -14241,7 +14288,7 @@ var NHL_DIVERGENCE_PP = 0.10;            // «модель и рынок раз�
 
 function nhlChannelId_() { return PropertiesService.getScriptProperties().getProperty('NHL_CHANNEL') || ''; }
 
-/** Прогнозы по матчам дня (МСК): [{home, away, time, pH, bestH, mark, honest, hg, ag, ot, played}] */
+/** Прогнозы по матчам «ночи на dayKey» (игровой день НХЛ, agentMatchesOfDay_): [{home, away, time, pH, bestH, mark, honest, hg, ag, ot, played}] */
 function nhlDayForecasts_(ss, dayKey) {
   var list = agentMatchesOfDay_(ss, dayKey), out = [];
   if (!list.length) return out;
@@ -14260,8 +14307,8 @@ function nhlDayForecasts_(ss, dayKey) {
     res[sheetDayKey_(r[0]) + '|' + String(r[2]).trim() + '|' + String(r[3]).trim()] = { hg: Number(r[4]), ag: Number(r[5]), ot: r[6] === true || r[6] === 'TRUE' };
   });
   list.forEach(function (m) {
-    var k = dayKey + '|' + m.home + '|' + m.away, f = idx[k] || {}, g = res[k];
-    out.push({ home: m.home, away: m.away, time: m.time, pH: isFinite(f.pH) && f.pH > 0 ? f.pH : null, bestH: isFinite(f.bestH) && f.bestH > 0 ? f.bestH : null,
+    var k = (m.day || dayKey) + '|' + m.home + '|' + m.away, f = idx[k] || {}, g = res[k];
+    out.push({ home: m.home, away: m.away, time: m.time, day: m.day || dayKey, pH: isFinite(f.pH) && f.pH > 0 ? f.pH : null, bestH: isFinite(f.bestH) && f.bestH > 0 ? f.bestH : null,
       mark: f.mark || '', honest: f.honest !== false, played: !!g, hg: g ? g.hg : null, ag: g ? g.ag : null, ot: g ? g.ot : false });
   });
   return out;
@@ -14288,7 +14335,7 @@ function nhlGoalieSig_(g) { return g ? [g.hg, g.hs, g.ag, g.as].join('|') : ''; 
 function nhlEveningBlocks_(ss, dayKey, starters) {
   var f = nhlDayForecasts_(ss, dayKey).filter(function (x) { return !x.played; });
   return f.map(function (x) {
-    var b = ['🏒 <b>' + escHtml_(x.home + ' — ' + x.away) + '</b>' + (x.time ? ' · ' + x.time + ' МСК' : '')];
+    var b = ['🏒 <b>' + escHtml_(x.home + ' — ' + x.away) + '</b>' + (x.day && x.day !== dayKey ? ' · ' + x.day.split('-').reverse().slice(0, 2).join('.') : '') + (x.time ? ' · ' + x.time + ' МСК' : '')];
     if (x.pH) b.push('📊 Модель: ' + nhlPct_(x.pH) + ' — ' + nhlPct_(1 - x.pH));
     if (x.bestH) { var hs = x.bestH >= 0.5; b.push('🎯 Лучший прогноз: <b>' + escHtml_(hs ? x.home : x.away) + '</b> (' + nhlPct_(hs ? x.bestH : 1 - x.bestH) + ')'); }
     var g = starters && starters[x.home + '|' + x.away];
@@ -15293,18 +15340,38 @@ var MATCHI_PROP = 'MATCHI_POSTER_';
 var MATCHI_HOUR_MSK = 18;                    // с этого часа по МСК публикуем «Матчи дня»          // + день: постер «Матчи дня» за этот день уже заказан
 /** Матчи дня для постера: [{home, away, time, odds: [П1, Х, П2] | null}] — по времени начала. */
 function matchiItems_(ss, day) {
-  return bannerData_(ss, day).map(function (b) { return { home: b.home, away: b.away, time: String(b.time || '').slice(0, 5), odds: b.odds || null }; });
+  return bannerData_(ss, day).map(function (b) { return { home: b.home, away: b.away, day: b.day || day, time: String(b.time || '').slice(0, 5), odds: b.odds || null }; });
 }
 
 /** Подпись для канала: «02:30 | Филадельфия — Питтсбург», … «Время московское.» — без эмодзи. */
 function matchiCaption_(ss, items) {
-  return items.map(function (it) { return (it.time ? it.time + ' | ' : '') + escHtml_(it.home + ' — ' + it.away); }).join('\n') + '\n\nВремя московское.';
+  var line = function (it) { return (it.time ? it.time + ' | ' : '') + escHtml_(it.home + ' — ' + it.away); };
+  var days = matchiDays_(items);
+  if (days.length < 2) return items.map(line).join('\n') + '\n\nВремя московское.';
+  return days.map(function (d) {                                        // ночь НХЛ с дневными матчами накануне — по датам
+    var t = ruDayTitle_(d).toLowerCase();
+    return t.charAt(0).toUpperCase() + t.slice(1) + '\n' + items.filter(function (it) { return it.day === d; }).map(line).join('\n');
+  }).join('\n\n') + '\n\nВремя московское.';
+}
+/** Даты по МСК, на которые приходятся матчи постера (у НХЛ дневные матчи — вечер накануне). */
+function matchiDays_(items) {
+  var out = [];
+  items.forEach(function (it) { if (it.day && out.indexOf(it.day) < 0) out.push(it.day); });
+  return out.sort();
+}
+/** Подзаголовок постера: «воскресенье, 11 октября»; на две даты — «суббота–воскресенье, 10–11 октября». */
+function matchiTitle_(day, items) {
+  var d = matchiDays_(items);
+  if (d.length < 2) return ruDayTitle_(day).toLowerCase();
+  var a = ruDayTitle_(d[0]).toLowerCase().split(', '), b = ruDayTitle_(d[d.length - 1]).toLowerCase().split(', ');
+  var da = a[1].split(' '), db = b[1].split(' ');
+  return a[0] + '–' + b[0] + ', ' + (da[1] === db[1] ? da[0] + '–' + b[1] : a[1] + ' – ' + b[1]);
 }
 
 function matchiDispatch_(ss, day, target) {
   var items = matchiItems_(ss, day);
   if (!items.length) return { skipped: 'матчей нет' };
-  return itogiDispatch_(ITOGI_LEAGUE, day, items, 'matchi', matchiCaption_(ss, items), target);
+  return itogiDispatch_(ITOGI_LEAGUE, day, items, 'matchi', matchiCaption_(ss, items), target, { date_title: matchiTitle_(day, items) });
 }
 
 /** Вместе с карточками матчей: заказать постер «Матчи дня» (один раз за день). */
