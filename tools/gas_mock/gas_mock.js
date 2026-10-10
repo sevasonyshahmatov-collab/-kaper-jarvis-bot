@@ -92,6 +92,12 @@ class Sheet {
   getLastRow() { let m = 0; for (const [k, x] of this.cells) if (x.v !== undefined && x.v !== '') m = Math.max(m, +k.split(',')[0]); return m; }
   getLastColumn() { let m = 0; for (const [k, x] of this.cells) if (x.v !== undefined && x.v !== '') m = Math.max(m, +k.split(',')[1]); return m; }
   getMaxRows() { return this.maxRows; } getMaxColumns() { return this.maxCols; }
+  // картинки поверх ячеек: insertImage → объект с assignScript/размерами; getImages — живые, remove убирает
+  insertImage(blob, col, row) { this.images = this.images || []; const im = { col, row, script: '', w: 0, h: 0, sheet: this,
+    setWidth(w) { this.w = w; return this; }, setHeight(h) { this.h = h; return this; }, assignScript(f) { this.script = f; return this; },
+    getAnchorCell() { return this.sheet.getRange(this.row, this.col); }, getScript() { return this.script; },
+    remove: () => { this.images = this.images.filter(x => x !== im); } }; this.images.push(im); return im; }
+  getImages() { return (this.images || []).slice(); }
   insertRowsAfter(r, n) { this.maxRows += n; return this; } insertColumnsAfter(c, n) { this.maxCols += n; return this; }
   insertRowsBefore(r, n) {                                             // строки r… сдвигаются вниз, как в Таблице
     const moved = new Map();
@@ -166,7 +172,8 @@ function makeEnv(opt) {
     PropertiesService: { getScriptProperties: () => store, getDocumentProperties: () => store, getUserProperties: () => store },
     Utilities: { formatDate,
       // только 'yyyy-MM-dd' и 'yyyy-MM-dd HH:mm'; Москва — UTC+3, остальное — как UTC
-      parseDate: (t, tz, f) => new MockDate(String(t).replace(' ', 'T') + (String(t).length <= 10 ? 'T00:00:00' : ':00') + (tz === 'Europe/Moscow' ? '+03:00' : 'Z')), sleep() {}, base64Encode: s => Buffer.from(String(s)).toString('base64'), newBlob: s => ({ getDataAsString: () => String(s) }),
+      parseDate: (t, tz, f) => new MockDate(String(t).replace(' ', 'T') + (String(t).length <= 10 ? 'T00:00:00' : ':00') + (tz === 'Europe/Moscow' ? '+03:00' : 'Z')), sleep() {}, base64Encode: s => Buffer.from(String(s)).toString('base64'), newBlob: (s, type, name) => ({ getDataAsString: () => String(s), getBytes: () => s, getContentType: () => type || '', getName: () => name || '' }),
+      base64Decode: s => Array.from(Buffer.from(String(s), 'base64')),
       computeDigest: () => [], DigestAlgorithm: {}, Charset: {} },
     UrlFetchApp: { fetch: u => { throw new Error('макет: сеть закрыта (' + String(u).slice(0, 60) + ')'); }, fetchAll: () => { throw new Error('макет: сеть закрыта'); } },
     ScriptApp: { getProjectTriggers: () => [], deleteTrigger() {}, newTrigger: () => builder(), getOAuthToken: () => 'mock', WeekDay: { MONDAY: 'MONDAY' } },

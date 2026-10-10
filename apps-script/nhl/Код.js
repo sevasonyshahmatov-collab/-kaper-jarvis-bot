@@ -1568,6 +1568,182 @@ var HOME_NOTES = {
   'Мои поправки': 'ваши поправки к силе команд', 'Автоматика': 'что таблица делает сама и когда запускалась',
   'прогнозы': 'сырые данные модели по каждому матчу', 'результаты матчей': 'расписание и счёт всех матчей'
 };
+
+/* ── Кнопки меню на «Главной» ──
+ * При открытии таблицы onOpen строит меню через menuUi_ — та же постройка записывает пункты (menuSave_ → свойство HOME_MENU).
+ * homeRender_ рисует их справа на «Главной»: заголовок меню, под ним пункты, у каждого кнопка ▶ (картинка с назначенным скриптом).
+ * Картинке можно назначить только «публичную» функцию (без _ в конце), поэтому кнопки — btn01…btn120, а какой пункт за какой кнопкой,
+ * лежит в HOME_BTNS. Новые пункты меню появляются на листе сами: после открытия таблицы «Главная» перерисуется в течение 5 минут.
+ * Кнопки работают в браузере на компьютере (в мобильном приложении Таблиц скрипты по картинкам не запускаются). */
+var HOME_BTN_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAGAAAAAwCAYAAADuFn/PAAABMUlEQVR42u2bUQrCMBBEk5Aj6UkU6hEV6knqnfSrH0UKKTTZndnZ/0J5L7ObBJKSyrTy0Q8uz9tX2Pbr83jn0wUIej8ZRfD7VQu7LPC2aSiCb5uGIvi2Eoqw2FbR6rdNQRF8WwlqQZ5akMdapplfgPf2s0wznYiVOVQLYhQBOQOYREAPYQYJ8Lsg9DTQbENRRdCdA9BE0B7EUETQn4S9iwhzFeFVQqi7II9pCHkZ50lE6NtQDyJqZAHX1938H6rAS0BI8OFmgEf4IRLgFTy9AO/gaQWggKcTgAaeRgAqeIpdEDp82AQwgN8k4OizGkvwLPBX5lUrXjMgLPyNAJQ2xNR+/hIgCWPhw29DKWeAUjBu9e8mQBLGwE+p4aW8ni71Ad88A5SGfvCbEqBEnA9d5ah+o2SDeHnDUkQAAAAASUVORK5CYII=';
+var MENU_REC_ = null;
+function menuUi_(ui) {
+  MENU_REC_ = [];
+  var wrap = function (menu, rec) {
+    return { _menu: menu, _rec: rec,
+      addItem: function (label, fn) { menu.addItem(label, fn); rec.items.push({ t: label, f: fn }); return this; },
+      addSeparator: function () { menu.addSeparator(); return this; },
+      addSubMenu: function (sub) { menu.addSubMenu(sub._menu || sub); if (sub._rec) rec.items.push({ s: sub._rec }); return this; },
+      addToUi: function () { menu.addToUi(); MENU_REC_.push(rec); return this; } };
+  };
+  return { createMenu: function (title) { return wrap(ui.createMenu(title), { title: title, items: [] }); } };
+}
+/** В конце onOpen: запомнить меню; изменилось — «Главную» перерисует ближайшая проверка (selfUpdateAuto_). */
+function menuSave_() {
+  if (!MENU_REC_ || !MENU_REC_.length) return;
+  try {
+    var p = PropertiesService.getScriptProperties(), j = JSON.stringify(MENU_REC_);
+    if (homeMenuJson_() === j) return;
+    var parts = [];                                   // значение свойства — до 9 КБ, а меню с кириллицей ~8 КБ: храним кусками
+    for (var i = 0; i < j.length; i += 3000) parts.push(j.slice(i, i + 3000));
+    var o = { HOME_MENU_N: String(parts.length), HOME_MENU_DIRTY: '1' };
+    parts.forEach(function (x, k) { o['HOME_MENU_' + k] = x; });
+    p.setProperties(o);
+  } catch (e) { /* без записи — останутся прежние кнопки */ }
+}
+function homeMenuJson_() {
+  var p = PropertiesService.getScriptProperties(), n = Number(p.getProperty('HOME_MENU_N')) || 0, j = '';
+  for (var k = 0; k < n; k++) j += p.getProperty('HOME_MENU_' + k) || '';
+  return j;
+}
+/** Пункты меню плоским списком: [{head}] — заголовок меню/подменю, [{t, f}] — пункт. */
+function homeMenuRows_() {
+  var rec = []; try { rec = JSON.parse(homeMenuJson_() || '[]'); } catch (e) { rec = []; }
+  var out = [];
+  var walk = function (m, depth) {
+    out.push({ head: (depth ? '   ' : '') + m.title, depth: depth });
+    m.items.forEach(function (it) { if (it.s) walk(it.s, depth + 1); else if (it.f) out.push({ t: it.t, f: it.f }); });
+  };
+  rec.forEach(function (m) { walk(m, 0); });
+  return out;
+}
+/** Нажатие кнопки на «Главной». */
+function homeRun_(n) {
+  var map = {}; try { map = JSON.parse(PropertiesService.getScriptProperties().getProperty('HOME_BTNS') || '{}'); } catch (e) { map = {}; }
+  var fn = map[n], f = fn ? globalThis[fn] : null;
+  if (typeof f !== 'function') { SpreadsheetApp.getActive().toast('Кнопка устарела: обновите страницу таблицы — «Главная» перерисуется через несколько минут.', 'Джарвис', 8); return; }
+  f();
+}
+function btn01() { homeRun_(1); }
+function btn02() { homeRun_(2); }
+function btn03() { homeRun_(3); }
+function btn04() { homeRun_(4); }
+function btn05() { homeRun_(5); }
+function btn06() { homeRun_(6); }
+function btn07() { homeRun_(7); }
+function btn08() { homeRun_(8); }
+function btn09() { homeRun_(9); }
+function btn10() { homeRun_(10); }
+function btn11() { homeRun_(11); }
+function btn12() { homeRun_(12); }
+function btn13() { homeRun_(13); }
+function btn14() { homeRun_(14); }
+function btn15() { homeRun_(15); }
+function btn16() { homeRun_(16); }
+function btn17() { homeRun_(17); }
+function btn18() { homeRun_(18); }
+function btn19() { homeRun_(19); }
+function btn20() { homeRun_(20); }
+function btn21() { homeRun_(21); }
+function btn22() { homeRun_(22); }
+function btn23() { homeRun_(23); }
+function btn24() { homeRun_(24); }
+function btn25() { homeRun_(25); }
+function btn26() { homeRun_(26); }
+function btn27() { homeRun_(27); }
+function btn28() { homeRun_(28); }
+function btn29() { homeRun_(29); }
+function btn30() { homeRun_(30); }
+function btn31() { homeRun_(31); }
+function btn32() { homeRun_(32); }
+function btn33() { homeRun_(33); }
+function btn34() { homeRun_(34); }
+function btn35() { homeRun_(35); }
+function btn36() { homeRun_(36); }
+function btn37() { homeRun_(37); }
+function btn38() { homeRun_(38); }
+function btn39() { homeRun_(39); }
+function btn40() { homeRun_(40); }
+function btn41() { homeRun_(41); }
+function btn42() { homeRun_(42); }
+function btn43() { homeRun_(43); }
+function btn44() { homeRun_(44); }
+function btn45() { homeRun_(45); }
+function btn46() { homeRun_(46); }
+function btn47() { homeRun_(47); }
+function btn48() { homeRun_(48); }
+function btn49() { homeRun_(49); }
+function btn50() { homeRun_(50); }
+function btn51() { homeRun_(51); }
+function btn52() { homeRun_(52); }
+function btn53() { homeRun_(53); }
+function btn54() { homeRun_(54); }
+function btn55() { homeRun_(55); }
+function btn56() { homeRun_(56); }
+function btn57() { homeRun_(57); }
+function btn58() { homeRun_(58); }
+function btn59() { homeRun_(59); }
+function btn60() { homeRun_(60); }
+function btn61() { homeRun_(61); }
+function btn62() { homeRun_(62); }
+function btn63() { homeRun_(63); }
+function btn64() { homeRun_(64); }
+function btn65() { homeRun_(65); }
+function btn66() { homeRun_(66); }
+function btn67() { homeRun_(67); }
+function btn68() { homeRun_(68); }
+function btn69() { homeRun_(69); }
+function btn70() { homeRun_(70); }
+function btn71() { homeRun_(71); }
+function btn72() { homeRun_(72); }
+function btn73() { homeRun_(73); }
+function btn74() { homeRun_(74); }
+function btn75() { homeRun_(75); }
+function btn76() { homeRun_(76); }
+function btn77() { homeRun_(77); }
+function btn78() { homeRun_(78); }
+function btn79() { homeRun_(79); }
+function btn80() { homeRun_(80); }
+function btn81() { homeRun_(81); }
+function btn82() { homeRun_(82); }
+function btn83() { homeRun_(83); }
+function btn84() { homeRun_(84); }
+function btn85() { homeRun_(85); }
+function btn86() { homeRun_(86); }
+function btn87() { homeRun_(87); }
+function btn88() { homeRun_(88); }
+function btn89() { homeRun_(89); }
+function btn90() { homeRun_(90); }
+function btn91() { homeRun_(91); }
+function btn92() { homeRun_(92); }
+function btn93() { homeRun_(93); }
+function btn94() { homeRun_(94); }
+function btn95() { homeRun_(95); }
+function btn96() { homeRun_(96); }
+function btn97() { homeRun_(97); }
+function btn98() { homeRun_(98); }
+function btn99() { homeRun_(99); }
+function btn100() { homeRun_(100); }
+function btn101() { homeRun_(101); }
+function btn102() { homeRun_(102); }
+function btn103() { homeRun_(103); }
+function btn104() { homeRun_(104); }
+function btn105() { homeRun_(105); }
+function btn106() { homeRun_(106); }
+function btn107() { homeRun_(107); }
+function btn108() { homeRun_(108); }
+function btn109() { homeRun_(109); }
+function btn110() { homeRun_(110); }
+function btn111() { homeRun_(111); }
+function btn112() { homeRun_(112); }
+function btn113() { homeRun_(113); }
+function btn114() { homeRun_(114); }
+function btn115() { homeRun_(115); }
+function btn116() { homeRun_(116); }
+function btn117() { homeRun_(117); }
+function btn118() { homeRun_(118); }
+function btn119() { homeRun_(119); }
+function btn120() { homeRun_(120); }
 function homeRender_(ss) {
   ss = ss || SpreadsheetApp.getActive();
   var sh = ss.getSheetByName(SHEET_HOME);
@@ -1588,13 +1764,38 @@ function homeRender_(ss) {
     });
   });
   sh.getRange(1, 1, rows.length, 2).setValues(rows);
+  homeActions_(ss, sh);
   sh.getRange(1, 1).setFontSize(16).setFontWeight('bold');
   sh.getRange(2, 1).setFontColor('#5f6368').setFontStyle('italic');
   heads.forEach(function (r) { sh.getRange(r, 1, 1, 2).setFontWeight('bold').setBackground('#e8eaed'); });
   links.forEach(function (r) { sh.getRange(r, 1).setFontWeight('bold'); sh.getRange(r, 2).setFontColor('#3c4043'); });
-  sh.setColumnWidth(1, 230); sh.setColumnWidth(2, 640);
+  sh.setColumnWidth(1, 210); sh.setColumnWidth(2, 400); sh.setColumnWidth(3, 24); sh.setColumnWidth(4, 40); sh.setColumnWidth(5, 470);
   try { sh.setTabColor('#202124'); } catch (e) {}
   return { links: links.length };
+}
+/** Справа на «Главной» (столбцы D–E): все пункты меню таблицы с кнопкой ▶. */
+function homeActions_(ss, sh) {
+  sh.getImages().forEach(function (im) { try { im.remove(); } catch (e) {} });
+  var rows = homeMenuRows_(), map = {}, n = 0;
+  sh.getRange(1, 4).setValue('▶  ДЕЙСТВИЯ — то же, что в меню сверху').setFontWeight('bold').setFontSize(13);
+  sh.getRange(2, 4).setValue(rows.length ? 'Нажмите зелёную кнопку слева от пункта (в браузере на компьютере).' : 'Кнопки появятся через несколько минут после того, как таблицу откроют.')
+    .setFontColor('#5f6368').setFontStyle('italic');
+  if (!rows.length) return 0;
+  var blob = Utilities.newBlob(Utilities.base64Decode(HOME_BTN_PNG), 'image/png', 'btn.png'), r = 3, cells = [];
+  rows.forEach(function (x) {
+    if (x.head) { r++; cells.push([r, '', x.head, true]); r++; return; }
+    if (n >= 120) return;
+    n++; map[n] = x.f;
+    cells.push([r, '', x.t, false]);
+    try { sh.insertImage(blob, 4, r, 6, 3).setWidth(30).setHeight(15).assignScript('btn' + ('0' + n).slice(-2)); } catch (e) { /* без картинки — пункт остаётся в меню */ }
+    r++;
+  });
+  cells.forEach(function (c) {
+    var cell = sh.getRange(c[0], 5).setValue(c[2]);
+    if (c[3]) sh.getRange(c[0], 4, 1, 2).setFontWeight('bold').setBackground('#e8eaed');
+  });
+  PropertiesService.getScriptProperties().setProperty('HOME_BTNS', JSON.stringify(map));
+  return n;
 }
 /** Порядок вкладок по группам (главная — первой), служебные скрыты. Без окон — для автоматики и кнопки. */
 function sheetsTidy_(ss) {
@@ -13910,7 +14111,7 @@ function nhlKeysSetup_() {
 /* ---------------- меню и автоматика НХЛ ---------------- */
 
 function onOpen() {
-  var ui = SpreadsheetApp.getUi();
+  var ui = menuUi_(SpreadsheetApp.getUi());   // меню записывается для кнопок на «Главной»
   betsStaleWarn_();
   dailyMenu_(ui, '📅 НХЛ · Ежедневно', DAILY_NHL_);
   ui.createMenu('✍️ Поправки')
@@ -13987,6 +14188,7 @@ function onOpen() {
     .addToUi();
   dailyMenu_(ui, '📣 НХЛ · ТГ группа', TG_GROUP_NHL_);
   videoMenu_(ui, '🎬 НХЛ · Видео');
+  menuSave_();
 }
 function nhlDiagNow_() { nhlDiag_(); sheetOpen_(NHL_DIAG_SHEET); }
 var SHEETS_HIDE_EXTRA = ['Обыграй Джарвиса', 'Угадай победителей', 'Игра_игроки', 'Игра_прогнозы', 'Live_журнал'];   // игра и LIVE — только в КХЛ
@@ -15865,6 +16067,10 @@ function selfUpdateAuto_() {
   if (!lock.tryLock(1000)) return;
   try { selfUpdateEnsureTrigger_(); } catch (eE) { console.log('триггер автообновления: ' + eE.message); }
   try { selfUpdateMigrate_(); } catch (eM) { console.log('разовые шаги после обновления: ' + eM.message); }
+  try {   // меню изменилось (открыли таблицу с новым кодом) — перерисовать кнопки на «Главной»
+    var pp = PropertiesService.getScriptProperties();
+    if (pp.getProperty('HOME_MENU_DIRTY') === '1') { homeRender_(SpreadsheetApp.getActive()); pp.deleteProperty('HOME_MENU_DIRTY'); }
+  } catch (eH) { console.log('кнопки на «Главной»: ' + eH.message); }
   try {
     var r = selfUpdate_({});
     p.deleteProperty('SELF_UPDATE_ERR');
