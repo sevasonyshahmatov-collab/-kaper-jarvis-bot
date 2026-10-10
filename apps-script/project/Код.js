@@ -12850,7 +12850,7 @@ function postBuild_(ss, m, now) {
     var p2 = postParse_(typeof raw === 'string' ? raw : (raw && raw.text) || '');
     if (p2.paragraphs.length >= p.paragraphs.length) p = p2;
   }
-  return { text: postAssemble_(f.m || m, pick, emo, p), pick: pick, facts: f, args: args };
+  return { text: postAssemble_(f.m || m, pick, emo, p), pick: pick, facts: f, args: args, parts: p };
 }
 
 /** Собрать и отправить пост по одному матчу: карточка, текст, запасной вариант. */
@@ -12862,11 +12862,55 @@ function postSendOne_(ss, m, now) {
   try { var b = bannersBuild_(m.day, 0, [m]); if (b.blobs.length) tgSendPhotos_(to, b.blobs, ''); } catch (e) { console.log('карточка: ' + e.message); }
   tgSendLong_(to, escHtml_(r.text));
   if (r.pick.alt) tgRaw_('sendMessage', { chat_id: to, text: '↔️ Запасной вариант: ' + r.pick.alt.text + ' за ' + r.pick.alt.odds + ' (' + r.pick.alt.why + ')' });
+  try { betzonaSend_(to, m, r); } catch (e) { console.log('Betzona: ' + e.message); }       // заготовка для сайта Betzona — публикуете вы
   var sh = postSheet_(ss);
   sh.insertRowsBefore(2, 1);
   sh.getRange(2, 1, 1, POST_HEADER.length).setValues([[m.day, m.time || '', m.home + ' — ' + m.away, mskNow_('dd.MM HH:mm'),
     r.pick.main ? r.pick.main.text : 'без ставки', r.pick.main ? r.pick.main.odds : '', r.pick.alt ? r.pick.alt.text + ' за ' + r.pick.alt.odds : '', r.text]]);
   return { sent: true, pick: r.pick.main };
+}
+
+/* ---------------- заготовка для Betzona ----------------
+ * К каждому посту-прогнозу со ставкой бот присылает вам отдельным сообщением заготовку для сайта Betzona: матч, ставка,
+ * наш кэф и описание простым текстом (без эмодзи, ссылок и разметки) в блоке, который в Telegram копируется одним нажатием.
+ * Публикуете вы сами: автопубликации нет — правила площадки про неё ничего не говорят, а за скрипты там могут заблокировать.
+ * Свойства скрипта: BETZONA_OFF = 1 — не присылать; BETZONA_LINE_URL — ссылка на линию турнира на Betzona (появится кнопка).
+ */
+/** Ставка словами для Betzona: «Тотал матча меньше 5,5», «Победа ЦСКА с учётом овертайма и буллитов». */
+function betzonaBet_(pick) {
+  if (!pick) return '';
+  if (pick.kind === 'победа' && pick.team) return 'Победа ' + pick.team + ' с учётом овертайма и буллитов';
+  var t = String(pick.text || ''), mt = t.match(/ТОТАЛ\s+([\d.,]+)\s+(МЕНЬШЕ|БОЛЬШЕ)/i);
+  if (mt) return 'Тотал матча ' + mt[2].toLowerCase() + ' ' + mt[1].replace('.', ',');
+  return t.charAt(0) + t.slice(1).toLowerCase();
+}
+/** Описание к прогнозу: абзацы и вывод поста простым текстом, без шапки, заголовка капслоком и строки «ПРОГНОЗ». */
+function betzonaDesc_(r) {
+  var p = r.parts || {}, out = [];
+  (p.paragraphs || []).forEach(function (x) {
+    x = postPlain_(x);
+    if (x && !POST_BANNED_.test(x) && !/^🏒|^(КХЛ|НХЛ)\.\s|^ПРОГНОЗ:|ставку не делаю/i.test(x)) out.push(x);
+  });
+  var c = postPlain_(p.closing || '');
+  if (c && !POST_BANNED_.test(c)) out.push(c.replace(/([^.!?…])$/, '$1.'));
+  return out.join('\n\n');
+}
+/** Отправить заготовку вам в личку (после поста). Без ставки — ничего. */
+function betzonaSend_(to, m, r) {
+  var props = PropertiesService.getScriptProperties();
+  if (props.getProperty('BETZONA_OFF') === '1' || !r || !r.pick || !r.pick.main) return false;
+  var bet = betzonaBet_(r.pick.main), desc = betzonaDesc_(r);
+  if (!bet || !desc) return false;
+  var d = String(m.day || '').split('-'), when = d.length === 3 ? d[2] + '.' + d[1] + (m.time ? ' ' + m.time : '') + ' МСК' : '';
+  var html = '📝 <b>Для Betzona</b> · ' + postLeague_() + ' · ' + escHtml_(m.home + ' — ' + m.away) + (when ? ' · ' + when : '') + '\n' +
+    'Ставка: <b>' + escHtml_(bet) + '</b>' + (r.pick.main.odds ? ' · у нас кэф ' + r.pick.main.odds : '') + '\n' +
+    '<i>На Betzona выберите эту ставку в линии матча — кэф там может отличаться. Описание ниже копируется нажатием (' + desc.length + ' знаков).</i>\n\n' +
+    '<pre>' + escHtml_(desc) + '</pre>';
+  var payload = { chat_id: to, parse_mode: 'HTML', text: html, disable_web_page_preview: true };
+  var url = String(props.getProperty('BETZONA_LINE_URL') || '').trim();
+  if (/^https:\/\/\S+$/.test(url)) payload.reply_markup = { inline_keyboard: [[{ text: 'Открыть линию на Betzona', url: url }]] };
+  var res = tgRaw_('sendMessage', payload);
+  return !!(res && res.ok);
 }
 
 /** Какие матчи пора описывать: начало через POST_LATE_MIN…POST_LEAD_MIN минут, пост ещё не уходил. */
