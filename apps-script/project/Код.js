@@ -403,13 +403,16 @@ function updateResultsFromWeb() {
 
   // новая разметка sports.ru: счёт со страниц матчей — только для матчей, которых ещё нет в таблице
   var mpInfo = null;
+  var waiting = [];        // матчи прошлых дней (до MP_LOOKBACK_DAYS назад), у которых в таблице до сих пор нет счёта
   try {
     var pre = sh.getDataRange().getValues(), h0 = pre[0];
     var cD = h0.indexOf('Дата'), cS = h0.indexOf('Статус'), cH = h0.indexOf('Хозяева'), cA = h0.indexOf('Гости');
-    var planned = [];
+    var planned = [], todayK = todayKey_(), fromK = addDaysKey_(todayK, -MP_LOOKBACK_DAYS);
     for (var q = 1; q < pre.length; q++) {
       if (String(pre[q][cS]).trim() !== 'Запланирован' || !(pre[q][cD] instanceof Date)) continue;
       planned.push({ date: pre[q][cD], home: normalizeTeam_(pre[q][cH], nameMap), away: normalizeTeam_(pre[q][cA], nameMap) });
+      var dk = sheetDayKey_(pre[q][cD]);
+      if (dk < todayK && dk >= fromK) waiting.push(dk.slice(8, 10) + '.' + dk.slice(5, 7) + ' ' + String(pre[q][cH]).trim() + ' — ' + String(pre[q][cA]).trim());
     }
     if (planned.length) {
       mpInfo = mpFetchPlayed_(planned, nameMap, new Date());
@@ -418,11 +421,17 @@ function updateResultsFromWeb() {
   } catch (e) { loadErr = (loadErr ? loadErr + '; ' : '') + 'страницы матчей: ' + e.message; }
 
   if (webMatches.length === 0) {
-    if (mpInfo && mpInfo.checked === 0 && !loadErr) { return; }   // новых сыгранных матчей просто нет
+    // Тревога — только если у прошедших матчей нет счёта. Старый текстовый календарь sports.ru (parseMatches_) с 23.09 часто
+    // не грузится или пуст — это не беда, пока счёт приходит другими путями (страницы матчей, ручной ввод): раньше здесь была ложная тревога.
+    if (!waiting.length) {
+      if (loadErr) Logger.log('sports.ru, старый календарь: ' + loadErr);
+      return;                                                       // все прошедшие матчи со счётом — делать нечего
+    }
     notify_(
-      'На странице sports.ru не найдено ни одного сыгранного матча по текущему ' +
-      'регулярному выражению. Откройте Apps Script → Выполнения, чтобы посмотреть ' +
-      'фактический текст страницы, и поправьте parseMatches_().'
+      'Нет счёта у ' + waiting.length + ' ' + (waiting.length === 1 ? 'прошедшего матча' : 'прошедших матчей') + ': ' + waiting.slice(0, 8).join(', ') +
+      (waiting.length > 8 ? ' и ещё ' + (waiting.length - 8) : '') + '. sports.ru не отдал результат ни в календаре, ни на странице матча' +
+      (loadErr ? ' (' + loadErr.replace(/\s*\n\s*/g, ' ').slice(0, 200) + ')' : '') + '. Если матч перенесён — ничего делать не нужно; ' +
+      'иначе впишите счёт вручную или откройте Apps Script → Выполнения.'
     );
     return;
   }

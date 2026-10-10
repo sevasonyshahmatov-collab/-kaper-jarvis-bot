@@ -167,6 +167,7 @@ function makeEnv(opt) {
     LockService: { getScriptLock: () => ({ tryLock: () => true, waitLock() {}, releaseLock() {} }) },
     Session: { getScriptTimeZone: () => 'Europe/Moscow', getActiveUser: () => ({ getEmail: () => '' }) },
     MailApp: { sendEmail() {} }, DriveApp: {},
+    Logger: { log: (...a) => { log.push('LOG ' + a.join(' ')); } },
   };
   vm.createContext(ctx);
   // вторая таблица для SpreadsheetApp.openById(id): env.addSpreadsheet(id)
