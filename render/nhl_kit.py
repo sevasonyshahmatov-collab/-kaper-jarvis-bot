@@ -50,16 +50,16 @@ def _jpg(path, quality=95):
 def _side(home, away, path, mode, home_info=None, away_info=None, when=None,
           odds=None, pred=None, coef=None, score=None, verdict=None, verdict_color=None,
           foot=None, tag='NHL', accent=ICE, handle='@jarvibet',
-          W=1280, H=640, grain=1.0, seed=None, scale=2):
+          W=1280, H=640, grain=1.0, seed=None, scale=None):
     """mode: 'odds' — линия П1/Х/П2 | 'pick' — прогноз и кэф | 'score' — счёт матча.
-    scale — во сколько раз крупнее рисовать: 2 — 2560×1280 (обычно), 3 — 3840×1920 («4К»)."""
+    scale — во сколько раз крупнее рисовать: по умолчанию quality.S = 3 — 3840×1920 («4К»); 2 — 2560×1280."""
     import numpy as np
     h, a = _prep(home, away)
     c1, c2 = poster.BANNER[h], poster.BANNER[a]
     saved = poster.FONTS7
     poster.FONTS7 = dict(saved, **poster.FONTS_SIDE)
     try:
-        S = scale
+        S = scale or quality.S
         WW, HH = W * S, H * S
         if seed is None:
             seed = sum(map(ord, h + a)) % 997
@@ -236,7 +236,7 @@ def _side(home, away, path, mode, home_info=None, away_info=None, when=None,
             poster._spaced(d, (WW / 2, 624 * S), handle, poster._f7('info', 13 * S),
                            accent + (255,), 1.6 * S, anchor='m')
 
-        out = quality.compose(bg, ov).convert('RGB')                 # SCALE = 2 — без уменьшения, 2560×1280
+        out = quality.compose(bg, ov).convert('RGB')                 # без уменьшения: 3840×1920 при S = 3
         if path.lower().endswith('.png'):
             out.save(path, optimize=True)
         else:

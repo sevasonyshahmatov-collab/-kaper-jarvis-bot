@@ -24,7 +24,7 @@ def render_side_pick(m, path, accent=None, tag='NHL', W=1280, H=640, grain=1.0, 
 
 def _render(m, path, acc, tag, W, H, grain, seed):
     import numpy as np
-    S = 2
+    S = quality.S
     WW, HH = W * S, H * S
     home, away = m['home'], m['away']
     c1 = BANNER.get(home['team'], (120, 120, 120))

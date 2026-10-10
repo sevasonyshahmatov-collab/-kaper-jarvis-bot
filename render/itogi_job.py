@@ -137,6 +137,34 @@ def send_message(token, chat, text):
         raise SystemExit('Telegram: %s' % (j.get('description') or r.status_code))
 
 
+TG_SIDES_MAX = 9900            # Telegram: у фото ширина + высота не больше 10 000
+TG_BYTES_MAX = 9500000         # и файл не больше 10 МБ
+
+
+def tg_ready(path):
+    """Постеры рисуются в 4К (quality.S = 3); если фото не проходит по ограничениям Telegram (сумма сторон, 10 МБ) —
+    отправляем уменьшенную копию *_tg.jpg, сам 4К-файл остаётся. Проходит — тот же путь."""
+    from PIL import Image
+    with Image.open(path) as im:
+        w, h = im.size
+        if w + h <= TG_SIDES_MAX and os.path.getsize(path) <= TG_BYTES_MAX:
+            return path
+        k = min(1.0, TG_SIDES_MAX / float(w + h))
+        small = im.convert('RGB').resize((int(w * k), int(h * k)), Image.LANCZOS) if k < 1 else im.convert('RGB')
+    out = os.path.splitext(path)[0] + '_tg.jpg'
+    q = 92
+    while True:
+        small.save(out, quality=q, subsampling=0)
+        if os.path.getsize(out) <= TG_BYTES_MAX or small.size[0] < 800:
+            break
+        if q > 74:
+            q -= 6                                   # сначала качество JPEG
+        else:
+            small = small.resize((int(small.size[0] * 0.85), int(small.size[1] * 0.85)), Image.LANCZOS)   # потом размер
+    print('для Telegram уменьшено: %s → %dx%d, %d КБ' % (os.path.basename(path), small.size[0], small.size[1], os.path.getsize(out) // 1024))
+    return out
+
+
 def send_album(token, chat, paths, text):
     """Альбом из нескольких фото; подпись — под альбомом (у первого фото)."""
     import requests
@@ -146,7 +174,7 @@ def send_album(token, chat, paths, text):
         if i == 0 and text:
             m.update(caption=text, parse_mode='HTML')
         media.append(m)
-        files['p%d' % i] = open(path, 'rb')
+        files['p%d' % i] = open(tg_ready(path), 'rb')
     try:
         r = requests.post('https://api.telegram.org/bot%s/sendMediaGroup' % token, timeout=90,
                           data={'chat_id': chat, 'media': json.dumps(media, ensure_ascii=False)}, files=files)
@@ -324,7 +352,7 @@ def main_both(payload):
 
 def send_photo(token, chat, path, text):
     import requests
-    with open(path, 'rb') as f:
+    with open(tg_ready(path), 'rb') as f:
         r = requests.post('https://api.telegram.org/bot%s/sendPhoto' % token, timeout=60,
                           data={'chat_id': chat, 'caption': text, 'parse_mode': 'HTML'}, files={'photo': f})
     j = r.json() if r.headers.get('content-type', '').startswith('application/json') else {}
