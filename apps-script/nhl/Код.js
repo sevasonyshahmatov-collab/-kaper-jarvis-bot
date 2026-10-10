@@ -115,6 +115,8 @@ function videoMenu_(ui, title) {
   ui.createMenu(title)
     .addItem('🎬 Вставить видео (ссылка → сразу разбор в Gemini)', 'videoInsert_')
     .addItem('➕ Добавить ролик (открыть список ссылок)', 'videoOpenList_')
+    .addItem('📺 Каналы YouTube: новые ролики — сами на разбор (список каналов)', 'videoChannelsOpen_')
+    .addItem('📺 Проверить каналы сейчас', 'videoChannelsNow_')
     .addItem('▶️ Разобрать новые ролики (Gemini)', 'videoAnalyzeNow_')
     .addItem('🔁 Разобрать все ролики заново', 'videoReanalyzeNow_')
     .addSeparator()
@@ -1533,7 +1535,7 @@ function sheetGroupsBase_() {
     { icon: '📌', name: 'главная', color: '#202124', sheets: [SHEET_HOME] },
     { icon: '🟩', name: 'прогнозы и ставки', color: '#34a853', sheets: [SHEET_BRIEF, 'Что заходит', SHEET_ODDS, SHEET_VS, 'Купон дня', 'Мой купон', 'Точность', 'Банкролл', POST_SHEET, 'Ставки'] },
     { icon: '🟦', name: 'лига и команды', color: '#4285f4', sheets: ['Таблица', 'Карточка команды', 'Статистика_КХЛ', 'Статистика_НХЛ', KEY_SHEET, DOSSIER_SHEET, AGENT_SHEET, 'Вратари_сегодня'] },
-    { icon: '🟧', name: 'видео экспертов', color: '#ff6d01', sheets: [VIDEO_SHEET] },
+    { icon: '🟧', name: 'видео экспертов', color: '#ff6d01', sheets: [VIDEO_SHEET, VIDEO_CH_SHEET] },
     { icon: '🟨', name: 'канал и игра', color: '#fbbc04', sheets: [GAME_VIEW, GAME_VIEW_OLD, NEWS_QUEUE_SHEET] },
     { icon: '⬛', name: 'ваши настройки', color: '#5f6368', sheets: [SHEET_TWEAKS, AUTO_SHEET] },
     { icon: '🗂', name: 'данные модели', color: '#9aa0a6', sheets: ['прогнозы', SHEET_RESULTS] },
@@ -1563,7 +1565,7 @@ var HOME_NOTES = {
   'Таблица': 'турнирная таблица и рейтинг силы', 'Карточка команды': 'всё о команде и очных встречах — выбор в жёлтых ячейках',
   'Статистика_КХЛ': 'броски, большинство, вратари по командам', 'Статистика_НХЛ': 'статистика команд НХЛ',
   'Ключевые_игроки': 'лидеры и основной вратарь по последним матчам', 'Досье_команд': 'травмы, тренер, форма — сводка агента',
-  'Агент_сводки': 'разбор агента перед каждым матчем', 'Видео_эксперты': 'вставьте ссылку на ролик — Gemini разберёт мнение эксперта',
+  'Агент_сводки': 'разбор агента перед каждым матчем', 'Видео_каналы': 'каналы YouTube: новые ролики сами уходят на разбор', 'Видео_эксперты': 'вставьте ссылку на ролик — Gemini разберёт мнение эксперта',
   'Угадай победителей': 'игра для подписчиков', 'Обыграй Джарвиса': 'игра для подписчиков', 'Новости': 'очередь новостного канала',
   'Мои поправки': 'ваши поправки к силе команд', 'Автоматика': 'что таблица делает сама и когда запускалась',
   'прогнозы': 'сырые данные модели по каждому матчу', 'результаты матчей': 'расписание и счёт всех матчей'
@@ -9769,7 +9771,7 @@ function videoList_(ss) {
   if (!sh) {
     sh = ss.insertSheet(VIDEO_SHEET);
     sh.getRange(1, 1, 1, 9).setValues([['Ссылка на ролик YouTube (открытый)', 'Эксперт / канал', 'Статус', 'Разобрано, сек', 'Длина, сек', 'Команд найдено', 'Разобрано (МСК)', 'Ответ Gemini (для проверки)', 'Дата ролика']]).setFontWeight('bold');
-    sh.getRange(2, 1, VIDEO_DEFAULT.length, 1).setValues(VIDEO_DEFAULT.map(function (u) { return [u]; }));
+    if (VIDEO_DEFAULT.length) sh.getRange(2, 1, VIDEO_DEFAULT.length, 1).setValues(VIDEO_DEFAULT.map(function (u) { return [u]; }));
     try { sh.setColumnWidth(1, 330); sh.setColumnWidth(2, 220); sh.setColumnWidth(3, 200); } catch (e) {}
   }
   var n = sh.getLastRow() - 1;
@@ -10840,6 +10842,140 @@ function videoOpenList_() {
     'Разобрать ролик заново — очистите его ячейку «Статус». Бесплатный лимит Google — около 8 часов роликов в сутки.');
 }
 function videoOpenSummary_() { preseasonBuild_(SpreadsheetApp.getActive()); sheetOpen_(PRESEASON_SHEET); }
+
+/* ── 📺 Каналы YouTube: новые ролики — сами на разбор ──
+ * Лист «Видео_каналы»: по строке на канал (ссылка youtube.com/@имя, /channel/UC…, или просто @имя) и подпись эксперта.
+ * Раз в час (videoChannelsAuto_) таблица читает открытую ленту канала (youtube.com/feeds/videos.xml — без ключей и лимитов),
+ * новые ролики про свою лигу дописывает в «Видео_эксперты», и их разбирает Gemini, как ролики, вставленные руками.
+ * Чтобы не тратить дневной лимит Gemini: при первом подключении канала берутся ролики только за последние VIDEO_CH_BACKFILL_DAYS дня;
+ * короче 4 минут (шортсы) и длиннее VIDEO_CH_MAX_SEC (трансляции) пропускаются; не больше VIDEO_CH_DAY_MAX роликов в сутки;
+ * ролик должен быть про свою лигу — в названии лига или команда (столбец «Все ролики» = да — брать без проверки названия). */
+var VIDEO_CH_SHEET = 'Видео_каналы';
+var VIDEO_CH_HEAD = ['Канал YouTube (ссылка или @имя)', 'Эксперт (подпись)', 'Все ролики (да — без проверки названия)', 'ID канала', 'Последний ролик', 'Проверено (МСК)', 'Что было в последний раз'];
+var VIDEO_CH_BACKFILL_DAYS = 2;
+var VIDEO_CH_MIN_SEC = 240;
+var VIDEO_CH_MAX_SEC = 2.5 * 3600;
+var VIDEO_CH_DAY_MAX = 6;
+function videoChSheet_(ss) {
+  ss = ss || SpreadsheetApp.getActive();
+  var sh = ss.getSheetByName(VIDEO_CH_SHEET);
+  if (!sh) {
+    sh = ss.insertSheet(VIDEO_CH_SHEET);
+    sh.getRange(1, 1, 1, VIDEO_CH_HEAD.length).setValues([VIDEO_CH_HEAD]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+    try { sh.setColumnWidth(1, 300); sh.setColumnWidth(2, 200); sh.setColumnWidth(3, 120); sh.setColumnWidth(7, 420); } catch (e) {}
+  }
+  return sh;
+}
+function videoChGet_(url) {
+  var r = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true,
+    headers: { 'User-Agent': SPORTS_UA['User-Agent'], 'Accept-Language': 'ru', 'Cookie': 'CONSENT=YES+cb.20240101-00-p0.ru+FX+000; SOCS=CAI' } });
+  return r.getResponseCode() === 200 ? r.getContentText() : '';
+}
+/** ID канала (UC…) по ссылке или @имени — со страницы канала. '' — не нашли. */
+function videoChId_(text) {
+  var s = String(text || '').trim(), m = s.match(/(UC[0-9A-Za-z_-]{22})/);
+  if (m) return m[1];
+  var url = /^https?:\/\//.test(s) ? s : /^@/.test(s) ? 'https://www.youtube.com/' + s : /^(www\.)?youtube\.com\//.test(s) ? 'https://' + s : 'https://www.youtube.com/@' + s.replace(/^@/, '');
+  var t = videoChGet_(url);
+  m = t.match(/<link rel="canonical" href="https:\/\/www\.youtube\.com\/channel\/(UC[0-9A-Za-z_-]{22})"/) || t.match(/"externalId":"(UC[0-9A-Za-z_-]{22})"/) ||
+    t.match(/itemprop="identifier" content="(UC[0-9A-Za-z_-]{22})"/) || t.match(/"browseId":"(UC[0-9A-Za-z_-]{22})"/);
+  return m ? m[1] : '';
+}
+/** Ролики из ленты канала (до 15 свежих): [{id, title, pub ('yyyy-MM-ddTHH:mm:ss+00:00'), author}] */
+function videoChFeed_(cid) {
+  var t = videoChGet_('https://www.youtube.com/feeds/videos.xml?channel_id=' + cid), out = [];
+  if (!t) return null;
+  var author = (t.match(/<author>\s*<name>([^<]*)<\/name>/) || [])[1] || '';
+  var dec = function (x) { return String(x || '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'"); };
+  (t.match(/<entry>[\s\S]*?<\/entry>/g) || []).forEach(function (e) {
+    var id = (e.match(/<yt:videoId>([A-Za-z0-9_-]{11})<\/yt:videoId>/) || [])[1], ti = (e.match(/<title>([^<]*)<\/title>/) || [])[1], pub = (e.match(/<published>([^<]+)<\/published>/) || [])[1];
+    if (id) out.push({ id: id, title: dec(ti), pub: pub || '', author: dec(author) });
+  });
+  return out;
+}
+/** Ролик про свою лигу: в названии лига или команда этой таблицы. */
+function videoChAbout_(title) {
+  var t = ' ' + String(title || '').toLowerCase().replace(/ё/g, 'е') + ' ';
+  if (VIDEO_LEAGUE === 'НХЛ' ? /нхл|\bnhl\b|стэнли|стенли/.test(t) : /кхл|\bkhl\b|кубок гагарина/.test(t)) return true;
+  return Object.keys(AGENT_TEAM_STEMS || {}).some(function (team) {
+    var st = AGENT_TEAM_STEMS[team];
+    try { return st && new RegExp('(^|[^а-яa-z])(' + st + ')').test(t); } catch (e) { return false; }
+  });
+}
+/** Проверить все каналы: новые ролики → «Видео_эксперты». {added, checked, notes[]} */
+function videoChannelsCheck_(ss) {
+  ss = ss || SpreadsheetApp.getActive();
+  var sh = ss.getSheetByName(VIDEO_CH_SHEET), out = { added: [], checked: 0, notes: [] };
+  if (!sh || sh.getLastRow() < 2) return out;
+  var p = PropertiesService.getScriptProperties(), day = mskNow_('yyyy-MM-dd'), cnt = {};
+  try { cnt = JSON.parse(p.getProperty('VIDEO_CH_DAY') || '{}'); } catch (e) { cnt = {}; }
+  if (cnt.day !== day) cnt = { day: day, n: 0 };
+  var L = videoList_(ss), have = {};
+  L.list.forEach(function (v) { have[v.id] = true; });
+  var n = sh.getLastRow() - 1, v = sh.getRange(2, 1, n, VIDEO_CH_HEAD.length).getValues();
+  var backfill = new Date(Date.now() - VIDEO_CH_BACKFILL_DAYS * 86400000).toISOString();
+  v.forEach(function (r, i) {
+    var src = String(r[0] || '').trim();
+    if (!src) return;
+    out.checked++;
+    var row = i + 2, cid = String(r[3] || '').trim(), last = String(r[4] || '').trim(), note = [];
+    if (!/^UC[0-9A-Za-z_-]{22}$/.test(cid)) {
+      cid = videoChId_(src);
+      if (!cid) { sh.getRange(row, 6, 1, 2).setValues([[mskNow_(), '⚠ канал не найден — проверьте ссылку']]); out.notes.push(src + ': канал не найден'); return; }
+      sh.getRange(row, 4).setValue(cid);
+    }
+    var feed = videoChFeed_(cid);
+    if (!feed) { sh.getRange(row, 6, 1, 2).setValues([[mskNow_(), '⚠ лента канала не открылась — попробую в следующий час']]); return; }
+    var since = /^\d{4}-\d\d-\d\dT/.test(last) ? last : backfill, newest = since, all = /^(да|yes|1|все)/i.test(String(r[2] || '').trim());
+    var stop = false;
+    feed.slice().reverse().forEach(function (x) {                 // старые → новые
+      if (stop || !x.pub || x.pub <= since) return;
+      var seen = function () { if (x.pub > newest) newest = x.pub; };
+      if (have[x.id]) { seen(); return; }
+      if (!all && !videoChAbout_(x.title)) { note.push('не про ' + VIDEO_LEAGUE + ': «' + x.title.slice(0, 60) + '»'); seen(); return; }
+      if (cnt.n >= VIDEO_CH_DAY_MAX) { note.push('лимит ' + VIDEO_CH_DAY_MAX + ' роликов в сутки — остальные завтра'); stop = true; return; }
+      var info = videoInfo_(x.id);
+      if (info.len && info.len < VIDEO_CH_MIN_SEC) { note.push('короткий (' + videoMmss_(info.len) + '): «' + x.title.slice(0, 50) + '»'); seen(); return; }
+      if (info.len > VIDEO_CH_MAX_SEC) { note.push('слишком длинный (' + videoMmss_(info.len) + '): «' + x.title.slice(0, 50) + '»'); seen(); return; }
+      var who = String(r[1] || '').trim() || x.author;
+      L.sh.appendRow([videoCanon_(x.id), (who + ' — ' + x.title).slice(0, 200), '', '', info.len || '', '', '', '', x.pub.slice(0, 10)]);
+      have[x.id] = true; cnt.n++; seen();
+      out.added.push(who + ': ' + x.title);
+      note.push('➕ «' + x.title.slice(0, 60) + '»');
+    });
+    // «последний» — самый свежий просмотренный: ролики после лимита на сутки останутся новыми и возьмутся завтра
+    sh.getRange(row, 5, 1, 3).setValues([[newest === backfill ? last : newest, mskNow_(), note.length ? note.join('; ').slice(0, 450) : 'новых роликов нет']]);
+  });
+  p.setProperty('VIDEO_CH_DAY', JSON.stringify(cnt));
+  if (out.added.length) {
+    try { videoScheduleContinue_(1); } catch (e) { /* подхватит сторож разбора */ }
+    try { autoNotifyAdmin_('📺 ' + VIDEO_LEAGUE + ': новые ролики с каналов ушли на разбор в Gemini:\n' + out.added.join('\n')); } catch (e) {}
+  }
+  return out;
+}
+function videoChannelsAuto_() {
+  if (!agentProps_().getProperty('GEMINI_KEY')) return;
+  try { var r = videoChannelsCheck_(); if (r.checked) autoMark_('videoChannelsAuto_', true, 'каналов: ' + r.checked + ', новых роликов: ' + r.added.length); }
+  catch (e) { autoMark_('videoChannelsAuto_', false, e.message); }
+}
+/** Кнопки меню. */
+function videoChannelsOpen_() {
+  var ss = SpreadsheetApp.getActive(), sh = videoChSheet_(ss);
+  try { if (sh.isSheetHidden()) sh.showSheet(); ss.setActiveSheet(sh); sh.getRange(Math.max(2, sh.getLastRow() + 1), 1).activate(); } catch (e) {}
+  uiAlert_('Впишите каналы YouTube в столбец A — ссылку (youtube.com/@имя) или просто @имя, по одному на строку; в B — как подписывать эксперта.\n\n' +
+    'Раз в час таблица сама проверит каналы: новые ролики про ' + VIDEO_LEAGUE + ' уйдут на разбор в Gemini. При первом подключении — только ролики за последние ' +
+    VIDEO_CH_BACKFILL_DAYS + ' дня; шортсы и трансляции длиннее 2,5 ч пропускаются; не больше ' + VIDEO_CH_DAY_MAX + ' роликов в сутки (бережём лимит Gemini).\n\n' +
+    'Если канал только про ' + VIDEO_LEAGUE + ' — поставьте «да» в столбце C, тогда название ролика не проверяется. Проверить сразу — меню «🎬 … · Видео» → «📺 Проверить каналы сейчас».');
+}
+function videoChannelsNow_() {
+  var ss = SpreadsheetApp.getActive(); videoChSheet_(ss);
+  var r = videoChannelsCheck_(ss);
+  uiAlert_(!r.checked ? 'На листе «' + VIDEO_CH_SHEET + '» пока нет каналов — впишите их в столбец A.'
+    : 'Каналов проверено: ' + r.checked + '. Новых роликов на разбор: ' + r.added.length + (r.added.length ? '\n\n' + r.added.join('\n') + '\n\nGemini разберёт их за несколько минут.' : '.') +
+      (r.notes.length ? '\n\n⚠ ' + r.notes.join('\n') : '') + '\n\nПодробности по каждому каналу — на листе «' + VIDEO_CH_SHEET + '», столбец G.');
+}
+
 
 /* ── 📅 Меню «Ежедневно»: пункты по порядку дня, у каждого — во сколько это делает автоматика ──
  * С включённой автоматикой нажимать ничего не обязательно: пункт 0 покажет, что уже сделано сегодня.
@@ -14215,6 +14351,7 @@ var SHEETS_HIDE_EXTRA = ['Обыграй Джарвиса', 'Угадай поб
  *  • обновление после игрового дня — в 13:00 по Красноярску (09:00 МСК), когда доиграны и матчи Западного побережья;
  *  • сводка агента — в 22:00 по Красноярску (18:00 МСК) на матчи ближайшей ночи, после утренних раскаток. */
 var AUTO_JOBS = [
+  { fn: 'videoChannelsAuto_', kind: 'hours', every: 1, what: 'Каналы YouTube (лист «Видео_каналы»): новые ролики про лигу — на разбор в Gemini' },
   { fn: 'selfUpdateAuto_', kind: 'minutes', every: 5, what: 'Новый код таблицы в GitHub — поставить самой (бот — на новую версию), разовые шаги — через минуту' },
   { fn: 'runAfterGameDay_', kind: 'day', hour: 13, what: 'Обновить всё после игрового дня: результаты, Elo, календарь, прогнозы, точность, составы, ключевые игроки, проверка выводов агента, банкролл' },
   { fn: 'agentDailyBriefAuto_', kind: 'day', hour: AGENT_HOUR, what: 'Агент: сводка по матчам ближайшей ночи в личку (новости, досье, составы прошлых матчей)' },
