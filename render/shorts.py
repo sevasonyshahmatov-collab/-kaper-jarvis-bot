@@ -392,10 +392,72 @@ def _click(rng):
     return (no - _smooth(no, 2)) * _env(n, 0.0005, 0.003) * 0.25
 
 
-def _pluck(f, dur=0.45):
+def _808(f, dur, glide=None, drive=2.8):
+    """Жирный бас 808: синус с «ударом» по высоте в начале, перегруз (гармоники — чтобы бас было слышно и в телефоне),
+    долгий хвост; glide — скольжение к следующей ноте в конце."""
     n = int(dur * SR)
     t = np.arange(n) / SR
-    return (np.sin(2 * np.pi * f * t) + 0.3 * np.sin(4 * np.pi * f * t) + 0.12 * np.sin(6 * np.pi * f * t)) * np.minimum(1, t / 0.004) * np.exp(-t / 0.22) * 0.16
+    fc = f * (1 + 0.9 * np.exp(-t / 0.012))
+    if glide:
+        k = np.clip((t - 0.55 * dur) / (0.45 * dur), 0, 1)
+        fc = fc * (glide / f) ** (k * k * (3 - 2 * k))
+    ph = 2 * np.pi * np.cumsum(fc) / SR
+    x = np.sin(ph) + 0.35 * np.sin(2 * ph)
+    x = np.tanh(drive * x) / np.tanh(drive)
+    grit = np.tanh(7 * x)                                              # «рычание» — его слышно и в динамике телефона
+    grit = _smooth(grit - _smooth(grit, 120), 6)
+    return (x + 0.9 * grit) * np.minimum(1, t / 0.002) * np.clip(1 - t / dur, 0, 1) ** 0.35
+
+
+def _kick_punch():
+    n = int(0.18 * SR)
+    t = np.arange(n) / SR
+    f = 50 + 140 * np.exp(-t / 0.018)
+    click = np.exp(-t / 0.0015) * 0.6
+    return (np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / 0.07) + click) * 0.9
+
+
+def _snare(rng):
+    n = int(0.26 * SR)
+    t = np.arange(n) / SR
+    no = rng.standard_normal(n)
+    no = no - _smooth(no, 4)
+    body = np.sin(2 * np.pi * 190 * t) * np.exp(-t / 0.05)
+    cl = _clap(rng)
+    out = (no * np.exp(-t / 0.09) * 0.55 + body * 0.5) * 0.8
+    out[:len(cl)] += cl[:n] * 0.9
+    return out
+
+
+def _hat_open(rng):
+    n = int(0.3 * SR)
+    no = rng.standard_normal(n)
+    return (no - _smooth(no, 2)) * _env(n, 0.001, 0.09) * 0.09
+
+
+def _cowbell(semi=0, dur=0.26):
+    """Колокольчик 808 — узнаваемый звук фонка (две «квадратные» волны 540 и 800 Гц), по нотам."""
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    r = 2 ** (semi / 12)
+    x = (np.sign(np.sin(2 * np.pi * 540 * r * t)) + np.sign(np.sin(2 * np.pi * 800 * r * t))) * 0.5
+    x = _smooth(x - _smooth(x, 6), 2)
+    env = np.exp(-t / 0.07) * 0.8 + np.exp(-t / 0.22) * 0.2
+    return np.tanh(x * env * 2.2) * 0.32
+
+
+def _bell(f, dur=0.9):
+    """Тёмный колокол для трэпа (частотная модуляция)."""
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    idx = 2.6 * np.exp(-t / 0.12)
+    return np.sin(2 * np.pi * f * t + idx * np.sin(2 * np.pi * 3.5 * f * t)) * np.exp(-t / 0.45) * 0.22
+
+
+def _crash(rng):
+    n = int(1.6 * SR)
+    no = rng.standard_normal(n)
+    return (no - _smooth(no, 3)) * _env(n, 0.002, 0.5) * 0.22
 
 
 class _Audio:
@@ -413,43 +475,83 @@ class _Audio:
         j = min(self.n, i + len(sig))
         (self.fx if fx else self.music)[i:j] += sig[: j - i] * gain
 
-    def beat(self, dur, mute=(), style='drive'):
-        """Бит 120 уд/мин, бас — своя линия на каждый ролик. style: 'drive' — бочка на каждую долю, хлопок на 2 и 4;
-        'fast' — хлопок на каждую долю и хэт шестнадцатыми; 'show' — без хлопка (под тик-так); 'soft' — спокойнее,
-        бочка через долю и перебор аккордов (для «сторис»)."""
-        notes = [[55, 55, 65.41, 49], [49, 49, 58.27, 43.65], [55, 65.41, 49, 58.27]][self.seed % 3]
-        chords = [(220, 261.6, 329.6), (174.6, 220, 261.6), (261.6, 329.6, 392), (196, 246.9, 293.7)]
-        kick, rng = _kick(), self.rng
-        nb = int(dur / BEAT) + 1
-        for b in range(nb):
-            t = b * BEAT
-            if any(a <= t < z for a, z in mute):
-                self.add(t, _hat(rng), fx=False, gain=0.6)
-                continue
-            if style == 'soft':
-                if b % 2 == 0:
-                    self.add(t, kick, fx=False, gain=0.6)
-                ch = chords[(b // 4) % 4]
-                for k in range(2):
-                    self.add(t + k * BEAT / 2, _pluck(ch[(b * 2 + k) % 3] * (2 if k else 1)), fx=False)
-                self.add(t + BEAT / 2, _hat(rng), fx=False, gain=0.5)
-                continue
-            self.add(t, kick, fx=False)
-            if (style == 'fast') or (style == 'drive' and b % 2 == 1):
-                self.add(t, _clap(rng), fx=False, gain=0.8 if style == 'fast' and b % 2 == 0 else 1.0)
-            self.add(t + BEAT / 2, _hat(rng), fx=False)
-            if style == 'fast':
-                self.add(t + BEAT / 4, _hat(rng), fx=False, gain=0.6)
-                self.add(t + 3 * BEAT / 4, _hat(rng), fx=False, gain=0.6)
-            n = int(BEAT * 0.9 * SR)
-            tt = np.arange(n) / SR
-            f = notes[(b // 4) % 4]
-            bass = (np.sin(2 * np.pi * f * tt) + 0.35 * np.sin(4 * np.pi * f * tt)) * np.minimum(1, tt / 0.01) * np.exp(-tt / 0.3) * 0.32
-            self.add(t + 0.02, bass, fx=False)
+    def beat(self, dur, mute=(), style='phonk', drops=()):
+        """Бит 120 уд/мин с жирным басом 808 (своя тональность на каждый ролик).
+        'phonk' — 808 со скольжением, бочка, хлопок на 2 и 4, хэты с дробями, мелодия колокольчиком;
+        'trap'  — тот же бас, хлопок раз в такт (тяжелее), хэты шестнадцатыми с дробями, тёмный колокол.
+        mute — бит молчит (нарастание перед развязкой), drops — развязка: тарелка и удар баса."""
+        rng = self.rng
+        root = [49.0, 46.25, 51.91][self.seed % 3]                    # соль, фа-диез или соль-диез контроктавы
+        note = lambda sm: root * 2 ** (sm / 12)
+        # 4 такта по 16 шестнадцатых: (такт, шаг, длина в шагах, полутоны от тоники, скольжение к)
+        loop = [(0, 0, 5, 0, None), (0, 6, 4, 0, None), (0, 10, 2, 0, None), (0, 12, 4, 3, None),
+                (1, 0, 5, 0, None), (1, 6, 4, 0, None), (1, 10, 2, 7, None), (1, 12, 4, 8, 5),
+                (2, 0, 5, 5, None), (2, 6, 4, 5, None), (2, 10, 2, 5, None), (2, 12, 4, 7, None),
+                (3, 0, 5, 3, None), (3, 6, 4, 3, None), (3, 10, 6, 0, 7)]
+        mel_phonk = [[(0, 0), (3, 0), (6, 3), (8, 0), (10, 5), (11, 3), (14, 7)],
+                     [(0, 0), (3, 0), (6, 3), (8, 0), (10, -2), (12, 0), (14, 3)]]
+        mel_trap = [[(0, 12), (6, 15), (12, 19)], [(0, 17), (6, 15), (10, 12), (12, 10)]]
+        st = BEAT / 4
+        bar = 16 * st
+        n = self.n
+        bass, drums, mel = np.zeros(n), np.zeros(n), np.zeros(n)
+        kicks = []
+
+        def put(buf, t, sig, g=1.0):
+            i = int(t * SR)
+            if 0 <= i < n:
+                j = min(n, i + len(sig))
+                buf[i:j] += sig[: j - i] * g
+        muted = lambda t: any(a <= t < z for a, z in mute)
+        kick = _kick_punch()
+        for bi in range(int(dur / bar) + 1):
+            b0 = bi * bar
+            for (lb, s, ln, sm, gl) in loop:
+                if lb == bi % 4 and not muted(b0 + s * st):
+                    put(bass, b0 + s * st, _808(note(sm), ln * st * 0.98, note(gl) if gl is not None else None))
+            for s in ((0, 10) if style == 'phonk' else (0, 7, 10)):
+                if not muted(b0 + s * st):
+                    put(drums, b0 + s * st, kick)
+                    kicks.append(b0 + s * st)
+            for s in ((4, 12) if style == 'phonk' else (8,)):
+                if not muted(b0 + s * st):
+                    put(drums, b0 + s * st, _snare(rng), 0.9)
+            roll = bi % 4 == 3
+            for s in range(16):
+                t = b0 + s * st
+                if style == 'phonk' and s % 2 == 1 and not (roll and s >= 12):
+                    continue
+                put(drums, t, _hat(rng), 0.7 if muted(t) else 1.0)
+                if roll and s >= 12:
+                    put(drums, t + st / 2, _hat(rng), 0.8)
+            if bi % 2 == 1 and not muted(b0 + 14 * st):
+                put(drums, b0 + 14 * st, _hat_open(rng))
+            if style == 'phonk':
+                for s, sm in mel_phonk[bi % 2]:
+                    if not muted(b0 + s * st):
+                        put(mel, b0 + s * st, _cowbell(sm))
+            else:
+                for s, sm in mel_trap[bi % 2]:
+                    if not muted(b0 + s * st):
+                        put(mel, b0 + s * st, _bell(note(sm) * 4))
+                        put(mel, b0 + s * st + 3 * st, _bell(note(sm) * 4), 0.35)        # эхо
+        for t in drops:                                                # развязка: тарелка и удар баса
+            put(drums, t, _crash(rng))
+            put(drums, t, kick, 1.1)
+            put(bass, t, _808(note(0), 2 * BEAT, note(-5)), 1.1)
+            kicks.append(t)
+        duck = np.ones(n)                                              # мелодия «приседает» под бочку
+        for t in kicks:
+            i = int(t * SR)
+            m = min(n - i, int(0.25 * SR))
+            if m > 0:
+                duck[i:i + m] = np.minimum(duck[i:i + m], 1 - 0.55 * np.exp(-np.arange(m) / SR / 0.08))
+        music = bass * 0.7 + drums * 0.85 + mel * duck * 1.3
+        self.music += np.tanh(music * 0.9)
 
     def write(self, path, dur):
         n = int(dur * SR)
-        mix = self.music[:n] * 0.55 + self.fx[:n] * 0.9
+        mix = self.music[:n] * 0.8 + self.fx[:n] * 0.7
         fade = int(0.35 * SR)
         mix[-fade:] *= np.linspace(1, 0, fade)
         mix = np.tanh(mix * 1.2) * 0.68                               # ~ -15 LUFS: площадки сами выравнивают к -14, без перегруза
@@ -485,7 +587,8 @@ class _Clip:
         self.under = []         # (t_in, t_out, функция(кадр, t)) — подложки под элементами (не уезжают с переходом)
         self.top = []           # (t_in, t_out, функция(кадр, t)) — поверх всего (полоски «сторис»)
         self.bgseg = []         # (t_in, t_out, картинка) — сплошной фон вместо перелива («текстовый» вариант)
-        self.music_style = 'drive'
+        self.music_style = 'phonk'
+        self.drops = []         # развязки: бит возвращается с тарелкой и ударом баса
         self.cover_t = 0.0
 
     # служебное
@@ -562,6 +665,7 @@ class _Clip:
             self.sfx.append((t0 + 0.2 + k * 0.07, 'tick', 0))
             k += 1
         self.hit(t_land, 0.9, flash=0.35)
+        self.drops.append(t_land)
         self.sfx.append((t_land, 'ding', 0))
 
     def tg_cta(self, t0, extra=None, y0=560):
@@ -589,7 +693,7 @@ class _Clip:
         if extra:
             self.el(_text(extra, 'info', 26, fill=acc, max_w=960), W / 2, bar_y + 175, t_type + 0.9, t0 + 100, fade(0.3, 10))
         self.sfx.append((t_type + len(HANDLE) * 0.07 + 0.05, 'ding', 0))
-        return t0 + 6 * BEAT
+        return t0 + 7 * BEAT
 
     def dust(self):
         rng = random.Random(self.seed * 7 + 1)
@@ -722,11 +826,11 @@ class _Clip:
             os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
             au = _Audio(dur, self.seed)
             if music:
-                au.beat(dur, self.mute, self.music_style)
+                au.beat(dur, self.mute, self.music_style, self.drops)
             rng = au.rng
             for (t, kind, prm) in self.sfx:
                 sig = {'whoosh': lambda: _whoosh(rng), 'swish': lambda: _whoosh(rng, 0.3) * 0.45,
-                       'impact': lambda: _impact(rng, prm or 1.0), 'tick': _tick, 'tock': lambda: _tock(bool(prm)),
+                       'impact': lambda: _impact(rng, prm or 1.0) * 0.7, 'tick': _tick, 'tock': lambda: _tock(bool(prm)),
                        'click': lambda: _click(rng), 'ding': _ding, 'buzz': _buzz, 'riser': lambda: _riser(rng, prm)}[kind]()
                 au.add(max(0.0, t), sig)
             wav = tempfile.NamedTemporaryFile(suffix='.wav', delete=False).name
@@ -781,7 +885,7 @@ class _Pick(_Clip):
             self.hit(2 * b, 0.9, shake=10)
         self.whip(t1)
         # 2. эмблемы сталкиваются
-        t2 = t1 + 4 * b
+        t2 = t1 + 5 * b
         self.brand(t2 + 100)
         self.teams(t1, t1 + b, t2)
         if self.when:
@@ -791,11 +895,12 @@ class _Pick(_Clip):
         # 3. линия: шансы по линии без маржи — шкалами
         t3 = t2
         if self.odds:
-            t3 = t2 + 4 * b
+            t3 = t2 + 6 * b
             self.scene_odds(t2, t3)
             self.whip(t3)
         # 4. прогноз по словам и кэф
         self.mute.append((t3 - 2 * b, t3))
+        self.drops.append(t3)
         self.sfx.append((t3 - 2 * b, 'riser', 2 * b))
         self.el(_text('НАШ ПРОГНОЗ', 'info', 34, fill=acc, spacing=10), W / 2, 560, t3, t3 + 100, fade(0.25, 14))
         y, t_w = self.words(self.pred, 630, t3 + 0.5 * b, 0.5 * b, t3 + 100)
@@ -805,9 +910,9 @@ class _Pick(_Clip):
             self.counter(self.coef, min(y + 130, SAFE_BOTTOM - 180), t4, land, t4 + 100)
             self.el(_text('коэффициент на момент публикации', 'info', 22, fill=(196, 202, 214)), W / 2,
                     min(y + 250, SAFE_BOTTOM - 60), land, land + 100, fade(0.3, 0))
-            t5 = land + 3 * b
+            t5 = land + 5 * b
         else:
-            t5 = t4 + 2 * b
+            t5 = t4 + 4 * b
         self.cover_t = t5 - 0.3
         # убрать всё сцены 4 к заставке
         for e in self.els:
@@ -880,21 +985,22 @@ class _Result(_Clip):
         self.hit(b, 0.9, shake=12)
         self.whip(t1)
         # 2. каким был прогноз
-        t2 = t1 + 5 * b
+        t2 = t1 + 7 * b
         self.brand(t2 + 100)
         self.teams(t1, t1 + b, t2, cy=620, size=(360, 320), names_y=860)
         if self.pred:
             self.el(_text('НАШ ПРОГНОЗ', 'info', 30, fill=acc, spacing=10), W / 2, 980, t1 + 2 * b, t2, fade(0.25, 14))
-            y, tw = self.words(self.pred, 1020, t1 + 2.5 * b, 0.35 * b, t2, size=92, max_w=920)
+            y, tw = self.words(self.pred, 1020, t1 + 2.5 * b, 0.5 * b, t2, size=92, max_w=920)
             if self.coef:
                 self.el(_pill('%.2f' % float(self.coef), 'num', 72, (16, 18, 24), acc + (255,), label='КЭФ', label_size=30),
                         W / 2, min(y + 95, SAFE_BOTTOM - 70), tw + 0.25 * b, t2, pop(0.3, 0.5))
                 self.sfx.append((tw + 0.25 * b, 'tick', 0))
         self.whip(t2)
         # 3. счёт крутится, как барабан, под нарастание (бит молчит)
-        t_h, t_a = t2 + 3 * b, t2 + 4 * b
-        t3 = t2 + 5.5 * b
+        t_h, t_a = t2 + 3.5 * b, t2 + 4.5 * b
+        t3 = t2 + 6 * b
         self.mute.append((t2, t3))
+        self.drops.append(t3)
         self.sfx.append((t2, 'riser', t3 - t2))
         self.el(_text('СЧЁТ МАТЧА', 'info', 34, fill=acc, spacing=10), W / 2, 400, t2, t3 + 100, fade(0.25, 14))
         e1 = _emblem(self.home, self.c1, 260, 240)
@@ -955,9 +1061,9 @@ class _Result(_Clip):
             if self.note:
                 self.el(_text(str(self.note).upper(), 'info', 30, fill=(235, 238, 244), max_w=960), W / 2, min(y + 145, SAFE_BOTTOM - 8),
                         t3 + 2 * b, t3 + 100, fade(0.3, 12))
-            t4 = t3 + 6 * b
+            t4 = t3 + 9 * b
         else:
-            t4 = t3 + 3 * b
+            t4 = t3 + 5 * b
         self.cover_t = t3 + 2.5 * b
         for e in self.els:
             if e[4] > t4 + 50:
@@ -983,9 +1089,9 @@ class _Stories(_Pick):
 
     def build(self):
         acc, b = self.accent, BEAT
-        self.music_style = 'soft'
+        self.music_style = 'trap'
         hn, an = _names(self)
-        L = 5 * b
+        L = 7 * b
         slides = ['match'] + (['odds'] if self.odds else []) + ['pick', 'cta']
         bounds = [(i * L, (i + 1) * L) for i in range(len(slides))]
         dur = bounds[-1][1] + b
@@ -1067,7 +1173,7 @@ class _Quiz(_Pick):
 
     def build(self):
         acc, b = self.accent, BEAT
-        self.music_style = 'show'
+        self.music_style = 'trap'
         hn, an = _names(self)
         pred = str(self.pred).upper()
         opts = [str(o).upper() for o in (self.options or [])] or [pred, 'ПОБЕДА: ' + hn, 'ПОБЕДА: ' + an]
@@ -1105,9 +1211,9 @@ class _Quiz(_Pick):
         # 2. варианты, отсчёт, ответ
         letters = ['А', 'Б', 'В']
         ys = [560, 730, 900]
-        t_c = t1 + 3 * b
+        t_c = t1 + 5 * b
         t_rev = t_c + 3 * b
-        t2 = t_rev + 4 * b
+        t2 = t_rev + 6 * b
         self.el(_text('%s — %s' % (hn, an), 'team', 60, max_w=960), W / 2, 330, t1, t2, fade(0.3, 12))
         self.el(_text('ВАШ ВАРИАНТ: А, Б ИЛИ В?', 'info', 30, fill=acc, spacing=4), W / 2, 420, t1 + 0.2, t2, fade(0.3, 12))
 
@@ -1163,6 +1269,7 @@ class _Quiz(_Pick):
         self.punch += [(t_c + k * b, 0.03) for k in range(3)]
         self.el(_text('ПИШИТЕ БУКВУ В КОММЕНТАРИЯХ', 'info', 28, fill=(230, 234, 242)), W / 2, 1310, t1 + 2 * b, t_rev, fade(0.3, 10))
         self.mute.append((t_c, t_rev))
+        self.drops.append(t_rev)
         # ответ
         self.hit(t_rev, 1.1, flash=0.5, shake=16)
         self.sfx.append((t_rev, 'ding', 0))
@@ -1183,7 +1290,7 @@ class _Kinetic(_Pick):
 
     def build(self):
         acc, b = self.accent, BEAT
-        self.music_style = 'fast'
+        self.music_style = 'phonk'
         hn, an = _names(self)
         dark = (12, 16, 26)
         t = [0.0]
@@ -1209,32 +1316,33 @@ class _Kinetic(_Pick):
             elif sfx:
                 self.sfx.append((a, sfx, 0))
             t[0] = z
-        cut(1.5, self.c1, [(hn, 'team', 220, None)], _emblem(self.home, self.c1, 420, 380))
-        cut(0.5, dark, [('ПРОТИВ', 'team', 170, acc)], sfx='tick')
-        cut(1.5, self.c2, [(an, 'team', 220, None)], _emblem(self.away, self.c2, 420, 380))
+        cut(2.0, self.c1, [(hn, 'team', 220, None)], _emblem(self.home, self.c1, 420, 380))
+        cut(1.0, dark, [('ПРОТИВ', 'team', 170, acc)], sfx='tick')
+        cut(2.0, self.c2, [(an, 'team', 220, None)], _emblem(self.away, self.c2, 420, 380))
         if self.when:
             parts = self.when.split(' · ')
-            cut(1.0, dark, [(parts[0], 'team', 150, None)] + ([(' · '.join(parts[1:]), 'team', 120, acc)] if len(parts) > 1 else []), sfx='tick')
+            cut(1.5, dark, [(parts[0], 'team', 150, None)] + ([(' · '.join(parts[1:]), 'team', 120, acc)] if len(parts) > 1 else []), sfx='tick')
         if self.odds:
             pr = _probs(self.odds)
-            cut(1.5, dark, [('ЛИНИЯ', 'info', 44, acc)] + [('%s  %.2f' % (nm, float(o)), 'team', 110, None)
+            cut(2.5, dark, [('ЛИНИЯ', 'info', 44, acc)] + [('%s  %.2f' % (nm, float(o)), 'team', 110, None)
                                                             for nm, o in zip(['П1', 'Х', 'П2'], self.odds)], sfx='tick')
             fav = max(range(3), key=lambda k: pr[k])
-            cut(1.0, dark, [('ФАВОРИТ', 'info', 44, acc), ([hn, 'НИЧЬЯ', an][fav], 'team', 160, None), ('%d%%' % round(pr[fav] * 100), 'num', 150, acc)])
-        cut(1.0, acc, [('НАШ', 'team', 230, None), ('ВЫБОР', 'team', 230, None)])
-        self.flashes.append((t[0] - b, 0.4, (255, 255, 255)))
+            cut(2.0, dark, [('ФАВОРИТ', 'info', 44, acc), ([hn, 'НИЧЬЯ', an][fav], 'team', 160, None), ('%d%%' % round(pr[fav] * 100), 'num', 150, acc)])
+        cut(1.5, acc, [('НАШ', 'team', 230, None), ('ВЫБОР', 'team', 230, None)])
+        self.flashes.append((t[0] - 1.5 * b, 0.4, (255, 255, 255)))
+        self.drops.append(t[0] - 1.5 * b)
         words = str(self.pred).upper().split()
         cols = [dark, self.c1, self.c2]
         for i, wd in enumerate(words):
-            cut(0.75 if i < len(words) - 1 else 1.25, cols[i % 3], [(wd, 'team', 250, None)])
+            cut(1.0 if i < len(words) - 1 else 1.5, cols[i % 3], [(wd, 'team', 250, None)])
         if self.coef:
-            cut(2.0, acc, [('ЗА', 'team', 120, None), ('%.2f' % float(self.coef), 'num', 330, None)])
-            self.flashes.append((t[0] - 2 * b, 0.5, (255, 255, 255)))
-            self.shakes.append((t[0] - 2 * b, 18, 0.35))
-            self.sfx.append((t[0] - 2 * b, 'ding', 0))
+            cut(3.0, acc, [('ЗА', 'team', 120, None), ('%.2f' % float(self.coef), 'num', 330, None)])
+            self.flashes.append((t[0] - 3 * b, 0.5, (255, 255, 255)))
+            self.shakes.append((t[0] - 3 * b, 18, 0.35))
+            self.sfx.append((t[0] - 3 * b, 'ding', 0))
         self.cover_t = t[0] - 0.5
         a = t[0]
-        self.bgseg.append((a, a + 6 * b + 1, _solid(dark)))
+        self.bgseg.append((a, a + 7 * b + 1, _solid(dark)))
         return self.tg_cta(a, extra='А ВЫ КАК ДУМАЕТЕ? ПИШИТЕ В КОММЕНТАРИЯХ')
 
 
