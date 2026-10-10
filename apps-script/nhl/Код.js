@@ -15923,6 +15923,7 @@ function sidesReady_() {
     }
   } catch (e) { ok = false; }
   p.setProperty('SIDES_READY', ok ? '1' : String(Date.now()));
+  if (ok) p.getKeys().forEach(function (k) { if (k.indexOf(SIDES_PROP) === 0) p.deleteProperty(k); });   // заказанное до этого пропало — заказать заново
   return ok;
 }
 
@@ -15944,7 +15945,7 @@ function sidesDispatch_(ss, day, items) {
 /** Из частых запусков: один раз за день, с SIDES_HOUR_MSK по МСК (линию ждём до SIDES_WAIT_H ч). */
 function sidesAuto_(day) {
   var p = PropertiesService.getScriptProperties(), h = Number(mskNow_('HH'));
-  if (h < SIDES_HOUR_MSK || p.getProperty(SIDES_PROP + day) || !sidesReady_()) return;
+  if (h < SIDES_HOUR_MSK || !sidesReady_() || p.getProperty(SIDES_PROP + day)) return;   // готовность — первой: при включении сбрасывает пропавшие заказы
   try {
     var ss = SpreadsheetApp.getActive(), items = matchiItems_(ss, day);
     if ((!items.length || items.some(function (it) { return !it.odds; })) && h < SIDES_HOUR_MSK + SIDES_WAIT_H) return;   // ждём линию (и расписание)
