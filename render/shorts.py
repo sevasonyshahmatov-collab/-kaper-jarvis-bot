@@ -95,6 +95,15 @@ def slam(d=0.22, k0=1.9):
     return lambda u: (0, 0, min(1.0, _p(u, 0, d * 0.6) * 1.6), k0 - (k0 - 1) * _out(_p(u, 0, d)))
 
 
+def cut(d=0.14, k0=1.08, drift=0.035, span=3.0):
+    """Склейка, как в фонк-эдитах: элемент появляется сразу (кадр — есть, кадр — нет, дальше есть), чуть крупнее
+    и за 0,14 с садится на место без пружины; потом медленно наезжает (drift за span секунд)."""
+    def f(u):
+        al = 0.0 if 1 / FPS <= u < 2 / FPS else 1.0
+        return (0, 0, al, 1 + (k0 - 1) * (1 - _out(_p(u, 0, d))) + drift * min(u, span) / span)
+    return f
+
+
 def fly(dx0, dy0=0, d=0.3):
     """Влететь сбоку."""
     return lambda u: (dx0 * (1 - _out(_p(u, 0, d))), dy0 * (1 - _out(_p(u, 0, d))), min(1.0, _p(u, 0, d) * 3), 1.0)
@@ -275,20 +284,21 @@ def _tg_icon(d=170):
     return im.resize((d, d), Image.LANCZOS)
 
 
-def _search_bar(text, n_chars=None, caret=False, w=640, h=118):
+def _search_bar(text, n_chars=None, caret=False, w=640, h=118, fs=56):
     """Строка поиска Telegram с набранным «@jarvibet» (n_chars — сколько букв уже набрано)."""
+    k = h / 118
     im = Image.new('RGBA', (w + 8, h + 8), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     d.rounded_rectangle((4, 4, 4 + w, 4 + h), radius=h // 2, fill=(255, 255, 255, 245))
-    cx, cy, r = 4 + 62, 4 + h / 2 - 4, 20
-    d.ellipse((cx - r, cy - r, cx + r, cy + r), outline=(120, 128, 140, 255), width=7)
-    d.line((cx + r * 0.7, cy + r * 0.7, cx + r * 1.5, cy + r * 1.5), fill=(120, 128, 140, 255), width=8)
-    f = _font('brand', 56)
+    cx, cy, r = 4 + 62 * k, 4 + h / 2 - 4 * k, 20 * k
+    d.ellipse((cx - r, cy - r, cx + r, cy + r), outline=(120, 128, 140, 255), width=int(7 * k))
+    d.line((cx + r * 0.7, cy + r * 0.7, cx + r * 1.5, cy + r * 1.5), fill=(120, 128, 140, 255), width=int(8 * k))
+    f = _font('brand', fs)
     s = text if n_chars is None else text[:n_chars]
-    d.text((4 + 112, 4 + h / 2), s, font=f, fill=(16, 18, 24, 255), anchor='lm')
+    d.text((4 + 112 * k, 4 + h / 2), s, font=f, fill=(16, 18, 24, 255), anchor='lm')
     if caret:
-        x = 4 + 112 + f.getlength(s) + 6
-        d.rectangle((x, 4 + h / 2 - 30, x + 5, 4 + h / 2 + 30), fill=TG_BLUE + (255,))
+        x = 4 + 112 * k + f.getlength(s) + 6
+        d.rectangle((x, 4 + h / 2 - 30 * k, x + 5 * k, 4 + h / 2 + 30 * k), fill=TG_BLUE + (255,))
     return im
 
 
@@ -952,14 +962,16 @@ class _Clip:
             l, tt = W / 2 - cw / 2 + sx, H / 2 - ch / 2 + sy
             fr = fr.resize((W, H), Image.BILINEAR, box=(l, tt, l + cw, tt + ch))
         out = fr.convert('RGB')
-        for (tg, dd) in self.glitch:                                    # помехи: сдвиг цветовых каналов и полосы
+        for gl in self.glitch:                                          # помехи: сдвиг цветовых каналов и полосы
+            tg, dd = gl[0], gl[1]
+            amp, bands = (gl[2], gl[3]) if len(gl) > 2 else (16, 3)
             u = t - tg
             if 0 <= u < dd:
-                a = int(16 * (1 - u / dd)) + 2
+                a = int(amp * (1 - u / dd)) + 2
                 r, g, b = out.split()
                 out = Image.merge('RGB', (ImageChops.offset(r, a, 0), g, ImageChops.offset(b, -a, 0)))
                 rng = random.Random(int(t * 1000))
-                for _ in range(3):
+                for _ in range(bands):
                     y0 = rng.randrange(0, H - 120)
                     hh = rng.randrange(20, 110)
                     band = out.crop((0, y0, W, y0 + hh))
@@ -1513,55 +1525,170 @@ class _Kinetic(_Pick):
 
 
 class _PickBars(_Pick):
-    """Прогноз под конкретный трек: каждая сцена — один такт (4 доли трека), эмблемы сталкиваются ровно на дропе.
-    Такт 0 — нарастание (крючок, камера наезжает), 1 — дроп (столкновение), 2 — линия, 3 — прогноз по словам,
-    4 — кэф встаёт на долю, 5 — подписка в Telegram (под затишье трека)."""
+    """Прогноз под конкретный трек: каждая сцена — один такт трека, всё на долях, как в фонк-эдитах.
+    Текст и картинки появляются склейкой на долю (сразу, с морганием и коротким расслоением цветов, кадр вздрагивает),
+    затем медленно наезжают — без «прыжков». Всё крупно, на весь кадр; за сценами — огромные размытые эмблемы клубов.
+    Такт 0 — нарастание: команды по долям, «прогноз за …»; 1 — дроп: эмблемы сталкиваются ровно на ударе;
+    2 — шансы по линии; 3 — прогноз по словам; 4 — кэф во весь экран встаёт на долю; 5 — подписка в Telegram."""
+
+    def edit(self, t, big=1.0):
+        """Склейка: короткое расслоение цветов, кадр вздрагивает."""
+        self.glitch.append((t, 0.07, int(10 * big), 2))
+        self.punch.append((t, 0.025 * big))
+        self.shakes.append((t, 7 * big, 0.16))
+        self.sfx.append((t, 'tick', 0))
+
+    def show(self, im, cx, cy, t_in, t_out, big=1.0, span=None):
+        self.el(im, cx, cy, t_in, t_out, cut(span=span or max(0.5, t_out - t_in)))
+        self.edit(t_in, big)
+
+    def watermark(self):
+        """Огромные размытые эмблемы клубов за всем роликом — фон не пустой."""
+        from PIL import ImageFilter
+        lay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+        for team, x, y in ((self.home, W * 0.12, H * 0.30), (self.away, W * 0.88, H * 0.70)):
+            e = poster._raw_emblem(team, 980, 980)
+            e = _alpha(e, 0.13).filter(ImageFilter.GaussianBlur(5))
+            _put(lay, e, x, y)
+        self.under.append((0, 1e9, lambda fr, t: fr.alpha_composite(lay)))
 
     def build(self):
         acc, b = self.accent, BEAT
         bar = 4 * b
-        B = [k * bar for k in range(7)]
+        B = [k * bar for k in range(8)]
         hn, an = _names(self)
-        self.ramps = [(0, B[1], 1.0, 1.07)]
-        # 0. нарастание: команды по долям и «прогноз за …»
-        self.el(_text(self.hook or 'ПРОГНОЗ НА МАТЧ', 'info', 30, fill=(230, 234, 242), spacing=8), W / 2, 400, 0, B[1], fade(0.4, 10))
-        self.el(_text(hn, 'team', 170, max_w=980), W / 2, 640, 0, B[1], slam())
-        self.el(_pill('VS', 'brand', 44, (16, 18, 24), acc + (255,), pad=(34, 18)), W / 2, 850, b, B[1], pop(0.25, 0.3))
-        self.el(_text(an, 'team', 170, max_w=980), W / 2, 1060, 2 * b, B[1], slam())
-        self.punch += [(0, 0.03), (2 * b, 0.03)]
-        self.sfx += [(0, 'tick', 0), (b, 'tick', 0), (2 * b, 'tick', 0)]
+        self.watermark()
+        self.el(_brand(self.tag, acc, 50), W / 2, 120, 0, 1e9)
+        # 0. нарастание: команды по долям, камера наезжает
+        self.ramps = [(0, B[1], 1.0, 1.06)]
+        self.show(_text(self.hook or 'ПРОГНОЗ НА МАТЧ', 'info', 48, fill=acc, spacing=10, max_w=1000), W / 2, 330, 0, B[1], 0.6)
+        self.show(_text(hn, 'team', 290, max_w=980), W / 2, 600, 0, B[1])
+        self.show(_text('VS', 'brand', 120, fill=acc), W / 2, 850, b, B[1])
+        self.show(_text(an, 'team', 290, max_w=980), W / 2, 1100, 2 * b, B[1])
         if self.coef:
-            st = _pill('ПРОГНОЗ ЗА %.2f' % float(self.coef), 'num', 58, (255, 255, 255), (220, 40, 60, 255), pad=(40, 20)).rotate(4, resample=Image.BICUBIC, expand=True)
-            self.el(st, W / 2, 1270, 3 * b, B[1], slam(0.2, 2.2))
-            self.punch.append((3 * b, 0.04))
-        # 1. дроп: эмблемы влетают и сталкиваются ровно на ударе
-        self.brand(B[6] + 100)
-        self.teams(B[1] - 0.4, B[1], B[2])
-        self.flashes.append((B[1], 0.35, (255, 255, 255)))
+            st = _pill('ПРОГНОЗ ЗА %.2f' % float(self.coef), 'num', 92, (255, 255, 255), (220, 40, 60, 255), pad=(58, 28))
+            self.show(st.rotate(4, resample=Image.BICUBIC, expand=True), W / 2, 1420, 3 * b, B[1], 1.2)
+        # 1. дроп: эмблемы влетают и сталкиваются ровно на ударе, крупно
+        e1, e2 = _emblem(self.home, self.c1, 510, 560), _emblem(self.away, self.c2, 510, 560)
+        cx1, cx2 = W / 2 - 14 - (e1.width - 120) / 2, W / 2 + 14 + (e2.width - 120) / 2
+        hit = (e1.width - 120) / 2 * 0.5
+        self.el(e1, cx1, 740, B[1] - 0.4, B[2], clash(-820, hit, 0.4))
+        self.el(e2, cx2, 740, B[1] - 0.4, B[2], clash(820, -hit, 0.4))
+        self.hit(B[1], 1.2, flash=0.5, shake=26)
+        self.glitch.append((B[1], 0.12, 18, 4))
+        for team, cx, k in ((self.home, cx1, 1), (self.away, cx2, 1)):
+            nm = poster.SHORT.get(team, team).upper()
+            self.show(_text(nm, 'team', 116, max_w=510), cx, 1130, B[1] + k * b, B[2], 0.5)
         if self.when:
-            self.el(_pill(self.when, 'time', 34, (255, 255, 255), (8, 12, 20, 210), acc + (230,)), W / 2, 1080, B[1] + 2 * b, B[2], pop(0.3, 0.6))
+            self.show(_pill(self.when, 'time', 56, (255, 255, 255), (8, 12, 20, 220), acc + (235,), pad=(54, 28)), W / 2, 1340, B[1] + 2 * b, B[2])
         self.whip(B[2])
-        # 2. линия
+        k = 2
+        # 2. шансы по линии — крупно, строки по долям
         if self.odds:
-            self.scene_odds(B[2], B[3])
+            self.odds_big(B[2], B[3])
             self.whip(B[3])
             k = 3
-        else:
-            k = 2
-        # 3. прогноз по словам на доли, 4. кэф встаёт на долю
-        self.el(_text('НАШ ПРОГНОЗ', 'info', 34, fill=acc, spacing=10), W / 2, 560, B[k], B[k + 2], fade(0.3, 14))
-        nw = len(str(self.pred).split())
-        y, _ = self.words(self.pred, 630, B[k], b if nw <= 4 else b / 2, B[k + 2])
+        # 3. прогноз — огромными словами, по слову на долю
+        self.show(_text('НАШ ПРОГНОЗ', 'info', 60, fill=acc, spacing=12), W / 2, 380, B[k], B[k + 1], 0.6)
+        items, f, size, nrows = _wrap_words(str(self.pred).upper(), 'team', 260, 1020, lines=4, min_size=120)
+        lh = size * 1.04
+        y0 = 900 - lh * nrows / 2
+        step = b if len(items) <= 4 else b / 2
+        for i, (wd, x, li) in enumerate(items):
+            self.show(_text(wd, 'team', size), W / 2 + x, y0 + lh * li + lh / 2, B[k] + i * step, B[k + 1])
+        self.whip(B[k + 1])
+        # 4. кэф во весь экран: накручивается и встаёт на долю
         if self.coef:
-            land = B[k + 1] + 2 * b
-            self.counter(self.coef, min(y + 130, SAFE_BOTTOM - 180), B[k + 1], land, B[k + 2])
-            self.el(_text('коэффициент на момент публикации', 'info', 22, fill=(196, 202, 214)), W / 2,
-                    min(y + 250, SAFE_BOTTOM - 60), land, B[k + 2], fade(0.3, 0))
-            self.shakes.append((land, 16, 0.35))
+            self.kef_big(B[k + 1], B[k + 1] + 2 * b, B[k + 2])
         self.cover_t = B[k + 1] + 3 * b
         self.whip(B[k + 2])
-        self.tg_cta(B[k + 2], extra='А ВЫ КАК ДУМАЕТЕ? ПИШИТЕ В КОММЕНТАРИЯХ')
+        # 5. подписка в Telegram — крупно, по долям
+        self.cta_big(B[k + 2])
         return B[k + 3]
+
+    def odds_big(self, t0, t1):
+        acc, b = self.accent, BEAT
+        pr = _probs(self.odds)
+        fav = max(range(3), key=lambda i: pr[i])
+        names = list(_names(self))
+        names.insert(1, 'НИЧЬЯ')
+        self.show(_text('ШАНСЫ ПО ЛИНИИ', 'info', 60, fill=acc, spacing=12), W / 2, 340, t0, t1, 0.6)
+        rows = []
+        fp = _font('num', 72)
+        for i in range(3):
+            y = 530 + i * 340
+            ts = t0 + i * b
+            od = _text('%.2f' % float(self.odds[i]), 'num', 146, fill=acc if i == fav else (255, 255, 255))
+            nm = _text(names[i], 'team', 136, max_w=W - 140 - od.width - 50)          # название не налезает на кэф
+            self.show(nm, 70 + nm.width / 2, y, ts, t1)
+            self.el(od, W - 70 - od.width / 2, y, ts, t1, cut(span=t1 - ts))
+            rows.append((y + 132, ts))
+
+        def draw(ov, t):
+            d = ImageDraw.Draw(ov)
+            for i, (y, ts) in enumerate(rows):
+                if t < ts:
+                    continue
+                k = _out(_p(t, ts + 0.05, ts + 0.6))
+                x0, full = 70, W - 140
+                d.rounded_rectangle((x0, y - 32, x0 + full, y + 32), radius=32, fill=(255, 255, 255, 45))
+                wv = max(64, full * pr[i] * k)
+                col = acc if i == fav else (235, 238, 244)
+                d.rounded_rectangle((x0, y - 32, x0 + wv, y + 32), radius=32, fill=col + (255,))
+                s = '%d%%' % round(pr[i] * 100 * k)
+                inside = wv > fp.getlength(s) + 60
+                d.text((x0 + wv - 24 if inside else x0 + wv + 20, y + 2), s, font=fp,
+                       fill=(16, 18, 24, 255) if inside else (255, 255, 255, 255), anchor='rm' if inside else 'lm')
+        self.dyn.append((t0, t1, draw))
+        self.show(_text('шансы без маржи букмекера', 'info', 40, fill=(206, 212, 224)), W / 2, 1530, t0 + 3 * b, t1, 0.4)
+
+    def kef_big(self, t0, t_land, t1):
+        acc = self.accent
+        items, f, size, nrows = _wrap_words(str(self.pred).upper(), 'team', 120, 1010, lines=3, min_size=90)
+        lh = size * 1.04
+        top = 400 - lh / 2 if nrows == 1 else 280
+        for wd, x, li in items:                                        # длинный прогноз — в 2–3 крупные строки
+            self.el(_text(wd, 'team', size), W / 2 + x, top + lh * li + lh / 2, t0, t1, cut(span=t1 - t0))
+        self.edit(t0, 0.6)
+        y_kef = max(640, top + lh * nrows + 80)
+        y_num = y_kef + 320
+        self.show(_text('КЭФ', 'info', 84, fill=acc, spacing=18), W / 2, y_kef, t0, t1, 0.6)
+
+        def draw(ov, t):
+            v = 1 + (float(self.coef) - 1) * _out(_p(t, t0, t_land))
+            lay = _text('%.2f' % v, 'num', 460, fill=acc if t >= t_land else (255, 255, 255))
+            sc = (1.10 - 0.10 * _out(_p(t, t_land, t_land + 0.14))) if t >= t_land else 1.0
+            sc += 0.04 * _p(t, t_land, t1)
+            if abs(sc - 1) > 0.003:
+                lay = lay.resize((int(lay.width * sc), int(lay.height * sc)), Image.BILINEAR)
+            _put(ov, lay, W / 2, y_num)
+        self.dyn.append((t0, t1, draw))
+        k = 0
+        while t0 + k * 0.07 < t_land:
+            self.sfx.append((t0 + k * 0.07, 'tick', 0))
+            k += 1
+        self.hit(t_land, 1.1, flash=0.45, shake=22)
+        self.glitch.append((t_land, 0.1, 16, 3))
+        self.show(_text('коэффициент на момент публикации', 'info', 40, fill=(206, 212, 224)), W / 2, y_num + 340, t_land, t1, 0.4)
+
+    def cta_big(self, t0):
+        acc, b = self.accent, BEAT
+        t1 = t0 + 4 * b + 1
+        self.show(_tg_icon(290), W / 2, 480, t0, t1, 1.1)
+        self.show(_text('ПОДПИСЫВАЙТЕСЬ', 'team', 175, max_w=1020), W / 2, 790, t0, t1)
+        self.show(_text('НА НАС В TELEGRAM', 'team', 126, fill=(110, 200, 250), max_w=1020), W / 2, 960, t0 + b, t1)
+        bar_y, t_type = 1160, t0 + 2 * b
+        self.show(_search_bar(HANDLE, 0, w=900, h=170, fs=86), W / 2, bar_y, t_type, t_type + 0.05)
+
+        def typing(ov, tt):
+            n = min(len(HANDLE), int((tt - t_type) / 0.06) + 1)
+            caret = (int(tt * 3) % 2 == 0) or n < len(HANDLE)
+            _put(ov, _search_bar(HANDLE, n, caret, w=900, h=170, fs=86), W / 2, bar_y)
+        self.dyn.append((t_type, t1, typing))
+        for i in range(len(HANDLE)):
+            self.sfx.append((t_type + i * 0.06, 'click', 0))
+        self.show(_text('ПРОГНОЗЫ НА КХЛ И НХЛ КАЖДЫЙ ДЕНЬ', 'info', 46, fill=(235, 238, 244), max_w=1010), W / 2, 1340, t0 + 3 * b, t1, 0.5)
+        self.show(_text('А ВЫ КАК ДУМАЕТЕ? ПИШИТЕ В КОММЕНТАРИЯХ', 'info', 42, fill=acc, max_w=1010), W / 2, 1430, t0 + 3 * b, t1, 0.3)
 
 
 STYLES = {'scenes': _Pick, 'bars': _PickBars, 'stories': _Stories, 'quiz': _Quiz, 'kinetic': _Kinetic}
