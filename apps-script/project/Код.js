@@ -7084,6 +7084,7 @@ function gameHandleUpdate_(update) {
     return;
   }
   if (cmd === '/match' || cmd === '/calc') { betsBotSend_(chat, words.slice(1).join(' ')); return; }   // шансы на матч: /match Ак Барс Северсталь
+  if (/^\/(баннер|юаннер|banner)/.test(cmd)) { sidesBot_(msg, words.slice(1).join(' ')); return; }   // /баннеры нхл | кхл — баннеры дня в 4К (админам)
   if (cmd === '/scout') {
     if (!tgIsChannelAdmin_(msg.from.id)) { tgAdminDenied_(chat, msg.from.id); return; }
     tg_('sendMessage', { chat_id: chat, text: '🔎 Смотрю, что нового…' });
@@ -15280,12 +15281,18 @@ function sidesDispatch_(ss, day, items) {
   if (!chat) return { skipped: 'не указан ваш Telegram ID (TG_ADMIN_ID)' };
   items = items || matchiItems_(ss, day);
   if (!items.length) return { skipped: 'матчей нет' };
-  var r = itogiGithub_('post', '/repos/' + ITOGI_REPO + '/dispatches', { event_type: 'sides', client_payload: {
-    kind: 'sides', league: ITOGI_LEAGUE, day: day, date_title: matchiTitle_(day, items), chat: String(chat), items: items } });
-  if (r.getResponseCode() !== 204) throw new Error('GitHub ответил ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 200));
+  sidesSend_(ITOGI_LEAGUE, day, items, chat);
   var old = addDaysKey_(day, -10);
   p.getKeys().forEach(function (k) { if (k.indexOf(SIDES_PROP) === 0 && k.slice(SIDES_PROP.length) < old) p.deleteProperty(k); });
   return { sent: items.length, odds: items.filter(function (it) { return it.odds; }).length };
+}
+
+/** Событие «sides» в GitHub: баннеры лиги league ('KHL' | 'NHL') за день day → в чат chat. */
+function sidesSend_(league, day, items, chat, title) {
+  var r = itogiGithub_('post', '/repos/' + ITOGI_REPO + '/dispatches', { event_type: 'sides', client_payload: {
+    kind: 'sides', league: league, day: day, date_title: title || matchiTitle_(day, items), chat: String(chat), items: items } });
+  if (!r) throw new Error('GitHub не подключён');
+  if (r.getResponseCode() !== 204) throw new Error('GitHub ответил ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 200));
 }
 
 /** Из частых запусков: один раз за день, с SIDES_HOUR_MSK по МСК (линию ждём до SIDES_WAIT_H ч). */
@@ -15306,8 +15313,7 @@ function sidesAuto_(day) {
 
 /** Кнопка: баннеры на ближайший игровой день — вам в Telegram файлами (через 1–2 минуты). */
 function sidesNow_() {
-  var ss = SpreadsheetApp.getActive(), day = bannersDay_();
-  for (var i = 0; i < 7 && !agentMatchesOfDay_(ss, day).length; i++) day = addDaysKey_(day, 1);
+  var ss = SpreadsheetApp.getActive(), day = sidesNextDay_(ss);
   var pp = PropertiesService.getScriptProperties();
   if (pp.getProperty('SIDES_READY') !== '1') pp.deleteProperty('SIDES_READY');   // кнопка — проверить GitHub заново, не дожидаясь 30 мин
   if (pp.getProperty('GITHUB_TOKEN') && !sidesReady_()) {
@@ -15320,6 +15326,78 @@ function sidesNow_() {
     uiAlert_('Баннеры матчей на ' + day.split('-').reverse().join('.') + ' (' + r.sent + ' шт., 4К' + (r.odds < r.sent ? '; линия есть у ' + r.odds + ' из ' + r.sent : '') +
       ') рисуются — придут вам в Telegram файлами через 1–2 минуты.');
   } catch (e) { uiAlert_('Не получилось: ' + e.message); }
+}
+
+/* ── /баннеры в личке бота ──
+ *  «/баннеры кхл», «/баннеры нхл», «/баннеры» (обе лиги) — баннеры ближайшего игрового дня в 4К файлами в этот же чат;
+ *  только админам канала (tgIsChannelAdmin_). Вебхук бота — в таблице КХЛ, поэтому матчи НХЛ она берёт из «снимка»,
+ *  который таблица НХЛ кладёт в метаданные своей таблицы (sidesSnapshot_ из частого запуска, не реже раза в ~30 мин):
+ *  день, матчи, время и линия — те же, что у автоматических баннеров. Таблицу КХЛ бот считает сам, на момент команды. */
+var SIDES_SNAP_KEY = 'jarvis_sides_next';
+var SIDES_SNAP_MAX_MIN = 25;                // снимок старше — пересобрать
+
+/** Ближайший игровой день, где ещё не все матчи начались (вечером после последнего матча — уже следующий). */
+function sidesNextDay_(ss) {
+  var day = bannersDay_(), now = mskNow_('yyyy-MM-dd HH:mm');
+  for (var i = 0; i < 8; i++, day = addDaysKey_(day, 1)) {
+    var ms = agentMatchesOfDay_(ss, day);
+    if (ms.some(function (m) { return !m.time || (m.day || day) + ' ' + String(m.time).slice(0, 5) > now; })) return day;
+  }
+  return bannersDay_();
+}
+
+/** Снимок ближайшего дня для бота другой таблицы: {league, day, title, at, items} в метаданных этой таблицы. */
+function sidesSnapshot_(force) {
+  var ss = SpreadsheetApp.getActive(), md = ss.getDeveloperMetadata().filter(function (m) { return m.getKey() === SIDES_SNAP_KEY; });
+  var old = null; try { old = md.length ? JSON.parse(md[0].getValue()) : null; } catch (e) { old = null; }
+  if (!force && old && old.at && Date.now() - old.at < SIDES_SNAP_MAX_MIN * 60000) return old;
+  var day = sidesNextDay_(ss), items = matchiItems_(ss, day);
+  var snap = { league: ITOGI_LEAGUE, day: day, title: matchiTitle_(day, items), at: Date.now(), items: items }, v = JSON.stringify(snap);
+  if (md.length) { md[0].setValue(v); md.slice(1).forEach(function (m) { m.remove(); }); } else ss.addDeveloperMetadata(SIDES_SNAP_KEY, v);
+  return snap;
+}
+
+/** Снимок другой лиги ('KHL' | 'NHL') из её таблицы (по id, как у бота-калькулятора); нет — null. */
+function sidesSnapshotOf_(league) {
+  var ss = betsBotSheet_(league === 'NHL' ? 'НХЛ' : 'КХЛ');
+  if (!ss) return null;
+  var md = ss.getDeveloperMetadata().filter(function (m) { return m.getKey() === SIDES_SNAP_KEY; })[0];
+  try { return md ? JSON.parse(md.getValue()) : null; } catch (e) { return null; }
+}
+
+/** Команда бота: «/баннеры нхл» / «/баннеры кхл» / «/баннеры». */
+function sidesBot_(msg, arg) {
+  var chat = msg.chat.id, a = String(arg || '').toLowerCase(), p = PropertiesService.getScriptProperties();
+  var send = function (t) { tg_('sendMessage', { chat_id: chat, parse_mode: 'HTML', text: t, disable_web_page_preview: true }); };
+  if (!tgIsChannelAdmin_(msg.from.id)) { tgAdminDenied_(chat, msg.from.id); return; }
+  if (!p.getProperty('GITHUB_TOKEN')) { send('⚠️ GitHub не подключён: в таблице меню «📣 … · ТГ группа» → «🔑 Подключить GitHub для постеров».'); return; }
+  if (p.getProperty('SIDES_READY') !== '1') p.deleteProperty('SIDES_READY');   // проверить GitHub заново, не дожидаясь 30 мин
+  if (!sidesReady_()) { send('Баннеры пока не заказать: на GitHub (ветка main) ещё прежняя версия рисовалки — без баннеров 4К.'); return; }
+  var leagues = /нхл|nhl/.test(a) ? ['NHL'] : /кхл|khl/.test(a) ? ['KHL'] : ['KHL', 'NHL'], cache = CacheService.getScriptCache();
+  leagues.forEach(function (lg) {
+    var name = lg === 'NHL' ? 'НХЛ' : 'КХЛ';
+    try {
+      var day, items, title, note = '';
+      if (lg === ITOGI_LEAGUE) {
+        var ss = SpreadsheetApp.getActive();
+        day = sidesNextDay_(ss); items = matchiItems_(ss, day); title = matchiTitle_(day, items);
+      } else {
+        var sn = sidesSnapshotOf_(lg);
+        if (!sn) { send(name + ': таблица ' + name + ' ещё не выложила матчи для баннеров (обновляет раз в ~30 мин) — попробуйте чуть позже.'); return; }
+        day = sn.day; items = sn.items || []; title = sn.title;
+        var age = Math.round((Date.now() - Number(sn.at)) / 60000);
+        if (age > 90) note = '\nМатчи и линия — из таблицы ' + name + ' на ' + Utilities.formatDate(new Date(Number(sn.at)), 'Europe/Moscow', 'dd.MM HH:mm') + ' МСК (свежее она пока не выкладывала).';
+      }
+      if (!items.length) { send(name + ': ближайших матчей нет.'); return; }
+      var key = 'SIDES_BOT_' + lg + '_' + day;
+      if (cache.get(key)) { send(name + ': баннеры уже рисуются — придут через 1–2 минуты.'); return; }
+      sidesSend_(lg, day, items, chat, title);
+      cache.put(key, '1', 120);
+      var odds = items.filter(function (it) { return it.odds; }).length;
+      send('🖼 <b>' + name + '</b> · ' + escHtml_(title) + ': рисую баннеры (' + items.length + ' шт., 4К' +
+        (odds < items.length ? '; линия есть у ' + odds + ' из ' + items.length : '') + ') — пришлю файлами через 1–2 минуты.' + note);
+    } catch (e) { send('⚠️ ' + name + ': баннеры не заказаны — ' + escHtml_(e.message)); }
+  });
 }
 
 /** К подписи постера «Итоги дня»: в КХЛ дополнительного блока нет (россиян отдельно не выделяем). */

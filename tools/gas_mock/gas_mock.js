@@ -137,6 +137,11 @@ class Spreadsheet {
   moveActiveSheet(pos) { const s = this.active; this.sheets = this.sheets.filter(x => x !== s); this.sheets.splice(pos - 1, 0, s); }
   toast(msg) { this.toasts.push(String(msg)); } setSpreadsheetTimeZone(t) { this.tz = t; } getSpreadsheetTimeZone() { return this.tz; }
   getId() { return 'mock-spreadsheet'; } getName() { return 'макет'; } getUrl() { return 'https://docs.google.com/spreadsheets/d/mock'; }
+  // метаданные разработчика (уровень таблицы): addDeveloperMetadata(key, value) / getDeveloperMetadata()
+  addDeveloperMetadata(key, value) { const ss = this, m = { key: String(key), value: value === undefined ? null : String(value),
+    getKey() { return this.key; }, getValue() { return this.value; }, setValue(v) { this.value = String(v); return this; },
+    remove() { ss.meta = (ss.meta || []).filter(x => x !== m); } }; (this.meta = this.meta || []).push(m); return this; }
+  getDeveloperMetadata() { return (this.meta || []).slice(); }
 }
 
 /** Utilities.formatDate для Europe/Moscow (UTC+3 круглый год) и UTC. */
