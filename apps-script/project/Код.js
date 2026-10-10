@@ -1704,18 +1704,97 @@ function sheetGroups_() {
   return g.filter(function (x) { return x.sheets.length; });
 }
 function sheetGroupsBase_() {
+  // 10.10.2026: видимыми оставлены листы, которыми пользуются каждый день; справочники, журналы агента и разовые сравнения — в служебные.
+  // Первая вкладка — «📌 Главная» (homeRender_): оглавление со ссылками. Скрытый лист вернуть: ПКМ по вкладкам → «Показать скрытые листы».
   return [
-    { icon: '🟩', name: 'прогнозы и ставки', color: '#34a853', sheets: [SHEET_BRIEF, 'прогнозы', POST_SHEET, SHEET_VS, SHEET_ODDS, 'Точность', 'Сравнение_NeurHL', 'Купон дня', 'Мой купон', 'Банкролл', 'Ставки'] },
-    { icon: '🟦', name: 'лига и команды', color: '#4285f4', sheets: ['Таблица', SHEET_RESULTS, 'Карточка команды', 'Elo_история', KEY_SHEET, 'Статистика_КХЛ', 'Статистика_НХЛ', 'Вратари_сегодня'] },
-    { icon: '🟪', name: 'агент и досье', color: '#9334e6', sheets: [AGENT_SHEET, SCOUT_SHEET, DOSSIER_SHEET, SIGNAL_BOARD] },
-    { icon: '🟧', name: 'видео экспертов', color: '#ff6d01', sheets: [VIDEO_SHEET, PRESEASON_SHEET, PICKS_SHEET] },
+    { icon: '📌', name: 'главная', color: '#202124', sheets: [SHEET_HOME] },
+    { icon: '🟩', name: 'прогнозы и ставки', color: '#34a853', sheets: [SHEET_BRIEF, 'Что заходит', SHEET_ODDS, SHEET_VS, 'Купон дня', 'Мой купон', 'Точность', 'Банкролл', POST_SHEET, 'Ставки'] },
+    { icon: '🟦', name: 'лига и команды', color: '#4285f4', sheets: ['Таблица', 'Карточка команды', 'Статистика_КХЛ', 'Статистика_НХЛ', KEY_SHEET, DOSSIER_SHEET, AGENT_SHEET, 'Вратари_сегодня'] },
+    { icon: '🟧', name: 'видео экспертов', color: '#ff6d01', sheets: [VIDEO_SHEET] },
     { icon: '🟨', name: 'канал и игра', color: '#fbbc04', sheets: [GAME_VIEW, GAME_VIEW_OLD, NEWS_QUEUE_SHEET] },
-    { icon: '⬛', name: 'ваши настройки', color: '#5f6368', sheets: [SHEET_TWEAKS, SHEET_TEAMS, POST_EMOJI_SHEET, 'Стартовый_рейтинг', EXPERT_SHEET, AUTO_SHEET] },
+    { icon: '⬛', name: 'ваши настройки', color: '#5f6368', sheets: [SHEET_TWEAKS, AUTO_SHEET] },
+    { icon: '🗂', name: 'данные модели', color: '#9aa0a6', sheets: ['прогнозы', SHEET_RESULTS] },
     { icon: '⬜', name: 'служебные (скрыты)', color: '#cccccc', hide: true, sheets: ['Data', SHEET_ELO, 'Parser_Data', 'Форма_расчет', 'Результаты 2025-26', 'Таблица 2025-26',
       'Броски_кэш', 'Броски_debug', 'Выездные_серии', 'Статистика_debug', SHEET_ODDS_LOG, HIST_ODDS_SHEET, GAME_PLAYERS, GAME_PICKS, LIVE_LOG, DOSSIER_LOG,
       SIGNAL_SHEET, LINEUP_SHEET, LINEUP_WATCH_SHEET, VIDEO_RAW_SHEET, SCOUT_SEEN_SHEET, NEWS_LIVE_SHEET, 'Таблица_история', 'Самопроверка', SHEET_CONTEXT,
-      DIAG_SHEET, NEWS_DIAG_SHEET, LINEUP_DIAG_SHEET, 'Диагностика_НХЛ', 'КХЛ_матчи_приложение', 'Диагностика_КХЛ_приложение', 'Статистика_НХЛ_история', AUTO_LOG_SHEET] }
+      DIAG_SHEET, NEWS_DIAG_SHEET, LINEUP_DIAG_SHEET, 'Диагностика_НХЛ', 'КХЛ_матчи_приложение', 'Диагностика_КХЛ_приложение', 'Статистика_НХЛ_история', typeof AUTO_LOG_SHEET === 'string' ? AUTO_LOG_SHEET : 'Журнал_автоматики',
+      // справочники и журналы — открываются кнопками меню или вручную
+      SHEET_TEAMS, POST_EMOJI_SHEET, 'Стартовый_рейтинг', EXPERT_SHEET, SCOUT_SHEET, SIGNAL_BOARD, 'Elo_история', PRESEASON_SHEET, PICKS_SHEET,
+      'Эксперты_память', 'Сравнение_NeurHL', 'Россияне_НХЛ', 'Удаления_НХЛ', 'Диагностика_результатов', 'Диагностика_новостей', 'Диагностика_составов', 'Контекст и новости'] }
   ];
+}
+
+/* ── 📌 Главная: оглавление таблицы (первая вкладка) ──
+ * Вкладку в Google Таблицах нельзя закрепить, поэтому важное собрано на первой вкладке: группы, ссылки на листы и одна строка — зачем лист.
+ * Перерисовывается каждое утро (ссылки по id листов не ломаются при переименовании). Один раз сама наводит порядок (TIDY_V2):
+ * порядок вкладок по группам, служебные и редкие листы скрыты. */
+var SHEET_HOME = '📌 Главная';
+var HOME_NOTES = {
+  'Прогнозы — кратко': 'все матчи ближайших дней: время, прогноз Джарвиса, лучший прогноз, кэфы, счёт',
+  'Что заходит': 'какие ставки чаще заходят у команд за сезон + конструктор матча внизу',
+  'Коэффициенты': 'линия Pinnacle на ближайшие матчи и результаты прошлых',
+  'Модель vs рынок': 'чья логика точнее: таблица против букмекера',
+  'Купон дня': 'самые уверенные события дня', 'Мой купон': 'собрать свой купон и посчитать вероятность',
+  'Точность': 'как часто угадывает модель, Brier, разбивка по фаворитам', 'Банкролл': 'симуляция ставок по кэфам Pinnacle',
+  'Посты': 'посты-прогнозы, которые бот прислал вам',
+  'Таблица': 'турнирная таблица и рейтинг силы', 'Карточка команды': 'всё о команде и очных встречах — выбор в жёлтых ячейках',
+  'Статистика_КХЛ': 'броски, большинство, вратари по командам', 'Статистика_НХЛ': 'статистика команд НХЛ',
+  'Ключевые_игроки': 'лидеры и основной вратарь по последним матчам', 'Досье_команд': 'травмы, тренер, форма — сводка агента',
+  'Агент_сводки': 'разбор агента перед каждым матчем', 'Видео_эксперты': 'вставьте ссылку на ролик — Gemini разберёт мнение эксперта',
+  'Угадай победителей': 'игра для подписчиков', 'Обыграй Джарвиса': 'игра для подписчиков', 'Новости': 'очередь новостного канала',
+  'Мои поправки': 'ваши поправки к силе команд', 'Автоматика': 'что таблица делает сама и когда запускалась',
+  'прогнозы': 'сырые данные модели по каждому матчу', 'результаты матчей': 'расписание и счёт всех матчей'
+};
+function homeRender_(ss) {
+  ss = ss || SpreadsheetApp.getActive();
+  var sh = ss.getSheetByName(SHEET_HOME);
+  if (!sh) { sh = ss.insertSheet(SHEET_HOME, 0); }
+  sh.clear();
+  try { sh.setHiddenGridlines(true); } catch (e) {}
+  var rows = [['📌  ' + (typeof VIDEO_LEAGUE === 'string' ? VIDEO_LEAGUE : '') + ' · JARVIS — оглавление', ''],
+    ['Нажмите на название — откроется лист. Скрытые служебные листы: ПКМ по вкладкам внизу → «Показать скрытые листы».', '']];
+  var heads = [], links = [];
+  sheetGroups_().forEach(function (g) {
+    if (g.hide || g.name === 'главная') return;
+    var have = g.sheets.filter(function (n) { var s = n && ss.getSheetByName(n); return s && !s.isSheetHidden(); });
+    if (!have.length) return;
+    rows.push(['', '']); rows.push([g.icon + ' ' + g.name.toUpperCase(), '']); heads.push(rows.length);
+    have.forEach(function (n) {
+      rows.push(['=HYPERLINK("#gid=' + ss.getSheetByName(n).getSheetId() + '";"' + n.replace(/"/g, '""') + '")', HOME_NOTES[n] || '']);
+      links.push(rows.length);
+    });
+  });
+  sh.getRange(1, 1, rows.length, 2).setValues(rows);
+  sh.getRange(1, 1).setFontSize(16).setFontWeight('bold');
+  sh.getRange(2, 1).setFontColor('#5f6368').setFontStyle('italic');
+  heads.forEach(function (r) { sh.getRange(r, 1, 1, 2).setFontWeight('bold').setBackground('#e8eaed'); });
+  links.forEach(function (r) { sh.getRange(r, 1).setFontWeight('bold'); sh.getRange(r, 2).setFontColor('#3c4043'); });
+  sh.setColumnWidth(1, 230); sh.setColumnWidth(2, 640);
+  try { sh.setTabColor('#202124'); } catch (e) {}
+  return { links: links.length };
+}
+/** Порядок вкладок по группам (главная — первой), служебные скрыты. Без окон — для автоматики и кнопки. */
+function sheetsTidy_(ss) {
+  ss = ss || SpreadsheetApp.getActive();
+  var r = sheetsDecorate_(ss, true), pos = 1, active = null;
+  try { active = ss.getActiveSheet(); } catch (e) {}
+  homeRender_(ss);
+  sheetGroups_().forEach(function (g) {
+    if (g.hide) return;
+    g.sheets.forEach(function (n) {
+      var sh = n && ss.getSheetByName(n);
+      if (!sh || sh.isSheetHidden()) return;
+      try { ss.setActiveSheet(sh); ss.moveActiveSheet(pos++); } catch (e) {}
+    });
+  });
+  try { ss.setActiveSheet(ss.getSheetByName(SHEET_HOME) || active); } catch (e) {}
+  return r;
+}
+/** Каждое утро: обновить «Главную»; один раз — навести порядок во вкладках. */
+function sheetsHomeDaily_(ss) {
+  var p = PropertiesService.getScriptProperties();
+  if (p.getProperty('TIDY_V2') !== '1') { sheetsTidy_(ss); p.setProperty('TIDY_V2', '1'); return; }
+  homeRender_(ss);
 }
 
 /** Цвета вкладок по группам; hide — ещё и скрыть служебные. {colored, hidden[], other[]} */
@@ -1736,26 +1815,15 @@ function sheetsDecorate_(ss, hide) {
   return { colored: colored, hidden: hidden, other: other };
 }
 
-/** Кнопка «Навести порядок»: вкладки по группам и цветам, служебные листы скрыты. */
+/** Кнопка «Навести порядок»: «Главная» первой, вкладки по группам и цветам, служебные листы скрыты. */
 function tidyUpSheets_() {
-  var ss = SpreadsheetApp.getActive(), pos = 1;
-  // порядок вкладок: группы слева направо (скрытые листы не трогаем — их нельзя сделать активными, не показав)
-  sheetGroups_().forEach(function (g) {
-    if (g.hide) return;
-    g.sheets.forEach(function (n) {
-      var sh = n && ss.getSheetByName(n);
-      if (!sh || sh.isSheetHidden()) return;
-      try { ss.setActiveSheet(sh); ss.moveActiveSheet(pos++); } catch (e) {}
-    });
-  });
-  var r = sheetsDecorate_(ss, true);
-  try { var first = ss.getSheetByName(SHEET_BRIEF) || ss.getSheetByName('прогнозы'); if (first) ss.setActiveSheet(first); } catch (e) {}
-  uiAlert_('Готово. Цвет вкладки — это группа:\n\n' +
+  var ss = SpreadsheetApp.getActive(), r = sheetsTidy_(ss);
+  uiAlert_('Готово. Первая вкладка — «' + SHEET_HOME + '»: оглавление со ссылками. Цвет вкладки — это группа:\n\n' +
     sheetGroups_().filter(function (g) { return !g.hide; }).map(function (g) {
       var have = g.sheets.filter(function (n) { var sh = n && ss.getSheetByName(n); return sh && !sh.isSheetHidden(); });
       return g.icon + ' ' + g.name + (have.length ? ': ' + have.join(', ') : '');
     }).join('\n') +
-    '\n\nСкрыто служебных листов: ' + (r.hidden.length ? r.hidden.length : 'уже были скрыты') + ' — это сырые данные, журналы и диагностика для формул и скриптов. ' +
+    '\n\nСкрыто листов: ' + (r.hidden.length ? r.hidden.length : 'уже были скрыты') + ' — сырые данные, журналы, справочники и диагностика. ' +
     'Кнопки проверок сами откроют свой лист. Вернуть любой: ПКМ по вкладке внизу → «Показать скрытые листы».' +
     (r.other.length ? '\n\nБез группы (ваши или новые листы — не трогал): ' + r.other.join(', ') + '.' : ''));
   return r;
@@ -3198,7 +3266,7 @@ function updateBankrollSimulation_() {
         var key = dateOnlyKey_(row[0]) + '|' + row[1];
         var oldOdds = Number(row[6]), oldSource = row[7];
         if (!isNaN(oldOdds) && oldOdds > 0) {
-          manualOverrides[key] = { odds: oldOdds, wasManual: (oldSource === 'ручной') };
+          manualOverrides[key] = { odds: oldOdds, wasManual: (oldSource === 'ручной'), src: String(oldSource || '') };
         }
       });
       debugInfo += '- Прочитано непустых старых строк: ' + nonEmptyOld + ', из них с числом в G: ' + Object.keys(manualOverrides).length + '\n';
@@ -3237,6 +3305,16 @@ function updateBankrollSimulation_() {
   rows.sort(function (a, b) {
     return dateOnlyKey_(a.date) < dateOnlyKey_(b.date) ? -1 : (dateOnlyKey_(a.date) > dateOnlyKey_(b.date) ? 1 : 0);
   });
+  // Настоящие кэфы Pinnacle на победу с учётом ОТ из журнала линий (с 10.10.2026; раньше почти все ставки шли по «расчётному»
+  // кэфу из вероятности самой модели — минус маржа заранее, и лист проверял только угадываемость, а не выгоду).
+  // Берём кэф «при публикации» (что видели подписчики), нет его — последний до матча.
+  var lineOdds = {};
+  try { lineOdds = readOddsLog_(ss); } catch (eL) { lineOdds = {}; }
+  var pinOf = function (m, home) {
+    var o = lineOdds[(m.date instanceof Date ? sheetDayKey_(m.date) : dateOnlyKey_(m.date)) + '|' + String(m.home).trim() + '|' + String(m.away).trim()];
+    var ml = o && (o.pubOdds || o.mlOdds);
+    return ml ? ml[home ? 0 : 1] : null;
+  };
 
   var bankroll = startBankroll;
   var outRows = [];
@@ -3247,16 +3325,18 @@ function updateBankrollSimulation_() {
     var favoredHome = m.chH >= m.chA;
     var probability = favoredHome ? m.chH : m.chA;
     var favoredTeam = favoredHome ? m.home : m.away;
-    var realOdds = favoredHome ? m.oddsH : m.oddsA;
-    var usedFallback = !realOdds;
-    var computedOdds = realOdds || (1 / probability) * (1 - BOOKMAKER_MARGIN);
-    var computedSource = usedFallback ? 'расчётный' : 'реальный';
+    var realOdds = favoredHome ? m.oddsH : m.oddsA, pin = realOdds ? null : pinOf(m, favoredHome);
+    var calcOdds = (1 / probability) * (1 - BOOKMAKER_MARGIN);
+    var computedOdds = realOdds || pin || calcOdds;
+    var computedSource = realOdds ? 'реальный' : pin ? 'Pinnacle' : 'расчётный';
 
     var matchKey = dateOnlyKey_(m.date) + '|' + m.home + ' — ' + m.away;
     var prev = manualOverrides[matchKey];
     var odds = computedOdds, source = computedSource;
     if (prev) {
-      var differsFromComputed = Math.abs(prev.odds - computedOdds) > 0.005;
+      // правка пользователя — кэф в G не совпадает с тем, что скрипт ставил туда сам при прошлой пересборке
+      var auto = prev.src === 'расчётный' ? calcOdds : computedOdds;
+      var differsFromComputed = Math.abs(prev.odds - auto) > 0.005;
       if (prev.wasManual || differsFromComputed) {
         odds = prev.odds;
         source = 'ручной';
@@ -3313,8 +3393,8 @@ function updateBankrollSimulation_() {
       ? 'Важно: у ' + computedCount + ' из ' + outRows.length + ' ставок коэффициент расчётный — выведен из вероятности самой модели ' +
         'за вычетом маржи букмекера. У такой ставки ожидаемый результат заранее минус 7%, поэтому итог этого листа ' +
         'показывает только, как часто модель угадывает, а не выгодна ли она на деле. Проверить выгодность можно ' +
-        'только по настоящим коэффициентам букмекера — впишите их в столбец G.'
-      : 'Все коэффициенты вписаны вручную — итог отражает реальный результат ставок по ним.');
+        'только по настоящим коэффициентам букмекера — впишите их в столбец G. Остальные ставки — по кэфу Pinnacle на момент публикации.'
+      : 'Коэффициенты настоящие: Pinnacle на момент публикации (или вписанные вручную) — итог показывает реальный результат ставок.');
   sh.setRowHeight(3, 48);
 
   sh.getRange(headerRow, 1, 1, 11).setValues([[
@@ -3339,7 +3419,7 @@ function updateBankrollSimulation_() {
     Math.round(betPercent * 1000) / 10 + '% банка.\n\n' +
     (stakeLowered ? 'Доля ставки снижена с 25% до 2%: при 25% пара неудачных дней обнуляет банк, а удачная серия раздувает итог в разы. ' +
                     'Своё значение можно вписать в B2.\n\n' : '') +
-    'Помните: пока коэффициенты расчётные, этот лист проверяет угадываемость, а не выгодность — подробности в строке 3.'
+    (computedCount ? 'Ставок с расчётным кэфом (нет линии Pinnacle): ' + computedCount + ' — по ним лист проверяет угадываемость, а не выгодность, подробности в строке 3.' : 'Все ставки — по настоящим кэфам.')
   );
 }
 
@@ -5126,6 +5206,7 @@ function agdLine_(s) {
 
 function agdFinish_(ss, state) {
   try { sheetsDecorate_(ss, false); } catch (e) { /* цвета вкладок — не критично */ }
+  try { sheetsHomeDaily_(ss); } catch (e) { /* оглавление — не критично */ }
   var lines = state.lines;
 
   var extra = [];
