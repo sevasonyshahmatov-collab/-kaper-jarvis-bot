@@ -98,6 +98,7 @@ class Sheet {
     getAnchorCell() { return this.sheet.getRange(this.row, this.col); }, getScript() { return this.script; },
     remove: () => { this.images = this.images.filter(x => x !== im); } }; this.images.push(im); return im; }
   getImages() { return (this.images || []).slice(); }
+  setActiveRange(r) { this.ss.setActiveSheet(this); this.activeRange = r; return r; } getActiveRange() { return this.activeRange || this.getRange(1, 1); }
   insertRowsAfter(r, n) { this.maxRows += n; return this; } insertColumnsAfter(c, n) { this.maxCols += n; return this; }
   insertRowsBefore(r, n) {                                             // строки r… сдвигаются вниз, как в Таблице
     const moved = new Map();

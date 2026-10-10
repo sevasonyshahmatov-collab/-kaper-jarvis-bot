@@ -1807,6 +1807,9 @@ function onSelectionChange(e) {
     var name = String(cell.getDisplayValue() || '').trim(), ss = sh.getParent(), to = name && ss.getSheetByName(name);
     if (!to || to.getName() === SHEET_HOME) return;
     if (to.isSheetHidden()) to.showSheet();
+    // курсор «Главной» — в A1: при возврате на лист Google восстанавливает прошлую выделенную ячейку, и без этого
+    // срабатывал переход на лист, нажатый в прошлый раз (а не тот, на который нажали сейчас)
+    try { sh.setActiveRange(sh.getRange(1, 1)); } catch (e2) { /* не критично */ }
     ss.setActiveSheet(to);
   } catch (err) { /* переход по ссылке остаётся */ }
 }
