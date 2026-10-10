@@ -15908,6 +15908,24 @@ var SIDES_PROP = 'SIDES_4K_';               // + день: баннеры за �
 var SIDES_HOUR_MSK = 13;                // с этого часа по МСК
 var SIDES_WAIT_H = 2;                       // сколько часов ждать линию П1/Х/П2 по всем матчам
 
+/** Рисовалка на GitHub уже умеет баннеры: в workflow ветки по умолчанию есть событие «sides» (событие repository_dispatch
+ *  берёт workflow оттуда — иначе заказ молча пропадёт). Да — запоминаем навсегда, нет — перепроверяем раз в 30 мин. */
+function sidesReady_() {
+  var p = PropertiesService.getScriptProperties(), v = p.getProperty('SIDES_READY') || '';
+  if (v === '1') return true;
+  if (v && Date.now() - Number(v) < 30 * 60000) return false;
+  var ok = false;
+  try {
+    var r = itogiGithub_('get', '/repos/' + ITOGI_REPO + '/contents/.github/workflows/itogi.yml');
+    if (r && r.getResponseCode() === 200) {
+      var yml = Utilities.newBlob(Utilities.base64Decode(String(JSON.parse(r.getContentText()).content || '').replace(/\s/g, ''))).getDataAsString('UTF-8');
+      ok = /types:\s*\[[^\]]*\bsides\b/.test(yml);
+    }
+  } catch (e) { ok = false; }
+  p.setProperty('SIDES_READY', ok ? '1' : String(Date.now()));
+  return ok;
+}
+
 /** Заказать баннеры дня вам в личку: {sent, odds} или {skipped: причина}. */
 function sidesDispatch_(ss, day, items) {
   var p = PropertiesService.getScriptProperties(), chat = p.getProperty('TG_ADMIN_ID');
@@ -15926,7 +15944,7 @@ function sidesDispatch_(ss, day, items) {
 /** Из частых запусков: один раз за день, с SIDES_HOUR_MSK по МСК (линию ждём до SIDES_WAIT_H ч). */
 function sidesAuto_(day) {
   var p = PropertiesService.getScriptProperties(), h = Number(mskNow_('HH'));
-  if (h < SIDES_HOUR_MSK || p.getProperty(SIDES_PROP + day)) return;
+  if (h < SIDES_HOUR_MSK || p.getProperty(SIDES_PROP + day) || !sidesReady_()) return;
   try {
     var ss = SpreadsheetApp.getActive(), items = matchiItems_(ss, day);
     if ((!items.length || items.some(function (it) { return !it.odds; })) && h < SIDES_HOUR_MSK + SIDES_WAIT_H) return;   // ждём линию (и расписание)
@@ -15943,6 +15961,12 @@ function sidesAuto_(day) {
 function sidesNow_() {
   var ss = SpreadsheetApp.getActive(), day = bannersDay_();
   for (var i = 0; i < 7 && !agentMatchesOfDay_(ss, day).length; i++) day = addDaysKey_(day, 1);
+  var pp = PropertiesService.getScriptProperties();
+  if (pp.getProperty('SIDES_READY') !== '1') pp.deleteProperty('SIDES_READY');   // кнопка — проверить GitHub заново, не дожидаясь 30 мин
+  if (pp.getProperty('GITHUB_TOKEN') && !sidesReady_()) {
+    uiAlert_('Баннеры пока не заказать: на GitHub (ветка main) ещё прежняя версия рисовалки — без баннеров 4К. Как только её обновят, баннеры пойдут сами.');
+    return;
+  }
   try {
     var r = sidesDispatch_(ss, day);
     if (r.skipped) { uiAlert_('Баннеры не заказаны: ' + r.skipped + '.' + (/GitHub/.test(r.skipped) ? ' Подключите: «🔑 Подключить GitHub для постеров».' : '')); return; }
