@@ -52,7 +52,7 @@ class Board(C.Reel):
         self.strokes = []
         self._plan()
         self.dur = self.b(15)
-        self.cover_t = self.b(11.5)
+        self.cover_t = self.b(12.8)
         self._prep()
 
     # координаты на площадке в футах: x 0..85 (поперёк), y 0..100 (от центральной линии к борту)

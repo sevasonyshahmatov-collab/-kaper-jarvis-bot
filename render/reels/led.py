@@ -30,7 +30,7 @@ class Led(C.Reel):
         self.short_pick, self.pick, self.coef, self.when = short_pick, pick, coef, when
         self.league = 'НХЛ' if str(league).upper() == 'NHL' else 'КХЛ'
         self.dur = self.b(24)
-        self.cover_t = self.b(14.5)
+        self.cover_t = self.b(12) + 0.45
         self._prep()
 
     def _prep(self):
@@ -133,7 +133,7 @@ class Led(C.Reel):
             k = C.out_back(C.seg(t, b(12), b(12) + 0.3), 2.0)
             big = ptext(self.short_pick, 32, AMBER, (120, 40, 0))
             C.put(im, C.scale(big, max(0.1, k), Image.NEAREST), LW_ / 2, 30)
-            self.marquee(im, self.pick.upper() + ' ★', 60, t - b(12), 44, 16, WHITE)
+            self.marquee(im, self.pick.upper() + ' ★', 60, max(0.0, t - b(12) - 0.7), 44, 16, WHITE)   # строка сначала стоит
             if int(t / (u / 2)) % 2 == 0 or t < b(14):
                 C.put(im, ptext('КЭФ ' + C.fmt_k(self.coef), 8, (60, 255, 120), None), LW_ / 2, 92)
         else:

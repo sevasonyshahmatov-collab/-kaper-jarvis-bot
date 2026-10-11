@@ -97,7 +97,7 @@ class Pixel(C.Reel):
         self.pick, self.coef, self.when = pick, coef, when
         self.league = 'NHL' if str(league).upper() == 'NHL' else 'KHL'
         self.dur = self.b(12.4)
-        self.cover_t = self.b(7.6)
+        self.cover_t = self.b(9.3)
         rnd = np.random.default_rng(seed)
         self.stars = [(rnd.uniform(0, LW), rnd.uniform(0, LH), int(rnd.choice([1, 1, 2])), rnd.uniform(8, 40)) for _ in range(70)]
         self.pe = {k: pix_emblem(t, 44) for k, t in (('h', self.h), ('a', self.a))}

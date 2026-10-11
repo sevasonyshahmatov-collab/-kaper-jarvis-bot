@@ -74,33 +74,33 @@ class Top3(C.Reel):
         # цифра (параллакс: медленно уезжает)
         num = self.nums[i]
         k0 = C.out_expo(C.seg(t, t0, t0 + 0.6))
-        x = W - num.width / 2 + 160 - 60 * C.seg(t, t0, t0 + self.seg * u)
-        C.put(fr, num, x + (1 - k0) * 300, 780, k0)
+        x = W - num.width / 2 + 420 - 60 * C.seg(t, t0, t0 + self.seg * u)
+        C.put(fr, num, x + (1 - k0) * 300, 900, k0)
         # место
-        C.put(fr, C.text('МЕСТО', 'mono', 36, GRAY, 700, track=0.4), 100, 290, C.seg(t, t0, t0 + 0.3), anchor='tl')
+        C.put(fr, C.text('МЕСТО %d' % (len(self.picks) - i), 'mono', 44, GRAY, 700, track=0.4), 100, 400, C.seg(t, t0, t0 + 0.3), anchor='tl')
         # эмблемы и матч
         if lt >= 0.6 * u:
             q = C.seg(t, t0 + 0.6 * u, t0 + 1.0 * u)
             e1, e2 = p['h'].emb(230), p['a'].emb(230)
-            C.put(fr, C.with_shadow(e1, 16, 0.25, 12), 220, 560 + 40 * (1 - C.out_expo(q)), q)
-            C.put(fr, C.with_shadow(e2, 16, 0.25, 12), 480, 560 + 40 * (1 - C.out_expo(q)), C.seg(t, t0 + 0.75 * u, t0 + 1.1 * u))
+            C.put(fr, C.with_shadow(e1, 16, 0.25, 12), 220, 680 + 40 * (1 - C.out_expo(q)), q)
+            C.put(fr, C.with_shadow(e2, 16, 0.25, 12), 480, 680 + 40 * (1 - C.out_expo(q)), C.seg(t, t0 + 0.75 * u, t0 + 1.1 * u))
             m1, _ = reveal(C.text(p['h'].up, 'unb', 70, INK, 800, max_w=760), q)
             m2, _ = reveal(C.text(p['a'].up, 'unb', 70, INK, 800, max_w=760), C.seg(t, t0 + 0.7 * u, t0 + 1.1 * u))
-            C.put(fr, m1, 100, 760, anchor='tl')
-            C.put(fr, m2, 100, 850, anchor='tl')
-            C.put(fr, C.text('%s · %s' % (p['league'], p['when']), 'mono', 32, GRAY, 600), 100, 960, C.seg(t, t0 + 0.9 * u, t0 + 1.2 * u), anchor='tl')
+            C.put(fr, m1, 100, 880, anchor='tl')
+            C.put(fr, m2, 100, 970, anchor='tl')
+            C.put(fr, C.text('%s · %s' % (p['league'], p['when']), 'mono', 34, (70, 72, 80), 700), 100, 1080, C.seg(t, t0 + 0.9 * u, t0 + 1.2 * u), anchor='tl')
         # прогноз
         if lt >= 1.6 * u:
             q = C.seg(t, t0 + 1.6 * u, t0 + 2.0 * u)
             pl = self.plate(i)
             w = int(pl.width * C.out_expo(q))
             if w > 2:
-                C.put(fr, pl.crop((0, 0, w, pl.height)), 100, 1060, anchor='tl')
+                C.put(fr, pl.crop((0, 0, w, pl.height)), 100, 1160, anchor='tl')
         if lt >= 2.4 * u:
             q = C.seg(t, t0 + 2.4 * u, t0 + 2.8 * u)
             kp = self.kef(i)
             img, _ = reveal(kp, q)
-            C.put(fr, img, 100, 1240, anchor='tl')
+            C.put(fr, img, 100, 1320, anchor='tl')
         return fr
 
     def plate(self, i):
@@ -131,13 +131,16 @@ class Top3(C.Reel):
         if t < D:
             # крючок: строки выезжают из-под линии
             words = self.title.split('|')
+            y = 520
             for j, s in enumerate(words):
-                q = C.seg(t, 0.1 + j * 0.25, 0.6 + j * 0.25)
-                im, _ = reveal(C.text(s, 'unb', 118 if j == 0 else 78, INK, 900 if j == 0 else 700, max_w=920), q)
-                C.put(fr, im, 90, 560 + j * 150, anchor='tl')
+                q = C.seg(t, 0.1 + j * 0.2, 0.6 + j * 0.2)
+                tx = C.text(s, 'unb', 290 if j == 0 else 112, INK, 900 if j == 0 else 800, max_w=920)
+                im, _ = reveal(tx, q)
+                C.put(fr, im, 80, y, anchor='tl')
+                y += tx.height + (30 if j == 0 else 14)
             d = ImageDraw.Draw(fr)
-            d.line((90, 1010, 90 + 900 * C.out_expo(C.seg(t, 0.3, 1.4)), 1010), fill=INK + (255,), width=6)
-            C.put(fr, C.text('КХЛ + НХЛ', 'mono', 40, GRAY, 700, track=0.3), 90, 1050, C.seg(t, 0.8, 1.2), anchor='tl')
+            d.line((90, y + 40, 90 + 900 * C.out_expo(C.seg(t, 0.3, 1.4)), y + 40), fill=INK + (255,), width=8)
+            C.put(fr, C.text('КХЛ + НХЛ · ПО ВЕРОЯТНОСТИ', 'mono', 40, GRAY, 700, track=0.2), 90, y + 80, C.seg(t, 0.8, 1.2), anchor='tl')
         elif t < self.t_cta:
             i = int((t - D) / (self.seg * u))
             t0 = D + i * self.seg * u
@@ -159,16 +162,16 @@ class Top3(C.Reel):
             q = C.seg(t, self.t_cta, self.t_cta + 0.5 * u)
             fr.alpha_composite(self.tint_blob(C.TG_BLUE, 0.25), (-100, 300))
             im, _ = reveal(C.text('ВСЕ ПРОГНОЗЫ', 'unb', 104, INK, 900, max_w=920), q)
-            C.put(fr, im, 90, 560, anchor='tl')
+            C.put(fr, im, 90, 680, anchor='tl')
             im, _ = reveal(C.text('КАЖДЫЙ ДЕНЬ', 'unb', 104, INK, 900, max_w=920), C.seg(t, self.t_cta + 0.15, self.t_cta + 0.65))
-            C.put(fr, im, 90, 700, anchor='tl')
+            C.put(fr, im, 90, 820, anchor='tl')
             if t >= self.t_cta + 0.6 * u:
                 k = C.out_expo(C.seg(t, self.t_cta + 0.6 * u, self.t_cta + 1.1 * u))
                 pl = C.rrect(800, 150, 75, C.TG_BLUE)
                 C.put(pl, C.tg_icon(110, (255, 255, 255), C.TG_BLUE), 85, 75)
                 C.put(pl, C.text('TELEGRAM ' + C.HANDLE, 'unb', 46, (255, 255, 255), 800, max_w=600), 470, 75)
                 w = max(2, int(pl.width * k))
-                C.put(fr, pl.crop((0, 0, w, pl.height)), 90, 900, anchor='tl')
+                C.put(fr, pl.crop((0, 0, w, pl.height)), 90, 1030, anchor='tl')
         z = 1.0 + 0.02 * math.sin(t * 0.35)
         dx, dy = C.shake(t, D, 6, 0.25)
         fr = C.zoom(fr, z, dx=dx, dy=dy)

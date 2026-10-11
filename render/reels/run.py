@@ -21,12 +21,12 @@ TRACKS = {
     'north': (120 / 142, 27.09),     # North Area (сцена — 2 доли)
     'vace': (60 / 64, 12.05),        # vacemadest
     'jefe': (60 / 81, 11.89),        # JEFE
-    'rotten': (60 / 72, 12.74),      # ROTTEN
+    'rotten': (60 / 72, 15.25),      # ROTTEN (сильная доля 12,75 — за 3 доли до дропа)
     'kilo': (60 / 64, 10.08),        # Kilowatt
     'depto': (60 / 96.5, 9.98),      # DEPTO
-    'kizaru': (1.0, 15.26),          # Kizaru × Alblak 52 type beat
-    'quantum': (1.0, 7.64),          # EsDeeKid — QUANTUM
-    'slx': (60 / 95, 4.27),          # EsDeeKid — SLX (второй удар 14,38, стоп с 11,85)
+    'kizaru': (1.0, 16.04),          # Kizaru × Alblak 52 type beat (такты по 4 с: 16,04 · 20,04 · 24,05)
+    'quantum': (1.0, 8.01),          # EsDeeKid — QUANTUM (бас уходит 12,75–13,4)
+    'slx': (60 / 95, 5.08),          # EsDeeKid — SLX (тишина с 12,4, второй удар 15,18)
 }
 
 
@@ -44,8 +44,8 @@ def make(name):
         legs = [('Адмирал', 'Лада', 'П1', 'победа Адмирала', 1.89, '10:00'),
                 ('Трактор', 'Сибирь', 'П1', 'победа Трактора', 1.85, '14:00'),
                 ('Локомотив', 'Динамо Минск', 'П1', 'победа Локомотива', 1.82, '17:00')]
-        start = 1.75
-        r = coupon.Coupon(legs, '10.10.2026', 'KHL', u=u, drop=d - start, stop=11.85 - start, hit2=14.38 - start)
+        start = d - 4 * u
+        r = coupon.Coupon(legs, '10.10.2026', 'KHL', u=u, drop=d - start, stop=12.40 - start, hit2=15.18 - start)
         return r, 'slx', start
     if name == 'sim':
         from reels import sim
@@ -116,7 +116,7 @@ def make(name):
         picks = [('Ак Барс', 'Северсталь', 'KHL', 'Победа Ак Барса', 2.06, 'СБ 10.10 · 17:00 МСК', 'h'),
                  ('Трактор', 'Сибирь', 'KHL', 'Победа Трактора', 1.85, 'СБ 10.10 · 14:00 МСК', 'h'),
                  ('Нью-Джерси', 'Ванкувер', 'NHL', 'Победа Нью-Джерси', 1.63, 'СБ 10.10 · 22:30 МСК', 'h')]
-        r = top3.Top3('ТОП-3|ПРОГНОЗА НА СУББОТУ', picks, u=u, drop=drop)
+        r = top3.Top3('ТОП-3|ПРОГНОЗА|НА СУББОТУ', picks, u=u, drop=drop)
         return r, 'kizaru', d - drop
     raise SystemExit('нет формата: %s' % name)
 
