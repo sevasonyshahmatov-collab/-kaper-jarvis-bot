@@ -5,14 +5,24 @@
 с payload {"kind": "team", "job": "team/out/<день>/job.json"}. Здесь: выполнить скрипты рисования из задания
 и отправить сообщения по порядку.
 
+Режим согласия: утром команда шлёт владельцу предложения с кнопками (бот таблицы КХЛ, teamCallback_):
+  "buttons": "post"     — готовый пост ровно в том виде, как уйдёт в канал: «Опубликовать» (бот сразу копирует его в канал),
+                          «Поправить», «Не надо»; у альбома кнопки — следующим сообщением;
+  "buttons": "proposal" — предложение работы: «Да» (согласие пишется в team/INBOX.md, команда выполнит), «Нет», «Поправить».
+  "pid": "1012-3"       — номер предложения (месяц-день-№), по нему команда находит решение владельца в INBOX.
+Сама команда отправляет в канал только задания с "approved": "owner" и "qa": "ok" — то, что владелец одобрил кнопкой «Да».
+
 job.json:
 {
   "day": "2026-10-12",
   "qa": "ok",                              # без «ok» в канал не уходит ничего (только владельцу)
+  "approved": "owner",                     # только для заданий, одобренных владельцем; без него в канал — ничего
   "make": ["team/out/2026-10-12/make.py"], # скрипты рисования (запуск из корня репозитория, PYTHONPATH=render)
   "channel": "@jarvibet",                  # необязательно
   "messages": [
     {"to": "owner", "type": "text", "text": "Отчёт планёрки …"},
+    {"to": "owner", "type": "photo", "files": ["…"], "text": "подпись для канала", "buttons": "post", "pid": "1012-1"},
+    {"to": "owner", "type": "text", "text": "Предложение 1012-2: …", "buttons": "proposal", "pid": "1012-2"},
     {"to": "owner", "type": "documents", "files": ["team/out/2026-10-12/a.jpg"], "captions": ["черновик"]},
     {"to": "channel", "type": "photo", "files": ["team/out/2026-10-12/b.jpg"], "text": "подпись"},
     {"to": "channel", "type": "album", "files": ["…", "…"], "text": "подпись"},
@@ -64,20 +74,38 @@ def _path(p):
     return p if os.path.isabs(p) else os.path.join(ROOT, p)
 
 
+def markup(msg, album=None):
+    """Кнопки под предложением владельцу (обрабатывает бот таблицы КХЛ — teamCallback_)."""
+    pid, kind = str(msg.get('pid') or ''), msg.get('buttons')
+    if kind == 'post':
+        pub = 'tm|pubm|%s|%d|%d' % (pid, album[0], album[1]) if album else 'tm|pub|%s' % pid
+        rows = [[{'text': 'Опубликовать', 'callback_data': pub}],
+                [{'text': 'Поправить', 'callback_data': 'tm|fix|' + pid}, {'text': 'Не надо', 'callback_data': 'tm|no|' + pid}]]
+    elif kind == 'proposal':
+        rows = [[{'text': 'Да', 'callback_data': 'tm|ok|' + pid}, {'text': 'Нет', 'callback_data': 'tm|no|' + pid},
+                 {'text': 'Поправить', 'callback_data': 'tm|fix|' + pid}]]
+    else:
+        return {}
+    return {'reply_markup': json.dumps({'inline_keyboard': rows}, ensure_ascii=False)}
+
+
 def send(token, chat, msg, to_channel):
     import itogi_job as ij
     kind = msg.get('type', 'text')
     text = str(msg.get('text') or '')
-    if to_channel:
+    if to_channel or msg.get('buttons') == 'post':          # пост для канала — без эмодзи (правило канала)
         text = ij.no_emoji(text)
     mode = {'parse_mode': 'HTML'} if msg.get('html') else {}
+    kb = {} if to_channel else markup(msg)
     files = [_path(p) for p in msg.get('files') or []]
     if kind == 'text':
-        for part in _chunks(text, TEXT_MAX):
-            _api(token, 'sendMessage', dict(chat_id=chat, text=part, disable_web_page_preview='true', **mode))
+        parts = list(_chunks(text, TEXT_MAX))
+        for i, part in enumerate(parts):
+            extra = kb if i == len(parts) - 1 else {}
+            _api(token, 'sendMessage', dict(chat_id=chat, text=part, disable_web_page_preview='true', **mode, **extra))
     elif kind == 'photo':
         with open(ij.tg_ready(files[0]), 'rb') as f:
-            _api(token, 'sendPhoto', dict(chat_id=chat, caption=text[:CAPTION_MAX], **mode), {'photo': f})
+            _api(token, 'sendPhoto', dict(chat_id=chat, caption=text[:CAPTION_MAX], **mode, **kb), {'photo': f})
     elif kind == 'album':
         media, opened = [], {}
         for i, p in enumerate(files[:10]):
@@ -87,10 +115,15 @@ def send(token, chat, msg, to_channel):
             media.append(m)
             opened['p%d' % i] = open(ij.tg_ready(p), 'rb')
         try:
-            _api(token, 'sendMediaGroup', {'chat_id': chat, 'media': json.dumps(media, ensure_ascii=False)}, opened)
+            res = _api(token, 'sendMediaGroup', {'chat_id': chat, 'media': json.dumps(media, ensure_ascii=False)}, opened)
         finally:
             for f in opened.values():
                 f.close()
+        if kb and res:                                       # у альбома кнопок нет — следующим сообщением
+            ids = [r_['message_id'] for r_ in res]
+            head = (text.split('\n')[0] or 'альбом')[:80]
+            _api(token, 'sendMessage', dict(chat_id=chat, text='%s — альбом выше: %s' % (msg.get('pid', ''), head),
+                                            **markup(msg, (ids[0], len(ids)))))
     elif kind == 'documents':
         caps = list(msg.get('captions') or [])
         ij.send_documents(token, chat, [(p, (caps[i] if i < len(caps) else '')[:CAPTION_MAX]) for i, p in enumerate(files)])
@@ -98,12 +131,12 @@ def send(token, chat, msg, to_channel):
             _api(token, 'sendMessage', dict(chat_id=chat, text=text[:TEXT_MAX], **mode))
     elif kind == 'video':
         with open(files[0], 'rb') as f:
-            _api(token, 'sendVideo', dict(chat_id=chat, caption=text[:CAPTION_MAX], supports_streaming='true', **mode),
+            _api(token, 'sendVideo', dict(chat_id=chat, caption=text[:CAPTION_MAX], supports_streaming='true', **mode, **kb),
                  {'video': f}, timeout=300)
     elif kind == 'poll':
         opts = [str(o)[:100] for o in msg.get('options') or []][:10]
-        _api(token, 'sendPoll', {'chat_id': chat, 'question': str(msg.get('question', ''))[:300],
-                                 'options': json.dumps(opts, ensure_ascii=False), 'is_anonymous': 'true'})
+        _api(token, 'sendPoll', dict({'chat_id': chat, 'question': str(msg.get('question', ''))[:300],
+                                      'options': json.dumps(opts, ensure_ascii=False), 'is_anonymous': 'true'}, **kb))
     else:
         raise RuntimeError('неизвестный тип сообщения: %s' % kind)
 
@@ -122,7 +155,7 @@ def main(payload):
     token = os.environ.get('TG_BOT_TOKEN')
     msgs = job.get('messages') or []
     channel = str(job.get('channel') or '@jarvibet')
-    qa_ok = str(job.get('qa', '')).lower() == 'ok'
+    qa_ok = str(job.get('qa', '')).lower() == 'ok' and str(job.get('approved', '')).lower() == 'owner'
     for m in msgs:
         print('→ %s · %s · %s' % (m.get('to'), m.get('type', 'text'), (m.get('text') or m.get('question') or '')[:80]))
     if not token:
@@ -133,7 +166,8 @@ def main(payload):
     for m in msgs:
         to_channel = m.get('to') == 'channel'
         if to_channel and (not qa_ok or sent_channel >= CHANNEL_MAX):
-            errors.append('в канал не отправлено (нет qa=ok или превышен лимит): %s' % (m.get('text') or m.get('question') or '')[:60])
+            errors.append('в канал не отправлено (нет согласия владельца / qa=ok или превышен лимит): %s'
+                          % (m.get('text') or m.get('question') or '')[:60])
             continue
         try:
             send(token, channel if to_channel else owner, m, to_channel)

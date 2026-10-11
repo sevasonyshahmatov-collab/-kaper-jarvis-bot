@@ -7062,6 +7062,7 @@ function gameHandleUpdate_(update) {
       tg_('answerCallbackQuery', { callback_query_id: q.id, text: gameMeShort_(ss, String(q.from.id)), show_alert: true });
       return;
     }
+    if (parts[0] === 'tm') { teamCallback_(q, parts); return; }      // кнопки под предложениями команды JARVIS
     if (parts[0] !== 'p') { tg_('answerCallbackQuery', { callback_query_id: q.id }); return; }
     var res = gamePick_(ss, q.from, parts[1], parts[2] === 'a' ? 'a' : 'h');
     tg_('answerCallbackQuery', { callback_query_id: q.id, text: res.text, show_alert: false });
@@ -7076,6 +7077,7 @@ function gameHandleUpdate_(update) {
   var arg = (words[1] || '').toLowerCase();
   var chat = msg.chat.id;
   botEnsureCommands_();
+  if (teamBotMessage_(msg, cmd)) return;        // команда JARVIS: /задача, /задачи, /отчёт, ответ «что поправить» (админам)
   if (cmd === '/today' || cmd === '/team' || cmd === '/table') {
     var info;
     try { info = cmd === '/today' ? botTodayText_(ss) : cmd === '/table' ? botTableText_(ss) : botTeamText_(ss, words.slice(1).join(' ')); }
@@ -15398,6 +15400,132 @@ function sidesBot_(msg, arg) {
         (odds < items.length ? '; линия есть у ' + odds + ' из ' + items.length : '') + ') — пришлю файлами через 1–2 минуты.' + note);
     } catch (e) { send('⚠️ ' + name + ': баннеры не заказаны — ' + escHtml_(e.message)); }
   });
+}
+
+/* ── 👥 Команда JARVIS в личке бота (только админам канала) ──
+ *  Команда ИИ-агентов (папка team/ в репозитории) по утрам присылает сюда предложения — каждое со своим номером (1012-3)
+ *  и кнопками; готовый пост — ровно в том виде, в каком уйдёт в канал. Без согласия владельца команда ничего не делает.
+ *  Кнопки: «Опубликовать» — копия этого черновика сразу в канал (tm|pub|номер; альбом — tm|pubm|номер|id|n), «Да» — согласие,
+ *  команда выполнит (tm|ok|номер), «Нет» (tm|no|номер), «Поправить» — бот спросит, что изменить (tm|fix|номер).
+ *  Команды: «/задача текст» (или «задача: текст»), «/задачи» — открытые поручения и задачи, «/отчёт» — последняя запись журнала.
+ *  Всё записывается строкой в team/INBOX.md на ветке команды; команда разбирает его на каждом запуске.
+ *  Доступ к GitHub — тот же GITHUB_TOKEN, что заказывает постеры (Contents: Read and write). */
+var TEAM_BRANCH = 'claude/project-migration-old-account-6e31vz';
+var TEAM_CHANNEL = '@jarvibet';
+var TEAM_FIX_ASK = '✏️ Что поправить в предложении';
+
+/** Файл репозитория с ветки команды: {text, sha}. */
+function teamFile_(path) {
+  var r = itogiGithub_('get', '/repos/' + ITOGI_REPO + '/contents/' + encodeURI(path) + '?ref=' + encodeURIComponent(TEAM_BRANCH));
+  if (!r) throw new Error('GitHub не подключён');
+  if (r.getResponseCode() !== 200) throw new Error('GitHub ответил ' + r.getResponseCode() + ' на ' + path);
+  var j = JSON.parse(r.getContentText());
+  return { text: Utilities.newBlob(Utilities.base64Decode(String(j.content).replace(/\s/g, ''))).getDataAsString('UTF-8'), sha: j.sha };
+}
+
+/** Дописать строку в конец файла на ветке команды (коммит через GitHub; файл как раз меняли — ещё попытка). */
+function teamAppend_(path, line, message) {
+  for (var k = 0; k < 3; k++) {
+    var f = teamFile_(path);
+    var r = itogiGithub_('put', '/repos/' + ITOGI_REPO + '/contents/' + encodeURI(path), {
+      message: message, branch: TEAM_BRANCH, sha: f.sha,
+      content: Utilities.base64Encode(f.text.replace(/\s*$/, '\n') + line + '\n', Utilities.Charset.UTF_8) });
+    var code = r.getResponseCode();
+    if (code === 200 || code === 201) return;
+    if (code !== 409 && code !== 422) throw new Error('GitHub ответил ' + code + ': ' + r.getContentText().slice(0, 150));
+    Utilities.sleep(1500);
+  }
+  throw new Error('GitHub занят — попробуйте ещё раз');
+}
+
+function teamStamp_() { return Utilities.formatDate(new Date(), 'Europe/Moscow', 'dd.MM HH:mm'); }
+
+/** Сообщение в личке: если это команда для команды JARVIS — обработать и вернуть true. */
+function teamBotMessage_(msg, cmd) {
+  var chat = msg.chat.id, text = String(msg.text || '').trim(), rep = msg.reply_to_message;
+  var isTask = cmd === '/задача' || cmd === '/task' || /^задача\s*[:\-—]/i.test(text);
+  var isList = cmd === '/задачи' || cmd === '/tasks';
+  var isLog = cmd === '/отчёт' || cmd === '/отчет' || cmd === '/report';
+  var isFix = !!(rep && String(rep.text || '').indexOf(TEAM_FIX_ASK) === 0);
+  if (!isTask && !isList && !isLog && !isFix) return false;
+  if (!tgIsChannelAdmin_(msg.from.id)) { tgAdminDenied_(chat, msg.from.id); return true; }
+  var send = function (t) { tg_('sendMessage', { chat_id: chat, parse_mode: 'HTML', text: t, disable_web_page_preview: true }); };
+  if (!PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN')) {
+    send('⚠️ GitHub не подключён: в таблице меню «📣 … · ТГ группа» → «🔑 Подключить GitHub для постеров».'); return true;
+  }
+  try {
+    if (isTask || isFix) {
+      var body = isFix ? text : text.replace(/^\/\S+\s*/, '').replace(/^задача\s*[:\-—]\s*/i, '');
+      body = body.replace(/\s*\n\s*/g, ' / ').trim();
+      if (!body) { send('Напишите задачу после команды, например:\n<code>/задача сделать опрос на матч Ак Барс — СКА</code>'); return true; }
+      var head = String(rep && rep.text || '').split('\n');
+      var line = isFix ? 'поправить ' + ((head[0].match(/предложении\s+(\S+?)\?/) || [])[1] || '') + ' ' + (head[1] || '') + ': ' + body
+        : 'задача: ' + body;
+      teamAppend_('team/INBOX.md', '- [ ] ' + teamStamp_() + ' · ' + line, 'Inbox: owner request via Telegram');
+      send('✅ Передал команде: «' + escHtml_(body.slice(0, 300)) + '».\nКоманда возьмёт на ближайшем запуске (09:45, 13:45, 19:45 МСК) и пришлёт предложение сюда.');
+    } else if (isList) {
+      var inbox = teamFile_('team/INBOX.md').text.split('\n').filter(function (l) { return /^- \[ \]/.test(l); })
+        .map(function (l) { return '• ' + escHtml_(l.replace(/^- \[ \]\s*/, '')); });
+      var back = teamFile_('team/BACKLOG.md').text.split('\n').filter(function (l) { return /^\|\s*\d+\s*\|/.test(l) && !/сделано/.test(l); })
+        .map(function (l) { var c = l.split('|').map(function (x) { return x.trim(); }); return '• #' + c[1] + ' ' + escHtml_(c[2]) + ' — <i>' + escHtml_(c[4]) + '</i>'; });
+      send('📥 <b>Ваши поручения и решения, которые команда ещё не взяла</b>\n' + (inbox.length ? inbox.join('\n') : 'нет') +
+        '\n\n📋 <b>Задачи команды</b>\n' + (back.length ? back.slice(0, 25).join('\n') : 'всё сделано') +
+        '\n\nНовая задача: <code>/задача текст</code> · последний отчёт: /отчёт');
+    } else {
+      var log = teamFile_('team/LOG.md').text, i = log.lastIndexOf('\n## ');
+      var last = (i >= 0 ? log.slice(i + 1) : log).trim().replace(/^## /, '');
+      send('🗒 <b>Последний отчёт команды</b>\n\n' + escHtml_(last).slice(0, 3800));
+    }
+  } catch (e) { send('⚠️ Не получилось: ' + escHtml_(e.message)); }
+  return true;
+}
+
+/** Кнопки под предложениями команды (см. выше). */
+function teamCallback_(q, parts) {
+  var act = parts[1], pid = parts[2] || '', m = q.message;
+  var answer = function (t, alert) { tg_('answerCallbackQuery', { callback_query_id: q.id, text: t || '', show_alert: !!alert }); };
+  if (act === 'done' || !m) { answer(); return; }
+  if (!tgIsChannelAdmin_(q.from.id)) { answer('Только для администраторов канала', true); return; }
+  var title = '«' + (String(m.caption || m.text || '').split('\n')[0].trim().slice(0, 80) || 'без подписи') + '»';
+  var mark = function (label) {
+    tg_('editMessageReplyMarkup', { chat_id: m.chat.id, message_id: m.message_id,
+      reply_markup: { inline_keyboard: [[{ text: label, callback_data: 'tm|done' }]] } });
+  };
+  var cache = CacheService.getScriptCache(), key = 'tm' + m.chat.id + '_' + m.message_id;
+  try {
+    if (act === 'pub' || act === 'pubm' || act === 'ok' || act === 'no') {
+      if (cache.get(key)) { answer('Уже отмечено'); return; }
+      cache.put(key, act, 21600);
+    }
+    if (act === 'pub' || act === 'pubm') {
+      var r;
+      if (act === 'pubm') {
+        var first = Number(parts[3]), n = Math.min(10, Number(parts[4]) || 1), ids = [];
+        for (var k = 0; k < n; k++) ids.push(first + k);
+        r = tg_('copyMessages', { chat_id: TEAM_CHANNEL, from_chat_id: m.chat.id, message_ids: ids });
+      } else {
+        r = tg_('copyMessage', { chat_id: TEAM_CHANNEL, from_chat_id: m.chat.id, message_id: m.message_id,
+          reply_markup: { inline_keyboard: [] } });
+      }
+      if (!r || !r.ok) { cache.remove(key); throw new Error((r && r.description) || 'Telegram не ответил'); }
+      mark('✅ Опубликовано');
+      answer('Опубликовано в канал');
+      teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · опубликовано владельцем: ' + pid + ' ' + title, 'Inbox: draft published by the owner');
+    } else if (act === 'ok') {
+      mark('✅ Согласовано — команда выполнит');
+      answer('Согласовано');
+      teamAppend_('team/INBOX.md', '- [ ] ' + teamStamp_() + ' · согласие на ' + pid + ' ' + title, 'Inbox: owner approved a proposal');
+    } else if (act === 'no') {
+      mark('Не делаем');
+      answer('Ок, не делаем');
+      teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · отказ: ' + pid + ' ' + title, 'Inbox: owner declined a proposal');
+    } else if (act === 'fix') {
+      answer();
+      tg_('sendMessage', { chat_id: m.chat.id, reply_to_message_id: m.message_id,
+        text: TEAM_FIX_ASK + ' ' + (pid || '—') + '?\n' + title + '\nОтветьте на это сообщение — передам команде.',
+        reply_markup: { force_reply: true, input_field_placeholder: 'что поправить' } });
+    } else answer();
+  } catch (e) { answer('Не получилось: ' + String(e.message).slice(0, 150), true); }
 }
 
 /** К подписи постера «Итоги дня»: в КХЛ дополнительного блока нет (россиян отдельно не выделяем). */
