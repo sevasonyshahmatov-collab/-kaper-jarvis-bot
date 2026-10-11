@@ -36,14 +36,15 @@ class Top3(C.Reel):
         super().__init__(u, drop, seed)
         self.title = title
         self.picks = []
-        for h, a, lg, pk, k, when, side in picks:
+        for h, a, lg, pk, k, when, side, *rest in picks:
             th, ta = C.match(h, a, lg)
             self.picks.append(dict(h=th, a=ta, league='НХЛ' if lg == 'NHL' else 'КХЛ', pick=pk, coef=k, when=when,
-                                   fav=th if side == 'h' else ta))
+                                   fav=th if side == 'h' else ta, chance=rest[0] if rest else None))
         self.seg = seg
-        self.t_cta = self.b(seg * len(self.picks))
+        self.t_recap = self.b(seg * len(self.picks))          # шпаргалка со всеми тремя — «сохрани»
+        self.t_cta = self.t_recap + 4 * u
         self.dur = self.t_cta + 4 * u
-        self.cover_t = self.b(seg * 2 + 2.6)
+        self.cover_t = self.t_recap + 3.2 * u
         self._prep()
 
     def _prep(self):
@@ -76,8 +77,12 @@ class Top3(C.Reel):
         k0 = C.out_expo(C.seg(t, t0, t0 + 0.6))
         x = W - num.width / 2 + 420 - 60 * C.seg(t, t0, t0 + self.seg * u)
         C.put(fr, num, x + (1 - k0) * 300, 900, k0)
-        # место
+        # место и индикатор 3 · 2 · 1
         C.put(fr, C.text('МЕСТО %d' % (len(self.picks) - i), 'mono', 44, GRAY, 700, track=0.4), 100, 400, C.seg(t, t0, t0 + 0.3), anchor='tl')
+        for j in range(len(self.picks)):
+            on = j == i
+            dot = C.rrect(64 if on else 22, 22, 11, INK if on else (200, 200, 205))
+            C.put(fr, dot, W - 100 - (len(self.picks) - 1 - j) * 50 - (21 if on else 0), 422)
         # эмблемы и матч
         if lt >= 0.6 * u:
             q = C.seg(t, t0 + 0.6 * u, t0 + 1.0 * u)
@@ -103,6 +108,55 @@ class Top3(C.Reel):
             C.put(fr, img, 100, 1320, anchor='tl')
         return fr
 
+    def recap(self, fr, t):
+        u, t0 = self.u, self.t_recap
+        if t < t0 + 0.25 * u:                                      # цвет после перехода уходит
+            pv = self.picks[-1]
+            q0 = 1 - C.seg(t, t0, t0 + 0.25 * u)
+        else:
+            q0 = 0
+        fr.alpha_composite(self.tint_blob((255, 200, 60), 0.22), (-200, 200))
+        im, _ = reveal(C.text('СОХРАНИ,', 'unb', 104, INK, 900, max_w=920), C.seg(t, t0 + 0.1, t0 + 0.5))
+        C.put(fr, im, 90, 300, anchor='tl')
+        im, _ = reveal(C.text('ЧТОБЫ НЕ ПОТЕРЯТЬ', 'unb', 70, INK, 800, max_w=920), C.seg(t, t0 + 0.2, t0 + 0.6))
+        C.put(fr, im, 90, 430, anchor='tl')
+        for r, i in enumerate(reversed(range(len(self.picks)))):     # 1, 2, 3 — сверху вниз
+            p = self.picks[i]
+            tr = t0 + (0.5 + 0.5 * r) * u
+            if t < tr:
+                continue
+            k = C.out_expo(C.seg(t, tr, tr + 0.4 * u))
+            row = self.recap_row(i)
+            C.put(fr, row, 18 + (1 - k) * 80, 540 + r * 290, k, anchor='tl')
+        if q0 > 0:
+            fr.alpha_composite(Image.new('RGBA', (W, H), tuple(C.mix(pv['fav'].c1, INK, 0.2)) + (int(255 * q0),)))
+
+    def recap_row(self, i):
+        key = ('rr', i)
+        if not hasattr(self, '_c'):
+            self._c = {}
+        if key not in self._c:
+            p = self.picks[i]
+            w, h = 960, 250
+            card = C.rrect(w, h, 40, (255, 255, 255))
+            C.put(card, C.text(str(len(self.picks) - i), 'unb', 150, C.mix(p['fav'].c1, INK, 0.2), 900), 90, h / 2)
+            C.put(card, p['h'].emb(80), 222, 66)
+            C.put(card, p['a'].emb(80), 312, 66)
+            C.put(card, C.text(p['pick'].upper(), 'unb', 44, INK, 800, max_w=w - 400), 370, 40, anchor='tl')
+            C.put(card, C.text('%s · %s' % (p['league'], p['when']), 'mono', 26, GRAY, 600, max_w=w - 400), 370, 104, anchor='tl')
+            x = 182
+            for txt, fill, ol in (('КЭФ ' + C.fmt_k(p['coef']), C.mix(p['fav'].c1, (255, 255, 255), 0.55), None),
+                                  ('ШАНС %d%%' % p['chance'] if p['chance'] else None, (255, 255, 255), INK)):
+                if not txt:
+                    continue
+                tx = C.text(txt, 'unb', 36, INK, 800)
+                chip = C.rrect(tx.width + 56, 76, 38, fill, outline=ol, width=4 if ol else 0)
+                C.put(chip, tx, chip.width / 2, 38)
+                C.put(card, chip, x, 150, anchor='tl')
+                x += chip.width + 18
+            self._c[key] = C.with_shadow(card, 14, 0.12, 8)
+        return self._c[key]
+
     def plate(self, i):
         key = ('pl', i)
         if not hasattr(self, '_c'):
@@ -120,8 +174,17 @@ class Top3(C.Reel):
         if key not in self._c:
             p = self.picks[i]
             tx = C.text('КЭФ ' + C.fmt_k(p['coef']), 'unb', 54, INK, 800)
-            im = C.rrect(tx.width + 90, 130, 65, C.mix(p['fav'].c1, (255, 255, 255), 0.55))
-            C.put(im, tx, im.width / 2, 65)
+            k1 = C.rrect(tx.width + 90, 130, 65, C.mix(p['fav'].c1, (255, 255, 255), 0.55))
+            C.put(k1, tx, k1.width / 2, 65)
+            if p['chance']:
+                tc = C.text('ШАНС %d%%' % p['chance'], 'unb', 50, INK, 800)
+                k2 = C.rrect(tc.width + 80, 130, 65, (255, 255, 255), outline=INK, width=5)
+                C.put(k2, tc, k2.width / 2, 65)
+                im = Image.new('RGBA', (k1.width + 24 + k2.width, 130), (0, 0, 0, 0))
+                im.alpha_composite(k1, (0, 0))
+                im.alpha_composite(k2, (k1.width + 24, 0))
+            else:
+                im = k1
             self._c[key] = im
         return self._c[key]
 
@@ -141,7 +204,7 @@ class Top3(C.Reel):
             d = ImageDraw.Draw(fr)
             d.line((90, y + 40, 90 + 900 * C.out_expo(C.seg(t, 0.3, 1.4)), y + 40), fill=INK + (255,), width=8)
             C.put(fr, C.text('КХЛ + НХЛ · ПО ВЕРОЯТНОСТИ', 'mono', 40, GRAY, 700, track=0.2), 90, y + 80, C.seg(t, 0.8, 1.2), anchor='tl')
-        elif t < self.t_cta:
+        elif t < self.t_recap:
             i = int((t - D) / (self.seg * u))
             t0 = D + i * self.seg * u
             self.scene(fr, i, t, t0)
@@ -158,6 +221,8 @@ class Top3(C.Reel):
                 pv = self.picks[i - 1]
                 q = 1 - C.seg(t, t0, t0 + 0.25 * u)
                 fr.alpha_composite(Image.new('RGBA', (W, H), tuple(C.mix(pv['fav'].c1, INK, 0.2)) + (int(255 * q),)))
+        elif t < self.t_cta:
+            self.recap(fr, t)
         else:
             q = C.seg(t, self.t_cta, self.t_cta + 0.5 * u)
             fr.alpha_composite(self.tint_blob(C.TG_BLUE, 0.25), (-100, 300))

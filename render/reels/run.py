@@ -69,7 +69,7 @@ def make(name):
         from reels import chat
         u, d = TRACKS['refl']
         drop = 3 * u
-        r = chat.Chat('Барыс', 'Авангард', 'KHL', 'Победа Авангарда', 2.01, 'СБ 10.10 · 14:30 МСК', u=u, drop=drop)
+        r = chat.Chat('Локомотив', 'Динамо Минск', 'KHL', 'Победа Локомотива', 1.82, 'СБ 10.10 · 17:00 МСК', 67, u=u, drop=drop)
         return r, 'refl', d - drop
     if name == 'board':
         from reels import board
@@ -113,15 +113,83 @@ def make(name):
         from reels import top3
         u, d = TRACKS['kizaru']
         drop = 2 * u
-        picks = [('Ак Барс', 'Северсталь', 'KHL', 'Победа Ак Барса', 2.06, 'СБ 10.10 · 17:00 МСК', 'h'),
-                 ('Трактор', 'Сибирь', 'KHL', 'Победа Трактора', 1.85, 'СБ 10.10 · 14:00 МСК', 'h'),
-                 ('Нью-Джерси', 'Ванкувер', 'NHL', 'Победа Нью-Джерси', 1.63, 'СБ 10.10 · 22:30 МСК', 'h')]
+        picks = [('Ак Барс', 'Северсталь', 'KHL', 'Победа Ак Барса', 2.06, 'СБ 10.10 · 17:00 МСК', 'h', 58),
+                 ('Трактор', 'Сибирь', 'KHL', 'Победа Трактора', 1.85, 'СБ 10.10 · 14:00 МСК', 'h', 62),
+                 ('Нью-Джерси', 'Ванкувер', 'NHL', 'Победа Нью-Джерси', 1.63, 'СБ 10.10 · 22:30 МСК', 'h', 70)]
         r = top3.Top3('ТОП-3|ПРОГНОЗА|НА СУББОТУ', picks, u=u, drop=drop)
         return r, 'kizaru', d - drop
+    if name == 'notify':
+        from reels import notify
+        u, d = TRACKS['vace']
+        drop = 3 * u
+        r = notify.Notify('Колорадо', 'Торонто', 'NHL', 'h', 'Победа Колорадо', 1.80, (1.80, 4.44, 3.62), 68,
+                          'воскресенье, 11 октября', '01:59', '02:00', u=u, drop=drop)
+        return r, 'vace', d - drop
+    if name == 'channel':
+        from reels import channel
+        u, d = TRACKS['bbt']
+        drop = 3 * u
+        res = ('Итоги: 3 из 3 ✅', ['Металлург ИТБ 2,5 — 7:1 ✅', 'ЦСКА с учётом ОТ — 5:2 ✅', 'Вашингтон — Рейнджерс ТМ 6 — 3:1 ✅'])
+        r = channel.Channel('Ак Барс', 'Северсталь', 'KHL', 'Победа Ак Барса', 2.06, 58, 'СБ 10.10 · 17:00 МСК', res,
+                            'Главный матч дня — Ак Барс против Северстали. Прогноз ниже 👇', u=u, drop=drop)
+        return r, 'bbt', d - drop
+    if name == 'ticket':
+        from reels import ticket
+        u, d = TRACKS['jefe']
+        drop = 4 * u
+        flights = [('02:00', 'Монреаль', 'Детройт', 'П1', 1.81), ('02:00', 'Чикаго', 'Каролина', 'П2', 1.67),
+                   ('02:00', 'Колорадо', 'Торонто', 'П1', 1.80), ('02:30', 'Айлендерс', 'Тампа-Бэй', 'П2', 1.97),
+                   ('05:00', 'Калгари', 'Анахайм', 'П2', 2.29), ('05:00', 'Вегас', 'Лос-Анджелес', 'П1', 2.01)]
+        r = ticket.Ticket(flights, 0, 'NHL', 65, '11.10', u=u, drop=drop)
+        return r, 'jefe', d - drop
+    if name == 'swipe':
+        from reels import swipe
+        u, d = TRACKS['tiki']
+        drop = 6 * u
+        cards = [('Сент-Луис', 'Коламбус', 'NHL', 'ВС 11.10 · 02:00', 53, 2.23, 'Победа Сент-Луиса', 'h', 'L',
+                  'шанс 53% — почти монетка, пропускаем'),
+                 ('Баффало', 'Юта', 'NHL', 'ВС 11.10 · 02:00', 51, 2.46, 'Победа Баффало', 'h', 'L', 'шанс 51% — монетка, пропускаем'),
+                 ('Чикаго', 'Каролина', 'NHL', 'ВС 11.10 · 02:00', 72, 1.67, 'Победа Каролины', 'a', 'R',
+                  'шанс 72% — уверенный фаворит, берём')]
+        r = swipe.Swipe(cards, 'JARVIS · свайп', u=u, drop=drop)
+        return r, 'tiki', d - drop
+    if name == 'paper':
+        from reels import paper
+        u, d = TRACKS['kilo']
+        drop = 3 * u
+        story = ['Шанс «Вегаса» на победу — 60%, коэффициент — 2.01. Матч с «Лос-Анджелесом» начнётся в 05:00 по Москве.',
+                 'Ночью «Вегас» принимает «Лос-Анджелес». Наш шанс хозяев — 60%, кэф на победу — 2.01.',
+                 'Начало в 05:00 МСК. Прогнозы на все матчи ночи и честные итоги — в Telegram-канале JARVIS.']
+        yday = ['3 ИЗ 3', 'Металлург ИТБ 2,5 — зашёл', 'ЦСКА с учётом ОТ — зашёл', 'Вашингтон ТМ 6 — зашёл']
+        r = paper.Paper('Вегас', 'Лос-Анджелес', 'NHL', 'h', 'Победа Вегаса', 2.01, 60, '05:00', ['ВЕГАС —', 'ФАВОРИТ НОЧИ'],
+                        story, yday, '№ 284', 'ВОСКРЕСЕНЬЕ, 11 ОКТЯБРЯ 2026 · № 284 · ЦЕНА — ПОДПИСКА', u=u, drop=drop)
+        return r, 'kilo', d - drop
+    if name == 'notes':
+        from reels import notes
+        u, d = TRACKS['rotten']
+        drop = 4 * u
+        items = [('Металлург ИТБ 2,5', 1.68, '7:1', True), ('ЦСКА с учётом ОТ', 1.67, '5:2', True),
+                 ('Вашингтон — Рейнджерс ТМ 6', 1.69, '3:1', True)]
+        r = notes.Notes('Итоги 9–10 октября 🏒', '10 октября 2026 г., 09:41', items, None,
+                        'Сегодня в плане 👇', ['Адмирал П1 · 1.89', 'Трактор П1 · 1.85', 'Локомотив П1 · 1.82'], u=u, drop=drop)
+        return r, 'rotten', d - drop
+    if name == 'poll':
+        from reels import poll
+        u, d = TRACKS['depto']
+        drop = 4 * u
+        r = poll.Poll('Флорида', 'Миннесота', 'NHL', 'h', 'Победа Флориды', 2.17, 55, 'ВС 11.10 · 01:00', u=u, drop=drop)
+        return r, 'depto', d - drop
+    if name == 'keynote':
+        from reels import keynote
+        u, d = TRACKS['quantum']
+        drop = 3 * u
+        r = keynote.Keynote('Айлендерс', 'Тампа-Бэй', 'NHL', 'a', 'Победа Тампы', 1.97, 60, 'ВС 11.10', '02:30', 'Тампы', u=u, drop=drop)
+        return r, 'quantum', d - drop
     raise SystemExit('нет формата: %s' % name)
 
 
-ALL = ['pack', 'coupon', 'sim', 'results', 'chat', 'board', 'pixel', 'fight', 'weather', 'collage', 'led', 'top3']
+ALL = ['pack', 'coupon', 'sim', 'results', 'chat', 'board', 'pixel', 'fight', 'weather', 'collage', 'led', 'top3',
+       'notify', 'channel', 'ticket', 'swipe', 'paper', 'notes', 'poll', 'keynote']
 
 
 def main():

@@ -65,13 +65,72 @@ def font(name, size, wght=700, wdth=None):
     return _FC[key]
 
 
+EMOJI_FONT = '/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf'
+
+
+def is_emoji(ch):
+    o = ord(ch)
+    return o >= 0x1F000 or 0x2600 <= o <= 0x27BF or o in (0x200D, 0xFE0F, 0x2B50, 0x2B55)
+
+
+def emoji(s, size):
+    """Цветные эмодзи (Noto Color Emoji рисуется только кеглем 109 — потом масштаб)."""
+    key = ('emoji', s, int(size))
+    if key not in _TC:
+        f = ImageFont.truetype(EMOJI_FONT, 109)
+        w = int(f.getlength(s)) + 8
+        im = Image.new('RGBA', (w, 136), (0, 0, 0, 0))
+        ImageDraw.Draw(im).text((4, 4), s, font=f, embedded_color=True)
+        bb = im.getbbox()
+        im = im.crop(bb) if bb else im
+        k = size / 109
+        _TC[key] = im.resize((max(1, int(im.width * k)), max(1, int(im.height * k))), Image.LANCZOS)
+    return _TC[key]
+
+
 def text(s, name, size, fill=(255, 255, 255), wght=700, track=0.0, max_w=None, stroke=0, stroke_fill=(0, 0, 0),
          outline=False, trim=True, wdth=None, a=255):
     """Строка текста → RGBA (кеш). track — разрядка в долях кегля; max_w — ужать кегль до ширины;
-    outline — только контур толщиной stroke; trim — обрезать по видимым пикселям (для точного центрирования)."""
+    outline — только контур толщиной stroke; trim — обрезать по видимым пикселям (для точного центрирования).
+    Эмодзи внутри строки рисуются цветными."""
     key = (s, name, int(size), tuple(fill), wght, track, max_w, stroke, tuple(stroke_fill), outline, trim, wdth, a)
     if key in _TC:
         return _TC[key]
+    if any(is_emoji(c) for c in s):
+        parts, cur, em = [], '', None
+        for c in s:
+            e = is_emoji(c)
+            if em is None or e == em:
+                cur += c
+            else:
+                parts.append((cur, em))
+                cur = c
+            em = e
+        parts.append((cur, em))
+        ims = []
+        for seg_, e in parts:
+            if e:
+                ims.append(emoji(seg_, size * 0.95))
+            elif seg_.strip():
+                lead = seg_[0] == ' '
+                tail = seg_[-1] == ' '
+                im = text(seg_.strip(), name, size, fill, wght, track, None, stroke, stroke_fill, outline, True, wdth, a)
+                sp = int(size * 0.28)
+                pad = Image.new('RGBA', (im.width + sp * lead + sp * tail, im.height), (0, 0, 0, 0))
+                pad.alpha_composite(im, (sp * lead, 0))
+                ims.append(pad)
+            else:
+                ims.append(Image.new('RGBA', (int(size * 0.28), 2), (0, 0, 0, 0)))
+        hh = max(i.height for i in ims)
+        out = Image.new('RGBA', (sum(i.width for i in ims) + 4 * (len(ims) - 1), hh), (0, 0, 0, 0))
+        x = 0
+        for i in ims:
+            out.alpha_composite(i, (x, (hh - i.height) // 2))
+            x += i.width + 4
+        if max_w and out.width > max_w:
+            out = out.resize((int(max_w), max(1, int(out.height * max_w / out.width))), Image.LANCZOS)
+        _TC[key] = out
+        return out
     size = int(size)
     while True:
         f = font(name, size, wght, wdth)
@@ -472,7 +531,9 @@ def gen_case(team_short, case):
     """Родительный падеж короткого имени для «победа ...» (как в постерах; без словаря — как есть)."""
     G = {'Трактор': 'Трактора', 'Локомотив': 'Локомотива', 'Авангард': 'Авангарда', 'Ак Барс': 'Ак Барса',
          'Адмирал': 'Адмирала', 'Колорадо': 'Колорадо', 'Оттава': 'Оттавы', 'Айлендерс': 'Айлендерс', 'Барыс': 'Барыса',
-         'Сибирь': 'Сибири', 'Лада': 'Лады', 'Северсталь': 'Северстали'}
+         'Сибирь': 'Сибири', 'Лада': 'Лады', 'Северсталь': 'Северстали', 'Монреаль': 'Монреаля', 'Детройт': 'Детройта',
+         'Каролина': 'Каролины', 'Вегас': 'Вегаса', 'Бостон': 'Бостона', 'Эдмонтон': 'Эдмонтона', 'Тампа-Бэй': 'Тампы',
+         'Динамо Мн': 'Динамо Мн', 'СКА': 'СКА', 'Даллас': 'Далласа', 'Флорида': 'Флориды', 'Анахайм': 'Анахайма'}
     return G.get(team_short, team_short) if case == 'g' else team_short
 
 

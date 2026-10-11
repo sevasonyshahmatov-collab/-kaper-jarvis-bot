@@ -18,7 +18,8 @@ PAPER = (246, 244, 238)
 INK = (34, 34, 40)
 RED = (214, 40, 46)
 GOLD = (255, 200, 70)
-PW = 780          # ширина чека
+PW = 880          # ширина чека
+YEL = (255, 226, 60)
 SLOT = 1420       # линия щели принтера
 
 
@@ -40,7 +41,6 @@ class Coupon(C.Reel):
     def _prep(self):
         u, D = self.u, self.drop
         rows = []           # (картинка строки, время печати)
-        mono = lambda s, sz=34, wg=700, al='l': C.text(s, 'mono', sz, INK, wg)
 
         def line(parts, h=58):
             im = Image.new('RGBA', (PW, h), (0, 0, 0, 0))
@@ -56,33 +56,34 @@ class Coupon(C.Reel):
 
         def sep(ch='-', h=40):
             im = Image.new('RGBA', (PW, h), (0, 0, 0, 0))
-            C.put(im, C.text(ch * 30, 'mono', 30, INK, 500), PW / 2, h / 2)
+            C.put(im, C.text(ch * 34, 'mono', 30, INK, 500), PW / 2, h / 2)
             return im
 
-        hdr_t = [0.25, 0.55, 0.85, 1.15, 1.5]
+        hdr_t = [0.25, 0.55, 0.85, 1.15, 1.45, 1.75]
         rows.append((Image.new('RGBA', (PW, 40), (0, 0, 0, 0)), 0.0))
-        rows.append((line([('J A R V I S', 0, 64, 800, 'c')], 96), hdr_t[0]))
-        rows.append((line([('ПРОГНОЗ НА ХОККЕЙ · ' + self.league, 0, 30, 600, 'c')], 50), hdr_t[1]))
-        rows.append((line([(self.date, 50, 30, 600, 'l'), ('ЭКСПРЕСС', 0, 30, 800, 'r')], 50), hdr_t[2]))
-        rows.append((sep('='), hdr_t[3]))
+        rows.append((line([('J A R V I S', 0, 72, 800, 'c')], 104), hdr_t[0]))
+        rows.append((line([('ПРОГНОЗ НА ХОККЕЙ · ' + self.league, 0, 34, 600, 'c')], 54), hdr_t[1]))
+        rows.append((line([('КАССА №1 · КАССИР: JARVIS', 0, 30, 500, 'c')], 50), hdr_t[2]))
+        rows.append((line([(self.date, 50, 34, 600, 'l'), ('ЭКСПРЕСС', 0, 34, 800, 'r')], 56), hdr_t[3]))
+        rows.append((sep('='), hdr_t[4]))
         for i, (tm_, p, d, k, tm) in enumerate(self.legs):
             t0 = self.b(2 * i)
             h, a = tm_
-            blk = Image.new('RGBA', (PW, 176), (0, 0, 0, 0))
-            e1, e2 = self._dither(h.emb(84)), self._dither(a.emb(84))
-            C.put(blk, e1, 50, 18, anchor='tl')
-            C.put(blk, e2, 50 + 92, 18, anchor='tl')
-            C.put(blk, C.text('%d' % (i + 1), 'mono', 30, INK, 800), PW - 70, 40)
-            nm = C.text('%s — %s' % (h.up, a.up), 'mono', 32, INK, 800, max_w=PW - 330)
-            C.put(blk, nm, 250, 36 - nm.height / 2 + 6, anchor='tl')
-            C.put(blk, C.text(tm + ' МСК', 'mono', 28, INK, 500), 250, 74, anchor='tl')
-            C.put(blk, C.text(p + ' · ' + d, 'mono', 32, INK, 700, max_w=PW - 330), 50, 128, anchor='tl')
-            kk = C.text('×' + C.fmt_k(k), 'mono', 44, INK, 800)
-            C.put(blk, kk, PW - 50 - kk.width, 122, anchor='tl')
+            blk = Image.new('RGBA', (PW, 196), (0, 0, 0, 0))
+            e1, e2 = self._dither(h.emb(96)), self._dither(a.emb(96))
+            C.put(blk, e1, 50, 16, anchor='tl')
+            C.put(blk, e2, 50 + 104, 16, anchor='tl')
+            C.put(blk, C.text('%d' % (i + 1), 'mono', 34, INK, 800), PW - 70, 42)
+            nm = C.text('%s — %s' % (h.up, a.up), 'mono', 37, INK, 800, max_w=PW - 370)
+            C.put(blk, nm, 280, 40 - nm.height / 2 + 6, anchor='tl')
+            C.put(blk, C.text(tm + ' МСК', 'mono', 32, INK, 500), 280, 82, anchor='tl')
+            C.put(blk, C.text(p + ' · ' + d, 'mono', 37, INK, 700, max_w=PW - 330), 50, 142, anchor='tl')
+            kk = C.text('×' + C.fmt_k(k), 'mono', 50, INK, 800)
+            C.put(blk, kk, PW - 50 - kk.width, 134, anchor='tl')
             rows.append((blk, t0))
             rows.append((sep('-'), t0 + 0.12))
         tt = self.b(6)
-        rows.append((line([('ИТОГО КЭФ', 50, 40, 800, 'l'), ('×' + C.fmt_k(self.total), 0, 56, 800, 'r')], 92), tt))
+        rows.append((line([('ИТОГО КЭФ', 50, 46, 800, 'l'), ('×' + C.fmt_k(self.total), 0, 64, 800, 'r')], 100), tt))
         rows.append((sep('='), tt + 0.1))
         bc = Image.new('RGBA', (PW, 150), (0, 0, 0, 0))
         d = ImageDraw.Draw(bc)
@@ -94,15 +95,17 @@ class Coupon(C.Reel):
             x += w + int(rnd.choice([3, 5, 6]))
         C.put(bc, C.text('0 4 6 2 1 0 1 0 2 6', 'mono', 22, INK, 500), PW / 2, 136)
         rows.append((bc, self.b(7)))
-        rows.append((line([('TELEGRAM · ' + C.HANDLE, 0, 32, 800, 'c')], 70), self.b(7.6)))
-        rows.append((Image.new('RGBA', (PW, 60), (0, 0, 0, 0)), self.b(8)))
+        rows.append((line([('СПАСИБО ЗА ДОВЕРИЕ!', 0, 34, 800, 'c')], 60), self.b(7.4)))
+        rows.append((line([('TELEGRAM · ' + C.HANDLE, 0, 34, 800, 'c')], 64), self.b(7.8)))
+        rows.append((Image.new('RGBA', (PW, 60), (0, 0, 0, 0)), self.b(8.2)))
         self.rows = rows
         self.ph = sum(r[0].height for r in rows)
         # бумага целиком (печатный слой отдельно — для проявления строк)
         paper = Image.new('RGBA', (PW, self.ph), PAPER + (255,))
         arr = np.asarray(paper, np.int16).copy()
         rnd = np.random.default_rng(9)
-        arr[..., :3] += (rnd.normal(0, 3, (self.ph, PW)) + np.linspace(-6, 4, PW)[None, :]).astype(np.int16)[..., None]
+        arr[..., :3] += (rnd.normal(0, 3, (self.ph, PW)) + np.linspace(-6, 4, PW)[None, :]
+                         - 10 * np.exp(-np.arange(self.ph) / 30.0)[:, None]).astype(np.int16)[..., None]
         self.paper = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), 'RGBA')
         self.ys = []
         y = 0
@@ -119,17 +122,35 @@ class Coupon(C.Reel):
         dd.polygon(pts, fill=0)
         self.tear_mask = m.crop((0, 0, PW, self.ph))
         # фон: тёмный стол и свет сверху
-        bg = C.vgrad(W, H, [(0, (26, 26, 32)), (0.55, (14, 14, 18)), (1, (6, 6, 8))]).convert('RGBA')
-        bg = C.add_light(bg, C.radial(1500, 1300, (60, 52, 40), 255, 1.6), W / 2, 760, 1.0)
-        self.bg = bg
+        rnd = np.random.default_rng(21)
+        yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+        warp = np.zeros((H, W), np.float32)
+        for f, a in ((0.004, 40), (0.011, 14), (0.03, 4)):
+            ph = rnd.uniform(0, 6.28)
+            warp += a * np.sin(yy * f + ph + np.sin(xx * f * 0.3) * 1.5)
+        grain_ = 0.5 + 0.5 * np.sin((xx + warp) * 0.11) * np.sin((xx + warp) * 0.023 + 1.0)
+        grain_ += rnd.normal(0, 0.06, (H, W))
+        base = np.array((44, 28, 19), np.float32)
+        lite = np.array((86, 56, 36), np.float32)
+        arr = base + (lite - base) * np.clip(grain_, 0, 1)[..., None]
+        for x0 in (rnd.uniform(0, 300), rnd.uniform(500, 900)):                  # стыки досок
+            arr[:, int(x0):int(x0) + 3] *= 0.55
+        bg = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), 'RGB').convert('RGBA')
+        bg = C.add_light(bg, C.radial(1700, 1500, (90, 70, 46), 255, 1.5), W / 2, 760, 1.0)
+        self.bg = Image.fromarray(np.asarray(C.vignette(bg, 0.75)), 'RGB').convert('RGBA')
         # принтер
         pr = Image.new('RGBA', (W, H - SLOT + 40), (0, 0, 0, 0))
-        body = C.rrect(PW + 120, H - SLOT + 120, 46, (22, 22, 26))
-        C.put(pr, body, W / 2, (H - SLOT + 120) / 2 + 10)
+        bw, bh = PW + 120, H - SLOT + 120
+        body = C.rrect(bw, bh, 46, (30, 31, 36))
+        g = C.lgrad(bw, bh, (52, 54, 62), (14, 14, 17), 90)
+        g.putalpha(body.getchannel('A'))
+        C.put(pr, C.shadow(body, 30, 0.7), W / 2, bh / 2 + 40)
+        C.put(pr, g, W / 2, bh / 2 + 10)
         slot = C.rrect(PW + 40, 26, 13, (4, 4, 6))
         C.put(pr, slot, W / 2, 40)
-        hl = C.rrect(PW + 116, 6, 3, (70, 70, 80))
-        C.put(pr, hl, W / 2, 14)
+        hl = C.rrect(bw - 6, 5, 3, (96, 98, 110))
+        C.put(pr, hl, W / 2, 13)
+        C.put(pr, C.text('J A R V I S', 'mono', 30, (110, 112, 124), 800), W / 2, 118)
         self.printer = pr
         self.led = C.radial(60, 60, (80, 255, 140), 255, 1.2)
         self.stamp = self._stamp()
@@ -213,10 +234,18 @@ class Coupon(C.Reel):
             s = (1.0 - 0.24 * k) * (1 + 0.16 * k2)
             im = C.rotate(C.scale(full, s), -3.0 * k)
             cy = C.lerp(SLOT - full.height / 2, 980, k)
-            ytot = self.ys[5 + 2 * len(self.legs)] + 46
+            ytot = self.ys[6 + 2 * len(self.legs)] + 50
             pos_total = cy + (ytot - full.height / 2) * s
             cy += (860 - pos_total) * k2
             pos_total = cy + (ytot - full.height / 2) * s
+            if t >= self.stop + 0.3:                                  # маркер по «ИТОГО»
+                hp = C.out_cubic(C.seg(t, self.stop + 0.3, self.stop + 0.3 + 2 * u))
+                if hp > 0.01:
+                    full = full.copy()
+                    mk = Image.new('RGBA', full.size, (0, 0, 0, 0))
+                    ImageDraw.Draw(mk).rounded_rectangle((34, ytot - 44, 34 + (PW - 68) * hp, ytot + 40), 14, fill=YEL + (130,))
+                    full.alpha_composite(mk)
+                    im = C.rotate(C.scale(full, s), -3.0 * k)
             C.put(fr, C.shadow(im, 34, 0.7), W / 2 + 10, cy + 44)
             C.put(fr, im, W / 2, cy)
             if t >= self.hit2:
@@ -235,9 +264,12 @@ class Coupon(C.Reel):
         # верх: крючок → кэф экспресса
         if t < D:
             a = C.seg(t, 0.0, 0.25)
-            C.put(fr, C.text('ЭКСПРЕСС ДНЯ', 'dela', 116, (255, 255, 255), max_w=960), W / 2, 330, a)
-            C.put(fr, C.text('%d МАТЧА · %s · %s' % (len(self.legs), self.league, self.date[:5]), 'mono', 40, GOLD, 700, track=0.2),
-                  W / 2, 440, a)
+            for j, w_ in enumerate(('ЭКСПРЕСС', 'ДНЯ')):
+                q = C.out_expo(C.seg(t, 0.05 + 0.2 * j, 0.5 + 0.2 * j))
+                C.put(fr, C.with_shadow(C.text(w_, 'dela', 190, (255, 255, 255), max_w=980), 14, 0.6, 8), W / 2, 520 + 190 * j + 40 * (1 - q), q)
+            k1 = C.out_expo(C.seg(t, 0.6, 1.1))
+            C.put(fr, C.text('%d МАТЧА · КЭФ ×%s' % (len(self.legs), C.fmt_k(self.total)), 'mono', 52, GOLD, 800, track=0.12),
+                  W / 2, 900, k1)
         elif t < self.stop:
             n = sum(1 for i in range(len(self.legs)) if t >= self.b(2 * i))
             kprev = 1.0
@@ -263,6 +295,11 @@ class Coupon(C.Reel):
             C.put(plate, C.tg_icon(90, (255, 255, 255), C.TG_BLUE), 70, 60)
             C.put(plate, C.text(C.HANDLE, 'unb', 58, (255, 255, 255), 800), 390, 60)
             C.put(fr, plate, W / 2, 372 + 30 * (1 - k), k)
+            k3 = C.out_expo(C.seg(t, self.hit2 + 3.5 * u, self.hit2 + 4.3 * u))
+            if k3 > 0:
+                sv = C.rrect(640, 84, 42, (14, 14, 18), 225)
+                C.put(sv, C.text('сохрани чек — проверим вечером', 'golos', 36, (255, 255, 255), 600), 320, 42)
+                C.put(fr, sv, W / 2, 530 + 20 * (1 - k3), k3)
         # удары: толчок и вспышка
         z, dx, dy = 1.0, 0.0, 0.0
         for th in [D, self.b(2), self.b(4), self.hit2]:

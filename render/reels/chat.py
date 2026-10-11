@@ -23,26 +23,27 @@ TOP, BOT = 380, 1466          # область сообщений
 
 
 class Chat(C.Reel):
-    def __init__(self, home, away, league, pick, coef, when, friend='Серёга', u=60 / 65, drop=2.77, seed=8):
+    def __init__(self, home, away, league, pick, coef, when, chance=None, friend='Серёга', u=60 / 65, drop=2.77, seed=8):
         super().__init__(u, drop, seed)
         self.h, self.a = C.match(home, away, league)
-        self.pick, self.coef, self.when, self.friend = pick, coef, when, friend
+        self.pick, self.coef, self.when, self.friend, self.chance = pick, coef, when, friend, chance
         self.league = 'НХЛ' if str(league).upper() == 'NHL' else 'КХЛ'
         b = self.b
         fav = (self.a if 'ПОБЕДА ' + self.a.up[:4] in pick.upper() else self.h).short
         # (время, кто, содержимое) ; 'typing' — «печатает»
-        self.script = [
-            (0.25, 'in', 'что ставим сегодня?'),
-            (b(-1.8), 'in', 'только без «я хз»'),
-            ((b(-1), self.drop), 'out', 'typing'),
-            (self.drop, 'out', 'card'),
-            (b(3), 'in', 'почему %s?' % fav),
-            ((b(4), b(5)), 'out', 'typing'),
-            (b(5), 'out', 'расписал в канале: составы, форма, цифры'),
-            (b(6.5), 'out', 'link'),
-            ((b(7.5), b(8.5)), 'in', 'typing'),
-            (b(8.5), 'in', 'подписался, спасибо'),
+        self.script = [                                       # (время, кто, текст, время на часах)
+            (0.25, 'in', 'что ставим сегодня? 👀', '14:02'),
+            (b(-1.8), 'in', 'только без «я хз» 😅', '14:02'),
+            ((b(-1), self.drop), 'out', 'typing', ''),
+            (self.drop, 'out', 'card', '14:03'),
+            (b(3), 'in', 'почему %s? 🤔' % fav, '14:03'),
+            ((b(4), b(5)), 'out', 'typing', ''),
+            (b(5), 'out', 'расписал в канале: составы, форма, цифры', '14:04'),
+            (b(6.5), 'out', 'link', '14:04'),
+            ((b(7.5), b(8.5)), 'in', 'typing', ''),
+            (b(8.5), 'in', 'подписался 🤝 спасибо', '14:05'),
         ]
+        self.t_react = b(2)                                   # друг ставит 🔥 на карточку
         self.t_end = b(10)
         self.dur = b(13)
         self.cover_t = b(7.2)
@@ -74,44 +75,52 @@ class Chat(C.Reel):
         self.bg = bg
         # шапка
         hd = Image.new('RGBA', (W, 170), (20, 30, 43, 250))
-        av = C.ellipse(104, 104, (230, 120, 70))
+        av = C.lgrad(104, 104, (255, 150, 90), (220, 80, 110), 45)
+        av.putalpha(C.ellipse(104, 104).getchannel('A'))
         C.put(av, C.text(self.friend[0], 'golos', 56, (255, 255, 255), 700), 52, 52)
         C.put(hd, av, 130, 92)
+        C.put(hd, C.ellipse(30, 30, (20, 30, 43)), 168, 130)
+        C.put(hd, C.ellipse(20, 20, (80, 220, 120)), 168, 130)
         C.put(hd, C.text('‹', 'golos', 80, ACC, 500), 50, 88)
         self.hd = hd
         self.name = C.text(self.friend, 'golos', 46, TXT, 700)
         self.st_on = C.text('в сети', 'golos', 34, SUB, 500)
         self.st_ty = C.text('печатает…', 'golos', 34, ACC, 500)
         self.msgs = []
-        for tm, side, kind in self.script:
+        ins = [tm if not isinstance(tm, tuple) else tm[0] for tm, side, kind, clk in self.script if side == 'in']
+        for tm, side, kind, clk in self.script:
             if kind == 'typing':
                 continue
-            im = self.card() if kind == 'card' else self.link() if kind == 'link' else self.bubble(kind, side)
-            self.msgs.append((tm, side, im))
-        self.typing = [(tm, side) for tm, side, kind in self.script if kind == 'typing']
+            mk = (lambda rd: self.card(clk, rd)) if kind == 'card' else (lambda rd: self.link(clk, rd)) if kind == 'link' \
+                else (lambda rd: self.bubble(kind, side, clk, rd))
+            t_read = min([x for x in ins if x > tm] or [1e9])        # прочитано — когда друг ответил
+            self.msgs.append((tm, side, mk(False), mk(True), t_read, kind))
+        self.typing = [(tm, side) for tm, side, kind, clk in self.script if kind == 'typing']
+        self.react = C.rrect(150, 64, 32, (70, 120, 170))
+        C.put(self.react, C.text('🔥 1', 'golos', 36, (255, 255, 255), 700), 75, 32)
         self.events = sorted(set([m[0] for m in self.msgs] + [a for (a, b), s in self.typing] + [b for (a, b), s in self.typing]))
 
-    def bubble(self, s, side, tm='14:02'):
+    def bubble(self, s, side, clk='14:02', read=True):
         body = C.lines(s, 'golos', 56, 760, TXT, 500, gap=0.18, align='l', max_lines=4)
-        w = max(body.width + 70, 240)
+        w = max(body.width + 70, 260)
         h = body.height + 90
         im = C.rrect(w, h, 34, OUT if side == 'out' else IN)
         im.alpha_composite(body, (34, 24))
-        self._meta(im, side == 'out')
+        self._meta(im, side == 'out', clk, read)
         return im
 
-    def _meta(self, im, out=True):
-        meta = C.text('14:02', 'golos', 26, (170, 200, 230) if out else SUB, 500)
+    def _meta(self, im, out=True, clk='14:02', read=True):
+        meta = C.text(clk, 'golos', 26, (170, 200, 230) if out else SUB, 500)
         x = im.width - 28 - meta.width - (52 if out else 0)
         C.put(im, meta, x, im.height - 44, anchor='tl')
-        if out:                                              # две галочки «прочитано»
+        if out:                                              # галочки: одна — доставлено, две — прочитано
             d = ImageDraw.Draw(im)
-            for k in (0, 14):
+            for k in ((0, 14) if read else (7,)):
                 x0, y0 = im.width - 74 + k, im.height - 30
                 d.line((x0, y0, x0 + 7, y0 + 7, x0 + 20, y0 - 8), fill=(170, 210, 245, 255), width=3)
 
-    def card(self):
-        w, h = 880, 600
+    def card(self, clk='14:03', read=True):
+        w, h = 880, 660
         im = C.rrect(w, h, 34, OUT)
         inner = C.rrect(w - 36, 320, 24, (20, 30, 43))
         g = C.lgrad(w - 36, 320, tuple(int(c * 0.55) for c in self.h.c1), tuple(int(c * 0.55) for c in self.a.c1), 0, 255, 255)
@@ -124,12 +133,18 @@ class Chat(C.Reel):
         C.put(im, C.text(self.pick.upper(), 'unb', 60, TXT, 800, max_w=w - 70), w / 2, 400)
         pill = C.rrect(330, 90, 45, (255, 255, 255))
         C.put(pill, C.text('КЭФ ' + C.fmt_k(self.coef), 'unb', 44, (30, 60, 90), 800), 165, 45)
-        C.put(im, pill, w / 2, 495)
-        self._meta(im)
+        if self.chance:
+            ch = C.rrect(300, 90, 45, (30, 50, 72))
+            C.put(ch, C.text('ШАНС %d%%' % self.chance, 'unb', 40, (170, 215, 255), 800), 150, 45)
+            C.put(im, pill, w / 2 - 170, 495)
+            C.put(im, ch, w / 2 + 170, 495)
+        else:
+            C.put(im, pill, w / 2, 495)
+        self._meta(im, True, clk, read)
         return im
 
-    def link(self):
-        w, h = 860, 310
+    def link(self, clk='14:04', read=True):
+        w, h = 860, 340
         im = C.rrect(w, h, 34, OUT)
         C.put(im, C.text('t.me/' + C.HANDLE[1:], 'golos', 48, (170, 215, 255), 600), 34, 30, anchor='tl')
         bar = C.rrect(8, 170, 4, (170, 215, 255))
@@ -138,6 +153,7 @@ class Chat(C.Reel):
         C.put(im, C.text('JARVIS · прогнозы на хоккей', 'golos', 42, TXT, 700, max_w=600), 70, 120, anchor='tl')
         C.put(im, C.text('КХЛ и НХЛ каждый день', 'golos', 38, (200, 220, 240), 500), 70, 180, anchor='tl')
         C.put(im, C.text('разборы, кэфы, итоги', 'golos', 38, (200, 220, 240), 500), 70, 228, anchor='tl')
+        self._meta(im, True, clk, read)
         return im
 
     def typing_bubble(self, t, side):
@@ -150,9 +166,14 @@ class Chat(C.Reel):
     def items(self, t):
         """Что видно в чате к моменту t: [(картинка, сторона, время появления)]."""
         out = []
-        for tm, side, im in self.msgs:
+        for tm, side, im, im_r, t_read, kind in self.msgs:
             if t >= tm:
-                out.append((im, side, tm))
+                img = im_r if t >= t_read else im
+                if kind == 'card' and t >= self.t_react:          # реакция друга
+                    img = img.copy()
+                    k = C.out_back(C.seg(t, self.t_react, self.t_react + 0.3), 2.0)
+                    C.put(img, C.scale(self.react, max(0.1, k)), 30 + 75, img.height - 46)
+                out.append((img, side, tm))
         for (a, b), side in self.typing:
             if a <= t < b:
                 out.append((self.typing_bubble(t, side), side, a))
