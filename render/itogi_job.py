@@ -487,6 +487,9 @@ def main_sides(payload):
 def main():
     payload = load_payload()
     kind = str(payload.get('kind') or os.environ.get('EVENT_KIND') or 'itogi').lower()
+    if kind == 'team':                          # команда JARVIS: задание team/out/<день>/job.json (render/team_job.py)
+        import team_job
+        return team_job.main(payload)
     if kind == 'itogi2':
         return main_both(payload)
     if kind == 'sides':                         # баннеры «Бока» каждого матча дня в 4К → вам файлами
