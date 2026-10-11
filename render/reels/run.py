@@ -185,11 +185,47 @@ def make(name):
         drop = 3 * u
         r = keynote.Keynote('Айлендерс', 'Тампа-Бэй', 'NHL', 'a', 'Победа Тампы', 1.97, 60, 'ВС 11.10', '02:30', 'Тампы', u=u, drop=drop)
         return r, 'quantum', d - drop
+    # новая волна (11.10): матчи и «Лучший прогноз» с листа «Прогнозы — кратко» (обновлено 11.10 12:39–12:52 МСК)
+    if name == 'particles':
+        from reels import particles
+        u, d = TRACKS['quantum']
+        drop = 3 * u
+        return particles.Particles(FRESH['rangers'], u=u, drop=drop), 'quantum', d - drop
+    if name == 'liquid':
+        from reels import liquid
+        u, d = TRACKS['rotten']
+        drop = 4 * u
+        return liquid.Liquid(FRESH['akbars'], u=u, drop=drop), 'rotten', d - drop
+    if name == 'visualizer':
+        from reels import visualizer
+        u, d = TRACKS['depto']
+        drop = 4 * u
+        return visualizer.Visualizer(FRESH['carolina'], u=u, drop=drop, track=TRACK_DIR and os.path.join(TRACK_DIR, 'depto.wav'),
+                                     start=d - drop), 'depto', d - drop
+    if name == 'ink':
+        from reels import ink
+        u, d = TRACKS['refl']
+        drop = 3 * u
+        return ink.Ink(FRESH['amur'], u=u, drop=drop), 'refl', d - drop
     raise SystemExit('нет формата: %s' % name)
 
 
+FRESH = {
+    'rangers': dict(home='Рейнджерс', away='Ванкувер', league='NHL', when='ПН 12.10 · 01:00', side='h',
+                    pick='ПОБЕДА РЕЙНДЖЕРС', chance=70, line=(1.65, 4.68, 4.23)),
+    'akbars': dict(home='Ак Барс', away='Сочи', league='KHL', when='ПН 12.10 · 19:00', side='h',
+                   pick='ПОБЕДА АК БАРСА', chance=75, line=(1.49, 4.47, 5.70)),
+    'carolina': dict(home='Филадельфия', away='Каролина', league='NHL', when='ПН 12.10 · 02:00', side='a',
+                     pick='ПОБЕДА КАРОЛИНЫ', chance=64, line=(3.31, 4.27, 1.92)),
+    'amur': dict(home='Амур', away='Лада', league='KHL', when='ПН 12.10 · 12:00', side='h',
+                 pick='ПОБЕДА АМУРА', chance=68, line=(1.80, 3.76, 4.01)),
+}
+TRACK_DIR = None
+
+
 ALL = ['pack', 'coupon', 'sim', 'results', 'chat', 'board', 'pixel', 'fight', 'weather', 'collage', 'led', 'top3',
-       'notify', 'channel', 'ticket', 'swipe', 'paper', 'notes', 'poll', 'keynote']
+       'notify', 'channel', 'ticket', 'swipe', 'paper', 'notes', 'poll', 'keynote',
+       'particles', 'liquid', 'visualizer', 'ink']
 
 
 def main():
@@ -199,6 +235,8 @@ def main():
     ap.add_argument('--out', required=True)
     ap.add_argument('--frames')
     a = ap.parse_args()
+    global TRACK_DIR
+    TRACK_DIR = a.tracks
     for name in (ALL if a.name == 'all' else a.name.split(',')):
         t0 = time.time()
         reel, key, start = make(name)
