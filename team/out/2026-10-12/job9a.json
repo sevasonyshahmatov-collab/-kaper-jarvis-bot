@@ -1,8 +1,7 @@
 {
  "day": "2026-10-12",
  "make": [
-  "team/out/2026-10-12/newfmt_make.py",
-  "team/out/2026-10-12/lineup_make.py"
+  "team/out/2026-10-12/newfmt_make.py"
  ],
  "messages": [
   {
@@ -24,40 +23,10 @@
    "to": "owner",
    "type": "documents",
    "files": [
-    "team/out/2026-10-12/reels2/lineup_akbars.mp4"
-   ],
-   "captions": [
-    "1) Состав — Ак Барс — Сочи"
-   ]
-  },
-  {
-   "to": "owner",
-   "type": "documents",
-   "files": [
-    "team/out/2026-10-12/reels2/lineup_metallurg.mp4"
-   ],
-   "captions": [
-    "2) Состав — Торпедо — Металлург"
-   ]
-  },
-  {
-   "to": "owner",
-   "type": "documents",
-   "files": [
     "team/out/2026-10-12/reels2/jarvis_florida.mp4"
    ],
    "captions": [
     "5) Терминал JARVIS — Баффало — Флорида"
-   ]
-  },
-  {
-   "to": "owner",
-   "type": "documents",
-   "files": [
-    "team/out/2026-10-12/reels2/lineup_devils.mp4"
-   ],
-   "captions": [
-    "3) Состав — Нью-Джерси — Оттава"
    ]
   },
   {
