@@ -33,6 +33,7 @@ jobs:
       - name: Нарисовать и отправить
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TRACKS_KEY: ${{ secrets.TRACKS_KEY }}   # ключ треков владельца для роликов (render/reels/owner_tracks.py)
           PAYLOAD: ${{ toJSON(github.event.client_payload) }}
           INPUT_PAYLOAD: ${{ github.event.inputs.payload }}
           EVENT_KIND: ${{ github.event.action }}
