@@ -42,3 +42,4 @@ top3, notify Нью-Джерси — Оттава) и план продвиже�
 Шортсы 12.10 (chat, top3, notify) — владельцу файлами, `job3.json`, Actions run 79 (id 38237983272), success.
 
 Своя музыка для роликов: `render/reels/beats.py` (фонк-бит синтезом под темп и дроп). Шортсы 12.10 со звуком — `job5.json`.
+Run 81 упал: Telegram «Request Entity Too Large» (6 видео одним пакетом > 50 МБ). Повтор — `job6.json`, по одному видео.
