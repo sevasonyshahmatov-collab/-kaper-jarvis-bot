@@ -25,15 +25,16 @@ BG = (3, 8, 15)
 FS = 52                       # кегль терминала
 LH = 76                       # строка
 PX, PY = 46, 556              # окно терминала
-PW, PH = W - 2 * PX, 1446 - 556
+PW, PH = W - 2 * PX, 1400 - 556
 TX, TY = PX + 36, PY + 100    # первая строка текста
 GLYPHS = 'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЭЮЯ0123456789#%&@$'
 
 
 class Jarvis(C.Reel):
     def __init__(self, home, away, league, when, pick, coef, sh, sa, u=1.0, drop=19.0, team=7, pre=2, hold=4.5, cta=2.5,
-                 seed=19):
+                 seed=19, rs=0.5, line=None):
         super().__init__(u, drop, seed)
+        self.rs, self.line = rs, line          # шаг строк терминала (долей трека); линия П1 / Х / П2
         self.h, self.a = C.match(home, away, league)
         self.league, self.when, self.coef, self.pick = league, when, coef, pick
         self.pick1, self.pick2 = F.split_pick(pick)
@@ -64,15 +65,15 @@ class Jarvis(C.Reel):
                    ('%-6s ' % sc, TXT), (x['opp'], TXT)]
             if sum(len(a) for a, _ in seg) > self.cols:               # длинное имя соперника — без даты
                 seg[0] = ('  ', DIM)
-            out.append((t0 + (1.0 + k) * u, seg, None))                 # строка на долю — успеть прочитать
-        tl = t0 + (1.0 + len(g)) * u
+            out.append((t0 + (1.0 + self.rs * k) * u, seg, None))       # строки — на доли трека (шаг rs)
+        tl = t0 + (1.0 + self.rs * len(g)) * u
         if s['points'] is not None:
             tail = (' за %d %s' % (s['gp'], plural(s['gp'], 'матч', 'матча', 'матчей'))) if s['gp'] is not None else ''
             out.append((tl, [('  очки: ', DIM), ('%d' % s['points'], GOLD), (tail, DIM)], None))
-            tl += u
+            tl += self.rs * u
         if s['place'] is not None:
             out.append((tl, [('  место: ', DIM), ('%d' % s['place'], GOLD), ((' ' + s['place_scope']) if s['place_scope'] else '', DIM)], None))
-            tl += u
+            tl += self.rs * u
         if s['gd'] is not None:
             out.append((tl, [('  шайбы: ', DIM), (F.gd_txt(s['gd']), GOLD)], None))
         return out
@@ -130,13 +131,18 @@ class Jarvis(C.Reel):
         self.chips = {r: F.chip(r, 100) for r in ('В', 'П', '')}
         self.embs_big = {'h': C.with_shadow(self.h.emb(200), 14, 0.5, 6), 'a': C.with_shadow(self.a.emb(200), 14, 0.5, 6)}
         self.vs = C.text('VS', 'unb', 64, CY, 900)
-        self.v_emb = C.glow(self.fav.emb(240), 26, 1.0, fresh.bright(fresh.club(self.fav), 0.3))
         self.v_head = C.text('ПРОГНОЗ:', 'mono', 66, CY, 800, track=0.1)
-        self.v2 = C.text(self.pick2, 'unb', 50, TXT, 800, max_w=PW - 120) if self.pick2 else None
         kt = C.text('КЭФ ' + C.fmt_k(self.coef), 'unb', 64, BG, 900)
-        kp = C.rrect(kt.width + 90, 118, 20, CY)
-        C.put(kp, kt, kp.width / 2, 59)
+        kp = C.rrect(kt.width + 100, 124, 20, CY)
+        C.put(kp, kt, kp.width / 2, 62)
         self.kef = kp
+        self.odds = C.odds_row(self.line, PW - 100, 210, font='unb', lab_font='mono', fill=(9, 30, 46), fill_a=255,
+                               val_col=TXT, lab_col=CY, outline=CYD, radius=20) if self.line else None
+        self.odds_lab = C.text('основное время:', 'mono', 40, DIM, 600)
+        self.v_emb = C.glow(self.fav.emb(300), 30, 1.0, fresh.bright(fresh.club(self.fav), 0.3))
+        self.v1 = C.text(self.pick1, 'unb', 92, (255, 255, 255), 900, max_w=PW - 80)
+        self.v2 = C.text(self.pick2, 'unb', 54, TXT, 800, max_w=PW - 120) if self.pick2 else None
+        self.fav_t = C.text(self.fav.up, 'unb', 52, TXT, 800, max_w=640)
 
     def seg_img(self, segs, n_chars):
         """Строка из цветных сегментов (моноширинно), видны первые n_chars символов."""
@@ -191,9 +197,14 @@ class Jarvis(C.Reel):
         # крупно внизу окна: форма текущей команды / обе эмблемы на «вычисляю»
         if t < self.t1:                                             # до фактов — сам матч: обе эмблемы
             q = C.out_expo(C.seg(t, 0.5, 1.0)) * (1 - C.seg(t, self.t1 - 0.25, self.t1))
-            C.put(fr, self.embs_big['h'], W / 2 - 230 - 80 * (1 - q), PY + PH / 2, q)
-            C.put(fr, self.embs_big['a'], W / 2 + 230 + 80 * (1 - q), PY + PH / 2, q)
-            C.put(fr, self.vs, W / 2, PY + PH / 2, q)
+            ye = PY + 260 if self.odds is not None else PY + PH / 2
+            C.put(fr, self.embs_big['h'], W / 2 - 230 - 80 * (1 - q), ye, q)
+            C.put(fr, self.embs_big['a'], W / 2 + 230 + 80 * (1 - q), ye, q)
+            C.put(fr, self.vs, W / 2, ye, q)
+            if self.odds is not None:
+                q2 = C.out_expo(C.seg(t, 0.8, 1.2)) * (1 - C.seg(t, self.t1 - 0.25, self.t1))
+                C.put(fr, self.odds_lab, TX, PY + 450, q2, anchor='tl')
+                C.put(fr, self.odds, W / 2, PY + 640 + 30 * (1 - q2), q2)
         elif t < self.t_calc:
             side, t0 = ('h', self.t1) if t < self.t2 else ('a', self.t2)
             s = self.sh if side == 'h' else self.sa
@@ -201,15 +212,15 @@ class Jarvis(C.Reel):
                 tg = t0 + 1.0 * self.u
                 C.put(fr, self.form_lab, TX, PY + PH - 80, C.seg(t, tg, tg + 0.15), anchor='tl')
                 for k, x in enumerate(s['games']):
-                    tk = tg + k * self.u
+                    tk = tg + k * self.rs * self.u
                     if t >= tk:
                         q = C.out_back(C.seg(t, tk, tk + 0.25))
                         C.put(fr, C.scale(self.chips[x['res']], max(0.01, q)), TX + 270 + 120 * k, PY + PH - 72)
         else:
             q = C.out_expo(C.seg(t, self.t_calc + 0.1, self.t_calc + 0.5))
-            C.put(fr, self.embs_big['h'], W / 2 - 230 - 80 * (1 - q), PY + 760, q)
-            C.put(fr, self.embs_big['a'], W / 2 + 230 + 80 * (1 - q), PY + 760, q)
-            C.put(fr, self.vs, W / 2, PY + 760, q)
+            C.put(fr, self.embs_big['h'], W / 2 - 230 - 80 * (1 - q), PY + 520, q)
+            C.put(fr, self.embs_big['a'], W / 2 + 230 + 80 * (1 - q), PY + 520, q)
+            C.put(fr, self.vs, W / 2, PY + 520, q)
         if last and t < self.drop and int(t * 4) % 2 == 0:
             C.put(fr, C.rrect(26, 52, 3, CY), last[0] + 6, last[1] + 14, anchor='tl')
 
@@ -225,7 +236,8 @@ class Jarvis(C.Reel):
             pulse = 2.0
         fr = C.add_light(fr, self.core, cx, cy, a * pulse)
         y = 318                                                     # матч: хозяева / гости, лига и время
-        for k, im in enumerate(self.match_t):
+        names = self.match_t if t < self.drop else [self.fav_t]     # на прогнозе — только выбранная команда
+        for k, im in enumerate(names):
             C.put(fr, im, 362, y, C.seg(t, 0.1 + 0.1 * k, 0.4 + 0.1 * k), anchor='tl')
             y += im.height + 14
         C.put(fr, self.sub, 362, y + 10, C.seg(t, 0.3, 0.6), anchor='tl')
@@ -246,15 +258,16 @@ class Jarvis(C.Reel):
 
     def verdict(self, fr, t):
         D, u = self.drop, self.u
-        C.put(fr, self.v_head, W / 2, PY + 125, C.seg(t, D, D + 0.05))
+        C.put(fr, self.v_head, W / 2, PY + 130, C.seg(t, D, D + 0.05))
         q = C.out_back(C.seg(t, D + 0.05, D + 0.4), 1.2)
-        C.put(fr, C.scale(self.v_emb, max(0.01, q)), W / 2, PY + 310)
+        C.put(fr, C.scale(self.v_emb, max(0.01, q)), W / 2, PY + 340)
         s1 = self.scramble(self.pick1, t, D, 0.55)
-        C.put(fr, C.text(s1, 'unb', 84, (255, 255, 255), 900, max_w=PW - 80), W / 2, PY + 495)
+        im = self.v1 if s1 == self.pick1 else C.text(s1, 'unb', 92, (255, 255, 255), 900, max_w=PW - 80)
+        C.put(fr, im, W / 2, PY + 548)
         if self.v2:
-            C.put(fr, self.v2, W / 2, PY + 575, C.seg(t, D + 0.4, D + 0.6))
+            C.put(fr, self.v2, W / 2, PY + 632, C.seg(t, D + 0.4, D + 0.6))
         kq = C.out_expo(C.seg(t, D + 1.0 * u, D + 1.4 * u))
-        C.put(fr, self.kef, W / 2, PY + 672 + 30 * (1 - kq), kq)
+        C.put(fr, self.kef, W / 2, PY + 745 + 30 * (1 - kq), kq)
 
     def glitch(self, fr, t, k):
         """Рваные горизонтальные полосы + расслоение цвета, k — сила 0..1."""
@@ -284,7 +297,9 @@ class Jarvis(C.Reel):
         else:
             self.verdict(fr, t)
         if t >= self.t_cta:
-            fresh.cta(fr, t, self.t_cta, y=1380)
+            fresh.cta(fr, t, self.t_cta, y=1492, h=160)
+        else:
+            fresh.handle(fr, C.seg(t, 0.4, 0.8), col=DIM)
         fr.alpha_composite(self.scan)
         # глитч: короткие вспышки на сменах команд и большой — на дропе
         g = 0.0

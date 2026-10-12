@@ -3,7 +3,8 @@
 
 Палитра: тёмно-синий, монохром и один акцент (цвет клуба), дымчатый серый фон с плывущими частицами и боке.
 Сцены (время — в долях трека u; дроп ровно на стыке «напряжения» и «прогноза»):
-  интро (ni долей)   — тёмно-синий: лига, день и время, «хозяева — гости» (без заголовков-рубрик — сразу матч);
+  интро (ni долей)   — тёмно-синий: лига, день и время, «хозяева — гости» (без заголовков-рубрик — сразу матч) и линия
+                       кэфов основного времени П1 / Х / П2 крупными плашками (line);
   клуб (nt долей) ×2 — 1) жёсткая склейка на тёмно-синюю плашку: полное название клуба огромными белыми заглавными
                        в две строки, с обрезкой по краям, строки едут в разные стороны;
                        2) эмблема «въезжает» поверх плашки (у хозяев справа, у гостей слева), текст продолжает ехать за ней;
@@ -12,9 +13,10 @@
                        (дата · соперник · счёт · В/П цветом; появляются спокойно — по строке на долю) и сезон: очки · игры ·
                        место · разница шайб; команда на экране 6–8 с;
   напряжение (nv)    — обе эмблемы монохромом съезжаются к центру, «VS», кадр темнеет, дрожь нарастает (без подписей);
-  ДРОП (nh долей)    — вспышка, удар камеры, ударная волна и осколки; обе эмблемы в цвете, огромный «ПРОГНОЗ: ПОБЕДА …»,
-                       кэф, время МСК; на каждую долю — пульс; держим 4–5 с;
-  финал (nf долей)   — «Все прогнозы — Telegram @jarvibet», 2–3 с.
+  ДРОП (nh долей)    — вспышка, удар камеры, ударная волна и осколки; только команда прогноза — одна эмблема крупно
+                       (без второй и без «VS»), огромный «ПРОГНОЗ: ПОБЕДА …», кэф; на каждую долю — пульс; ~4 с;
+  финал (nf долей)   — «Все прогнозы» + плашка Telegram (текст по центру плашки, C.tg_plate), ~2–2,5 с.
+@jarvibet во всех сценах — у низа безопасной зоны Shorts (y 1560); нижние блоки — чуть левее центра (кнопки справа).
 Никаких процентов/шансов. stats = {"Клуб": {"last3": [{date, opp, home, score, res}], "points", "games", "place", "gd"}};
 пустые (None) поля не показываются.
 """
@@ -35,6 +37,7 @@ GRAY = (176, 182, 196)
 BLUE = (88, 150, 255)          # фирменный голубой (как ник в референсе) — подписи «ПРОГНОЗ», Telegram
 WIN = (60, 200, 120)
 LOSS = (232, 70, 70)
+XC = W / 2 - 20                # центр нижних блоков: чуть левее — справа кнопки интерфейса Shorts
 
 # полное название клуба для плашки (две строки); нет в словаре — короткое имя + лига
 FULL = {
@@ -121,6 +124,8 @@ class Lineup(C.Reel):
         """pick — 'Победа Ак Барса в основное время'; when — 'ПН 12.10 · 19:00 МСК'; side — за кого прогноз ('h'/'a').
         Дроп в ролике = (ni + 2·nt + nv)·u — трек ставить со start = дроп_трека − self.drop."""
         self.ni, self.nt, self.nv = ni, nt, nv
+        # строки удержания ложатся на доли трека: быстрый трек — по строке на долю, иначе — на каждую половину доли
+        self.r0, self.rs = (2.0, 1.0) if u < 0.8 else (1.5, 0.5)
         super().__init__(u, (ni + 2 * nt + nv) * u, seed)
         self.h, self.a = C.match(home, away, league)
         self.lg = 'НХЛ' if str(league).upper() == 'NHL' else 'КХЛ'
@@ -173,6 +178,8 @@ class Lineup(C.Reel):
             full = FULL.get(tm.name, (tm.up, self.lg))
             self.S[key] = dict(tm=tm, col=col, acc=bright(col, 0.28), mir=mir, emb=emb, mono=mono_emb(emb),
                                plate_lines=[self._big(s) for s in full], **self._info(key, tm, col))
+        self.odds = C.odds_row(self.line, 940, 220, fill=WHITE, fill_a=26, outline=(120, 150, 210)) if self.line else None
+        self.odds_lab = C.text('ОСНОВНОЕ ВРЕМЯ', 'mont', 36, GRAY, 800, track=0.25)
 
     def _smoke(self, rnd):
         """Дымчатый серый «космос»: многооктавный шум с косыми прядями, чуть больше кадра (для наезда/сдвига)."""
@@ -215,14 +222,14 @@ class Lineup(C.Reel):
         for g in (st.get('last3') or [])[:3]:
             res = str(g.get('res') or '')
             win = res.startswith('В')
-            rw, rh = 980, 84
+            rw, rh = 920, 84
             row = Image.new('RGBA', (rw, rh), (0, 0, 0, 0))
             C.put(row, C.rrect(rw, rh, 18, NAVY_D, 150), 0, 0, anchor='tl')
             dt = C.text(str(g.get('date') or ''), 'mont', 38, GRAY, 700)
             C.put(row, dt, 22, rh / 2 - dt.height / 2, anchor='tl')
             opp = poster.SHORT.get(str(g.get('opp') or ''), str(g.get('opp') or ''))
             where = '' if g.get('home') is None else (' (Д)' if g['home'] else ' (Г)')
-            ot = C.text((opp + where).upper(), 'mont', 44, WHITE, 800, max_w=480)
+            ot = C.text((opp + where).upper(), 'mont', 44, WHITE, 800, max_w=440)
             C.put(row, ot, 170, rh / 2 - ot.height / 2, anchor='tl')
             sc = str(g.get('score') or '').replace('ОТ/Б', 'ОТ')
             stx = C.text(sc.upper(), 'mont', 48, WHITE, 900)
@@ -232,7 +239,7 @@ class Lineup(C.Reel):
             C.put(row, bd, rw - 52, rh / 2)
             rows.append(row)
         head = C.text('ПОСЛЕДНИЕ 3 ИГРЫ', 'mont', 34, GRAY, 800, track=0.25)
-        season = [C.text(s, 'mont', 46, WHITE, 800, track=0.04, max_w=980) for s in season_lines(st)]
+        season = [C.text(s, 'mont', 46, WHITE, 800, track=0.04, max_w=900) for s in season_lines(st)]
         return dict(name=name, role=role, rows=rows, head=head, season=season)
 
     # ── общие слои ──
@@ -262,17 +269,22 @@ class Lineup(C.Reel):
 
     # ── сцены ──
     def intro(self, fr, t):
+        """Матч: обе эмблемы, лига и время, «хозяева — гости», линия кэфов основного времени крупными плашками."""
         fr.alpha_composite(self.plate_bg)
         self.particles(fr, t, 0.6, bokeh=False)
         for key, sg, d0 in (('h', -1, 0.0), ('a', 1, 0.12)):          # обе эмблемы в цвете — сразу матч
             qe = C.out_expo(C.seg(t, d0, d0 + 0.5))
-            e = C.scale(self.S[key]['emb'], 0.5)
-            C.put(fr, C.shadow(e, 24, 0.6 * qe), W / 2 + sg * (220 + 160 * (1 - qe)), 600 + 20)
-            C.put(fr, e, W / 2 + sg * (220 + 160 * (1 - qe)), 600, qe)
+            e = C.scale(self.S[key]['emb'], 0.66)
+            C.put(fr, C.shadow(e, 24, 0.6 * qe), W / 2 + sg * (240 + 160 * (1 - qe)), 590 + 20)
+            C.put(fr, e, W / 2 + sg * (240 + 160 * (1 - qe)), 590, qe)
         q = C.seg(t, 0.03, 0.3)
-        C.put(fr, C.text('%s · %s' % (self.lg, self.when), 'mont', 40, BLUE, 800, track=0.1, max_w=960), W / 2, 820, q)
+        C.put(fr, C.text('%s · %s' % (self.lg, self.when), 'mont', 46, BLUE, 800, track=0.1, max_w=980), W / 2, 860, q)
         q2 = C.out_expo(C.seg(t, 0.15, 0.5))
-        C.put(fr, C.text('%s — %s' % (self.h.up, self.a.up), 'mont', 74, WHITE, 900, max_w=980), W / 2, 920 + 20 * (1 - q2), q2)
+        C.put(fr, C.text('%s — %s' % (self.h.up, self.a.up), 'mont', 84, WHITE, 900, max_w=1000), W / 2, 970 + 20 * (1 - q2), q2)
+        if self.odds is not None:
+            q3 = C.out_expo(C.seg(t, 0.35, 0.75))
+            C.put(fr, self.odds_lab, W / 2, 1110, q3)
+            C.put(fr, self.odds, XC, 1265 + 40 * (1 - q3), q3)
 
     def team(self, fr, key, t, t0):
         u = self.u
@@ -287,7 +299,7 @@ class Lineup(C.Reel):
             l1, l2 = S['plate_lines']
             sp = 70 + 380 * C.in_cubic(C.seg(lt, tA, tB))
             off = lt * sp
-            y1 = 880 - (l1.height + 40) / 2
+            y1 = 900 - (l1.height + 40) / 2
             y2 = y1 + l1.height + 40
             C.put(fr, l1, W / 2 - sg * off, y1)
             C.put(fr, l2, W / 2 + sg * off, y2)
@@ -295,38 +307,38 @@ class Lineup(C.Reel):
                 q = C.out_expo(C.seg(lt, tA, tB - 0.05))
                 e = C.scale(S['mono'], 1.08)
                 x = W / 2 + sg * C.lerp(W, 60, q)
-                C.put(fr, C.shadow(e, 30, 0.7), x, 880 + 30)
-                C.put(fr, e, x, 880)
+                C.put(fr, C.shadow(e, 30, 0.7), x, 900 + 30)
+                C.put(fr, e, x, 900)
             return fr
         # 3) удержание: дым, частицы, эмблема монохромом, имя акцентом, данные мелкими заглавными
         th = t0 + tB
         self.smoky(fr, t, t0)
         self.particles(fr, t, 0.9)
         C.put(fr, self.halo, W / 2, 600)
-        e = C.scale(S['mono'], 0.72 + 0.008 * (lt - tB))      # медленный наезд, но без наезда на подпись
-        C.put(fr, C.shadow(e, 26, 0.55), W / 2, 620)
-        C.put(fr, e, W / 2, 600)
+        e = C.scale(S['mono'], 0.76 + 0.008 * (lt - tB))      # медленный наезд, но без наезда на подпись
+        C.put(fr, C.shadow(e, 26, 0.55), W / 2, 615)
+        C.put(fr, e, W / 2, 595)
         q = C.out_expo(C.seg(t, th, th + 0.3 * u))
         nm = S['name']
-        C.put(fr, C.with_shadow(nm, 14, 0.55, 6), W / 2 + sg * 60 * (1 - q), 905, q)
+        C.put(fr, C.with_shadow(nm, 14, 0.55, 6), W / 2 + sg * 60 * (1 - q), 910, q)
         C.put(fr, S['role'], W / 2, 345, C.seg(t, th, th + 0.25 * u))
-        y = 1000
+        y = 1040
         if S['rows']:
             C.put(fr, S['head'], W / 2, y, C.seg(t, th + 0.3 * u, th + 0.55 * u))
-            y += 50
+            y += 44
         n_rows = len(S['rows'])
         for i, row in enumerate(S['rows']):
-            ti = t0 + (2.0 + 1.0 * i) * u                      # строки — по одной на долю, спокойно
+            ti = t0 + (self.r0 + self.rs * i) * u              # строки — по очереди (r0, шаг rs долей)
             q = C.out_expo(C.seg(t, ti, ti + 0.3 * u))
             if q > 0:
-                C.put(fr, row, W / 2 - sg * 120 * (1 - q), y + row.height / 2, min(1.0, q * 1.5))
-            y += row.height + 6
-        y += 22
+                C.put(fr, row, XC - sg * 120 * (1 - q), y + row.height / 2, min(1.0, q * 1.5))
+            y += row.height + 10
+        y += 26
         for j, s in enumerate(S['season']):
-            ti = t0 + (2.0 + 1.0 * n_rows + 1.0 * j) * u
+            ti = t0 + (self.r0 + self.rs * (n_rows + j)) * u
             q = C.out_expo(C.seg(t, ti, ti + 0.3 * u))
-            C.put(fr, s, W / 2, y + s.height / 2 + 14 * (1 - q), q)
-            y += s.height + 16
+            C.put(fr, s, XC, y + s.height / 2 + 14 * (1 - q), q)
+            y += s.height + 22
         return fr
 
     def versus(self, fr, t):
@@ -338,7 +350,7 @@ class Lineup(C.Reel):
         k = C.in_cubic(q) * 0.7 + 0.3 * C.out_cubic(q)
         C.put(fr, C.text('VS', 'mont', 300, WHITE, 900), W / 2, 880, min(1.0, q * 3) * 0.9)
         for key, sg in (('h', -1), ('a', 1)):
-            e = C.scale(self.S[key]['mono'], 0.66 + 0.08 * q)
+            e = C.scale(self.S[key]['mono'], 0.78 + 0.08 * q)
             C.put(fr, e, W / 2 + sg * C.lerp(720, 190, k), 880)
         dim = 0.12 + 0.55 * C.in_cubic(q) + 0.28 * C.seg(t, D - 0.2 * u, D)
         fr.alpha_composite(Image.new('RGBA', (W, H), NAVY_D + (int(255 * min(0.95, dim)),)))
@@ -390,42 +402,39 @@ class Lineup(C.Reel):
         return math.exp(-(((t - self.drop) / self.u) % 1.0) * 9)
 
     def verdict(self, fr, t):
-        """Дроп: обе эмблемы в цвете и огромный прогноз."""
+        """Дроп: только команда, на которую прогноз, — одна эмблема крупно, под ней огромный прогноз (без «VS»)."""
         u, D = self.u, self.drop
         fr.alpha_composite(self.plate_bg)
         self.smoky_tint(fr, t)
         self.particles(fr, t, 0.9)
         k = C.out_expo(C.seg(t, D, D + 0.45 * u))
-        for key, sg in (('h', -1), ('a', 1)):
-            e = C.scale(self.S[key]['emb'], C.lerp(0.62, 0.44, k) * (1 + 0.03 * self.pulse(t)))
-            C.put(fr, C.glow(e, 16, 0.6, (200, 215, 255)) if k > 0.98 else e, W / 2 + sg * C.lerp(190, 280, k), C.lerp(880, 480, k))
-        C.put(fr, C.text('VS', 'mont', 64, WHITE, 900), W / 2, 480, k * 0.85)
+        fav = self.S[self.side]['emb']
+        e = C.scale(fav, C.lerp(1.0, 0.8, k) * (1 + 0.03 * self.pulse(t)))
+        C.put(fr, C.glow(e, 18, 0.6, (200, 215, 255)) if k > 0.98 else e, W / 2, C.lerp(880, 545, k))
         q = C.out_expo(C.seg(t, D, D + 0.22 * u))
-        lab = C.text('ПРОГНОЗ', 'mont', 54, BLUE, 900, track=0.35)
-        C.put(fr, C.scale(lab, 1.6 - 0.6 * q), W / 2, 690, min(1.0, q * 2))
-        y = 795
+        lab = C.text('ПРОГНОЗ', 'mont', 58, BLUE, 900, track=0.35)
+        C.put(fr, C.scale(lab, 1.6 - 0.6 * q), W / 2, 840, min(1.0, q * 2))
+        y = 950
         if self.p1:
-            im = C.with_shadow(C.text(self.p1, 'mont', 140, WHITE, 900, max_w=1000), 14, 0.6, 8)
+            im = C.with_shadow(C.text(self.p1, 'mont', 150, WHITE, 900, max_w=1000), 14, 0.6, 8)
             C.put(fr, C.scale(im, 2.2 - 1.2 * q), W / 2, y, min(1.0, q * 2))
             y += 150
         q2 = C.out_expo(C.seg(t, D + 0.04, D + 0.3 * u))
-        nm = C.glow(C.text(self.p2, 'mont', 170, bright(self.cf, 0.3), 900, max_w=930), 18, 0.8, self.cf)
+        nm = C.glow(C.text(self.p2, 'mont', 180, bright(self.cf, 0.3), 900, max_w=980), 18, 0.8, self.cf)
         C.put(fr, C.scale(nm, (2.4 - 1.4 * q2) * (1 + 0.025 * self.pulse(t))), W / 2, y + 10, min(1.0, q2 * 2))
-        y += 140
+        y += 135
         if self.p3:
             q3 = C.out_expo(C.seg(t, D + 0.5 * u, D + 0.9 * u))
-            C.put(fr, C.text(self.p3, 'mont', 54, WHITE, 800, track=0.12, max_w=960), W / 2, y + 30 * (1 - q3), q3)
-            y += 100
+            C.put(fr, C.text(self.p3, 'mont', 58, WHITE, 800, track=0.12, max_w=980), W / 2, y + 30 * (1 - q3), q3)
+            y += 95
         if self.coef:
             q4 = C.out_back(C.seg(t, D + 1.0 * u, D + 1.35 * u), 1.8)
             if q4 > 0.01:
-                kt = C.text('КЭФ ' + C.fmt_k(self.coef), 'mont', 86, NAVY_D, 900)
-                kp = C.rrect(kt.width + 110, 140, 70, WHITE)
-                C.put(kp, kt, kp.width / 2, 70)
-                C.put(fr, C.scale(kp, 0.4 + 0.6 * q4), W / 2, y + 70, min(1.0, q4 * 1.5))
-            y += 160
-        q5 = C.seg(t, D + 1.5 * u, D + 1.9 * u)
-        C.put(fr, C.text('%s · %s' % (self.lg, self.when), 'mont', 42, GRAY, 800, track=0.08, max_w=980), W / 2, y + 12, q5)
+                kt = C.text('КЭФ ' + C.fmt_k(self.coef), 'mont', 92, NAVY_D, 900)
+                kp = C.rrect(kt.width + 120, 150, 75, WHITE)
+                C.put(kp, kt, kp.width / 2, 75)
+                C.put(fr, C.scale(kp, 0.4 + 0.6 * q4), W / 2, y + 75, min(1.0, q4 * 1.5))
+            y += 175
         self.burst(fr, t)
         return fr
 
@@ -436,21 +445,20 @@ class Lineup(C.Reel):
         fr.alpha_composite(sm)
 
     def final(self, fr, t):
+        """Плашка Telegram: «ВСЕ / ПРОГНОЗЫ» крупно, плашка (текст по центру плашки), подпись — блоком по центру кадра."""
         u, t0 = self.u, self.t_end
         fr.alpha_composite(self.plate_bg)
         self.smoky_tint(fr, t)
         self.particles(fr, t, 0.8)
         q = C.out_expo(C.seg(t, t0, t0 + 0.4 * u))
-        C.put(fr, C.text('ВСЕ ПРОГНОЗЫ', 'mont', 130, WHITE, 900, max_w=980), W / 2, 760 + 40 * (1 - q), q)
-        q = C.out_expo(C.seg(t, t0 + 0.35 * u, t0 + 0.85 * u))
+        C.put(fr, C.text('ВСЕ', 'mont', 200, WHITE, 900), W / 2, 630 + 40 * (1 - q), q)
+        C.put(fr, C.text('ПРОГНОЗЫ', 'mont', 200, WHITE, 900, max_w=1000), W / 2, 830 + 40 * (1 - q), q)
+        q = C.out_expo(C.seg(t, t0 + 0.3 * u, t0 + 0.75 * u))
         if q > 0:
-            pl = C.rrect(900, 170, 85, C.TG_BLUE)
-            C.put(pl, C.tg_icon(124, WHITE, C.TG_BLUE), 95, 85)
-            C.put(pl, C.text('TELEGRAM', 'mont', 40, (215, 236, 255), 800, track=0.25), 560, 54)
-            C.put(pl, C.text(C.HANDLE, 'mont', 72, WHITE, 900, max_w=620), 560, 112)
-            C.put(fr, C.scale(pl, 0.8 + 0.2 * q), W / 2, 960, q)
-        q = C.seg(t, t0 + 0.9 * u, t0 + 1.3 * u)
-        C.put(fr, C.text('КАЖДЫЙ ДЕНЬ · КХЛ И НХЛ', 'mont', 36, GRAY, 800, track=0.15), W / 2, 1120, q)
+            pl = C.tg_plate(1000, 210)
+            C.put(fr, C.scale(pl, 0.8 + 0.2 * q), W / 2, 1105, q)
+        q = C.seg(t, t0 + 0.7 * u, t0 + 1.1 * u)
+        C.put(fr, C.text('КАЖДЫЙ ДЕНЬ · КХЛ И НХЛ', 'mont', 46, GRAY, 800, track=0.15, max_w=1000), W / 2, 1305, q)
 
     # ── кадр ──
     def frame(self, t):

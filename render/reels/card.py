@@ -18,7 +18,7 @@ from reels import fresh
 from reels.core import W, H
 
 CW, CH = 720, 1000
-CX, CY = W / 2, 905
+CX, CY = W / 2, 945
 INK = (18, 18, 24)
 GOLD1, GOLD2, GOLD3 = (255, 232, 150), (214, 160, 52), (150, 100, 22)
 GDARK = (40, 25, 0)
@@ -35,8 +35,9 @@ def plural(n, one, few, many):
 
 class Card(C.Reel):
     def __init__(self, home, away, league, when, pick, coef, sh, sa, u=60 / 64, drop=20 * 60 / 64, team=8, rush=2, hold=5,
-                 cta=3, seed=31):
+                 cta=3, seed=31, line=None):
         super().__init__(u, drop, seed)
+        self.line = line                                     # П1 / Х / П2 основного времени — в начальной сцене
         self.h, self.a = C.match(home, away, league)
         self.league, self.when, self.coef = league, when, coef
         self.pick1, self.pick2 = F.split_pick(pick)
@@ -172,7 +173,7 @@ class Card(C.Reel):
         kp = C.rrect(kt.width + 100, 140, 70, GDARK)
         C.put(kp, kt, kp.width / 2, 70)
         C.put(g, kp, CW / 2, 800)
-        C.put(g, C.text('%s — %s · %s' % (self.h.up, self.a.up, self.when), 'mono', 28, GDARK, 800, max_w=CW - 110), CW / 2, CH - 82)
+        C.put(g, C.text('%s · %s' % (F.lg_ru(self.league), self.when), 'mono', 30, GDARK, 800, max_w=CW - 110), CW / 2, CH - 82)
         return g
 
     def _prep(self):
@@ -202,6 +203,10 @@ class Card(C.Reel):
         self.spark = C.radial(26, 26, (255, 236, 170), 255, 1.2)
         self.m_emb = {s: C.with_shadow(t.emb(330), 20, 0.6, 10) for s, t in (('h', self.h), ('a', self.a))}
         self.m_vs = C.text('VS', 'unb', 90, (255, 214, 90), 900)
+        self.fav_title = C.text(self.fav.up, 'unb', 50, (255, 255, 255), 900, max_w=980)
+        self.odds = C.odds_row(self.line, 940, 220, font='unb', lab_font='mono', fill=INK, fill_a=235, val_col=(255, 255, 255),
+                               lab_col=(255, 214, 90), outline=(120, 96, 40), radius=30) if self.line else None
+        self.odds_lab = C.text('ОСНОВНОЕ ВРЕМЯ', 'mono', 34, (255, 214, 90), 800, track=0.2)
         self.flash = C.radial(1200, 1200, (255, 240, 200), 255, 1.3)
         self.sparks = [(rnd.uniform(0, 2 * math.pi), rnd.uniform(500, 1500), rnd.uniform(0.6, 1.4)) for _ in range(70)]
 
@@ -292,15 +297,20 @@ class Card(C.Reel):
             ta = C.seg(t, 0.0, 0.3) * (1 - C.seg(t, D - 0.2, D))
             if t >= D + 0.6:
                 ta = C.seg(t, D + 0.6, D + 0.9)
-            C.put(fr, self.title, W / 2, 322, ta)
+            C.put(fr, self.title if t < D else self.fav_title, W / 2, 322, ta)     # на прогнозе — только выбранная команда
             C.put(fr, self.sub, W / 2, 378, ta)
         # первая карточка
         if t < self.t_rush:
             if t < self.t_in1 + 0.3:                                 # до карточек — сам матч: обе эмблемы
                 q = C.out_expo(C.seg(t, 0.1, 0.6)) * (1 - C.seg(t, self.t_in1 - 0.1, self.t_in1 + 0.3))
+                ye = CY - 170 if self.odds is not None else CY - 60
                 for e, x in ((self.m_emb['h'], CX - 275), (self.m_emb['a'], CX + 275)):
-                    C.put(fr, e, x, CY - 60 + 30 * (1 - q), q)
-                C.put(fr, self.m_vs, CX, CY - 60, q)
+                    C.put(fr, e, x, ye + 30 * (1 - q), q)
+                C.put(fr, self.m_vs, CX, ye, q)
+                if self.odds is not None:
+                    q2 = C.out_expo(C.seg(t, 0.4, 0.8)) * (1 - C.seg(t, self.t_in1 - 0.1, self.t_in1 + 0.3))
+                    C.put(fr, self.odds_lab, CX, CY + 110, q2)
+                    C.put(fr, self.odds, CX, CY + 270 + 30 * (1 - q2), q2)
             if self.t_in1 <= t < self.t_in2 + 0.5:
                 q = C.out_cubic(C.seg(t, self.t_in1, self.t_in1 + 0.55))
                 ex = C.in_cubic(C.seg(t, self.t_in2, self.t_in2 + 0.45))
@@ -325,10 +335,10 @@ class Card(C.Reel):
             self.place(fr, im, xa, CY, s, -8 + 4 * k2)
         else:
             # столкновение: карточки отлетают, искры, золотая карточка
-            k = C.out_cubic(C.seg(t, D, D + 0.6))
+            k = C.out_cubic(C.seg(t, D, D + 0.35))               # обе карточки улетают — остаётся только прогноз
             if k < 1:
-                self.place(fr, self.front['h'], CX - 160 - 900 * k, CY + 300 * k, 0.54, 8 + 50 * k, 1 - k * 0.5)
-                self.place(fr, self.front['a'], CX + 160 + 900 * k, CY + 300 * k, 0.54, -8 - 50 * k, 1 - k * 0.5)
+                self.place(fr, self.front['h'], CX - 160 - 900 * k, CY + 300 * k, 0.54, 8 + 50 * k, 1 - k)
+                self.place(fr, self.front['a'], CX + 160 + 900 * k, CY + 300 * k, 0.54, -8 - 50 * k, 1 - k)
             ts = t - D
             if ts < 0.9:
                 for ang, sp, sz in self.sparks:
@@ -345,7 +355,9 @@ class Card(C.Reel):
             if ts < 0.35:
                 fr = C.add_light(fr, self.flash, CX, CY, 1.4 * (1 - ts / 0.35)).convert('RGBA')
         if t >= self.t_cta:
-            fresh.cta(fr, t, self.t_cta, y=1410)
+            fresh.cta(fr, t, self.t_cta, y=1462)
+        else:
+            fresh.handle(fr, C.seg(t, 0.3, 0.6), col=(200, 200, 210))
         # удары: переворот, вход, дроп
         z, dx, dy = 1.0 + 0.012 * math.sin(t * 0.6), 0.0, 0.0
         for th, amp in ((self.t_flip1, 4), (self.t_in2, 5), (self.t_flip2, 4), (D, 20)):

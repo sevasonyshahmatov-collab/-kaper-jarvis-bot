@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """Три формата роликов 12.10: tape (tale of the tape), jarvis (терминал), card (коллекционная карточка).
 Драматургия: матч → команда 1 (последние 3 игры, очки) → команда 2 → прогноз ровно на дроп трека владельца.
-Правило владельца 12.10: без заголовков-рубрик, ролик 25–35 с, команда 6–8 с, прогноз 4–5 с, финал 2–3 с.
-Первые дропы треков рано (depto 9,27; quantum 7,64; kilo 10,08) — берём следующий дроп трека (render/track_sync.py
---drop уточняет до удара баса) и передаём его здесь явно; TRACKS в run.py не трогаем. Дропы сверены по громкости
-окнами 10 мс: depto 39,84 (39,22 — удар на долю раньше), quantum 56,04 (после тишины 55,6–56,0), kilo 60,08.
+Правила владельца 12.10: без заголовков-рубрик; темп — ролик ~21–24 с (tape ~18–19 с), команда ~5,5–6,5 с, прогноз ~4 с,
+плашка Telegram ~2–2,5 с; в начале — линия кэфов П1 / Х / П2; на прогнозе — только выбранная команда.
+Треки (поправка 12.10): tape — rotten, jarvis — north, card — jefe. Доля и дроп трека заданы здесь явно (TRACKS в run.py
+не трогаем); дроп — удар по громкости окнами 10 мс; старт трека = дроп трека − дроп ролика (≥ 0).
 Запуск из корня: PYTHONPATH=render python team/out/2026-10-12/newfmt_make.py [tape|jarvis|card ...] [--frames 0.5,3,...]
 Треки — render/reels/owner_tracks.py (TRACKS_DIR локально или секрет TRACKS_KEY). Цифры клубов — team_stats.json
 (готовит аналитик; путь можно заменить переменной STATS). Результат: team/out/2026-10-12/reels2/<имя>.mp4 (с треком),
@@ -29,7 +29,6 @@ if not shutil.which('ffmpeg'):                                   # на ранн
 import nhl  # noqa: E402
 nhl.register()
 from reels import core as C  # noqa: E402
-from reels.run import TRACKS  # noqa: E402
 
 
 def stats():
@@ -52,27 +51,31 @@ def club(S, name):
 def make(name):
     """→ (ролик, ключ трека, секунда трека на t=0, файл)."""
     S = stats()
-    if name == 'tape':
+    if name == 'tape':                       # 25–30 % быстрее версии 25,5 с: ~18,8 с; трек rotten (72 BPM)
         from reels import tape
-        u, d = TRACKS['depto'][0], 39.84
-        drop = 30 * u
+        u, d = 60 / 72, 28.20                # удар rotten 28,20 (по громкости окнами 10 мс)
+        per, pre, n = 1, 1.5, 6              # строка на долю; 6 строк на команду (3 игры + очки, место, шайбы)
+        drop = (2.5 + 2 * n * per + pre) * u
         r = tape.Tape('Барыс', 'Сибирь', 'KHL', 'ПН 12.10 · 17:30 МСК', 'Победа Барыса в основное время', 2.16,
-                      club(S, 'Барыс'), club(S, 'Сибирь'), u=u, drop=drop)
-        return r, 'depto', d - drop, 'tape_barys'
-    if name == 'jarvis':
+                      club(S, 'Барыс'), club(S, 'Сибирь'), u=u, drop=drop, per=per, pre=pre, hold=4, cta=2.5,
+                      line=(2.16, 3.70, 2.96))
+        return r, 'rotten', d - drop, 'tape_barys'
+    if name == 'jarvis':                     # трек north (71 BPM, сцена — 2 доли = 0,845 с)
         from reels import jarvis
-        u, d = TRACKS['quantum'][0], 56.04
+        u, d = 120 / 142, 57.50              # удар north 57,50 (57,30 — подводка)
         drop = 19 * u
         r = jarvis.Jarvis('Баффало', 'Флорида', 'NHL', 'ПН 12.10 · 20:00 МСК', 'Победа Флориды в основное время', 2.43,
-                          club(S, 'Баффало'), club(S, 'Флорида'), u=u, drop=drop)
-        return r, 'quantum', d - drop, 'jarvis_florida'
-    if name == 'card':
+                          club(S, 'Баффало'), club(S, 'Флорида'), u=u, drop=drop, team=7, pre=2, hold=5, cta=2.5,
+                          line=(2.47, 4.16, 2.43))
+        return r, 'north', d - drop, 'jarvis_florida'
+    if name == 'card':                       # трек jefe (81 BPM)
         from reels import card
-        u, d = TRACKS['kilo'][0], 60.08
-        drop = 20 * u
+        u, d = 60 / 81, 20.80                # удар jefe 20,80
+        drop = 21 * u
         r = card.Card('Миннесота', 'Вегас', 'NHL', 'ВТ 13.10 · 03:00 МСК', 'Победа Миннесоты в основное время', 2.43,
-                      club(S, 'Миннесота'), club(S, 'Вегас'), u=u, drop=drop)
-        return r, 'kilo', d - drop, 'card_wild'
+                      club(S, 'Миннесота'), club(S, 'Вегас'), u=u, drop=drop, team=8, rush=2, hold=5.5, cta=3,
+                      line=(2.43, 4.12, 2.48))
+        return r, 'jefe', d - drop, 'card_wild'
     raise SystemExit('нет формата: %s' % name)
 
 

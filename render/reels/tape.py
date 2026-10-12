@@ -3,8 +3,9 @@
 
 Две колонки под прожекторами (слева хозяева, справа гости), посередине — подписи строк. Каждые per долей трека
 прилетает строка сравнения: сначала вся колонка первой команды (последние 3 игры, очки, место, разница шайб),
-потом второй — команда на экране 6–8 с. Перед дропом — пульс «VS», на дропе — штамп «ПРОГНОЗ» с кэфом (держим
-hold долей), фаворит подсвечивается золотом. В конце — плашка Telegram (cta долей).
+потом второй (шаг per долей). До первой команды — линия кэфов П1 / Х / П2 на месте стола. Перед дропом — пульс «VS»
+(pre долей), на дропе стол и вторая команда уходят: остаётся только команда прогноза (крупно, в центре) и штамп
+«ПРОГНОЗ» с кэфом (hold долей). В конце — плашка Telegram (cta долей), @jarvibet — у низа безопасной зоны.
 """
 import math
 
@@ -26,9 +27,9 @@ S_Y0, S_DY = 1186, 102              # строки цифр
 
 class Tape(C.Reel):
     def __init__(self, home, away, league, when, pick, coef, sh, sa, u=60 / 96.5, drop=30 * 60 / 96.5, per=2, hold=7, cta=4,
-                 seed=11):
+                 seed=11, pre=2, line=None):
         super().__init__(u, drop, seed)
-        self.per = per                                       # долей на строку
+        self.per, self.pre, self.line = per, pre, line       # долей на строку; долей «VS» перед дропом; П1 / Х / П2
         self.h, self.a = C.match(home, away, league)
         self.league, self.when, self.coef = league, when, coef
         self.pick1, self.pick2 = F.split_pick(pick)
@@ -43,8 +44,8 @@ class Tape(C.Reel):
         self.labels = [x for x in order if x in labels]
         self.n = max(len(self.sh['games']), len(self.sa['games'])) + len(self.labels)
         n = self.n
-        self.t1 = self.b(-(2 * n * per + 2))                # первая команда
-        self.t2 = self.b(-(n * per + 2))                    # вторая
+        self.t1 = self.b(-(2 * n * per + pre))              # первая команда
+        self.t2 = self.b(-(n * per + pre))                  # вторая
         if self.t1 < 1.5:
             raise ValueError('мало времени до дропа')
         self.t_cta = self.b(hold)
@@ -107,8 +108,11 @@ class Tape(C.Reel):
             for k, (im, y, typ) in enumerate(self.items[side]):
                 if typ in self.lab and typ not in self.lab_t:
                     self.lab_t[typ] = (t0 + k * self.per * self.u, y)
-        ring = C.radial(480, 480, GOLD, 200, 1.6)
+        ring = C.radial(560, 560, GOLD, 200, 1.6)
         self.ring = ring
+        self.odds = C.odds_row(self.line, 940, 230, font='unb', lab_font='mono', fill=(20, 20, 28), fill_a=230,
+                               val_col=(255, 255, 255), lab_col=GOLD, outline=(90, 78, 44)) if self.line else None
+        self.odds_lab = C.text('ОСНОВНОЕ ВРЕМЯ', 'mono', 34, GOLD, 800, track=0.2)
 
     def _game(self, g, side):
         w, hh, cd = 466, 72, 64
@@ -194,13 +198,14 @@ class Tape(C.Reel):
         u, D = self.u, self.drop
         fr = self.bg.copy()
         # прожекторы: на свою команду — ярко
-        for side, t0, t1 in (('h', self.t1, self.t2), ('a', self.t2, self.b(-1))):
+        tp = self.b(-self.pre)
+        for side, t0, t1 in (('h', self.t1, self.t2), ('a', self.t2, tp)):
             if t < self.t1:
                 k = 0.55 * C.seg(t, 0.2, 0.8)
             elif t < D:
                 k = 1.0 if t0 <= t < t1 else 0.35
-                if t >= self.b(-2):
-                    k = 0.6 + 0.4 * abs(math.sin((t - self.b(-2)) * math.pi / u))
+                if t >= tp:
+                    k = 0.6 + 0.4 * abs(math.sin((t - tp) * math.pi / u))
             else:
                 fav = side == self.side
                 k = 1.0 if fav else 0.25
@@ -209,37 +214,49 @@ class Tape(C.Reel):
         fresh.header(fr, {'league': self.league}, C.seg(t, 0.0, 0.3))
         q = C.out_expo(C.seg(t, 0.0, 0.4))
         C.put(fr, self.sub, W / 2, 380 + 20 * (1 - q), q)
-        # бойцы
+        # бойцы; после дропа — только команда прогноза: она выезжает в центр и растёт, вторая и «VS» уходят
+        mk = C.in_out(C.seg(t, D, D + 0.45)) if t >= D else 0.0
         for side, x, dirn in (('h', LX, -1), ('a', RX, 1)):
             q = C.out_expo(C.seg(t, 0.15 + 0.12 * (side == 'a'), 0.65 + 0.12 * (side == 'a')))
+            fav = side == self.side
             if t < D:
-                foc = 1.0 if t < self.t1 or t >= self.b(-1) else (1.0 if (side == 'h') == (t < self.t2) else 0.45)
+                foc = 1.0 if t < self.t1 or t >= tp else (1.0 if (side == 'h') == (t < self.t2) else 0.45)
             else:
-                foc = 1.0 if side == self.side else 0.4
-            if t >= D and side == self.side:
+                foc = 1.0 if fav else max(0.0, 1 - C.seg(t, D, D + 0.12))
+            if foc <= 0.003:
+                continue
+            xx = C.lerp(x, W / 2, mk) if fav else x
+            sc = 1.0 + 0.6 * mk if fav else 1.0
+            if t >= D and fav:
                 gk = C.out_cubic(C.seg(t, D, D + 0.3))
-                fr = C.add_light(fr, self.ring, x, 640, 0.9 * gk)
+                fr = C.add_light(fr, self.ring, xx, 650, 0.9 * gk)
             pop = 1.0
             ts = self.t1 if side == 'h' else self.t2
             if t >= ts:
                 pop += 0.10 * (1 - C.seg(t, ts, ts + 0.3)) ** 2
-            C.put(fr, C.scale(self.emb[side], pop), x + dirn * 260 * (1 - q), 640, q * foc)
-            C.put(fr, self.corner[side], x, 490, q * foc)
-            C.put(fr, self.name[side], x, 800, q * foc)
-        vk = C.seg(t, 0.5, 0.8)
+            C.put(fr, C.scale(self.emb[side], pop * sc), xx + dirn * 260 * (1 - q), 640 + 20 * mk, q * foc)
+            C.put(fr, self.corner[side], xx, 490, q * foc * (1 - mk))
+            C.put(fr, C.scale(self.name[side], 1 + 0.3 * mk) if mk > 0 else self.name[side], xx, 800 + 95 * mk, q * foc)
+        vk = C.seg(t, 0.5, 0.8) * (1 - C.seg(t, D, D + 0.1))
         vs = self.vs
-        if self.b(-2) <= t < D:
-            ph = (t - self.b(-2)) / u
+        if tp <= t < D:
+            ph = (t - tp) / u
             vs = C.scale(vs, 1 + 0.25 * max(0, 1 - (ph % 1) * 3))
         C.put(fr, vs, W / 2, 640, vk)
+        # до первой команды — линия кэфов основного времени на месте стола
+        if self.odds is not None and t < self.t1:
+            oq = C.out_expo(C.seg(t, 0.5, 0.9)) * (1 - C.seg(t, self.t1 - 0.4, self.t1 - 0.1))
+            C.put(fr, self.odds_lab, W / 2, 1000, oq)
+            C.put(fr, self.odds, W / 2, 1160 + 30 * (1 - oq), oq)
         # стол
-        if t >= self.t1 - 0.4:
-            pk = C.out_cubic(C.seg(t, self.t1 - 0.4, self.t1))
+        if self.t1 - 0.4 <= t < D + 0.2:
+            pk = C.out_cubic(C.seg(t, self.t1 - 0.4, self.t1)) * (1 - C.seg(t, D, D + 0.2))
             C.put(fr, self.panel, W / 2, (self.tab_top + self.tab_bot) / 2 + 40 * (1 - pk), pk)
             C.put(fr, self.g_head, W / 2, 870 + 1, pk)
+            dst = fr if t < D else Image.new('RGBA', (W, H), (0, 0, 0, 0))     # после дропа стол гаснет целиком
             for lab, (tl, y) in self.lab_t.items():
                 if t >= tl:
-                    C.put(fr, self.lab[lab], W / 2, y, C.seg(t, tl, tl + 0.2))
+                    C.put(dst, self.lab[lab], W / 2, y, C.seg(t, tl, tl + 0.2))
             for side, t0 in (('h', self.t1), ('a', self.t2)):
                 for k, (im, y, typ) in enumerate(self.items[side]):
                     ti = t0 + k * self.per * u
@@ -251,32 +268,31 @@ class Tape(C.Reel):
                     dx = (-1 if side == 'h' else 1) * 160 * (1 - q)
                     if typ == 'g':
                         xx = 50 if side == 'h' else W - 50 - im.width
-                        C.put(fr, im, xx + dx, y - im.height / 2, q, anchor='tl')
+                        C.put(dst, im, xx + dx, y - im.height / 2, q, anchor='tl')
                     else:
-                        C.put(fr, im, (LX - 20 if side == 'h' else RX + 20) + dx, y + (im.height / 2 - 40 if im.height > 100 else 0), q)
+                        C.put(dst, im, (LX - 20 if side == 'h' else RX + 20) + dx, y + (im.height / 2 - 40 if im.height > 100 else 0), q)
                     if typ != 'g' and side == self.better.get(typ) and t >= self.t_cmp.get(typ, 1e9):
                         mq = C.out_expo(C.seg(t, self.t_cmp[typ], self.t_cmp[typ] + 0.3))
                         mk = C.rrect(int(170 * mq) + 2, 8, 4, GOLD)
                         yb = y + (im.height - 40 if im.height > 100 else im.height / 2) + 12
-                        C.put(fr, mk, (LX - 20 if side == 'h' else RX + 20), yb)
+                        C.put(dst, mk, (LX - 20 if side == 'h' else RX + 20), yb)
                     if t < ti + 0.25:                             # вспышка строки
                         fl = 1 - C.seg(t, ti, ti + 0.25)
                         bar = C.rrect(470, 6, 3, self.ch if side == 'h' else self.ca)
-                        C.put(fr, bar, (LX if side == 'h' else RX), y + 40, fl)
-        # штамп на дропе
+                        C.put(dst, bar, (LX if side == 'h' else RX), y + 40, fl)
+            if dst is not fr:
+                C.put(fr, dst, 0, 0, pk, anchor='tl')
+        # штамп на дропе (стол уходит — на прогнозе только выбранная команда)
         if t >= D:
-            dim = C.seg(t, D, D + 0.15)
-            ov = Image.new('RGBA', (1010, self.tab_bot - self.tab_top), (6, 6, 9, int(170 * dim)))
-            C.put(fr, ov, W / 2, (self.tab_top + self.tab_bot) / 2)
             ps = C.seg(t, D, D + 0.11)
-            st = C.scale(self.stamp, 2.0 - 1.0 * C.out_cubic(ps))
-            sy = 1150 - 50 * C.in_out(C.seg(t, self.t_cta, self.t_cta + 0.5))
+            st = C.scale(self.stamp, (2.0 - 1.0 * C.out_cubic(ps)) * 0.92)
+            sy = 1200 - 40 * C.in_out(C.seg(t, self.t_cta, self.t_cta + 0.5))
             C.put(fr, C.shadow(st, 26, 0.7 * ps), W / 2 + 12, sy + 22)
             C.put(fr, st, W / 2, sy, min(1.0, 0.3 + ps))
         if t >= self.t_cta:
-            fresh.cta(fr, t, self.t_cta, y=1415)
+            fresh.cta(fr, t, self.t_cta, y=1478)
         else:
-            fresh.handle(fr, C.seg(t, 0.4, 0.8) * (1 - C.seg(t, self.t1 - 0.4, self.t1)))
+            fresh.handle(fr, C.seg(t, 0.4, 0.8))
         # камера: удары, пульс
         z, dx, dy = 1.0 + 0.012 * math.sin(t * 0.5), 0.0, 0.0
         hits = [self.t1, self.t2, D]
