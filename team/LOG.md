@@ -53,3 +53,7 @@ Run 82 (id 38240652576) — success: три шортса со звуком у в
 Треки — в ветке `claude/team-dev-tracks`, зашифрованы (ключ только у руководителя, в payload задания). Ролики: coupon (SLX), top3 (Kizaru), notify (vace) — `job7.json`.
 Run 83 упал (PAYLOAD=null в скрипте). Ключ треков нельзя передавать в параметрах запуска (виден в Actions) — ветку `claude/team-dev-tracks` удалить, дальше — секрет репозитория. Ролики 12.10 собраны в сессии, доставка из временной ветки `claude/team-dev-shorts-1210` (`job8.json`), потом ветку удалить.
 Run 84 (id 38243442934) — success: шортсы coupon/top3/notify с треками владельца доставлены. Ветки `claude/team-dev-shorts-1210` и `claude/team-dev-tracks` удалить не удалось (прокси сессии отклоняет удаление веток) — удаляет владелец в GitHub.
+
+## 2026-10-12 — треки владельца через секрет
+Новый ключ; треки зашифрованы в ветке `claude/team-dev-tracks-v2`; модуль `render/reels/owner_tracks.py`; PR #17 (секрет TRACKS_KEY в itogi.yml).
+Владельцу: удалить ветки claude/team-dev-tracks, claude/team-dev-shorts-1210 и запуск 83; создать секрет TRACKS_KEY; влить PR #17.
