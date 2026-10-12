@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Ролики 12.10 без музыки (clean) + обложки. Запуск из корня: PYTHONPATH=render python team/out/2026-10-12/shorts.py
+"""Ролики 12.10: полная версия со своей музыкой (reels/beats.py) + без музыки (clean) + обложки. Запуск из корня: PYTHONPATH=render python team/out/2026-10-12/shorts.py
 Результат: team/out/2026-10-12/shorts/{chat,top3,notify}_clean.mp4, *_cover.jpg, tracks.txt (трек и секунда старта для редактора)."""
 import os
 import shutil
@@ -20,6 +20,7 @@ import nhl  # noqa: E402
 nhl.register()
 from reels import core as C  # noqa: E402
 from reels.run import TRACKS  # noqa: E402
+from reels import beats  # noqa: E402
 
 
 def make(name):
@@ -55,8 +56,10 @@ def main():
     for name in sys.argv[1:] or ['chat', 'top3', 'notify']:
         t0 = time.time()
         reel, key, start = make(name)
-        C.render(reel, os.path.join(OUT, name + '_clean.mp4'))      # без трека: тихая дорожка + обложка *_cover.jpg
-        lines.append('%s: трек %s, старт трека на 0:00 ролика = %.2f с (ролик %.1f с)' % (name, key, start, reel.dur))
+        wav = beats.own(key, os.path.join(OUT, 'beat_%s.wav' % key))   # своя музыка под темп и дроп трека
+        C.render(reel, os.path.join(OUT, name + '.mp4'), track=wav, start=start,
+                 extra_out=os.path.join(OUT, name + '_clean.mp4'))      # со звуком + без музыки, обложка *_cover.jpg
+        lines.append('%s: своя музыка (темп и дроп как у %s), старт %.2f с; ролик %.1f с' % (name, key, start, reel.dur))
         print('%s: %.1f с ролика, %.0f с сборки' % (name, reel.dur, time.time() - t0), flush=True)
     if not sys.argv[1:]:
         with open(os.path.join(OUT, 'tracks.txt'), 'w', encoding='utf-8') as f:
