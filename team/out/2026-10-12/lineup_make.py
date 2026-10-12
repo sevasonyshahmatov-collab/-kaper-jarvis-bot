@@ -29,20 +29,23 @@ from reels.run import TRACKS  # noqa: E402
 with open(os.path.join(DAY, 'team_stats.json'), encoding='utf-8') as f:
     STATS = json.load(f)
 
-# имя: (хозяева, гости, лига, прогноз, кэф, время, за кого, трек, ni, nt, nv)
+# имя: (хозяева, гости, лига, прогноз, кэф, время, за кого, трек, дроп трека (с), ni, nt, nv)
+# Темп по правилу владельца 12.10: ролик 25–35 с, команда 6–8 с, прогноз 4–5 с, финал 2–3 с. Первый дроп трека рано
+# (rotten 12,74; north 27,09 — слабый подъём) — берём следующий дроп (render/track_sync.py --drop), TRACKS в run.py не трогаем.
 JOBS = {
-    'akbars': ('Ак Барс', 'Сочи', 'KHL', 'Победа Ак Барса в основное время', 1.46, 'ПН 12.10 · 19:00 МСК', 'h', 'rotten', 1, 6, 2),
+    'akbars': ('Ак Барс', 'Сочи', 'KHL', 'Победа Ак Барса в основное время', 1.46, 'ПН 12.10 · 19:00 МСК', 'h', 'rotten', 28.19,
+               3, 9, 2),
     'metallurg': ('Торпедо', 'Металлург', 'KHL', 'Победа Металлурга в основное время', 2.06, 'ПН 12.10 · 19:30 МСК', 'a', 'jefe',
-                  1, 6, 2),
+                  20.77, 4, 10, 2),
     'devils': ('Нью-Джерси', 'Оттава', 'NHL', 'Победа Нью-Джерси в основное время', 2.23, 'ВТ 13.10 · 02:00 МСК', 'h', 'north',
-               1, 6, 2),
+               56.84, 3, 9, 2),
 }
 
 
 def make(name):
     """→ (ролик, ключ трека, секунда трека на t=0 ролика). Дроп ролика ложится на дроп трека: start = d − drop."""
-    h, a, lg, pick, k, when, side, key, ni, nt, nv = JOBS[name]
-    u, d = TRACKS[key]
+    h, a, lg, pick, k, when, side, key, d, ni, nt, nv = JOBS[name]
+    u = TRACKS[key][0]
     r = lineup.Lineup(h, a, lg, pick, k, when, STATS, side=side, u=u, ni=ni, nt=nt, nv=nv)
     start = d - r.drop
     assert start >= 0, (name, start)
@@ -57,6 +60,9 @@ def main():
         args = [x for x in args if x != frames]
     os.makedirs(OUT, exist_ok=True)
     lines = []
+    bad = [x for x in args if x not in JOBS]
+    if bad:
+        raise SystemExit('нет ролика: %s (есть: %s)' % (', '.join(bad), ' '.join(JOBS)))
     for name in args or list(JOBS):
         t0 = time.time()
         reel, key, start = make(name)
@@ -66,11 +72,18 @@ def main():
             continue
         from reels import owner_tracks
         C.render(reel, base + '.mp4', track=owner_tracks.wav(key), start=start, extra_out=base + '_clean.mp4')
-        lines.append('lineup_%s: трек %s, старт %.2f с, дроп в ролике %.2f с; ролик %.1f с' % (name, key, start, reel.drop, reel.dur))
+        lines.append('lineup_%s: трек %s, старт %.2f с, дроп в ролике %.2f с (трек %.2f с); ролик %.1f с'
+                     % (name, key, start, reel.drop, start + reel.drop, reel.dur))
         print(lines[-1], '· сборка %.0f с' % (time.time() - t0), flush=True)
-    if lines and not args:
-        with open(os.path.join(OUT, 'tracks.txt'), 'w', encoding='utf-8') as f:
-            f.write('\n'.join(lines) + '\n')
+    if lines:                                        # ролики могут собираться по одному — заменяем только свои строки
+        fn = os.path.join(OUT, 'tracks.txt')
+        keep = []
+        if os.path.exists(fn):
+            with open(fn, encoding='utf-8') as f:
+                done = {x.split(':')[0] for x in lines}
+                keep = [x.rstrip('\n') for x in f if x.strip() and x.split(':')[0] not in done]
+        with open(fn, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(keep + lines) + '\n')
 
 
 if __name__ == '__main__':
