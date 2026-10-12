@@ -52,4 +52,4 @@ Run 82 (id 38240652576) — success: три шортса со звуком у в
 Владелец прислал 9 треков (SLX, QUANTUM, North Area, Kizaru × Alblak 52, DEPTO, JEFE, Kilowatt, ROTTEN, vacemadest; Reflection и TIKI нет).
 Треки — в ветке `claude/team-dev-tracks`, зашифрованы (ключ только у руководителя, в payload задания). Ролики: coupon (SLX), top3 (Kizaru), notify (vace) — `job7.json`.
 Run 83 упал (PAYLOAD=null в скрипте). Ключ треков нельзя передавать в параметрах запуска (виден в Actions) — ветку `claude/team-dev-tracks` удалить, дальше — секрет репозитория. Ролики 12.10 собраны в сессии, доставка из временной ветки `claude/team-dev-shorts-1210` (`job8.json`), потом ветку удалить.
-Run 84 (id 38243442934) — success: шортсы coupon/top3/notify с треками владельца доставлены. Ветки `claude/team-dev-shorts-1210` и `claude/team-dev-tracks` удалены.
+Run 84 (id 38243442934) — success: шортсы coupon/top3/notify с треками владельца доставлены. Ветки `claude/team-dev-shorts-1210` и `claude/team-dev-tracks` удалить не удалось (прокси сессии отклоняет удаление веток) — удаляет владелец в GitHub.
