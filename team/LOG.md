@@ -57,3 +57,6 @@ Run 84 (id 38243442934) — success: шортсы coupon/top3/notify с трек
 ## 2026-10-12 — треки владельца через секрет
 Новый ключ; треки зашифрованы в ветке `claude/team-dev-tracks-v2`; модуль `render/reels/owner_tracks.py`; PR #17 (секрет TRACKS_KEY в itogi.yml).
 Владельцу: удалить ветки claude/team-dev-tracks, claude/team-dev-shorts-1210 и запуск 83; создать секрет TRACKS_KEY; влить PR #17.
+
+## 2026-10-12 — форматы роликов утверждены
+Владелец: «хорошие форматы, сохраняем их для будущих видео» — lineup, tape, jarvis, card записаны в RULES.md как утверждённые.
