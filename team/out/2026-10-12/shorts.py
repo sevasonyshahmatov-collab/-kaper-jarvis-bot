@@ -34,7 +34,8 @@ def track_wav(key):
     pw = ''
     for v in ('INPUT_PAYLOAD', 'PAYLOAD'):
         try:
-            pw = json.loads(os.environ.get(v) or '{}').get('tracks_key') or pw
+            pl = json.loads(os.environ.get(v) or '{}')
+            pw = (pl.get('tracks_key') if isinstance(pl, dict) else '') or pw
         except ValueError:
             pass
     if not pw:
