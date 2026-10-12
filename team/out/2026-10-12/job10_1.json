@@ -1,0 +1,33 @@
+{
+ "day": "2026-10-12",
+ "make": [
+  "team/out/2026-10-12/mk1.py"
+ ],
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Новые версии роликов: без заголовков на экране, спокойнее, около 26 секунд, прогноз — на удар трека. SEO — как в прошлом сообщении."
+  },
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "team/out/2026-10-12/reels2/lineup_akbars.mp4"
+   ],
+   "captions": [
+    "Состав — Ак Барс — Сочи"
+   ]
+  },
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "team/out/2026-10-12/reels2/lineup_metallurg.mp4"
+   ],
+   "captions": [
+    "Состав — Торпедо — Металлург"
+   ]
+  }
+ ]
+}

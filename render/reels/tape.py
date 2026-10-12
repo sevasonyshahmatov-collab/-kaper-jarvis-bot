@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-"""«Взвешивание» — tale of the tape, как перед боем UFC.
+"""Tale of the tape, как перед боем UFC (без заголовка-рубрики на экране: сразу матч, факты и прогноз).
 
-Две колонки под прожекторами (слева хозяева, справа гости), посередине — подписи строк. На каждую долю трека
+Две колонки под прожекторами (слева хозяева, справа гости), посередине — подписи строк. Каждые per долей трека
 прилетает строка сравнения: сначала вся колонка первой команды (последние 3 игры, очки, место, разница шайб),
-потом второй. Перед дропом — пульс «VS», на дропе — штамп-прогноз с кэфом, фаворит подсвечивается золотом.
-В конце — плашка Telegram.
+потом второй — команда на экране 6–8 с. Перед дропом — пульс «VS», на дропе — штамп «ПРОГНОЗ» с кэфом (держим
+hold долей), фаворит подсвечивается золотом. В конце — плашка Telegram (cta долей).
 """
 import math
 
@@ -25,8 +25,10 @@ S_Y0, S_DY = 1186, 102              # строки цифр
 
 
 class Tape(C.Reel):
-    def __init__(self, home, away, league, when, pick, coef, sh, sa, u=60 / 96.5, drop=16 * 60 / 96.5, seed=11):
+    def __init__(self, home, away, league, when, pick, coef, sh, sa, u=60 / 96.5, drop=30 * 60 / 96.5, per=2, hold=7, cta=4,
+                 seed=11):
         super().__init__(u, drop, seed)
+        self.per = per                                       # долей на строку
         self.h, self.a = C.match(home, away, league)
         self.league, self.when, self.coef = league, when, coef
         self.pick1, self.pick2 = F.split_pick(pick)
@@ -41,12 +43,12 @@ class Tape(C.Reel):
         self.labels = [x for x in order if x in labels]
         self.n = max(len(self.sh['games']), len(self.sa['games'])) + len(self.labels)
         n = self.n
-        self.t1 = self.b(-(2 * n + 2))                      # первая команда
-        self.t2 = self.b(-(n + 2))                          # вторая
-        if self.t1 < 0.5:
+        self.t1 = self.b(-(2 * n * per + 2))                # первая команда
+        self.t2 = self.b(-(n * per + 2))                    # вторая
+        if self.t1 < 1.5:
             raise ValueError('мало времени до дропа')
-        self.t_cta = self.b(5)
-        self.dur = self.b(11)
+        self.t_cta = self.b(hold)
+        self.dur = self.b(hold + cta)
         self.cover_t = self.b(3)
         self._prep()
 
@@ -79,8 +81,7 @@ class Tape(C.Reel):
             y = S_Y0 + k * S_DY - self.tab_top - S_DY / 2 + 8
             d.line((40, y, 970, y), fill=(44, 44, 54, 255), width=2)
         self.panel = pan
-        self.title = C.with_shadow(C.text('ВЗВЕШИВАНИЕ', 'dela', 104, (255, 255, 255), max_w=960), 14, 0.6, 8)
-        self.sub = C.text('%s · %s' % (F.lg_ru(self.league), self.when), 'mono', 36, GOLD, 800, track=0.06, max_w=960)
+        self.sub = C.text('%s · %s' % (F.lg_ru(self.league), self.when), 'mono', 44, GOLD, 800, track=0.06, max_w=960)
         self.emb = {s: C.with_shadow(t.emb(250), 20, 0.6, 10) for s, t in (('h', self.h), ('a', self.a))}
         self.name = {s: C.text(t.up, 'unb', 54, (255, 255, 255), 800, max_w=440) for s, t in (('h', self.h), ('a', self.a))}
         self.corner = {'h': C.text('ХОЗЯЕВА', 'mono', 30, self.ch, 800, track=0.25),
@@ -100,12 +101,12 @@ class Tape(C.Reel):
                 continue
             self.better[lab] = ('h' if x < y else 'a') if lab == 'МЕСТО' else ('h' if x > y else 'a')
             ka = [i for i, it in enumerate(self.items['a']) if it[2] == lab][0]
-            self.t_cmp[lab] = self.t2 + ka * self.u + 0.15
+            self.t_cmp[lab] = self.t2 + ka * self.per * self.u + 0.15
         self.lab_t = {}
         for side, t0 in (('h', self.t1), ('a', self.t2)):
             for k, (im, y, typ) in enumerate(self.items[side]):
                 if typ in self.lab and typ not in self.lab_t:
-                    self.lab_t[typ] = (t0 + k * self.u, y)
+                    self.lab_t[typ] = (t0 + k * self.per * self.u, y)
         ring = C.radial(480, 480, GOLD, 200, 1.6)
         self.ring = ring
 
@@ -175,7 +176,7 @@ class Tape(C.Reel):
         d.rounded_rectangle((0, 0, w - 1, h - 1), 30, fill=RED + (244,))
         d.rounded_rectangle((16, 16, w - 17, h - 17), 22, outline=(255, 255, 255, 255), width=7)
         d.rounded_rectangle((32, 32, w - 33, h - 33), 16, outline=(255, 255, 255, 200), width=3)
-        C.put(im, C.text('ПРОГНОЗ НА МАТЧ', 'mono', 34, (255, 225, 225), 800, track=0.3), w / 2, 78)
+        C.put(im, C.text('ПРОГНОЗ', 'mono', 38, (255, 225, 225), 800, track=0.4), w / 2, 78)
         C.put(im, C.text(self.pick1, 'dela', 92, (255, 255, 255), max_w=w - 110), w / 2, 168)
         if self.pick2:
             C.put(im, C.text(self.pick2, 'unb', 44, (255, 255, 255), 800, max_w=w - 140), w / 2, 252)
@@ -206,9 +207,8 @@ class Tape(C.Reel):
             fr.alpha_composite(C.fade(self.spot[side], k))
         # заголовок
         fresh.header(fr, {'league': self.league}, C.seg(t, 0.0, 0.3))
-        q = C.out_expo(C.seg(t, 0.0, 0.35))
-        C.put(fr, C.scale(self.title, 1.5 - 0.5 * q), W / 2, 350, q)
-        C.put(fr, self.sub, W / 2, 432, C.seg(t, 0.25, 0.55))
+        q = C.out_expo(C.seg(t, 0.0, 0.4))
+        C.put(fr, self.sub, W / 2, 380 + 20 * (1 - q), q)
         # бойцы
         for side, x, dirn in (('h', LX, -1), ('a', RX, 1)):
             q = C.out_expo(C.seg(t, 0.15 + 0.12 * (side == 'a'), 0.65 + 0.12 * (side == 'a')))
@@ -242,7 +242,7 @@ class Tape(C.Reel):
                     C.put(fr, self.lab[lab], W / 2, y, C.seg(t, tl, tl + 0.2))
             for side, t0 in (('h', self.t1), ('a', self.t2)):
                 for k, (im, y, typ) in enumerate(self.items[side]):
-                    ti = t0 + k * u
+                    ti = t0 + k * self.per * u
                     if t < ti:
                         break
                     if im is None:

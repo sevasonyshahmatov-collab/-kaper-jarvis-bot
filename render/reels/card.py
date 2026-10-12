@@ -2,7 +2,8 @@
 """«Коллекционная карточка» — хоккейная trading card.
 
 Карточка первой команды вылетает лицом (эмблема, имя, голографический блик), на долю переворачивается —
-на обороте последние 3 игры и очки за сезон; затем то же со второй командой. Перед дропом обе карточки
+на обороте по строке на долю — последние 3 игры и очки за сезон (команда на экране 6–8 с); затем то же со второй.
+Сверху весь ролик — сам матч (команды, лига, время МСК), без заголовков-рубрик. Перед дропом обе карточки
 разлетаются по краям и несутся навстречу, на дропе сталкиваются (вспышка, искры) — и из удара выпадает
 золотая «карточка-прогноз» с кэфом. В конце — плашка Telegram.
 """
@@ -33,7 +34,8 @@ def plural(n, one, few, many):
 
 
 class Card(C.Reel):
-    def __init__(self, home, away, league, when, pick, coef, sh, sa, u=60 / 64, drop=10.03, seed=31):
+    def __init__(self, home, away, league, when, pick, coef, sh, sa, u=60 / 64, drop=20 * 60 / 64, team=8, rush=2, hold=5,
+                 cta=3, seed=31):
         super().__init__(u, drop, seed)
         self.h, self.a = C.match(home, away, league)
         self.league, self.when, self.coef = league, when, coef
@@ -42,11 +44,15 @@ class Card(C.Reel):
         self.fav = self.h if self.side == 'h' else self.a
         self.sh, self.sa = F.norm(sh), F.norm(sa)
         b = self.b
-        self.t_in1, self.t_flip1 = 0.15, b(-8)
-        self.t_in2, self.t_flip2 = b(-5), b(-4)
-        self.t_rush = b(-1)
-        self.t_cta = b(4.5)
-        self.dur = b(8)
+        self.t_in1 = b(-(2 * team + rush))
+        if self.t_in1 < 1.0:
+            raise ValueError('мало времени до дропа')
+        self.t_flip1 = self.t_in1 + 1.5 * u                  # лицо 1,5 доли, затем оборот с фактами
+        self.t_in2 = b(-(team + rush))
+        self.t_flip2 = self.t_in2 + 1.5 * u
+        self.t_rush = b(-rush)
+        self.t_cta = b(hold)
+        self.dur = b(hold + cta)
         self.cover_t = b(3)
         self._prep()
 
@@ -140,7 +146,7 @@ class Card(C.Reel):
                 C.put(r, bx, k * (bw + 20), 0, anchor='tl')
             rows.append((r, y + 105))
             y += 210
-        foot = C.text('JARVIS · КОЛЛЕКЦИЯ %s' % F.lg_ru(self.league), 'mono', 26, (130, 124, 112), 700, track=0.2)
+        foot = C.text('JARVIS · %s' % F.lg_ru(self.league), 'mono', 26, (130, 124, 112), 700, track=0.2)
         C.put(im, foot, CW / 2, CH - 52)
         return im, rows
 
@@ -156,7 +162,7 @@ class Card(C.Reel):
         d.rounded_rectangle((20, 20, CW - 21, CH - 21), 24, outline=(255, 246, 210, 255), width=5)
         d.rounded_rectangle((36, 36, CW - 37, CH - 37), 18, outline=GOLD3 + (255,), width=3)
         top = C.rrect(CW - 140, 80, 40, GDARK)
-        C.put(top, C.text('ПРОГНОЗ НА МАТЧ', 'mono', 36, GOLD1, 800, track=0.2), top.width / 2, 40)
+        C.put(top, C.text('ПРОГНОЗ', 'mono', 40, GOLD1, 800, track=0.35), top.width / 2, 40)
         C.put(g, top, CW / 2, 100)
         C.put(g, C.with_shadow(self.fav.emb(330), 18, 0.45, 10), CW / 2, 345)
         C.put(g, C.text(self.pick1, 'unb', 76, GDARK, 900, max_w=CW - 90), CW / 2, 590)
@@ -194,6 +200,8 @@ class Card(C.Reel):
         self.title = C.text('%s — %s' % (self.h.up, self.a.up), 'unb', 50, (255, 255, 255), 900, max_w=980)
         self.sub = C.text('%s · %s' % (F.lg_ru(self.league), self.when), 'mono', 34, (255, 214, 90), 800, track=0.08)
         self.spark = C.radial(26, 26, (255, 236, 170), 255, 1.2)
+        self.m_emb = {s: C.with_shadow(t.emb(330), 20, 0.6, 10) for s, t in (('h', self.h), ('a', self.a))}
+        self.m_vs = C.text('VS', 'unb', 90, (255, 214, 90), 900)
         self.flash = C.radial(1200, 1200, (255, 240, 200), 255, 1.3)
         self.sparks = [(rnd.uniform(0, 2 * math.pi), rnd.uniform(500, 1500), rnd.uniform(0.6, 1.4)) for _ in range(70)]
 
@@ -220,7 +228,7 @@ class Card(C.Reel):
     def back_img(self, side, t, t0):
         """Оборот: строки проявляются по долям после переворота."""
         im, rows = self.back[side]
-        key = (side, sum(1 for k in range(len(rows)) if t >= t0 + 0.1 + 0.32 * k * self.u))
+        key = (side, sum(1 for k in range(len(rows)) if t >= t0 + 0.1 + k * self.u))          # строка на долю
         if not hasattr(self, '_bc'):
             self._bc = {}
         if key not in self._bc:
@@ -232,8 +240,8 @@ class Card(C.Reel):
         # последняя строка — с проявлением
         n = key[1]
         if 0 < n <= len(rows):
-            tk = t0 + 0.1 + 0.32 * (n - 1) * self.u
-            q = C.out_expo(C.seg(t, tk, tk + 0.2))
+            tk = t0 + 0.1 + (n - 1) * self.u
+            q = C.out_expo(C.seg(t, tk, tk + 0.3))
             if q < 1:
                 out = im.copy()
                 for k, (r, y) in enumerate(rows[:n]):
@@ -288,7 +296,12 @@ class Card(C.Reel):
             C.put(fr, self.sub, W / 2, 378, ta)
         # первая карточка
         if t < self.t_rush:
-            if t < self.t_in2 + 0.5:
+            if t < self.t_in1 + 0.3:                                 # до карточек — сам матч: обе эмблемы
+                q = C.out_expo(C.seg(t, 0.1, 0.6)) * (1 - C.seg(t, self.t_in1 - 0.1, self.t_in1 + 0.3))
+                for e, x in ((self.m_emb['h'], CX - 275), (self.m_emb['a'], CX + 275)):
+                    C.put(fr, e, x, CY - 60 + 30 * (1 - q), q)
+                C.put(fr, self.m_vs, CX, CY - 60, q)
+            if self.t_in1 <= t < self.t_in2 + 0.5:
                 q = C.out_cubic(C.seg(t, self.t_in1, self.t_in1 + 0.55))
                 ex = C.in_cubic(C.seg(t, self.t_in2, self.t_in2 + 0.45))
                 im = self.team_card('h', t, self.t_in1, self.t_flip1)

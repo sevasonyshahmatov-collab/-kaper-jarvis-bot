@@ -1,0 +1,18 @@
+{
+ "day": "2026-10-12",
+ "make": [
+  "team/out/2026-10-12/mk2.py"
+ ],
+ "messages": [
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "team/out/2026-10-12/reels2/lineup_devils.mp4"
+   ],
+   "captions": [
+    "Состав — Нью-Джерси — Оттава"
+   ]
+  }
+ ]
+}

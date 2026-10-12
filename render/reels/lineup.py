@@ -261,6 +261,11 @@ class Lineup(C.Reel):
     def intro(self, fr, t):
         fr.alpha_composite(self.plate_bg)
         self.particles(fr, t, 0.6, bokeh=False)
+        for key, sg, d0 in (('h', -1, 0.0), ('a', 1, 0.12)):          # обе эмблемы в цвете — сразу матч
+            qe = C.out_expo(C.seg(t, d0, d0 + 0.5))
+            e = C.scale(self.S[key]['emb'], 0.5)
+            C.put(fr, C.shadow(e, 24, 0.6 * qe), W / 2 + sg * (220 + 160 * (1 - qe)), 600 + 20)
+            C.put(fr, e, W / 2 + sg * (220 + 160 * (1 - qe)), 600, qe)
         q = C.seg(t, 0.03, 0.3)
         C.put(fr, C.text('%s · %s' % (self.lg, self.when), 'mont', 40, BLUE, 800, track=0.1, max_w=960), W / 2, 820, q)
         q2 = C.out_expo(C.seg(t, 0.15, 0.5))
@@ -295,13 +300,13 @@ class Lineup(C.Reel):
         self.smoky(fr, t, t0)
         self.particles(fr, t, 0.9)
         C.put(fr, self.halo, W / 2, 600)
-        e = C.scale(S['mono'], 0.78 + 0.015 * (lt - tB))
+        e = C.scale(S['mono'], 0.72 + 0.008 * (lt - tB))      # медленный наезд, но без наезда на подпись
         C.put(fr, C.shadow(e, 26, 0.55), W / 2, 620)
         C.put(fr, e, W / 2, 600)
         q = C.out_expo(C.seg(t, th, th + 0.3 * u))
         nm = S['name']
         C.put(fr, C.with_shadow(nm, 14, 0.55, 6), W / 2 + sg * 60 * (1 - q), 905, q)
-        C.put(fr, S['role'], W / 2, 365, C.seg(t, th, th + 0.25 * u))
+        C.put(fr, S['role'], W / 2, 345, C.seg(t, th, th + 0.25 * u))
         y = 1000
         if S['rows']:
             C.put(fr, S['head'], W / 2, y, C.seg(t, th + 0.3 * u, th + 0.55 * u))
