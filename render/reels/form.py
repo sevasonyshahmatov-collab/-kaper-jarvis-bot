@@ -5,6 +5,8 @@
   {"league", "last3": [{"date", "opp", "home", "score", "res"}], "points", "games", "place", "gd"}
 Пустые (null) поля просто не показываются.
 """
+import re
+
 import poster
 
 from reels import core as C
@@ -35,27 +37,57 @@ def opp_key(name):
     return None
 
 
+def _date_key(d):
+    d = str(d or '')
+    m = re.match(r'(\d{4})-(\d{2})-(\d{2})', d)
+    if m:
+        return (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+    m = re.match(r'(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?', d)
+    if m:
+        return (int(m.group(3) or 0), int(m.group(2)), int(m.group(1)))
+    return (0, 0, 0)
+
+
+def _date_txt(d):
+    k = _date_key(d)
+    return '%02d.%02d' % (k[2], k[1]) if k[1] else str(d or '')
+
+
+def _num(v):
+    """Число из 16 / "+15" / "−3" / "7 в лиге (…)"; иначе None."""
+    if isinstance(v, bool) or v is None:
+        return None
+    if isinstance(v, (int, float)):
+        return v
+    m = re.match(r'\s*([+\-−]?\d+)', str(v))
+    return int(m.group(1).replace('−', '-')) if m else None
+
+
+def _place_scope(v):
+    """«12 на Востоке (общее 26 в лиге)» → «на Востоке»; «7 в лиге (…)» → «в лиге»."""
+    if not isinstance(v, str):
+        return ''
+    s = re.sub(r'\(.*?\)', '', v)
+    s = re.sub(r'^\s*[+\-−]?\d+\s*', '', s).strip()
+    return s
+
+
 def norm(rec):
-    """Запись аналитика → dict(games=[...], points, gp, place, gd); всё неизвестное — None."""
+    """Запись аналитика → dict(games=[...], points, gp, place, place_scope, gd); всё неизвестное — None."""
     rec = rec or {}
     games = []
-    for g in sorted(rec.get('last3') or [], key=lambda g: str(g.get('date') or ''), reverse=True)[:3]:
+    for g in sorted(rec.get('last3') or [], key=lambda g: _date_key(g.get('date')), reverse=True)[:3]:
         if not g or not g.get('score'):
             continue
         sc = str(g['score']).replace('-', ':').strip()
         parts = sc.split()
         note = ' '.join(parts[1:]).upper()
-        note = {'OT': 'ОТ', 'SO': 'Б', 'ПБ': 'Б', 'БУЛ': 'Б'}.get(note, note)
+        note = {'OT': 'ОТ', 'SO': 'Б', 'ПБ': 'Б', 'БУЛ': 'Б', 'OT/SO': 'ОТ/Б'}.get(note, note)
         opp = str(g.get('opp') or '')
-        d = str(g.get('date') or '')
-        dd = '%s.%s' % (d[8:10], d[5:7]) if len(d) >= 10 and d[4] == '-' else d
         games.append(dict(res=_res(g.get('res'), sc), score=parts[0] if parts else sc, note=note,
-                          opp=poster.SHORT.get(opp, opp), opp_key=opp_key(opp), home=g.get('home'), date=dd))
-
-    def num(k):
-        v = rec.get(k)
-        return v if isinstance(v, (int, float)) and not isinstance(v, bool) else None
-    return dict(games=games, points=num('points'), gp=num('games'), place=num('place'), gd=num('gd'))
+                          opp=poster.SHORT.get(opp, opp), opp_key=opp_key(opp), home=g.get('home'), date=_date_txt(g.get('date'))))
+    return dict(games=games, points=_num(rec.get('points')), gp=_num(rec.get('games')), place=_num(rec.get('place')),
+                place_scope=_place_scope(rec.get('place')), gd=_num(rec.get('gd')))
 
 
 def gd_txt(v):
