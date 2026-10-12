@@ -40,7 +40,8 @@ def wav(key):
     with open(enc, 'wb') as f:
         f.write(subprocess.run(['git', 'show', 'origin/%s:tracks/%s.mp3.enc' % (BRANCH, key)], cwd=ROOT, check=True,
                                capture_output=True).stdout)
+    key_env = dict(os.environ, TRACKS_KEY=''.join(os.environ['TRACKS_KEY'].split()))   # без пробелов и переносов из вставки
     subprocess.run(['openssl', 'enc', '-d', '-aes-256-cbc', '-pbkdf2', '-pass', 'env:TRACKS_KEY', '-in', enc, '-out', mp3],
-                   check=True)
+                   check=True, env=key_env)
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', mp3, '-ac', '2', '-ar', '44100', out], check=True)
     return out
