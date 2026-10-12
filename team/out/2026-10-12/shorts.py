@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Ролики 12.10 со звуком (треки владельца) + без музыки (clean) + обложки.
-Треки: локально — TRACKS_DIR с wav (quantum.wav, slx.wav…); в Actions — зашифрованная ветка claude/team-dev-tracks,
-ключ — поле "tracks_key" в payload задания (INPUT_PAYLOAD), в репозитории ключа нет. Запуск из корня: PYTHONPATH=render python team/out/2026-10-12/shorts.py
+Треки — render/reels/owner_tracks.py (TRACKS_DIR локально или секрет TRACKS_KEY в Actions). Запуск из корня: PYTHONPATH=render python team/out/2026-10-12/shorts.py
 Результат: team/out/2026-10-12/shorts/{chat,top3,notify}_clean.mp4, *_cover.jpg, tracks.txt (трек и секунда старта для редактора)."""
 import os
 import shutil
@@ -27,30 +26,8 @@ import tempfile  # noqa: E402
 
 
 def track_wav(key):
-    """wav трека владельца: из TRACKS_DIR или расшифровкой из ветки claude/team-dev-tracks."""
-    d = os.environ.get('TRACKS_DIR')
-    if d:
-        return os.path.join(d, key + '.wav')
-    pw = ''
-    for v in ('INPUT_PAYLOAD', 'PAYLOAD'):
-        try:
-            pl = json.loads(os.environ.get(v) or '{}')
-            pw = (pl.get('tracks_key') if isinstance(pl, dict) else '') or pw
-        except ValueError:
-            pass
-    if not pw:
-        raise SystemExit('нет ключа треков (tracks_key в payload) и TRACKS_DIR')
-    tmp = tempfile.mkdtemp()
-    enc, mp3, wav = (os.path.join(tmp, key + e) for e in ('.mp3.enc', '.mp3', '.wav'))
-    subprocess.run(['git', 'fetch', '-q', '--depth', '1', 'origin', 'claude/team-dev-tracks'], cwd=ROOT, check=True)
-    with open(enc, 'wb') as f:
-        f.write(subprocess.run(['git', 'show', 'FETCH_HEAD:tracks/%s.mp3.enc' % key], cwd=ROOT, check=True,
-                               capture_output=True).stdout)
-    subprocess.run(['openssl', 'enc', '-d', '-aes-256-cbc', '-pbkdf2', '-pass', 'env:TRK', '-in', enc, '-out', mp3],
-                   check=True, env=dict(os.environ, TRK=pw))
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', mp3, '-ac', '2', '-ar', '44100', wav], check=True)
-    return wav
-
+    from reels import owner_tracks
+    return owner_tracks.wav(key)
 
 def make(name):
     """→ (ролик, ключ трека, секунда трека на t=0) — как в reels/run.py::make."""
