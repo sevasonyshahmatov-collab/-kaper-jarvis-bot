@@ -495,6 +495,44 @@ def tg_icon(d=150, col=TG_BLUE, plane=(255, 255, 255)):
     return im.resize((d, d), Image.LANCZOS)
 
 
+def tg_plate(w=960, h=170, top='TELEGRAM', handle=None, fill=TG_BLUE, top_col=(215, 236, 255), font='mont'):
+    """Плашка Telegram (правило владельца 12.10): значок внутри левого края, обе строки текста — ровно по центру плашки
+    (значок текст не сдвигает: поле текста симметрично, ширина = w − 2·(отступ значка + значок))."""
+    handle = handle or HANDLE
+    pl = rrect(w, h, h / 2, fill)
+    d = int(h * 0.74)
+    pad = (h - d) / 2
+    put(pl, tg_icon(d, (255, 255, 255), fill), pad + d / 2, h / 2)
+    room = w - 2 * (pad + d + 18)
+    t1 = text(top, font, int(h * 0.235), top_col, 800, track=0.25, max_w=room) if top else None
+    t2 = text(handle, font, int(h * 0.42), (255, 255, 255), 900, max_w=room)
+    if t1 is None:
+        put(pl, t2, w / 2, h / 2)
+        return pl
+    gap = h * 0.03
+    y0 = (h - t1.height - gap - t2.height) / 2
+    put(pl, t1, w / 2, y0 + t1.height / 2)
+    put(pl, t2, w / 2, y0 + t1.height + gap + t2.height / 2)
+    return pl
+
+
+def odds_row(line, w=960, h=190, font='mont', lab_font=None, fill=(255, 255, 255), fill_a=34, val_col=(255, 255, 255),
+             lab_col=(190, 196, 210), outline=None, radius=None, gap=24):
+    """Линия основного времени П1 · Х · П2 крупными плашками: подпись сверху, кэф крупно. line = (п1, х, п2)."""
+    if not line:
+        return None
+    lab_font = lab_font or font
+    out = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    bw = (w - 2 * gap) / 3
+    for k, (lab, v) in enumerate(zip(('П1', 'Х', 'П2'), line)):
+        bx = rrect(bw, h, radius if radius is not None else h * 0.2, fill, fill_a,
+                   **({'outline': outline, 'width': 3} if outline else {}))
+        put(bx, text(lab, lab_font, int(h * 0.2), lab_col, 800, track=0.15), bw / 2, h * 0.27)
+        put(bx, text(fmt_k(v), font, int(h * 0.38), val_col, 900, max_w=bw - 24), bw / 2, h * 0.64)
+        put(out, bx, k * (bw + gap), 0, anchor='tl')
+    return out
+
+
 # ─────────────────────────────── клубы ───────────────────────────────
 _EMB = {}
 

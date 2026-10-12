@@ -53,21 +53,21 @@ def header(fr, m, a=1.0, col=(255, 255, 255)):
     C.put(fr, C.text(tag(m), 'unb', 34, col, 700, track=0.12), C.W / 2, 262, a)
 
 
-def handle(fr, a=1.0, col=(255, 255, 255)):
-    C.put(fr, C.text(C.HANDLE, 'unb', 34, col, 600), C.W / 2, 1440, a)
+HANDLE_Y = 1560                 # @jarvibet — у низа безопасной зоны Shorts (нижние ~18 % перекрывает интерфейс)
 
 
-def cta(fr, t, t0, y=1290, dark=False):
-    """«Подробный разбор — в Telegram @jarvibet» плашкой."""
-    q = C.out_expo(C.seg(t, t0, t0 + 0.6))
+def handle(fr, a=1.0, col=(255, 255, 255), y=HANDLE_Y):
+    C.put(fr, C.text(C.HANDLE, 'unb', 38, col, 600), C.W / 2, y, a)
+
+
+def cta(fr, t, t0, y=1430, dark=False, top='TELEGRAM', w=960, h=170):
+    """Плашка Telegram: значок внутри левого края, «TELEGRAM / @jarvibet» ровно по центру плашки (C.tg_plate)."""
+    q = C.out_expo(C.seg(t, t0, t0 + 0.5))
     if q <= 0:
         return
-    pl = C.rrect(900, 132, 66, C.TG_BLUE)
-    C.put(pl, C.tg_icon(96, (255, 255, 255), C.TG_BLUE), 80, 66)
-    C.put(pl, C.text('РАЗБОР — В TELEGRAM', 'unb', 40, (255, 255, 255), 800, max_w=680), 500, 46)
-    C.put(pl, C.text(C.HANDLE, 'unb', 34, (215, 236, 255), 600), 500, 92)
-    w = max(2, int(pl.width * q))
-    C.put(fr, pl.crop((0, 0, w, pl.height)), (C.W - pl.width) / 2, y - 66, anchor='tl')
+    pl = C.tg_plate(w, h, top, font='unb')
+    ww = max(2, int(pl.width * q))
+    C.put(fr, pl.crop((0, 0, ww, pl.height)), (C.W - pl.width) / 2, y - h / 2, anchor='tl')
 
 
 def mask_points(img, n, rng, cx, cy, colorize=None):

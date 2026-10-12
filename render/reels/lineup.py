@@ -117,7 +117,7 @@ def mono_emb(im, k=1.0):
 
 class Lineup(C.Reel):
     def __init__(self, home, away, league, pick, coef, when, stats, side='h', u=0.8, ni=1, nt=6, nv=2, nh=None, nf=None,
-                 seed=12):
+                 seed=12, line=None):
         """pick — 'Победа Ак Барса в основное время'; when — 'ПН 12.10 · 19:00 МСК'; side — за кого прогноз ('h'/'a').
         Дроп в ролике = (ni + 2·nt + nv)·u — трек ставить со start = дроп_трека − self.drop."""
         self.ni, self.nt, self.nv = ni, nt, nv
@@ -125,7 +125,7 @@ class Lineup(C.Reel):
         self.h, self.a = C.match(home, away, league)
         self.lg = 'НХЛ' if str(league).upper() == 'NHL' else 'КХЛ'
         self.tag = 'JARVIS | NHL' if self.lg == 'НХЛ' else 'JARVIS | KXL'
-        self.coef, self.when, self.side = coef, when, side
+        self.coef, self.when, self.side, self.line = coef, when, side, line
         m = re.match(r'(?i)\s*(победа)\s+(.*?)(\s+в основное время)?\s*$', pick)
         if m:
             self.p1, self.p2, self.p3 = 'ПОБЕДА', m.group(2).upper(), ('В ОСНОВНОЕ ВРЕМЯ' if m.group(3) else '')
@@ -135,8 +135,8 @@ class Lineup(C.Reel):
         self.ca = club(self.a, avoid=self.ch)
         self.cf = self.ch if side == 'h' else self.ca
         self.st = {'h': stats.get(self.h.name) or stats.get(home) or {}, 'a': stats.get(self.a.name) or stats.get(away) or {}}
-        self.nh = nh or max(4, int(round(4.5 / u)))            # прогноз держим 4–5 с
-        self.nf = nf or int(math.ceil(2.5 / u))                # финал 2,5–3 с
+        self.nh = nh or max(4, int(math.ceil(3.9 / u)))        # прогноз держим ~4 с (поправка 12.10: на 10–20 % быстрее)
+        self.nf = nf or int(math.ceil(2.1 / u))                # плашка Telegram 2–2,5 с
         self.t_home = ni * u
         self.t_away = (ni + nt) * u
         self.t_vs = (ni + 2 * nt) * u
@@ -209,27 +209,30 @@ class Lineup(C.Reel):
         """Подписи удержания: короткое имя (акцент), роль, 3 игры строками, сезон."""
         st = self.st[key]
         acc = bright(col, 0.28)
-        name = C.text(tm.up, 'mont', 170, acc, 900, max_w=940)
-        role = C.text('%s · %s' % ('ХОЗЯЕВА' if key == 'h' else 'ГОСТИ', self.lg), 'mont', 34, WHITE, 800, track=0.18)
+        name = C.text(tm.up, 'mont', 190, acc, 900, max_w=980)
+        role = C.text('%s · %s' % ('ХОЗЯЕВА' if key == 'h' else 'ГОСТИ', self.lg), 'mont', 40, WHITE, 800, track=0.18)
         rows = []
         for g in (st.get('last3') or [])[:3]:
             res = str(g.get('res') or '')
             win = res.startswith('В')
-            rw, rh = 900, 62
+            rw, rh = 980, 84
             row = Image.new('RGBA', (rw, rh), (0, 0, 0, 0))
-            C.put(row, C.text(str(g.get('date') or ''), 'mont', 34, GRAY, 700), 0, rh / 2 - 17, anchor='tl')
+            C.put(row, C.rrect(rw, rh, 18, NAVY_D, 150), 0, 0, anchor='tl')
+            dt = C.text(str(g.get('date') or ''), 'mont', 38, GRAY, 700)
+            C.put(row, dt, 22, rh / 2 - dt.height / 2, anchor='tl')
             opp = poster.SHORT.get(str(g.get('opp') or ''), str(g.get('opp') or ''))
             where = '' if g.get('home') is None else (' (Д)' if g['home'] else ' (Г)')
-            C.put(row, C.text((opp + where).upper(), 'mont', 38, WHITE, 800, max_w=470), 130, rh / 2 - 19, anchor='tl')
+            ot = C.text((opp + where).upper(), 'mont', 44, WHITE, 800, max_w=480)
+            C.put(row, ot, 170, rh / 2 - ot.height / 2, anchor='tl')
             sc = str(g.get('score') or '').replace('ОТ/Б', 'ОТ')
-            stx = C.text(sc.upper(), 'mont', 40, WHITE, 900)
-            C.put(row, stx, rw - 92 - stx.width, rh / 2 - 20, anchor='tl')
-            bd = C.rrect(62, 52, 12, WIN if win else LOSS)
-            C.put(bd, C.text('В' if win else 'П', 'mont', 34, WHITE, 900), 31, 26)
-            C.put(row, bd, rw - 31, rh / 2)
+            stx = C.text(sc.upper(), 'mont', 48, WHITE, 900)
+            C.put(row, stx, rw - 112 - stx.width, rh / 2 - stx.height / 2, anchor='tl')
+            bd = C.rrect(70, 62, 14, WIN if win else LOSS)
+            C.put(bd, C.text('В' if win else 'П', 'mont', 40, WHITE, 900), 35, 31)
+            C.put(row, bd, rw - 52, rh / 2)
             rows.append(row)
-        head = C.text('ПОСЛЕДНИЕ 3 ИГРЫ', 'mont', 28, GRAY, 800, track=0.25)
-        season = [C.text(s, 'mont', 38, WHITE, 800, track=0.04, max_w=940) for s in season_lines(st)]
+        head = C.text('ПОСЛЕДНИЕ 3 ИГРЫ', 'mont', 34, GRAY, 800, track=0.25)
+        season = [C.text(s, 'mont', 46, WHITE, 800, track=0.04, max_w=980) for s in season_lines(st)]
         return dict(name=name, role=role, rows=rows, head=head, season=season)
 
     # ── общие слои ──
@@ -237,7 +240,7 @@ class Lineup(C.Reel):
         C.put(fr, C.text(self.tag, 'unb', 34, WHITE, 700, track=0.12), W / 2, 262, a * 0.92)
 
     def handle(self, fr, a=1.0):
-        C.put(fr, C.text(C.HANDLE, 'unb', 34, WHITE, 600), W / 2, 1448, a * 0.85)
+        C.put(fr, C.text(C.HANDLE, 'unb', 38, WHITE, 600), W / 2, 1560, a * 0.85)     # у низа безопасной зоны Shorts
 
     def particles(self, fr, t, a=1.0, bokeh=True):
         if bokeh:
