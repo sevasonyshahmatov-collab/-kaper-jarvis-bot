@@ -220,7 +220,7 @@ class Card(C.Reel):
     def back_img(self, side, t, t0):
         """Оборот: строки проявляются по долям после переворота."""
         im, rows = self.back[side]
-        key = (side, sum(1 for k in range(len(rows)) if t >= t0 + 0.2 + 0.32 * k * self.u))
+        key = (side, sum(1 for k in range(len(rows)) if t >= t0 + 0.1 + 0.32 * k * self.u))
         if not hasattr(self, '_bc'):
             self._bc = {}
         if key not in self._bc:
@@ -232,7 +232,7 @@ class Card(C.Reel):
         # последняя строка — с проявлением
         n = key[1]
         if 0 < n <= len(rows):
-            tk = t0 + 0.2 + 0.32 * (n - 1) * self.u
+            tk = t0 + 0.1 + 0.32 * (n - 1) * self.u
             q = C.out_expo(C.seg(t, tk, tk + 0.2))
             if q < 1:
                 out = im.copy()
@@ -265,7 +265,7 @@ class Card(C.Reel):
     def team_card(self, side, t, t_in, t_flip):
         fk = C.in_out(C.seg(t, t_flip, t_flip + 0.4))
         fr_ = self.shine(self.front[side], t, off=0.3 if side == 'a' else 0)
-        bk = self.back_img(side, t, t_flip + 0.4) if fk > 0.5 else None
+        bk = self.back_img(side, t, t_flip + 0.1) if fk > 0.5 else None
         return self.flipped(fr_, bk, fk) if fk > 0 else fr_
 
     def frame(self, t):

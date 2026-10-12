@@ -4,7 +4,7 @@
 Запуск из корня: PYTHONPATH=render python team/out/2026-10-12/newfmt_make.py [tape|jarvis|card ...] [--frames 0.5,3,...]
 Треки — render/reels/owner_tracks.py (TRACKS_DIR локально или секрет TRACKS_KEY). Цифры клубов — team_stats.json
 (готовит аналитик; путь можно заменить переменной STATS). Результат: team/out/2026-10-12/reels2/<имя>.mp4 (с треком),
-<имя>_clean.mp4 (без музыки), <имя>_cover.jpg, tracks.txt."""
+<имя>_clean.mp4 (без музыки), <имя>_cover.jpg, newfmt_tracks.txt."""
 import json
 import os
 import shutil
@@ -94,7 +94,7 @@ def main():
         lines.append('%s: трек %s, старт %.2f с, дроп на %.2f с ролика; ролик %.1f с' % (fn, key, start, reel.drop, reel.dur))
         print(lines[-1], '· сборка %.0f с' % (time.time() - t0), flush=True)
     if lines and not args:
-        with open(os.path.join(OUT, 'tracks.txt'), 'w', encoding='utf-8') as f:
+        with open(os.path.join(OUT, 'newfmt_tracks.txt'), 'w', encoding='utf-8') as f:
             f.write('\n'.join(lines) + '\n')
 
 
