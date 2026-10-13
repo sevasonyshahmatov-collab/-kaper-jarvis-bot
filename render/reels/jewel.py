@@ -865,13 +865,13 @@ class Jewel(C.Reel):
             x, cy, dd = C.lerp(270, X_TEAM, k), C.lerp(icy, tcy, k), C.lerp(idd, G_TEAM, k)
             vis = low(land0, land0) * rise(T2 - 0.52, T2 - 0.26)
             out.append(('h', x, cy, dd, self.yaw(t), vis, False))
-        elif t >= TP - 0.26:
-            out.append(('h', 270, pcy, G_PRE, self.yaw(t, 1.3), low(TP), False))
+        elif t >= TP - 0.22:
+            out.append(('h', 270, pcy, G_PRE, self.yaw(t, 1.3), low(TP, 0.22), False))
         # гости
         if t < T1:
-            out.append(('a', 810, icy, idd, self.yaw(t, 2.1), low(land0, land0) * rise(T1 - 0.46, T1 - 0.18), False))
+            out.append(('a', 810, icy, idd, self.yaw(t, 2.1), low(land0, land0) * rise(T1 - 0.36, T1 - 0.12), False))
         elif t >= T2 - 0.26:
-            k = C.in_out(C.seg(t, TP - 0.52, TP - 0.2))
+            k = C.in_out(C.seg(t, TP - 0.36, TP - 0.08))
             x, cy, dd = C.lerp(X_TEAM, 810, k), C.lerp(tcy, pcy, k), C.lerp(G_TEAM, G_PRE, k)
             out.append(('a', x, cy, dd, self.yaw(t, 2.1), low(T2), False))
         return out
@@ -917,9 +917,11 @@ class Jewel(C.Reel):
 
     def draw_rail2(self, fr, t):
         T1, TP = self.t1, self.tp
-        if t < T1 - 0.16 or t >= TP - 0.1:
+        if t < T1 - 0.16 or t >= TP - 0.34:
             return 0.0
-        k = C.out_expo(C.seg(t, T1 - 0.16, T1 + 0.24)) * (1 - C.in_cubic(C.seg(t, TP - 0.42, TP - 0.1)))
+        if t < T1 - 0.16 + 1e-9:
+            return 0.0
+        k = C.out_expo(C.seg(t, T1 - 0.16, T1 + 0.24)) * (1 - C.in_cubic(C.seg(t, TP - 0.62, TP - 0.34)))
         if k <= 0.01:
             return k
         w = max(2, int(self.rail2.width * k))
@@ -945,6 +947,7 @@ class Jewel(C.Reel):
     def team_items(self, fr, t, s, ts, te, lights):
         u = self.u
         td = self.TD[s]
+        te -= 0.22 if te >= self.tp - 1e-6 else 0.0              # перед интригой уходим раньше — медальон едет вправо
         # название и факты
         qa = C.out_cubic(C.seg(t, ts - 0.06, ts + 0.3)) * (1 - C.seg(t, te - 0.56, te - 0.32))
         if qa > 0.01:
@@ -977,7 +980,8 @@ class Jewel(C.Reel):
                     lights.append(('star', 150, ax + 104, RAIL2_Y + 72, 0.9 * math.exp(-(t - tl) / 0.12)))
             else:
                 self._put_clip(fr, hang, ax - TAGW / 2, RAIL2_Y + off, clip=RAIL2_Y + 2)
-            C.put(fr, self.hookim, ax, RAIL2_Y + 4)
+            if self._rk > 0.5:
+                C.put(fr, self.hookim, ax, RAIL2_Y + 4)
         # таблички на полке
         for j, (pl, rf) in enumerate(td['plates']):
             tl = ts + (4 + j) * u
@@ -997,7 +1001,7 @@ class Jewel(C.Reel):
 
     def intro_items(self, fr, t, lights):
         u, T1 = self.u, self.t1
-        ex = C.in_cubic(C.seg(t, T1 - 0.46, T1 - 0.16))
+        ex = C.in_cubic(C.seg(t, T1 - 0.34, T1 - 0.1))
         q = C.out_cubic(C.seg(t, 0.22, 0.56)) * (1 - ex)
         if q > 0.01:
             yb = self.i_cy + self.i_d / 2
@@ -1073,6 +1077,7 @@ class Jewel(C.Reel):
 
     def frame(self, t):
         self._t = t
+        self._rk = 0.0
         u, D = self.u, self.drop
         T1, T2, TP, TC = self.t1, self.t2, self.tp, self.t_cta
         fr = self.bg.copy()
@@ -1098,7 +1103,7 @@ class Jewel(C.Reel):
         if t < T1:
             self.intro_items(fr, t, lights)
         if T1 - 0.2 <= t < TP:
-            self.draw_rail2(fr, t)
+            self._rk = self.draw_rail2(fr, t)
             if t < T2:
                 self.team_items(fr, t, 'h', T1, T2, lights)
             else:
