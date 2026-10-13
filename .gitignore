@@ -5,3 +5,7 @@ render/photos/
 
 # ролики Shorts — тяжёлые, в репозитории не храним (рисуются render/shorts.py)
 render/out/**/*.mp4
+
+# ролики команды и кадры проверки — тяжёлые, в репозитории не храним
+team/out/**/*.mp4
+team/out/**/frames/
