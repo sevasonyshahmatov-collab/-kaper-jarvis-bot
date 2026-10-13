@@ -16,7 +16,8 @@
                 впечаткой), на полдоли — карточка в линейку на скотче; на доли 1, 2, 3 — три снимка последних игр
                 (эмблема соперника, счёт, ОТ/Б, дата-впечатка, наклейка В/П, соперник от руки), между ними на карточке
                 от руки появляются строки: очки за игры, место, разница шайб, серия, большинство (только непустые);
-  стол пустеет (clear долей) — снимки сметает со стола, лампа притухает, камера чуть наезжает;
+  стол пустеет (clear долей) — снимки сметает со стола, свет лампы сужается в пятно (туда ляжет снимок прогноза),
+                лампа подмигивает, камера чуть наезжает;
   ДРОП (hold долей)     — вспышка фотокамеры ровно на дроп: большой снимок ТОЛЬКО выбранной команды (одна эмблема)
                 проявляется быстро, тиснёная лента-наклейка «ПОБЕДА …» (form.split_pick), на полдоли — вторая
                 лента «В ОСНОВНОЕ ВРЕМЯ», на долю — стикер с кэфом от руки, на 2-ю долю его обводят маркером;
@@ -115,24 +116,25 @@ def _wood(w, h, seed=11):
     h2 = (h + 1) // 2                                       # волокна гладкие по вертикали — считаем через строку
     fine = np.repeat(_noise2(h2, w, 35, 1.1, rng), 2, 0)[:h]
     mid = np.repeat(_noise2(h2, w, 120, 6.0, rng), 2, 0)[:h]
-    big = _small_noise(h, w, 160, rng) / 0.6
-    warp = _small_noise(h, w, 200, rng) * 40
-    xi = np.clip(np.arange(w, dtype=np.int32)[None, :] + warp.astype(np.int32), 0, w - 1)
-    fine = np.take_along_axis(fine, xi, 1)
-    mid = np.take_along_axis(mid, xi, 1)
-    v = 0.5 + 0.06 * fine + 0.14 * mid + 0.09 * big
+    big = _small_noise(h, w, 300, rng) / 0.6
+    warp = _small_noise(h, w, 640, rng) * 34
+    g = 0.06 * fine + 0.14 * mid                            # волокна периодичны по вертикали — доски сдвигаем без шва
     # доски: сдвиг рисунка по вертикали, свой тон, швы
     x = -int(rng.integers(40, 200))
     seams = []
+    tone = np.zeros(w, np.float32)
     while x < w:
         pw = int(rng.integers(250, 360))
         x0, x1 = max(0, x), min(w, x + pw)
         if x1 > x0:
-            v[:, x0:x1] = np.roll(v[:, x0:x1], int(rng.integers(0, h)), 0) + rng.uniform(-0.05, 0.05)
+            g[:, x0:x1] = np.roll(g[:, x0:x1], int(rng.integers(0, h)), 0)
+            tone[x0:x1] = rng.uniform(-0.05, 0.05)
         seams.append(x + pw)
         x += pw
-    v = np.clip(v, 0, 1)
-    stops = [(0.0, (16, 9, 6)), (0.3, (40, 24, 15)), (0.5, (62, 38, 23)), (0.7, (88, 56, 34)), (1.0, (124, 84, 52))]
+    xi = np.clip(np.arange(w, dtype=np.int32)[None, :] + warp.astype(np.int32), 0, w - 1)
+    g = np.take_along_axis(g, xi, 1)
+    v = np.clip(0.5 + g + 0.06 * big + tone[None, :], 0, 1)
+    stops = [(0.0, (20, 11, 7)), (0.3, (50, 30, 18)), (0.5, (76, 47, 28)), (0.7, (104, 67, 40)), (1.0, (142, 96, 60))]
     pos = [s[0] for s in stops]
     out = np.stack([np.interp(v, pos, [s[1][i] for s in stops]) for i in range(3)], -1).astype(np.float32)
     for sx in seams:
@@ -142,13 +144,13 @@ def _wood(w, h, seed=11):
     return np.clip(out, 0, 255).astype(np.uint8)
 
 
-def _light():
+def _light(sx=620, sy=820, amb=0.38, k=0.64):
     """Карта света лампы (RGBA, больше кадра на LP с каждой стороны): тёплое пятно + виньетка."""
     h, w = H + 2 * LP, W + 2 * LP
     y, x = np.mgrid[0:h, 0:w].astype(np.float32)
     cx, cy = w / 2, LP + H * 0.45
-    pool = np.exp(-0.5 * (((x - cx) / 620) ** 2 + ((y - cy) / 820) ** 2))
-    b = 0.38 + 0.64 * pool
+    pool = np.exp(-0.5 * (((x - cx) / sx) ** 2 + ((y - cy) / sy) ** 2))
+    b = amb + k * pool
     ys = y - LP                                             # ниже и выше безопасной зоны — темнее
     b *= 1 - 0.38 * np.clip((ys - 1490) / 430, 0, 1) - 0.22 * np.clip((210 - ys) / 210, 0, 1)
     b = np.clip(b, 0, 1.0)
@@ -375,6 +377,12 @@ class Polaroid(C.Reel):
         P = {}
         P['wood'] = _wood(2 * SX + W + 2 * PX, H + 2 * PY, self.seed)
         P['light'] = _light()
+        P['tlight'] = _light(470, 640, 0.42, 0.68)                       # стол — пятно лампы контрастнее, чем на бумаге
+        y, x = np.mgrid[0:H, 0:W].astype(np.float32)                    # перед дропом свет сужается в пятно
+        b = 0.12 + 0.88 * np.exp(-0.5 * (((x - 480) / 300) ** 2 + ((y - 760) / 390) ** 2))
+        sp = np.zeros((H, W, 4), np.uint8)
+        sp[..., 0], sp[..., 1], sp[..., 2], sp[..., 3] = b * 255, b * 0.93 * 255, b * 0.82 * 255, 255
+        P['spot'] = Image.fromarray(sp, 'RGBA')
         tg = C.text(self.tag, 'unb', 32, CREAM, 600, track=0.1)
         P['tag'] = C.with_shadow(tg, 6, 0.8, 2)
         hd = C.text(C.HANDLE, 'unb', 46, CREAM, 700)
@@ -457,7 +465,7 @@ class Polaroid(C.Reel):
             img = C.add_light(img, C.radial(int(w * 0.95), int(w * 0.95), (255, 240, 210), 80, 1.5), w / 2, h * 0.44)
         C.put(img, _emb_shadow(tm.emb(int(w * es)), 14, 0.6), w / 2, h * 0.46)
         if imprint:
-            ip = _imprint(imprint, max(22, int(w * 0.068)))
+            ip = _imprint(imprint, max(24, int(w * 0.082)))
             C.put(img, ip, w - 14 - ip.width / 2, h - 12 - ip.height / 2)
         return img.convert('RGB')
 
@@ -529,7 +537,7 @@ class Polaroid(C.Reel):
             rows.append([('большинство ', INK), (v, RED)])
         return rows[:5]
 
-    def _card(self, rows, w=470, seed=0):
+    def _card(self, rows, w=588, seed=0):
         """Карточка в линейку на скотче; строки — отдельными надписями (пишутся от руки по долям)."""
         lh, top, mt = 82, 30, 24
         n = max(1, len(rows))
@@ -548,7 +556,7 @@ class Polaroid(C.Reel):
         ovl = []
         f = C.font('hand', 70, 700)
         widest = max(f.getlength(''.join(p for p, _ in parts)) for parts in rows) if rows else 1
-        size = int(min(70, 70 * (w - 96) / widest))
+        size = int(min(72, 70 * (w - 92) / widest))
         for k, parts in enumerate(rows):
             ri = _rich(parts, 'hand', size, 700)
             ovl.append(dict(im=ri, x=72, y=mt + top + k * lh + (lh - 12) - ri.height - 2))
@@ -645,11 +653,11 @@ class Polaroid(C.Reel):
         sg = -1 if mir else 1
         sd = self.seed * 17 + (0 if side == 'h' else 100)
         # снимок клуба
-        pw, ph, bd, bot = 420, 512, 24, 114
+        pw, ph, bd, bot = 372, 458, 22, 104
         img = self._img_team(tm, pw - 2 * bd, ph - bd - bot, sd + 1, imprint='ХОЗЯЕВА' if side == 'h' else 'ГОСТИ')
         paper, box, pic = self._polaroid(pw, ph, bd, bot, img, sd + 2)
-        cap = self._caption(tm.short, 84, pw - 60)
-        e = self._add(base=paper, x=X(262), y=598, rot=-4.0 * sg, wx=wx,
+        cap = self._caption(tm.short, 80, pw - 50)
+        e = self._add(base=paper, x=X(226), y=598, rot=-4.0 * sg, wx=wx,
                       enter=dict(kind='fall', t0=T, d=0.24, ox=-50 * sg, oy=-140, dr=-8 * sg),
                       dev=dict(pic=pic, box=box, t0=T, d=1.0 * u))
         e['ovl'].append(dict(im=cap, x=(pw - cap.width) / 2, y=ph - bot / 2 - cap.height / 2 + 2, t0=T + 0.22, d=0.42, mode='wipe'))
@@ -658,7 +666,7 @@ class Polaroid(C.Reel):
         rows = self._card_rows(side)
         if rows:
             im, ovl = self._card(rows, seed=sd + 3)
-            e = self._add(base=im, x=X(796), y=590, rot=2.4 * sg, wx=wx,
+            e = self._add(base=im, x=X(744), y=592, rot=2.0 * sg, wx=wx,
                           enter=dict(kind='slap', t0=T + 0.5 * u, d=0.14, ox=30 * sg, oy=-50, dr=5 * sg),
                           shadow_kw=dict(soft=12, sa=0.42, dy_soft=9))
             times = [1.5, 2.5, 3.5, 4.0, 4.5]
@@ -702,11 +710,11 @@ class Polaroid(C.Reel):
         cap = self._caption(tm.short, 100, pw - 80)
         e = self._add(base=paper, x=468, y=692, rot=-3.0, wx=wx,
                       enter=dict(kind='eject', t0=D, d=0.26),
-                      dev=dict(pic=pic, box=box, t0=D, d=0.6 * u),
+                      dev=dict(pic=pic, box=box, t0=D, d=0.6 * u, pow=0.5),
                       lay2=dict(t0=TC, d=0.45, x=322, y=612, s=0.72, rot=-4.0))
         e['ovl'].append(dict(im=cap, x=(pw - cap.width) / 2, y=ph - bot / 2 - cap.height / 2 + 2, t0=D + 0.3, d=0.42, mode='wipe'))
         d1 = self._dymo(self.pick1, 136, 980, seed=sd + 5)
-        self._add(base=d1, x=540, y=1168, rot=-1.6, wx=wx, enter=dict(kind='slap', t0=D, d=0.12, ox=0, oy=-30, dr=-3),
+        self._add(base=d1, x=540, y=1168, rot=-1.6, wx=wx, enter=dict(kind='slap', t0=D + 0.1, d=0.1, ox=0, oy=-30, dr=-3),
                   shadow_kw=dict(soft=8, sa=0.5, dy_soft=6, hard=2, ha=0.5),
                   lay2=dict(t0=TC, d=0.45, x=540, y=976, s=0.9, rot=-1.2))
         if self.pick2:
@@ -717,16 +725,16 @@ class Polaroid(C.Reel):
         if self.coef:
             st = self._sticky(306, 306, seed=sd + 7)
             C.put(st, _hand('кэф', 70, (92, 70, 30)), 153, 68)
-            val = C.text(C.fmt_k(self.coef), 'hand', 168, MARK, 700, max_w=262)
-            C.put(st, val, 153, 182)
-            ring = self._ring(262, 146)
+            val = C.text(C.fmt_k(self.coef), 'hand', 156, MARK, 700, max_w=226)
+            C.put(st, val, 153, 184)
+            ring = self._ring(min(300, val.width + 84), val.height + 54)
             e = self._add(base=st, x=860, y=872, rot=6.0, wx=wx,
                           enter=dict(kind='slap', t0=D + u, d=0.14, ox=40, oy=-60, dr=8),
                           shadow_kw=dict(soft=12, sa=0.5, dy_soft=12),
                           lay2=dict(t0=TC, d=0.45, x=806, y=600, s=0.88, rot=7.0))
-            e['ovl'].append(dict(im=ring, x=153 - ring.width / 2, y=182 - ring.height / 2, t0=D + 2 * u, d=0.42, mode='arc'))
+            e['ovl'].append(dict(im=ring, x=153 - ring.width / 2, y=186 - ring.height / 2, t0=D + 2 * u, d=0.42, mode='arc'))
         tg = C.tg_plate(960, 180, font='mont')
-        self._add(base=tg, x=540, y=1300, rot=0.0, wx=wx, enter=dict(kind='fall', t0=TC + 0.32, d=0.24, ox=0, oy=60, dr=-3),
+        self._add(base=tg, x=540, y=1300, rot=0.0, wx=wx, enter=dict(kind='slap', t0=TC + 0.34, d=0.18, ox=0, oy=40, dr=-2),
                   shadow_kw=dict(soft=14, sa=0.55, dy_soft=12))
 
     def _ring(self, w, h):
@@ -760,7 +768,7 @@ class Polaroid(C.Reel):
         """→ None | (x, y, rot, s, z, a, settled) в координатах мира."""
         en = e['enter']
         t0, kind, fd = en['t0'], en['kind'], en.get('d', 0.2)
-        if t < t0 - fd:
+        if t < (t0 if kind == 'eject' else t0 - fd):                  # 'eject' появляется ровно в t0 (дроп)
             return None
         x, y, rot, s = e['x'] + e['wx'], e['y'], e['rot'], 1.0
         z, a = 0.0, 1.0
@@ -814,7 +822,7 @@ class Polaroid(C.Reel):
         im = e['base'].copy()
         dv = e['dev']
         if dv:
-            k = C.seg(t, dv['t0'], dv['t0'] + dv['d'])
+            k = C.seg(t, dv['t0'], dv['t0'] + dv['d']) ** dv.get('pow', 1.0)
             im.paste(Image.fromarray(dv['pic'].at(k)), dv['box'])
         for o in e['ovl']:
             if t < o['t0']:
@@ -882,7 +890,10 @@ class Polaroid(C.Reel):
         by = int(round(PY + 0.82 * dy))
         bx = min(max(0, bx), P['wood'].shape[1] - W)
         by = min(max(0, by), P['wood'].shape[0] - H)
+        lx = int(LP + 34 * math.sin(0.52 * t + 0.6))
+        ly = int(LP + 18 * math.sin(0.37 * t + 2.1))
         fr = Image.fromarray(P['wood'][by:by + H, bx:bx + W]).convert('RGBA')
+        fr = ImageChops.multiply(fr, P['tlight'].crop((lx, ly, lx + W, ly + H)))
         ox, oy = cam + dx, dy
         for e in P['E']:
             self._draw(fr, e, t, ox, oy)
@@ -892,8 +903,6 @@ class Polaroid(C.Reel):
         if k >= 3:
             fr = fr.resize((max(1, W // k), H), Image.BOX).resize((W, H), Image.BILINEAR)
         # свет лампы (качается)
-        lx = int(LP + 34 * math.sin(0.52 * t + 0.6))
-        ly = int(LP + 18 * math.sin(0.37 * t + 2.1))
         fr = ImageChops.multiply(fr, P['light'].crop((lx, ly, lx + W, ly + H)))
         self._motes(fr, t, lx - LP, ly - LP)
         # камера: наезд перед дропом, пульс на долях после
@@ -912,16 +921,16 @@ class Polaroid(C.Reel):
                     z += 0.014 * (1 - C.seg(t, tb, tb + 0.3)) ** 2
         if z > 1.001:
             fr = C.zoom(fr, z, W / 2, H * 0.48)
-        # яркость: лампа притухает перед дропом, вспышка на дропе
+        # перед дропом лампа сужается в пятно (там ляжет снимок) и подмигивает; на дропе — вспышка
         dim = 1.0
-        if self.TCL <= t < D:
-            q = C.seg(t, self.TCL + 0.4, D)
-            dim = 1 - 0.42 * C.in_out(q)
-            if q > 0.35 and math.sin(t * 61) > 0.82:
-                dim *= 0.9
+        if self.TCL + 0.3 <= t < D:
+            q = C.in_out(C.seg(t, self.TCL + 0.3, D - 0.1))
+            fr = Image.blend(fr, ImageChops.multiply(fr, P['spot']), 0.9 * q)
+            if q > 0.4 and math.sin(t * 61) > 0.8:
+                dim = 0.88
         flash = 0.0
         if t >= D:
-            flash = math.exp(-(t - D) / 0.11)
+            flash = math.exp(-(t - D) / 0.08)
             if flash < 0.01:
                 flash = 0.0
         if dim < 0.999 or flash > 0:
@@ -930,8 +939,8 @@ class Polaroid(C.Reel):
         fr = C.grain(fr, t, k=6)
         # экранные подписи
         _paste(fr, P['tag'], W / 2, TAG_Y)
-        if t < self.TC + 0.25:
-            a = 1.0 if t < self.TC else 1 - C.seg(t, self.TC, self.TC + 0.25)
+        if t < self.TC + 0.14:
+            a = 1.0 if t < self.TC else 1 - C.seg(t, self.TC, self.TC + 0.14)
             _paste(fr, P['handle'], W / 2, HANDLE_Y, a)
         return fr
 
