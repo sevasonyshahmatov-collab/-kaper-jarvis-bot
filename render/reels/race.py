@@ -49,8 +49,9 @@ TOK = 178                                 # фишка в сценах кома�
 STOP_TOP, STOP_BOT, START_MAX = 532, 1262, 1378
 GEO = {'h': dict(lane=190, lx0=60, lx1=322, rail=48, div=334, px0=356, px1=1036),
        'a': dict(lane=890, lx0=758, lx1=1020, rail=1032, div=746, px0=44, px1=724)}
-RACE_RAILS, RACE_DIV, RACE_X, RACE_Y, RACE_D = (70, 1010), 540, {'h': 305, 'a': 775}, 790, 250
+RACE_RAILS, RACE_DIV, RACE_X, RACE_Y, RACE_D = (70, 1010), 540, {'h': 305, 'a': 775}, 800, 290
 JUDGE_Y = 408
+SAFE_Y = 1420
 
 _CACHE = {}                               # тяжёлые заготовки по параметрам ролика (общие для процессов после fork)
 
@@ -337,7 +338,7 @@ class Race(C.Reel):
         base = Image.fromarray(turf[:H].astype(np.uint8), 'RGB')
         # старт: обе дорожки, бровки
         bi = base.convert('RGBA')
-        bi.alpha_composite(_rails(H, RACE_RAILS, (RACE_DIV,)))
+        bi.alpha_composite(_rails(H, RACE_RAILS, ()))
         L['bg_intro'] = ImageChops.add(bi.convert('RGB'), light).convert('RGBA')
         # сцены команд: своя дорожка подсвечена, у неё бровка и пунктир
         for key in ('h', 'a'):
@@ -379,11 +380,12 @@ class Race(C.Reel):
         # старт
         L.update(self._intro_layers())
         # финишная прямая
-        L['speed'] = [(rnd.uniform(90, 990), int(rnd.integers(0, 3)), rnd.uniform(0, 3000), rnd.uniform(1.2, 2.0),
+        L['speed'] = [(rnd.uniform(90, 990), int(rnd.integers(0, 3)), rnd.uniform(0, 3000), rnd.uniform(3.2, 5.0),
                        rnd.uniform(0.25, 0.6)) for _ in range(26)]
         L['finish'] = self._finish()
         L['names_run'] = {k: self._name_tag(k) for k in ('h', 'a')}
         L['pole'] = self._pole()
+        L['hoof'] = C.ellipse(30, 20, (3, 22, 11), 175)
         # частицы на долях: (время, x, y, [(угол, скорость, спрайт, жизнь)])
         L['bursts'] = self._bursts(rnd)
         # фотофиниш
@@ -391,6 +393,10 @@ class Race(C.Reel):
         L['tag'] = C.text(F.tag(self.league), 'unb', 32, IVORY, 700, track=0.12)
         L['handle'] = C.text(C.HANDLE, 'unb', 38, IVORY, 600)
         L['tg'] = C.tg_plate(960, 170)
+        L['tg_sh'] = C.shadow(L['tg'], 20, 1.0)
+        L['scan'] = C.radial(W * 2, 120, (255, 246, 220), 255, 1.2)
+        L['tag_pl'] = self._pill(L['tag'], 22, 12)
+        L['handle_pl'] = self._pill(L['handle'], 30, 14)
         return L
 
     def _head(self, key):
@@ -455,16 +461,16 @@ class Race(C.Reel):
         im = saddle(w, h, IVORY, pipe=col, pa=210)
         num_col = C.mix(col, (0, 0, 0), 0.12) if _lum(col) > 60 else col
         if n == 2:
-            vt = C.text(v, 'osw', h * 0.5, num_col, 700, max_w=w - 40)
-            lt = C.text(lab, 'osw', h * 0.21, INK, 700, track=0.04, max_w=w - 40)
-            st = C.text(sub, 'golos', h * 0.15, (92, 98, 92), 600, max_w=w - 44) if sub else None
-            hs = vt.height + 10 + lt.height + ((8 + st.height) if st else 0)
-            y = h / 2 - hs / 2 - 2
+            vt = C.text(v, 'osw', h * 0.43, num_col, 700, max_w=w - 50)
+            lt = C.text(lab, 'osw', h * 0.19, INK, 700, track=0.04, max_w=w - 50)
+            st = C.text(sub, 'golos', h * 0.135, (92, 98, 92), 600, max_w=w - 60) if sub else None
+            hs = vt.height + 9 + lt.height + ((6 + st.height) if st else 0)
+            y = h / 2 - hs / 2 - 3
             C.put(im, vt, w / 2, y + vt.height / 2)
-            y += vt.height + 10
+            y += vt.height + 9
             C.put(im, lt, w / 2, y + lt.height / 2)
             if st:
-                C.put(im, st, w / 2, y + lt.height + 8 + st.height / 2)
+                C.put(im, st, w / 2, y + lt.height + 6 + st.height / 2)
             return im
         vt = C.text(v, 'osw', h * 0.56, (255, 255, 255), 700)
         pw = max(int(h * 0.95), vt.width + 48)
@@ -570,6 +576,14 @@ class Race(C.Reel):
         return [(rnd.uniform(math.pi * 0.18, math.pi * 0.82), rnd.uniform(160, 520) * sp, int(rnd.integers(0, 4)),
                  rnd.uniform(0.35, 0.7), rnd.uniform(-40, 40)) for _ in range(n)]
 
+    @staticmethod
+    def _pill(im, px, py):
+        """Тёмная полупрозрачная подложка под шапку и @jarvibet (поверх бровок и пунктира)."""
+        w, h = im.width + 2 * px, im.height + 2 * py
+        pl = C.rrect(w, h, h / 2, (3, 14, 8), 170)
+        C.put(pl, im, w / 2, h / 2)
+        return pl
+
     # ── старт: боксы и табло тотализатора ──
     def _intro_layers(self):
         L = {}
@@ -670,10 +684,10 @@ class Race(C.Reel):
         # выбранная фишка + щелевой «смаз» за ней
         fav = _token(self.T[self.side], self.col[self.side], 384)
         tw, th = fav.size
-        smear_h = 230
-        sm = fav.crop((0, th // 2 + 30, tw, th // 2 + 31)).resize((tw, smear_h), Image.NEAREST)
+        smear_h = 250
+        sm = fav.crop((0, th // 2 + 70, tw, th // 2 + 71)).resize((tw, smear_h), Image.NEAREST)
         a = np.asarray(sm, np.float32).copy()
-        a[..., 3] *= np.linspace(0.9, 0, smear_h, dtype=np.float32)[:, None] ** 1.4
+        a[..., 3] *= np.linspace(1.0, 0, smear_h, dtype=np.float32)[:, None] ** 0.9
         sm = Image.fromarray(a.astype(np.uint8), 'RGBA')
         comb = Image.new('RGBA', (tw, th + smear_h - th // 2), (0, 0, 0, 0))
         comb.alpha_composite(sm, (0, th // 2))
@@ -681,7 +695,7 @@ class Race(C.Reel):
         L['fav'] = comb
         L['fav_sh'] = C.shadow(fav, 22, 0.7)
         L['flash_ring'] = C.radial(900, 900, (255, 250, 236), 255, 1.4)
-        L['p1'] = C.with_shadow(C.text(self.pick1, 'osw', 124, (255, 255, 255), 700, max_w=990), 14, 0.7, 6)
+        L['p1'] = C.with_shadow(C.text(self.pick1, 'osw', 124, (255, 255, 255), 700, max_w=960), 14, 0.7, 6)
         L['p2'] = C.text(self.pick2, 'osw', 56, GOLD_L, 500, track=0.12, max_w=960) if self.pick2 else None
         kt = C.text('КЭФ ' + C.fmt_k(self.coef), 'osw', 112, GOLD_D, 700)
         kp = saddle(kt.width + 120, 176, GOLD, rt=14, rb=52, pipe=(255, 248, 220), pa=220)
@@ -852,7 +866,7 @@ class Race(C.Reel):
         L, u, D = self.L, self.u, self.drop
         lt = t - self.t_run
         T = D - self.t_run
-        v0, acc = 1500.0, 900.0
+        v0, acc = 420.0, 300.0                                          # створ виден почти всю сцену
         s = v0 * lt + 0.5 * acc * lt * lt
         sD = v0 * T + 0.5 * acc * T * T
         off = int(s) % P
@@ -868,15 +882,26 @@ class Race(C.Reel):
         sp = v0 + acc * lt
         for x, si, y0, f, a in L['speed']:
             yy = (y0 + s * f) % (H + 800) - 400
-            C.put(fr, L['streak'][si], x, yy, a * min(1.0, sp / 1800))
+            C.put(fr, L['streak'][si], x, yy, a * min(1.0, sp / 600))
         # финишный створ
         yf = (RACE_Y - RACE_D / 2 - 20) - (sD - s)
         if yf > -140:
             C.put(fr, L['finish'], W / 2, yf)
-        self.burst(fr, t)
         # фишки голова в голову: лидер меняется на каждую долю, к финишу — ровно
         ph = lt / u
         lead = 34 * math.sin(math.pi * ph) * (1 - C.seg(t, D - 0.35, D))
+        for key, sgn, gp in (('h', 1, 0.0), ('a', -1, 0.5)):              # следы копыт на газоне за фишками
+            x = RACE_X[key]
+            y = RACE_Y - sgn * lead
+            ss = s + 23 * (key == 'a')
+            base = y + RACE_D * 0.36
+            for m in range(16):
+                yk = base + (ss % 64) + m * 64
+                if yk > SAFE_Y:
+                    break
+                idx = int(ss // 64) - m
+                C.put(fr, L['hoof'], x + (24 if idx % 2 else -24), yk, max(0.0, 0.95 - m * 0.055))
+        self.burst(fr, t)
         for key, sgn, gp in (('h', 1, 0.0), ('a', -1, 0.5)):
             x = RACE_X[key]
             y = RACE_Y - sgn * lead
@@ -893,6 +918,7 @@ class Race(C.Reel):
         ck = C.in_out(C.seg(t, self.t_cta, self.t_cta + 0.55))
         pulse = math.exp(-(((t - D) / u) % 1.0) * 7) if t >= D else 0.0
         jy = JUDGE_Y - 40 * ck
+        C.put(fr, L['date'], W / 2, 336 - 8 * ck, C.seg(t, D + 0.05, D + 0.3))
         fr = C.add_light(fr, L['judge_glow'], W / 2, jy, 0.6 + 0.6 * pulse).convert('RGBA')
         C.put(fr, L['judge'], W / 2, jy)
         # фишка выбранной команды: нос — за линией судьи
@@ -903,15 +929,15 @@ class Race(C.Reel):
         C.put(fr, C.scale(L['fav_sh'], fs), W / 2 + 10, cy + 24, 0.9)
         C.put(fr, fav, W / 2, cy - tok_d / 2 + fav.height / 2)
         # прогноз
-        y1 = C.lerp(912, 800, ck)
+        y1 = C.lerp(940, 772, ck)
         q1 = C.out_expo(C.seg(t, D + 0.04, D + 0.3))
-        C.put(fr, C.scale(L['p1'], 1.25 - 0.25 * q1), W / 2, y1, min(1.0, q1 * 1.8))
+        C.put(fr, C.scale(L['p1'], 1.1 - 0.1 * q1), W / 2, y1, min(1.0, q1 * 1.8))
         if L['p2'] is not None:
             q2 = C.out_expo(C.seg(t, D + 0.2, D + 0.5))
             C.put(fr, L['p2'], W / 2, y1 + 104 + 20 * (1 - q2), q2)
         qk = C.out_back(C.seg(t, D + u, D + u + 0.4), 1.6)
         if qk > 0.01:
-            ky = C.lerp(1192, 1048, ck)
+            ky = C.lerp(1224, 1034, ck)
             kp = C.scale(L['kef'], max(0.05, (0.5 + 0.5 * qk) * (1 + 0.02 * pulse * (t >= D + 2 * u))))
             C.put(fr, C.scale(L['kef_sh'], kp.width / L['kef'].width), W / 2 + 8, ky + 22, min(1.0, qk))
             C.put(fr, kp, W / 2, ky, min(1.0, qk * 1.5))
@@ -922,11 +948,11 @@ class Race(C.Reel):
             cover = Image.new('RGBA', (W, max(1, int(H - ys))), (255, 252, 244, int(255 * wa)))
             C.put(fr, cover, 0, ys, anchor='tl')
             if ys < H:
-                fr = C.add_light(fr, C.radial(W * 2, 120, (255, 246, 220), 255, 1.2), W / 2, ys, 1.2 * wa).convert('RGBA')
+                fr = C.add_light(fr, L['scan'], W / 2, ys, 1.2 * wa).convert('RGBA')
         if t >= self.t_cta:
             q = C.out_expo(C.seg(t, self.t_cta + 0.2, self.t_cta + 0.65))
             if q > 0:
-                C.put(fr, C.shadow(L['tg'], 20, 0.6 * q), W / 2, 1290 + 18 + 160 * (1 - q))
+                C.put(fr, L['tg_sh'], W / 2, 1290 + 18 + 160 * (1 - q), 0.6 * q)
                 C.put(fr, L['tg'], W / 2, 1290 + 160 * (1 - q), q)
         return fr
 
@@ -994,11 +1020,11 @@ class Race(C.Reel):
             fr = C.zoom(fr, z, cx, cy, dx=dx, dy=dy)
         fr = fr.convert('RGBA')
         # шапка и @jarvibet — поверх, неподвижно
-        C.put(fr, L['tag'], W / 2, TAG_Y, 0.9 * C.seg(t, 0, 0.3))
+        C.put(fr, L['tag_pl'], W / 2, TAG_Y, 0.95 * C.seg(t, 0, 0.3))
         ha = 0.92 * C.seg(t, 0.2, 0.5)
         if t >= self.t_cta:
             ha *= 1 - C.seg(t, self.t_cta + 0.1, self.t_cta + 0.35)
-        C.put(fr, L['handle'], W / 2, HANDLE_Y, ha)
+        C.put(fr, L['handle_pl'], W / 2, HANDLE_Y, ha)
         fr = fr.convert('RGB')
         if D <= t < D + 1 / 30 + 0.001:                                      # кадр-вспышка фотокамеры
             fr = Image.blend(fr, Image.new('RGB', fr.size, (255, 253, 246)), 0.85)
