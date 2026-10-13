@@ -1,0 +1,10 @@
+{
+  "day": "2026-10-13",
+  "make": ["render/make_picks_1310.py"],
+  "messages": [
+    {"to": "owner", "type": "text", "text": "Исправление: Миннесота — Вегас закончился 4:2, а не 3:1. Прошлый баннер по этому матчу не публикуйте, ниже верный. Прогноз всё равно зашёл: 6 голов, меньше 6,5."},
+    {"to": "owner", "type": "photo", "files": ["out/1310/pick_nhl_minnesota_vegas.jpg"],
+     "text": "НХЛ · итог прогноза\n\nМиннесота — Вегас 4:2\nПрогноз: тотал меньше 6,5 за 1,54 — зашёл", "buttons": "post", "pid": "1310-23"},
+    {"to": "owner", "type": "documents", "files": ["out/1310/pick_nhl_minnesota_vegas.jpg"], "captions": ["Миннесота — Вегас 4:2 · 4К"]}
+  ]
+}
