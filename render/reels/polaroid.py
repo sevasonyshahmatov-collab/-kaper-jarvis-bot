@@ -112,14 +112,15 @@ def _small_noise(h, w, cell, rng):
 def _wood(w, h, seed=11):
     """Тёмный орех: вертикальные доски, волокна, пятна тона, швы. → uint8 (h, w, 3)."""
     rng = np.random.default_rng(seed)
-    fine = _noise2(h, w, 70, 1.1, rng)
-    mid = _noise2(h, w, 240, 6.0, rng)
-    big = _noise2(h, w, 420, 160, rng)
-    warp = _noise2(h, w, 360, 240, rng) * 26
+    h2 = (h + 1) // 2                                       # волокна гладкие по вертикали — считаем через строку
+    fine = np.repeat(_noise2(h2, w, 35, 1.1, rng), 2, 0)[:h]
+    mid = np.repeat(_noise2(h2, w, 120, 6.0, rng), 2, 0)[:h]
+    big = _small_noise(h, w, 160, rng) / 0.6
+    warp = _small_noise(h, w, 200, rng) * 40
     xi = np.clip(np.arange(w, dtype=np.int32)[None, :] + warp.astype(np.int32), 0, w - 1)
     fine = np.take_along_axis(fine, xi, 1)
     mid = np.take_along_axis(mid, xi, 1)
-    v = 0.5 + 0.075 * fine + 0.13 * mid + 0.09 * big
+    v = 0.5 + 0.06 * fine + 0.14 * mid + 0.09 * big
     # доски: сдвиг рисунка по вертикали, свой тон, швы
     x = -int(rng.integers(40, 200))
     seams = []
@@ -146,10 +147,10 @@ def _light():
     h, w = H + 2 * LP, W + 2 * LP
     y, x = np.mgrid[0:h, 0:w].astype(np.float32)
     cx, cy = w / 2, LP + H * 0.45
-    pool = np.exp(-0.5 * (((x - cx) / 600) ** 2 + ((y - cy) / 820) ** 2))
-    b = 0.36 + 0.70 * pool
-    r = np.sqrt(((x - cx) / (W / 2)) ** 2 * 0.9 + ((y - cy) / (H / 2)) ** 2)
-    b *= 1 - 0.32 * np.clip(r - 0.75, 0, 1) ** 1.4
+    pool = np.exp(-0.5 * (((x - cx) / 620) ** 2 + ((y - cy) / 820) ** 2))
+    b = 0.38 + 0.64 * pool
+    ys = y - LP                                             # ниже и выше безопасной зоны — темнее
+    b *= 1 - 0.38 * np.clip((ys - 1490) / 430, 0, 1) - 0.22 * np.clip((210 - ys) / 210, 0, 1)
     b = np.clip(b, 0, 1.0)
     arr = np.zeros((h, w, 4), np.uint8)
     arr[..., 0] = b * 255
@@ -250,11 +251,11 @@ def _shadow(im, soft=16, sa=0.5, hard=3, ha=0.42, dy_soft=12, dy_hard=3):
     return out
 
 
-def _xf(im, rot, s):
+def _xf(im, rot, s, fine=True):
     if abs(s - 1) > 0.002:
         im = im.resize((max(1, int(round(im.width * s))), max(1, int(round(im.height * s)))), Image.BICUBIC)
     if abs(rot) > 0.03:
-        im = im.rotate(rot, Image.BICUBIC, expand=True)
+        im = im.rotate(rot, Image.BICUBIC if fine else Image.BILINEAR, expand=True)
     return im
 
 
@@ -378,6 +379,10 @@ class Polaroid(C.Reel):
         P['tag'] = C.with_shadow(tg, 6, 0.8, 2)
         hd = C.text(C.HANDLE, 'unb', 46, CREAM, 700)
         P['handle'] = C.with_shadow(hd, 7, 0.85, 3)
+        rng = np.random.default_rng(self.seed + 99)                     # пылинки в луче лампы
+        P['mote'] = [C.radial(d, d, (255, 232, 190), 255, 1.6) for d in (5, 8, 12, 30)]
+        P['motes'] = [(rng.uniform(0, W + 80), rng.uniform(0, 1300), rng.uniform(-9, 9), rng.uniform(-14, -4),
+                       rng.uniform(0, 6.28), int(rng.choice([0, 0, 1, 1, 2, 3])), rng.uniform(0.25, 0.6)) for _ in range(22)]
         self.E = []
         self._intro_items()
         for side in ('h', 'a'):
@@ -524,7 +529,7 @@ class Polaroid(C.Reel):
             rows.append([('большинство ', INK), (v, RED)])
         return rows[:5]
 
-    def _card(self, rows, w=450, seed=0):
+    def _card(self, rows, w=470, seed=0):
         """Карточка в линейку на скотче; строки — отдельными надписями (пишутся от руки по долям)."""
         lh, top, mt = 82, 30, 24
         n = max(1, len(rows))
@@ -541,8 +546,11 @@ class Polaroid(C.Reel):
         tp = C.rotate(_tape(170, 48, seed + 7), 3 if seed % 2 else -3)
         C.put(im, tp, w / 2, mt + 4)
         ovl = []
+        f = C.font('hand', 70, 700)
+        widest = max(f.getlength(''.join(p for p, _ in parts)) for parts in rows) if rows else 1
+        size = int(min(70, 70 * (w - 96) / widest))
         for k, parts in enumerate(rows):
-            ri = _rich(parts, 'hand', 64, 700, max_w=w - 92)
+            ri = _rich(parts, 'hand', size, 700)
             ovl.append(dict(im=ri, x=72, y=mt + top + k * lh + (lh - 12) - ri.height - 2))
         return im, ovl
 
@@ -615,7 +623,7 @@ class Polaroid(C.Reel):
         img = self._img_duo(pw - 2 * bd, ph - bd - bot)
         paper, box, pic = self._polaroid(pw, ph, bd, bot, img, self.seed + 10)
         cap = self._caption(self.when, 80, pw - 70, MARK)
-        e = self._add(base=paper, x=540, y=712, rot=-2.0, wx=0,
+        e = self._add(base=paper, x=540, y=726, rot=-2.0, wx=0,
                       enter=dict(kind='fall', t0=0.15, d=0.24, ox=-40, oy=-150, dr=-7),
                       dev=dict(pic=pic, box=box, t0=0.15, d=1.25 * u))
         e['ovl'].append(dict(im=cap, x=(pw - cap.width) / 2, y=ph - bot / 2 - cap.height / 2 + 2, t0=0.42, d=0.5, mode='wipe'))
@@ -637,11 +645,11 @@ class Polaroid(C.Reel):
         sg = -1 if mir else 1
         sd = self.seed * 17 + (0 if side == 'h' else 100)
         # снимок клуба
-        pw, ph, bd, bot = 430, 520, 26, 116
+        pw, ph, bd, bot = 420, 512, 24, 114
         img = self._img_team(tm, pw - 2 * bd, ph - bd - bot, sd + 1, imprint='ХОЗЯЕВА' if side == 'h' else 'ГОСТИ')
         paper, box, pic = self._polaroid(pw, ph, bd, bot, img, sd + 2)
         cap = self._caption(tm.short, 84, pw - 60)
-        e = self._add(base=paper, x=X(272), y=598, rot=-4.0 * sg, wx=wx,
+        e = self._add(base=paper, x=X(262), y=598, rot=-4.0 * sg, wx=wx,
                       enter=dict(kind='fall', t0=T, d=0.24, ox=-50 * sg, oy=-140, dr=-8 * sg),
                       dev=dict(pic=pic, box=box, t0=T, d=1.0 * u))
         e['ovl'].append(dict(im=cap, x=(pw - cap.width) / 2, y=ph - bot / 2 - cap.height / 2 + 2, t0=T + 0.22, d=0.42, mode='wipe'))
@@ -650,7 +658,7 @@ class Polaroid(C.Reel):
         rows = self._card_rows(side)
         if rows:
             im, ovl = self._card(rows, seed=sd + 3)
-            e = self._add(base=im, x=X(790), y=592, rot=2.4 * sg, wx=wx,
+            e = self._add(base=im, x=X(796), y=590, rot=2.4 * sg, wx=wx,
                           enter=dict(kind='slap', t0=T + 0.5 * u, d=0.14, ox=30 * sg, oy=-50, dr=5 * sg),
                           shadow_kw=dict(soft=12, sa=0.42, dy_soft=9))
             times = [1.5, 2.5, 3.5, 4.0, 4.5]
@@ -659,8 +667,8 @@ class Polaroid(C.Reel):
                 e['ovl'].append(o)
             e['exit'] = self._exit(side, 1)
         # три последние игры
-        gw, gh, gbd, gbot = 330, 400, 18, 88
-        xs, ys, rots = (188, 540, 892), (1140, 1162, 1136), (-5.0, 2.4, 5.4)
+        gw, gh, gbd, gbot = 320, 392, 17, 86
+        xs, ys, rots = (198, 540, 882), (1142, 1162, 1138), (-4.6, 2.2, 5.0)
         for k, g in enumerate(s['games'][:3]):
             img = self._img_game(g, gw - 2 * gbd, gh - gbd - gbot, sd + 10 + k)
             paper, box, pic = self._polaroid(gw, gh, gbd, gbot, img, sd + 20 + k)
@@ -692,31 +700,31 @@ class Polaroid(C.Reel):
         img = self._img_team(tm, pw - 2 * bd, ph - bd - bot, sd + 1, imprint=None, es=0.74, glow=True)
         paper, box, pic = self._polaroid(pw, ph, bd, bot, img, sd + 2)
         cap = self._caption(tm.short, 100, pw - 80)
-        e = self._add(base=paper, x=470, y=676, rot=-3.0, wx=wx,
+        e = self._add(base=paper, x=468, y=692, rot=-3.0, wx=wx,
                       enter=dict(kind='eject', t0=D, d=0.26),
                       dev=dict(pic=pic, box=box, t0=D, d=0.6 * u),
-                      lay2=dict(t0=TC, d=0.45, x=318, y=598, s=0.68, rot=-4.0))
+                      lay2=dict(t0=TC, d=0.45, x=322, y=612, s=0.72, rot=-4.0))
         e['ovl'].append(dict(im=cap, x=(pw - cap.width) / 2, y=ph - bot / 2 - cap.height / 2 + 2, t0=D + 0.3, d=0.42, mode='wipe'))
         d1 = self._dymo(self.pick1, 136, 980, seed=sd + 5)
-        self._add(base=d1, x=540, y=1150, rot=-1.6, wx=wx, enter=dict(kind='slap', t0=D, d=0.12, ox=0, oy=-30, dr=-3),
+        self._add(base=d1, x=540, y=1168, rot=-1.6, wx=wx, enter=dict(kind='slap', t0=D, d=0.12, ox=0, oy=-30, dr=-3),
                   shadow_kw=dict(soft=8, sa=0.5, dy_soft=6, hard=2, ha=0.5),
-                  lay2=dict(t0=TC, d=0.45, x=540, y=958, s=0.9, rot=-1.2))
+                  lay2=dict(t0=TC, d=0.45, x=540, y=976, s=0.9, rot=-1.2))
         if self.pick2:
             d2 = self._dymo(self.pick2, 100, 760, col=(150, 26, 34), seed=sd + 6)
-            self._add(base=d2, x=566, y=1290, rot=1.3, wx=wx, enter=dict(kind='slap', t0=D + 0.5 * u, d=0.12, ox=0, oy=-30, dr=3),
+            self._add(base=d2, x=566, y=1304, rot=1.3, wx=wx, enter=dict(kind='slap', t0=D + 0.5 * u, d=0.12, ox=0, oy=-30, dr=3),
                       shadow_kw=dict(soft=8, sa=0.5, dy_soft=6, hard=2, ha=0.5),
-                      lay2=dict(t0=TC, d=0.45, x=540, y=1074, s=0.92, rot=1.0))
+                      lay2=dict(t0=TC, d=0.45, x=540, y=1090, s=0.92, rot=1.0))
         if self.coef:
-            st = self._sticky(seed=sd + 7)
-            C.put(st, _hand('кэф', 72, (92, 70, 30)), 165, 74)
-            val = C.text(C.fmt_k(self.coef), 'hand', 176, MARK, 700, max_w=280)
-            C.put(st, val, 165, 196)
-            ring = self._ring(272, 150)
-            e = self._add(base=st, x=858, y=930, rot=6.0, wx=wx,
+            st = self._sticky(306, 306, seed=sd + 7)
+            C.put(st, _hand('кэф', 70, (92, 70, 30)), 153, 68)
+            val = C.text(C.fmt_k(self.coef), 'hand', 168, MARK, 700, max_w=262)
+            C.put(st, val, 153, 182)
+            ring = self._ring(262, 146)
+            e = self._add(base=st, x=860, y=872, rot=6.0, wx=wx,
                           enter=dict(kind='slap', t0=D + u, d=0.14, ox=40, oy=-60, dr=8),
                           shadow_kw=dict(soft=12, sa=0.5, dy_soft=12),
-                          lay2=dict(t0=TC, d=0.45, x=790, y=586, s=0.86, rot=7.0))
-            e['ovl'].append(dict(im=ring, x=165 - ring.width / 2, y=196 - ring.height / 2, t0=D + 2 * u, d=0.42, mode='arc'))
+                          lay2=dict(t0=TC, d=0.45, x=806, y=600, s=0.88, rot=7.0))
+            e['ovl'].append(dict(im=ring, x=153 - ring.width / 2, y=182 - ring.height / 2, t0=D + 2 * u, d=0.42, mode='arc'))
         tg = C.tg_plate(960, 180, font='mont')
         self._add(base=tg, x=540, y=1300, rot=0.0, wx=wx, enter=dict(kind='fall', t0=TC + 0.32, d=0.24, ox=0, oy=60, dr=-3),
                   shadow_kw=dict(soft=14, sa=0.55, dy_soft=12))
@@ -846,12 +854,22 @@ class Polaroid(C.Reel):
         if done and settled:
             key = (e['id'], round(rot, 3), round(s, 4))
             if key not in self._xc:
-                self._xc[key] = (_xf(spr, rot, s), _xf(e['shadow'], rot, s))
+                self._xc[key] = (_xf(spr, rot, s), _xf(e['shadow'], rot, s, False))
             im, shd = self._xc[key]
         else:
-            im, shd = _xf(spr, rot, s), _xf(e['shadow'], rot, s)
+            im, shd = _xf(spr, rot, s), _xf(e['shadow'], rot, s, False)
         C.put(fr, shd, sx + 30 * z, sy + 62 * z, a * (1 - 0.5 * z))
         C.put(fr, im, sx, sy, a)
+
+    def _motes(self, fr, t, lx, ly):
+        for x0, y0, vx, vy, ph, k, a0 in self.P['motes']:
+            x = (x0 + vx * t + 16 * math.sin(0.6 * t + ph)) % (W + 80) - 40
+            y = (y0 + vy * t + 12 * math.sin(0.45 * t + 2 * ph)) % 1300 + 240
+            d2 = ((x - W / 2 - lx) / 560) ** 2 + ((y - H * 0.45 - ly) / 760) ** 2
+            a = a0 * (0.55 + 0.45 * math.sin(2.1 * t + 3 * ph)) * math.exp(-d2)
+            if k == 3:
+                a *= 0.3
+            C.put(fr, self.P['mote'][k], x, y, a)
 
     # ── кадр ──
     def frame(self, t):
@@ -877,6 +895,7 @@ class Polaroid(C.Reel):
         lx = int(LP + 34 * math.sin(0.52 * t + 0.6))
         ly = int(LP + 18 * math.sin(0.37 * t + 2.1))
         fr = ImageChops.multiply(fr, P['light'].crop((lx, ly, lx + W, ly + H)))
+        self._motes(fr, t, lx - LP, ly - LP)
         # камера: наезд перед дропом, пульс на долях после
         z = 1.0
         if self.TCL <= t < D:
