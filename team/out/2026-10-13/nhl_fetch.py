@@ -83,7 +83,7 @@ def main():
                         continue
                     h, a = g['homeTeam'], g['awayTeam']
                     gs.append([g.get('gameDate'), h['abbrev'], h.get('score'), a['abbrev'], a.get('score'),
-                               (g.get('gameOutcome') or {}).get('lastPeriodType')])
+                               (g.get('gameOutcome') or {}).get('lastPeriodType'), g.get('startTimeUTC')])
                 if season == SEASONS[0]:
                     out('games_' + ab, gs)
                 else:                               # прошлый сезон — только встречи с сегодняшним соперником
