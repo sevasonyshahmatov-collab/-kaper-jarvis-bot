@@ -49,7 +49,7 @@ ASP = 1.32                                 # тоннель вытянут по 
 Z0, SPAN, GAP = 0.36, 12.0, 0.6            # ближняя глубина, длина видимого тоннеля, шаг колец
 NP = 48                                    # точек на контур
 ROW_W = 960
-GAME_Y = (822, 934, 1046)
+GAME_Y = (826, 940, 1054)
 STAT_Y, EXT_Y = 1192, 1342
 _BG, _SPR = {}, {}
 
@@ -185,7 +185,6 @@ class Tunnel(C.Reel):
         self.pre_emb = {s: C.glow(t.emb(200), 18, 0.8, self.col[s]) for s, t in (('h', self.h), ('a', self.a))}
         self.pre_name = {s: C.glow(C.text(t.up, 'exoi', 84, WHITE, 900, max_w=900), 12, 0.6, self.col[s])
                          for s, t in (('h', self.h), ('a', self.a))}
-        self.core = C.radial(900, 900, WHITE, 255, 1.7)
         # прогноз
         self.p_emb = C.glow(self.fav.emb(420), 30, 1.0, self.cf)
         self.halo = C.radial(820, 820, C.mix(self.cf, WHITE, 0.55), 235, 1.5)
@@ -268,7 +267,7 @@ class Tunnel(C.Reel):
 
     # ── плашки команды ──
     def _game_plate(self, g, col):
-        w, h = ROW_W, 100
+        w, h = ROW_W, 104
         pl = chamfer(w, h, 26, INK, 218, C.mix(col, INK, 0.25), 3)
         ch = chamfer(72, 72, 16, F.res_col(g['res']), 255)
         C.put(ch, C.text(g['res'] or '?', 'exo', 46, WHITE, 900), 36, 37)
@@ -284,11 +283,11 @@ class Tunnel(C.Reel):
         room = xr - sc.width - 30 - x0
         place = 'ДОМА' if g['home'] is True else 'В ГОСТЯХ' if g['home'] is False else ''
         sub = ' · '.join(x for x in (g['date'], place) if x)
-        nm = C.text(g['opp'].upper(), 'exo', 42, WHITE, 800, max_w=room)
-        sb = C.text(sub, 'mont', 25, GRAY, 700, track=0.06, max_w=room) if sub else None
+        nm = C.text(g['opp'].upper(), 'exo', 40, WHITE, 800, max_w=room)
+        sb = C.text(sub, 'mont', 24, GRAY, 700, track=0.06, max_w=room) if sub else None
         if sb is not None:
-            C.put(pl, nm, x0, 16, anchor='tl')
-            C.put(pl, sb, x0, h - 18 - sb.height, anchor='tl')
+            C.put(pl, nm, x0, 13, anchor='tl')
+            C.put(pl, sb, x0, h - 13 - sb.height, anchor='tl')
         else:
             C.put(pl, nm, x0, h / 2 - nm.height / 2, anchor='tl')
         return pl
@@ -313,7 +312,7 @@ class Tunnel(C.Reel):
         for lab, val, sub, vc in items:
             pl = chamfer(w, h, 28, INK, 218, C.mix(col, INK, 0.25), 3)
             C.put(pl, C.text(lab, 'mont', 26, C.mix(col, WHITE, 0.5), 800, track=0.12, max_w=w - 40), w / 2, 30)
-            C.put(pl, C.text(val, 'exo', 72, vc, 900, max_w=w - 40), w / 2, 82)
+            C.put(pl, C.text(val, 'exo', 72, vc, 900, max_w=w - 40), w / 2, 82 if sub else 92)
             if sub:
                 C.put(pl, C.text(sub, 'mont', 25, GRAY, 700, max_w=w - 36), w / 2, 126)
             out.append(pl)
@@ -378,7 +377,7 @@ class Tunnel(C.Reel):
         for it in items:
             sz = it['img'].size
             if sz not in flash:
-                ol = chamfer(sz[0], sz[1], 26 if sz[1] <= 100 else 28, None, 0, C.mix(col, WHITE, 0.55), 4)
+                ol = chamfer(sz[0], sz[1], 22 if sz[1] <= 96 else 26 if sz[1] <= 104 else 28, None, 0, C.mix(col, WHITE, 0.55), 4)
                 flash[sz] = C.glow(ol, 10, 1.3, col)
             it['flash'] = flash[sz]
         name = C.glow(C.text(tm.up, 'exoi', 112, WHITE, 900, max_w=1000), 16, 0.8, col)
@@ -556,8 +555,9 @@ class Tunnel(C.Reel):
         return ImageChops.add(ImageChops.add(base, L), g)
 
     # ─────────────────────────── плашки в перспективе ───────────────────────────
-    def fly(self, fr, im, pos, vp, t, tr, t_end, flash=None, a=1.0):
-        """Плашка прилетает из точки схода (глубина 7 → 1) к моменту tr и в конце сцены пролетает мимо."""
+    def fly(self, out, im, pos, vp, t, tr, t_end, flash=None, a=1.0):
+        """Плашка прилетает из точки схода (глубина 7 → 1) к моменту tr и в конце сцены пролетает мимо.
+        Не рисует сразу, а кладёт в очередь out: flush рисует дальние раньше ближних (летящая плашка — за вставшими)."""
         lead = 0.42
         if t < tr - lead:
             return
@@ -574,11 +574,14 @@ class Tunnel(C.Reel):
         s = 1 / z
         x = vp[0] + (pos[0] - vp[0]) * s
         y = vp[1] + (pos[1] - vp[1]) * s
-        img = C.scale(im, s) if abs(s - 1) > 0.004 else im
-        C.put(fr, img, x, y, al)
-        if flash is not None and t >= tr:
-            fl = math.exp(-(t - tr) / 0.16)
-            if fl > 0.03:
+        fl = math.exp(-(t - tr) / 0.16) if (flash is not None and t >= tr) else 0.0
+        out.append((z, len(out), im, flash if fl > 0.03 else None, s, x, y, al, fl))
+
+    @staticmethod
+    def flush(fr, q):
+        for z, _, im, flash, s, x, y, al, fl in sorted(q, key=lambda e: (-round(e[0], 3), e[1])):
+            C.put(fr, C.scale(im, s) if abs(s - 1) > 0.004 else im, x, y, al)
+            if flash is not None:
                 C.put(fr, C.scale(flash, s) if abs(s - 1) > 0.004 else flash, x, y, al * fl)
 
     # ─────────────────────────── сцены ───────────────────────────
@@ -590,34 +593,37 @@ class Tunnel(C.Reel):
         if t >= te - 0.26:
             a = 1 - C.seg(t, te - 0.26, te)
         C.put(fr, self.date, W / 2, 360 + 20 * (1 - q), q * a)
-        t0 = self.b(-math.ceil(self.drop / self.u - (te - 0.0) / self.u + 1e-9)) if False else 0.0
-        for side, x, tr in (('h', 275, 0.5), ('a', 805, 0.5)):
-            self.fly(fr, self.i_emb[side], (x, VP_INTRO[1]), vp, t, tr, te)
-            self.fly(fr, self.i_name[side], (x, 890), vp, t, tr + 0.08, te)
-            self.fly(fr, self.i_role[side], (x, 952), vp, t, tr + 0.12, te)
+        first = self.b(-math.floor((self.drop - 0.9) / u))         # первая доля после 0,9 с — линия; за полдоли до — эмблемы
+        fq = []
+        for side, x in (('h', 275), ('a', 805)):
+            tr = first - 0.5 * u
+            self.fly(fq, self.i_emb[side], (x, VP_INTRO[1]), vp, t, tr, te)
+            self.fly(fq, self.i_name[side], (x, 890), vp, t, tr + 0.08, te)
+            self.fly(fq, self.i_role[side], (x, 952), vp, t, tr + 0.12, te)
         if self.odds:
-            first = self.b(-math.floor((self.drop - 0.9) / u))
-            first = max(first, 0.9)
             qo = C.out_expo(C.seg(t, first - 0.3, first + 0.1))
             C.put(fr, self.odds_lab, W / 2, 1060, qo * a)
             for i, im in enumerate(self.odds):
-                self.fly(fr, im, (W / 2 + (i - 1) * 330, 1222), vp, t, first + 0.09 * i, te)
+                self.fly(fq, im, (W / 2 + (i - 1) * 330, 1222), vp, t, first + 0.09 * i, te)
+        self.flush(fr, fq)
 
     def team(self, fr, t, key, t0, t_end, vp):
         T = self.T[key]
         a = 1 - C.seg(t, t_end - 0.26, t_end)
         q = C.out_expo(C.seg(t, t0, t0 + 0.4))
         sg = 1 if key == 'h' else -1
-        C.put(fr, T['name'], W / 2 + sg * 120 * (1 - q), 352, a * q)
-        C.put(fr, T['role'], W / 2, 438, a * C.seg(t, t0 + 0.12, t0 + 0.4))
+        C.put(fr, T['name'], W / 2 + sg * 120 * (1 - q), 364, a * q)
+        C.put(fr, T['role'], W / 2, 452, a * C.seg(t, t0 + 0.12, t0 + 0.4))
         # эмблема в точке схода: вылетает из глубины, пульс на доли
         qe = C.out_back(C.seg(t, t0 + 0.05, t0 + 0.45), 1.5)
         if qe > 0.01:
             ph = ((t - self.drop) / self.u) % 1.0
             s = max(0.05, qe) * (1 + 0.05 * math.exp(-ph * 6))
             C.put(fr, C.scale(T['emb'], s), vp[0], vp[1], a * min(1.0, qe * 1.4))
+        fq = []
         for it in T['items']:
-            self.fly(fr, it['img'], it['pos'], vp, t, t0 + it['k'] * self.u, t_end, it['flash'])
+            self.fly(fq, it['img'], it['pos'], vp, t, t0 + it['k'] * self.u, t_end, it['flash'])
+        self.flush(fr, fq)
 
     def pre_scene(self, fr, t, vp):
         D, u = self.drop, self.u
@@ -625,8 +631,8 @@ class Tunnel(C.Reel):
         q = C.out_expo(C.seg(t, tp, tp + 0.4))
         suck = C.in_cubic(C.seg(t, D - 0.6 * u, D))
         for side, sy, ny in (('h', -1, 380), ('a', 1, 1240)):
-            ex, ey = vp[0], vp[1] + sy * 250
-            x, y = C.lerp(ex, vp[0], suck), C.lerp(ey, vp[1], suck)
+            ex, ey = VP_PRE[0], VP_PRE[1] + sy * 250                   # точка схода разгона — без съезда на склейке
+            x, y = C.lerp(ex, VP_PRE[0], suck), C.lerp(ey, VP_PRE[1], suck)
             s = (0.6 + 0.4 * q) * (1 - 0.85 * suck)
             jit = C.seg(t, D - u, D)
             x += 4 * jit * math.sin(t * 83 + sy)
@@ -639,8 +645,11 @@ class Tunnel(C.Reel):
         g = C.seg(t, self.tp, D)
         r = 260 + 2200 * g ** 4
         k = 0.45 + 0.55 * g
-        im = C.scale(self.core, r / 450)
-        return C.add_light(base, im, vp[0], vp[1], k)
+        y, x = np.mgrid[0:H // 4, 0:W // 4].astype(np.float32)          # считаем в 1/4 и растягиваем
+        d = np.hypot(x * 4 + 2 - vp[0], (y * 4 + 2 - vp[1]) / 1.15) / r
+        al = (np.clip(1 - d, 0, 1) ** 1.7 * 255 * k).astype(np.uint8)
+        li = Image.fromarray(al, 'L').resize((W, H), Image.BILINEAR)
+        return ImageChops.add(base, Image.merge('RGB', (li, li, li)))
 
     def pick_bg(self, t):
         D, u = self.drop, self.u
@@ -688,7 +697,7 @@ class Tunnel(C.Reel):
 
     def pick_pos(self, t):
         D = self.drop
-        kc = C.in_out(C.seg(t, self.t_cta, self.t_cta + 0.5))
+        kc = C.out_cubic(C.seg(t, self.t_cta, self.t_cta + 0.4))
         s = 1 - 0.26 * kc
         return VP_PICK[0], VP_PICK[1] - 90 * kc, s, kc
 
@@ -705,9 +714,7 @@ class Tunnel(C.Reel):
         # панель текста
         dy = -120 * kc
         qp = C.out_expo(C.seg(t, D + 0.05, D + 0.45))
-        ph_h = self.panel.height * (1 - 0.1 * kc)
-        pan = self.panel if kc < 0.01 else self.panel.resize((self.panel.width, int(ph_h)), Image.BILINEAR)
-        C.put(fr, C.scale(pan, 0.9 + 0.1 * qp), W / 2, 1110 + dy - 25 * kc, qp)
+        C.put(fr, C.scale(self.panel, 0.9 + 0.1 * qp), W / 2, 1110 + dy, qp)
         y1 = 935 + dy
         if self.p_l1 is not None:
             q1 = C.out_expo(C.seg(t, D + 0.08, D + 0.4))
@@ -724,7 +731,7 @@ class Tunnel(C.Reel):
         if self.kef is not None:
             q4 = C.out_back(C.seg(t, D + 1.0 * u, D + 1.0 * u + 0.35), 1.8)
             if q4 > 0.01:
-                C.put(fr, C.scale(self.kef, 0.5 + 0.5 * q4), W / 2, y3 + 116 - 10 * kc, min(1.0, q4 * 1.5))
+                C.put(fr, C.scale(self.kef, 0.5 + 0.5 * q4), W / 2, y3 + 116, min(1.0, q4 * 1.5))
 
     # ─────────────────────────── кадр ───────────────────────────
     def frame(self, t):
@@ -765,7 +772,7 @@ class Tunnel(C.Reel):
         ha = C.seg(t, 0.1, 0.4) * (1 - C.seg(t, self.t_cta, self.t_cta + 0.2))
         C.put(fr, self.handle_im, W / 2, HY, ha)
         if t >= self.t_cta:
-            q = C.out_expo(C.seg(t, self.t_cta + 0.05, self.t_cta + 0.5))
+            q = C.out_expo(C.seg(t, self.t_cta + 0.18, self.t_cta + 0.6))
             C.put(fr, self.tg, W / 2, 1372 + 60 * (1 - q), q)
         # камера: рывок на варпах, дрожь на разгоне, удар на дропе, пульс на долях после дропа
         z, dx, dy, rot = 1.0, 0.0, 0.0, 0.0
