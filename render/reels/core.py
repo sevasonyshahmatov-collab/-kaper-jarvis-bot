@@ -597,17 +597,64 @@ class Reel:
 _R = None
 
 
+# Нижняя зона под безопасной (ниже SAFE_BOT) на площадках (Shorts, TikTok, Reels) — не пустая (владелец 14.10):
+# затемнение и крупная плашка Telegram; в последние FOOTER_END_S секунд, где у роликов своя плашка Telegram, —
+# строка «ссылка на канал — в описании». Отключить: REELS_FOOTER=0.
+FOOTER = os.environ.get('REELS_FOOTER', '1') != '0'
+FOOTER_END_S = 2.5
+_FOOT = {}
+
+
+def _footer_layers():
+    if not _FOOT:
+        top = SAFE_BOT + 10
+        band = Image.new('RGBA', (W, H - top), (0, 0, 0, 0))
+        a = np.clip(np.linspace(0, 1, H - top) / 0.28, 0, 1) * 215
+        band.putalpha(Image.fromarray(np.repeat(a[:, None], W, axis=1).astype('uint8')))
+        plate = tg_plate(w=980, h=200)
+        sub = text('ПРОГНОЗЫ НА КХЛ И НХЛ', 'mont', 34, (205, 214, 228), 800, track=0.18, max_w=W - 120)
+        last = text('ССЫЛКА НА КАНАЛ — В ОПИСАНИИ', 'mont', 44, (255, 255, 255), 900, track=0.08, max_w=W - 100)
+        _FOOT.update(top=top, band=band, plate=plate, sub=sub, last=last)
+    return _FOOT
+
+
+def footer(fr, t, dur):
+    """Нижняя зона кадра: затемнение + плашка Telegram (в конце — строка про ссылку). fr — RGB/RGBA W×H."""
+    L = _footer_layers()
+    fr = fr.convert('RGBA')
+    fr.alpha_composite(L['band'], (0, L['top']))
+    cy = (L['top'] + H) // 2 + 10
+    end = dur - FOOTER_END_S
+    k = 0.0 if t < end - 0.3 else min(1.0, (t - (end - 0.3)) / 0.3)       # 0 — плашка, 1 — строка про ссылку
+    if k < 1:
+        lay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+        put(lay, L['plate'], W / 2, cy - 22)
+        put(lay, L['sub'], W / 2, cy - 22 + 100 + 34)
+        if k > 0:
+            lay.putalpha(lay.getchannel('A').point(lambda v: int(v * (1 - k))))
+        fr.alpha_composite(lay)
+    if k > 0:
+        lay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+        put(lay, L['last'], W / 2, cy)
+        if k < 1:
+            lay.putalpha(lay.getchannel('A').point(lambda v: int(v * k)))
+        fr.alpha_composite(lay)
+    return fr
+
+
 def _frame_bytes(i):
     fr = _R.frame(i / FPS)
     if fr.size != (W, H):
         fr = fr.resize((W, H), Image.LANCZOS)
+    if FOOTER:
+        fr = footer(fr, i / FPS, _R.dur)
     return fr.convert('RGB').tobytes()
 
 
 def _audio(path, dur, track=None, start=0.0):
     if track:
-        fo = min(1.2, dur * 0.12)
-        af = 'afade=t=in:st=0:d=0.02,afade=t=out:st=%.3f:d=%.3f,loudnorm=I=-14:TP=-1.5:LRA=11,aresample=44100' % (dur - fo, fo)
+        # музыка играет до последнего кадра без затухания (владелец 14.10); 30 мс в самом конце — только от щелчка
+        af = 'afade=t=in:st=0:d=0.02,afade=t=out:st=%.3f:d=0.03,loudnorm=I=-14:TP=-1.5:LRA=11,aresample=44100' % (dur - 0.03)
         cmd = ['ffmpeg', '-y', '-loglevel', 'error', '-ss', '%.3f' % start, '-t', '%.3f' % dur, '-i', track, '-af', af,
                '-ac', '2', '-ar', '44100', path]
     else:
