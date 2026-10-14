@@ -954,7 +954,7 @@ class Orbit(C.Reel):
         """Сближение: подписи под планетами, кольцо Эйнштейна."""
         u, D = self.u, self.drop
         q = C.seg(t, self.T3 + 0.3 * u, self.T3 + 0.8 * u) * (1 - C.seg(t, D - 0.35 * u, D - 0.05))
-        C.put(fr, self.when_im, W / 2, 345, C.seg(t, self.T3 + 0.2 * u, self.T3 + 0.6 * u) * (1 - C.seg(t, D - 0.2, D)))
+        C.put(fr, self.when_im, W / 2, 345, C.seg(t, self.T3 + 0.05 * u, self.T3 + 0.4 * u) * (1 - C.seg(t, D - 0.2, D)))
         # подписи стоят на местах планет «по сторонам» и гаснут до того, как планеты сойдутся (без наложений)
         qn = q * (1 - C.seg(t, D - 1.0 * u, D - 0.6 * u))
         for k, x, y, R in pl:
@@ -963,7 +963,7 @@ class Orbit(C.Reel):
                 C.put(fr, self.i_name[k], sx, self.NY + 158 + 72 + 16 * (1 - q), qn)
         # линия основного времени ещё раз — под сходящимися планетами (кадр заполнен до низа)
         if self.odds is not None:
-            qo = C.out_expo(C.seg(t, self.T3 + 0.35 * u, self.T3 + 0.85 * u)) * (1 - C.seg(t, D - 0.3 * u, D - 0.03))
+            qo = C.out_expo(C.seg(t, self.T3 + 0.1 * u, self.T3 + 0.6 * u)) * (1 - C.seg(t, D - 0.3 * u, D - 0.03))
             C.put(fr, self.odds, W / 2, 1250 + 40 * (1 - qo), qo)
 
     def einstein(self, fr, t, pl):
@@ -981,16 +981,16 @@ class Orbit(C.Reel):
         fo = 1 - C.seg(t, self.T5 - 0.1, self.T5 + 0.25 * u)
         if fo <= 0:
             return
-        q = C.out_expo(C.seg(t, D + 0.15 * u, D + 0.55 * u))
+        q = C.out_expo(C.seg(t, D, D + 0.4 * u))
         C.put(fr, C.scale(self.p_lab, 1.25 - 0.25 * q), W / 2, 912, q * fo)
-        q2 = C.out_expo(C.seg(t, D + 0.25 * u, D + 0.7 * u))
+        q2 = C.out_expo(C.seg(t, D, D + 0.45 * u))
         pul = 1 + 0.025 * self.beat_pulse(t, 8) * C.seg(t, D + u, D + 1.2 * u)
         C.put(fr, C.scale(self.p_main, (1.5 - 0.5 * q2) * pul), W / 2, 1003, min(1, q2 * 1.4) * fo)
         if self.p_sub is not None:
-            q3 = C.out_expo(C.seg(t, D + 0.6 * u, D + 1.0 * u))
+            q3 = C.out_expo(C.seg(t, D + 0.4 * u, D + 0.8 * u))
             C.put(fr, self.p_sub, W / 2, 1100 + 26 * (1 - q3), q3 * fo)
         if self.coef_pl is not None:
-            q4 = C.out_back(C.seg(t, D + 1.0 * u, D + 1.4 * u), 1.6)
+            q4 = C.out_back(C.seg(t, D + 0.75 * u, D + 1.15 * u), 1.6)
             if q4 > 0.01:
                 C.put(fr, self.sprite['o'].resize((700, 260)), W / 2, 1262, 0.35 * min(1, q4) * fo)
                 C.put(fr, C.scale(self.coef_pl, (0.5 + 0.5 * q4) * pul), W / 2, 1262, min(1.0, q4 * 1.5) * fo)
@@ -1092,8 +1092,8 @@ class Orbit(C.Reel):
         if D <= t < D + 0.2:
             fr = C.rgb_split(fr, 16 * (1 - C.seg(t, D, D + 0.2)))
         if D - 0.02 <= t < D + 0.34:
-            a = 1.0 if t < D + 1 / 30 else 0.85 * (1 - C.seg(t, D + 1 / 30, D + 0.34)) ** 1.8
-            fr = Image.blend(fr, Image.new('RGB', fr.size, (255, 244, 236)), 0.88 * a)
+            a = 1.0 if t < D + 1 / 30 else 0.85 * (1 - C.seg(t, D + 1 / 30, D + 0.3)) ** 1.8
+            fr = Image.blend(fr, Image.new('RGB', fr.size, (255, 244, 236)), 0.7 * a)
         fr = C.vignette(fr, 0.42)
         return C.grain(fr, t, 4)
 

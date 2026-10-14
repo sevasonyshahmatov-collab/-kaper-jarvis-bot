@@ -19,8 +19,9 @@
                 (дата, соперник, счёт, ОТ/Б, В/П — В/П тут же обводится маркером); на 3 / 3,5 / 4 / 4,5 / 5 долях
                 срываются полосы цензуры: очки за N матчей, место (с конференцией), разница шайб, серия от 2 игр,
                 большинство и меньшинство (только непустые поля, максимум 5 строк);
-  сведение (pre долей)  — обе закрытые папки съезжаются в центр под красную нить, лампа мигает, в последнюю
-                долю (в треке пауза) свет почти гаснет, сверху опускается штемпель;
+  сведение (pre долей)  — обе закрытые папки заходят с краёв рядом друг с другом под красную нить, лампа мигает;
+                в последнюю долю (в треке пауза) свет приглушается, папки съезжаются, на них ложится тень штемпеля,
+                за 0,2 с до дропа штемпель падает сверху;
   ДРОП (hold долей)    — ровно на дропе штемпель бьёт по листу (тряска камеры, всплеск лампы, брызги чернил):
                 оттиск «ПОБЕДА / КЛУБ», над ним фото ТОЛЬКО выбранной команды (одна эмблема, без «VS»);
                 на полдоли печатается «В ОСНОВНОЕ ВРЕМЯ», на долю — «КЭФ …», на 2-ю долю кэф обводят маркером;
@@ -346,22 +347,31 @@ def redact_bar(w, h, seed=0):
 
 
 def stamper(w, h):
-    """Сам штемпель сверху: резина, деревянная колодка, ручка-шар."""
+    """Сам штемпель сверху: резиновая подушка с красной кромкой, лакированная колодка, латунное кольцо и ручка-шар."""
     key = ('stamper', w, h)
     if key in _CACHE:
         return _CACHE[key]
-    im = Image.new('RGBA', (w + 120, h + 120), (0, 0, 0, 0))
-    C.put(im, C.rrect(w, h, 26, (70, 20, 22)), im.width / 2, im.height / 2)
-    wood = C.lgrad(w - 40, h - 40, (122, 78, 44), (74, 44, 24), 90)
-    m = C.rrect(w - 40, h - 40, 22, (255, 255, 255))
-    wood.putalpha(m.getchannel('A'))
-    C.put(im, wood, im.width / 2, im.height / 2)
-    kn = int(h * 0.62)
-    knob = C.radial(kn, kn, (60, 34, 18), 255, 0.25)
-    C.put(im, C.ellipse(kn, kn, (52, 30, 16)), im.width / 2, im.height / 2)
-    hl = C.radial(kn // 2, kn // 2, (210, 160, 110), 200, 1.4)
-    C.put(im, knob, im.width / 2, im.height / 2)
-    C.put(im, hl, im.width / 2 - kn * 0.16, im.height / 2 - kn * 0.18)
+    pad = 60
+    im = Image.new('RGBA', (w + 2 * pad, h + 2 * pad), (0, 0, 0, 0))
+    cx, cy = im.width / 2, im.height / 2
+    C.put(im, C.rrect(w, h, 30, (120, 18, 24)), cx, cy)                       # красная резина по краю
+    C.put(im, C.rrect(w - 16, h - 16, 26, (40, 22, 14)), cx, cy)
+    wood = C.lgrad(w - 40, h - 40, (150, 96, 52), (62, 34, 18), 70)
+    grain_ = _noise(w - 40, h - 40, 31, 0, 1)
+    wa = np.asarray(wood, np.float32)
+    yy = np.arange(h - 40, dtype=np.float32)[:, None]
+    wa[..., :3] *= (1 + 0.08 * np.sin(yy / 9 + grain_ * 1.5) + 0.03 * grain_)[..., None]
+    wood = Image.fromarray(np.clip(wa, 0, 255).astype(np.uint8), 'RGBA')
+    wood.putalpha(C.rrect(w - 40, h - 40, 22, (255, 255, 255)).getchannel('A'))
+    C.put(im, wood, cx, cy)
+    C.put(im, C.lgrad(w - 40, 14, (255, 230, 190), (255, 230, 190), 0, 70, 70), cx, cy - h / 2 + 30)   # блик по кромке
+    kn = int(h * 0.7)
+    C.put(im, C.shadow(C.ellipse(kn, kn, (0, 0, 0)), 18, 0.75), cx + 14, cy + 22)
+    C.put(im, C.ellipse(kn + 26, kn + 26, (196, 150, 70)), cx, cy)             # латунное кольцо
+    C.put(im, C.ellipse(kn + 10, kn + 10, (120, 84, 34)), cx, cy)
+    C.put(im, C.ellipse(kn, kn, (66, 28, 20)), cx, cy)
+    C.put(im, C.radial(kn, kn, (150, 60, 44), 255, 0.9), cx - kn * 0.08, cy - kn * 0.1)
+    C.put(im, C.radial(kn // 3, kn // 3, (255, 214, 180), 230, 1.6), cx - kn * 0.18, cy - kn * 0.2)
     _CACHE[key] = im
     return im
 
@@ -589,10 +599,10 @@ class Dossier(C.Reel):
         stats = []
         for i, (lab, val, sub, vcol) in enumerate(rows[:5]):
             yc = oy + 722 + 79 * i
-            lb, _ = typed(lab, 40, INK2, 700, seed=50 + i)
+            lb, _ = typed(lab, 44, INK2, 700, seed=50 + i)
             C.put(page, lb, X0, yc - lb.height / 2 + 4, anchor='tl')
             v, _ = typed(val, 64, vcol, 800, seed=60 + i)
-            sb = typed(sub, 38, INK2, 650, seed=70 + i)[0] if sub else None
+            sb = typed(sub, 42, INK2, 700, seed=70 + i)[0] if sub else None
             wtot = v.width + (14 + sb.width if sb is not None else 0)
             vx = XR - wtot
             for x in range(int(X0 + lb.width + 18), int(vx - 18), 16):      # отточие
@@ -660,7 +670,7 @@ class Dossier(C.Reel):
         self.p_splat = ink_splat(self.p_stamp.width + 60, self.p_stamp.height + 50, 9)
         self.p_l3 = None
         if self.pick2:
-            im, xs = typed(self.pick2, 60, INK, 800, seed=91, max_w=820)
+            im, xs = typed(self.pick2, 70, INK, 800, seed=91, max_w=860)
             self.p_l3 = Line([(im, xs, (FBW - im.width) / 2, 0)])
         self.p_kef = None
         if self.coef:
@@ -789,21 +799,29 @@ class Dossier(C.Reel):
         C.put(fr, st3['im'], W / 2, 1270 + 30 * (1 - q), q)
         st3['line'].draw(fr, 1.0, W / 2 - st3['im'].width / 2, 1270 - st3['im'].height / 2 + 30 * (1 - q), cursor=False)
         k = C.in_out(C.seg(t, tp, tp + 0.5 * u))                # заходят с краёв
-        k2 = C.in_out(C.seg(t, tp + 0.5 * u, D - u))           # съезжаются
+        k2 = C.in_out(C.seg(t, D - u, D - 0.25))                # в тёмную долю съезжаются под штемпель
         jit = C.seg(t, D - u, D)
         for s, xs, xm, xe in (('h', -420, 300, 410), ('a', 1500, 780, 670)):
             x = C.lerp(xs, xm, k) + (xe - xm) * k2
             y = 800 + 6 * jit * math.sin(t * 61 + (s == 'a'))
             C.put(fr, self.small[(s, 0.54)], x, y)
         self.thread(fr, t, (410 - 150, 800 - 210), (670 - 140, 800 - 205), 1.0 if k2 > 0 else 0.0, sag=30)
-        # штемпель опускается сверху за 0,16 с до дропа
-        ks = C.seg(t, D - 0.16, D)
+        # штемпель: сначала на папки ложится его тень (последняя доля), за 0,2 с до дропа он падает сверху
+        kt = C.seg(t, D - 0.6 * u, D)
+        if kt > 0:
+            e = C.in_cubic(kt)
+            sh = self._stamp_shadow()
+            C.put(fr, C.scale(sh, 1.5 - 0.5 * e), 546, 940 + 60 * (1 - e), 0.25 + 0.6 * e)
+        ks = C.seg(t, D - 0.2, D)
         if ks > 0:
             e = C.in_cubic(ks)
-            sc = 1.9 - 0.9 * e
-            im = C.scale(self.stamper_im, sc)
-            C.put(fr, C.shadow(im, 30, 0.5 + 0.3 * e), 540 + 40 * (1 - e) + 6, 900 + 30 * (1 - e) + 40)
-            C.put(fr, im, 540, 900 - 200 * (1 - e))
+            im = C.scale(self.stamper_im, 1.45 - 0.45 * e)
+            C.put(fr, im, 540, 900 - 1300 * (1 - e))
+
+    def _stamp_shadow(self):
+        if 'sshadow' not in _CACHE:
+            _CACHE['sshadow'] = C.shadow(C.rrect(self.stamper_im.width - 120, self.stamper_im.height - 120, 30, (0, 0, 0)), 40, 0.8)
+        return _CACHE['sshadow']
 
     def pick_page(self, t):
         u, D = self.u, self.drop
@@ -835,12 +853,11 @@ class Dossier(C.Reel):
         pgs = C.scale(pg, s) if s < 0.999 else pg
         C.put(fr, C.shadow(pgs, 22, 0.7), x + 6, y + 22)
         C.put(fr, pgs, x, y)
-        # штемпель уходит вверх после удара
-        kl = C.seg(t, D, D + 0.32)
+        # штемпель сразу уходит вверх после удара — открывает оттиск
+        kl = C.seg(t, D, D + 0.24)
         if kl < 1:
             e = C.out_cubic(kl)
-            im = C.scale(self.stamper_im, 1 + 0.9 * e)
-            C.put(fr, im, 540 + 60 * e, FBY + 640 - 420 * e, 1 - e)
+            C.put(fr, C.scale(self.stamper_im, 1 + 0.3 * e), 540 + 40 * e, 900 - 1500 * e)
 
     # ── свет ──
     def lamp_k(self, t):
@@ -853,7 +870,7 @@ class Dossier(C.Reel):
             r = ((i * 7919) % 97) / 97
             k = 0.72 if r < 0.22 else 1.0
         elif D - u <= t < D:                                     # в треке пауза — свет почти гаснет
-            k = 0.2
+            k = 0.38
             for tf in (D - 0.72 * u, D - 0.4 * u):
                 if tf <= t < tf + 0.07:
                     k = 0.75
