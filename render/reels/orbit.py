@@ -575,7 +575,7 @@ class Orbit(C.Reel):
         for k, (v, lab, col) in enumerate(cells):
             cx = x0 + cw * (k + 0.5)
             C.put(pl, C.text(v, 'unb', 60, col, 900, max_w=cw - 20), cx, 56)
-            C.put(pl, C.text(lab, 'mont', 25, GOLD, 800, track=0.06, max_w=cw - 14), cx, 106)
+            C.put(pl, C.text(lab, 'mont', 25, GOLD, 800, track=0.06, max_w=cw - 32), cx, 106)
             if k:
                 d.line((x0 + cw * k, 26, x0 + cw * k, h - 26), fill=(255, 255, 255, 46), width=2)
         return pl
@@ -955,9 +955,16 @@ class Orbit(C.Reel):
         u, D = self.u, self.drop
         q = C.seg(t, self.T3 + 0.3 * u, self.T3 + 0.8 * u) * (1 - C.seg(t, D - 0.35 * u, D - 0.05))
         C.put(fr, self.when_im, W / 2, 345, C.seg(t, self.T3 + 0.2 * u, self.T3 + 0.6 * u) * (1 - C.seg(t, D - 0.2, D)))
+        # подписи стоят на местах планет «по сторонам» и гаснут до того, как планеты сойдутся (без наложений)
+        qn = q * (1 - C.seg(t, D - 1.0 * u, D - 0.6 * u))
         for k, x, y, R in pl:
-            if q > 0:
-                C.put(fr, self.i_name[k], x, y + R + 70, q)
+            if qn > 0:
+                sx = W / 2 + (-250 if k == self.side else 250)
+                C.put(fr, self.i_name[k], sx, self.NY + 158 + 72 + 16 * (1 - q), qn)
+        # линия основного времени ещё раз — под сходящимися планетами (кадр заполнен до низа)
+        if self.odds is not None:
+            qo = C.out_expo(C.seg(t, self.T3 + 0.35 * u, self.T3 + 0.85 * u)) * (1 - C.seg(t, D - 0.3 * u, D - 0.03))
+            C.put(fr, self.odds, W / 2, 1250 + 40 * (1 - qo), qo)
 
     def einstein(self, fr, t, pl):
         u, D = self.u, self.drop
@@ -1084,9 +1091,9 @@ class Orbit(C.Reel):
         fr = C.zoom(fr, z, dx=dx, dy=dy, rot=rot)
         if D <= t < D + 0.2:
             fr = C.rgb_split(fr, 16 * (1 - C.seg(t, D, D + 0.2)))
-        if D - 0.02 <= t < D + 0.42:
-            a = 1.0 if t < D + 1 / 30 else (1 - C.seg(t, D + 1 / 30, D + 0.42)) ** 1.7
-            fr = Image.blend(fr, Image.new('RGB', fr.size, (255, 244, 236)), 0.9 * a)
+        if D - 0.02 <= t < D + 0.34:
+            a = 1.0 if t < D + 1 / 30 else 0.85 * (1 - C.seg(t, D + 1 / 30, D + 0.34)) ** 1.8
+            fr = Image.blend(fr, Image.new('RGB', fr.size, (255, 244, 236)), 0.88 * a)
         fr = C.vignette(fr, 0.42)
         return C.grain(fr, t, 4)
 
