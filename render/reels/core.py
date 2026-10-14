@@ -624,7 +624,7 @@ def footer(fr, t, dur):
     fr = fr.convert('RGBA')
     fr.alpha_composite(L['band'], (0, L['top']))
     cy = (L['top'] + H) // 2 + 10
-    end = dur - FOOTER_END_S
+    end = dur - FOOTER_END_S if not getattr(_R, 'footer_plate_to_end', False) else dur + 1
     k = 0.0 if t < end - 0.3 else min(1.0, (t - (end - 0.3)) / 0.3)       # 0 — плашка, 1 — строка про ссылку
     if k < 1:
         lay = Image.new('RGBA', (W, H), (0, 0, 0, 0))

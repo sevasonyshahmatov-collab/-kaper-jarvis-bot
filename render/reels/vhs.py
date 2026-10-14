@@ -18,7 +18,8 @@
   перемотка (rew долей)       — ◀◀ НАЗАД: кадры ролика мелькают в обратном порядке, трекинг всё хуже, в конце «снег»;
   ДРОП (hold долей)           — картинка резко чистая (▶ ВОСПР.): только выбранная команда — одна эмблема, прогноз
                                 (form.split_pick) и кэф крупными титрами; через долю — стоп-кадр (❚❚ ПАУЗА), пульс на доли;
-  финал (cta долей)           — ■ СТОП, синий экран видеомагнитофона: прогноз коротко и плашка Telegram (C.tg_plate).
+  финал (cta долей)           — стоп-кадр прогноза (❚❚ ПАУЗА) держится до конца ролика (владелец 14.10: без синего экрана);
+                                плашка Telegram — в общем подвале core.footer до последнего кадра.
 lag — на сколько долей настоящий удар трека позже точки дропа, которую передаёт сборка (downdown: точка 78,25 с,
 удар баса — 78,74 с, ровно полдоли): видимый дроп self.drop = drop + lag·u, прогноз встаёт точно на удар.
 Кадр — чистая функция t (случайность — от номера кадра), фоны и титры кешируются на уровне модуля.
@@ -364,6 +365,7 @@ class Vhs(C.Reel):
         self.TR = self.b(-rew)
         self.TC = self.b(hold)
         self.dur = self.b(hold + cta)
+        self.footer_plate_to_end = True             # своей плашки Telegram в финале нет — плашка подвала до конца
         self.cover_t = min(self.T1 - 0.6, 2.7)
         self.key = (home, away, league, when, pick, coef, tuple(line or ()), seed)
         self.col = {'h': fresh.club(self.h), 'a': fresh.club(self.a)}
@@ -634,7 +636,7 @@ class Vhs(C.Reel):
             return 'rew', 'rew'
         if t < self.TC:
             return 'pick', 'pick'
-        return 'blue', 'end'
+        return 'pick', 'pick'                       # владелец 14.10: без синего экрана — стоп-кадр прогноза до конца
 
     def _mode(self, t):
         u, D = self.u, self.drop
@@ -643,10 +645,8 @@ class Vhs(C.Reel):
                 return 'ff'
         if self.TR <= t < D:
             return 'rew'
-        if D + u <= t < self.TC:
+        if t >= D + u:
             return 'pause'
-        if t >= self.TC:
-            return 'stop'
         return 'play'
 
     def _counter(self, t):
@@ -672,8 +672,6 @@ class Vhs(C.Reel):
                 k = max(k, 0.85 * (1 - C.out_cubic(C.seg(t, T, T + 0.2))))
             if T + u <= t < T + u + 0.16:
                 k = max(k, 0.6 * (1 - C.seg(t, T + u, T + u + 0.16)))
-        if self.TC - 0.12 <= t < self.TC + 0.12:
-            k = max(k, 1 - abs(t - self.TC) / 0.12)
         return k
 
     def _trk(self, t):
@@ -791,6 +789,4 @@ class Vhs(C.Reel):
         C.put(fr, cnt, X0, Y_CNT - cnt.height / 2, anchor='tl')
         tg = osd(self.tag, 40, OW, 2)
         C.put(fr, tg, X1 - tg.width, Y_OSD - tg.height / 2, anchor='tl')
-        if t < self.TC + 0.2:
-            a = 1.0 if t < self.TC else 1 - C.seg(t, self.TC, self.TC + 0.2)
-            C.put(fr, osd(C.HANDLE, 48, OW, 2), W / 2, Y_HANDLE, a)
+        C.put(fr, osd(C.HANDLE, 48, OW, 2), W / 2, Y_HANDLE)
