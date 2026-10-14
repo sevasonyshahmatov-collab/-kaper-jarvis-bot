@@ -22,7 +22,7 @@
 @jarvibet — «субтитр» у низа безопасной зоны (y 1440), одинаково во всех сценах (и поверх затемнений) до финала,
 в финале его несёт плашка Telegram.
 lag — на сколько долей настоящий удар трека позже точки дропа сборки (withyou, точка 52,11 с: удар 808 — 52,637 с,
-0,641 доли): видимый дроп self.drop = drop + lag·u — афиша встаёт точно на удар, сетка долей совпадает с ударами трека.
+0,641 доли): видимый дроп self.drop = drop + lag·u — афиша встаёт ровно на удар, сетка долей совпадает с ударами трека.
 Кадр — чистая функция t (зерно, пыль и мерцание — от номера кадра); фоны, эмблемы и титры кешируются на уровне модуля.
 """
 import math
@@ -369,7 +369,7 @@ class Cinema(C.Reel):
             self.show(fr, txt(ROMAN[side], 'playi', 66, GOLD), x, 338, t, 0.2 + 0.18 * k, 0.6)
             e = self._emb(side, 300)
             self.show(fr, e, x, 545, t, 0.12 + 0.18 * k, 0.7, 'zoom', s0=1.1)
-            self.show(fr, txt(self.tm(side).up, 'play', 70, INK, 0.02, max_w=470), x, 752, t, b0 + 0.06 * k, 0.5, 'rise')
+            self.show(fr, txt(self.tm(side).up, 'play', 70, INK, 0.02, max_w=440), x, 752, t, b0 + 0.06 * k, 0.5, 'rise')
         self.show(fr, txt('против', 'corm', 58, DIM, wght=600), W / 2, 540, t, 0.45, 0.6)
         self.show(fr, hline(620), W / 2, 822, t, b0 + 0.2, 0.5, 'wipe')
         self.show(fr, txt(self.when, 'tenor', 48, INK, 0.08, max_w=940), W / 2, 880, t, b0 + 0.3, 0.5, 'rise')
@@ -440,7 +440,7 @@ class Cinema(C.Reel):
             for k, (v, lab, col) in enumerate(items):
                 cx = cw * k + cw / 2
                 C.put(im, C.text(v, 'play', 112, col), cx, 70)
-                C.put(im, C.text(lab, 'tenor', 30, GOLD, track=0.08, max_w=cw - 26), cx, 166)
+                C.put(im, C.text(lab, 'tenor', 29, GOLD, track=0.06, max_w=cw - 40), cx, 166)
                 if k:
                     C.put(im, Image.new('RGBA', (2, 150), GOLD + (110,)), cw * k, 98)
             return C.with_shadow(im, 8, 0.65, 3)
@@ -456,7 +456,7 @@ class Cinema(C.Reel):
         hero = self._emb(side, 560)
         small = self._emb(side, 186)
         sc = C.lerp(1.0, small.width / hero.width, m)
-        ey = C.lerp(625, 352, m)
+        ey = C.lerp(625, 340, m)
         ap = C.out_cubic(C.seg(t, T, T + 0.7))
         beat = sum(0.22 * (1 - C.seg(t, T + n * u, T + n * u + 0.45)) ** 2 for n in range(0, self.team) if t >= T + n * u)
         rays(arr, W / 2, ey, C.lerp(1250, 560, m), t * 0.014 + (0.5 if side == 'a' else 0), (0.85 - 0.4 * m + beat) * ap,
@@ -473,7 +473,7 @@ class Cinema(C.Reel):
         C.put(fr, txt(ROMAN[side], 'playi', 76, GOLD), W / 2, 300, (1 - m) * C.out_cubic(C.seg(t, T + 0.1, T + 0.6)))
         big = txt(tm.up, 'play', 142, INK, 0.03, max_w=960)
         fin = txt(tm.up, 'play', 92, INK, 0.03, max_w=900)
-        ny = C.lerp(1000, 508, m)
+        ny = C.lerp(1000, 494, m)
         if m <= 0:
             self.show(fr, big, W / 2, ny, t, T + 0.18, 0.6, 'rise', rise=40)
         elif m < 1:
@@ -483,7 +483,7 @@ class Cinema(C.Reel):
         role = 'в роли хозяев' if side == 'h' else 'в роли гостей'
         self.show(fr, txt(role, 'corm', 60, GOLD, wght=600), W / 2, 1110, t, T + 0.4, 0.5, 'rise', a=1 - m)
         if m > 0:
-            C.put(fr, txt(role + ' · ' + F.lg_ru(self.league), 'corm', 46, GOLD, wght=600), W / 2, 574, C.seg(m, 0.5, 1))
+            C.put(fr, txt(role + ' · ' + F.lg_ru(self.league), 'corm', 46, GOLD, wght=600), W / 2, 558, C.seg(m, 0.5, 1))
         stk = streak_txt(self.rec[side].get('streak'))
         if stk:
             self.show(fr, txt(stk, 'tenor', 36, INK, 0.12), W / 2, 1186, t, T + 0.6, 0.5, 'rise', a=1 - m)
@@ -495,11 +495,11 @@ class Cinema(C.Reel):
             self.show(fr, md, cx, 1290, t, T + u * (1 + 0.25 * k), 0.35, 'zoom', a=1 - m, s0=1.3)
         # титры: 3 игры по строке на полдоли
         for k, x in enumerate(g):
-            self.show(fr, self._game_block(x), W / 2, 718 + k * 178, t, T + (2.5 + 0.5 * k) * u, 0.45, 'rise', rise=30)
+            self.show(fr, self._game_block(x), W / 2, 702 + k * 168, t, T + (2.5 + 0.5 * k) * u, 0.45, 'rise', rise=30)
         ss = self._season(s)
         if ss is not None:
-            self.show(fr, hline(900), W / 2, 1222, t, T + 3.9 * u, 0.5, 'wipe')
-            self.show(fr, ss, W / 2, 1338, t, T + 4 * u, 0.45, 'rise', rise=30)
+            self.show(fr, hline(900), W / 2, 1182, t, T + 3.9 * u, 0.5, 'wipe')
+            self.show(fr, ss, W / 2, 1280, t, T + 4 * u, 0.45, 'rise', rise=30)
         fl = []
         sw = C.seg(t, T, T + 1.1)
         if 0 < sw < 1:
@@ -553,7 +553,7 @@ class Cinema(C.Reel):
             p2 = txt(self.pick2, 'tenor', 44, INK, 0.2, max_w=760)
             self.show(fr, p2, W / 2, 1078 + y_off, t, D + 0.06, 0.4, 'rise')
             for sgn in (-1, 1):
-                self.show(fr, hline(90, GOLD, 230), W / 2 + sgn * (p2.width / 2 + 40), 1078 + y_off, t, D + 0.06, 0.4, 'wipe')
+                self.show(fr, hline(90, GOLD, 230), W / 2 + sgn * (p2.width / 2 + 66), 1078 + y_off, t, D + 0.06, 0.4, 'wipe')
         if self.coef:
             cb = _spr(('coefblk', self.coef), self._coef_block)
             self.show(fr, cb, W / 2, 1222 + y_off, t, D + 0.1, 0.4, 'zoom', s0=1.12)
@@ -593,18 +593,18 @@ class Cinema(C.Reel):
         TC = self.TC
         side = self.side
         arr = np.array(C.zoom(self._bg('end'), 1.0 + 0.03 * C.seg(t, TC, self.dur), W / 2, 600))
-        rays(arr, W / 2, 470, 760, t * 0.016, 0.55, self.light[side], seed=5 if side == 'h' else 8)
+        rays(arr, W / 2, 500, 800, t * 0.016, 0.55, self.light[side], seed=5 if side == 'h' else 8)
         fr = Image.fromarray(arr).convert('RGBA')
-        self.show(fr, self._emb(side, 300), W / 2, 470, t, TC, 0.5, 'zoom', s0=1.1)
-        self.show(fr, txt(self.pick1, 'play', 88, INK, 0.02, max_w=960), W / 2, 728, t, TC + 0.08, 0.45, 'rise')
+        self.show(fr, self._emb(side, 320), W / 2, 500, t, TC, 0.5, 'zoom', s0=1.1)
+        self.show(fr, txt(self.pick1, 'play', 88, INK, 0.02, max_w=960), W / 2, 770, t, TC + 0.08, 0.45, 'rise')
         if self.pick2:
-            self.show(fr, txt(self.pick2, 'tenor', 42, GOLD, 0.2, max_w=900), W / 2, 812, t, TC + 0.14, 0.45, 'rise')
+            self.show(fr, txt(self.pick2, 'tenor', 42, GOLD, 0.2, max_w=900), W / 2, 854, t, TC + 0.14, 0.45, 'rise')
         if self.coef:
-            self.show(fr, txt('КЭФ ' + C.fmt_k(self.coef), 'play', 104, GOLD2), W / 2, 922, t, TC + 0.2, 0.45, 'rise')
-        self.show(fr, txt(self.when, 'tenor', 40, DIM, 0.08, max_w=900), W / 2, 1030, t, TC + 0.26, 0.45, 'rise')
+            self.show(fr, txt('КЭФ ' + C.fmt_k(self.coef), 'play', 104, GOLD2), W / 2, 964, t, TC + 0.2, 0.45, 'rise')
+        self.show(fr, txt(self.when, 'tenor', 40, DIM, 0.08, max_w=900), W / 2, 1072, t, TC + 0.26, 0.45, 'rise')
         tg = _spr(('tg',), lambda: C.tg_plate(960, 180, font='mont'))
-        self.show(fr, tg, W / 2, 1262, t, TC + self.u * 0.5, 0.45, 'rise', rise=40)
-        return fr, [(W / 2, 470, 0.3)]
+        self.show(fr, tg, W / 2, 1298, t, TC + self.u * 0.5, 0.45, 'rise', rise=40)
+        return fr, [(W / 2, 500, 0.3)]
 
     # ── экспозиция ──
     def _dark(self, t):
