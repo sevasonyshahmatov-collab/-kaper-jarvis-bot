@@ -10,6 +10,8 @@
 set -euo pipefail
 
 SIZE=$(python -c 'import json,os; print(int(json.loads(os.environ["INPUT_PAYLOAD"]).get("size", 512)))')
+# "enhancer": false — без дорисовки лица GFPGAN: в разы быстрее на CPU, лицо мягче
+ENH=$(python -c 'import json,os; print("--enhancer gfpgan" if json.loads(os.environ["INPUT_PAYLOAD"]).get("enhancer", True) else "")')
 W="$RUNNER_TEMP/avatar"
 ST_COMMIT=cd4c0465ae0b54a6f85af57f5c65fec9fe23e7f8
 mkdir -p "$W"
@@ -48,7 +50,7 @@ curl -sSfL -o gfpgan/weights/GFPGANv1.4.pth https://github.com/TencentARC/GFPGAN
 curl -sSfL -o gfpgan/weights/parsing_parsenet.pth https://github.com/xinntao/facexlib/releases/download/v0.2.2/parsing_parsenet.pth
 
 python inference.py --driven_audio "$TB/input/voice.wav" --source_image "$TB/input/face.jpg" --result_dir "$W/res" \
-  --still --preprocess full --enhancer gfpgan --size "$SIZE" --cpu
+  --still --preprocess full $ENH --size "$SIZE" --cpu
 RES=$(ls -t "$W"/res/*.mp4 | head -1)
 mkdir -p "$W/out"
 ffmpeg -v error -y -i "$RES" -c:v libx264 -pix_fmt yuv420p -crf 16 -preset slow -c:a aac -b:a 192k -movflags +faststart \
