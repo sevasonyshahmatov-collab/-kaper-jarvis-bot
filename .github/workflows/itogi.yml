@@ -22,6 +22,7 @@ concurrency:
 
 jobs:
   poster:
+    if: ${{ !contains(github.event.inputs.payload || '', '"kind":"avatar"') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -38,3 +39,34 @@ jobs:
           INPUT_PAYLOAD: ${{ github.event.inputs.payload }}
           EVENT_KIND: ${{ github.event.action }}
         run: python render/itogi_job.py
+
+  # ИИ-ведущий (тест): payload {"kind":"avatar","branch":"tmp-avatar-…"} — фото и голос с временной ветки → говорящее
+  # видео (render/avatar_job.sh) → артефакт на 1 день. Чужой код (SadTalker) — без секретов и прав на запись.
+  avatar:
+    if: ${{ contains(github.event.inputs.payload || '', '"kind":"avatar"') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ fromJSON(github.event.inputs.payload).branch }}
+          path: avatar_in
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Оживить фото под голос
+        env:
+          INPUT_PAYLOAD: ${{ github.event.inputs.payload }}
+          TB: ${{ github.workspace }}/avatar_in
+        run: bash render/avatar_job.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: avatar-host
+          path: ${{ runner.temp }}/avatar/out/host.mp4
+          retention-days: 1
