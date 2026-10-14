@@ -1,0 +1,28 @@
+{
+ "day": "2026-10-14",
+ "make": [
+  "render/make_pick_khl_1410.py"
+ ],
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "out/1410/pick_khl_amur_spartak.jpg"
+   ],
+   "text": "КХЛ · итог прогноза\n\nАмур — Спартак 1:2\nПрогноз: тотал меньше 5,5 — зашёл",
+   "buttons": "post",
+   "pid": "1410-24"
+  },
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "out/1410/pick_khl_amur_spartak.jpg"
+   ],
+   "captions": [
+    "Амур — Спартак 1:2 · 4К"
+   ]
+  }
+ ]
+}
