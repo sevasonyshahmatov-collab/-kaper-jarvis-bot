@@ -40,14 +40,20 @@ jobs:
           EVENT_KIND: ${{ github.event.action }}
         run: python render/itogi_job.py
 
-  # ИИ-ведущий (тест): payload {"kind":"avatar","branch":"tmp-avatar-…"} — фото и голос с временной ветки → говорящее
-  # видео (render/avatar_job.sh) → артефакт на 1 день. Чужой код (SadTalker) — без секретов и прав на запись.
+  # ИИ-ведущий (тест): payload {"kind":"avatar","branch":"tmp-avatar-…","size":256,"parts":[0,1,…,7]} — фото и голос
+  # с временной ветки → куски говорящего видео параллельно (render/avatar_job.sh, матрица parts) → avatar_join склеивает,
+  # кладёт артефакт на 1 день и шлёт владельцу в личку. Чужой код (SadTalker) — только в avatar, без секретов и прав на запись.
   avatar:
     if: ${{ contains(github.event.inputs.payload || '', '"kind":"avatar"') }}
     runs-on: ubuntu-latest
     timeout-minutes: 180
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        # payload не avatar (ежедневные запуски таблицы) — задание пропускается, матрица не должна падать на fromJSON('')
+        part: ${{ fromJSON(contains(github.event.inputs.payload || '', '"kind":"avatar"') && github.event.inputs.payload || '{"parts":[0]}').parts }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -64,9 +70,45 @@ jobs:
         env:
           INPUT_PAYLOAD: ${{ github.event.inputs.payload }}
           TB: ${{ github.workspace }}/avatar_in
+          PART: ${{ matrix.part }}
+          PARTS: ${{ strategy.job-total }}
         run: bash render/avatar_job.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: avatar-host
+          name: avatar-part-${{ matrix.part }}
           path: ${{ runner.temp }}/avatar/out/host.mp4
+          retention-days: 1
+
+  avatar_join:
+    needs: avatar
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ fromJSON(github.event.inputs.payload).branch }}
+          path: avatar_in
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: avatar-part-*
+          path: parts
+      - name: Склеить и отправить владельцу
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TB: ${{ github.workspace }}/avatar_in
+        run: python render/avatar_join.py parts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: avatar-host
+          path: avatar_host.mp4
           retention-days: 1

@@ -12,6 +12,10 @@ set -euo pipefail
 SIZE=$(python -c 'import json,os; print(int(json.loads(os.environ["INPUT_PAYLOAD"]).get("size", 512)))')
 # "enhancer": false — без дорисовки лица GFPGAN: в разы быстрее на CPU, лицо мягче
 ENH=$(python -c 'import json,os; print("--enhancer gfpgan" if json.loads(os.environ["INPUT_PAYLOAD"]).get("enhancer", True) else "")')
+# PART / PARTS (матрица в itogi.yml): голос режется на PARTS кусков по ~равной длине, кратной кадру (0,04 с), это
+# задание оживляет кусок PART; куски склеивает задание avatar_join. На CPU 2 ядра ~12 с на кадр 256 — без деления долго.
+PARTS=${PARTS:-1}
+PART=${PART:-0}
 W="$RUNNER_TEMP/avatar"
 ST_COMMIT=cd4c0465ae0b54a6f85af57f5c65fec9fe23e7f8
 mkdir -p "$W"
@@ -49,7 +53,15 @@ curl -sSfL -o gfpgan/weights/detection_Resnet50_Final.pth https://github.com/xin
 curl -sSfL -o gfpgan/weights/GFPGANv1.4.pth https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.4.pth
 curl -sSfL -o gfpgan/weights/parsing_parsenet.pth https://github.com/xinntao/facexlib/releases/download/v0.2.2/parsing_parsenet.pth
 
-python inference.py --driven_audio "$TB/input/voice.wav" --source_image "$TB/input/face.jpg" --result_dir "$W/res" \
+AUD="$TB/input/voice.wav"
+if [ "$PARTS" -gt 1 ]; then
+  DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$AUD")
+  read -r SS DD < <(python -c "import math; d=$DUR; n=$PARTS; i=$PART; seg=math.ceil(d/n/0.04)*0.04; print('%.3f %.3f' % (i*seg, seg))")
+  ffmpeg -v error -y -ss "$SS" -t "$DD" -i "$AUD" -ac 1 -ar 16000 "$W/part.wav"
+  AUD="$W/part.wav"
+  echo "часть $PART из $PARTS: с $SS с, $DD с"
+fi
+python inference.py --driven_audio "$AUD" --source_image "$TB/input/face.jpg" --result_dir "$W/res" \
   --still --preprocess full $ENH --size "$SIZE" --cpu
 RES=$(ls -t "$W"/res/*.mp4 | head -1)
 mkdir -p "$W/out"
