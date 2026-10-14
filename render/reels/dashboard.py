@@ -16,7 +16,7 @@ reels_cfg/dashboard.json):
                  последних 3 игр (дата, соперник, счёт, ОТ/Б, В/П цветом); на долю 2 спидометр «ОЧКИ» (шкала до
                  максимума очков за сыгранные матчи) — стрелка взлетает с перелётом, цифра считается; на 2½ —
                  тахометр «ЗАБИВАЕТ» (шайбы за матч, красная зона с 5); на 3 — одометр докручивает барабаны до
-                 разницы шайб (под окном — забито и пропущено); на 3½ — «топливо» = большинство, на 4 —
+                 разницы шайб; на 3½ — «топливо» = большинство, на 4 —
                  «температура» = меньшинство; за полдоли до конца сцены стрелки падают в ноль;
                  поворотник мигает в долю (хозяева — левый, гости — правый);
   перегазовка (pre долей) — нейтральная подсветка, стрелки отскакивают к красной зоне на каждой половине доли,
@@ -27,7 +27,7 @@ reels_cfg/dashboard.json):
                  прогноза (одна эмблема, без «VS») в цифровом кольце тахометра, «ПОБЕДА …», «В ОСНОВНОЕ ВРЕМЯ»
                  и кэф крупно; на каждую долю — пульс кольца;
   финал (cta долей) — дисплей поджимается вверх, снизу плашка Telegram (C.tg_plate, текст по центру плашки).
-@jarvibet — у низа безопасной зоны (y 1454), одинаково во всех сценах до плашки Telegram.
+@jarvibet — у низа безопасной зоны (y 1456), одинаково во всех сценах до плашки Telegram.
 Пустые (None) поля статистики не показываются (прибор остаётся без стрелки и цифры).
 Кадр зависит только от t; корпус, хром, шкалы клубов и дисплейные блоки считаются один раз (кеш модуля, до fork).
 """
@@ -52,16 +52,16 @@ REDZ = (240, 44, 32)
 AMBER = (255, 178, 36)
 GREEN = (60, 226, 104)
 
-TAG_Y, HY = 270, 1454
+TAG_Y, HY = 270, 1456
 RG, RIM = 224, 22                 # большой прибор: шкала и ширина хромового кольца
 PADG = RIM + 46                   # поле слоя прибора (ореол)
-GL, GR_ = (282.0, 566.0), (798.0, 566.0)
-DISP = (46, 840, 1034, 1258)      # дисплей (x0, y0, x1, y1)
-BIGP = (40, 300, 1040, 1426)      # дисплей на прогнозе
-CTAP = (40, 300, 1040, 1240)      # дисплей на финале
+GL, GR_ = (282.0, 558.0), (798.0, 558.0)
+DISP = (46, 830, 1034, 1248)      # дисплей (x0, y0, x1, y1)
+BIGP = (40, 296, 1040, 1414)      # дисплей на прогнозе
+CTAP = (40, 296, 1040, 1248)      # дисплей на финале
 RS, RIMS = 58, 9                  # малые приборы
-SL, SR_ = (128.0, 1350.0), (952.0, 1350.0)
-ODO_C = (540.0, 1356.0)
+SL, SR_ = (128.0, 1342.0), (952.0, 1342.0)
+ODO_C = (540.0, 1348.0)
 ODO_W, ODO_H, CELL_W = 264, 92, 58
 A0, A1 = -135.0, 135.0            # дуга больших шкал (° от верха по часовой)
 S0, S1 = -112.0, 112.0            # дуга малых шкал
@@ -357,8 +357,8 @@ class Dashboard(C.Reel):
         self.t_cta = self.b(hold)
         self.dur = self.b(hold + cta)
         self.cover_t = round((self.t1 - 0.55) * 30) / 30
-        self.ign = self.b(-int(math.floor(self.drop / self.u)))          # первая доля ролика — «зажигание»
-        if self.ign < 0.2:
+        self.ign = self.b(-int(math.floor(self.drop / self.u + 1e-6)))   # первая доля ролика — «зажигание»
+        if self.ign < -1e-6:
             self.ign += self.u
         self._prep()
 
@@ -369,6 +369,9 @@ class Dashboard(C.Reel):
         self.col['neu'] = NEUT
         self.cf = self.col[self.side]
         self.T = {k: self._team_data(k) for k in ('h', 'a')}
+        m = re.search(r'(\d{1,2}):(\d{2})', self.when or '')
+        self.clock = (int(m.group(1)), int(m.group(2))) if m else None
+        self.clock_lab = C.text('МСК', 'robc', 28, C.mix(NEUT, WHITE, 0.3), 800, track=0.3)
         key = (self.h.name, self.a.name, self.when, repr(self.line), repr(sorted(self.raw['h'].items())),
                repr(sorted(self.raw['a'].items())))
         if key not in _ST:
@@ -386,13 +389,10 @@ class Dashboard(C.Reel):
         # интро
         self.i_emb = {s: C.glow(t.emb(172), 16, 0.6, NEUT) for s, t in (('h', self.h), ('a', self.a))}
         self.i_role = {s: C.text(r, 'robc', 30, C.mix(NEUT, WHITE, 0.35), 800, track=0.2) for s, r in (('h', 'ХОЗЯЕВА'), ('a', 'ГОСТИ'))}
-        self.i_name = {s: C.text(t.up, 'exo', 50, WHITE, 800, max_w=262) for s, t in (('h', self.h), ('a', self.a))}
+        self.i_name = {s: C.text(t.up, 'exo', 50, WHITE, 800, max_w=250) for s, t in (('h', self.h), ('a', self.a))}
         self.i_date = C.text('%s · %s' % (F.lg_ru(self.league), self.when), 'exo', 44, WHITE, 700, max_w=920)
         self.i_lab = C.text('ОСНОВНОЕ ВРЕМЯ', 'robc', 30, C.mix(NEUT, WHITE, 0.3), 700, track=0.26)
         self.plates = [self._odds_plate(lab, v) for lab, v in zip(('П1', 'Х', 'П2'), self.line)] if self.line else []
-        m = re.search(r'(\d{1,2}):(\d{2})', self.when or '')
-        self.clock = (int(m.group(1)), int(m.group(2))) if m else None
-        self.clock_lab = C.text('МСК', 'robc', 28, C.mix(NEUT, WHITE, 0.3), 800, track=0.3)
         # перегазовка
         self.r_emb = {s: C.glow(t.emb(150), 14, 0.6, NEUT) for s, t in (('h', self.h), ('a', self.a))}
         self.r_name = {s: C.text(t.up, 'exo', 44, WHITE, 800, max_w=380) for s, t in (('h', self.h), ('a', self.a))}
@@ -427,13 +427,11 @@ class Dashboard(C.Reel):
             gf = num(rec.get('gf')) / gp
         tach = dict(spec=(0, 6, 1, 0.5, 5), val=gf, unit='ЗАБИВАЕТ', sub='ШАЙБЫ ЗА МАТЧ' if gf is not None else '', fmt='dec')
         pp, pk = num(rec.get('pp')), num(rec.get('pk'))
-        gfa, gaa = rec.get('gf'), rec.get('ga')
-        odo_sub = ('ЗАБИТО %d · ПРОПУЩЕНО %d' % (int(gfa), int(gaa))) if num(gfa) is not None and num(gaa) is not None else ''
         place = ''
         if s['place'] is not None:
             place = ('%d МЕСТО %s' % (s['place'], s['place_scope'].upper())).strip()
         lines = [self._trip_line(g, col) for g in s['games'][:3]]
-        return dict(tm=tm, col=col, spd=spd, tach=tach, pp=pp, pk=pk, gd=s['gd'], odo_sub=odo_sub,
+        return dict(tm=tm, col=col, spd=spd, tach=tach, pp=pp, pk=pk, gd=s['gd'],
                     head=self._header(tm, col, 'ХОЗЯЕВА' if k == 'h' else 'ГОСТИ', place), lines=lines,
                     div=C.rrect(928, 3, 1, col, 120))
 
@@ -446,7 +444,7 @@ class Dashboard(C.Reel):
         arr[..., :3] += weave[..., None]
         bg = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), 'RGBA')
         # кожух приборки
-        bx0, by0, bx1, by1 = 14, 232, 1066, 1440
+        bx0, by0, bx1, by1 = 14, 232, 1066, 1426
         hood = C.vgrad(bx1 - bx0, by1 - by0, [(0, (30, 32, 37)), (0.12, (21, 23, 27)), (1, (11, 12, 14))]).convert('RGBA')
         hood.putalpha(C.rrect(bx1 - bx0, by1 - by0, 58, WHITE).getchannel('A'))
         C.put(bg, C.shadow(hood, 26, 0.85), (bx0 + bx1) / 2, (by0 + by1) / 2 + 14)
@@ -544,13 +542,11 @@ class Dashboard(C.Reel):
         else:
             T = self.T[mode]
             if T['pp'] is not None:
-                C.put(fr, C.text('БОЛЬШИНСТВО', 'robc', 27, LABEL, 800, track=0.06, max_w=176), 290, 1306)
+                C.put(fr, C.text('БОЛЬШИНСТВО', 'robc', 27, LABEL, 800, track=0.06, max_w=176), 290, 1298)
             if T['pk'] is not None:
-                C.put(fr, C.text('МЕНЬШИНСТВО', 'robc', 27, LABEL, 800, track=0.06, max_w=176), W - 290, 1306)
+                C.put(fr, C.text('МЕНЬШИНСТВО', 'robc', 27, LABEL, 800, track=0.06, max_w=176), W - 290, 1298)
             if T['gd'] is not None:
                 C.put(fr, C.text('РАЗНИЦА ШАЙБ', 'robc', 27, LABEL, 800, track=0.16), ODO_C[0], ODO_C[1] - ODO_H / 2 - 30)
-                if T['odo_sub']:
-                    C.put(fr, C.text(T['odo_sub'], 'robc', 26, GRAY, 700, max_w=330), ODO_C[0], ODO_C[1] + ODO_H / 2 + 26)
         # подсветка дисплея: тонкая кромка в цвете режима
         w, h = DISP[2] - DISP[0], DISP[3] - DISP[1]
         ed = C.rrect(w - 4, h - 4, 31, None, outline=col, width=2)
@@ -762,10 +758,10 @@ class Dashboard(C.Reel):
                 qe = C.out_back(C.seg(t, d0, d0 + 0.4), 1.5)
                 ae = (1 - C.seg(t, self.t1 - 0.18, self.t1 - 0.04))
                 if qe > 0.01:
-                    C.put(fr, C.scale(self.i_emb[side], max(0.05, qe)), cx, cy - 8, min(1.0, qe * 1.5) * ae)
+                    C.put(fr, C.scale(self.i_emb[side], max(0.05, qe)), cx, cy - 22, min(1.0, qe * 1.5) * ae)
                 qt = C.out_expo(C.seg(t, d0 + 0.2, d0 + 0.6))
                 C.put(fr, self.i_role[side], cx, cy - 0.58 * RG - 10 * (1 - qt), qt * ae)
-                C.put(fr, self.i_name[side], cx, cy + 0.55 * RG + 14 * (1 - qt), qt * ae)
+                C.put(fr, self.i_name[side], cx, cy + 0.45 * RG + 14 * (1 - qt), qt * ae)
                 continue
             if n is not None:
                 self.draw_needle(fr, cx, cy, A0 + (A1 - A0) * n[0], True, n[1])
@@ -792,8 +788,8 @@ class Dashboard(C.Reel):
         a = C.seg(t, tr, tr + 0.12) * (1 - C.seg(t, te - 0.5 * u, te - 0.5 * u + 0.25))
         cur = min(G['val'], G['val'] * self.spring(t - tr)) if t - tr < 0.45 else G['val']
         s = ('%d' % int(round(cur))) if G['fmt'] == 'int' else dec(cur)
-        im = glow_txt(s, 'exo', 108, WHITE, 800, 12, 0.45, self.T[key]['col'])
-        C.put(fr, im, cx, cy + 0.36 * RG, a)
+        im = glow_txt(s, 'exo', 96, WHITE, 800, 12, 0.45, self.T[key]['col'])
+        C.put(fr, im, cx, cy + 0.35 * RG, a)
 
     def small_values(self, fr, t):
         if not self.t1 <= t < self.tp:
@@ -810,7 +806,7 @@ class Dashboard(C.Reel):
             q = C.out_expo(C.seg(t, tr, tr + 0.3))
             a = q * (1 - C.seg(t, te - 0.5 * u, te - 0.5 * u + 0.25))
             im = glow_txt(dec(v) + '%', 'exo', 66, WHITE, 800, 10, 0.4, T['col'])
-            C.put(fr, im, x, 1372 + 10 * (1 - q), a)
+            C.put(fr, im, x, 1364 + 10 * (1 - q), a)
 
     def odometer(self, fr, t):
         """Барабаны одометра: часы в интро, разница шайб в сценах команд."""
@@ -830,7 +826,11 @@ class Dashboard(C.Reel):
             a = 1 - C.seg(t, self.t1 - 0.16, self.t1 - 0.04)
             self.drums(fr, vals, None, a)
             return
-        if t >= self.tp:
+        if t >= self.tp:                                  # перегазовка: снова часы начала матча
+            if self.clock and t < self.drop:
+                hh, mm = self.clock
+                self.drums(fr, [hh // 10, hh % 10, None, mm // 10, mm % 10], None,
+                           C.seg(t, self.tp, self.tp + 0.2) * (1 - 0.7 * C.seg(t, self.drop - 0.42, self.drop - 0.3)))
             return
         key, t0, te = ('h', self.t1, self.t2) if t < self.t2 else ('a', self.t2, self.tp)
         gd = self.T[key]['gd']
@@ -1055,7 +1055,7 @@ class Dashboard(C.Reel):
         C.put(fr, self.handle_im, W / 2, HY, 0.92 * ha)
         if t >= self.t_cta:
             q = C.out_expo(C.seg(t, self.t_cta + 0.05, self.t_cta + 0.5))
-            C.put(fr, self.tg, W / 2, 1352 + 50 * (1 - q), q)
+            C.put(fr, self.tg, W / 2, 1344 + 50 * (1 - q), q)
         # камера: толчки на склейках, дрожь на перегазовке, рывок на дропе
         z, dx, dy, rot = 1.0, 0.0, 0.0, 0.0
         for th in (self.t1, self.t2, self.tp):
