@@ -1,0 +1,28 @@
+{
+ "day": "2026-10-14",
+ "make": [
+  "render/make_pick_khl_1410.py"
+ ],
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "out/1410/pick_khl_cska_dinamo.jpg"
+   ],
+   "text": "КХЛ · итог прогноза\n\nЦСКА — Динамо М 1:0\nПрогноз: победа ЦСКА (1.91) — зашёл",
+   "buttons": "post",
+   "pid": "1410-26"
+  },
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "out/1410/pick_khl_cska_dinamo.jpg"
+   ],
+   "captions": [
+    "ЦСКА — Динамо М 1:0 · 4К"
+   ]
+  }
+ ]
+}
