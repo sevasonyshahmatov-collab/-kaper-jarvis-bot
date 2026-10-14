@@ -58,8 +58,15 @@ def _mix(c, k):
     return tuple(int(a + (b - a) * k) for a, b in zip(c, t))
 
 
-def _panel(w, h, color, center, seed):
-    """Панель клуба: заливка с мягким светом и концентрические «топографические» кольца тон-в-тон."""
+def _smooth(t):
+    t = np.clip(t, 0, 1)
+    return t * t * (3 - 2 * t)
+
+
+def _panel(w, h, color, center, seed, fade='down', dim=0.42):
+    """Панель клуба: концентрические «топографические» кольца тон-в-тон и перелив яркости:
+    fade='down' — у верхнего края приглушённо, к низу ярче (хозяева); 'up' — наоборот (гости); None — ровно.
+    dim — яркость у приглушённого края (доля от цвета клуба)."""
     y, x = np.mgrid[0:h, 0:w].astype(np.float32)
     cx, cy = center
     dx, dy = (x - cx) / w, (y - cy) / w
@@ -69,9 +76,11 @@ def _panel(w, h, color, center, seed):
     r = (np.abs(dx) ** 3 + np.abs(dy) ** 3) ** (1 / 3) + wob
     ring = np.sin(r * 2 * np.pi * 15)
     ring = np.clip(ring * 3, -1, 1)                      # чёткие полосы, мягкие края
-    light = 1 - 0.28 * np.clip(np.hypot(x / w - .3, y / h - .25), 0, 1.4)
+    t = y / h if fade == 'down' else 1 - y / h
+    light = np.ones_like(x) if fade is None else dim + (1.06 - dim) * _smooth(t * 1.15)
+    light *= 1 + 0.10 * np.exp(-((x - cx) ** 2 + (y - cy) ** 2) / (2 * (0.38 * w) ** 2))   # подсвет за эмблемой
     base = np.array(color, np.float32)[None, None, :]
-    shade = (light[..., None] * (1 + 0.075 * ring[..., None]))
+    shade = light[..., None] * (1 + 0.075 * ring[..., None])
     img = np.clip(base * shade, 0, 255).astype(np.uint8)
     return Image.fromarray(img, 'RGB')
 
@@ -134,7 +143,8 @@ def _pill(d, box, text, label, f, fl, fill, txt):
     d.text(((x0 + x1) / 2, y0 - 10 * S), label, font=fl, fill=(170, 168, 176), anchor='md')
 
 
-def render(home, away, path, date='', time='', odds=None, league='KHL', tz='время московское'):
+def render(home, away, path, date='', time='', odds=None, league='KHL', tz='время московское', fade=('down', 'up')):
+    """fade — перелив яркости панелей хозяев и гостей (см. _panel); ('up', 'down') — яркие края, тёмная середина."""
     if league == 'NHL':
         nhl.register()
     hn, hc, ha, hs = _team(home, league)
@@ -151,9 +161,10 @@ def render(home, away, path, date='', time='', odds=None, league='KHL', tz='вр
     # панели: хозяева — слева сверху, гости — справа снизу поверх
     P1 = (100, 0, 620, 672)
     P2 = (460, 408, 980, 1080)
-    for (x0, y0, x1, y1), col, emb, seed, ctr in ((P1, hc, hn, 11, (0.62, 0.42)), (P2, ac, an, 23, (0.40, 0.55))):
+    for (x0, y0, x1, y1), col, emb, seed, ctr, fd in ((P1, hc, hn, 11, (0.62, 0.42), fade[0]),
+                                                       (P2, ac, an, 23, (0.40, 0.55), fade[1])):
         w, h = (x1 - x0) * S, (y1 - y0) * S
-        pn = _panel(w // S, h // S, col, (ctr[0] * (w // S), ctr[1] * (h // S)), seed).resize((w, h), Image.BICUBIC)
+        pn = _panel(w // S, h // S, col, (ctr[0] * (w // S), ctr[1] * (h // S)), seed, fd).resize((w, h), Image.BICUBIC)
         sh = Image.new('RGBA', img.size, (0, 0, 0, 0))
         ImageDraw.Draw(sh).rectangle((x0 * S + 14 * S, y0 * S + 20 * S, x1 * S + 14 * S, y1 * S + 20 * S),
                                      fill=(0, 0, 0, 120))
