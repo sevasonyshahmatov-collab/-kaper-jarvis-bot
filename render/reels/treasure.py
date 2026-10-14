@@ -110,6 +110,16 @@ def paste(dst, im, cx, cy, a=1.0, anchor='c'):
     dst.paste(im, (x, y), im)
 
 
+def _crop(src, box):
+    """Участок слоя; за краем слоя — тёмный стол (а не чёрное поле)."""
+    x0, y0, x1, y1 = box
+    if x0 >= 0 and y0 >= 0 and x1 <= src.width and y1 <= src.height:
+        return src.crop(box)
+    out = Image.new('RGB', (x1 - x0, y1 - y0), (30, 18, 10))
+    out.paste(src.crop((max(0, x0), max(0, y0), min(src.width, x1), min(src.height, y1))), (max(0, -x0), max(0, -y0)))
+    return out
+
+
 def wax_col(team):
     cands = []
     for c in (team.c1, team.c0, team.c2):
@@ -1162,13 +1172,11 @@ class Treasure(C.Reel):
         if k < 1:
             box = ((x0 + M) * k + HPAD, (y0 + M) * k + HPAD, (x0 + w + M) * k + HPAD, (y0 + h + M) * k + HPAD)
             return src.resize((W, H), Image.BILINEAR, box=box)
-        if not dyn:
-            box = (x0 + M, y0 + M, x0 + w + M, y0 + h + M)
-            return src.resize((W, H), Image.BILINEAR, box=box)
         ix0, iy0 = int(math.floor(x0)), int(math.floor(y0))
         ix1, iy1 = int(math.ceil(x0 + w)), int(math.ceil(y0 + h))
-        reg = src.crop((ix0 + M, iy0 + M, ix1 + M, iy1 + M))
-        self.draw_world(reg, t, ix0, iy0)
+        reg = _crop(src, (ix0 + M, iy0 + M, ix1 + M, iy1 + M))
+        if dyn:
+            self.draw_world(reg, t, ix0, iy0)
         if abs(s - 1) < 1e-4 and abs(x0 - ix0) < 1e-3 and abs(y0 - iy0) < 1e-3:
             return reg.crop((0, 0, W, H)) if reg.size != (W, H) else reg
         return reg.resize((W, H), Image.BILINEAR, box=(x0 - ix0, y0 - iy0, x0 - ix0 + w, y0 - iy0 + h))
