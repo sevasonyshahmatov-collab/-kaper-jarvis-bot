@@ -39,16 +39,34 @@ KHL_CITY = {
 
 
 def _team(name, league):
-    """→ (ru-название, цвет панели, аббревиатура, подпись сбоку)."""
+    """→ (ru-название, цвет панели, второй цвет клуба, аббревиатура, подпись сбоку)."""
     if league == 'NHL':
         ru = nhl.resolve(name)
-        c1, abbr, en = nhl.TEAMS[ru][1], nhl.TEAMS[ru][3], nhl.TEAMS[ru][4]
+        c1, c2, abbr, en = nhl.TEAMS[ru][1], nhl.TEAMS[ru][2], nhl.TEAMS[ru][3], nhl.TEAMS[ru][4]
         color, side = poster.BANNER.get(ru, c1), '%s · %s' % (ru, en)
     else:
         ru = name
+        c2 = poster.TEAMS[ru][2]
         color, abbr = poster.BANNER[ru], KHL_ABBR[ru]
         side = ru if KHL_CITY[ru] in ru else '%s · %s' % (ru, KHL_CITY[ru])
-    return ru, color, abbr, side.upper()
+    return ru, color, c2, abbr, side.upper()
+
+
+def _lum(c):
+    return 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
+
+
+def _distinct(hc, ac, ac2):
+    """Цвета клубов почти одинаковые (оба красные и т. п.) — гостям второй фирменный цвет; тёмный осветляем,
+    серый/белый не берём."""
+    if sum((a - b) ** 2 for a, b in zip(hc, ac)) ** .5 >= 110:
+        return ac
+    if max(ac2) - min(ac2) < 40:                 # второй цвет без оттенка (белый, серый, чёрный) — оставляем основной
+        return ac
+    if _lum(ac2) < 70:                           # тёмный — осветляем, сохраняя насыщенность
+        k = 170 / max(ac2)
+        return tuple(min(255, int(v * k)) for v in ac2)
+    return ac2
 
 
 def _mix(c, k):
@@ -147,8 +165,9 @@ def render(home, away, path, date='', time='', odds=None, league='KHL', tz='вр
     """fade — перелив яркости панелей хозяев и гостей (см. _panel); ('up', 'down') — яркие края, тёмная середина."""
     if league == 'NHL':
         nhl.register()
-    hn, hc, ha, hs = _team(home, league)
-    an, ac, aa, as_ = _team(away, league)
+    hn, hc, _, ha, hs = _team(home, league)
+    an, ac, ac2, aa, as_ = _team(away, league)
+    ac = _distinct(hc, ac, ac2)
     acc = poster.ACC if league == 'KHL' else nhl.ICE
 
     img = Image.new('RGBA', (W * S, H * S), BG + (255,))
@@ -189,14 +208,15 @@ def render(home, away, path, date='', time='', odds=None, league='KHL', tz='вр
     # дата, время, линия
     X0, X1 = 130, 430
     cxm = (X0 + X1) / 2 * S
+    dy = 0 if odds else 90                              # без линии — блок даты ниже, к центру пустого места
     if date:
         fd = _fit(date.upper(), (X1 - X0) * S, 30 * S, 600)
-        d.text((cxm, 726 * S), date.upper(), font=fd, fill=acc, anchor='mm')
+        d.text((cxm, (726 + dy) * S), date.upper(), font=fd, fill=acc, anchor='mm')
     if time:
         ft = _fit(time, (X1 - X0) * S, 74 * S, 700)
-        d.text((cxm, 800 * S), time, font=ft, fill=(250, 250, 250), anchor='mm')
+        d.text((cxm, (800 + dy) * S), time, font=ft, fill=(250, 250, 250), anchor='mm')
     fz = brand_kit.font('Manrope[wght].ttf', 19 * S, 600)
-    d.text((cxm, 860 * S), tz, font=fz, fill=(205, 203, 210), anchor='mm')
+    d.text((cxm, (860 + dy) * S), tz, font=fz, fill=(205, 203, 210), anchor='mm')
     if odds:
         fo = brand_kit.font('Oswald[wght].ttf', 30 * S, 600)
         fl = brand_kit.font('Manrope[wght].ttf', 15 * S, 700)
