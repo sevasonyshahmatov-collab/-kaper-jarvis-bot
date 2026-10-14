@@ -15,8 +15,8 @@
                  (на табличке — конференция), ромб — разница шайб (на табличке — забито и пропущено);
                  за долю до конца сцены вся группа знаков пролетает над кабиной (наезд-смаз);
   разгон (run долей) — скорость растёт, фонари тянутся в полосы, издалека надвигается тёмный портал;
-  ДРОП (hold долей) — ровно на дропе грузовик проходит под порталом: вспышка, прожекторы портала загораются,
-                 камера встаёт; на знаке — только команда прогноза (одна эмблема, без «VS»), «ПОБЕДА …»,
+  ДРОП (hold долей) — ровно на дропе (удар трека) грузовик проходит под порталом: вспышка, прожекторы портала
+                 загораются, камера встаёт; через bass с (вход баса «TRUCK», 0,42 с) — второй удар прожекторов и камеры; на знаке — только команда прогноза (одна эмблема, без «VS»), «ПОБЕДА …»,
                  «В ОСНОВНОЕ ВРЕМЯ» и жёлтая полоса снизу с кэфом; на каждую долю — пульс прожекторов;
   финал (cta долей) — портал уходит вверх и уменьшается, снизу — плашка Telegram (C.tg_plate, текст по центру).
 @jarvibet — зелёная табличка у низа безопасной зоны (y 1447), одинаково во всех сценах до плашки Telegram.
@@ -407,7 +407,7 @@ def _background(tint, seed=3):
 # ─────────────────────────────── ролик ───────────────────────────────
 class Highway(C.Reel):
     def __init__(self, home, away, league, when, pick, coef, sh, sa, u=60 / 65, drop=16 * 60 / 65, line=None, team=5.5,
-                 run=1, hold=5, cta=2.5, seed=11, **kw):
+                 run=1, hold=5, cta=2.5, bass=0.42, seed=11, **kw):
         super().__init__(u, drop, seed)
         self.h, self.a = C.match(home, away, league)
         self.T = {'h': self.h, 'a': self.a}
@@ -417,6 +417,7 @@ class Highway(C.Reel):
         self.raw = {'h': sh or {}, 'a': sa or {}}
         self.st = {'h': F.norm(sh), 'a': F.norm(sa)}
         self.team_b = team
+        self.bass = float(bass)                    # через сколько секунд после дропа (удар трека) входит бас
         self.t1 = self.b(-(2 * team + run))
         self.t2 = self.b(-(team + run))
         self.t_run = self.b(-run)
@@ -861,6 +862,8 @@ class Highway(C.Reel):
         ck = C.in_out(C.seg(t, self.t_cta, self.t_cta + 0.6))
         pulse = math.exp(-(((t - D) / u) % 1.0) * 6) if t >= D else 0.0
         fl0 = math.exp(-(t - D) / 0.35) if t >= D else 0.0             # вспышка прожекторов на дропе
+        tb2 = D + self.bass
+        fl0 += 0.75 * math.exp(-(t - tb2) / 0.3) if t >= tb2 else 0.0   # второй удар — вход баса
 
         def lit(acc):
             for lx in (250, 540, 830):
@@ -892,7 +895,7 @@ class Highway(C.Reel):
             x0, y0, x1, y1 = L['p_kef_box']
             self._sweep(fr, (x0, y0, x1, y1), t - (D + u), 0.5)
         if t >= self.t_cta:
-            q = C.out_expo(C.seg(t, self.t_cta + 0.12, self.t_cta + 0.6))
+            q = C.out_expo(C.seg(t, self.t_cta + 0.3, self.t_cta + 0.75))
             if q > 0:
                 C.put(fr, L['tg_sh'], W / 2, 1300 + 18 + 170 * (1 - q), 0.6 * q)
                 C.put(fr, L['tg'], W / 2, 1300 + 170 * (1 - q), q)
@@ -959,7 +962,10 @@ class Highway(C.Reel):
             dy += (2 + 7 * q) * math.cos(t * 57)
         if t >= D:
             sx, sy = C.shake(t, D, 22, 0.45)
-            dx, dy = dx + sx, dy + sy
+            sx2, sy2 = C.shake(t, D + self.bass, 14, 0.35)
+            dx, dy = dx + sx + sx2, dy + sy + sy2
+            if t >= D + self.bass:
+                z += 0.025 * (1 - C.seg(t, D + self.bass, D + self.bass + 0.35)) ** 2
             z += 0.05 * (1 - C.seg(t, D, D + 0.45)) ** 2
         if z > 1.0005 or abs(dx) > 0.3 or abs(dy) > 0.3:
             fr = C.zoom(fr, z, VX, VY * 0.7, dx=dx, dy=dy)
