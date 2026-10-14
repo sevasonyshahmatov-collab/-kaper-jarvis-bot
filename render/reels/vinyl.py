@@ -56,7 +56,7 @@ CAM_T = (390.0, 505.0, 1.0)                # камера сцен клубов:
 CAM_P = (430.0, 600.0, 1.3)                # крупный план прогноза
 PIV = (490.0, -180.0)                      # ось тонарма относительно центра пластинки (масштаб 1)
 ARM_L = 420.0                              # длина тонарма до иглы (масштаб 1)
-SLV_X, SLV_Y, SLV_S = 70, 790, 940         # большой конверт: левый верх и сторона
+SLV_X, SLV_Y, SLV_S = 70, 778, 940         # большой конверт: левый верх и сторона
 OM = 200.0                                 # 33⅓ об/мин — градусов в секунду
 LAB_K = 0.5                                # радиус наклейки / радиус пластинки
 GROOVE = (0.53, 0.955)                     # канавки — доли радиуса
@@ -107,7 +107,7 @@ def _rgba(rgb, alpha):
 def _smooth_noise(h, w, cell, rng, amp=1.0):
     n = rng.normal(0, 1, (max(2, h // cell + 2), max(2, w // cell + 2))).astype(np.float32)
     im = Image.fromarray(n, 'F').resize((w, h), Image.BICUBIC)
-    return np.asarray(im, np.float32) * amp
+    return np.array(im, np.float32) * amp
 
 
 def _paste(fr, im, cx, cy, anchor='c'):
@@ -184,14 +184,15 @@ def _mote(d):
 # ─────────────────────────────── корпус проигрывателя ───────────────────────────────
 def _brushed(w, h, rng, base=30, amp=5.0):
     n = rng.normal(0, 1, (h, max(2, w // 10))).astype(np.float32)
-    n = np.asarray(Image.fromarray(n, 'F').resize((w, h), Image.BILINEAR), np.float32)
+    n = np.array(Image.fromarray(n, 'F').resize((w, h), Image.BILINEAR), np.float32)
     n += rng.normal(0, 0.35, (h, w)).astype(np.float32)
     return base + amp * n
 
 
-def _plinth(s):
-    """Корпус (вид сверху) в координатах «центр пластинки = (0, 0)» → (RGBA, (x0, y0) левого верха)."""
-    key = ('plinth', s)
+def _plinth(s, full=True):
+    """Корпус (вид сверху) в координатах «центр пластинки = (0, 0)» → (RGBA, (x0, y0) левого верха).
+    full=False — для крупного плана (края корпуса за кадром): без кнопок и шильдика, чтобы не резать надписи."""
+    key = ('plinth', s, full)
     if key in _S:
         return _S[key]
     rng = np.random.default_rng(5)
@@ -296,6 +297,11 @@ def _plinth(s):
     circ(rx, ry, 14, fill=(150, 150, 154, 255))
     circ(rx, ry, 9, fill=(40, 40, 42, 255))
     # кнопки: старт и скорости
+    if not full:
+        det = det.resize((w, h), Image.LANCZOS)
+        out.alpha_composite(det)
+        _S[key] = (out, (ox, oy))
+        return _S[key]
     circ(-322, 150, 30, fill=(12, 12, 13, 255))
     circ(-322, 150, 26, fill=(170, 170, 174, 255))
     circ(-322, 150, 20, fill=(200, 200, 204, 255))
@@ -666,7 +672,7 @@ class Vinyl(C.Reel):
         _table()
         _light()
         _plinth(CAM_T[2])
-        _plinth(CAM_P[2])
+        _plinth(CAM_P[2], False)
         _arm(CAM_T[2])
         _arm(CAM_P[2])
         self.RT, self.RP = int(R0 * CAM_T[2]), int(R0 * CAM_P[2])
@@ -737,7 +743,7 @@ class Vinyl(C.Reel):
         right = X1 - 76                                            # правый край счёта (дальше — фишка В/П)
         dd = ImageDraw.Draw(im)
         for k, x in enumerate(g):
-            y = 210 + 94 * k
+            y = 214 + 90 * k
             rows.append(y)
             num = C.text('%s%d' % (L, k + 1), 'osw', 44, RUST, 700)
             C.put(im, num, X0, y - num.height / 2, anchor='tl')
@@ -763,7 +769,7 @@ class Vinyl(C.Reel):
             ch = C.rrect(58, 58, 13, WIN if x['res'] == 'В' else LOSS if x['res'] == 'П' else MUTED)
             C.put(ch, C.text(x['res'] or '?', 'mont', 36, CREAM, 900), 29, 30)
             C.put(im, ch, X1 - 29, y)
-        ry = (210 + 94 * len(g) - 30) if g else 190
+        ry = (214 + 90 * len(g) - 34) if g else 190
         C.put(im, Image.new('RGBA', (X1 - X0, 3), INK + (150,)), X0, ry, anchor='tl')
         # колонки: очки / место / шайбы
         items = []
@@ -780,16 +786,16 @@ class Vinyl(C.Reel):
         if items:
             n = len(items)
             cw = (X1 - X0) / n
-            top = ry + 14
+            top = ry + 6
             for k, (lab, v, sub, col) in enumerate(items):
                 x = X0 + cw * k + cw / 2
-                C.put(im, C.text(lab, 'mont', 25, RUST, 800, track=0.16), x, top + 26)
-                C.put(im, C.text(v, 'osw', 84, col, 700), x, top + 92)
+                C.put(im, C.text(lab, 'mont', 26, RUST, 800, track=0.16), x, top + 28)
+                C.put(im, C.text(v, 'osw', 84, col, 700), x, top + 88)
                 if sub:
-                    C.put(im, C.text(sub, 'mont', 24, MUTED, 600, max_w=cw - 20), x, top + 154)
+                    C.put(im, C.text(sub, 'mont', 25, MUTED, 700, max_w=cw - 24), x, top + 146)
                 if k:
-                    C.put(im, Image.new('RGBA', (2, 150), INK + (90,)), X0 + cw * k, top + 12, anchor='tl')
-                cols.append((x, top + 92))
+                    C.put(im, Image.new('RGBA', (2, 140), INK + (90,)), X0 + cw * k, top + 14, anchor='tl')
+                cols.append((x, top + 88))
         _S[key] = (paper, im, rows, cols)
         return _S[key]
 
@@ -1057,7 +1063,7 @@ class Vinyl(C.Reel):
             if t >= T + u:                                              # посадка — лёгкая отдача
                 sc = 1.0 + 0.012 * (1 - C.seg(t, T + u, T + u + 0.18)) * math.sin(C.seg(t, T + u, T + u + 0.18) * math.pi)
             if swap:
-                q = C.in_cubic(C.seg(t, Tend - 0.36, Tend))
+                q = C.in_out(C.seg(t, Tend - 0.36, Tend))
                 rx -= 1150 * q
                 sc = 1.0 + 0.04 * q
             if bridge:
@@ -1076,23 +1082,21 @@ class Vinyl(C.Reel):
         if bridge:
             self._bridge_sleeves(fr, t)
 
-    def _sleeve_team(self, fr, t, side, T, Tend, dy):
+    def _sleeve_team(self, fr, t, side, T, Tend, dy, x=None):
         u = self.u
         S = SLV_S
-        x, y = SLV_X, SLV_Y + dy
-        if side == 'a' and t < T + 0.36:                                # ящик: конверт гостей въезжает справа
-            q = C.in_cubic(C.seg(t, T - 0.36, T))
-            x += 1150 * (1 - q) if t < T else 0
+        y = SLV_Y + dy
+        if x is None:
+            x = SLV_X
         if side == 'a' and t >= self.TB:                                # мост: уезжает вниз
-            y += 900 * C.in_cubic(C.seg(t, self.TB, self.TB + 0.3))
+            y += 1200 * C.in_cubic(C.seg(t, self.TB, self.TB + 0.3))
             if y > H:
                 return
-        if side == 'h' and t >= Tend - 0.36:
-            x -= 1150 * C.in_cubic(C.seg(t, Tend - 0.36, Tend))
-            if side == 'h' and t >= Tend - 0.36:                        # одновременно въезжает конверт гостей
-                self._sleeve_team(fr, t + 0.0, 'a', self.T2, self.TB, dy) if False else None
+        if side == 'h' and t >= Tend - 0.36:                           # ящик: конверты едут влево, гости встают на место
+            q = C.in_out(C.seg(t, Tend - 0.36, Tend))
+            x -= 1150 * q
+            self._sleeve_team(fr, t, 'a', self.T2, self.TB, dy, SLV_X + 1150 * (1 - q))
         fl0, fl1 = T + 2 * u - 0.16, T + 2 * u + 0.16
-        back, rows, cols = self._back(side)
         front = _front(self.tm(side), side, S, 'big')
         C.put(fr, _sleeve_shadow(S), x + S / 2 + 8, y + S / 2 + 16, anchor='c')
         if t < fl0:
@@ -1186,7 +1190,7 @@ class Vinyl(C.Reel):
         cx, cy, s = CAM_P
         up = 150 * C.out_cubic(C.seg(t, TC, TC + 0.42))
         cy -= up
-        pl, (ox, oy) = _plinth(s)
+        pl, (ox, oy) = _plinth(s, False)
         C.put(fr, pl, cx + ox, cy + oy, anchor='tl')
         R = self.RP
         p = C.seg(t, D, D + 0.16)
@@ -1215,7 +1219,7 @@ class Vinyl(C.Reel):
             if t >= tb:
                 z += 0.025 * (1 - C.seg(t, tb, tb + 0.28)) ** 2
         z *= 1 - 0.1 * C.out_cubic(C.seg(t, TC, TC + 0.42))
-        sty = sy + 205 + st.height / 2 - 60 + slide * 0.4
+        sty = sy - 12 + st.height / 2 + slide * 0.4
         sty -= 30 * C.out_cubic(C.seg(t, TC, TC + 0.42))
         C.put(fr, C.scale(st, z), W / 2, sty)
         return (cx, cy, R * sc, r_st * sc)
@@ -1280,7 +1284,7 @@ class Vinyl(C.Reel):
         if k < 0.999:
             arr = ((arr.astype(np.uint32) * lm) * int(k * 256)) >> 16
         else:
-            arr = (arr.astype(np.uint16) * lm) >> 8
+            arr = (arr.astype(np.uint32) * lm) >> 8
         arr = np.minimum(arr, 255).astype(np.uint8)
         if geo is not None:
             arr = self._pulses(arr, t, geo)
