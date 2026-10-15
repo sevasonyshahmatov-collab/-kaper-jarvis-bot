@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Проверка задания с постами-прогнозами перед отправкой владельцу: формат поста (team/POSTS.md, «Прогноз на матч»),
-лимиты Telegram, разметка, номера, запретные слова. Ошибки — код выхода 1 (задание не запускать, пока не исправлено).
+лимиты Telegram, разметка, номера, запретные слова, разнообразие постов одного запуска («Не под копирку»). Ошибки — код выхода 1 (задание не запускать, пока не исправлено).
 Запуск: python team/picks/check.py team/out/<день>/picks_khl.json
 Следующий свободный номер поста на день: python team/picks/check.py --next 1610 → 1610-4"""
 import glob
@@ -30,9 +30,51 @@ def tags_ok(text):
     return 'не закрыт <%s>' % stack[-1] if stack else ''
 
 
+def plain(s):
+    return html.unescape(re.sub(r'<[^>]+>', '', s or '')).strip()
+
+
+def head(s, k=2):
+    return ' '.join(re.findall(r'[\w\-]+', s.lower())[:k])
+
+
+def variety(posts, errs, warns):
+    """Посты одного запуска не должны быть под копирку (замечание владельца 15.10, team/POSTS.md «Не под копирку»)."""
+    n = len(posts)
+    if n < 2:
+        return
+    lim = max(1, n // 3)
+    risky = [p['pid'] for p in posts if re.search(r'риск', p['q'].lower())]
+    if len(risky) > lim:
+        errs.append('про риск в %d постах из %d (%s) — только иногда: не больше %d, остальные без фразы про риск'
+                    % (len(risky), n, ', '.join(risky), lim))
+    for p in posts:
+        last = re.split(r'(?<=[.!?…])\s+', p['q'])[-1].lower()
+        if re.match(r'(честный |главный |единственный )?риск', last):
+            errs.append('пост %s: цитата кончается формулой «Риск — …» — так не заканчиваем' % p['pid'])
+    for key, what in (('q', 'цитаты начинаются'), ('c', 'концовки начинаются')):
+        seen = {}
+        for p in posts:
+            h = head(p[key])
+            if h:
+                seen.setdefault(h, []).append(p['pid'])
+        for h, ids in seen.items():
+            if len(ids) > 1:
+                errs.append('%s одинаково — «%s…» (%s): переписать' % (what, h, ', '.join(ids)))
+    asks = [p['pid'] for p in posts if p['c'].rstrip().endswith('?')]
+    if n >= 3 and len(asks) > lim:
+        errs.append('концовка-вопрос в %d постах из %d (%s) — не больше %d' % (len(asks), n, ', '.join(asks), lim))
+    lens = [len(p['q']) for p in posts if p['q']]
+    if n >= 3 and lens and min(lens) > 0.7 * max(lens):
+        errs.append('все цитаты почти одной длины (%d–%d знаков) — нужны и короткие посты, на 2 фразы' % (min(lens), max(lens)))
+    many = [p['pid'] for p in posts if len(re.findall(r'\d+(?:[,.:]\d+)?', p['q'])) >= 5]
+    if n >= 3 and len(many) == n:
+        warns.append('в каждом посте много цифр — в части постов хватит одной-двух и мысли')
+
+
 def main(path):
     job = json.load(open(path, encoding='utf-8'))
-    errs, warns, pids = [], [], []
+    errs, warns, pids, posts = [], [], [], []
     used = set()
     for f in glob.glob('team/out/**/*.json', recursive=True):
         if f.replace('\\', '/') == path.replace('\\', '/'):
@@ -98,6 +140,10 @@ def main(path):
             errs.append('%s: эмодзи в подписи — в канале без эмодзи' % where)
         if not m.get('vs'):
             warns.append('%s: нет поля "vs" — баннер не нарисуется banners.py' % where)
+        q = re.search(r'<blockquote>(.*?)</blockquote>', text, re.S)
+        c = re.search(r'^<i>(.+)</i>$', text, re.M)
+        posts.append(dict(pid=pid or str(i), q=plain(q.group(1)) if q else '', c=plain(c.group(1)) if c else ''))
+    variety(posts, errs, warns)
     for w in warns:
         print('ВНИМАНИЕ:', w)
     for e in errs:
