@@ -127,10 +127,10 @@ def main(path):
             errs.append('%s: нет цитаты <blockquote> с обоснованием' % where)
         if not re.search(r'^<i>.+</i>$', text, re.M):
             errs.append('%s: нет строки-завершения курсивом' % where)
-        if not re.search(r'\n#(кхл|нхл) #прогноз #jarvisbet\s*$', text):
-            errs.append('%s: последней строкой хэштеги «#кхл #прогноз #jarvisbet» / «#нхл #прогноз #jarvisbet» (владелец 15.10)' % where)
-        elif ('#кхл' in text) != lines[0].startswith('КХЛ'):
-            errs.append('%s: хэштег лиги не совпадает с шапкой' % where)
+        hd = re.match(r'^\S+ · (\d{1,2}) (\S+) ·', lines[0])
+        want = '#%s #прогноз #%s%s #jarvisbet' % ('кхл' if lines[0].startswith('КХЛ') else 'нхл', *(hd.groups() if hd else ('', '')))
+        if not text.rstrip().endswith('\n' + want):
+            errs.append('%s: последней строкой хэштеги «%s» — лига и дата матча из шапки (владелец 15.10)' % (where, want))
         low = html.unescape(re.sub(r'<[^>]+>', '', re.sub(r'#\w+', '', text))).lower()   # хэштеги (#jarvisbet) не проверяем
         for w in BANNED:
             if w in low:

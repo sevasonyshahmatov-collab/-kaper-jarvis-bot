@@ -396,7 +396,7 @@ def _glow(img, cx, cy, r, color, alpha=150):
     size = int(2 * (r + m))
     tile = Image.new('L', (size, size), 0)
     ImageDraw.Draw(tile).ellipse((m, m, m + 2 * r, m + 2 * r), fill=alpha)
-    tile = tile.filter(ImageFilter.GaussianBlur(r * 0.42))
+    tile = tile.filter(ImageFilter.GaussianBlur(r * 0.5))
     lay = Image.new('RGBA', (size, size), tuple(color) + (0,))
     lay.putalpha(tile)
     img.alpha_composite(lay, (int(cx - size / 2), int(cy - size / 2)))
@@ -412,6 +412,12 @@ def _fit_room(text, name, wght, f, room):
 def _over(c, a, bg=BG):
     """Цвет c с непрозрачностью a поверх фона — ImageDraw на RGBA не смешивает, а заменяет пиксели."""
     return tuple(int(x * a + y * (1 - a)) for x, y in zip(c, bg)) + (255,)
+
+
+def _ink_on(col):
+    """Текст на панели цвета col: белый с тенью, на светлой (золото, бирюза…) — тёмный почти без тени.
+    → (цвет, непрозрачность тени)."""
+    return ((26, 22, 18), 40) if vs._lum(col) > 140 else ((255, 255, 255), 150)
 
 
 def _pill_out(d, cx, cy, w, h, label, value, fl, fv, col):
@@ -488,10 +494,11 @@ def _diag(img, it, y0, R, league, acc, F, ph, pill_w, i):
     _txt(d, bx * S, ya * S, t, ft, (250, 250, 250))
     # аббревиатуры белым с тенью: хозяева — правее своей эмблемы, гости — левее своей
     ax = (x0 + R * 1.06, x1 - R * 1.06)
-    for k, (ab, anchor) in enumerate(((ha, 'l'), (aa, 'r'))):
+    for k, (ab, col, anchor) in enumerate(((ha, hc, 'l'), (aa, ac, 'r'))):
         edge = bx - bw / 2 - sl / 2 - 16 if k == 0 else bx + bw / 2 + sl / 2 + 16
         room = abs(edge - ax[k]) * S
-        _txt_sh(img, ax[k] * S, ya * S, ab, _fit_room(ab, ALU, 900, F['ab'], room), (255, 255, 255), anchor)
+        ink, sha = _ink_on(col)
+        _txt_sh(img, ax[k] * S, ya * S, ab, _fit_room(ab, ALU, 900, F['ab'], room), ink, anchor, alpha=sha)
     if o:
         yp = y0 + R * 0.77
         d = ImageDraw.Draw(img)
@@ -584,8 +591,8 @@ def _card(img, it, x0, y0, cw, ch, pad, plh, league, acc, F, pill_w, i):
 def _st_center(items, rows, league, acc):
     gap = 16
     R, top, H = _rows(len(items), rows, 236, gap)
-    F = dict(tm=_cap(OSW, 700, min(58, R * 0.27) * S), nm=_cap(OSW, 600, min(24, R * 0.105) * S),
-             ol=_cap(MAN, 800, min(14, R * 0.068) * S), ov=_cap(OSW, 600, min(22, R * 0.105) * S),
+    F = dict(tm=_cap(OSW, 700, min(58, R * 0.27) * S), nm=_cap(OSW, 600, max(17, min(24, R * 0.105)) * S),
+             ol=_cap(MAN, 800, max(11, min(14, R * 0.068)) * S), ov=_cap(OSW, 600, max(17, min(22, R * 0.105)) * S),
              vs=brand_kit.font(OSW, int(min(24, R * 0.12)) * S, 600))
 
     def paint(img):
@@ -617,22 +624,30 @@ def _center_row(img, it, y0, R, league, acc, F, i):
     d = ImageDraw.Draw(img)
     for k, (team, ab, col, name) in enumerate(((hn, ha, hc, hn), (an, aa, ac, an))):
         _emblem(img, team, ex[k] * S, ey * S, es * S, ab, col)
-    # названия под эмблемами (длинное — в две строки по пробелу/дефису, иначе мельче)
-    for k, name in enumerate((hn, an)):
+    # «П1 3.40 · Х 3.78 · П2 1.95» тонкой строкой под временем
+    parts = []
+    for lab, v in zip(('П1', 'Х', 'П2'), o or ()):
+        parts += [(lab, F['ol'], (175, 173, 182)), ('  ', F['ol'], GREY), ('%.2f' % v, F['ov'], acc)]
+        parts.append(('  ·  ', F['ov'], (130, 128, 136)))
+    parts = parts[:-1]
+    wsum = sum(f.getlength(tx) for tx, f, _ in parts)
+    oh = max(wsum / S / 2 + 34, 120)
+    # названия под эмблемами (длинное — в две строки по пробелу, иначе мельче); не заходят на строку линии
+    for k, (name, col) in enumerate(((hn, hc), (an, ac))):
         nm = name.upper()
-        room = 2 * min(ex[k] - MX - 10, xc - 150 - ex[k]) if k == 0 else 2 * min(W - MX - 10 - ex[k], ex[k] - xc - 150)
+        ink, sha = _ink_on(col)
+        room = 2 * min(ex[k] - MX - 10, xc - oh - ex[k]) if k == 0 else 2 * min(W - MX - 10 - ex[k], ex[k] - xc - oh)
         f = F['nm']
         yn = y0 + R * 0.88
-        if f.getlength(nm) > room * S and ' ' in nm:
+        if f.getlength(nm) * 0.8 > room * S and ' ' in nm:
             a_, b_ = nm.split(' ', 1)
             fs = _fit_room(max(a_, b_, key=len), OSW, 600, brand_kit.font(OSW, int(f.size * 0.86), 600), room * S)
             lh = fs.size / S * 0.95
             yn = min(yn, y0 + R - lh * 0.5 - 2)
-            _txt_sh(img, ex[k] * S, (yn - lh * 0.5) * S, a_, fs, (255, 255, 255), blur=4, alpha=170)
-            _txt_sh(img, ex[k] * S, (yn + lh * 0.5) * S, b_, fs, (255, 255, 255), blur=4, alpha=170)
+            _txt_sh(img, ex[k] * S, (yn - lh * 0.5) * S, a_, fs, ink, blur=4, alpha=sha)
+            _txt_sh(img, ex[k] * S, (yn + lh * 0.5) * S, b_, fs, ink, blur=4, alpha=sha)
         else:
-            _txt_sh(img, ex[k] * S, yn * S, nm, _fit_room(nm, OSW, 600, f, room * S), (255, 255, 255), blur=4,
-                    alpha=170)
+            _txt_sh(img, ex[k] * S, yn * S, nm, _fit_room(nm, OSW, 600, f, room * S), ink, blur=4, alpha=sha)
     d = ImageDraw.Draw(img)
     t = (it.get('time') or '').strip()
     yt = y0 + (R * 0.40 if o else R * 0.5)
@@ -643,13 +658,6 @@ def _center_row(img, it, y0, R, league, acc, F, i):
     else:
         _txt(d, xc * S, yt * S, 'vs', F['tm'], (250, 250, 250), ref='v')
     if o:
-        # «П1 3.40 · Х 3.78 · П2 1.95» тонкой строкой
-        parts = []
-        for lab, v in zip(('П1', 'Х', 'П2'), o):
-            parts += [(lab, F['ol'], (175, 173, 182)), ('   ', F['ol'], GREY), ('%.2f' % v, F['ov'], acc)]
-            parts.append(('    ·    ', F['ol'], (120, 118, 126)))
-        parts.pop()
-        wsum = sum(f.getlength(tx) for tx, f, _ in parts)
         x = xc * S - wsum / 2
         yo = y0 + R * 0.80
         for tx, f, c in parts:
@@ -739,7 +747,7 @@ def _fav_strip(img, it, y0, R, g, league, acc, F, pill_w, i):
 def _st_minimal(items, rows, league, acc):
     R, top, H = _rows(len(items), rows, 176, 0)
     F = dict(tm=_cap(OSW, 700, min(54, R * 0.30) * S), nm=_cap(OSW, 600, min(30, R * 0.165) * S),
-             ol=_cap(MAN, 800, min(12, R * 0.07) * S), ov=_cap(OSW, 600, min(28, R * 0.155) * S),
+             ol=_cap(MAN, 800, max(11, min(12, R * 0.07)) * S), ov=_cap(OSW, 600, min(28, R * 0.155) * S),
              vs=brand_kit.font(OSW, int(min(22, R * 0.12)) * S, 500))
 
     def paint(img):
