@@ -4,8 +4,10 @@
 и доводов к прогнозам на 15.10 (Лада — СКА, Северсталь — Локомотив).
 Облачная сессия до API не достаёт, Actions — достаёт: скрипт печатает в лог строки «KHLG {json}» (сыгранные матчи),
 «KHLNEXT {json}» (матчи дня с полем bets) и «KHLSTAGE {json}»; их читают из лога. Ничего не рисует и никуда не шлёт.
+Те же данные — в out/1510/khl_games.json и out/1510/khl_next.json для расчёта (khl_picks_calc.py — следующим скриптом задания).
 Запуск: python team/out/2026-10-15/khl_fetch.py [YYYY-MM-DD — день прогнозов по МСК, по умолчанию 2026-10-15]"""
 import json
+import os
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -87,6 +89,7 @@ def detail(e):
 with ThreadPoolExecutor(8) as ex:
     details = list(ex.map(detail, done))
 
+games = []
 for e, d in zip(done, details):
     src = d or e
     sc = str(src.get('score') or e.get('score') or '').split(':')
@@ -94,9 +97,14 @@ for e, d in zip(done, details):
         continue
     s = src.get('scores') or {}
     end = 'Б' if s.get('bullitt') else 'ОТ' if s.get('overtime') else ''
-    out('KHLG', {'d': day_msk(src.get('start_at') or e.get('start_at')), 'id': e.get('id'), 'h': team(src.get('team_a') or e.get('team_a')),
-                 'a': team(src.get('team_b') or e.get('team_b')), 'hg': int(sc[0]), 'ag': int(sc[1]), 'e': end, 's': s})
+    g = {'d': day_msk(src.get('start_at') or e.get('start_at')), 'id': e.get('id'), 'h': team(src.get('team_a') or e.get('team_a')),
+         'a': team(src.get('team_b') or e.get('team_b')), 'hg': int(sc[0]), 'ag': int(sc[1]), 'e': end,
+         'p': [s.get(k) or '' for k in ('first_period', 'second_period', 'third_period', 'overtime')]}
+    games.append(g)
+    print('KHLG %s|%s|%s|%s:%s%s|%s' % (g['d'][:10], g['h'], g['a'], g['hg'], g['ag'], ' ' + end if end else '', ','.join(x for x in g['p'] if x)),
+          flush=True)
 
+nxt = []
 for e in events:
     if e.get('game_state_key') == 'finished':
         continue
@@ -104,5 +112,16 @@ for e in events:
     if not day_msk(start).startswith(DAY):
         continue
     d = detail(e) or e
-    out('KHLNEXT', {'d': day_msk(start), 'id': e.get('id'), 'h': team(e.get('team_a')), 'a': team(e.get('team_b')),
-                    'bets': d.get('bets') or e.get('bets'), 'keys': sorted(list(d.keys()))[:60]})
+    b = dict(d.get('bets') or e.get('bets') or {})
+    b.pop('url', None)
+    x = {'d': day_msk(start), 'id': e.get('id'), 'h': team(e.get('team_a')), 'a': team(e.get('team_b')), 'bets': b,
+         'pair': d.get('this_pair_stat'), 'arena': d.get('arena') or d.get('location')}
+    nxt.append(x)
+    out('KHLNEXT', {k: x[k] for k in ('d', 'id', 'h', 'a', 'bets', 'arena')})
+    print('KHLPAIR', json.dumps(x['pair'], ensure_ascii=False)[:2500], flush=True)
+
+os.makedirs('out/1510', exist_ok=True)
+with open('out/1510/khl_games.json', 'w', encoding='utf-8') as f:
+    json.dump(games, f, ensure_ascii=False)
+with open('out/1510/khl_next.json', 'w', encoding='utf-8') as f:
+    json.dump(nxt, f, ensure_ascii=False)
