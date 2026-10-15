@@ -247,21 +247,15 @@ def _strip(img, it, y0, R, g, league, acc, F, pill_w, i):
             _pill(d, x * S, yp * S, pill_w * S, g['ph'] * S, lab, '%.2f' % v, F['pl'], F['pv'], acc)
 
 
-def render(items, path, league='KHL', title='МАТЧИ ДНЯ', date_title=None, cont=False, rows=None, *, style=None):
-    """style — только для совместимости с вызовом preview_ice.render(..., style='columns', ...), не используется."""
+def render(items, path, league='KHL', title='МАТЧИ ДНЯ', date_title=None, cont=False, rows=None, *, style='strips'):
+    """style — макет (STYLES): strips (по умолчанию), diagonal, cards, center, fav, minimal. Неизвестный style
+    (например, 'columns' из вызова preview_ice.render) — strips. Шапка, подвал, фон и размер постера — общие."""
+    style = style if style in STYLES else 'strips'
     league = league.upper()
     if league == 'NHL':
         nhl.register()
     acc = poster.ACC if league == 'KHL' else nhl.ICE
-    R, top, H = _layout(len(items), rows)
-    g = _geom(R)
-    F = dict(ab=_cap(ALU, 900, g['ab'] * S), tm=_cap(OSW, 700, g['tm'] * S),
-             vs=brand_kit.font(OSW, int(g['tm'] * 0.62) * S, 600), vs_big=brand_kit.font(OSW, int(g['tm'] * 1.1) * S, 600),
-             pv=_cap(OSW, 600, g['ph'] * 0.48 * S), pl=_cap(MAN, 800, g['ph'] * 0.30 * S))
-    # ширина плашек — общая на постер (по самой длинной цифре), чтобы колонки П1/Х/П2 стояли ровно
-    vals = ['8.88', '0.00'] + ['%.2f' % v for it in items for v in (it.get('odds') or ())]   # опора — постеры альбома ровно
-    pill_w = (max(F['pl'].getlength(l) for l in ('П1', 'П2')) + g['ph'] * 0.2
-              + max(F['pv'].getbbox(v, anchor='ls')[2] for v in vals)) / S + g['ph'] * 0.8
+    H, paint = _STYLE[style](items, rows, league, acc)
 
     img = _background(H)
     d = ImageDraw.Draw(img)
@@ -273,8 +267,7 @@ def render(items, path, league='KHL', title='МАТЧИ ДНЯ', date_title=None
         _txt(d, W / 2 * S, 124 * S, title, ft, (245, 245, 245))
         if date_title:
             _spaced(d, W / 2 * S, 196 * S, date_title.upper(), _cap(OSW, 600, 21 * S), acc, 3 * S)
-    for i, it in enumerate(items):
-        _strip(img, it, top + i * (R + GAP), R, g, league, acc, F, pill_w, i)
+    paint(img)
 
     d = ImageDraw.Draw(img)
     note = 'ВРЕМЯ МОСКОВСКОЕ' + (' · ' + FOOT_ODDS if any(it.get('odds') for it in items) else '')
@@ -285,6 +278,21 @@ def render(items, path, league='KHL', title='МАТЧИ ДНЯ', date_title=None
     os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
     out.save(path, quality=93, optimize=True)
     return path
+
+
+def _st_strips(items, rows, league, acc):
+    """Полосы (первый вариант): панели по краям, аббревиатуры, «vs» над временем, плашки П1/Х/П2."""
+    R, top, H = _layout(len(items), rows)
+    g = _geom(R)
+    F = dict(ab=_cap(ALU, 900, g['ab'] * S), tm=_cap(OSW, 700, g['tm'] * S),
+             vs=brand_kit.font(OSW, int(g['tm'] * 0.62) * S, 600), vs_big=brand_kit.font(OSW, int(g['tm'] * 1.1) * S, 600),
+             pv=_cap(OSW, 600, g['ph'] * 0.48 * S), pl=_cap(MAN, 800, g['ph'] * 0.30 * S))
+    pill_w = _pill_w(F, g['ph'], items)
+
+    def paint(img):
+        for i, it in enumerate(items):
+            _strip(img, it, top + i * (R + GAP), R, g, league, acc, F, pill_w, i)
+    return H, paint
 
 
 def _fit_w(text, name, wght, cap_px, max_w):
