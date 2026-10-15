@@ -15606,12 +15606,14 @@ function teamSchedSave_(m, pid, album, at, start, title) {
 
 /** Скопировать черновик (или альбом) в канал. */
 function teamPublishNow_(chat, mid, album) {
+  var h = Number(Utilities.formatDate(new Date(), 'Europe/Moscow', 'H')), quiet = h >= 23 || h < 8;   // ночью — без звука (team/POSTS.md)
   if (album) {
     var ids = [];
     for (var k = 0; k < album.n; k++) ids.push(album.first + k);
-    return tgRaw_('copyMessages', { chat_id: TEAM_CHANNEL, from_chat_id: chat, message_ids: ids });
+    return tgRaw_('copyMessages', { chat_id: TEAM_CHANNEL, from_chat_id: chat, message_ids: ids, disable_notification: quiet });
   }
-  return tgRaw_('copyMessage', { chat_id: TEAM_CHANNEL, from_chat_id: chat, message_id: mid, reply_markup: { inline_keyboard: [] } });
+  return tgRaw_('copyMessage', { chat_id: TEAM_CHANNEL, from_chat_id: chat, message_id: mid, reply_markup: { inline_keyboard: [] },
+    disable_notification: quiet });
 }
 
 /** Из liveUpdateAuto_ (раз в 5 минут): опубликовать посты, у которых подошло время выхода. */

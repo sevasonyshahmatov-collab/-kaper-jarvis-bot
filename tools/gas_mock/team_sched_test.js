@@ -117,4 +117,13 @@ due(609);
 tick();
 const cps = of('copyMessages');
 assert.ok(cps.length === 1 && JSON.stringify(cps[0].payload.message_ids) === '[300,301,302]');
+
+// 12. ночью (23:00–08:00 МСК) пост выходит без звука, днём — со звуком (по макету сейчас 10:00 МСК)
+assert.strictEqual(cps[0].payload.disable_notification, false);
+const night = gm.makeEnv({ now: new Date(Date.UTC(2026, 9, 15, 23, 30)).toISOString(), cache: true });   // 02:30 МСК
+gm.load(night, [path.join(ROOT, 'apps-script/project/Код.js')]);
+const nc = [];
+night.ctx.tgRaw_ = (method, payload) => { nc.push({ method, payload }); return { ok: true, result: { message_id: 1 } }; };
+night.ctx.teamPublishNow_(CHAT, 700, null);
+assert.ok(nc[0].method === 'copyMessage' && nc[0].payload.disable_notification === true);
 console.log('ok');
