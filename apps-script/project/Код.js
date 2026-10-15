@@ -15447,20 +15447,29 @@ function teamBotMessage_(msg, cmd) {
   var isList = cmd === '/задачи' || cmd === '/tasks';
   var isLog = cmd === '/отчёт' || cmd === '/отчет' || cmd === '/report';
   var isFix = !!(rep && String(rep.text || '').indexOf(TEAM_FIX_ASK) === 0);
-  if (!isTask && !isList && !isLog && !isFix) return false;
+  var repBot = !!(rep && rep.from && rep.from.is_bot && !isFix);           // ответ прямо на сообщение бота (пост, фото альбома)
+  var repTeam = repBot && teamKbPid_(rep.reply_markup) !== null;           // … и это пост команды с кнопками
+  var edit = isTask || isList || isLog ? null : teamEditParse_(msg.text);   // «заменить прогноз на: …» — правим сразу, без команды
+  var editTarget = null;
+  if (edit) editTarget = isFix ? teamEditStored_(chat, rep.message_id) : repBot ? teamEditTargetOf_(rep) : rep ? null : teamEditStored_(chat, null);
+  var isEdit = !!edit && (isFix || repBot || !!editTarget);
+  if (!isTask && !isList && !isLog && !isFix && !isEdit && !repTeam) return false;
   if (!tgIsChannelAdmin_(msg.from.id)) { tgAdminDenied_(chat, msg.from.id); return true; }
   var send = function (t) { tg_('sendMessage', { chat_id: chat, parse_mode: 'HTML', text: t, disable_web_page_preview: true }); };
+  if (isEdit) { teamEditRun_(msg, edit, editTarget, send); return true; }
   if (!PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN')) {
     send('⚠️ GitHub не подключён: в таблице меню «📣 … · ТГ группа» → «🔑 Подключить GitHub для постеров».'); return true;
   }
   try {
-    if (isTask || isFix) {
-      var body = isFix ? text : text.replace(/^\/\S+\s*/, '').replace(/^задача\s*[:\-—]\s*/i, '');
+    if (isTask || isFix || repTeam) {
+      var asFix = isFix || repTeam;
+      var body = asFix ? text : text.replace(/^\/\S+\s*/, '').replace(/^задача\s*[:\-—]\s*/i, '');
       body = body.replace(/\s*\n\s*/g, ' / ').trim();
       if (!body) { send('Напишите задачу после команды, например:\n<code>/задача сделать опрос на матч Ак Барс — СКА</code>'); return true; }
       var head = String(rep && rep.text || '').split('\n');
-      var line = isFix ? 'поправить ' + ((head[0].match(/предложении\s+(\S+?)\?/) || [])[1] || '') + ' ' + (head[1] || '') + ': ' + body
-        : 'задача: ' + body;
+      var fixPid = isFix ? ((head[0].match(/предложении\s+(\S+?)\?/) || [])[1] || '') : repTeam ? teamKbPid_(rep.reply_markup) : '';
+      var fixTitle = isFix ? (head[1] || '') : repTeam ? '«' + String(rep.caption || rep.text || '').split('\n')[0].trim().slice(0, 80) + '»' : '';
+      var line = asFix ? 'поправить ' + fixPid + ' ' + fixTitle + ': ' + body : 'задача: ' + body;
       teamAppend_('team/INBOX.md', '- [ ] ' + teamStamp_() + ' · ' + line, 'Inbox: owner request via Telegram');
       send('✅ Передал команде: «' + escHtml_(body.slice(0, 300)) + '».\nКоманда возьмёт на ближайшем запуске (09:45, 13:45, 19:45 МСК) и пришлёт предложение сюда.');
     } else if (isList) {
@@ -15509,6 +15518,7 @@ function teamCallback_(q, parts) {
       }
       if (!r || !r.ok) { cache.remove(key); throw new Error((r && r.description) || 'Telegram не ответил'); }
       mark('✅ Опубликовано');
+      teamEditRefresh_(m.chat.id, m.message_id, { pub: true });        // после публикации черновик сам уже не правим
       answer('Опубликовано в канал');
       teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · опубликовано владельцем: ' + pid + ' ' + title, 'Inbox: draft published by the owner');
     } else if (act === 'ok') {
@@ -15521,11 +15531,247 @@ function teamCallback_(q, parts) {
       teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · отказ: ' + pid + ' ' + title, 'Inbox: owner declined a proposal');
     } else if (act === 'fix') {
       answer();
-      tg_('sendMessage', { chat_id: m.chat.id, reply_to_message_id: m.message_id,
-        text: TEAM_FIX_ASK + ' ' + (pid || '—') + '?\n' + title + '\nОтветьте на это сообщение — передам команде.',
-        reply_markup: { force_reply: true, input_field_placeholder: 'что поправить' } });
+      var ask = tg_('sendMessage', { chat_id: m.chat.id, reply_to_message_id: m.message_id,
+        text: TEAM_FIX_ASK + ' ' + (pid || '—') + '?\n' + title + '\nСразу поправлю сам, если ответить так:\n' +
+          '• заменить прогноз на: …\n• заменить кэф на: …\n• заменить текст прогноза: …\n• заменить концовку: …\n' +
+          '• заменить «было» на «стало»\nЛюбой другой ответ передам команде.',
+        reply_markup: { force_reply: true, input_field_placeholder: 'заменить прогноз на: …' } });
+      if (ask && ask.ok && ask.result) teamEditRemember_(m.chat.id, ask.result.message_id, teamEditTargetOf_(m));
     } else answer();
   } catch (e) { answer('Не получилось: ' + String(e.message).slice(0, 150), true); }
+}
+
+/* ── ✏️ Правка черновика сразу, без команды (решение владельца 15.10) ──
+ *  В ответ на пост (свайп по нему влево) или после кнопки «Поправить» владелец пишет:
+ *    заменить прогноз на: победа СКА с учётом ОТ          заменить кэф на: 1,70
+ *    заменить текст прогноза: …                           заменить концовку: …
+ *    заменить время на: 19:30 · заменить матч: … · заменить шапку: … · заменить хэштеги: …
+ *    заменить «1,64» на «1,66» — любой кусок текста        убрать «…» · убрать концовку · убрать хэштеги
+ *  («поменять», «изменить», «исправить» — тоже; двоеточие можно не ставить: «заменить кэф на 1,70»).
+ *  Бот сразу меняет черновик здесь же (подпись или текст, кнопки остаются) — «Опубликовать» отправит новый вариант.
+ *  Оформление поста сохраняется: черновик переводится в HTML по разметке Telegram и меняется только нужная часть;
+ *  выделение (жирный, курсив…) в самой команде переходит в текст прогноза и концовку.
+ *  Опубликованный пост не трогаем — в канале его правят вручную. Свободный ответ («сделай короче») — команде, как раньше.
+ *  Каждая правка — строкой «[x] правка владельца в боте» в team/INBOX.md, чтобы команда знала новый вариант.
+ */
+var TEAM_EDIT_VERB = '(?:замени(?:ть|те)?|поменя(?:й|ть|йте)|измени(?:ть|те)?|исправ(?:ь|ить|ьте))';
+var TEAM_EDIT_KEEP_MS = 2 * 86400000;     // сколько помнить пост после «Поправить» (для ответа без свайпа)
+
+/** Тег Bot API HTML для сущности Telegram; null — её Telegram распознаёт сам (ссылка, хэштег, упоминание…). */
+function tgEntityTag_(e, close) {
+  var t = e.type;
+  if (t === 'bold') return close ? '</b>' : '<b>';
+  if (t === 'italic') return close ? '</i>' : '<i>';
+  if (t === 'underline') return close ? '</u>' : '<u>';
+  if (t === 'strikethrough') return close ? '</s>' : '<s>';
+  if (t === 'spoiler') return close ? '</tg-spoiler>' : '<tg-spoiler>';
+  if (t === 'code') return close ? '</code>' : '<code>';
+  if (t === 'pre') return e.language ? (close ? '</code></pre>' : '<pre><code class="language-' + escHtml_(e.language) + '">') : (close ? '</pre>' : '<pre>');
+  if (t === 'text_link') return close ? '</a>' : '<a href="' + escHtml_(e.url).replace(/"/g, '&quot;') + '">';
+  if (t === 'text_mention' && e.user) return close ? '</a>' : '<a href="tg://user?id=' + e.user.id + '">';
+  if (t === 'blockquote') return close ? '</blockquote>' : '<blockquote>';
+  if (t === 'expandable_blockquote') return close ? '</blockquote>' : '<blockquote expandable>';
+  if (t === 'custom_emoji') return close ? '</tg-emoji>' : '<tg-emoji emoji-id="' + e.custom_emoji_id + '">';
+  return null;
+}
+
+/** Текст с разметкой Telegram (entities) → Bot API HTML. from / to — кусок текста (индексы JS — те же единицы UTF-16, что у Telegram). */
+function tgToHtml_(text, entities, from, to) {
+  text = String(text || '');
+  from = from || 0;
+  to = to === undefined ? text.length : to;
+  var ents = (entities || []).filter(function (e) { return tgEntityTag_(e, false) !== null && e.offset < to && e.offset + e.length > from; })
+    .map(function (e) { return { e: e, s: Math.max(from, e.offset), t: Math.min(to, e.offset + e.length) }; })
+    .sort(function (a, b) { return a.s - b.s || b.t - a.t; });
+  var cuts = [from, to];
+  ents.forEach(function (x) { cuts.push(x.s, x.t); });
+  cuts = cuts.filter(function (v, i, a) { return a.indexOf(v) === i; }).sort(function (a, b) { return a - b; });
+  var out = '', stack = [];
+  for (var i = 0; i + 1 < cuts.length; i++) {
+    var a = cuts[i], b = cuts[i + 1];
+    var act = ents.filter(function (x) { return x.s <= a && x.t >= b; });
+    var k = 0;
+    while (k < stack.length && act.indexOf(stack[k]) >= 0) k++;
+    while (stack.length > k) out += tgEntityTag_(stack.pop().e, true);    // пересекающиеся — закрыть и открыть заново
+    act.forEach(function (x) { if (stack.indexOf(x) < 0) { out += tgEntityTag_(x.e, false); stack.push(x); } });
+    out += escHtml_(text.slice(a, b));
+  }
+  while (stack.length) out += tgEntityTag_(stack.pop().e, true);
+  return out;
+}
+
+/** Номер предложения по кнопкам под постом команды ('' — номер не виден, например «✅ Опубликовано»); null — не пост команды. */
+function teamKbPid_(kb) {
+  var pid = null;
+  ((kb && kb.inline_keyboard) || []).forEach(function (row) {
+    row.forEach(function (b) {
+      var p = String(b.callback_data || '').split('|');
+      if (p[0] === 'tm' && pid === null) pid = p[1] === 'done' ? '' : (p[2] || '');
+    });
+  });
+  return pid;
+}
+
+/** Что правим: сообщение бота (пост, первое фото альбома) → {mid, cap, html, kb, pid, pub, album, t}. */
+function teamEditTargetOf_(m) {
+  var cap = m.caption !== undefined || !!(m.photo || m.video || m.document || m.animation);
+  var kbs = JSON.stringify(m.reply_markup || {}), al = kbs.match(/tm\|pubm\|[^|"]*\|(\d+)\|(\d+)/);
+  return { mid: m.message_id, cap: cap, kb: m.reply_markup || null, pid: teamKbPid_(m.reply_markup) || '',
+    pub: kbs.indexOf('Опубликовано') >= 0, album: al ? { first: Number(al[1]), n: Number(al[2]) } : null,
+    html: al ? null : tgToHtml_(cap ? m.caption : m.text, cap ? m.caption_entities : m.entities), t: Date.now() };
+}
+
+/** Запомнить пост за вопросом «Что поправить» (и как последний — для ответа без свайпа); старые записи убрать. */
+function teamEditRemember_(chat, askId, tgt) {
+  var p = PropertiesService.getScriptProperties(), v = JSON.stringify(tgt);
+  if (v.length > 8500) return;                                       // свойство до 9 КБ — длинный пост правят ответом прямо на него
+  p.setProperty('TMFIX_' + chat + '_' + askId, v);
+  p.setProperty('TMFIX_LAST_' + chat, v);
+  p.getKeys().forEach(function (k) {
+    if (k.indexOf('TMFIX_') !== 0) return;
+    var old = true;
+    try { old = Date.now() - JSON.parse(p.getProperty(k)).t > TEAM_EDIT_KEEP_MS; } catch (e) { old = true; }
+    if (old) p.deleteProperty(k);
+  });
+}
+
+/** Пост за вопросом «Что поправить» askId или последний «Поправить» в этом чате (askId пустой). */
+function teamEditStored_(chat, askId) {
+  var v = PropertiesService.getScriptProperties().getProperty(askId ? 'TMFIX_' + chat + '_' + askId : 'TMFIX_LAST_' + chat);
+  if (!v) return null;
+  try { var t = JSON.parse(v); return Date.now() - t.t > TEAM_EDIT_KEEP_MS ? null : t; } catch (e) { return null; }
+}
+
+/** Обновить запомненное по посту mid: {html} после правки, {pub: true} после публикации. */
+function teamEditRefresh_(chat, mid, patch) {
+  var p = PropertiesService.getScriptProperties();
+  p.getKeys().forEach(function (k) {
+    if (k !== 'TMFIX_LAST_' + chat && k.indexOf('TMFIX_' + chat + '_') !== 0) return;
+    try {
+      var t = JSON.parse(p.getProperty(k));
+      if (t.mid !== mid) return;
+      for (var x in patch) t[x] = patch[x];
+      p.setProperty(k, JSON.stringify(t));
+    } catch (e) { /* битую запись пропускаем */ }
+  });
+}
+
+/** Что именно правят: по словам после «заменить». */
+function teamEditField_(s) {
+  s = String(s || '').toLowerCase();
+  if (/текст|обосн|цитат|разбор|описан|аргумент|довод/.test(s)) return 'quote';
+  if (/к[эо]ф|коэф/.test(s)) return 'odds';
+  if (/концовк|последн|вопрос|курсив|низ/.test(s)) return 'tail';
+  if (/врем/.test(s)) return 'time';
+  if (/шапк|заголов|дат/.test(s)) return 'head';
+  if (/матч|команд|пар[ау]/.test(s)) return 'match';
+  if (/хэш|хеш|тег/.test(s)) return 'tags';
+  if (/прогноз|ставк/.test(s)) return 'pick';
+  return null;
+}
+
+/** Команда правки → {what, plain, from} (from — где в тексте начинается новое) | {what: 'swap'|'del', a, b} | null. */
+function teamEditParse_(text) {
+  var t = String(text || ''), m, Q = '[«"“„\']', Qe = '[»"”\']';
+  m = t.match(new RegExp('^\\s*' + TEAM_EDIT_VERB + '\\s+' + Q + '([\\s\\S]+?)' + Qe + '\\s+на\\s+' + Q + '([\\s\\S]*?)' + Qe + '\\s*$', 'i'));
+  if (m) return { what: 'swap', a: m[1], b: m[2] };
+  m = t.match(/^\s*(?:убер(?:и|ите)|убрать|удали(?:ть|те)?)\s+([\s\S]+?)\s*$/i);
+  if (m) {
+    var q = m[1].match(new RegExp('^' + Q + '([\\s\\S]+)' + Qe + '$'));
+    if (q) return { what: 'del', a: q[1], b: '' };
+    var w = teamEditField_(m[1]);
+    return w === 'tail' || w === 'tags' ? { what: 'del' + w } : null;
+  }
+  m = t.match(new RegExp('^\\s*' + TEAM_EDIT_VERB + '\\s+([^:\\n]{1,40}?)\\s*(?:\\sна)?\\s*:\\s*', 'i'));
+  if (m && teamEditField_(m[1]) && t.slice(m[0].length).trim()) return { what: teamEditField_(m[1]), from: m[0].length, plain: t.slice(m[0].length).trim() };
+  m = t.match(new RegExp('^\\s*' + TEAM_EDIT_VERB + '\\s+(\\S+(?:\\s+\\S+)?)\\s+на\\s+([\\s\\S]+)$', 'i'));
+  if (m && teamEditField_(m[1])) {                                      // «заменить кэф на 1,70», «… на — 1,70»
+    var lead = m[2].match(/^[\s:—–-]*/)[0].length;
+    return m[2].slice(lead).trim() ? { what: teamEditField_(m[1]), from: t.length - m[2].length + lead, plain: m[2].slice(lead).trim() } : null;
+  }
+  if (m) return { what: 'swap', a: m[1], b: m[2].trim() };             // «заменить 1,64 на 1,66» — без кавычек
+  return null;
+}
+
+/** Как назвать правку в ответе и в INBOX. */
+function teamEditWhat_(ed) {
+  var short = function (s) { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > 60 ? s.slice(0, 57) + '…' : s; };
+  return {
+    pick: 'прогноз → «' + short(ed.plain) + '»', odds: 'кэф → ' + short(ed.plain), quote: 'текст прогноза', tail: 'концовка',
+    time: 'время → ' + short(ed.plain), head: 'шапка', match: 'матч → «' + short(ed.plain) + '»', tags: 'хэштеги',
+    swap: '«' + short(ed.a) + '» → «' + short(ed.b) + '»', del: 'убрано «' + short(ed.a) + '»', deltail: 'убрана концовка', deltags: 'убраны хэштеги'
+  }[ed.what] || ed.what;
+}
+
+/** Применить правку к HTML поста; v — новое с оформлением (HTML), для прогноза, кэфа и т. п. — простой текст. Ошибка — понятными словами. */
+function teamEditApply_(html, ed, v) {
+  var p = escHtml_(ed.plain || ''), lines = html.split('\n'), out = html, i, n;
+  var need = function (ok, why) { if (!ok) throw new Error(why); };
+  var tailRe = /(<\/blockquote>)\n+(<i>[^\n]*<\/i>)(?=\n|$)/;
+  if (ed.what === 'pick') {
+    need(/(^|\n)Прогноз\s*:/.test(html), 'в посте нет строки «Прогноз:»');
+    out = html.replace(/(^|\n)(Прогноз\s*:\s*)[^\n]*/, function (s, a, b) { return a + b + '<b>' + p + '</b>'; });
+  } else if (ed.what === 'odds') {
+    need(/(^|\n)К[эо]ф[^\n:]*:/i.test(html), 'в посте нет строки «Кэф:»');
+    out = html.replace(/(^|\n)(К[эо]ф[^\n:]*:\s*)[^\n]*/i, function (s, a, b) { return a + b + '<b>' + p + '</b>'; });
+  } else if (ed.what === 'quote') {
+    need(/<blockquote/.test(html), 'в посте нет цитаты с текстом прогноза');
+    out = html.replace(/<blockquote( expandable)?>[\s\S]*?<\/blockquote>/, function (s, ex) { return '<blockquote' + (ex || '') + '>' + v + '</blockquote>'; });
+  } else if (ed.what === 'tail') {
+    if (tailRe.test(html)) out = html.replace(tailRe, function (s, q) { return q + '\n\n<i>' + v + '</i>'; });
+    else { need(/<\/blockquote>/.test(html), 'не нашёл, куда поставить концовку'); out = html.replace(/<\/blockquote>/, function () { return '</blockquote>\n\n<i>' + v + '</i>'; }); }
+  } else if (ed.what === 'deltail') {
+    need(tailRe.test(html), 'в посте нет концовки курсивом');
+    out = html.replace(tailRe, function (s, q) { return q; });
+  } else if (ed.what === 'time') {
+    need(/\d{1,2}[:.]\d{2}/.test(lines[0]), 'в шапке нет времени');
+    lines[0] = lines[0].replace(/\d{1,2}[:.]\d{2}/, function () { return p.replace(/\s*мск\s*$/i, ''); });
+    out = lines.join('\n');
+  } else if (ed.what === 'head') {
+    lines[0] = p;
+    out = lines.join('\n');
+  } else if (ed.what === 'match') {
+    for (i = 0; i < lines.length && !/^<b>[^\n]*<\/b>$/.test(lines[i]); i++) { /* первая строка целиком жирным — матч */ }
+    need(i < lines.length, 'не нашёл строку с матчем');
+    lines[i] = '<b>' + p + '</b>';
+    out = lines.join('\n');
+  } else if (ed.what === 'tags' || ed.what === 'deltags') {
+    n = lines.length - 1;
+    var has = /^#/.test(lines[n]);
+    need(has || ed.what === 'tags', 'в посте нет хэштегов');
+    if (ed.what === 'deltags') lines.pop(); else if (has) lines[n] = p; else lines.push('', p);
+    out = lines.join('\n');
+  } else if (ed.what === 'swap' || ed.what === 'del') {
+    var a = escHtml_(ed.a);
+    need(a && html.indexOf(a) >= 0, 'не нашёл «' + ed.a + '» в тексте поста (кусок нужен точно как в посте, без выделения посередине)');
+    out = html.split(a).join(escHtml_(ed.b));
+  }
+  out = out.replace(/\n{3,}/g, '\n\n').replace(/^\s+|\s+$/g, '');
+  need(out !== html, 'ничего не изменилось');
+  return out;
+}
+
+/** Правка черновика по команде владельца: сразу меняет пост здесь же, отвечает и пишет строку в INBOX. */
+function teamEditRun_(msg, ed, tgt, send) {
+  if (!tgt) { send('Не понял, какой пост править: ответьте командой прямо на пост (свайп по нему влево) или нажмите под ним «Поправить».'); return; }
+  if (tgt.pub) { send('Этот пост уже в канале — там его правят вручную (долгий тап по посту → «Изменить»). Черновик не трогаю.'); return; }
+  if (!tgt.html) { send('У альбома подпись на первом фото: ответьте командой прямо на первое фото альбома.'); return; }
+  var v = ed.from !== undefined ? tgToHtml_(msg.text, msg.entities, ed.from).replace(/^\s+|\s+$/g, '') : '';
+  try {
+    var html = teamEditApply_(tgt.html, ed, v);
+    var p = { chat_id: msg.chat.id, message_id: tgt.mid, parse_mode: 'HTML' };
+    if (tgt.kb) p.reply_markup = tgt.kb;
+    var r;
+    if (tgt.cap) { p.caption = html; r = tgRaw_('editMessageCaption', p); }
+    else { p.text = html; p.link_preview_options = { is_disabled: true }; r = tgRaw_('editMessageText', p); }
+    if (!r || !r.ok) throw new Error(/not modified/i.test((r && r.description) || '') ? 'ничего не изменилось' : (r && r.description) || 'Telegram не ответил');
+    teamEditRefresh_(msg.chat.id, tgt.mid, { html: html, t: Date.now() });
+    send('✅ Поправил: ' + escHtml_(teamEditWhat_(ed)) + '. Пост выше уже новый — «Опубликовать» отправит его в канал.');
+    try {
+      teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · правка владельца в боте: ' + (tgt.pid || 'пост') + ' — ' + teamEditWhat_(ed),
+        'Inbox: owner edited a draft in the bot');
+    } catch (e) { /* без GitHub правка всё равно сделана */ }
+  } catch (e) { send('⚠️ Не поправил: ' + escHtml_(e.message) + '.'); }
 }
 
 /** К подписи постера «Итоги дня»: в КХЛ дополнительного блока нет (россиян отдельно не выделяем). */
