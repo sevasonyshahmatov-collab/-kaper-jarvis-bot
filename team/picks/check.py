@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """Проверка задания с постами-прогнозами перед отправкой владельцу: формат поста (team/POSTS.md, «Прогноз на матч»),
 лимиты Telegram, разметка, номера, запретные слова. Ошибки — код выхода 1 (задание не запускать, пока не исправлено).
-Запуск: python team/picks/check.py team/out/<день>/picks_khl.json"""
+Запуск: python team/picks/check.py team/out/<день>/picks_khl.json
+Следующий свободный номер поста на день: python team/picks/check.py --next 1610 → 1610-4"""
 import glob
 import html
 import json
@@ -105,5 +106,20 @@ def main(path):
     return 1 if errs else 0
 
 
+def next_pid(mmdd):
+    """Номера ММДД-N из всех заданий team/out и строк INBOX — следующий свободный."""
+    n = 0
+    for f in glob.glob('team/out/**/*.json', recursive=True) + ['team/INBOX.md']:
+        try:
+            for x in re.findall(r'\b%s-(\d+)\b' % re.escape(mmdd), open(f, encoding='utf-8').read()):
+                n = max(n, int(x))
+        except OSError:
+            pass
+    return '%s-%d' % (mmdd, n + 1)
+
+
 if __name__ == '__main__':
+    if sys.argv[1] == '--next':
+        print(next_pid(sys.argv[2]))
+        sys.exit(0)
     sys.exit(main(sys.argv[1]))

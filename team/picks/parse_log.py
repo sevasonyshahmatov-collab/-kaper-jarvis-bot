@@ -43,6 +43,11 @@ def lines_of(path):
     return out
 
 
+def pct(line):
+    m = re.search(r'\|\s+([\d.]+)%', line)
+    return float(m.group(1)) if m else 100.0
+
+
 def main(path, folder):
     ls = lines_of(path)
     os.makedirs(folder, exist_ok=True)
@@ -60,13 +65,16 @@ def main(path, folder):
         x1 = m.get('x1x2') or [None] * 3
         fin = m.get('fin') or [None] * 2
         f = lambda v: ('%.2f' % v) if v else '—'  # noqa: E731
-        md += ['## %d. %s — %s · %s МСК%s' % (i, h, a, m.get('d', ''), ' · ' + str(m.get('venue') or m.get('arena') or '') if (m.get('venue') or m.get('arena')) else ''),
+        place = m.get('venue') or m.get('arena') or ''
+        if isinstance(place, dict):
+            place = place.get('name') or ''
+        md += ['## %d. %s — %s · %s МСК%s' % (i, h, a, m.get('d', ''), ' · ' + str(place) if place else ''),
                'Линия: П1/Х/П2 осн. время %s / %s / %s · итоговая победа (с ОТ и Б) %s / %s' % (f(x1[0]), f(x1[1]), f(x1[2]), f(fin[0]), f(fin[1]))]
         if m.get('bets'):
             md.append('Фонбет (приложение КХЛ): %s' % json.dumps(m['bets'], ensure_ascii=False))
-        md.append('Ставки с кэфом — вероятность «Что заходит», кэф, p×k:')
-        md += ['- ' + x for x in by('BRIEF') if x.startswith(pair + ' |')]
-        top = [x for x in by('CALC') if x.startswith(pair + ' |')][:6]
+        md.append('Ставки с кэфом от 35 % — вероятность «Что заходит», кэф, p×k:')
+        md += ['- ' + x for x in by('BRIEF') if x.startswith(pair + ' |') and (pct(x) >= 35 or 'ВЫБОР' in x or 'ВАРИАНТ' in x)]
+        top = [x for x in by('CALC') if x.startswith(pair + ' |')][:4]
         md.append('Самые вероятные ставки (с кэфом и без):')
         md += ['- ' + x for x in top]
         md += [x for x in by('PAIR') if x.startswith(h + ' — ' + a + ' |')]
