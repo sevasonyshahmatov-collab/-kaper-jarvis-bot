@@ -8,20 +8,44 @@
   • палитра бренда: тёмный BG, золото (КХЛ), лёд (НХЛ), зелёный (заход), красный (минус), белый;
   • узор Versus — концентрические кольца тон-в-тон на плоскостях; шрифты Montserrat 900 (крупные знаки)
     и Tektur 900 узкий (подписи КХЛ / LIVE / МСК — самые высокие буквы на ширину 100 px).
-Логотипов лиг/клубов, букмекеров, «100%»/«гарант» нет.
+Логотипов лиг/клубов, букмекеров, «100%»/«гарант» нет (клубы — только текстовые плашки с аббревиатурой).
+
+Группы (GROUPS): base — исходные 28; score — цифры табло d0…d9 и dcolon; bar — сегменты полосы «дневника»
+(bar_l, bar_win, bar_loss, bar_push, bar_wait, bar_r — стыкуются в одну полосу); khl / nhl — плашки клубов
+khl_<аббр. латиницей> (khl_TOR, khl_CSK…) и nhl_<аббр.> (nhl_bos…); KHL_KEY / NHL_KEY: клуб → ключ.
 
 Запуск:  python team/emoji/make.py [папка] [ключи…]          → <папка>/<ключ>.png
-         python team/emoji/make.py [папка] --preview          → ещё sheet.png и inline.png
+         python team/emoji/make.py [папка] --group=score,bar  → только эти группы
+         python team/emoji/make.py [папка] --preview          → ещё sheet.png/inline.png (base)
+                                                                и sheet2.png/inline2.png (новые группы)
 """
+import ast
 import math
 import os
+import random
 import sys
 
 import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-FD = os.path.join(HERE, '..', '..', 'render', 'fonts')
+RENDER = os.path.join(HERE, '..', '..', 'render')
+FD = os.path.join(RENDER, 'fonts')
+sys.path.append(RENDER)
+import nhl as _nhl  # noqa: E402  — реестр клубов НХЛ (аббревиатуры, цвета)
+import poster as _poster  # noqa: E402  — цвета клубов КХЛ
+
+
+def _literal(path, name):
+    """Константа-литерал модуля без его импорта: versus тянет весь рендер баннеров и меняет настройки PIL."""
+    with open(path, encoding='utf-8') as f:
+        for node in ast.parse(f.read()).body:
+            if isinstance(node, ast.Assign) and any(getattr(t, 'id', None) == name for t in node.targets):
+                return ast.literal_eval(node.value)
+    raise KeyError('%s нет в %s' % (name, path))
+
+
+KHL_ABBR = _literal(os.path.join(RENDER, 'versus.py'), 'KHL_ABBR')        # аббревиатуры КХЛ (как на Versus)
 DEFAULT_OUT = '/tmp/claude-0/-home-user--kaper-jarvis-bot/750ccff3-fed4-56c4-8b4f-e7d578ed1f4d/scratchpad/emoji'
 
 S = 8                       # пикселей на единицу (100 ед. = 800 px)
@@ -1318,6 +1342,303 @@ def e_vs():
     return art
 
 
+# ───────────────────────────── счёт: цифры табло ─────────────────────────────
+
+SCORE_BOX = (10, 5, 90, 93)       # плитка цифры, ед. (как у «Б» буллитов по высоте); двоеточие — та же высота, уже
+COLON_BOX = (30, 5, 70, 93)
+SCORE_R, SCORE_RIM = 16, 4.6
+SCORE_CY = 49                     # центр плитки = шов табло = середина цифр
+SCORE_H, SCORE_W = 64, 58         # чернила цифр 0–9: высота (общая для всех), наибольшая ширина, ед.
+
+
+def rect(y0, y1, x0=0, x1=100):
+    m = M()
+    md(m).rectangle((u(x0), u(y0), u(x1), u(y1)), fill=255)
+    return m
+
+
+def dark_tile(art, box, r, rim_w=SCORE_RIM, rim=GOLD, seam=None):
+    """Тёмная плитка с золотым ободком. seam — y шва табло (перекидная карточка): верх чуть светлее, тонкая щель.
+    → маска внутренней плоскости (для теней знака)."""
+    x0, y0, x1, y1 = box
+    pm = rrect(M(), box, r)
+    inner = rrect(M(), (x0 + rim_w, y0 + rim_w, x1 - rim_w, y1 - rim_w), max(1.0, r - rim_w))
+    put(art, lin([(64, 61, 70), (30, 28, 34), (14, 13, 16)], pm), pm)
+    rings(art, inner, x0 + 10, y0 + 6, step=6, alpha=0.06)
+    if seam is not None:
+        put(art, (255, 255, 255), mul(inner, rect(0, seam)), 0.04)
+        put(art, (0, 0, 0), mul(inner, rect(seam - 0.6, seam + 0.6)), 0.6)
+    rm = sub(pm, inner)
+    put(art, lin([mix(rim, 0.5), rim, mix(rim, -0.4)], rm), rm)
+    bevel(art, rm, hi=0.5, lo=0.45, d=1.4, b=0.7)
+    put(art, (0, 0, 0), mul(blur(sub(inner, shift(inner, u(0.6), u(1.8))), 1.2), inner), 0.5)
+    gloss(art, inner, (x0 - 8, y0 - 10, x0 + (x1 - x0) * 0.75, y0 + 30), alpha=0.07)
+    return inner
+
+
+_DIGIT_FONT = {}
+
+
+def digit_font(h=SCORE_H, w=SCORE_W):
+    """Кегль Montserrat 900, при котором чернила всех цифр 0–9 вместе не выше h, а самая широкая — не шире w ед.
+    Один кегль и одна рамка по вертикали на все цифры: одинаковый размер и общая базовая линия."""
+    if (h, w) not in _DIGIT_FONT:
+        name, wght, wdth = MONT
+        size = int(u(h) * 1.6)
+        while size > 8:
+            f = font(name, size, wght, wdth)
+            _, t, _, b = f.getbbox('0123456789')
+            wmax = max(f.getbbox(c)[2] - f.getbbox(c)[0] for c in '0123456789')
+            if b - t <= u(h) and wmax <= u(w):
+                break
+            size -= max(1, size // 80)
+        _DIGIT_FONT[h, w] = (f, t, b)
+    return _DIGIT_FONT[h, w]
+
+
+def digit_mask(ch, cx=50, cy=SCORE_CY):
+    """Цифра (или «:») кеглем digit_font(): по горизонтали — по центру чернил, по вертикали — по общей рамке цифр
+    (у «:» — по центру своих чернил)."""
+    f, t, b = digit_font()
+    l, tt, r, bb = f.getbbox(ch)
+    if not ch.isdigit():
+        t, b = tt, bb
+    m = M()
+    md(m).text((u(cx) - (l + r) / 2, u(cy) - (t + b) / 2), ch, font=f, fill=255)
+    return m
+
+
+def e_digit(ch):
+    """Цифра табло: белая Montserrat 900 на тёмной плитке с золотым ободком, шов перекидной карточки."""
+    art = new()
+    inner = dark_tile(art, SCORE_BOX, SCORE_R, seam=SCORE_CY)
+    g = digit_mask(ch)
+    glyph(art, g, inner, alpha=0.55)
+    put(art, (0, 0, 0), mul(g, rect(SCORE_CY - 0.5, SCORE_CY + 0.5)), 0.3)
+    return art
+
+
+def e_dcolon():
+    """Двоеточие табло: узкая плитка той же высоты по центру холста."""
+    art = new()
+    inner = dark_tile(art, COLON_BOX, 13, seam=SCORE_CY)
+    g = digit_mask(':')
+    glyph(art, g, inner, alpha=0.55)
+    return art
+
+
+# ───────────────────────────── дневник: сегменты полосы ─────────────────────────────
+# Сегменты во всю ширину холста (0…100 ед.), высота BAR_Y0…BAR_Y1: стоят рядом — сливаются в одну полосу
+# с золотой кромкой сверху и снизу. Объём только «шовный»: на левом/правом крае холста нет кромок фаски.
+
+BAR_Y0, BAR_Y1 = 28, 72
+BAR_RIM = 3.4
+BAR_CAP = 74                      # центр скругления торца bar_l, ед. (у bar_r — 100 − BAR_CAP)
+BAR_WAIT = (66, 70, 82)
+
+
+def _wide(m, pad):
+    """Маска на холсте шире на pad px с каждой стороны; крайние столбцы продолжены наружу."""
+    w = Image.new('L', (N + 2 * pad, N), 0)
+    w.paste(m, (pad, 0))
+    w.paste(m.crop((0, 0, 1, N)).resize((pad, N)), (0, 0))
+    w.paste(m.crop((N - 1, 0, N, N)).resize((pad, N)), (N + pad, 0))
+    return w
+
+
+def _edge(mask, dx, dy, b):
+    """Кромка маски со стороны (−dx, −dy), размытая; края холста слева/справа — продолжение формы."""
+    pad = int(u(12))
+    w = _wide(mask, pad)
+    return mul(blur(sub(w, shift(w, dx, dy)), b).crop((pad, 0, pad + N, N)), mask)
+
+
+def seam_bevel(base, mask, hi=0.55, lo=0.45, d=2.4, b=1.5):
+    """bevel() для сегментов полосы: на стыках соседних эмодзи нет светлой/тёмной кромки."""
+    dx, dy = u(d) * 0.55, u(d)
+    put(base, (255, 255, 255), _edge(mask, dx, dy, b), hi)
+    put(base, (0, 0, 0), _edge(mask, -dx, -dy, b), lo)
+
+
+def _bar_body(art, outer, inner, stops, rc=(50, 0), ring_a=0.08):
+    """Золотая кромка outer − inner, заливка inner (градиент строго сверху вниз — без ступеньки на стыке),
+    кольца, внутренняя тень от кромки, глянцевая полоса."""
+    box = (0, BAR_Y0 + BAR_RIM, 100, BAR_Y1 - BAR_RIM)
+    put(art, lin(stops, direction=(0, 1), box=box), inner)
+    rings(art, inner, rc[0], rc[1], step=5.5, alpha=ring_a)
+    put(art, (255, 255, 255), mul(blur(rect(BAR_Y0 + BAR_RIM + 1.5, 44), 2.0), inner), 0.16)
+    put(art, (0, 0, 0), _edge(inner, u(0.6), u(1.8), 1.2), 0.5)
+    rm = sub(outer, inner)
+    put(art, lin([mix(GOLD, 0.6), GOLD, mix(GOLD, -0.45)], direction=(0, 1), box=(0, BAR_Y0, 100, BAR_Y1)), rm)
+    seam_bevel(art, rm, hi=0.45, lo=0.35, d=1.2, b=0.6)
+
+
+def _bar_icon(art, g, surface):
+    """Маленький белый знак на сегменте: тень, градиент, лёгкая фаска."""
+    cast(art, g, surface, 0.45, d=1.5, b=0.9)
+    put(art, lin([(255, 255, 255), WHITE, mix(WHITE, -0.12)], g), g)
+    bevel(art, g, hi=0.35, lo=0.2, d=1.0, b=0.6)
+
+
+def _bar_seg(col, icon=None):
+    art = new()
+    outer = rect(BAR_Y0, BAR_Y1, -1, 101)
+    inner = rect(BAR_Y0 + BAR_RIM, BAR_Y1 - BAR_RIM, -1, 101)
+    if col is None:                                   # пустая ячейка: тёмно-серая, утоплена (глубже тень)
+        _bar_body(art, outer, inner, [mix(BAR_WAIT, 0.12), BAR_WAIT, mix(BAR_WAIT, -0.35)], ring_a=0.05)
+        put(art, (0, 0, 0), _edge(inner, u(0.4), u(3.2), 2.2), 0.35)
+    else:
+        _bar_body(art, outer, inner, [mix(col, 0.3), col, mix(col, -0.2)])
+    if icon is not None:
+        _bar_icon(art, icon, inner)
+    return art
+
+
+def e_bar_win():
+    k, (cx, cy) = 0.66, (50, 46.8)
+    return _bar_seg(GREEN, stroke(M(), [(50 + (x - cx) * k, 50.8 + (y - cy) * k) for x, y in CHECK], 7.6))
+
+
+def e_bar_loss():
+    a = 8.2
+    return _bar_seg(RED, union(stroke(M(), [(50 - a, 50 - a), (50 + a, 50 + a)], 7.4),
+                               stroke(M(), [(50 + a, 50 - a), (50 - a, 50 + a)], 7.4)))
+
+
+def e_bar_push():
+    """↩ — та же стрелка, что у vozvrat, уменьшенная."""
+    k, cx, cy = 0.6, 47.5, 43.2
+    path = [(41, 36), (57, 36)] + arc_pts(57, 50, 14, -90, 90, 32)[1:] + [(43, 64)]
+    tip = [(24, 36), (43, 22.5), (43, 49.5)]
+
+    def T(pts):
+        return [(51 + (x - cx) * k, 50 + (y - cy) * k) for x, y in pts]
+
+    g = soften(union(stroke(M(), T(path), 11 * k), poly(M(), T(tip))), 0.3)
+    return _bar_seg(ICE, g)
+
+
+def e_bar_wait():
+    return _bar_seg(None)
+
+
+def _bar_cap(side):
+    """Торец полосы: тёмный, скруглённый, золотая кромка; открытая сторона — во весь край холста."""
+    art = new()
+    c = BAR_CAP if side == 'l' else 100 - BAR_CAP
+    cy, R = (BAR_Y0 + BAR_Y1) / 2, (BAR_Y1 - BAR_Y0) / 2
+    xs = (c, 101) if side == 'l' else (-1, c)
+    outer = union(ell(M(), c, cy, R), rect(BAR_Y0, BAR_Y1, *xs))
+    inner = union(ell(M(), c, cy, R - BAR_RIM), rect(BAR_Y0 + BAR_RIM, BAR_Y1 - BAR_RIM, *xs))
+    _bar_body(art, outer, inner, [(64, 61, 70), (30, 28, 34), (14, 13, 16)], rc=(c, cy - 30), ring_a=0.05)
+    # заклёпка-шайбочка на торце
+    dot = ell(M(), c, cy, 5.2)
+    cast(art, dot, inner, 0.5, d=1.4, b=0.8)
+    put(art, lin([mix(GOLD, 0.55), GOLD, mix(GOLD, -0.4)], dot), dot)
+    bevel(art, dot, hi=0.45, lo=0.35, d=1.0, b=0.5)
+    return art
+
+
+def e_bar_l():
+    return _bar_cap('l')
+
+
+def e_bar_r():
+    return _bar_cap('r')
+
+
+# ───────────────────────────── плашки клубов (только текст) ─────────────────────────────
+
+CLUB_BOX, CLUB_R, CLUB_RIM = (4, 12, 96, 88), 15, 3.8
+CLUB_H, CLUB_W, CLUB_SQ, CLUB_SQ_MIN = 44, 82, 0.88, 0.74      # высота букв, ширина, сжатие (обычное / предельное)
+TRANSLIT = dict(zip('АБВГДЕЗИЙКЛМНОПРСТУФХЦЫЭ', 'ABVGDEZIYKLMNOPRSTUFHCYE'), Ж='ZH', Ч='CH', Ш='SH', Щ='SCH',
+                Ю='YU', Я='YA', Ё='YO')
+
+
+def _lum(c):
+    """Относительная яркость WCAG 0…1."""
+    def ch(v):
+        v /= 255
+        return v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4
+    r, g, b = (ch(v) for v in c[:3])
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def club_colors(col, seconds):
+    """Цвет плашки col, кандидаты на ободок seconds (фирменные цвета) → (ободок, тёмный_текст).
+    Ободок — самый непохожий на плашку фирменный цвет; почти такой же — светлее/темнее плашки;
+    почти чёрный — графит (иначе сольётся с контуром). Текст тёмный на светлых плашках и на приглушённых
+    средних (золото Вегаса): белый на них при 22 px «тонет»; на насыщенных оранжевых/зелёных белый держится."""
+    rim = max(seconds, key=lambda c: math.dist(c, col))
+    if math.dist(rim, col) < 90:
+        rim = mix(col, 0.6) if _lum(col) < 0.35 else mix(col, -0.55)
+    if _lum(rim) < 0.03:
+        rim = mix(rim, 0.24)
+    sat = (max(col) - min(col)) / max(1, max(col))
+    return tuple(rim), _lum(col) > 0.37 or (_lum(col) > 0.3 and sat < 0.6)
+
+
+def club_text_mask(text, cx=50, cy=50.5):
+    """Аббревиатура клуба Tektur 900: у всех плашек одна высота заглавных CLUB_H (по «Н», хвосты Ц/Щ ниже),
+    по ширине — сжатие до CLUB_W; широкие (ШАН, СЮЛ) сжимаются не сильнее CLUB_SQ_MIN, дальше — чуть ниже буквы."""
+    name, wght, wdth = TEK
+    ref = font(name, 400, wght, wdth)
+    _, t, _, b = ref.getbbox('Н')
+    l, _, r, _ = ref.getbbox(text)
+    k = u(CLUB_H) / (b - t)
+    natural = (r - l) * k
+    sq = min(CLUB_SQ, u(CLUB_W) / natural)
+    if sq < CLUB_SQ_MIN:
+        k *= sq / CLUB_SQ_MIN
+        sq = CLUB_SQ_MIN
+    f = font(name, int(round(400 * k)), wght, wdth)
+    l, _, r, _ = f.getbbox(text)
+    _, t, _, b = f.getbbox('Н')
+    m = M()
+    md(m).text((u(50) - (l + r) / 2, u(cy) - (t + b) / 2), text, font=f, fill=255)
+    sqm = m.resize((int(N * sq), N), Image.LANCZOS)
+    m = M()
+    m.paste(sqm, ((N - sqm.width) // 2, 0))
+    return shift(m, u(cx - 50), 0)
+
+
+def e_club(text, col, rim, dark_text):
+    """Плашка клуба: основной цвет, ободок вторым цветом, кольца Versus, белая (или тёмная гравированная) аббревиатура."""
+    art = new()
+    x0, y0, x1, y1 = CLUB_BOX
+    w = CLUB_RIM
+    pm = rrect(M(), CLUB_BOX, CLUB_R)
+    inner = rrect(M(), (x0 + w, y0 + w, x1 - w, y1 - w), CLUB_R - w)
+    put(art, lin([mix(col, 0.22), col, mix(col, -0.25)], pm), pm)
+    rings(art, inner, x0 + 6, y0 - 4, step=5.5, alpha=0.08 if dark_text else 0.07)
+    rm = sub(pm, inner)
+    put(art, lin([mix(rim, 0.5), rim, mix(rim, -0.4)], rm), rm)
+    bevel(art, rm, hi=0.5, lo=0.45, d=1.4, b=0.7)
+    put(art, (0, 0, 0), mul(blur(sub(inner, shift(inner, u(0.6), u(1.8))), 1.2), inner), 0.45)
+    gloss(art, inner, (x0 - 6, y0 - 12, x0 + 60, y0 + 26), alpha=0.12)
+    g = club_text_mask(text)
+    if dark_text:                                     # гравировка, как на плашках КХЛ/НХЛ
+        put(art, mix(col, 0.6), shift(g, u(0.3), u(1.2)), 0.7)
+        put(art, lin([mix(col, -0.84), mix(col, -0.93)], g), g)
+    else:
+        cast(art, g, inner, 0.6, d=2.2, b=1.4)
+        put(art, KEY, mul(blur(g, 0.9).point(lambda v: 0 if v < 10 else min(255, v * 3)), inner), 0.5)  # кромка как у VS
+        put(art, lin([(255, 255, 255), WHITE, mix(WHITE, -0.13)], g), g)
+        bevel(art, g, hi=0.45, lo=0.22, d=1.6, b=1.0)
+    return art
+
+
+def _club_fn(text, col, seconds):
+    rim, dark = club_colors(col, seconds)
+    return lambda: e_club(text, col, rim, dark)
+
+
+KHL_KEY = {ru: 'khl_' + ''.join(TRANSLIT[ch] for ch in ab) for ru, ab in KHL_ABBR.items()}       # клуб → ключ
+NHL_KEY = {ru: 'nhl_' + v[3].lower() for ru, v in _nhl.TEAMS.items()}
+KHL_CLUBS = {KHL_KEY[ru]: _club_fn(ab, _poster.BANNER[ru], _poster.TEAMS[ru][1:3]) for ru, ab in KHL_ABBR.items()}
+NHL_CLUBS = {NHL_KEY[ru]: _club_fn(v[3], v[1], [v[2]]) for ru, v in sorted(_nhl.TEAMS.items(), key=lambda t: t[1][3])}
+
+
 # ───────────────────────────── реестр ─────────────────────────────
 
 EMOJI = {
@@ -1355,6 +1676,29 @@ EMOJI = {
     'news': (e_news, '⚡'),
     'vs': (e_vs, '🆚'),
 }
+GROUPS = {'base': list(EMOJI)}
+
+# счёт: цифры табло
+for _d in '0123456789':
+    EMOJI['d' + _d] = ((lambda d=_d: e_digit(d)), _d + '️⃣')
+EMOJI['dcolon'] = (e_dcolon, '▪️')
+GROUPS['score'] = ['d%d' % i for i in range(10)] + ['dcolon']
+# дневник: сегменты полосы
+EMOJI.update({
+    'bar_l': (e_bar_l, '◀️'),
+    'bar_win': (e_bar_win, '🟩'),
+    'bar_loss': (e_bar_loss, '🟥'),
+    'bar_push': (e_bar_push, '🟦'),
+    'bar_wait': (e_bar_wait, '⬛'),
+    'bar_r': (e_bar_r, '▶️'),
+})
+GROUPS['bar'] = ['bar_l', 'bar_win', 'bar_loss', 'bar_push', 'bar_wait', 'bar_r']
+# плашки клубов
+for _g, _clubs in (('khl', KHL_CLUBS), ('nhl', NHL_CLUBS)):
+    assert not set(_clubs) & set(EMOJI), 'ключи клубов совпали с существующими'
+    EMOJI.update({k: (fn, '🏒') for k, fn in _clubs.items()})
+    GROUPS[_g] = list(_clubs)
+NEW_GROUPS = ('score', 'bar', 'khl', 'nhl')
 
 
 def render(key):
@@ -1443,7 +1787,7 @@ INLINE = [
 ]
 
 
-def _line(img, d, x, y, tpl, ims, f, color, es=22):
+def _line(img, d, x, y, tpl, ims, f, color, es=22, gap=3):
     parts = []
     i = 0
     while i < len(tpl):
@@ -1466,7 +1810,7 @@ def _line(img, d, x, y, tpl, ims, f, color, es=22):
             sm = ims[v].resize((es, es), Image.LANCZOS)
             # центр эмодзи — на середине строчных (как в Telegram)
             img.paste(sm, (int(round(x)) + 1, int(round(base - f.size * 0.36 - es / 2))), sm)
-            x += es + 3
+            x += es + gap
 
 
 def inline(ims, path):
@@ -1489,15 +1833,119 @@ def inline(ims, path):
     return path
 
 
+GROUP_TITLE = {'score': 'Счёт · цифры табло', 'bar': 'Дневник · сегменты полосы', 'khl': 'Клубы КХЛ',
+               'nhl': 'Клубы НХЛ'}
+BAR_DEMO = ['bar_l', 'bar_win', 'bar_win', 'bar_loss', 'bar_win', 'bar_push', 'bar_wait', 'bar_r']
+
+
+def sheet2(ims, path, cols=11):
+    """Новые группы: по разделу на группу (100 px, ключ, запасной эмодзи), полоса дневника встык,
+    внизу — все новые эмодзи по 22 px на тёмном и светлом фоне."""
+    groups = [(g, [k for k in GROUPS[g] if k in ims]) for g in NEW_GROUPS]
+    groups = [(g, ks) for g, ks in groups if ks]
+    cw, ch, pad, head = 112, 150, 24, 34
+    demo = all(k in ims for k in BAR_DEMO)
+    W = cols * cw + pad * 2
+    body = sum(head + ((len(ks) + cols - 1) // cols) * ch + (118 if g == 'bar' and demo else 0) for g, ks in groups)
+    strip = 30 + len(groups) * 28 * 2 + 16
+    H = pad + 34 + body + strip
+    img = Image.new('RGB', (W, H), TG_DARK)
+    d = ImageDraw.Draw(img)
+    ft = font('Onest[wght].ttf', 20, 700)
+    fh = font('Onest[wght].ttf', 15, 700)
+    fl = font('JetBrainsMono[wght].ttf', 12, 500)
+    fs = font('Onest[wght].ttf', 13, 500)
+    d.text((pad, pad - 6), '@jarvibet · custom emoji 2 · 100×100', font=ft, fill=(235, 236, 240))
+    d.text((W - pad, pad - 2), 'под ключом — запасной стандартный эмодзи', font=fs, fill=(120, 124, 136), anchor='ra')
+    y = pad + 34
+    for g, ks in groups:
+        d.text((pad, y + 8), '%s · %d' % (GROUP_TITLE[g], len(ks)), font=fh, fill=(200, 170, 90))
+        y += head
+        for i, k in enumerate(ks):
+            x = pad + (i % cols) * cw + (cw - 100) // 2
+            yy = y + (i // cols) * ch
+            img.paste(ims[k], (x, yy), ims[k])
+            d.text((x + 50, yy + 106), k, font=fl, fill=(170, 174, 186), anchor='mt')
+            fb = std_emoji(EMOJI[k][1])
+            if fb is not None:
+                img.paste(fb, (x + 50 - fb.width // 2, yy + 124), fb)
+        y += ((len(ks) + cols - 1) // cols) * ch
+        if g == 'bar' and demo:                       # встык, зазор ~ как у Telegram (1–2 px при 22 px)
+            d.text((pad, y), 'встык, зазор 6 px', font=fs, fill=(120, 124, 136))
+            for i, k in enumerate(BAR_DEMO):
+                img.paste(ims[k], (pad + i * 106, y + 14), ims[k])
+            y += 118
+    d.text((pad, y + 6), 'at 22 px', font=fs, fill=(140, 144, 156))
+    y += 30
+    img.paste((255, 255, 255), (0, y + len(groups) * 28, W, H))
+    for row, (bgc, yy0) in enumerate(((TG_DARK, y), ((255, 255, 255), y + len(groups) * 28))):
+        for j, (g, ks) in enumerate(groups):
+            yy = yy0 + j * 28 + 3
+            gap = 1 if g == 'bar' else 4
+            for i, k in enumerate(ks):
+                sm = ims[k].resize((22, 22), Image.LANCZOS)
+                img.paste(sm, (pad + i * (22 + gap), yy), sm)
+    img.save(path)
+    return path
+
+
+INLINE2 = [
+    '{khl_TOR} Торпедо — Динамо {khl_DIN} {d3}{dcolon}{d1}',
+    'Дневник: {bar_l}{bar_win}{bar_win}{bar_loss}{bar_win}{bar_push}{bar_win}{bar_r} 4 из 6',
+    '{nhl_bos} BOS — TOR {nhl_tor} {d5}{dcolon}{d4} ОТ',
+    None,                                             # 6 случайных плашек клубов
+    'Неделя: {bar_l}{bar_win}{bar_loss}{bar_wait}{bar_wait}{bar_r} 1 из 2 · {zhdem} ждём',
+    '{khl_SKA} СКА — ЦСКА {khl_CSK} {d2}{dcolon}{d2} · {d1}{d0}{dcolon}{d0}',
+    '{d0}{d1}{d2}{d3}{d4}{d5}{d6}{d7}{d8}{d9}{dcolon}',
+]
+
+
+def inline2(ims, path, seed=7):
+    clubs = random.Random(seed).sample(GROUPS['khl'] + GROUPS['nhl'], 6)
+    lines = [t if t is not None else 'Сегодня: ' + ' '.join('{%s}' % k for k in clubs) for t in INLINE2]
+    W, lh, pad = 600, 34, 22
+    H1 = pad * 2 + lh * len(lines) + 10
+    img = Image.new('RGB', (W, H1 * 2), TG_DARK)
+    d = ImageDraw.Draw(img)
+    f = font('Onest[wght].ttf', 16, 500)
+    fs = font('Onest[wght].ttf', 11, 500)
+    for p, (bg, bub, fg) in enumerate(((TG_DARK, (43, 47, 56), (236, 238, 242)),
+                                        ((222, 230, 238), (255, 255, 255), (18, 20, 24)))):
+        y0 = p * H1
+        img.paste(bg, (0, y0, W, y0 + H1))
+        d.rounded_rectangle((12, y0 + 12, W - 12, y0 + H1 - 12), 14, fill=bub)
+        d.text((W - 26, y0 + H1 - 20), 'dark theme' if p == 0 else 'light theme', font=fs,
+               fill=(120, 124, 136), anchor='rs')
+        for i, tpl in enumerate(lines):
+            _line(img, d, pad + 10, y0 + pad + 4 + i * lh, tpl, ims, f, fg, gap=2)
+    img.save(path)
+    return path
+
+
+def _load(out, ims, keys):
+    """Картинки для превью: только что отрисованные, иначе из папки, иначе отрисовать."""
+    res = {}
+    for k in keys:
+        p = os.path.join(out, k + '.png')
+        res[k] = ims[k] if k in ims else Image.open(p).convert('RGBA') if os.path.exists(p) else render(k)
+    return res
+
+
 if __name__ == '__main__':
     args = [a for a in sys.argv[1:] if not a.startswith('--')]
+    groups = [g for a in sys.argv[1:] if a.startswith('--group=') for g in a[8:].split(',') if g]
     out = args[0] if args else DEFAULT_OUT
-    keys = args[1:] or None
+    keys = args[1:] + [k for g in groups for k in GROUPS[g]] or None
     ims = render_all(out, keys)
     for k in ims:
         print(os.path.join(out, k + '.png'))
     if '--preview' in sys.argv or not keys:
-        if keys:
-            ims = {k: Image.open(os.path.join(out, k + '.png')).convert('RGBA') for k in EMOJI}
-        print(sheet(ims, os.path.join(out, 'sheet.png')))
-        print(inline(ims, os.path.join(out, 'inline.png')))
+        new_keys = [k for g in NEW_GROUPS for k in GROUPS[g]]
+        if not keys or set(keys) & set(GROUPS['base']):
+            base = _load(out, ims, GROUPS['base'])
+            print(sheet(base, os.path.join(out, 'sheet.png')))
+            print(inline(base, os.path.join(out, 'inline.png')))
+        if not keys or set(keys) & set(new_keys):
+            more = _load(out, ims, new_keys + ['zhdem'])
+            print(sheet2(more, os.path.join(out, 'sheet2.png')))
+            print(inline2(more, os.path.join(out, 'inline2.png')))
