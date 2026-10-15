@@ -9,8 +9,15 @@ versus.render, но фон панелей клубов колышется как
                             odds=(2.12, 3.76, 3.00), gif=True, sheet=True)
 → MP4 H.264 yuv420p 1080×1080, 30 fps, без звука — Telegram показывает его как GIF-анимацию (≤ target_mb);
   gif=True — превью 540×540, 15 fps рядом (.gif); sheet=True — контактный лист 6 кадров (_frames.jpg).
+
+Быстрее для потока матчей — плашки клубов (рисуются один раз, ~1 мин; сборка матча — только кодирование):
+    versus_anim.render_plate('Торпедо', 'home', 'KHL', (40, 80, 180), 'out/anim/plates')   # → .webm (VP9 + альфа) + .json
+    versus_anim.compose('Торпедо', 'Динамо Москва', 'out/anim/vs.mp4', date='16 октября', time='19:00',
+                        odds=(2.12, 3.76, 3.00), plates_dir='out/anim/plates', gif=True)   # недостающие плашки дорисует
 Запуск из папки render.
 """
+import hashlib
+import json
 import os
 import subprocess
 
@@ -18,6 +25,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 import brand_kit
+import nhl
 import poster
 import versus
 
@@ -219,47 +227,69 @@ def _over(dst, tdst, box, rgb, alpha, tex):
     tdst[y0:y0 + h, x0:x0 + w] = tdst[y0:y0 + h, x0:x0 + w] * (1 - alpha) + tex * alpha
 
 
-def _drop_shadow(dst, box, alpha):
-    """Тень панели как в versus._draw_panels: сдвиг (14, 20), размытие 24, непрозрачность 120."""
+def _drop_shadow(box, alpha):
+    """Тень панели как в versus._draw_panels: сдвиг (14, 20), размытие 24, непрозрачность 120 → альфа на весь кадр."""
     x0, y0 = box[:2]
     h, w = alpha.shape
     m = np.zeros((H + 40, W + 40), np.float32)
     m[y0 + 20:y0 + 20 + h, x0 + 14:x0 + 14 + w] = alpha
     m = Image.fromarray((m[:H, :W] * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(24))
-    dst *= (1 - np.asarray(m, np.float32)[..., None] / 255 * (120 / 255))
+    return np.asarray(m, np.float32) / 255 * (120 / 255)
+
+
+# Стороны баннера: (номер в versus._panel_specs, «древко» флага, фаза флага, фаза эмблемы). Фазы у стороны постоянные —
+# любая плашка хозяев зациклена синхронно с любой плашкой гостей.
+SIDES = {'home': (0, 'l', 0.0, 0.0), 'away': (1, 'r', 2.3, 0.6 * np.pi)}
+
+
+class _Side:
+    """Половина баннера одного клуба: флаг-панель, «парящая» эмблема, её тень на ткани и тень панели на фоне."""
+
+    def __init__(self, team, side, color, canvas, fade=('down', 'up')):
+        i, pole, fph, eph = SIDES[side]
+        spec = versus._panel_specs(color, color, team, team, fade)[i]
+        x0, y0, x1, y1 = spec[0]
+        self.rect, self.em_phase = spec[0], eph
+        self.flag = _Flag(spec, pole, fph, canvas)
+        self.emblem = _Emblem(team, (x0 + x1) / 2, (y0 + y1) / 2 + versus.EMBLEM_DY, versus.EMBLEM, canvas)
+
+    def layers(self, tau):
+        """→ (тень панели на весь кадр, (box, rgb, alpha, tex) панели, (pos, rgb, alpha, tex) эмблемы)."""
+        pos, ergb, ea, etex, sh_off, sh_k = self.emblem.frame(tau, self.em_phase)
+        box, rgb, alpha, ftex = self.flag.frame(tau, self.emblem.shadow, sh_off, sh_k)
+        return _drop_shadow(box, alpha), (box, rgb, alpha, ftex), (pos, ergb, ea, etex)
+
+
+def _static(home, away, date, time, odds, league, tz, fade):
+    """Неподвижные слои 1080²: фон (без текстуры), текст/плашки (rgb, alpha) и панели (versus._panel_specs)."""
+    S0 = versus.S
+    versus.S = SS                                         # текст — в 3× независимо от JARVIS_S
+    try:
+        ly = versus.layers(home, away, date, time, odds, league, tz, fade)
+    finally:
+        versus.S = S0
+    bg = np.asarray(ly['bg'].convert('RGB').resize((W, H), Image.LANCZOS), np.float32)
+    fg = np.asarray(ly['fg'].resize((W, H), Image.LANCZOS), np.float32)
+    return bg, fg[..., :3], fg[..., 3] / 255, ly['specs']
 
 
 class Banner:
-    """Все слои один раз; frame(tau) → кадр uint8 1080×1080×3."""
+    """Все слои один раз; frame(tau) → кадр uint8 1080×1080×3 (текстура холста — на итоговый кадр, как у статики)."""
 
     def __init__(self, home, away, date='', time='', odds=None, league='KHL', tz='время московское',
                  fade=('down', 'up'), grain=GRAIN):
-        S0 = versus.S
-        versus.S = SS                                     # текст — в 3× независимо от JARVIS_S
-        try:
-            ly = versus.layers(home, away, date, time, odds, league, tz, fade)
-        finally:
-            versus.S = S0
-        self.bg = np.asarray(ly['bg'].convert('RGB').resize((W, H), Image.LANCZOS), np.float32)
-        fg = np.asarray(ly['fg'].resize((W, H), Image.LANCZOS), np.float32)
-        self.fg_rgb, self.fg_a = fg[..., :3], fg[..., 3] / 255
+        self.bg, self.fg_rgb, self.fg_a, specs = _static(home, away, date, time, odds, league, tz, fade)
         self.cv = _Canvas(grain)
-        self.flags, self.emblems = [], []
-        for i, spec in enumerate(ly['specs']):
-            (x0, y0, x1, y1), team = spec[0], spec[2]
-            self.flags.append(_Flag(spec, 'l' if i == 0 else 'r', (0.0, 2.3)[i], self.cv))
-            self.emblems.append(_Emblem(team, (x0 + x1) / 2, (y0 + y1) / 2 + versus.EMBLEM_DY, versus.EMBLEM, self.cv))
-        self.em_phase = (0.0, 0.6 * np.pi)
+        self.sides = [_Side(spec[2], side, spec[1], self.cv, fade) for spec, side in zip(specs, ('home', 'away'))]
 
     def frame(self, tau):
         img = self.bg.copy()
         tex = self.cv.screen.copy()
-        for flag, em, ph in zip(self.flags, self.emblems, self.em_phase):
-            pos, ergb, ea, etex, sh_off, sh_k = em.frame(tau, ph)
-            box, rgb, alpha, ftex = flag.frame(tau, em.shadow, sh_off, sh_k)
-            _drop_shadow(img, box, alpha)
-            _over(img, tex, box, rgb, alpha, ftex)
-            _over(img, tex, pos, ergb, ea, etex)
+        for side in self.sides:                           # хозяева, потом гости поверх
+            sh, panel, emblem = side.layers(tau)
+            img *= 1 - sh[..., None]
+            _over(img, tex, *panel)
+            _over(img, tex, *emblem)
         a = self.fg_a[..., None]
         img = img * (1 - a) + self.fg_rgb * a
         tex = tex * (1 - self.fg_a) + self.cv.screen * self.fg_a
@@ -275,9 +305,9 @@ def _ffmpeg(args, frames=None):
         raise RuntimeError('ffmpeg failed: %s' % ' '.join(args))
 
 
-def _encode_mp4(frames, path, fps, target_mb, crf=19):
-    """H.264 yuv420p, весь цикл — одна GOP (ключевой только первый кадр). Сначала CRF; не влезли в target_mb —
-    двухпроходный ABR под размер."""
+def _encode_mp4(frames, path, fps, target_mb):
+    """H.264 yuv420p, весь цикл — одна GOP (ключевой только первый кадр), двухпроходный ABR под target_mb
+    (зерно холста на движущейся ткани CRF-ом всё равно не влезает в 3 МБ)."""
     n = len(frames)
     src = ['-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '%dx%d' % (W, H), '-r', str(fps), '-i', '-', '-an']
     common = ['-c:v', 'libx264', '-preset', 'veryslow', '-profile:v', 'high', '-pix_fmt', 'yuv420p',
@@ -285,9 +315,6 @@ def _encode_mp4(frames, path, fps, target_mb, crf=19):
               '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
               '-g', str(n), '-keyint_min', str(n), '-sc_threshold', '0', '-x264-params', 'ipratio=1.15',
               '-movflags', '+faststart']
-    _ffmpeg(src + common + ['-crf', str(crf), path], frames)
-    if os.path.getsize(path) <= target_mb * 1e6:
-        return path
     kbps = int(target_mb * 8e3 / (n / fps) * 0.94)
     log = path + '.x264pass'
     rate = ['-b:v', '%dk' % kbps, '-maxrate', '%dk' % int(kbps * 1.6), '-bufsize', '%dk' % (kbps * 2),
@@ -344,6 +371,201 @@ def render_anim(home, away, path_mp4, date='', time='', odds=None, league='KHL',
     if sheet:
         _sheet(frames, base + '_frames.jpg' if sheet is True else sheet, fps)
     return path_mp4
+
+
+# ---------------- плашки клубов: рисуются один раз, матчи собираются из готовых ----------------
+# Плашка — половина баннера одного клуба (флаг, эмблема, тень эмблемы на ткани, тень панели на фоне) с альфой и уже
+# «вшитым» зерном холста; WEBM VP9 yuva420p + JSON рядом. Кэш — по клубу, стороне и цвету: цвет гостей меняется,
+# если совпадает с цветом хозяев (versus._distinct), — например, Динамо против Торпедо и СКА — голубое.
+#
+#     versus_anim.compose('Торпедо', 'Динамо Москва', 'out/anim/vs.mp4', date='16 октября', time='19:00',
+#                         odds=(2.12, 3.76, 3.00), plates_dir='out/anim/plates', gif=True)
+PLATE_MARGIN = 100           # запас вокруг панели: волна + тень панели (сдвиг 14/20, размытие 24) целиком
+PLATE_CRF = 20               # качество VP9 (меньше — точнее и тяжелее)
+
+
+def plate_version(fps=30, frames=120):
+    """Версия плашки: меняется вместе с любым параметром вида — устаревшие плашки compose перерисует сам."""
+    look = (WAVES, DX_K, FOLD, LIGHT, BOB, DRIFT, ROT, BREATH, GRAIN, PAD, SS, SIDES, PLATE_MARGIN,
+            versus.P1, versus.P2, versus.EMBLEM, versus.EMBLEM_DY, fps, frames)
+    return 'versus-plate/1-' + hashlib.sha1(repr(look).encode()).hexdigest()[:10]
+
+
+def _rgb(color):
+    if isinstance(color, str):
+        h = color.lstrip('#')
+        return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+    return tuple(int(c) for c in color[:3])
+
+
+def _club(team, league):
+    """→ (ru-название, slug для имени файла)."""
+    if league == 'NHL':
+        nhl.register()
+    ru = versus._team(team, league)[0]
+    return ru, poster.TEAMS[ru][0]
+
+
+def plate_path(team, side, league, color, out_dir):
+    return os.path.join(out_dir, '%s_%s_%02x%02x%02x.webm' % ((_club(team, league)[1], side) + _rgb(color)))
+
+
+def _plate_box(rect):
+    x0, y0, x1, y1 = rect
+    m = PLATE_MARGIN
+    return max(0, x0 - m), max(0, y0 - m), min(W, x1 + m), min(H, y1 + m)
+
+
+def _plate_frame(side, tau, box):
+    """Кадр плашки RGBA (прямая альфа) в box; зерно холста уже в пикселях, тень панели — чёрная с альфой."""
+    px0, py0, px1, py1 = box
+    sh, (fb, frgb, fa, ftex), (epos, ergb, ea, etex) = side.layers(tau)
+    alpha = sh[py0:py1, px0:px1].copy()
+    col = np.zeros(alpha.shape + (3,), np.float32)               # цвет × альфа (тень панели — чёрная)
+    tex = np.zeros_like(alpha)                                   # зерно × покрытие панелью/эмблемой
+    cov = np.zeros_like(alpha)
+    for (x0, y0), rgb, a, t in ((fb[:2], frgb, fa, ftex), (epos, ergb, ea, etex)):
+        h, w = a.shape
+        sl = (slice(y0 - py0, y0 - py0 + h), slice(x0 - px0, x0 - px0 + w))
+        col[sl] = col[sl] * (1 - a)[..., None] + rgb * a[..., None]
+        tex[sl] = tex[sl] * (1 - a) + t * a
+        cov[sl] = cov[sl] * (1 - a) + a
+        alpha[sl] = alpha[sl] * (1 - a) + a
+    # зерно — на смешанный цвет, как Banner.frame: где плашка непрозрачна, пиксели совпадают с ним точно
+    rgb = _Canvas.apply(col / np.maximum(alpha, 1e-6)[..., None], tex / np.maximum(cov, 1e-6))
+    return np.dstack([np.clip(rgb, 0, 255), np.clip(alpha * 255 + 0.5, 0, 255)]).astype(np.uint8)
+
+
+_YUV = 'scale=%s_color_matrix=bt709:%s_range=tv:flags=accurate_rnd+full_chroma_int'
+_TAGS = ['-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv']
+
+
+def render_plate(team, side, league, color, out_dir, seconds=4, fps=30, crf=PLATE_CRF, grain=GRAIN):
+    """Плашка клуба team на стороне side ('home' — P1, «древко» слева; 'away' — P2, «древко» справа) цвета color
+    ((r, g, b) или '#rrggbb') → out_dir/<slug>_<side>_<hex>.webm (VP9 yuva420p) + .json (начало box в координатах
+    баннера, размер, fps, кадры, цвет, версия)."""
+    ru, slug = _club(team, league)
+    color = _rgb(color)
+    n = int(round(seconds * fps))
+    reps = max(1, round(seconds / 4))
+    sd = _Side(ru, side, color, _Canvas(grain))
+    box = _plate_box(sd.rect)
+    w, h = box[2] - box[0], box[3] - box[1]
+    path = plate_path(ru, side, league, color, out_dir)
+    os.makedirs(out_dir, exist_ok=True)
+    tmp = path[:-5] + '.part.webm'
+    frames = (_plate_frame(sd, (i / n * reps) % 1.0, box) for i in range(n))
+    _ffmpeg(['-f', 'rawvideo', '-pix_fmt', 'rgba', '-s', '%dx%d' % (w, h), '-r', str(fps), '-i', '-', '-an',
+             '-vf', _YUV % ('out', 'out'), '-c:v', 'libvpx-vp9', '-pix_fmt', 'yuva420p', '-crf', str(crf), '-b:v', '0',
+             '-deadline', 'good', '-cpu-used', '2', '-row-mt', '1', '-g', str(n)] + _TAGS + [tmp], frames)
+    os.replace(tmp, path)
+    meta = {'version': plate_version(fps, n), 'team': ru, 'slug': slug, 'side': side, 'league': league,
+            'color': '#%02x%02x%02x' % color, 'origin': list(box[:2]), 'size': [w, h], 'banner': [W, H],
+            'fps': fps, 'frames': n}
+    with open(path[:-5] + '.json', 'w', encoding='utf-8') as f:
+        json.dump(meta, f, ensure_ascii=False, indent=1)
+    return path
+
+
+def _plate_meta(path, fps, n):
+    """JSON готовой плашки, если она есть и нарисована текущей версией вида; иначе None."""
+    mp = path[:-5] + '.json'
+    if not (os.path.exists(path) and os.path.exists(mp)):
+        return None
+    with open(mp, encoding='utf-8') as f:
+        meta = json.load(f)
+    return meta if meta.get('version') == plate_version(fps, n) else None
+
+
+def get_plate(team, side, league, color, plates_dir, seconds=4, fps=30):
+    """Готовая плашка из plates_dir (нет или устарела — рисуется) → (путь, JSON)."""
+    n = int(round(seconds * fps))
+    path = plate_path(team, side, league, color, plates_dir)
+    meta = _plate_meta(path, fps, n)
+    if meta is None:
+        render_plate(team, side, league, color, plates_dir, seconds, fps)
+        meta = _plate_meta(path, fps, n)
+    return path, meta
+
+
+def _read_plate(path, meta):
+    """Кадры плашки RGBA uint8 по одному (декодер libvpx-vp9 — только он отдаёт альфу)."""
+    w, h = meta['size']
+    p = subprocess.Popen(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-c:v', 'libvpx-vp9', '-i', path,
+                          '-vf', _YUV % ('in', 'in'), '-f', 'rawvideo', '-pix_fmt', 'rgba', '-'], stdout=subprocess.PIPE)
+    try:
+        for _ in range(meta['frames']):
+            buf = p.stdout.read(w * h * 4)
+            if len(buf) < w * h * 4:
+                raise RuntimeError('plate %s: short read' % path)
+            yield np.frombuffer(buf, np.uint8).reshape(h, w, 4)
+    finally:
+        p.stdout.close()
+        p.wait()
+
+
+def _over_plate(img, fr, origin):
+    x0, y0 = origin
+    h, w = fr.shape[:2]
+    a = fr[..., 3:4].astype(np.float32) / 255
+    img[y0:y0 + h, x0:x0 + w] = img[y0:y0 + h, x0:x0 + w] * (1 - a) + fr[..., :3] * a
+
+
+def _screen_bg(grain=GRAIN):
+    """Фон баннера 1080² с зерном (как в compose) — подложка для превью плашек."""
+    S0 = versus.S
+    versus.S = SS
+    try:
+        bg = np.asarray(versus._background().convert('RGB').resize((W, H), Image.LANCZOS), np.float32)
+    finally:
+        versus.S = S0
+    return np.clip(_Canvas.apply(bg, _Canvas(grain).screen), 0, 255)
+
+
+def compose(home, away, path_mp4, date='', time='', odds=None, league='KHL', plates_dir='out/anim/plates', gif=False,
+            tz='время московское', seconds=4, fps=30, target_mb=3.0, sheet=None, grain=GRAIN):
+    """Баннер из готовых плашек: фон → плашка хозяев → плашка гостей → текст. Цвета берёт как versus (с заменой
+    цвета гостей при совпадении), недостающие плашки рисует в plates_dir. → path_mp4 (+ .gif / контактный лист)."""
+    (hn, hc, _, _), (an, ac, _, _), _ = versus._teams(home, away, league)
+    plates = [get_plate(hn, 'home', league, hc, plates_dir, seconds, fps),
+              get_plate(an, 'away', league, ac, plates_dir, seconds, fps)]
+    bg, fg_rgb, fg_a, _ = _static(home, away, date, time, odds, league, tz, ('down', 'up'))
+    scr = _Canvas(grain).screen
+    fa = fg_a[..., None]
+    # текст поверх фона — точно как у статики (зерно на смешанный цвет); здесь — вклад текста «с предумножением»:
+    # кадр = под·(1 − a) + fgp, где фон без плашек даёт ровно статичный результат
+    still = np.clip(_Canvas.apply(bg * (1 - fa) + fg_rgb * fa, scr), 0, 255)
+    bg = np.clip(_Canvas.apply(bg, scr), 0, 255)
+    fgp = still - bg * (1 - fa)
+    readers = [_read_plate(p, m) for p, m in plates]
+    frames = []
+    for _ in range(plates[0][1]['frames']):
+        img = bg.copy()
+        for (p, m), rd in zip(plates, readers):          # хозяева, потом гости поверх
+            _over_plate(img, next(rd), m['origin'])
+        img = img * (1 - fa) + fgp
+        frames.append(np.clip(img, 0, 255).astype(np.uint8))
+    os.makedirs(os.path.dirname(path_mp4) or '.', exist_ok=True)
+    _encode_mp4(frames, path_mp4, fps, target_mb)
+    base = os.path.splitext(path_mp4)[0]
+    if gif:
+        _encode_gif(frames, base + '.gif' if gif is True else gif, fps)
+    if sheet:
+        _sheet(frames, base + '_frames.jpg' if sheet is True else sheet, fps)
+    return path_mp4
+
+
+def preview_plate(path, path_gif, grain=GRAIN):
+    """GIF-превью одной плашки на тёмном фоне баннера (540², 15 fps)."""
+    with open(path[:-5] + '.json', encoding='utf-8') as f:
+        meta = json.load(f)
+    bg = _screen_bg(grain)
+    frames = []
+    for fr in _read_plate(path, meta):
+        img = bg.copy()
+        _over_plate(img, fr, meta['origin'])
+        frames.append(np.clip(img, 0, 255).astype(np.uint8))
+    return _encode_gif(frames, path_gif, meta['fps'])
 
 
 if __name__ == '__main__':
