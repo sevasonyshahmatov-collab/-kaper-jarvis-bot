@@ -108,12 +108,34 @@ inbox.length = 0;
 say('а можно про вратарей?', postMsg());
 assert.ok(/поправить 1510-1 «КХЛ · 15 октября · 18:30 МСК»: а можно про вратарей\?/.test(inbox[0]), inbox[0]);
 
-// 9. после «Опубликовать» правка черновика — отказ с подсказкой
+// 9. после «Опубликовать» (до начала матча) правка идёт и в пост канала, у черновика остаётся «✅ Опубликовано»
 calls.length = 0;
 ctx.gameHandleUpdate_({ update_id: upd++, callback_query: { id: 'q2', from: OWNER, data: 'tm|pub|1510-1', message: postMsg() } });
-assert.ok(calls.some(c => c.method === 'copyMessage'));
+const cp = calls.findIndex(c => c.method === 'copyMessage');
+assert.ok(cp >= 0);
+const chId = 900 + (nextId - 900) - calls.length + cp;                  // message_id, который макет вернул на copyMessage
 say('заменить кэф на: 1,80', askMsg);
-assert.strictEqual(edited().length, 0); assert.ok(/уже в канале/.test(replies()));
+e = edited();
+assert.strictEqual(e.length, 2, JSON.stringify(e));
+assert.ok(e[0].chat_id === '@jarvibet' && e[0].message_id === chId && !e[0].reply_markup && e[0].caption.includes('Кэф: <b>1,80</b>'));
+assert.ok(e[1].chat_id === CHAT && e[1].message_id === 500 && /Опубликовано/.test(JSON.stringify(e[1].reply_markup)));
+assert.ok(/в канале уже исправлен/.test(replies()) && inbox.some(l => /правка владельца в боте \(и в канале\): 1510-1 — кэф → 1,80/.test(l)));
+cur = e[1].caption;
+// прямой ответ на опубликованный черновик (кнопка «✅ Опубликовано») — тоже правит канал
+const pubKb = { inline_keyboard: [[{ text: '✅ Опубликовано', callback_data: 'tm|done' }]] };
+say('заменить «1,80» на «1,85»', Object.assign(postMsg(), { reply_markup: pubKb }));
+e = edited();
+assert.ok(e.length === 2 && e[0].chat_id === '@jarvibet' && e[0].caption.includes('Кэф: <b>1,85</b>'));
+// опубликован до обновления бота (номера в канале нет) — отказ с подсказкой
+say('заменить кэф на: 1,90', Object.assign(postMsg(), { message_id: 501, reply_markup: pubKb }));
+assert.strictEqual(edited().length, 0); assert.ok(/номер там я не знаю/.test(replies()));
+// матч уже начался — опубликованный прогноз не меняем (сейчас по макету 10:00 МСК)
+const early = { message_id: 800, chat: { id: CHAT, type: 'private' }, from: BOT, photo: [{}], caption: 'КХЛ · 15 октября · 09:00 МСК\nПрогноз: тест',
+  caption_entities: [], reply_markup: { inline_keyboard: [[{ text: 'Опубликовать', callback_data: 'tm|pub|1510-8' }]] } };
+ctx.gameHandleUpdate_({ update_id: upd++, callback_query: { id: 'q3', from: OWNER, data: 'tm|pub|1510-8', message: early } });
+say('заменить прогноз на: другое', Object.assign({}, early, { reply_markup: pubKb }));
+assert.strictEqual(edited().length, 0); assert.ok(/Матч уже начался/.test(replies()));
+assert.strictEqual(ctx.teamEditStart_('НХЛ · 16 октября · 02:30 МСК'), Date.UTC(2026, 9, 15, 23, 30));
 
 // 10. текстовый пост (не фото) правится через editMessageText, превью выключено; разбор команд
 const txt = { message_id: 700, chat: { id: CHAT }, from: BOT, text: 'Прогноз: тест\nКэф: 1,5', entities: [{ type: 'bold', offset: 9, length: 4 }],

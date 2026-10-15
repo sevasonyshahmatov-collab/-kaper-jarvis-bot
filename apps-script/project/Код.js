@@ -15518,7 +15518,7 @@ function teamCallback_(q, parts) {
       }
       if (!r || !r.ok) { cache.remove(key); throw new Error((r && r.description) || 'Telegram не ответил'); }
       mark('✅ Опубликовано');
-      teamEditRefresh_(m.chat.id, m.message_id, { pub: true });        // после публикации черновик сам уже не правим
+      teamEditPubSave_(m.chat.id, m.message_id, act === 'pubm' ? parts[3] : null, r.result);   // номер поста в канале — для правок до начала матча
       answer('Опубликовано в канал');
       teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · опубликовано владельцем: ' + pid + ' ' + title, 'Inbox: draft published by the owner');
     } else if (act === 'ok') {
@@ -15751,25 +15751,69 @@ function teamEditApply_(html, ed, v) {
   return out;
 }
 
-/** Правка черновика по команде владельца: сразу меняет пост здесь же, отвечает и пишет строку в INBOX. */
+/** «Опубликовать»: запомнить, какой пост в канале стал копией черновика mid (альбом — ещё и по первому фото first). */
+function teamEditPubSave_(chat, mid, first, res) {
+  var ch = Array.isArray(res) ? res[0] && res[0].message_id : res && res.message_id;
+  teamEditRefresh_(chat, mid, { pub: true, kb: { inline_keyboard: [[{ text: '✅ Опубликовано', callback_data: 'tm|done' }]] } });
+  if (!ch) return;
+  var p = PropertiesService.getScriptProperties(), v = JSON.stringify({ ch: ch, t: Date.now() });
+  p.setProperty('TMPUB_' + chat + '_' + mid, v);
+  if (first) p.setProperty('TMPUB_' + chat + '_' + first, v);
+  p.getKeys().forEach(function (k) {
+    if (k.indexOf('TMPUB_') !== 0) return;
+    var old = true;
+    try { old = Date.now() - JSON.parse(p.getProperty(k)).t > 7 * 86400000; } catch (e) { old = true; }
+    if (old) p.deleteProperty(k);
+  });
+}
+
+/** Номер копии черновика mid в канале или null. */
+function teamEditPubGet_(chat, mid) {
+  try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('TMPUB_' + chat + '_' + mid) || 'null').ch || null; } catch (e) { return null; }
+}
+
+/** Начало матча по шапке поста («КХЛ · 15 октября · 18:00 МСК») в мс; null — в шапке нет даты и времени. */
+function teamEditStart_(html) {
+  var head = String(html || '').split('\n')[0].replace(/<[^>]+>/g, ''), mons = ['январ', 'феврал', 'марта', 'апрел', 'мая', 'июн', 'июл', 'август', 'сентябр', 'октябр', 'ноябр', 'декабр'];
+  var d = head.match(/(\d{1,2})\s+(январ\S*|феврал\S*|марта|апрел\S*|мая|июн\S*|июл\S*|август\S*|сентябр\S*|октябр\S*|ноябр\S*|декабр\S*)/i), t = head.match(/(\d{1,2})[:.](\d{2})/);
+  if (!d || !t) return null;
+  var mi = -1, w = d[2].toLowerCase();
+  mons.forEach(function (x, i) { if (mi < 0 && w.indexOf(x) === 0) mi = i; });
+  if (mi < 0) return null;
+  var y = Number(Utilities.formatDate(new Date(), 'Europe/Moscow', 'yyyy'));
+  var ms = Date.UTC(y, mi, Number(d[1]), Number(t[1]) - 3, Number(t[2]));          // МСК = UTC+3
+  if (ms - Date.now() > 180 * 86400000) ms = Date.UTC(y - 1, mi, Number(d[1]), Number(t[1]) - 3, Number(t[2]));
+  return ms;
+}
+
+/** Изменить подпись или текст сообщения бота. */
+function teamEditSend_(chat, mid, cap, html, kb) {
+  var p = { chat_id: chat, message_id: mid, parse_mode: 'HTML' };
+  if (kb) p.reply_markup = kb;
+  if (cap) p.caption = html; else { p.text = html; p.link_preview_options = { is_disabled: true }; }
+  var r = tgRaw_(cap ? 'editMessageCaption' : 'editMessageText', p);
+  if (!r || !r.ok) throw new Error(/not modified/i.test((r && r.description) || '') ? 'ничего не изменилось' : (r && r.description) || 'Telegram не ответил');
+}
+
+/** Правка по команде владельца: сразу меняет черновик здесь же, а если он уже опубликован и матч не начался — и пост в канале.
+ *  Отвечает и пишет строку в INBOX. */
 function teamEditRun_(msg, ed, tgt, send) {
   if (!tgt) { send('Не понял, какой пост править: ответьте командой прямо на пост (свайп по нему влево) или нажмите под ним «Поправить».'); return; }
-  if (tgt.pub) { send('Этот пост уже в канале — там его правят вручную (долгий тап по посту → «Изменить»). Черновик не трогаю.'); return; }
   if (!tgt.html) { send('У альбома подпись на первом фото: ответьте командой прямо на первое фото альбома.'); return; }
+  var chat = msg.chat.id, ch = teamEditPubGet_(chat, tgt.mid);
+  if (tgt.pub && !ch) { send('Этот пост уже в канале, а его номер там я не знаю (опубликован до обновления бота) — поправьте его в канале вручную: долгий тап по посту → «Изменить».'); return; }
+  var start = ch ? teamEditStart_(tgt.html) : null;
+  if (ch && start && Date.now() >= start) { send('Матч уже начался — опубликованный прогноз после начала не меняем. Если нужно, поправьте вручную в канале.'); return; }
   var v = ed.from !== undefined ? tgToHtml_(msg.text, msg.entities, ed.from).replace(/^\s+|\s+$/g, '') : '';
   try {
     var html = teamEditApply_(tgt.html, ed, v);
-    var p = { chat_id: msg.chat.id, message_id: tgt.mid, parse_mode: 'HTML' };
-    if (tgt.kb) p.reply_markup = tgt.kb;
-    var r;
-    if (tgt.cap) { p.caption = html; r = tgRaw_('editMessageCaption', p); }
-    else { p.text = html; p.link_preview_options = { is_disabled: true }; r = tgRaw_('editMessageText', p); }
-    if (!r || !r.ok) throw new Error(/not modified/i.test((r && r.description) || '') ? 'ничего не изменилось' : (r && r.description) || 'Telegram не ответил');
-    teamEditRefresh_(msg.chat.id, tgt.mid, { html: html, t: Date.now() });
-    send('✅ Поправил: ' + escHtml_(teamEditWhat_(ed)) + '. Пост выше уже новый — «Опубликовать» отправит его в канал.');
+    if (ch) teamEditSend_(TEAM_CHANNEL, ch, tgt.cap, html, null);                // сначала канал — если не вышло, черновик не трогаем
+    try { teamEditSend_(chat, tgt.mid, tgt.cap, html, tgt.kb); } catch (e) { if (!ch) throw e; }
+    teamEditRefresh_(chat, tgt.mid, { html: html, t: Date.now() });
+    send('✅ Поправил: ' + escHtml_(teamEditWhat_(ed)) + (ch ? '. Пост в канале уже исправлен.' : '. Пост выше уже новый — «Опубликовать» отправит его в канал.'));
     try {
-      teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · правка владельца в боте: ' + (tgt.pid || 'пост') + ' — ' + teamEditWhat_(ed),
-        'Inbox: owner edited a draft in the bot');
+      teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · правка владельца в боте' + (ch ? ' (и в канале)' : '') + ': ' + (tgt.pid || 'пост') + ' — ' +
+        teamEditWhat_(ed), 'Inbox: owner edited a draft in the bot');
     } catch (e) { /* без GitHub правка всё равно сделана */ }
   } catch (e) { send('⚠️ Не поправил: ' + escHtml_(e.message) + '.'); }
 }
