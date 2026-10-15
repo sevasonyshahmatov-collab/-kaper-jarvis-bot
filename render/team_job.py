@@ -18,7 +18,7 @@ job.json:
   "day": "2026-10-12",
   "qa": "ok",                              # без «ok» в канал не уходит ничего (только владельцу)
   "approved": "owner",                     # только для заданий, одобренных владельцем; без него в канал — ничего
-  "make": ["team/out/2026-10-12/make.py"], # скрипты рисования (запуск из корня репозитория, PYTHONPATH=render)
+  "make": ["team/out/2026-10-12/make.py"], # скрипты рисования (запуск из корня репозитория, PYTHONPATH=render; можно с аргументами через пробел)
   "channel": "@jarvibet",                  # необязательно
   "messages": [
     {"to": "owner", "type": "text", "text": "Отчёт планёрки …"},
@@ -150,7 +150,8 @@ def main(payload):
     errors = []
     for script in job.get('make') or []:
         print('рисую:', script)
-        r = subprocess.run([sys.executable, _path(script)], cwd=ROOT, env=env)
+        script, *args = str(script).split()                  # «скрипт аргументы…» — например team/picks/day.py khl 2026-10-16
+        r = subprocess.run([sys.executable, _path(script)] + args, cwd=ROOT, env=env)
         if r.returncode:
             errors.append('скрипт %s завершился с кодом %d' % (script, r.returncode))
     token = os.environ.get('TG_BOT_TOKEN')
