@@ -97,6 +97,30 @@ assert.ok(of('editMessageText').some(c => /Вернул как было/.test(c.
 press('tm|undo', doneMsg);
 assert.ok(/уже нельзя/.test(toast().text) && of('editMessageCaption').length === 0);
 
+// 3б. текст отправлен БЕЗ ответа (так вышло у владельца 15.10 в Telegram Desktop) — тоже правка, если похож на пост
+press('tm|edit|1510-1', photo(HTML1, KB));
+const HTML2 = HTML1.replace('победа СКА с учётом ОТ', 'победа СКА').replace('<b>1,40</b>', '<b>2,01</b>');
+assert.strictEqual(ctx.teamBotMessage_({ message_id: 7001, chat: { id: CHAT, type: 'private' }, from: OWNER, text: 'акб сев' }, 'акб'), false);
+sayHtml(HTML2, undefined);
+ed = of('editMessageCaption');
+assert.ok(ed.length === 1 && ed[0].payload.message_id === 500 && ed[0].payload.caption === HTML2, JSON.stringify(ed));
+assert.ok(!env.props['TMEDIT_LAST_' + CHAT], 'сеанс закрыт и без ответа');
+// ответ прямо на сам пост во время правки — тоже правка; быстрая команда ответом на пост — быстрая правка, не замена
+press('tm|edit|1510-1', photo(HTML2, KB));
+say('заменить кэф на 1,95', photo(HTML2, KB));
+ed = of('editMessageCaption');
+assert.ok(ed.length === 1 && ed[0].payload.caption === HTML2.replace('<b>2,01</b>', '<b>1,95</b>'), JSON.stringify(ed));
+sayHtml(HTML1, photo(HTML2, KB));
+ed = of('editMessageCaption');
+assert.ok(ed.length === 1 && ed[0].payload.caption === HTML1, JSON.stringify(ed));
+// через полчаса без ответа уже не принимаем
+press('tm|edit|1510-1', photo(HTML1, KB));
+const sess = JSON.parse(env.props['TMEDIT_LAST_' + CHAT]);
+sess.t -= 31 * 60000;
+env.props['TMEDIT_LAST_' + CHAT] = JSON.stringify(sess);
+assert.strictEqual(ctx.teamBotMessage_({ message_id: 7002, chat: { id: CHAT, type: 'private' }, from: OWNER, text: parse(HTML2).text, entities: parse(HTML2).entities }, 'кхл'), false);
+delete env.props['TMEDIT_LAST_' + CHAT];
+
 // 5. ошибки Telegram — понятный ответ, служебные сообщения на месте; премиум-смайлик — вторая попытка без него
 press('tm|edit|1510-1', photo(HTML0, KB));
 const copy2 = of('sendMessage')[1];

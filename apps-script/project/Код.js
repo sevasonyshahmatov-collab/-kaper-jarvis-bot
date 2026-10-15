@@ -15448,7 +15448,7 @@ function teamBotMessage_(msg, cmd) {
   var isLog = cmd === '/отчёт' || cmd === '/отчет' || cmd === '/report';
   var isFix = !!(rep && String(rep.text || '').indexOf(TEAM_FIX_ASK) === 0);
   var free = !isTask && !isList && !isLog && !/^\//.test(text);
-  var editing = free && !isFix ? teamEditPending_(chat, rep) : null;     // «Редактировать»: ответ на присланный текст поста — новый текст целиком
+  var editing = free && !isFix ? teamEditPending_(chat, rep, msg.text) : null;   // «Редактировать»: новый текст поста целиком
   var repBot = !!(rep && rep.from && rep.from.is_bot && !isFix && !editing);   // ответ прямо на сообщение бота (пост, фото альбома)
   var repTeam = repBot && teamKbPid_(rep.reply_markup) !== null;           // … и это пост команды с кнопками
   var quick = free && repBot ? teamEditParse_(msg.text) : null;           // «заменить прогноз на: …» ответом на пост
@@ -15558,6 +15558,7 @@ function teamCallback_(q, parts) {
  */
 var TEAM_EDIT_VERB = '(?:замени(?:ть|те)?|поменя(?:й|ть|йте)|измени(?:ть|те)?|исправ(?:ь|ить|ьте))';
 var TEAM_EDIT_KEEP_MS = 2 * 86400000;     // сколько ждать текст после «Редактировать» и помнить «Вернуть как было»
+var TEAM_EDIT_LAST_MS = 30 * 60000;       // текст без ответа на сообщение принимаем полчаса после «Редактировать»
 var TEAM_PUBLISHED_KB = { inline_keyboard: [[{ text: '✅ Опубликовано', callback_data: 'tm|done' }]] };
 
 /** Тег Bot API HTML для сущности Telegram; null — её Telegram распознаёт сам (ссылка, хэштег, упоминание…). */
@@ -15638,7 +15639,7 @@ function teamEditPrune_() {
 function teamEditPatch_(prefix, chat, mid, patch) {
   var p = PropertiesService.getScriptProperties();
   p.getKeys().forEach(function (k) {
-    if (k.indexOf(prefix + chat + '_') !== 0) return;
+    if (k.indexOf(prefix + chat + '_') !== 0 && k !== prefix + 'LAST_' + chat) return;
     try {
       var t = JSON.parse(p.getProperty(k));
       if (t.mid !== mid) return;
@@ -15732,7 +15733,7 @@ function teamEditOpen_(m, pid, answer) {
   teamEditPrune_();
   var hint = tgRaw_('sendMessage', { chat_id: chat, reply_to_message_id: m.message_id,
     text: '✏️ Редактирование ' + (pid || 'поста') + (ch ? ' (уже в канале — поправлю и там)' : '') + ': долгий тап по тексту ниже → «Копировать», ' +
-      'вставьте в поле ввода, исправьте как нужно и отправьте — пост обновится.' });
+      'вставьте в поле ввода, исправьте как нужно и отправьте — ответом на текст или просто следующим сообщением. Пост обновится.' });
   var copy;
   try {
     copy = teamEditTg_('sendMessage', { chat_id: chat, text: tgt.html, parse_mode: 'HTML', link_preview_options: { is_disabled: true },
@@ -15749,14 +15750,37 @@ function teamEditOpen_(m, pid, answer) {
   var p = PropertiesService.getScriptProperties(), v = JSON.stringify(tgt);
   p.setProperty('TMEDIT_' + chat + '_' + tgt.copy, v);
   if (tgt.hint) p.setProperty('TMEDIT_' + chat + '_' + tgt.hint, v);
+  p.setProperty('TMEDIT_LAST_' + chat, v);                             // для текста, отправленного без ответа
 }
 
-/** Ответ на присланный текст поста (или на подсказку) — сеанс «Редактировать»; иначе null. */
-function teamEditPending_(chat, rep) {
-  if (!rep) return null;
-  var v = PropertiesService.getScriptProperties().getProperty('TMEDIT_' + chat + '_' + rep.message_id);
-  if (!v) return null;
-  try { var t = JSON.parse(v); return Date.now() - t.t > TEAM_EDIT_KEEP_MS ? null : t; } catch (e) { return null; }
+/** Сеанс «Редактировать» для сообщения владельца: ответ на присланный текст поста или подсказку; ответ на сам пост или
+ *  сообщение без ответа в течение TEAM_EDIT_LAST_MS — если текст похож на этот пост (случайное сообщение пост не заменит). */
+function teamEditPending_(chat, rep, text) {
+  var p = PropertiesService.getScriptProperties();
+  var get = function (k) {
+    var v = p.getProperty(k);
+    if (!v) return null;
+    try { var t = JSON.parse(v); return Date.now() - t.t > TEAM_EDIT_KEEP_MS ? null : t; } catch (e) { return null; }
+  };
+  var byId = rep ? get('TMEDIT_' + chat + '_' + rep.message_id) : null;
+  if (byId) return byId;
+  var last = get('TMEDIT_LAST_' + chat);
+  if (!last || !teamEditSimilar_(last.html, text)) return null;
+  if (rep) return rep.message_id === last.mid ? last : null;
+  return Date.now() - last.t <= TEAM_EDIT_LAST_MS ? last : null;
+}
+
+/** Похож ли текст на пост: общих слов не меньше половины, а сам текст — не короче трети поста. */
+function teamEditSimilar_(html, text) {
+  var words = function (s) {
+    var o = {};
+    (String(s || '').toLowerCase().replace(/ё/g, 'е').match(/[a-zа-я0-9]{3,}/g) || []).forEach(function (w) { o[w] = 1; });
+    return o;
+  };
+  var a = words(String(html || '').replace(/<[^>]+>/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
+  var b = words(text), na = Object.keys(a).length, nb = Object.keys(b).length, common = 0;
+  Object.keys(b).forEach(function (w) { if (a[w]) common++; });
+  return na > 0 && nb >= 0.3 * na && common >= 0.5 * Math.min(na, nb);
 }
 
 /** Новый текст поста от владельца: заменить пост целиком, убрать служебные сообщения, дать «Вернуть как было». */
@@ -15775,7 +15799,7 @@ function teamEditTake_(msg, pend, send) {
       JSON.stringify({ mid: pend.mid, cap: pend.cap, kb: pend.kb, pid: pend.pid, html: pend.html, t: Date.now() }));
     var line = function (re) { var x = String(msg.text).split('\n').filter(function (l) { return re.test(l); })[0]; return x ? x.trim() : ''; };
     teamEditLog_(pend.pid, inCh, ['новый текст поста', line(/^\s*Прогноз\s*:/), line(/^\s*К[эо]ф/i)].filter(Boolean).join('; '));
-  } catch (e) { send('⚠️ Пост не обновил: ' + escHtml_(e.message) + '. Исправьте и отправьте ещё раз ответом на текст поста.'); }
+  } catch (e) { send('⚠️ Пост не обновил: ' + escHtml_(e.message) + '. Исправьте и отправьте ещё раз.'); }
 }
 
 /** «↩️ Вернуть как было» под «✅ Пост обновлён». */
