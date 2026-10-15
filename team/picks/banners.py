@@ -8,9 +8,20 @@
 В сессии для проверки: PYTHONPATH=render python team/picks/banners.py <задание> → картинки в out/picks/… (в git не класть)."""
 import json
 import os
+import shutil
+import subprocess
 import sys
 
 import versus
+
+
+def ensure_ffmpeg():
+    """На раннере ubuntu ffmpeg может не быть — ставим (как в заданиях роликов)."""
+    if shutil.which('ffmpeg'):
+        return
+    pre = [] if os.geteuid() == 0 else ['sudo']
+    subprocess.run(pre + ['apt-get', 'update', '-qq'], check=True)
+    subprocess.run(pre + ['apt-get', 'install', '-y', '-qq', 'ffmpeg'], check=True)
 
 
 def main(job_path):
@@ -25,6 +36,7 @@ def main(job_path):
         odds = vs.get('odds')
         odds = tuple(odds) if odds and all(odds) else None
         if m.get('type') == 'animation':
+            ensure_ffmpeg()
             import versus_anim
             versus_anim.compose(vs['home'], vs['away'], path, date=vs.get('date', ''), time=vs.get('time', ''), odds=odds,
                                 league=vs.get('league', 'KHL'), plates_dir='out/anim/plates')
