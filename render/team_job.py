@@ -23,6 +23,7 @@ job.json:
   "messages": [
     {"to": "owner", "type": "text", "text": "Отчёт планёрки …"},
     {"to": "owner", "type": "photo", "files": ["…"], "text": "подпись для канала", "buttons": "post", "pid": "1012-1"},
+    {"to": "owner", "type": "animation", "files": ["….mp4"], "text": "подпись", "buttons": "post", "pid": "1012-4"},
     {"to": "owner", "type": "text", "text": "Предложение 1012-2: …", "buttons": "proposal", "pid": "1012-2"},
     {"to": "owner", "type": "documents", "files": ["team/out/2026-10-12/a.jpg"], "captions": ["черновик"]},
     {"to": "channel", "type": "photo", "files": ["team/out/2026-10-12/b.jpg"], "text": "подпись"},
@@ -134,6 +135,10 @@ def send(token, chat, msg, to_channel):
         with open(files[0], 'rb') as f:
             _api(token, 'sendVideo', dict(chat_id=chat, caption=text[:CAPTION_MAX], supports_streaming='true', **mode, **kb),
                  {'video': f}, timeout=300)
+    elif kind == 'animation':                                # «гифка»: MP4 без звука, в Telegram крутится по кругу
+        with open(files[0], 'rb') as f:
+            _api(token, 'sendAnimation', dict(chat_id=chat, caption=text[:CAPTION_MAX], **mode, **kb),
+                 {'animation': f}, timeout=300)
     elif kind == 'poll':
         opts = [str(o)[:100] for o in msg.get('options') or []][:10]
         _api(token, 'sendPoll', dict({'chat_id': chat, 'question': str(msg.get('question', ''))[:300],

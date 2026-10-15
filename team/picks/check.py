@@ -104,8 +104,8 @@ def main(path):
         if pid in pids or pid in used:
             errs.append('%s: номер уже занят' % where)
         pids.append(pid)
-        if m.get('type') != 'photo' or not m.get('files'):
-            errs.append('%s: пост — фото с подписью (Versus)' % where)
+        if m.get('type') not in ('photo', 'animation') or not m.get('files'):
+            errs.append('%s: пост — фото или «гифка» (animation, MP4) с подписью (Versus)' % where)
         if not m.get('html'):
             errs.append('%s: нужен "html": true' % where)
         if len(text) > 1024:
