@@ -133,6 +133,18 @@ def caption(league, items, date_title):
 CAPTION_MAX = 1024
 
 
+def itogi_tags(leagues, date_title):
+    """Хэштеги итогов (владелец 15.10): «#нхл #итоги #17октября #jarvisbet», строчными, одной строкой."""
+    m = re.search(r'(\d{1,2})\s+([а-яё]+)', str(date_title or '').lower())
+    day = ['#%s%s' % (m.group(1), m.group(2))] if m else []
+    return ' '.join(['#кхл' if lg == 'KHL' else '#нхл' for lg in leagues] + ['#итоги'] + day + ['#jarvisbet'])
+
+
+def with_tags(text, tags):
+    """Хэштеги последней строкой подписи; не влезают в 1024 — подпись без них не режем."""
+    return text + '\n\n' + tags if len(text) + 2 + len(tags) <= CAPTION_MAX else text
+
+
 def send_message(token, chat, text):
     import requests
     r = requests.post('https://api.telegram.org/bot%s/sendMessage' % token, timeout=60,
@@ -305,8 +317,11 @@ def main_both(payload):
     date_title = str(payload.get('date_title') or blocks[0][2] or '').strip()
     text = no_emoji(caption_both([(b[0], b[1]) for b in blocks], date_title))
     after = ''
-    if len(text) > CAPTION_MAX:                  # большой день: альбом без подписи, счёт — следом сообщением
-        text, after = '', text
+    tags = itogi_tags([b[0] for b in blocks], date_title)
+    if len(text) + 2 + len(tags) > CAPTION_MAX:  # большой день: альбом без подписи, счёт — следом сообщением
+        text, after = '', text + '\n\n' + tags
+    else:
+        text = text + '\n\n' + tags
     chats = [str(c).strip() for c in (payload.get('chats') or [payload.get('chat')]) if str(c or '').strip()]
     # «Игроки дня» — отдельным сообщением сразу следом за итогами (порядок в канале гарантирован)
     players = no_emoji(str(payload.get('after_text') or '').strip())[:4000]
@@ -521,6 +536,8 @@ def main():
         else:
             after = extra
     text, after = no_emoji(text), no_emoji(after)
+    if kind != 'matchi':
+        text = with_tags(text, itogi_tags([league], date_title))
     # «Игроки дня» — отдельным сообщением сразу следом за итогами НХЛ
     players = no_emoji(str(payload.get('after_text') or '').strip())[:4000] if kind != 'matchi' else ''
     # куда «Игроки дня»: "after_chats" (в нём и каналы КХЛ — там лучшие игроки КХЛ), нет — туда же, куда итоги

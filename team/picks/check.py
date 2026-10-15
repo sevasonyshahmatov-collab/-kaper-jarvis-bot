@@ -127,9 +127,11 @@ def main(path):
             errs.append('%s: нет цитаты <blockquote> с обоснованием' % where)
         if not re.search(r'^<i>.+</i>$', text, re.M):
             errs.append('%s: нет строки-завершения курсивом' % where)
-        if not re.search(r'#прогноз(КХЛ|НХЛ) #(КХЛ|НХЛ)\s*$', text):
-            errs.append('%s: в конце хэштеги «#прогнозКХЛ #КХЛ» / «#прогнозНХЛ #НХЛ»' % where)
-        low = html.unescape(re.sub(r'<[^>]+>', '', text)).lower()
+        if not re.search(r'\n#(кхл|нхл) #прогноз #jarvisbet\s*$', text):
+            errs.append('%s: последней строкой хэштеги «#кхл #прогноз #jarvisbet» / «#нхл #прогноз #jarvisbet» (владелец 15.10)' % where)
+        elif ('#кхл' in text) != lines[0].startswith('КХЛ'):
+            errs.append('%s: хэштег лиги не совпадает с шапкой' % where)
+        low = html.unescape(re.sub(r'<[^>]+>', '', re.sub(r'#\w+', '', text))).lower()   # хэштеги (#jarvisbet) не проверяем
         for w in BANNED:
             if w in low:
                 errs.append('%s: «%s» — в постах не пишем' % (where, w))
