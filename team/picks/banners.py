@@ -24,9 +24,17 @@ def ensure_ffmpeg():
     subprocess.run(pre + ['apt-get', 'install', '-y', '-qq', 'ffmpeg'], check=True)
 
 
+def _anim(task):
+    path, vs, odds = task
+    import versus_anim
+    versus_anim.compose(vs['home'], vs['away'], path, date=vs.get('date', ''), time=vs.get('time', ''), odds=odds,
+                        league=vs.get('league', 'KHL'), plates_dir='out/anim/plates')
+    return path
+
+
 def main(job_path):
     job = json.load(open(job_path, encoding='utf-8'))
-    n = 0
+    n, anim = 0, []
     for m in job.get('messages') or []:
         vs = m.get('vs')
         if not vs or not m.get('files'):
@@ -36,17 +44,20 @@ def main(job_path):
         odds = vs.get('odds')
         odds = tuple(odds) if odds and all(odds) else None
         if m.get('type') == 'animation':
-            ensure_ffmpeg()
-            import versus_anim
-            versus_anim.compose(vs['home'], vs['away'], path, date=vs.get('date', ''), time=vs.get('time', ''), odds=odds,
-                                league=vs.get('league', 'KHL'), plates_dir='out/anim/plates')
-        else:
-            versus.render(vs['home'], vs['away'], path, date=vs.get('date', ''), time=vs.get('time', ''), odds=odds,
-                          league=vs.get('league', 'KHL'))
+            anim.append((path, vs, odds))
+            continue
+        versus.render(vs['home'], vs['away'], path, date=vs.get('date', ''), time=vs.get('time', ''), odds=odds,
+                      league=vs.get('league', 'KHL'))
         n += 1
         print('баннер:', path, flush=True)
+    if anim:                                       # анимированные — параллельно по ядрам (~2 мин на матч)
+        ensure_ffmpeg()
+        from multiprocessing import Pool
+        with Pool(max(1, min(len(anim), os.cpu_count() or 1))) as pool:
+            for path in pool.imap_unordered(_anim, anim):
+                n += 1
+                print('баннер:', path, flush=True)
     print('баннеров: %d' % n, flush=True)
-
 
 if __name__ == '__main__':
     main(sys.argv[1])

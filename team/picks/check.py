@@ -104,8 +104,8 @@ def main(path):
         if pid in pids or pid in used:
             errs.append('%s: номер уже занят' % where)
         pids.append(pid)
-        if m.get('type') not in ('photo', 'animation') or not m.get('files'):
-            errs.append('%s: пост — фото или «гифка» (animation, MP4) с подписью (Versus)' % where)
+        if m.get('type') != 'animation' or not str((m.get('files') or [''])[0]).endswith('.mp4'):
+            errs.append('%s: пост — анимированный баннер: "type": "animation", файл .mp4 (владелец 15.10)' % where)
         if not m.get('html'):
             errs.append('%s: нужен "html": true' % where)
         if len(text) > 1024:
@@ -127,10 +127,9 @@ def main(path):
             errs.append('%s: нет цитаты <blockquote> с обоснованием' % where)
         if not re.search(r'^<i>.+</i>$', text, re.M):
             errs.append('%s: нет строки-завершения курсивом' % where)
-        hd = re.match(r'^\S+ · (\d{1,2}) (\S+) ·', lines[0])
-        want = '#%s #прогноз #%s%s #jarvibet' % ('кхл' if lines[0].startswith('КХЛ') else 'нхл', *(hd.groups() if hd else ('', '')))
+        want = '#%s #прогноз #jarvibet' % ('кхл' if lines[0].startswith('КХЛ') else 'нхл')
         if not text.rstrip().endswith('\n' + want):
-            errs.append('%s: последней строкой хэштеги «%s» — лига и дата матча из шапки (владелец 15.10)' % (where, want))
+            errs.append('%s: последней строкой хэштеги «%s» — лига из шапки, без даты (владелец 15.10)' % (where, want))
         low = html.unescape(re.sub(r'<[^>]+>', '', re.sub(r'#\w+', '', text))).lower()   # хэштеги (#jarvibet) не проверяем
         for w in BANNED:
             if w in low:

@@ -134,10 +134,8 @@ CAPTION_MAX = 1024
 
 
 def itogi_tags(leagues, date_title):
-    """Хэштеги итогов (владелец 15.10): «#нхл #итоги #17октября», строчными, одной строкой."""
-    m = re.search(r'(\d{1,2})\s+([а-яё]+)', str(date_title or '').lower())
-    day = ['#%s%s' % (m.group(1), m.group(2))] if m else []
-    return ' '.join(['#кхл' if lg == 'KHL' else '#нхл' for lg in leagues] + ['#итоги'] + day)
+    """Хэштеги итогов (владелец 15.10): «#нхл #итоги», строчными, одной строкой; без даты (владелец 15.10, вечер)."""
+    return ' '.join(['#кхл' if lg == 'KHL' else '#нхл' for lg in leagues] + ['#итоги'])
 
 
 def with_tags(text, tags):
