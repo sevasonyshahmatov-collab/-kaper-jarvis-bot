@@ -20,6 +20,7 @@ import hashlib
 import json
 import os
 import subprocess
+from collections import namedtuple
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
@@ -74,25 +75,27 @@ class _Canvas:
     """Текстура холста poster._canvas_texture (те же нити и зерно, seed 3), но как поле, которое можно взять в любой
     точке: на панелях и эмблемах она едет вместе с тканью/эмблемой, на неподвижном — стоит на месте."""
 
-    def __init__(self, strength=GRAIN, seed=3):
+    def __init__(self, strength=GRAIN, seed=3, size=(W, H)):
+        self.size = fw, fh = size                        # размер кадра (баннер 1080², сторис 1080×1920, аватар 800²)
         rng = np.random.default_rng(seed)
-        low = rng.normal(0, 1, (H // 8 + 2, W // 8 + 2)).astype(np.float32)
-        low = np.asarray(Image.fromarray(((low * 30) + 128).clip(0, 255).astype('uint8')).resize((W, H), Image.BICUBIC))
+        low = rng.normal(0, 1, (fh // 8 + 2, fw // 8 + 2)).astype(np.float32)
+        low = np.asarray(Image.fromarray(((low * 30) + 128).clip(0, 255).astype('uint8')).resize((fw, fh), Image.BICUBIC))
         self.phase = (low.astype(np.float32) - 128) / 30 * 0.9
-        self.fine = rng.normal(0, 1, (H, W)).astype(np.float32)
+        self.fine = rng.normal(0, 1, (fh, fw)).astype(np.float32)
         self.k = strength
-        yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+        yy, xx = np.mgrid[0:fh, 0:fw].astype(np.float32)
         self.screen = self.at(xx, yy)
 
     def at(self, x, y):
-        """Значение текстуры в точках (x, y) неподвижного баннера 1080×1080."""
+        """Значение текстуры в точках (x, y) неподвижного кадра (баннер 1080×1080 или self.size)."""
+        fw, fh = self.size
         ang = np.deg2rad(-30)
         u = x * np.cos(ang) + y * np.sin(ang)
         v = -x * np.sin(ang) + y * np.cos(ang)
         thread = np.sin(2 * np.pi * u / 4.6 + _bilinear(self.phase, x, y))
         cross = np.sin(2 * np.pi * v / 3.4) * 0.35
         weave = np.where(thread > 0, thread, thread * 0.6) + cross
-        fine = self.fine[np.clip(np.rint(y).astype(np.int32), 0, H - 1), np.clip(np.rint(x).astype(np.int32), 0, W - 1)]
+        fine = self.fine[np.clip(np.rint(y).astype(np.int32), 0, fh - 1), np.clip(np.rint(x).astype(np.int32), 0, fw - 1)]
         return ((0.055 * weave + 0.045 * fine) * self.k).astype(np.float32)
 
     @staticmethod
@@ -104,26 +107,29 @@ class _Canvas:
 
 class _Flag:
     """Панель клуба, колышущаяся как флаг. «Древко» — внешний край (хозяева слева, гости справа), волна бежит
-    к середине баннера и к свободному краю нарастает. Край, упирающийся в рамку кадра, уходит за кадр."""
+    к середине баннера и к свободному краю нарастает. Край, упирающийся в рамку кадра, уходит за кадр.
+    src(w, h, pad) → RGB (w + 2pad)×(h + 2pad) — свой рисунок ткани вместо колец versus._panel (аватар канала)."""
 
-    def __init__(self, spec, pole, phase, canvas):
+    def __init__(self, spec, pole, phase, canvas, src=None):
         (x0, y0, x1, y1), col, team, seed, ctr, fd = spec
         self.rect, self.pole, self.phase, self.cv = (x0, y0, x1, y1), pole, phase, canvas
         self.w, self.h = w, h = x1 - x0, y1 - y0
-        self.src = np.asarray(versus._panel(w, h, col, (ctr[0] * w, ctr[1] * h), seed, fd, pad=PAD), np.float32)
+        img = src(w, h, PAD) if src else versus._panel(w, h, col, (ctr[0] * w, ctr[1] * h), seed, fd, pad=PAD)
+        self.src = np.asarray(img.convert('RGB'), np.float32)
         # кусок кадра, который панель может занять
-        self.box = (max(0, x0 - PAD), max(0, y0 - PAD), min(W, x1 + PAD), min(H, y1 + PAD))
+        FW, FH = canvas.size
+        self.box = (max(0, x0 - PAD), max(0, y0 - PAD), min(FW, x1 + PAD), min(FH, y1 + PAD))
         bx0, by0, bx1, by1 = self.box
         yy, xx = np.mgrid[by0:by1, bx0:bx1].astype(np.float32)
         self.u, self.v = xx - x0, yy - y0
         q = self.u / w if pole == 'l' else 1 - self.u / w
         self.env = (0.4 + 0.6 * _smooth(q)).astype(np.float32)
         # края у рамки кадра не рисуем — там панель продолжается за кадр
-        self.open = dict(l=x0 <= 0, t=y0 <= 0, r=x1 >= W, b=y1 >= H)
+        self.open = dict(l=x0 <= 0, t=y0 <= 0, r=x1 >= FW, b=y1 >= FH)
 
     def frame(self, tau, shadow, sh_off, sh_k):
         """→ (box, rgb, alpha, tex) куска кадра в момент tau ∈ [0, 1).
-        shadow — тень эмблемы на ткани (кадр 1080², 0..1), sh_off — её сдвиг (px), sh_k — множитель силы."""
+        shadow — тень эмблемы на ткани (весь кадр, 0..1), sh_off — её сдвиг (px), sh_k — множитель силы."""
         u, v, env = self.u, self.v, self.env
         sgn = 1.0 if self.pole == 'l' else -1.0
         z = np.zeros_like(u)
@@ -169,18 +175,20 @@ class _Flag:
 
 class _Emblem:
     """Эмблема клуба, «парящая» над тканью: рисуется из мастера 3× (аффинное преобразование + уменьшение LANCZOS),
-    тень на ткани отстаёт и чуть расходится, когда эмблема поднимается."""
+    тень на ткани отстаёт и чуть расходится, когда эмблема поднимается.
+    art(size) → RGBA — своя «эмблема» вместо poster._emblem(team, size) (марка канала на аватаре)."""
 
-    def __init__(self, team, cx, cy, size, canvas, margin=22):
+    def __init__(self, team, cx, cy, size, canvas, margin=22, art=None):
         self.cv = canvas
-        em1 = poster._emblem(team, size)                 # 1× — как в статичном баннере (позиция и тень)
-        self.master = poster._emblem(team, size * SS)
+        art = art or (lambda s: poster._emblem(team, s))
+        em1 = art(size)                                  # 1× — как в статичном баннере (позиция и тень)
+        self.master = art(size * SS)
         px, py = int(cx - em1.width / 2), int(cy - em1.height / 2)
         self.c = np.array((px + em1.width / 2, py + em1.height / 2))        # центр в покое (непрерывные координаты)
         self.tw, self.th = em1.width + 2 * margin, em1.height + 2 * margin
         self.ox, self.oy = px - margin, py - margin
         # тень — ровно как versus._paste_emblem при S = 1
-        sh = Image.new('L', (W, H), 0)
+        sh = Image.new('L', canvas.size, 0)
         sh.paste(Image.new('L', em1.size, 150), (int(cx - em1.width / 2 + 10), int(cy - em1.height / 2 + 22)),
                  em1.getchannel('A'))
         self.shadow = np.asarray(sh.filter(ImageFilter.GaussianBlur(26)), np.float32) / 255
@@ -227,13 +235,14 @@ def _over(dst, tdst, box, rgb, alpha, tex):
     tdst[y0:y0 + h, x0:x0 + w] = tdst[y0:y0 + h, x0:x0 + w] * (1 - alpha) + tex * alpha
 
 
-def _drop_shadow(box, alpha):
+def _drop_shadow(box, alpha, size=(W, H)):
     """Тень панели как в versus._draw_panels: сдвиг (14, 20), размытие 24, непрозрачность 120 → альфа на весь кадр."""
     x0, y0 = box[:2]
     h, w = alpha.shape
-    m = np.zeros((H + 40, W + 40), np.float32)
+    fw, fh = size
+    m = np.zeros((fh + 40, fw + 40), np.float32)
     m[y0 + 20:y0 + 20 + h, x0 + 14:x0 + 14 + w] = alpha
-    m = Image.fromarray((m[:H, :W] * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(24))
+    m = Image.fromarray((m[:fh, :fw] * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(24))
     return np.asarray(m, np.float32) / 255 * (120 / 255)
 
 
@@ -241,23 +250,45 @@ def _drop_shadow(box, alpha):
 # любая плашка хозяев зациклена синхронно с любой плашкой гостей.
 SIDES = {'home': (0, 'l', 0.0, 0.0), 'away': (1, 'r', 2.3, 0.6 * np.pi)}
 
+# Геометрия плашки: имя (None — баннер Versus), кадр (w, h), прямоугольник панели, «древко» ('l'/'r'), фазы флага
+# и эмблемы, seed и центр колец (доли), перелив, сторона эмблемы, центр эмблемы. Сторис и аватар задают свою геометрию —
+# флаг, эмблема и плашки те же (render_plate(..., geom=...)).
+Geometry = namedtuple('Geometry', 'name frame rect pole flag_phase emblem_phase seed ctr fade emblem emblem_c')
+
+
+def banner_geometry(side, fade=('down', 'up')):
+    """Геометрия стороны баннера Versus (versus._panel_specs, SIDES)."""
+    i, pole, fph, eph = SIDES[side]
+    (x0, y0, x1, y1), _, _, seed, ctr, fd = versus._panel_specs(None, None, None, None, fade)[i]
+    return Geometry(None, (W, H), (x0, y0, x1, y1), pole, fph, eph, seed, ctr, fd, versus.EMBLEM,
+                    ((x0 + x1) / 2, (y0 + y1) / 2 + versus.EMBLEM_DY))
+
+
+def side_geometry(name, side, frame, rect, emblem, emblem_c, fade=None):
+    """Своя геометрия для стороны side: фазы и рисунок колец — как у этой стороны в баннере (плашки хозяев и гостей
+    по-прежнему зациклены синхронно), перелив — по умолчанию тоже."""
+    b = banner_geometry(side)
+    return b._replace(name=name, frame=tuple(frame), rect=tuple(rect), fade=b.fade if fade is None else fade,
+                      emblem=emblem, emblem_c=tuple(emblem_c))
+
 
 class _Side:
-    """Половина баннера одного клуба: флаг-панель, «парящая» эмблема, её тень на ткани и тень панели на фоне."""
+    """Половина баннера одного клуба: флаг-панель, «парящая» эмблема, её тень на ткани и тень панели на фоне.
+    geom — своя геометрия (Geometry; по умолчанию сторона баннера), art/src — своя эмблема и рисунок ткани."""
 
-    def __init__(self, team, side, color, canvas, fade=('down', 'up')):
-        i, pole, fph, eph = SIDES[side]
-        spec = versus._panel_specs(color, color, team, team, fade)[i]
-        x0, y0, x1, y1 = spec[0]
-        self.rect, self.em_phase = spec[0], eph
-        self.flag = _Flag(spec, pole, fph, canvas)
-        self.emblem = _Emblem(team, (x0 + x1) / 2, (y0 + y1) / 2 + versus.EMBLEM_DY, versus.EMBLEM, canvas)
+    def __init__(self, team, side, color, canvas, fade=('down', 'up'), geom=None, art=None, src=None):
+        g = geom or banner_geometry(side, fade)
+        assert tuple(g.frame) == tuple(canvas.size), (g.frame, canvas.size)
+        spec = (g.rect, color, team, g.seed, g.ctr, g.fade)
+        self.rect, self.em_phase, self.size = g.rect, g.emblem_phase, canvas.size
+        self.flag = _Flag(spec, g.pole, g.flag_phase, canvas, src)
+        self.emblem = _Emblem(team, g.emblem_c[0], g.emblem_c[1], g.emblem, canvas, art=art)
 
     def layers(self, tau):
         """→ (тень панели на весь кадр, (box, rgb, alpha, tex) панели, (pos, rgb, alpha, tex) эмблемы)."""
         pos, ergb, ea, etex, sh_off, sh_k = self.emblem.frame(tau, self.em_phase)
         box, rgb, alpha, ftex = self.flag.frame(tau, self.emblem.shadow, sh_off, sh_k)
-        return _drop_shadow(box, alpha), (box, rgb, alpha, ftex), (pos, ergb, ea, etex)
+        return _drop_shadow(box, alpha, self.size), (box, rgb, alpha, ftex), (pos, ergb, ea, etex)
 
 
 def _static(home, away, date, time, odds, league, tz, fade):
@@ -283,17 +314,23 @@ class Banner:
         self.sides = [_Side(spec[2], side, spec[1], self.cv, fade) for spec, side in zip(specs, ('home', 'away'))]
 
     def frame(self, tau):
-        img = self.bg.copy()
-        tex = self.cv.screen.copy()
-        for side in self.sides:                           # хозяева, потом гости поверх
-            sh, panel, emblem = side.layers(tau)
-            img *= 1 - sh[..., None]
-            _over(img, tex, *panel)
-            _over(img, tex, *emblem)
-        a = self.fg_a[..., None]
-        img = img * (1 - a) + self.fg_rgb * a
-        tex = tex * (1 - self.fg_a) + self.cv.screen * self.fg_a
-        return np.clip(_Canvas.apply(img, tex), 0, 255).astype(np.uint8)
+        return scene_frame(self.bg, self.cv, self.sides, self.fg_rgb, self.fg_a, tau)
+
+
+def scene_frame(bg, cv, sides, fg_rgb, fg_a, tau):
+    """Кадр сцены: фон bg (float RGB без зерна) → стороны (тень панели, флаг, эмблема) по порядку → неподвижный
+    слой (fg_rgb, fg_a) → текстура холста cv на всё. → uint8 RGB."""
+    img = bg.copy()
+    tex = cv.screen.copy()
+    for side in sides:                                    # хозяева, потом гости поверх
+        sh, panel, emblem = side.layers(tau)
+        img *= 1 - sh[..., None]
+        _over(img, tex, *panel)
+        _over(img, tex, *emblem)
+    a = fg_a[..., None]
+    img = img * (1 - a) + fg_rgb * a
+    tex = tex * (1 - fg_a) + cv.screen * fg_a
+    return np.clip(_Canvas.apply(img, tex), 0, 255).astype(np.uint8)
 
 
 def _ffmpeg(args, frames=None):
@@ -309,7 +346,8 @@ def _encode_mp4(frames, path, fps, target_mb):
     """H.264 yuv420p, весь цикл — одна GOP (ключевой только первый кадр), двухпроходный ABR под target_mb
     (зерно холста на движущейся ткани CRF-ом всё равно не влезает в 3 МБ)."""
     n = len(frames)
-    src = ['-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '%dx%d' % (W, H), '-r', str(fps), '-i', '-', '-an']
+    fh, fw = frames[0].shape[:2]
+    src = ['-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '%dx%d' % (fw, fh), '-r', str(fps), '-i', '-', '-an']
     common = ['-c:v', 'libx264', '-preset', 'veryslow', '-profile:v', 'high', '-pix_fmt', 'yuv420p',
               '-vf', 'scale=out_color_matrix=bt709:out_range=tv:flags=lanczos+accurate_rnd+full_chroma_int',
               '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
@@ -342,14 +380,16 @@ def _sheet(frames, path, fps, n=6, cols=3, size=540):
     idx = [round(i * len(frames) / n) for i in range(n)]
     rows = (n + cols - 1) // cols
     gap, lab = 8, 30
-    sheet = Image.new('RGB', (cols * size + (cols + 1) * gap, rows * (size + lab) + (rows + 1) * gap), (40, 40, 44))
+    fh, fw = frames[0].shape[:2]
+    th = round(size * fh / fw)                                    # высота плитки (сторис — вертикальные)
+    sheet = Image.new('RGB', (cols * size + (cols + 1) * gap, rows * (th + lab) + (rows + 1) * gap), (40, 40, 44))
     d = ImageDraw.Draw(sheet)
     f = brand_kit.font('Manrope[wght].ttf', 18, 700)
     for k, i in enumerate(idx):
         x = gap + (k % cols) * (size + gap)
-        y = gap + (k // cols) * (size + lab + gap)
+        y = gap + (k // cols) * (th + lab + gap)
         d.text((x + 4, y + 4), 'кадр %d · t = %.2f с' % (i, i / fps), font=f, fill=(230, 230, 235))
-        sheet.paste(Image.fromarray(frames[i]).resize((size, size), Image.LANCZOS), (x, y + lab))
+        sheet.paste(Image.fromarray(frames[i]).resize((size, th), Image.LANCZOS), (x, y + lab))
     sheet.save(path, quality=90)
     return path
 
@@ -384,10 +424,13 @@ PLATE_MARGIN = 100           # запас вокруг панели: волна 
 PLATE_CRF = 20               # качество VP9 (меньше — точнее и тяжелее)
 
 
-def plate_version(fps=30, frames=120):
-    """Версия плашки: меняется вместе с любым параметром вида — устаревшие плашки compose перерисует сам."""
+def plate_version(fps=30, frames=120, geom=None):
+    """Версия плашки: меняется вместе с любым параметром вида — устаревшие плашки compose перерисует сам.
+    geom — своя геометрия (сторис): входит в версию; у баннерных плашек версия прежняя."""
     look = (WAVES, DX_K, FOLD, LIGHT, BOB, DRIFT, ROT, BREATH, GRAIN, PAD, SS, SIDES, PLATE_MARGIN,
             versus.P1, versus.P2, versus.EMBLEM, versus.EMBLEM_DY, fps, frames)
+    if geom is not None:
+        look += (tuple(geom),)
     return 'versus-plate/1-' + hashlib.sha1(repr(look).encode()).hexdigest()[:10]
 
 
@@ -406,14 +449,16 @@ def _club(team, league):
     return ru, poster.TEAMS[ru][0]
 
 
-def plate_path(team, side, league, color, out_dir):
-    return os.path.join(out_dir, '%s_%s_%02x%02x%02x.webm' % ((_club(team, league)[1], side) + _rgb(color)))
+def plate_path(team, side, league, color, out_dir, geom=None):
+    """<slug>_<side>_<hex>.webm; с геометрией — <slug>_<side>_<имя геометрии>_<hex>.webm."""
+    tag = side if geom is None else '%s_%s' % (side, geom.name)
+    return os.path.join(out_dir, '%s_%s_%02x%02x%02x.webm' % ((_club(team, league)[1], tag) + _rgb(color)))
 
 
-def _plate_box(rect):
+def _plate_box(rect, size=(W, H)):
     x0, y0, x1, y1 = rect
     m = PLATE_MARGIN
-    return max(0, x0 - m), max(0, y0 - m), min(W, x1 + m), min(H, y1 + m)
+    return max(0, x0 - m), max(0, y0 - m), min(size[0], x1 + m), min(size[1], y1 + m)
 
 
 def _plate_frame(side, tau, box):
@@ -440,18 +485,20 @@ _YUV = 'scale=%s_color_matrix=bt709:%s_range=tv:flags=accurate_rnd+full_chroma_i
 _TAGS = ['-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv']
 
 
-def render_plate(team, side, league, color, out_dir, seconds=4, fps=30, crf=PLATE_CRF, grain=GRAIN):
+def render_plate(team, side, league, color, out_dir, seconds=4, fps=30, crf=PLATE_CRF, grain=GRAIN, geom=None):
     """Плашка клуба team на стороне side ('home' — P1, «древко» слева; 'away' — P2, «древко» справа) цвета color
     ((r, g, b) или '#rrggbb') → out_dir/<slug>_<side>_<hex>.webm (VP9 yuva420p) + .json (начало box в координатах
-    баннера, размер, fps, кадры, цвет, версия)."""
+    баннера, размер, fps, кадры, цвет, версия). geom — своя геометрия (Geometry, например сторис 1080×1920):
+    тот же флаг и та же эмблема, другой кадр и прямоугольник панели."""
     ru, slug = _club(team, league)
     color = _rgb(color)
     n = int(round(seconds * fps))
     reps = max(1, round(seconds / 4))
-    sd = _Side(ru, side, color, _Canvas(grain))
-    box = _plate_box(sd.rect)
+    frame = (W, H) if geom is None else tuple(geom.frame)
+    sd = _Side(ru, side, color, _Canvas(grain, size=frame), geom=geom)
+    box = _plate_box(sd.rect, frame)
     w, h = box[2] - box[0], box[3] - box[1]
-    path = plate_path(ru, side, league, color, out_dir)
+    path = plate_path(ru, side, league, color, out_dir, geom)
     os.makedirs(out_dir, exist_ok=True)
     tmp = path[:-5] + '.part.webm'
     frames = (_plate_frame(sd, (i / n * reps) % 1.0, box) for i in range(n))
@@ -459,32 +506,34 @@ def render_plate(team, side, league, color, out_dir, seconds=4, fps=30, crf=PLAT
              '-vf', _YUV % ('out', 'out'), '-c:v', 'libvpx-vp9', '-pix_fmt', 'yuva420p', '-crf', str(crf), '-b:v', '0',
              '-deadline', 'good', '-cpu-used', '2', '-row-mt', '1', '-g', str(n)] + _TAGS + [tmp], frames)
     os.replace(tmp, path)
-    meta = {'version': plate_version(fps, n), 'team': ru, 'slug': slug, 'side': side, 'league': league,
-            'color': '#%02x%02x%02x' % color, 'origin': list(box[:2]), 'size': [w, h], 'banner': [W, H],
+    meta = {'version': plate_version(fps, n, geom), 'team': ru, 'slug': slug, 'side': side, 'league': league,
+            'color': '#%02x%02x%02x' % color, 'origin': list(box[:2]), 'size': [w, h], 'banner': list(frame),
             'fps': fps, 'frames': n}
+    if geom is not None:
+        meta['geometry'] = geom.name
     with open(path[:-5] + '.json', 'w', encoding='utf-8') as f:
         json.dump(meta, f, ensure_ascii=False, indent=1)
     return path
 
 
-def _plate_meta(path, fps, n):
+def _plate_meta(path, fps, n, geom=None):
     """JSON готовой плашки, если она есть и нарисована текущей версией вида; иначе None."""
     mp = path[:-5] + '.json'
     if not (os.path.exists(path) and os.path.exists(mp)):
         return None
     with open(mp, encoding='utf-8') as f:
         meta = json.load(f)
-    return meta if meta.get('version') == plate_version(fps, n) else None
+    return meta if meta.get('version') == plate_version(fps, n, geom) else None
 
 
-def get_plate(team, side, league, color, plates_dir, seconds=4, fps=30):
+def get_plate(team, side, league, color, plates_dir, seconds=4, fps=30, geom=None):
     """Готовая плашка из plates_dir (нет или устарела — рисуется) → (путь, JSON)."""
     n = int(round(seconds * fps))
-    path = plate_path(team, side, league, color, plates_dir)
-    meta = _plate_meta(path, fps, n)
+    path = plate_path(team, side, league, color, plates_dir, geom)
+    meta = _plate_meta(path, fps, n, geom)
     if meta is None:
-        render_plate(team, side, league, color, plates_dir, seconds, fps)
-        meta = _plate_meta(path, fps, n)
+        render_plate(team, side, league, color, plates_dir, seconds, fps, geom=geom)
+        meta = _plate_meta(path, fps, n, geom)
     return path, meta
 
 
