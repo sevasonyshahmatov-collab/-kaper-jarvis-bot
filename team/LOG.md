@@ -81,3 +81,7 @@ Run 84 (id 38243442934) — success: шортсы coupon/top3/notify с трек
 текст 1510-14 без изменений, хэштеги по новому правилу; баннер собран из плашек клубов (render/versus_anim.py, compose),
 MP4 1080×1080, 4 с, ~2,6 МБ, рисуется в Actions (banners.py, тип "animation"); в Telegram — sendAnimation (новый тип "animation" в render/team_job.py, check.py его принимает).
 Владельцу сказано: если выкладывает этот вариант — на 1510-14 нажать «Не надо».
+
+## 15.10 · хэштег канала — #jarvibet
+Владелец выбрал `#jarvibet` (как имя канала @jarvibet) вместо `#jarvisbet`: поправлены POSTS.md, picks/README.md, check.py
+(старый тег check.py теперь не пропускает). Уже отправленные черновики со старым тегом (1510-16) владелец правит в боте сам.
