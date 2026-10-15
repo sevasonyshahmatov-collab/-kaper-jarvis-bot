@@ -81,11 +81,12 @@ def _smooth(t):
     return t * t * (3 - 2 * t)
 
 
-def _panel(w, h, color, center, seed, fade='down', dim=0.42):
+def _panel(w, h, color, center, seed, fade='down', dim=0.42, pad=0):
     """Панель клуба: концентрические «топографические» кольца тон-в-тон и перелив яркости:
     fade='down' — у верхнего края приглушённо, к низу ярче (хозяева); 'up' — наоборот (гости); None — ровно.
-    dim — яркость у приглушённого края (доля от цвета клуба)."""
-    y, x = np.mgrid[0:h, 0:w].astype(np.float32)
+    dim — яркость у приглушённого края (доля от цвета клуба).
+    pad — тот же узор с запасом pad пикселей с каждой стороны (картинка (w + 2pad)×(h + 2pad); для анимации «флага»)."""
+    y, x = np.mgrid[-pad:h + pad, -pad:w + pad].astype(np.float32)
     cx, cy = center
     dx, dy = (x - cx) / w, (y - cy) / w
     ang = np.arctan2(dy, dx)
@@ -161,27 +162,42 @@ def _pill(d, box, text, label, f, fl, fill, txt):
     d.text(((x0 + x1) / 2, y0 - 10 * S), label, font=fl, fill=(170, 168, 176), anchor='md')
 
 
-def render(home, away, path, date='', time='', odds=None, league='KHL', tz='время московское', fade=('down', 'up')):
-    """fade — перелив яркости панелей хозяев и гостей (см. _panel); ('up', 'down') — яркие края, тёмная середина."""
+# панели: хозяева — слева сверху, гости — справа снизу поверх (базовые пиксели 1080×1080)
+P1 = (100, 0, 620, 672)
+P2 = (460, 408, 980, 1080)
+EMBLEM = 380                                         # сторона квадрата эмблемы
+EMBLEM_DY = 6                                        # эмблема чуть ниже центра панели
+
+
+def _teams(home, away, league):
+    """→ (хозяева, гости, акцент); хозяева/гости — (ru, цвет, аббр., подпись сбоку)."""
     if league == 'NHL':
         nhl.register()
     hn, hc, _, ha, hs = _team(home, league)
     an, ac, ac2, aa, as_ = _team(away, league)
     ac = _distinct(hc, ac, ac2)
     acc = poster.ACC if league == 'KHL' else nhl.ICE
+    return (hn, hc, ha, hs), (an, ac, aa, as_), acc
 
+
+def _panel_specs(hc, ac, hn, an, fade):
+    """Панели в порядке отрисовки: (прямоугольник, цвет, клуб эмблемы, seed узора, центр колец (доли), перелив)."""
+    return ((P1, hc, hn, 11, (0.62, 0.42), fade[0]),
+            (P2, ac, an, 23, (0.40, 0.55), fade[1]))
+
+
+def _background():
     img = Image.new('RGBA', (W * S, H * S), BG + (255,))
     # фон: лёгкий подсвет и зерно
     g = np.mgrid[0:H, 0:W].astype(np.float32)
     vign = 1 + 0.10 * np.exp(-((g[1] - 760) ** 2 + (g[0] - 300) ** 2) / (2 * 380 ** 2))
     bgarr = np.clip(np.array(BG, np.float32)[None, None] * vign[..., None], 0, 255).astype(np.uint8)
     img.paste(Image.fromarray(bgarr, 'RGB').resize(img.size, Image.BILINEAR), (0, 0))
+    return img
 
-    # панели: хозяева — слева сверху, гости — справа снизу поверх
-    P1 = (100, 0, 620, 672)
-    P2 = (460, 408, 980, 1080)
-    for (x0, y0, x1, y1), col, emb, seed, ctr, fd in ((P1, hc, hn, 11, (0.62, 0.42), fade[0]),
-                                                       (P2, ac, an, 23, (0.40, 0.55), fade[1])):
+
+def _draw_panels(img, specs):
+    for (x0, y0, x1, y1), col, emb, seed, ctr, fd in specs:
         w, h = (x1 - x0) * S, (y1 - y0) * S
         pn = _panel(w // S, h // S, col, (ctr[0] * (w // S), ctr[1] * (h // S)), seed, fd).resize((w, h), Image.BICUBIC)
         sh = Image.new('RGBA', img.size, (0, 0, 0, 0))
@@ -189,8 +205,33 @@ def render(home, away, path, date='', time='', odds=None, league='KHL', tz='вр
                                      fill=(0, 0, 0, 120))
         img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(24 * S)))
         img.paste(pn, (x0 * S, y0 * S))
-        _paste_emblem(img, emb, (x0 + x1) / 2 * S, ((y0 + y1) / 2 + 6) * S, 380 * S)
+        _paste_emblem(img, emb, (x0 + x1) / 2 * S, ((y0 + y1) / 2 + EMBLEM_DY) * S, EMBLEM * S)
 
+
+def layers(home, away, date='', time='', odds=None, league='KHL', tz='время московское', fade=('down', 'up')):
+    """Слои баннера по отдельности (для анимации, versus_anim.py), размер W*S × H*S, без текстуры холста:
+    {'bg': фон RGBA, 'fg': текст/плашки/марка на прозрачном RGBA, 'specs': панели (_panel_specs)}."""
+    (hn, hc, ha, hs), (an, ac, aa, as_), acc = _teams(home, away, league)
+    fg = Image.new('RGBA', (W * S, H * S), (0, 0, 0, 0))
+    _draw_foreground(fg, hc, ha, hs, ac, aa, as_, acc, date, time, odds, league, tz)
+    return {'bg': _background(), 'fg': fg, 'specs': _panel_specs(hc, ac, hn, an, fade)}
+
+
+def render(home, away, path, date='', time='', odds=None, league='KHL', tz='время московское', fade=('down', 'up')):
+    """fade — перелив яркости панелей хозяев и гостей (см. _panel); ('up', 'down') — яркие края, тёмная середина."""
+    (hn, hc, ha, hs), (an, ac, aa, as_), acc = _teams(home, away, league)
+    img = _background()
+    _draw_panels(img, _panel_specs(hc, ac, hn, an, fade))
+    _draw_foreground(img, hc, ha, hs, ac, aa, as_, acc, date, time, odds, league, tz)
+
+    out = quality.texture(img, 2) if hasattr(quality, 'texture') else img.convert('RGB')
+    os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
+    out.convert('RGB').save(path, quality=93, optimize=True)
+    return path
+
+
+def _draw_foreground(img, hc, ha, hs, ac, aa, as_, acc, date, time, odds, league, tz):
+    """Аббревиатуры, вертикальные подписи, дата/время/линия и марка канала — поверх панелей."""
     d = ImageDraw.Draw(img)
     # аббревиатуры: хозяева слева, «vs» между строк, гости справа — лесенкой
     AB = 'AlumniSans[wght].ttf'
@@ -239,11 +280,6 @@ def render(home, away, path, date='', time='', odds=None, league='KHL', tz='вр
     d.text((xr, yb), tag, font=fm, fill=acc, anchor='rs')
     d.rectangle((xr - wt - gx - bar, yb - 22 * S, xr - wt - gx, yb), fill=(220, 220, 225))
     d.text((xr - wt - 2 * gx - bar, yb), 'JARVIS', font=fm, fill=(245, 245, 245), anchor='rs')
-
-    out = quality.texture(img, 2) if hasattr(quality, 'texture') else img.convert('RGB')
-    os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
-    out.convert('RGB').save(path, quality=93, optimize=True)
-    return path
 
 
 if __name__ == '__main__':
