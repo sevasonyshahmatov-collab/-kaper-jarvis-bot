@@ -20,6 +20,7 @@
   тексты»; `team/picks/SENT.md`; последние 30 строк `team/INBOX.md` — правки владельца («правка владельца в боте») показывают,
   что ему нравится: учитывать в новых текстах.
 - Инструменты GitHub загрузить: ToolSearch `select:mcp__github__actions_run_trigger,mcp__github__actions_list,mcp__github__get_job_logs`.
+- Пуш отклонён (бот таблицы тоже пишет в ветку — строки INBOX) — `git pull --rebase origin <ветка>` и пуш ещё раз.
 
 ## 1. Данные — одно задание Actions (~1 минута)
 - `team/out/D/picks_L_data.json`: `{"day": "D", "make": ["team/picks/day.py L D"], "messages": []}` — для НХЛ тоже D:
