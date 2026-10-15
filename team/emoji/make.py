@@ -261,15 +261,115 @@ def text_mask(text, spec, cx, cy, w, h, squeeze=1.0):
     return shift(m, u(cx - 50), 0)
 
 
-def finish(art, key=1.7, drop=0.42):
-    """Контур + падающая тень, уменьшение 800 → 100 LANCZOS."""
+def outline(a, key=1.7):
+    """Маска тёмного контура вокруг альфы a."""
+    return blur(a, key * 0.55).point(lambda v: 0 if v < 6 else min(255, v * 4))
+
+
+def fade(im, k):
+    """RGBA-слой с прозрачностью × k."""
+    if k >= 1:
+        return im
+    o = im.copy()
+    o.putalpha(scale(im.getchannel('A'), max(0.0, k)))
+    return o
+
+
+def finish(art, key=1.7, drop=0.42, lift=0.0, fx=()):
+    """Контур + падающая тень, уменьшение 800 → 100 LANCZOS.
+    Для анимации (по умолчанию ничего не меняют):
+      lift — рисунок поднят на lift ед. над «столом»: тень остаётся внизу, мягче и слабее;
+      fx — [(слой RGBA, прозрачность, с_контуром)]: элементы, которые плавно гаснут/появляются.
+           С контуром — получают свою обводку и ложатся под основной рисунок; без — свет поверх всего."""
     a = art.getchannel('A')
-    k = blur(a, key * 0.55).point(lambda v: 0 if v < 6 else min(255, v * 4))
+    k = outline(a, key)
     out = new()
-    put(out, (0, 0, 0), blur(shift(k, 0, u(2.0)), 2.0), drop)
+    under = [(lay, op, outline(lay.getchannel('A'), key)) for lay, op, ol in fx if ol and op > 0]
+    sh = k
+    for _, op, kk in under:
+        sh = union(sh, scale(kk, op))
+    put(out, (0, 0, 0), blur(shift(sh, 0, u(2.0 + lift)), 2.0 + lift * 0.5), drop / (1 + lift * 0.15))
     put(out, KEY, k, 0.92)
+    for lay, op, kk in under:
+        e = new()
+        put(e, KEY, kk, 0.92)
+        e.alpha_composite(lay)
+        out.alpha_composite(fade(e, op))
     out.alpha_composite(art)
+    for lay, op, ol in fx:
+        if not ol and op > 0:
+            out.alpha_composite(fade(lay, op))
     return out.resize((SIZE, SIZE), Image.LANCZOS)
+
+
+# ───────────────────────────── помощники анимации ─────────────────────────────
+
+def xform(m, ang=0.0, k=1.0, dx=0.0, dy=0.0, cx=50, cy=50, kx=None, ky=None):
+    """Маска или слой: поворот на ang° (по часовой), масштаб k (или kx/ky) вокруг (cx, cy) ед., сдвиг (dx, dy) ед.
+    Без параметров возвращает тот же объект (статика не меняется)."""
+    kx = k if kx is None else kx
+    ky = k if ky is None else ky
+    if not ang and kx == 1 and ky == 1 and not dx and not dy:
+        return m
+    c, s = math.cos(math.radians(ang)), math.sin(math.radians(ang))
+    a, b, d, e = c / kx, s / kx, -s / ky, c / ky          # обратная к R(ang)·diag(kx, ky)
+    X, Y = u(cx + dx), u(cy + dy)
+    data = (a, b, u(cx) - a * X - b * Y, d, e, u(cy) - d * X - e * Y)
+    return m.transform(m.size, Image.AFFINE, data, resample=Image.BICUBIC)
+
+
+def rotp(pts, ang, cx, cy):
+    """Повернуть точки на ang° по часовой вокруг (cx, cy)."""
+    c, s = math.cos(math.radians(ang)), math.sin(math.radians(ang))
+    return [(cx + (x - cx) * c - (y - cy) * s, cy + (x - cx) * s + (y - cy) * c) for x, y in pts]
+
+
+def part(pts, f):
+    """Начальная доля f (0…1) ломаной по длине — «знак рисуется пером»."""
+    if f >= 1:
+        return pts
+    lens = [math.dist(a, b) for a, b in zip(pts, pts[1:])]
+    left = sum(lens) * max(0.0, f)
+    out = [pts[0]]
+    for (a, b), L in zip(zip(pts, pts[1:]), lens):
+        if left >= L:
+            out.append(b)
+            left -= L
+            continue
+        k = left / L if L else 0.0
+        out.append((a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k))
+        break
+    return out
+
+
+def sheen(base, mask, pos, width=5.0, alpha=0.6, slant=0.6):
+    """Блик-полоса «/», пробегающая по маске слева направо: pos 0…1 (на краях — за пределами формы)."""
+    bb = mask.getbbox()
+    if bb is None:
+        return
+    x0, y0, x1, y1 = (v / S for v in bb)
+    lo, hi = x0 + y0 * slant - width * 2.5, x1 + y1 * slant + width * 4
+    c = lo + (hi - lo) * pos
+    d = _X + _Y * slant - c
+    band = np.exp(-(d / width) ** 2) + 0.6 * np.exp(-((d + width * 2.4) / (width * 0.3)) ** 2)
+    m = Image.fromarray(np.clip(band * 255, 0, 255).astype(np.uint8), 'L')
+    put(base, (255, 255, 255), mul(m, mask), alpha)
+
+
+def sparkle_pts(sx, sy, r, ri):
+    """Четырёхлучевая искра."""
+    return [(sx, sy - r), (sx + ri, sy - ri), (sx + r, sy), (sx + ri, sy + ri), (sx, sy + r), (sx - ri, sy + ri),
+            (sx - r, sy), (sx - ri, sy - ri)]
+
+
+def sparkle(base, sx, sy, r, ang=0.0):
+    """Искра как у кубика льда: мягкое свечение + белая звёздочка (r — радиус луча, ед.; ang — поворот, °)."""
+    if r <= 0.3:
+        return
+    pts = sparkle_pts(sx, sy, r, r * 0.23)
+    sp = poly(M(), rotp(pts, ang, sx, sy) if ang else pts)
+    put(base, (255, 255, 255), blur(sp, 2.5 * r / 14), 0.6)
+    put(base, (255, 255, 255), sp)
 
 
 # ───────────────────────────── общие детали ─────────────────────────────
@@ -394,92 +494,205 @@ def smooth_closed(pts, k=10):
 
 # ───────────────────────────── итоги ─────────────────────────────
 
-def e_zahod():
+CHECK = [(30.5, 47), (44, 60.5), (69.5, 33.5)]
+
+
+def e_zahod(draw=1.0, alpha=1.0, shine=None):
+    """Галочка на зелёном жетоне.
+    Анимация: draw — доля галочки, прорисованной пером (0…1); alpha — её непрозрачность; shine — блик 0…1."""
     art = new()
     face = token(art, GREEN)
-    g = stroke(M(), [(30.5, 47), (44, 60.5), (69.5, 33.5)], GLYPH_W)
-    glyph(art, g, face)
+    if draw > 0 and alpha > 0:
+        g = stroke(M(), part(CHECK, draw), GLYPH_W)
+        glyph(art, g if alpha >= 1 else scale(g, alpha), face)
+    if shine is not None:
+        sheen(art, face, shine)
     return art
 
 
-def e_minus():
+def e_minus(k=1.0, ang=0.0):
+    """Крест на красном жетоне. Анимация: k — масштаб креста (0 — нет), ang — его поворот, °."""
     art = new()
     face = token(art, RED)
-    g = union(stroke(M(), [(35, 31), (65, 61)], GLYPH_W), stroke(M(), [(65, 31), (35, 61)], GLYPH_W))
-    glyph(art, g, face)
+    if k > 0:
+        c, s = math.cos(math.radians(ang)), math.sin(math.radians(ang))
+
+        def p(dx, dy):
+            return 50 + (dx * c - dy * s) * k, 46 + (dx * s + dy * c) * k
+
+        g = union(stroke(M(), [p(-15, -15), p(15, 15)], GLYPH_W * k), stroke(M(), [p(15, -15), p(-15, 15)], GLYPH_W * k))
+        glyph(art, g, face)
     return art
 
 
-def e_vozvrat():
+def e_vozvrat(ang=0.0):
+    """Стрелка возврата на ледяном жетоне. Анимация: ang — поворот стрелки вокруг центра жетона, ° (по часовой)."""
     art = new()
     face = token(art, ICE)
     ox, oy = 3, 0
     path = [(38 + ox, 36 + oy), (54 + ox, 36 + oy)] + arc_pts(54 + ox, 50 + oy, 14, -90, 90, 32)[1:] + [(40 + ox, 64 + oy)]
+    tip = [(21 + ox, 36 + oy), (40 + ox, 22.5 + oy), (40 + ox, 49.5 + oy)]
+    if ang:
+        path, tip = rotp(path, ang, TK['cx'], TK['cy']), rotp(tip, ang, TK['cx'], TK['cy'])
     g = stroke(M(), path, 11)
-    g = union(g, poly(M(), [(21 + ox, 36 + oy), (40 + ox, 22.5 + oy), (40 + ox, 49.5 + oy)]))
+    g = union(g, poly(M(), tip))
     g = soften(g, 0.5)
     glyph(art, g, face)
     return art
 
 
-def e_zhdem():
-    """Песочные часы: золотые крышки и стойки, стеклянные колбы, золотой песок."""
+HG_TOP, HG_BOT, HG_NECK = 18, 82, 50                 # песочные часы: верх/низ колб и горлышко, ед.
+PILE_DX = [0, 6, 16, 28, 60]                          # профиль горки: |x − 50| → насколько ниже вершины
+PILE_DY = [0, 1.5, 7, 17, 44]
+
+
+def _hg_bulb(y0, y1):
+    pts_l, pts_r = [], []
+    for i in range(25):
+        t = i / 24
+        y = y0 + (y1 - y0) * t
+        tt = abs(y - HG_NECK) / abs(y0 - HG_NECK)     # 1 у крышки, 0 у горлышка
+        hw = 3.2 + 21 * math.sqrt(max(0.0, 1 - (1 - tt) ** 2)) ** 1.0 * (0.25 + 0.75 * tt ** 0.35)
+        pts_l.append((50 - hw, y))
+        pts_r.append((50 + hw, y))
+    return pts_l + pts_r[::-1]
+
+
+def _hg_glass():
+    return soften(union(poly(M(), _hg_bulb(HG_TOP, HG_NECK)), poly(M(), _hg_bulb(HG_BOT, HG_NECK))), 0.6)
+
+
+def _hg_static_sand(glass):
+    top_sand = mul(glass, poly(M(), [(0, 37), (100, 37), (100, 51), (0, 51)]))
+    pile = mul(glass, soften(poly(M(), [(22, 82), (34, 72), (44, 66.5), (50, 65), (56, 66.5), (66, 72), (78, 82)]), 2))
+    return top_sand, pile
+
+
+_HG_VOL = []
+
+
+def _hg_volume():
+    """Весь песок статичной картинки (сверху + горка), в «пикселях» маски 8×."""
+    if not _HG_VOL:
+        _HG_VOL.append(sum(float(np.asarray(m, np.float32).sum()) / 255 for m in _hg_static_sand(_hg_glass())))
+    return _HG_VOL[0]
+
+
+def _sand_fill(bulb, vol, mound):
+    """Песок объёмом vol в колбе bulb (маска в осях холста): лежит внизу, поверхность — ровный уровень
+    плюс горка высотой mound (1 — как на статичной картинке, 0 — ровно)."""
+    if vol <= 0:
+        return M()
+    b = np.asarray(bulb, np.float32) / 255
+    g = _Y - mound * np.interp(np.abs(_X - 50), PILE_DX, PILE_DY)
+    sel = b > 0.004
+    gv, bv = g[sel], b[sel]
+    order = np.argsort(-gv)
+    cum = np.cumsum(bv[order])
+    lvl = gv[order][min(int(np.searchsorted(cum, vol)), len(cum) - 1)]
+    reg = Image.fromarray(((g > lvl) * 255).astype(np.uint8), 'L')
+    return mul(bulb, soften(reg, 2))
+
+
+def e_zhdem(sand=None, ang=0.0, k=1.0, mound=1.0, stream=(0.0, 1.0), grain=None):
+    """Песочные часы: золотые крышки и стойки, стеклянные колбы, золотой песок.
+    Анимация: sand — доля песка, пересыпавшаяся в нижнюю колбу (None — как на статичной картинке);
+    ang, k — поворот (переворот часов) и масштаб вокруг центра, свет остаётся сверху-слева;
+    mound — высота горки внизу (1…0); stream — струйка: доли пути от горлышка до горки (от, до) или None;
+    grain — фаза бегущих по струйке песчинок (0…1)."""
     art = new()
-    top_y, bot_y, neck_y = 18, 82, 50
+    # часы симметричны: после 90° рисуем поворот на ang − 180 с переставленными колбами —
+    # к концу переворота геометрия ровно совпадает со стоячими часами (бесшовная петля)
+    swap = ang > 90
+    ra = ang - 180 if swap else ang
 
-    def bulb(y0, y1):
-        pts_l, pts_r = [], []
-        for i in range(25):
-            t = i / 24
-            y = y0 + (y1 - y0) * t
-            tt = abs(y - neck_y) / abs(y0 - neck_y)       # 1 у крышки, 0 у горлышка
-            hw = 3.2 + 21 * math.sqrt(max(0.0, 1 - (1 - tt) ** 2)) ** 1.0 * (0.25 + 0.75 * tt ** 0.35)
-            pts_l.append((50 - hw, y))
-            pts_r.append((50 + hw, y))
-        return pts_l + pts_r[::-1]
+    def T(m):
+        return xform(m, ra, k)
 
-    glass = union(poly(M(), bulb(top_y, neck_y)), poly(M(), bulb(bot_y, neck_y)))
-    glass = soften(glass, 0.6)
+    glass = T(_hg_glass())
     # стойки сзади
-    posts = union(rrect(M(), (17, 14, 23, 86), 2), rrect(M(), (77, 14, 83, 86), 2))
+    posts = T(union(rrect(M(), (17, 14, 23, 86), 2), rrect(M(), (77, 14, 83, 86), 2)))
     put(art, lin([mix(GOLD, -0.15), mix(GOLD, -0.55)], posts, direction=(1, 0.2)), posts)
     bevel(art, posts, hi=0.4, lo=0.3, d=1.2, b=0.6)
     # стекло
     put(art, lin([(235, 246, 255), (150, 190, 220)], glass), glass, 0.38)
     # песок: остаток сверху и горка снизу, струйка
-    top_sand = mul(glass, poly(M(), [(0, 37), (100, 37), (100, 51), (0, 51)]))
-    pile = mul(glass, soften(poly(M(), [(22, 82), (34, 72), (44, 66.5), (50, 65), (56, 66.5), (66, 72), (78, 82)]), 2))
-    stream = stroke(M(), [(50, 50), (50, 66)], 2.6)
-    sand = union(top_sand, pile, stream)
-    put(art, lin([mix(GOLD, 0.25), GOLD, mix(GOLD, -0.3)], sand), sand)
-    bevel(art, sand, hi=0.35, lo=0.25, d=1.2, b=0.8)
-    # контур стекла и блики
+    seg = None
+    if sand is None:
+        top_sand, pile = _hg_static_sand(glass)
+        st = stroke(M(), [(50, 50), (50, 66)], 2.6)
+        sm = union(top_sand, pile, st)
+    else:
+        vol = _hg_volume()
+        up = mul(glass, T(poly(M(), [(0, 0), (100, 0), (100, HG_NECK), (0, HG_NECK)])))
+        dn = mul(glass, T(poly(M(), [(0, HG_NECK), (100, HG_NECK), (100, 100), (0, 100)])))
+        if swap:
+            up, dn = dn, up
+        sm = union(_sand_fill(up, (1 - sand) * vol, 0.0), _sand_fill(dn, sand * vol, mound))
+        if stream is not None and not ra and k == 1:
+            col = np.nonzero(np.asarray(sm)[int(u(HG_NECK + 2)):, int(u(50))] > 127)[0]
+            peak = HG_NECK + 2 + (col[0] / S if len(col) else HG_BOT - 2)
+            y0, y1 = (HG_NECK + (peak - HG_NECK) * f for f in stream)
+            if y1 - y0 > 0.2:
+                sm = union(sm, stroke(M(), [(50, y0), (50, y1)], 2.6))
+                seg = (y0, y1)
+    put(art, lin([mix(GOLD, 0.25), GOLD, mix(GOLD, -0.3)], sm), sm)
+    bevel(art, sm, hi=0.35, lo=0.25, d=1.2, b=0.8)
+    if seg and grain is not None:
+        for j in range(3):
+            y = seg[0] + (seg[1] - seg[0]) * ((grain + j / 3) % 1)
+            put(art, (255, 246, 214), ell(M(), 50, y, 0.75, 1.3), 0.9)
+    # контур стекла и блики (блики — отражение света: не вращаются, гаснут на ребре)
     edge = sub(glass, erode(glass, 2.6))
     put(art, (245, 250, 255), edge, 0.95)
     hl = union(stroke(M(), [(31, 22), (33, 30), (38, 37)], 2.6), stroke(M(), [(30, 78), (31.5, 72)], 2.6))
-    put(art, (255, 255, 255), hl, 0.9)
+    if ra or k != 1:
+        put(art, (255, 255, 255), mul(xform(hl, 0, k), glass), 0.9 * abs(math.cos(math.radians(ra))))
+    else:
+        put(art, (255, 255, 255), hl, 0.9)
     # крышки
     for y in (8, 82):
-        cap = rrect(M(), (13, y, 87, y + 10), 4)
+        cap = T(rrect(M(), (13, y, 87, y + 10), 4))
         put(art, lin([mix(GOLD, 0.45), GOLD, mix(GOLD, -0.38)], cap), cap)
         bevel(art, cap, hi=0.55, lo=0.45, d=1.8, b=0.9)
     return art
 
 
-def e_seriya():
-    """Пламя над шайбой."""
+FLAME_OUT = [(26, 72), (17, 54), (21, 36), (29, 42), (32, 24), (41, 31), (50, 6), (59, 22), (67, 13), (72, 32), (82, 45),
+             (80, 62), (74, 72)]
+FLAME_IN = [(36, 72), (31, 58), (37, 45), (43, 51), (49, 28), (57, 44), (63, 39), (67, 56), (64, 72)]
+FLAME_CORE = [(43, 72), (41, 62), (47, 54), (50, 46), (55, 56), (58, 64), (57, 72)]
+
+
+def flicker(pts, ph):
+    """Колыхание пламени: гладкое поле смещений, растёт к кончикам (основание у шайбы неподвижно).
+    ph — фаза 0…1; только целые гармоники, поэтому ph = 1 совпадает с ph = 0 (бесшовная петля)."""
+    tau = 2 * math.pi
+    out = []
+    for x, y in pts:
+        h = min(1.0, max(0.0, (70 - y) / 58)) ** 1.25
+        dx = h * (2.0 * math.sin(tau * 2 * ph - y / 8.5 + 0.6) + 0.8 * math.sin(tau * 3 * ph + x / 6.5 + 1.3))
+        dy = h * (1.6 * math.sin(tau * 2 * ph + x / 9 - y / 14) + 0.7 * math.sin(tau * 3 * ph + x / 5 + 2.1))
+        out.append((x + dx, y + dy))
+    return out
+
+
+def e_seriya(ph=None):
+    """Пламя над шайбой. Анимация: ph — фаза колыхания языков 0…1 (None — статичная форма)."""
     art = new()
-    outer = smooth_closed([(26, 72), (17, 54), (21, 36), (29, 42), (32, 24), (41, 31), (50, 6), (59, 22), (67, 13),
-                           (72, 32), (82, 45), (80, 62), (74, 72)])
-    inner = smooth_closed([(36, 72), (31, 58), (37, 45), (43, 51), (49, 28), (57, 44), (63, 39), (67, 56), (64, 72)])
+    po, pi, pc = FLAME_OUT, FLAME_IN, FLAME_CORE
+    if ph is not None:
+        po, pi, pc = flicker(po, ph), flicker(pi, ph), flicker(pc, ph)
+    outer = smooth_closed(po)
+    inner = smooth_closed(pi)
     om = poly(M(), outer)
     im = poly(M(), inner)
     glow = blur(om, 5)
-    put(art, (255, 120, 50), glow, 0.35)
+    put(art, (255, 120, 50), glow, 0.35 if ph is None else 0.35 + 0.06 * math.sin(2 * math.pi * 3 * ph))
     put(art, lin([(255, 70, 58), (250, 110, 50), (255, 160, 60)], om, direction=(0.1, 1)), om)
     bevel(art, om, hi=0.3, lo=0.25, d=2, b=1.4)
     put(art, lin([(255, 214, 90), GOLD, (255, 238, 170)], im, direction=(0, 1)), im)
-    core = poly(M(), smooth_closed([(43, 72), (41, 62), (47, 54), (50, 46), (55, 56), (58, 64), (57, 72)]))
+    core = poly(M(), smooth_closed(pc))
     put(art, (255, 248, 215), blur(core, 1.2), 0.9)
     puck3d(art, 50, 71, 35, 12, 10)
     return art
@@ -487,10 +700,16 @@ def e_seriya():
 
 # ───────────────────────────── типы прогнозов ─────────────────────────────
 
-def e_stavka_dnya():
+def e_stavka_dnya(k=1.0, shine=None, sparkles=()):
+    """Золотая звезда в тёмном жетоне.
+    Анимация: k — масштаб звезды; shine — блик 0…1 по звезде и ободку; sparkles — [(x, y, r, поворот°)] искорки."""
     art = new()
     inner = token(art, None, rim=GOLD, dark=True)
-    faceted_star(art, 50, 47.5, 31, 13.5, GOLD, inner)
+    sm = faceted_star(art, 50, 47.5, 31 * k, 13.5 * k, GOLD, inner)
+    if shine is not None:
+        sheen(art, union(sm, ring_mask(TK['cx'], TK['cy'], TK['r'], TK['r'] - 5.5)), shine)
+    for x, y, r, a in sparkles:
+        sparkle(art, x, y, r, a)
     return art
 
 
@@ -539,20 +758,32 @@ def e_ordinar():
     return art
 
 
-def e_live():
-    """Красная точка с волнами эфира + плашка LIVE."""
+def e_live(pulse=0.0, waves=((19, 1.0), (27.5, 1.0)), fx=None):
+    """Красная точка с волнами эфира + плашка LIVE.
+    Анимация: pulse 0…1 — точка «вздыхает» (растёт и светится); waves — [(радиус, непрозрачность)] дуг эфира;
+    fx — список для finish(): гаснущие волны и свечение уходят туда отдельными слоями."""
     art = new()
     cx, cy = 50, 21
     # волны (( ● ))
-    waves = M()
-    for r in (19, 27.5):
-        stroke(waves, arc_pts(cx, cy, r, 150, 210, 16), 4.6)
-        stroke(waves, arc_pts(cx, cy, r, -30, 30, 16), 4.6)
-    put(art, lin([mix(RED, 0.25), mix(RED, -0.1)], waves), waves)
+    solid = M()
+    for r, op in waves:
+        w = solid if op >= 1 or fx is None else M()
+        stroke(w, arc_pts(cx, cy, r, 150, 210, 16), 4.6)
+        stroke(w, arc_pts(cx, cy, r, -30, 30, 16), 4.6)
+        if w is not solid and op > 0:
+            lay = new()
+            put(lay, lin([mix(RED, 0.25), mix(RED, -0.1)], w), w)
+            fx.append((lay, op, True))
+    put(art, lin([mix(RED, 0.25), mix(RED, -0.1)], solid), solid)
+    k = 1 + 0.14 * pulse
     halo = ell(M(), cx, cy, 13)
     put(art, RED, blur(halo, 3), 0.45)
-    dot = ell(M(), cx, cy, 10.5)
-    put(art, rad([(255, 200, 190), mix(RED, 0.15), mix(RED, -0.2)], cx - 3.5, cy - 4, 14), dot)
+    if pulse > 0 and fx is not None:                    # свечение вокруг точки (поверх, без контура)
+        lay = new()
+        put(lay, (255, 90, 70), sub(blur(ell(M(), cx, cy, 15), 4), ell(M(), cx, cy, 10.5 * k)))
+        fx.append((lay, 0.55 * pulse, False))
+    dot = ell(M(), cx, cy, 10.5 * k)
+    put(art, rad([(255, 200, 190), mix(RED, 0.15), mix(RED, -0.2)], cx - 3.5 * k, cy - 4 * k, 14 * k), dot)
     bevel(art, dot, hi=0.5, lo=0.35, d=1.4, b=0.8)
     # плашка
     pm = plate(art, (4, 40, 96, 92), 12, RED)
@@ -578,9 +809,36 @@ def e_topkef():
 
 # ───────────────────────────── хоккей ─────────────────────────────
 
-def e_puck():
+PUCK_STREAKS = (  # «следы скорости»: (y, начало относительно центра шайбы или None — из-за края силуэта, толщина, доля длины)
+    (9.5, -6, 3.0, 0.75), (16.5, -19, 3.6, 1.0), (48, None, 4.4, 0.9), (69, None, 3.4, 0.6))
+
+
+def e_puck(dx=0.0, kx=1.0, ky=1.0, streak=0.0):
+    """Шайба в 3/4. Анимация: dx — сдвиг по горизонтали, ед.; kx, ky — сплющивание (низ на месте);
+    streak — длина «следов скорости» за шайбой (слева), ед."""
     art = new()
-    puck3d(art, 50, 38, 44, 21, 22, rim_w=3.4)
+    cx, cy, rx, ry, h = 50 + dx, 38, 44 * kx, 21 * ky, 22 * ky
+    if ky != 1:
+        cy = 81 - h - ry
+    if streak > 1.5:
+        sk = M()
+        for y, hx, w, f in PUCK_STREAKS:
+            if streak * f < 4:
+                continue
+            w *= min(1.0, streak * f / 14)              # короткий след — тоньше (не остаётся «точек»)
+            if hx is None:                               # растёт из-за левого края силуэта
+                yy = abs(y - cy) / ry if y < cy + h * 0.5 else max(0.0, y - cy - h) / ry
+                xh = cx - rx * math.sqrt(1 - min(1.0, yy) ** 2) + 8
+                xt = xh - 8 - streak * f
+            else:                                        # летит над шайбой
+                xh = cx + hx * kx
+                xt = xh - streak * f
+                ell(sk, xh, y, w / 2)
+            poly(sk, [(xh, y - w / 2), (xt, y - w * 0.12), (xt, y + w * 0.12), (xh, y + w / 2)])
+        sk = soften(sk, 0.4)
+        put(art, lin([mix(ICE, 0.2), mix(ICE, 0.75), (255, 255, 255)], sk, direction=(1, 0)), sk)
+        bevel(art, sk, hi=0.3, lo=0.3, d=0.8, b=0.5)
+    puck3d(art, cx, cy, rx, ry, h, rim_w=3.4)
     return art
 
 
@@ -647,21 +905,50 @@ def e_goal():
     return art
 
 
-def e_goal_lamp():
-    """Красная мигалка гола: купол со светом, лучи, тёмное основание с золотой кромкой."""
+LAMP_RAYS = (-162, -126, -90, -54, -18)               # углы лучей мигалки, ° (−90 — вверх)
+LAMP_C = (50, 54)                                     # центр лампы (откуда идут лучи)
+
+
+def _angdiff(a, b):
+    return (a - b + 180) % 360 - 180
+
+
+def _lamp_ray(m, a):
+    ca, sa = math.cos(math.radians(a)), math.sin(math.radians(a))
+    x, y = LAMP_C
+    return stroke(m, [(x + ca * 33, y + sa * 33), (x + ca * 44, y + sa * 44)], 6)
+
+
+def e_goal_lamp(beam=None, flash=0.0, fx=None):
+    """Красная мигалка гола: купол со светом, лучи, тёмное основание с золотой кромкой.
+    Анимация: beam — направление вращающегося луча (или кортеж направлений), ° (−90 — вверх, по часовой);
+    flash 0…1 — вспышка (купол и ореол ярче); fx — список для finish(): свет луча и ореола поверх рисунка."""
     art = new()
     cx = 50
+    beams = () if beam is None else (beam,) if isinstance(beam, (int, float)) else tuple(beam)
     rays = M()
-    for a in (-162, -126, -90, -54, -18):
-        ca, sa = math.cos(math.radians(a)), math.sin(math.radians(a))
-        stroke(rays, [(cx + ca * 33, 54 + sa * 33), (cx + ca * 44, 54 + sa * 44)], 6)
+    for a in LAMP_RAYS:
+        _lamp_ray(rays, a)
     halo = ell(M(), cx, 50, 30, 28)
     put(art, RED, blur(halo, 7), 0.55)
     put(art, lin([(255, 220, 200), mix(RED, 0.2)], rays, direction=(0, 1)), rays)
+    if beams:                                           # луч проходит по лучам — они вспыхивают по очереди
+        for a in LAMP_RAYS:
+            lit = max(math.exp(-(_angdiff(a, b) / 24) ** 2) for b in beams)
+            if lit > 0.02:
+                put(art, (255, 246, 238), _lamp_ray(M(), a), 0.85 * lit)
     bevel(art, rays, hi=0.3, lo=0.25, d=1, b=0.6)
     dome = union(ell(M(), cx, 52, 25, 27), rrect(M(), (25, 52, 75, 76), 2))
     md(dome).rectangle((u(25), u(52), u(75), u(76)), fill=255)
     put(art, rad([(255, 236, 220), (255, 130, 110), RED, mix(RED, -0.35)], cx - 4, 48, 34), dome)
+    for b in beams:                                     # отражатель внутри купола: светлая полоса бежит за лучом
+        front = 0.5 - 0.5 * math.sin(math.radians(b))
+        bx = cx + 19 * math.cos(math.radians(b))
+        band = np.exp(-((_X - bx) / 7) ** 2) * np.clip((80 - _Y) / 12, 0, 1)
+        bm = Image.fromarray((band * 255).astype(np.uint8), 'L')
+        put(art, (255, 240, 228), mul(bm, dome), 0.6 * front ** 1.5)
+    if flash > 0:
+        put(art, (255, 228, 214), mul(blur(ell(M(), cx - 2, 50, 16, 18), 6), dome), 0.6 * flash)
     # полосы «линзы» (френель)
     fr = M()
     for y in (60, 67):
@@ -675,6 +962,27 @@ def e_goal_lamp():
     trim = rrect(M(), (16, 74, 84, 78.5), 2)
     put(art, lin([mix(GOLD, 0.4), GOLD, mix(GOLD, -0.3)], trim, direction=(1, 0.2)), trim)
     bevel(art, base, hi=0.35, lo=0.35, d=1.4, b=0.8)
+    if fx is not None and (beams or flash > 0):
+        lx, ly = LAMP_C
+        r = np.hypot(_X - lx, _Y - ly)
+        above = np.clip((76 - _Y) / 12, 0, 1)                 # за основанием света не видно
+        not_dome = 1 - np.asarray(blur(dome, 1), np.float32) / 255
+        paint = rad([(255, 236, 222), (255, 120, 92), (240, 70, 56)], lx, ly, 50)
+        if beams:                                       # конусы вращающихся лучей
+            ang = np.degrees(np.arctan2(_Y - ly, _X - lx))
+            cone = 0
+            for b in beams:
+                d = (ang - b + 180) % 360 - 180
+                cone = cone + np.exp(-(d / 14) ** 2) + 0.5 * np.exp(-(d / 5) ** 2)
+            cone = cone * np.clip((r - 19) / 5, 0, 1) * np.clip(1 - (r - 22) / 27, 0, 1) ** 1.2
+            lay = rad([(255, 248, 240), (255, 178, 150), (255, 96, 74)], lx, ly, 52).convert('RGBA')
+            lay.putalpha(Image.fromarray((np.clip(cone * above * not_dome, 0, 1) * 225).astype(np.uint8), 'L'))
+            fx.append((lay, 1.0, False))
+        if flash > 0:                                   # ореол вспышки вокруг купола
+            glow = np.clip(1 - (r - 22) / 22, 0, 1) ** 1.6 * np.clip((r - 18) / 6, 0, 1)
+            lay = paint.convert('RGBA')
+            lay.putalpha(Image.fromarray((np.clip(glow * above * not_dome, 0, 1) * 160).astype(np.uint8), 'L'))
+            fx.append((lay, flash, False))
     return art
 
 
@@ -833,11 +1141,9 @@ def e_ice():
     # искра
     sp = M()
     sx, sy, r = 81, 19, 14
-    poly(sp, [(sx, sy - r), (sx + 3.2, sy - 3.2), (sx + r, sy), (sx + 3.2, sy + 3.2), (sx, sy + r), (sx - 3.2, sy + 3.2),
-              (sx - r, sy), (sx - 3.2, sy - 3.2)])
+    poly(sp, sparkle_pts(sx, sy, r, 3.2))
     sx2, sy2, r2 = 18, 86, 8
-    poly(sp, [(sx2, sy2 - r2), (sx2 + 2, sy2 - 2), (sx2 + r2, sy2), (sx2 + 2, sy2 + 2), (sx2, sy2 + r2), (sx2 - 2, sy2 + 2),
-              (sx2 - r2, sy2), (sx2 - 2, sy2 - 2)])
+    poly(sp, sparkle_pts(sx2, sy2, r2, 2))
     put(art, (255, 255, 255), blur(sp, 2.5), 0.6)
     put(art, (255, 255, 255), sp)
     return art
