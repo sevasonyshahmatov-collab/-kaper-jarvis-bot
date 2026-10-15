@@ -26,12 +26,13 @@ SS = 3                       # эмблемы и текст рисуются в 
 PAD = 30                     # запас узора панели за краями (больше амплитуды волны)
 GRAIN = 2                    # текстура холста как у статичного баннера (quality.texture(img, 2))
 
-# Волны «флага»: (амплитуда px, длина волны px, наклон фронта °, циклов за цикл анимации (4 с), фаза).
-# Все бегут от «древка» к свободному краю почти с одной скоростью (~85–95 px/с) — ткань, а не желе.
-WAVES = ((6.0, 340, 8, 1, 0.0), (2.4, 190, -16, 2, 1.7), (1.0, 118, 26, 3, 4.1))
+# Волны «флага»: (амплитуда px, длина волны px, наклон фронта °, циклов за цикл анимации (4 с), фаза, вес в светотени).
+# Все бегут от «древка» к свободному краю почти с одной скоростью (~90–100 px/с) — ткань, а не желе; светотень
+# в основном от длинной складки, мелкая рябь её только оживляет.
+WAVES = ((6.5, 360, 10, 1, 0.0, 1.0), (2.2, 200, -14, 2, 1.7, 0.5), (0.8, 125, 24, 3, 4.1, 0.25))
 DX_K = 0.16                  # горизонтальный сдвиг рисунка в складках (доля от вертикального, в квадратуре)
-FOLD = 0.10                  # глубина светотени складок (доля яркости)
-LIGHT = (0.8, 0.45)          # откуда свет (слева сверху): веса наклонов по u и v
+FOLD = 0.15                  # глубина светотени складок (доля яркости)
+LIGHT = (0.85, 0.5)          # откуда свет (слева сверху): веса наклонов по u и v
 
 # «Парение» эмблем: покачивание вверх-вниз, лёгкий дрейф вбок, поворот (°), масштаб; гости — со сдвигом фазы
 BOB, DRIFT, ROT, BREATH = 5.0, 1.6, 1.4, 0.014
@@ -119,9 +120,9 @@ class _Flag:
         sgn = 1.0 if self.pole == 'l' else -1.0
         z = np.zeros_like(u)
         zq = np.zeros_like(u)
-        su = np.zeros_like(u)
-        sv = np.zeros_like(u)
-        for amp, lam, ang, n, ph in WAVES:
+        slope = np.zeros_like(u)
+        smax = 0.0
+        for amp, lam, ang, n, ph, wl in WAVES:
             kx = sgn * np.cos(np.radians(ang)) / lam
             ky = np.sin(np.radians(ang)) / lam
             p = (np.float32(2 * np.pi * kx) * u + np.float32(2 * np.pi * ky) * v
@@ -129,16 +130,17 @@ class _Flag:
             s, c = np.sin(p), np.cos(p)
             z += amp * s
             zq += amp * c
-            su += amp * 2 * np.pi * kx * c
-            sv += amp * 2 * np.pi * ky * c
+            # наклон складки к свету слева сверху (вес wl — вклад волны в светотень)
+            g = wl * amp * 2 * np.pi * (LIGHT[0] * kx + LIGHT[1] * ky)
+            slope += np.float32(g) * c
+            smax += abs(g)
         dy = env * z
         dx = DX_K * env * zq * sgn
         us, vs = u - dx, v - dy                       # откуда в неподвижной панели берётся точка
         rgb = _bilinear(self.src, us + PAD, vs + PAD)
-        # светотень складок: наклон «ткани» к свету слева сверху; блик чуть уже и ярче тени
-        slope = env * (LIGHT[0] * su * sgn + LIGHT[1] * sv) / 0.12
-        slope = np.clip(slope, -1.6, 1.6)
-        shade = 1 + FOLD * (slope + 0.25 * np.maximum(slope, 0) ** 2)
+        # светотень: −1…1 по наклону; блик чуть уже и ярче тени — похоже на атлас/полиэстер флага
+        slope = env * slope / smax
+        shade = 1 + FOLD * (slope + 0.3 * np.maximum(slope, 0) ** 2)
         x0, y0 = self.rect[:2]
         sh = _bilinear(shadow, x0 + us - sh_off[0], y0 + vs - sh_off[1]) * sh_k
         rgb = rgb * (shade * (1 - sh))[..., None]
@@ -299,10 +301,12 @@ def _encode_mp4(frames, path, fps, target_mb, crf=19):
 
 
 def _encode_gif(frames, path, fps, size=540, step=2):
-    small = [np.asarray(Image.fromarray(f).resize((size, size), Image.LANCZOS)) for f in frames[::step]]
+    """Превью: 540², каждый 2-й кадр. Зерно холста перед уменьшением чуть размываем — иначе GIF вдвое тяжелее."""
+    small = [np.asarray(Image.fromarray(f).filter(ImageFilter.GaussianBlur(1.2)).resize((size, size), Image.LANCZOS))
+             for f in frames[::step]]
     _ffmpeg(['-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '%dx%d' % (size, size), '-r', '%g' % (fps / step), '-i', '-',
-             '-filter_complex', 'split[a][b];[a]palettegen=max_colors=256:stats_mode=full[p];'
-                                '[b][p]paletteuse=dither=bayer:bayer_scale=3:diff_mode=rectangle',
+             '-filter_complex', 'split[a][b];[a]palettegen=max_colors=128:stats_mode=full[p];'
+                                '[b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle',
              '-loop', '0', path], small)
     return path
 
