@@ -40,7 +40,18 @@ for m in ms:
 for mid, (nm, info) in names.items():
     if any(w in nm.lower() for w in WORDS):
         print('PINMATCH', mid, nm, info, flush=True)
-want = {mid for mid, (nm, _) in names.items() if any(w in nm.lower() for w in WORDS)}
+if WORDS[0].startswith('day:'):           # все матчи дня по МСК: day:2026-10-16
+    import datetime as _dt
+    _day, _start = WORDS[0][4:], {m['id']: m.get('startTime') for m in ms if not m.get('parentId')}
+    def _msk(mid):
+        st = _start.get(mid) or _start.get(next((m.get('parentId') for m in ms if m['id'] == mid), None)) or ''
+        return (_dt.datetime.fromisoformat(st.replace('Z', '+00:00')) + _dt.timedelta(hours=3)).strftime('%Y-%m-%d') if st else ''
+    want = {mid for mid in names if _msk(mid) == _day}
+    for mid in sorted(want):
+        if mid in _start:
+            print('PINMATCH', mid, names[mid][0], names[mid][1], flush=True)
+else:
+    want = {mid for mid, (nm, _) in names.items() if any(w in nm.lower() for w in WORDS)}
 for x in mk.json():
     if x.get('matchupId') not in want:
         continue

@@ -10,13 +10,17 @@ betsCalcFreq_, betsCalcMatch_) на матчах сезона из официа�
     и выездные гостей весят вдвое, сглажено к лиге на 6 матчей.
 Удаления не считаем (нужны протоколы). Вход — out/1510/khl_games.json (khl_fetch.py, тем же заданием).
 Печатает в лог: CALC (ставки пары по вероятности), TEAM / LAST / PER (факты команд), H2H, TABLE (очки).
-Запуск: python team/out/2026-10-15/khl_picks_calc.py [хозяева-гости;хозяева-гости]"""
+Запуск: python team/out/2026-10-15/khl_picks_calc.py [хозяева-гости;хозяева-гости | next — матчи из khl_next.json]"""
 import json
 import math
 import sys
 
 K, W, MAXG = 6, 0.5, 12
-PAIRS = [tuple(p.split('-', 1)) for p in (sys.argv[1] if len(sys.argv) > 1 else 'Лада-СКА;Северсталь-Локомотив').split(';')]
+ARG = sys.argv[1] if len(sys.argv) > 1 else 'Лада-СКА;Северсталь-Локомотив'
+if ARG == 'next':                         # пары — матчи дня из khl_fetch.py (out/1510/khl_next.json)
+    PAIRS = [(x['h'], x['a']) for x in json.load(open('out/1510/khl_next.json', encoding='utf-8'))]
+else:
+    PAIRS = [tuple(p.split('-', 1)) for p in ARG.split(';')]
 
 
 def load(path='out/1510/khl_games.json'):
