@@ -303,6 +303,497 @@ def _fit_w(text, name, wght, cap_px, max_w):
     return f
 
 
+
+# ---------------------------------------------------------------- общие детали вариантов (style=)
+
+def _pill_w(F, ph, items):
+    """Ширина плашки — общая на постер (по самой длинной цифре), колонки П1/Х/П2 ровно; опора 8.88 — постеры
+    альбома одной ширины."""
+    vals = ['8.88', '0.00'] + ['%.2f' % v for it in items for v in (it.get('odds') or ())]
+    return (max(F['pl'].getlength(l) for l in ('П1', 'П2')) + ph * 0.2
+            + max(F['pv'].getbbox(v, anchor='ls')[2] for v in vals)) / S + ph * 0.8
+
+
+def _rows(n, rows, row_max, gap):
+    """Как _layout, но с другой предельной высотой ряда и зазором: → (высота ряда, верх, высота постера)."""
+    rows = max(rows or 0, n, 1)
+    avail = H_MAX - HEAD - FOOT
+    row = int(min(row_max, (avail + gap) / rows - gap))
+    block = rows * (row + gap) - gap
+    if row < row_max:
+        return row, HEAD + (avail - block) // 2, H_MAX
+    return row, HEAD, HEAD + block + FOOT
+
+
+def _pair(it, league):
+    """→ ((имя, цвет, аббр.) хозяев, (…) гостей); цвета гостей разведены с хозяевами, как у versus."""
+    hn, hc, _, ha = _club(it['home'], league)
+    an, ac, ac2, aa = _club(it['away'], league)
+    return (hn, hc, ha), (an, vs._distinct(hc, ac, ac2), aa)
+
+
+def _fav(o):
+    """Фаворит линии: 0 — хозяева, 2 — гости, None — линии нет или кэфы равны."""
+    if not o or o[0] == o[2]:
+        return None
+    return 0 if o[0] < o[2] else 2
+
+
+def _rings(w, h, color, ctr, seed, fade='down', dim=0.5, period=28, glow=0.10):
+    """Узор панели как versus._panel, но шаг колец задан в пикселях (period, база 1080) — одинаковый у панелей
+    любой ширины; считаем в базовом размере и увеличиваем в S раз (как versus.render). → RGB w·S × h·S."""
+    w, h = max(1, int(round(w))), max(1, int(round(h)))
+    L = period * 15
+    y, x = np.mgrid[0:h, 0:w].astype(np.float32)
+    cx, cy = ctr
+    dx, dy = (x - cx) / L, (y - cy) / L
+    ang = np.arctan2(dy, dx)
+    rng = np.random.default_rng(seed)
+    wob = sum(a * np.sin(k * ang + p) for a, k, p in zip(rng.uniform(.004, .012, 3), (2, 3, 5), rng.uniform(0, 6, 3)))
+    r = (np.abs(dx) ** 3 + np.abs(dy) ** 3) ** (1 / 3) + wob
+    ring = np.clip(np.sin(r * 2 * np.pi * 15) * 3, -1, 1)
+    if fade is None:
+        light = np.ones_like(x)
+    else:
+        t = y / h if fade == 'down' else 1 - y / h
+        light = dim + (1.06 - dim) * vs._smooth(t * 1.15)
+    light *= 1 + glow * np.exp(-((x - cx) ** 2 + (y - cy) ** 2) / (2 * (0.38 * L) ** 2))
+    arr = np.clip(np.array(color, np.float32)[None, None] * (light * (1 + 0.075 * ring))[..., None], 0, 255)
+    return Image.fromarray(arr.astype(np.uint8), 'RGB').resize((w * S, h * S), Image.BICUBIC)
+
+
+def _poly_mask(size, pts):
+    """Маска многоугольника (координаты уже в масштабе S) со сглаженным краем: рисуем вдвое крупнее."""
+    m = Image.new('L', (size[0] * 2, size[1] * 2), 0)
+    ImageDraw.Draw(m).polygon([(x * 2, y * 2) for x, y in pts], fill=255)
+    return m.resize(size, Image.LANCZOS)
+
+
+def _box_shadow(img, box, radius, blur=6, alpha=110, off=(3, 6)):
+    """Мягкая тень под скруглённым прямоугольником (box в масштабе S)."""
+    x0, y0, x1, y1 = box
+    m = Image.new('L', (max(1, int(x1 - x0)), max(1, int(y1 - y0))), 0)
+    ImageDraw.Draw(m).rounded_rectangle((0, 0, m.width - 1, m.height - 1), radius=int(radius), fill=255)
+    _soft_shadow(img, m, (x0 + off[0] * S, y0 + off[1] * S), blur * S, alpha)
+
+
+def _txt_sh(img, x, cy, text, f, fill, anchor='m', ref='Н', blur=5, alpha=150, off=(2, 4)):
+    """_txt с мягкой тенью — для текста на цветной панели. Всё в масштабе S (off, blur — база). → ширина чернил."""
+    l, t, r, b = f.getbbox(text, anchor='ls')
+    _, rt, _, rb = f.getbbox(ref, anchor='ls')
+    ox = x - l if anchor == 'l' else x - r if anchor == 'r' else x - (l + r) / 2
+    base = cy - (rt + rb) / 2
+    X0, Y0 = int(ox + l), int(base + t)
+    tile = Image.new('L', (int(r - l) + 4, int(b - t) + 4), 0)
+    ImageDraw.Draw(tile).text((ox - X0 + 2, base - Y0 + 2), text, font=f, fill=255, anchor='ls')
+    _soft_shadow(img, tile, (X0 - 2 + off[0] * S, Y0 - 2 + off[1] * S), blur * S, alpha)
+    return _txt(ImageDraw.Draw(img), x, cy, text, f, fill, anchor, ref)
+
+
+def _glow(img, cx, cy, r, color, alpha=150):
+    """Мягкое свечение цвета клуба (круг r, размытый) — под эмблему без панели. Всё в масштабе S."""
+    m = int(r * 1.5)
+    size = int(2 * (r + m))
+    tile = Image.new('L', (size, size), 0)
+    ImageDraw.Draw(tile).ellipse((m, m, m + 2 * r, m + 2 * r), fill=alpha)
+    tile = tile.filter(ImageFilter.GaussianBlur(r * 0.42))
+    lay = Image.new('RGBA', (size, size), tuple(color) + (0,))
+    lay.putalpha(tile)
+    img.alpha_composite(lay, (int(cx - size / 2), int(cy - size / 2)))
+
+
+def _fit_room(text, name, wght, f, room):
+    """Тот же шрифт, но меньше, пока чернила text шире room (масштаб S)."""
+    while f.getbbox(text, anchor='ls')[2] - f.getbbox(text, anchor='ls')[0] > room and f.size > 12 * S:
+        f = brand_kit.font(name, f.size - S, wght)
+    return f
+
+
+def _over(c, a, bg=BG):
+    """Цвет c с непрозрачностью a поверх фона — ImageDraw на RGBA не смешивает, а заменяет пиксели."""
+    return tuple(int(x * a + y * (1 - a)) for x, y in zip(c, bg)) + (255,)
+
+
+def _pill_out(d, cx, cy, w, h, label, value, fl, fv, col):
+    """Плашка-контур (не фаворит в style='fav'): обводка и цифры цветом акцента, приглушённо."""
+    d.rounded_rectangle((cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2), radius=int(h * .28),
+                        outline=_over(col, 0.6), width=max(2, int(h * 0.05)), fill=_over((255, 255, 255), 0.03))
+    gl = h * 0.2
+    lw, vw = fl.getlength(label), fv.getbbox(value, anchor='ls')[2]
+    x = cx - (lw + gl + vw) / 2
+    _txt(d, x, cy, label, fl, _over(col, 0.5), 'l')
+    _txt(d, x + lw + gl, cy, value, fv, _over(col, 0.85), 'l')
+
+
+def _fonts(ab, tm, ph):
+    return dict(ab=_cap(ALU, 900, ab * S), tm=_cap(OSW, 700, tm * S),
+                pv=_cap(OSW, 600, ph * 0.48 * S), pl=_cap(MAN, 800, ph * 0.30 * S))
+
+
+# ---------------------------------------------------------------- diagonal: панели встречаются под углом
+
+def _st_diagonal(items, rows, league, acc):
+    gap = 20
+    R, top, H = _rows(len(items), rows, 232, gap)
+    ph = min(46, max(32, R * 0.25))
+    F = _fonts(min(80, R * 0.38), min(42, R * 0.20), ph)
+    pill_w = _pill_w(F, ph, items)
+
+    def paint(img):
+        for i, it in enumerate(items):
+            _diag(img, it, top + i * (R + gap), R, league, acc, F, ph, pill_w, i)
+    return H, paint
+
+
+def _diag(img, it, y0, R, league, acc, F, ph, pill_w, i):
+    (hn, hc, ha), (an, ac, aa) = _pair(it, league)
+    x0, x1 = MX, W - MX
+    xc, s, gw = W / 2, R * 0.21, 5          # срез: сверху правее центра, снизу левее («/»), щель 2·gw
+    cut = lambda y: xc + s - 2 * s * (y - y0) / R
+    _soft_shadow(img, Image.new('L', ((x1 - x0) * S, R * S), 255), ((x0 + 9) * S, (y0 + 13) * S), 13 * S, 120)
+    es = R * 0.80
+    ex = (x0 + R * 0.56, x1 - R * 0.56)
+    # хозяева: от левого края до среза; гости — от среза до правого
+    for k, (col, team, ab, fade) in enumerate(((hc, hn, ha, 'down'), (ac, an, aa, 'up'))):
+        if k == 0:
+            tx0, tx1 = x0, int(xc + s + 1)
+            pts = [(0, 0), (xc + s - gw - tx0, 0), (xc - s - gw - tx0, R), (0, R)]
+        else:
+            tx0, tx1 = int(xc - s - 1), x1
+            pts = [(xc + s + gw - tx0, 0), (tx1 - tx0, 0), (tx1 - tx0, R), (xc - s + gw - tx0, R)]
+        tile = _rings(tx1 - tx0, R, col, (ex[k] - tx0, R * 0.5), 31 + 7 * i + 11 * k, fade, dim=0.55)
+        img.paste(tile, (tx0 * S, int(y0 * S)), _poly_mask(tile.size, [(x * S, y * S) for x, y in pts]))
+        _emblem(img, team, ex[k] * S, (y0 + R * 0.5) * S, es * S, ab, col)
+
+    o = it.get('odds')
+    t = (it.get('time') or '').strip() or 'vs'
+    ya = y0 + (R * 0.34 if o else R * 0.5)
+    # время — тёмная «скошенная» плашка на срезе
+    ft = F['tm']
+    tw = ft.getbbox(t, anchor='ls')[2] / S
+    capt = ft.size / S * 0.72
+    bh = R * 0.36
+    bw = tw + bh * 0.9
+    sl = 2 * s * bh / R
+    bx = cut(ya)
+    poly = [(bx - bw / 2 + sl / 2, ya - bh / 2), (bx + bw / 2 + sl / 2, ya - bh / 2),
+            (bx + bw / 2 - sl / 2, ya + bh / 2), (bx - bw / 2 - sl / 2, ya + bh / 2)]
+    m = _poly_mask((int((bw + sl + 4) * S), int((bh + 4) * S)),
+                   [((x - bx + (bw + sl) / 2 + 2) * S, (y - ya + bh / 2 + 2) * S) for x, y in poly])
+    _soft_shadow(img, m, ((bx - (bw + sl) / 2 - 2 + 4) * S, (ya - bh / 2 - 2 + 7) * S), 7 * S, 140)
+    lay = Image.new('RGBA', m.size, BG + (0,))
+    lay.putalpha(m)
+    img.alpha_composite(lay, (int((bx - (bw + sl) / 2 - 2) * S), int((ya - bh / 2 - 2) * S)))
+    d = ImageDraw.Draw(img)
+    _txt(d, bx * S, ya * S, t, ft, (250, 250, 250))
+    # аббревиатуры белым с тенью: хозяева — правее своей эмблемы, гости — левее своей
+    ax = (x0 + R * 1.06, x1 - R * 1.06)
+    for k, (ab, anchor) in enumerate(((ha, 'l'), (aa, 'r'))):
+        edge = bx - bw / 2 - sl / 2 - 16 if k == 0 else bx + bw / 2 + sl / 2 + 16
+        room = abs(edge - ax[k]) * S
+        _txt_sh(img, ax[k] * S, ya * S, ab, _fit_room(ab, ALU, 900, F['ab'], room), (255, 255, 255), anchor)
+    if o:
+        yp = y0 + R * 0.77
+        d = ImageDraw.Draw(img)
+        xs = (ax[0] + pill_w / 2, cut(yp), ax[1] - pill_w / 2)
+        for x, lab, v in zip(xs, ('П1', 'Х', 'П2'), o):
+            box = ((x - pill_w / 2) * S, (yp - ph / 2) * S, (x + pill_w / 2) * S, (yp + ph / 2) * S)
+            _box_shadow(img, box, ph * .28 * S, 5, 120, (2, 4))
+            _pill(ImageDraw.Draw(img), x * S, yp * S, pill_w * S, ph * S, lab, '%.2f' % v, F['pl'], F['pv'], acc)
+
+
+# ---------------------------------------------------------------- cards: сетка мини-«Versus» в 2 колонки
+
+def _st_cards(items, rows, league, acc):
+    n = len(items)
+    slots = max(rows or 0, n, 1)
+    cols = 1 if slots == 1 else 2
+    grows = -(-slots // cols)
+    gx = gy = 22
+    cw = (W - 2 * MX - gx) / 2 if cols == 2 else 660
+    ch_max = 380 if cols == 2 else 460
+    avail = H_MAX - HEAD - FOOT
+    ch = int(min(ch_max, (avail + gy) / grows - gy))
+    block = grows * (ch + gy) - gy
+    if ch < ch_max:
+        top, H = HEAD + (avail - block) // 2, H_MAX
+    else:
+        top, H = HEAD, HEAD + block + FOOT
+    pad = round(cw * 0.032)
+    plh = min(44, max(30, ch * 0.135))
+    F = _fonts(min(54, ch * 0.12), min(40, ch * 0.10), plh)
+    F['vs'] = brand_kit.font(OSW, int(ch * 0.06) * S, 600)
+    pill_w = min(_pill_w(F, plh, items), (cw - 2 * pad - 24) / 3)
+
+    def paint(img):
+        for i, it in enumerate(items):
+            r, c = divmod(i, cols)
+            x = MX + c * (cw + gx) if cols == 2 else (W - cw) / 2
+            if cols == 2 and i == n - 1 and n % 2 == 1:            # последняя без пары — по центру
+                x = (W - cw) / 2
+            _card(img, it, x, top + r * (ch + gy), cw, ch, pad, plh, league, acc, F, pill_w, i)
+    return H, paint
+
+
+def _card(img, it, x0, y0, cw, ch, pad, plh, league, acc, F, pill_w, i):
+    (hn, hc, ha), (an, ac, aa) = _pair(it, league)
+    o = it.get('odds')
+    d = ImageDraw.Draw(img)
+    _box_shadow(img, (x0 * S, y0 * S, (x0 + cw) * S, (y0 + ch) * S), 18 * S, 12, 110, (6, 10))
+    d.rounded_rectangle((x0 * S, y0 * S, (x0 + cw) * S, (y0 + ch) * S), radius=18 * S, fill=(33, 31, 37))
+    pa = ch * (0.53 if o else 0.66)           # высота зоны панелей
+    off = pa * 0.08
+    gap = 6
+    half = (cw - 2 * pad - gap) / 2
+    es = min(half * 0.70, (pa - off) * 0.80)
+    for k, (col, team, ab, fade) in enumerate(((hc, hn, ha, 'down'), (ac, an, aa, 'up'))):
+        px = x0 + pad + k * (half + gap)
+        py = y0 + pad + (off if k else 0)
+        tile = _rings(half, pa - off, col, (half / 2, (pa - off) * 0.5), 41 + 7 * i + 13 * k, fade, dim=0.55,
+                      period=24)
+        _soft_shadow(img, Image.new('L', tile.size, 255), ((px + 5) * S, (py + 8) * S), 8 * S, 110)
+        img.paste(tile, (int(px * S), int(py * S)))
+        _emblem(img, team, (px + half / 2) * S, (py + (pa - off) / 2) * S, es * S, ab, col)
+    # «vs» — маленький тёмный кружок на стыке панелей
+    vr = ch * 0.068
+    cx, cy = x0 + cw / 2, y0 + pad + pa / 2
+    _box_shadow(img, ((cx - vr) * S, (cy - vr) * S, (cx + vr) * S, (cy + vr) * S), vr * S, 5, 140, (2, 4))
+    d = ImageDraw.Draw(img)
+    d.ellipse(((cx - vr) * S, (cy - vr) * S, (cx + vr) * S, (cy + vr) * S), fill=BG + (255,),
+              outline=_over((255, 255, 255), 0.25), width=max(1, int(S * 1.2)))
+    _txt(d, cx * S, (cy - vr * 0.06) * S, 'vs', F['vs'], (245, 245, 245), ref='v')
+    # строка «АДМ   12:30   СПР»: аббревиатуры по центру своих панелей, время между ними
+    yp = y0 + ch - pad - plh / 2 - 2
+    yi = (y0 + pad + pa + (yp - plh / 2 if o else y0 + ch - pad)) / 2 + 2
+    t = (it.get('time') or '').strip()
+    if t:
+        _txt(d, cx * S, yi * S, t, F['tm'], (250, 250, 250))
+    tw = (F['tm'].getbbox(t, anchor='ls')[2] / S) if t else 0
+    for k, (ab, col) in enumerate(((ha, hc), (aa, ac))):
+        ax = x0 + pad + half / 2 + k * (half + gap)
+        room = min(half - 12, 2 * (abs(cx - ax) - tw / 2 - 14)) * S
+        _txt(d, ax * S, yi * S, ab, _fit_room(ab, ALU, 900, F['ab'], room), _readable(col) + (255,))
+    if o:
+        xs = (x0 + pad + pill_w / 2, cx, x0 + cw - pad - pill_w / 2)
+        for x, lab, v in zip(xs, ('П1', 'Х', 'П2'), o):
+            _pill(d, x * S, yp * S, pill_w * S, plh * S, lab, '%.2f' % v, F['pl'], F['pv'], acc)
+
+
+# ---------------------------------------------------------------- center: эмблемы смотрят на колонку времени
+
+def _st_center(items, rows, league, acc):
+    gap = 16
+    R, top, H = _rows(len(items), rows, 236, gap)
+    F = dict(tm=_cap(OSW, 700, min(58, R * 0.27) * S), nm=_cap(OSW, 600, min(24, R * 0.105) * S),
+             ol=_cap(MAN, 800, min(14, R * 0.068) * S), ov=_cap(OSW, 600, min(22, R * 0.105) * S),
+             vs=brand_kit.font(OSW, int(min(24, R * 0.12)) * S, 600))
+
+    def paint(img):
+        for i, it in enumerate(items):
+            _center_row(img, it, top + i * (R + gap), R, league, acc, F, i)
+    return H, paint
+
+
+def _center_row(img, it, y0, R, league, acc, F, i):
+    (hn, hc, ha), (an, ac, aa) = _pair(it, league)
+    o = it.get('odds')
+    xc = W / 2
+    es = R * 0.66
+    ex = (xc - 286, xc + 286)
+    ey = y0 + R * 0.42
+    half = int(xc - MX)
+    # подложка: цвет клуба от края к центру гаснет — тёмная середина под временем
+    xs = np.arange(half, dtype=np.float32)
+    for k, (col, fade) in enumerate(((hc, 'down'), (ac, 'up'))):
+        tile = _rings(half, R, col, ((ex[0] - MX) if k == 0 else (ex[1] - xc), R * 0.42), 51 + 7 * i + 9 * k, fade,
+                      dim=0.55)
+        u = xs / half if k == 0 else 1 - xs / half                  # 0 — внешний край, 1 — центр
+        a = 1 - vs._smooth((u - 0.55) / 0.42)
+        a = Image.fromarray((np.tile(a[None], (R, 1)) * 255).astype(np.uint8), 'L').resize(tile.size, Image.BILINEAR)
+        tx = MX if k == 0 else int(xc)
+        lay = tile.convert('RGBA')
+        lay.putalpha(a)
+        img.alpha_composite(lay, (tx * S, int(y0 * S)))
+    d = ImageDraw.Draw(img)
+    for k, (team, ab, col, name) in enumerate(((hn, ha, hc, hn), (an, aa, ac, an))):
+        _emblem(img, team, ex[k] * S, ey * S, es * S, ab, col)
+    # названия под эмблемами (длинное — в две строки по пробелу/дефису, иначе мельче)
+    for k, name in enumerate((hn, an)):
+        nm = name.upper()
+        room = 2 * min(ex[k] - MX - 10, xc - 150 - ex[k]) if k == 0 else 2 * min(W - MX - 10 - ex[k], ex[k] - xc - 150)
+        f = F['nm']
+        yn = y0 + R * 0.88
+        if f.getlength(nm) > room * S and ' ' in nm:
+            a_, b_ = nm.split(' ', 1)
+            fs = _fit_room(max(a_, b_, key=len), OSW, 600, brand_kit.font(OSW, int(f.size * 0.86), 600), room * S)
+            lh = fs.size / S * 0.95
+            yn = min(yn, y0 + R - lh * 0.5 - 2)
+            _txt_sh(img, ex[k] * S, (yn - lh * 0.5) * S, a_, fs, (255, 255, 255), blur=4, alpha=170)
+            _txt_sh(img, ex[k] * S, (yn + lh * 0.5) * S, b_, fs, (255, 255, 255), blur=4, alpha=170)
+        else:
+            _txt_sh(img, ex[k] * S, yn * S, nm, _fit_room(nm, OSW, 600, f, room * S), (255, 255, 255), blur=4,
+                    alpha=170)
+    d = ImageDraw.Draw(img)
+    t = (it.get('time') or '').strip()
+    yt = y0 + (R * 0.40 if o else R * 0.5)
+    th = F['tm'].size / S * 0.72
+    if t:
+        _txt(d, xc * S, (yt - th * 0.05) * S, t, F['tm'], (250, 250, 250))
+        _txt(d, xc * S, (yt - th * 0.5 - R * 0.11) * S, 'vs', F['vs'], acc, ref='v')
+    else:
+        _txt(d, xc * S, yt * S, 'vs', F['tm'], (250, 250, 250), ref='v')
+    if o:
+        # «П1 3.40 · Х 3.78 · П2 1.95» тонкой строкой
+        parts = []
+        for lab, v in zip(('П1', 'Х', 'П2'), o):
+            parts += [(lab, F['ol'], (175, 173, 182)), ('   ', F['ol'], GREY), ('%.2f' % v, F['ov'], acc)]
+            parts.append(('    ·    ', F['ol'], (120, 118, 126)))
+        parts.pop()
+        wsum = sum(f.getlength(tx) for tx, f, _ in parts)
+        x = xc * S - wsum / 2
+        yo = y0 + R * 0.80
+        for tx, f, c in parts:
+            _txt(d, x, yo * S, tx, f, c, 'l', ref='0' if f is F['ov'] else 'Н') if tx.strip() else None
+            x += f.getlength(tx)
+
+
+# ---------------------------------------------------------------- fav: полосы с выделенным фаворитом
+
+def _st_fav(items, rows, league, acc):
+    R, top, H = _layout(len(items), rows)
+    g = _geom(R)
+    F = dict(ab=_cap(ALU, 900, g['ab'] * S), tm=_cap(OSW, 700, g['tm'] * S),
+             vs=brand_kit.font(OSW, int(g['tm'] * 0.62) * S, 600), vs_big=brand_kit.font(OSW, int(g['tm'] * 1.1) * S, 600),
+             pv=_cap(OSW, 600, g['ph'] * 0.48 * S), pl=_cap(MAN, 800, g['ph'] * 0.30 * S),
+             tag=_cap(MAN, 800, max(10, R * 0.056) * S))
+    pill_w = _pill_w(F, g['ph'], items)
+
+    def paint(img):
+        for i, it in enumerate(items):
+            _fav_strip(img, it, top + i * (R + GAP), R, g, league, acc, F, pill_w, i)
+    return H, paint
+
+
+def _fav_strip(img, it, y0, R, g, league, acc, F, pill_w, i):
+    (hn, hc, ha), (an, ac, aa) = _pair(it, league)
+    o = it.get('odds')
+    fv = _fav(o)
+    pw = g['pw']
+    for k, (x0, col, team, ab, fade) in enumerate(((MX, hc, hn, ha, 'down'), (W - MX - pw, ac, an, aa, 'up'))):
+        big = fv is None or fv == 2 * k
+        if fv is None:                                # линии нет — как strips: хозяева выше, гости ниже
+            px0, top, w, h, dim, c = x0, y0 + (g['off'] if k else 0), pw, R - g['off'], 0.5, col
+        elif big:                                     # фаворит: во всю высоту, ровный яркий цвет
+            px0, top, w, h, dim, c = x0, y0, pw, R, 0.82, col
+        else:                                         # андердог: меньше, приглушён к фону
+            sh = round(R * 0.12)
+            w = pw - 2 * sh
+            px0 = x0 + (sh * 2 if k else 0)
+            top, h, dim = y0 + sh, R - 2 * sh, 0.45
+            c = tuple(int(a * 0.55 + b * 0.45) for a, b in zip(vs._mix(col, -0.1), BG))
+        tile = _rings(w, h, c, (w / 2, h * 0.52), 11 + 7 * i + 12 * k, fade, dim=dim)
+        _soft_shadow(img, Image.new('L', tile.size, 255), ((px0 + 9) * S, (top + 13) * S), 13 * S, 120)
+        img.paste(tile, (int(px0 * S), int(top * S)))
+        es = min(h * 0.84, w * 0.76) * (1 if big else 0.92)
+        _emblem(img, team, (px0 + w / 2) * S, (top + h * 0.52) * S, es * S, ab, col)
+        if fv is not None and big:                    # метка «ФАВОРИТ» — золотой уголок сверху панели
+            d = ImageDraw.Draw(img)
+            tag = 'ФАВОРИТ'
+            tw = _spaced_w(tag, F['tag'], 1.2 * S) / S
+            th = F['tag'].size / S * 1.25
+            bx0 = px0 + (w - tw - 16 if k else 0)
+            d.rectangle((bx0 * S, top * S, (bx0 + tw + 16) * S, (top + th) * S), fill=acc)
+            _spaced(d, (bx0 + 8) * S, (top + th / 2) * S, tag, F['tag'], INK, 1.2 * S, anchor='l')
+
+    d = ImageDraw.Draw(img)
+    zc = (g['zx0'] + g['zx1']) / 2
+    ya = y0 + (R * 0.33 if o else R * 0.5)
+    t = (it.get('time') or '').strip()
+    if t:
+        vs_h = F['vs'].getbbox('vs', anchor='ls')
+        vs_h = vs_h[3] - vs_h[1]
+        gap = g['tm'] * 0.30
+        top = ya - (vs_h + gap + g['tm']) / 2
+        _txt(d, zc * S, (top + vs_h / 2) * S, 'vs', F['vs'], (245, 245, 245), ref='v')
+        _txt(d, zc * S, (top + vs_h + gap + g['tm'] / 2) * S, t, F['tm'], (250, 250, 250))
+        mid = F['tm'].getbbox(t, anchor='ls')[2] / S
+    else:
+        _txt(d, zc * S, ya * S, 'vs', F['vs_big'], (245, 245, 245), ref='v')
+        mid = F['vs_big'].getlength('vs') / S
+    room = ((g['zx1'] - g['zx0']) / 2 - mid / 2 - 16) * S
+    for k, (abbr, col, x, anchor) in enumerate(((ha, hc, g['zx0'], 'l'), (aa, ac, g['zx1'], 'r'))):
+        c = _readable(col) if fv is None or fv == 2 * k else _over(_readable(col), 0.45, (96, 94, 102))[:3]
+        _txt(d, x * S, ya * S, abbr, _fit_room(abbr, ALU, 900, F['ab'], room), c + (255,), anchor)
+    if o:
+        yp = y0 + R * 0.79
+        xs = (g['zx0'] + pill_w / 2, zc, g['zx1'] - pill_w / 2)
+        for k, (x, lab, v) in enumerate(zip(xs, ('П1', 'Х', 'П2'), o)):
+            if k == fv:
+                _pill(d, x * S, yp * S, pill_w * S, g['ph'] * S, lab, '%.2f' % v, F['pl'], F['pv'], acc)
+            else:
+                _pill_out(d, x * S, yp * S, pill_w * S, g['ph'] * S, lab, '%.2f' % v, F['pl'], F['pv'], acc)
+
+
+# ---------------------------------------------------------------- minimal: без панелей, свечение и крупное время
+
+def _st_minimal(items, rows, league, acc):
+    R, top, H = _rows(len(items), rows, 176, 0)
+    F = dict(tm=_cap(OSW, 700, min(54, R * 0.30) * S), nm=_cap(OSW, 600, min(30, R * 0.165) * S),
+             ol=_cap(MAN, 800, min(12, R * 0.07) * S), ov=_cap(OSW, 600, min(28, R * 0.155) * S),
+             vs=brand_kit.font(OSW, int(min(22, R * 0.12)) * S, 500))
+
+    def paint(img):
+        d = ImageDraw.Draw(img)
+        for i in range(1, len(items)):
+            y = top + i * R
+            d.line((MX * S, y * S, (W - MX) * S, y * S), fill=_over((255, 255, 255), 0.09), width=max(1, int(S * 1.2)))
+        for i, it in enumerate(items):
+            _min_row(img, it, top + i * R, R, league, acc, F, i)
+    return H, paint
+
+
+def _min_row(img, it, y0, R, league, acc, F, i):
+    (hn, hc, ha), (an, ac, aa) = _pair(it, league)
+    o = it.get('odds')
+    cy = y0 + R / 2
+    d = ImageDraw.Draw(img)
+    t = (it.get('time') or '').strip()
+    x = MX + 6
+    if t:
+        _txt(d, x * S, cy * S, t, F['tm'], (250, 250, 250), 'l')
+    # тонкая черта-разделитель после времени
+    xl = MX + 178
+    d.line((xl * S, (cy - R * 0.22) * S, xl * S, (cy + R * 0.22) * S), fill=_over(acc, 0.8), width=max(2, int(S * 1.5)))
+    es = R * 0.60
+    e1 = xl + 34 + es / 2
+    e2 = e1 + es + 36
+    for k, (team, ab, col, ex) in enumerate(((hn, ha, hc, e1), (an, aa, ac, e2))):
+        _glow(img, ex * S, cy * S, es * 0.62 * S, _readable(col, 120), 175)
+    for k, (team, ab, col, ex) in enumerate(((hn, ha, hc, e1), (an, aa, ac, e2))):
+        _emblem(img, team, ex * S, cy * S, es * S, ab, col)
+    d = ImageDraw.Draw(img)
+    _txt(d, (e1 + e2) / 2 * S, cy * S, 'vs', F['vs'], (200, 198, 206), ref='v')
+    # названия — две строки в цветах клубов; справа линия «П1 / Х / П2» колонками
+    xn = e2 + es / 2 + 34
+    ow = 72
+    ox1 = W - MX - 4
+    room = ((ox1 - 3 * ow - 18 if o else ox1) - xn) * S
+    for k, (name, col) in enumerate(((hn, hc), (an, ac))):
+        nm = name.upper()
+        _txt(d, xn * S, (cy + (-1 if k == 0 else 1) * R * 0.15) * S, nm, _fit_room(nm, OSW, 600, F['nm'], room),
+             _readable(col, 120) + (255,), 'l')
+    if o:
+        for k, (lab, v) in enumerate(zip(('П1', 'Х', 'П2'), o)):
+            x = ox1 - (2 - k) * ow - ow / 2
+            _txt(d, x * S, (cy - R * 0.17) * S, lab, F['ol'], GREY)
+            _txt(d, x * S, (cy + R * 0.10) * S, '%.2f' % v, F['ov'], acc, ref='0')
+
+
+STYLES = ('strips', 'diagonal', 'cards', 'center', 'fav', 'minimal')
+_STYLE = dict(strips=_st_strips, diagonal=_st_diagonal, cards=_st_cards, center=_st_center, fav=_st_fav,
+              minimal=_st_minimal)
+
+
 if __name__ == '__main__':
     demo = [dict(home='Адмирал', away='Спартак', time='12:30', odds=(3.40, 3.78, 1.95)),
             dict(home='Торпедо', away='Динамо Москва', time='19:00', odds=(2.12, 3.76, 3.00))]
