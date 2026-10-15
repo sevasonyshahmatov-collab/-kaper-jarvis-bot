@@ -1268,13 +1268,17 @@ def e_calendar_today():
     return art
 
 
-def e_stats():
-    """Мини-гистограмма: столбики лёд / золото по очереди, растут вправо."""
+def e_stats(grow=(1.0, 1.0, 1.0, 1.0)):
+    """Мини-гистограмма: столбики лёд / золото по очереди, растут вправо.
+    Анимация: grow — доля высоты каждого столбика (0 — нет столбика, >1 — «перелёт» при отскоке)."""
     art = new()
     base_y = 86
     bars = ((7, 26, 34, ICE), (29, 48, 54, GOLD), (51, 70, 42, ICE), (73, 92, 76, GOLD))
-    for x0, x1, h, col in bars:
-        m = rrect(M(), (x0, base_y - h, x1, base_y + 2), 4.5)
+    for (x0, x1, h, col), g in zip(bars, grow):
+        h = h * g
+        if h < 1.5:
+            continue
+        m = rrect(M(), (x0, base_y - h, x1, base_y + 2), min(4.5, h / 2))
         put(art, lin([mix(col, 0.4), col, mix(col, -0.3)], m), m)
         rings(art, m, x0, base_y - h, step=5, alpha=0.06)
         bevel(art, m, hi=0.55, lo=0.45, d=1.8, b=1)
