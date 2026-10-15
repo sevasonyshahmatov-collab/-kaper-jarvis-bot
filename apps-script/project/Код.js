@@ -7831,6 +7831,7 @@ function liveUpdateAuto_() {
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(1000)) return;
   try {
+    try { teamSchedTick_(); } catch (e) { console.log('выход постов: ' + e.message); }   // посты команды за полтора часа до матча
     var lv = null, lw = null;
     try { lv = liveUpdate_(new Date()); } catch (e) { console.log('live: ' + e.message); autoMark_('liveUpdateAuto_', false, 'LIVE: ' + e.message); }
     try { lw = lineupWatch_(new Date()); } catch (e) { console.log('lineups: ' + e.message); autoMark_('liveUpdateAuto_', false, 'заявки: ' + e.message); }
@@ -9351,7 +9352,7 @@ var AUTO_JOBS = [
   { fn: 'bannersAuto_', kind: 'day', hour: 9, what: 'Карточки матчей дня (картинки) — вам в Telegram' },
   { fn: 'agentDailyBriefAuto_', kind: 'day', hour: 13, what: 'Агент: сводка по матчам дня в личку (новости, досье, заявки прошлых матчей)' },
   { fn: 'updateMarketOddsAuto_', kind: 'hours', every: 2, what: 'Коэффициенты рынка и «Лучший прогноз»' },
-  { fn: 'liveUpdateAuto_', kind: 'minutes', every: 5, what: 'Счёт матчей для «Итогов дня» (00:00) и «Игроков дня» + заявки за час до матча (🟢🟡🔴 в личку); LIVE-пост в канал убран' },
+  { fn: 'liveUpdateAuto_', kind: 'minutes', every: 5, what: 'Счёт матчей для «Итогов дня» (00:00) и «Игроков дня» + заявки за час до матча (🟢🟡🔴 в личку); LIVE-пост в канал убран; посты команды — в канал за полтора часа до матча' },
   { fn: 'scoutAuto_', kind: 'hours', every: 1, what: 'Разведчик: новые посты и новости по командам ближайших матчей → лист «Факты» (ночью по МСК спит)' },
   { fn: 'scoutReportAuto_', kind: 'minutes', every: 15, what: 'Разведчик: итог вам за ~1,5 ч до каждого матча' },
   { fn: 'weeklyAuto_', kind: 'week', hour: 5, what: 'Раз в неделю (пн): досье всех команд заново' },
@@ -15502,30 +15503,44 @@ function teamCallback_(q, parts) {
   };
   var cache = CacheService.getScriptCache(), key = 'tm' + m.chat.id + '_' + m.message_id;
   try {
-    if (act === 'pub' || act === 'pubm' || act === 'ok' || act === 'no') {
+    if (act === 'ok' || act === 'no') {
       if (cache.get(key)) { answer('Уже отмечено'); return; }
       cache.put(key, act, 21600);
     }
     if (act === 'pub' || act === 'pubm') {
-      var r;
-      if (act === 'pubm') {
-        var first = Number(parts[3]), n = Math.min(10, Number(parts[4]) || 1), ids = [];
-        for (var k = 0; k < n; k++) ids.push(first + k);
-        r = tg_('copyMessages', { chat_id: TEAM_CHANNEL, from_chat_id: m.chat.id, message_ids: ids });
-      } else {
-        r = tg_('copyMessage', { chat_id: TEAM_CHANNEL, from_chat_id: m.chat.id, message_id: m.message_id,
-          reply_markup: { inline_keyboard: [] } });
+      // «Опубликовать»: пост с матчем в шапке выходит за TEAM_PUB_LEAD_MS до начала (решение владельца 15.10);
+      // «… опубликовать сейчас» (последнее поле — now), пост без времени или когда до выхода меньше минуты — сразу
+      var album = act === 'pubm' ? { first: Number(parts[3]), n: Math.min(10, Number(parts[4]) || 1) } : null;
+      var nowFlag = parts[album ? 5 : 3] === 'now';
+      var start = teamEditStart_(String(m.caption || m.text || ''));
+      if (start && Date.now() >= start) { answer('Матч уже начался — прогноз в канал не отправляю', true); return; }
+      var at = start ? start - TEAM_PUB_LEAD_MS : 0;
+      if (!nowFlag && at - Date.now() > 60000) {
+        teamSchedSave_(m, pid, album, at, start, title);
+        answer('Выйдет ' + teamSchedWhen_(at) + ' МСК — за полтора часа до матча');
+        return;
       }
+      if (cache.get(key)) { answer('Уже отмечено'); return; }
+      cache.put(key, act, 21600);
+      var r = teamPublishNow_(m.chat.id, m.message_id, album);
       if (!r || !r.ok) { cache.remove(key); throw new Error((r && r.description) || 'Telegram не ответил'); }
+      teamSchedDrop_(m.chat.id, m.message_id);
       mark('✅ Опубликовано');
-      teamEditPubSave_(m.chat.id, m.message_id, act === 'pubm' ? parts[3] : null, r.result);   // номер поста в канале — для правок до начала матча
+      teamEditPubSave_(m.chat.id, m.message_id, album ? album.first : null, r.result);   // номер поста в канале — для правок до начала матча
       answer('Опубликовано в канал');
       teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · опубликовано владельцем: ' + pid + ' ' + title, 'Inbox: draft published by the owner');
+    } else if (act === 'unsched') {
+      var sv = teamSchedGet_(m.chat.id, m.message_id);
+      teamSchedDrop_(m.chat.id, m.message_id);
+      tg_('editMessageReplyMarkup', { chat_id: m.chat.id, message_id: m.message_id, reply_markup: (sv && sv.kb) || teamPostKb_(pid) });
+      answer('Выход отменён — пост остаётся черновиком');
+      teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · выход отменён владельцем: ' + pid + ' ' + title, 'Inbox: owner cancelled a scheduled post');
     } else if (act === 'ok') {
       mark('✅ Согласовано — команда выполнит');
       answer('Согласовано');
       teamAppend_('team/INBOX.md', '- [ ] ' + teamStamp_() + ' · согласие на ' + pid + ' ' + title, 'Inbox: owner approved a proposal');
     } else if (act === 'no') {
+      teamSchedDrop_(m.chat.id, m.message_id);
       mark('Не делаем');
       answer('Ок, не делаем');
       teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · отказ: ' + pid + ' ' + title, 'Inbox: owner declined a proposal');
@@ -15540,6 +15555,95 @@ function teamCallback_(q, parts) {
         reply_markup: { force_reply: true, input_field_placeholder: 'что поправить' } });
     } else answer();
   } catch (e) { answer('Не получилось: ' + String(e.message).slice(0, 150), true); }
+}
+
+/* ── ⏰ Выход поста за полтора часа до матча (решение владельца 15.10) ──
+ *  «Опубликовать» под постом, в шапке которого есть дата и время матча («КХЛ · 16 октября · 19:00 МСК»), ставит пост на выход
+ *  за TEAM_PUB_LEAD_MS до начала: под постом — «⏰ Выйдет … · опубликовать сейчас», «Редактировать», «Отменить выход».
+ *  До выхода пост можно править — в канал уйдёт последний вариант (бот копирует черновик в момент выхода).
+ *  Публикует teamSchedTick_ из liveUpdateAuto_ (раз в 5 минут). До матча меньше полутора часов или в шапке нет времени — сразу;
+ *  матч уже начался — не публикуем (и по расписанию тоже: «не успел» — пост остаётся черновиком).
+ *  В INBOX: «запланировано владельцем …», потом «опубликовано владельцем (по расписанию) …».
+ */
+var TEAM_PUB_LEAD_MS = 90 * 60000;
+
+/** Обычные кнопки готового поста (на случай, если исходные не сохранились). */
+function teamPostKb_(pid) {
+  return { inline_keyboard: [[{ text: 'Опубликовать', callback_data: 'tm|pub|' + pid }],
+    [{ text: 'Редактировать', callback_data: 'tm|edit|' + pid }, { text: 'Не надо', callback_data: 'tm|no|' + pid }]] };
+}
+
+/** «в 17:30» сегодня или «16.10 в 17:30» (МСК). */
+function teamSchedWhen_(at) {
+  var d = new Date(at), same = Utilities.formatDate(d, 'Europe/Moscow', 'yyyy-MM-dd') === Utilities.formatDate(new Date(), 'Europe/Moscow', 'yyyy-MM-dd');
+  return (same ? '' : Utilities.formatDate(d, 'Europe/Moscow', 'dd.MM') + ' ') + 'в ' + Utilities.formatDate(d, 'Europe/Moscow', 'HH:mm');
+}
+
+/** Кнопки поста, стоящего на выходе. */
+function teamSchedKb_(s) {
+  var now = s.album ? 'tm|pubm|' + s.pid + '|' + s.album.first + '|' + s.album.n + '|now' : 'tm|pub|' + s.pid + '|now';
+  return { inline_keyboard: [[{ text: '⏰ Выйдет ' + teamSchedWhen_(s.at) + ' · опубликовать сейчас', callback_data: now }],
+    [{ text: 'Редактировать', callback_data: 'tm|edit|' + s.pid }, { text: 'Отменить выход', callback_data: 'tm|unsched|' + s.pid }]] };
+}
+
+function teamSchedGet_(chat, mid) {
+  try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('TMSCHED_' + chat + '_' + mid) || 'null'); } catch (e) { return null; }
+}
+function teamSchedDrop_(chat, mid) { PropertiesService.getScriptProperties().deleteProperty('TMSCHED_' + chat + '_' + mid); }
+
+/** Поставить пост на выход: запомнить, сменить кнопки, строка в INBOX. Повторное «Опубликовать» исходные кнопки не теряет. */
+function teamSchedSave_(m, pid, album, at, start, title) {
+  var old = teamSchedGet_(m.chat.id, m.message_id);
+  var s = { chat: m.chat.id, mid: m.message_id, pid: pid, album: album, at: at, start: start, title: title,
+    kb: (old && old.kb) || m.reply_markup || null, t: Date.now() };
+  PropertiesService.getScriptProperties().setProperty('TMSCHED_' + m.chat.id + '_' + m.message_id, JSON.stringify(s));
+  tg_('editMessageReplyMarkup', { chat_id: m.chat.id, message_id: m.message_id, reply_markup: teamSchedKb_(s) });
+  try {
+    teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · запланировано владельцем: ' + pid + ' ' + title + ' — выход ' +
+      Utilities.formatDate(new Date(at), 'Europe/Moscow', 'dd.MM HH:mm') + ' МСК', 'Inbox: owner scheduled a post');
+  } catch (e) { /* без GitHub выход всё равно запланирован */ }
+}
+
+/** Скопировать черновик (или альбом) в канал. */
+function teamPublishNow_(chat, mid, album) {
+  if (album) {
+    var ids = [];
+    for (var k = 0; k < album.n; k++) ids.push(album.first + k);
+    return tgRaw_('copyMessages', { chat_id: TEAM_CHANNEL, from_chat_id: chat, message_ids: ids });
+  }
+  return tgRaw_('copyMessage', { chat_id: TEAM_CHANNEL, from_chat_id: chat, message_id: mid, reply_markup: { inline_keyboard: [] } });
+}
+
+/** Из liveUpdateAuto_ (раз в 5 минут): опубликовать посты, у которых подошло время выхода. */
+function teamSchedTick_() {
+  var p = PropertiesService.getScriptProperties(), now = Date.now();
+  p.getKeys().forEach(function (k) {
+    if (k.indexOf('TMSCHED_') !== 0) return;
+    var s;
+    try { s = JSON.parse(p.getProperty(k)); } catch (e) { p.deleteProperty(k); return; }
+    if (s.at > now) return;
+    var back = function (why) {                                         // пост остаётся черновиком с обычными кнопками
+      p.deleteProperty(k);
+      tgRaw_('editMessageReplyMarkup', { chat_id: s.chat, message_id: s.mid, reply_markup: s.kb || teamPostKb_(s.pid) });
+      tgRaw_('sendMessage', { chat_id: s.chat, reply_to_message_id: s.mid, text: '⚠️ ' + why + ' Пост остался черновиком.' });
+    };
+    if (s.start && now >= s.start) { back('Не успел опубликовать до начала матча.'); return; }
+    var r = teamPublishNow_(s.chat, s.mid, s.album);
+    if (!r || !r.ok) {
+      s.fails = (s.fails || 0) + 1;
+      if (s.fails < 3) { p.setProperty(k, JSON.stringify(s)); return; }
+      back('Не получилось опубликовать по расписанию: ' + ((r && r.description) || 'Telegram не ответил') + '.');
+      return;
+    }
+    p.deleteProperty(k);
+    tgRaw_('editMessageReplyMarkup', { chat_id: s.chat, message_id: s.mid,
+      reply_markup: { inline_keyboard: [[{ text: '✅ Опубликовано в ' + Utilities.formatDate(new Date(), 'Europe/Moscow', 'HH:mm'), callback_data: 'tm|done' }]] } });
+    teamEditPubSave_(s.chat, s.mid, s.album ? s.album.first : null, r.result);
+    try {
+      teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · опубликовано владельцем (по расписанию): ' + s.pid + ' ' + s.title,
+        'Inbox: scheduled post published');
+    } catch (e) { /* */ }
+  });
 }
 
 /* ── ✏️ «Редактировать» пост (решение владельца 15.10) ──
@@ -15710,7 +15814,8 @@ function teamEditWrite_(chat, tgt, html) {
   var start = ch ? teamEditStart_(tgt.html || html) : null;
   if (ch && start && Date.now() >= start) throw new Error('матч уже начался — опубликованный прогноз после начала не меняем; если нужно, поправьте вручную в канале');
   if (ch) teamEditSend_(TEAM_CHANNEL, ch, tgt.cap, html, null);                // сначала канал — если не вышло, черновик не трогаем
-  try { teamEditSend_(chat, tgt.mid, tgt.cap, html, ch ? TEAM_PUBLISHED_KB : tgt.kb); } catch (e) { if (!ch) throw e; }
+  var sch = ch ? null : teamSchedGet_(chat, tgt.mid);                    // стоит на выходе — кнопки расписания не теряем
+  try { teamEditSend_(chat, tgt.mid, tgt.cap, html, ch ? TEAM_PUBLISHED_KB : sch ? teamSchedKb_(sch) : tgt.kb); } catch (e) { if (!ch) throw e; }
   return !!ch;
 }
 
@@ -15732,7 +15837,8 @@ function teamEditOpen_(m, pid, answer) {
   answer('Скопируйте текст ниже, исправьте и отправьте');
   teamEditPrune_();
   var hint = tgRaw_('sendMessage', { chat_id: chat, reply_to_message_id: m.message_id,
-    text: '✏️ Редактирование ' + (pid || 'поста') + (ch ? ' (уже в канале — поправлю и там)' : '') + ': долгий тап по тексту ниже → «Копировать», ' +
+    text: '✏️ Редактирование ' + (pid || 'поста') + (ch ? ' (уже в канале — поправлю и там)' : teamSchedGet_(chat, m.message_id) ? ' (стоит на выходе — уйдёт уже исправленный)' : '') +
+      ': долгий тап по тексту ниже → «Копировать», ' +
       'вставьте в поле ввода, исправьте как нужно и отправьте — ответом на текст или просто следующим сообщением. Пост обновится.' });
   var copy;
   try {

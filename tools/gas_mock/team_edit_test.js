@@ -152,7 +152,7 @@ say('а можно про вратарей?', photo(HTML0, KB));
 assert.ok(/поправить 1510-1 «КХЛ · 15 октября · 18:00 МСК»: а можно про вратарей\?/.test(inbox[0]), inbox[0]);
 
 // 8. опубликован (после обновления), матч не начался — «Редактировать» правит и пост в канале
-press('tm|pub|1510-1', photo(HTML0, KB));
+press('tm|pub|1510-1|now', photo(HTML0, KB));                                // «опубликовать сейчас» — сразу, без расписания
 const chId = calls.find(c => c.method === 'copyMessage').id;
 press('tm|edit|1510-1', photo(HTML0, PUBKB));
 assert.ok(/уже в канале — поправлю и там/.test(replies()));
@@ -168,6 +168,8 @@ press('tm|edit|1510-1', photo(HTML0, PUBKB, 501));
 assert.ok(toast().show_alert && /до обновления бота/.test(toast().text) && of('sendMessage').length === 0);
 const EARLY = 'КХЛ · 15 октября · 09:00 МСК\nПрогноз: <b>тест</b>';
 press('tm|pub|1510-8', photo(EARLY, { inline_keyboard: [[{ text: 'Опубликовать', callback_data: 'tm|pub|1510-8' }]] }, 800));
+assert.ok(/Матч уже начался/.test(toast().text) && !calls.some(c => c.method === 'copyMessage'));   // после начала матча не публикуем
+env.props['TMPUB_' + CHAT + '_800'] = JSON.stringify({ ch: 999, t: Date.UTC(2026, 9, 15, 5, 0) });  // будто опубликован до начала
 press('tm|edit|1510-8', photo(EARLY, PUBKB, 800));
 assert.ok(/Матч уже начался/.test(toast().text) && of('sendMessage').length === 0);
 assert.strictEqual(ctx.teamEditStart_('НХЛ · 16 октября · 02:30 МСК'), Date.UTC(2026, 9, 15, 23, 30));
