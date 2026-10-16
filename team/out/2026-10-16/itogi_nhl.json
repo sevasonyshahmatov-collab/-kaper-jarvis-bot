@@ -1,0 +1,74 @@
+{
+ "day": "2026-10-16",
+ "make": [
+  "team/out/2026-10-16/itogi_nhl_make.py"
+ ],
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "caption_slot": true,
+   "text": "Итоги НХЛ (ночь на 16 октября) — 6 вариантов нового шаблона: 1 полосы · 2 диагональ · 3 карточки · 4 центр · 5 фаворит · 6 минимал"
+  },
+  {
+   "to": "owner",
+   "type": "album",
+   "style": "strips",
+   "text": "1 · полосы",
+   "files": [
+    "out/itogi/nhl-2026-10-16/strips_1.jpg",
+    "out/itogi/nhl-2026-10-16/strips_2.jpg"
+   ]
+  },
+  {
+   "to": "owner",
+   "type": "album",
+   "style": "diagonal",
+   "text": "2 · диагональ",
+   "files": [
+    "out/itogi/nhl-2026-10-16/diagonal_1.jpg",
+    "out/itogi/nhl-2026-10-16/diagonal_2.jpg"
+   ]
+  },
+  {
+   "to": "owner",
+   "type": "album",
+   "style": "cards",
+   "text": "3 · карточки",
+   "files": [
+    "out/itogi/nhl-2026-10-16/cards_1.jpg",
+    "out/itogi/nhl-2026-10-16/cards_2.jpg"
+   ]
+  },
+  {
+   "to": "owner",
+   "type": "album",
+   "style": "center",
+   "text": "4 · центр",
+   "files": [
+    "out/itogi/nhl-2026-10-16/center_1.jpg",
+    "out/itogi/nhl-2026-10-16/center_2.jpg"
+   ]
+  },
+  {
+   "to": "owner",
+   "type": "album",
+   "style": "fav",
+   "text": "5 · фаворит",
+   "files": [
+    "out/itogi/nhl-2026-10-16/fav_1.jpg",
+    "out/itogi/nhl-2026-10-16/fav_2.jpg"
+   ]
+  },
+  {
+   "to": "owner",
+   "type": "album",
+   "style": "minimal",
+   "text": "6 · минимал",
+   "files": [
+    "out/itogi/nhl-2026-10-16/minimal_1.jpg",
+    "out/itogi/nhl-2026-10-16/minimal_2.jpg"
+   ]
+  }
+ ]
+}

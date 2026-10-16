@@ -159,6 +159,12 @@ def main(payload):
         r = subprocess.run([sys.executable, _path(script)] + args, cwd=ROOT, env=env)
         if r.returncode:
             errors.append('скрипт %s завершился с кодом %d' % (script, r.returncode))
+    if job.get('make'):         # скрипт рисования мог дописать сообщения (например, число картинок известно только после него);
+        try:                    # берём только "messages" — согласие владельца и qa остаются из исходного задания
+            with open(job_path, encoding='utf-8') as f:
+                job['messages'] = json.load(f).get('messages') or job.get('messages')
+        except (OSError, ValueError) as e:
+            print('задание после make не перечитано:', e)
     token = os.environ.get('TG_BOT_TOKEN')
     msgs = job.get('messages') or []
     channel = str(job.get('channel') or '@jarvibet')
