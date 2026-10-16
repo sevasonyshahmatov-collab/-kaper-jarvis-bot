@@ -81,10 +81,11 @@ def _smooth(t):
     return t * t * (3 - 2 * t)
 
 
-def _panel(w, h, color, center, seed, fade='down', dim=0.42, pad=0):
+def _panel(w, h, color, center, seed, fade='down', dim=0.42, pad=0, freq=15):
     """Панель клуба: концентрические «топографические» кольца тон-в-тон и перелив яркости:
     fade='down' — у верхнего края приглушённо, к низу ярче (хозяева); 'up' — наоборот (гости); None — ровно.
     dim — яркость у приглушённого края (доля от цвета клуба).
+    freq — колец на ширину панели (15 — как у «Versus»).
     pad — тот же узор с запасом pad пикселей с каждой стороны (картинка (w + 2pad)×(h + 2pad); для анимации «флага»)."""
     y, x = np.mgrid[-pad:h + pad, -pad:w + pad].astype(np.float32)
     cx, cy = center
@@ -93,7 +94,7 @@ def _panel(w, h, color, center, seed, fade='down', dim=0.42, pad=0):
     rng = np.random.default_rng(seed)
     wob = sum(a * np.sin(k * ang + p) for a, k, p in zip(rng.uniform(.004, .012, 3), (2, 3, 5), rng.uniform(0, 6, 3)))
     r = (np.abs(dx) ** 3 + np.abs(dy) ** 3) ** (1 / 3) + wob
-    ring = np.sin(r * 2 * np.pi * 15)
+    ring = np.sin(r * 2 * np.pi * freq)
     ring = np.clip(ring * 3, -1, 1)                      # чёткие полосы, мягкие края
     t = y / h if fade == 'down' else 1 - y / h
     light = np.ones_like(x) if fade is None else dim + (1.06 - dim) * _smooth(t * 1.15)

@@ -562,6 +562,9 @@ def _s_tape(m, path, league, title):
     return _end(bg, ov, H, path, FOOT_ODDS if o else None)
 
 
+TOP_BG = 'silk'      # фон верха «ИТОГА МАТЧА»: 'silk' — шёлк (по умолчанию), 'rings' — кольца как у «Versus»
+
+
 def _final_top(m, league, title, H=1350):
     """Верх «ИТОГА МАТЧА» (до 640 px): фон в цвете победителя, шапка, эмблемы, крупный счёт, плашка «ПОБЕДА …»."""
     hw = m['sh'] > m['sa']
@@ -572,7 +575,13 @@ def _final_top(m, league, title, H=1350):
     arr = np.asarray(bg, np.float32).copy()
     # верх — шёлк с переливами и текстурой холста, как фон «Боков»: в цвете победителя, на его стороне светлее
     hi, lo = tuple(int(v) for v in c), tuple(int(v * 0.62) for v in c)
-    silk = poster._fluid_bg(W, top_h, *((hi, lo) if hw else (lo, hi)), seed=sum(map(ord, m['home'] + m['away'])) % 997)
+    seed = sum(map(ord, m['home'] + m['away'])) % 997
+    if TOP_BG == 'rings':                     # кольца как у панелей «Versus» — вокруг эмблемы победителя
+        import versus
+        silk = versus._panel(W, top_h, tuple(int(v) for v in c), (210 if hw else W - 210, 330), seed, fade=None,
+                               freq=15 * W / 520)
+    else:
+        silk = poster._fluid_bg(W, top_h, *((hi, lo) if hw else (lo, hi)), seed=seed)
     silk = poster._canvas_texture(silk, 0.8)
     arr[:top_h, :, :3] = np.asarray(silk, np.float32)[..., :3] * 1.12
     edge = np.linspace(1, 0, 40, dtype=np.float32)[:, None, None]            # мягкий переход ко льду

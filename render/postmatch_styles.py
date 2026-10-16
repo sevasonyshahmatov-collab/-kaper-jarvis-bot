@@ -48,9 +48,9 @@ F32 = np.float32
 FPS, SECONDS = 30, 4
 GRAIN = va.GRAIN
 
-STYLES = ['versus_final', 'tablo_final', 'stamp_pick', 'verdict_anim']
+STYLES = ['versus_final', 'tablo_final', 'stamp_pick', 'verdict_anim', 'verdict_rings']
 NAMES = {'versus_final': 'Versus-итог', 'tablo_final': 'Табло-финал', 'stamp_pick': 'Штамп на прогнозе',
-         'verdict_anim': 'Вердикт (анимация)'}
+         'verdict_anim': 'Вердикт (анимация)', 'verdict_rings': 'Вердикт (кольца)'}
 
 HIT, MISS, VOID = (47, 191, 95), (228, 58, 62), (150, 152, 160)             # зашло / минус / возврат
 INK_HIT, INK_MISS, INK_VOID = (22, 140, 66), (200, 32, 40), (112, 116, 124)  # те же — чернилами по бумаге
@@ -1135,6 +1135,13 @@ def scene(home, away, sh, sa, mark='', league='KHL', date='', pick='', kef=None,
     r = _result(home, away, sh, sa, mark, league, date, pick, kef, hit, periods)
     if style == 'verdict_anim':
         return _verdict_anim(r, plates_dir, checks)
+    if style == 'verdict_rings':                          # тот же «Итог матча», верх — кольца «Versus» вместо шёлка
+        import ice_more2 as im2
+        top0, im2.TOP_BG = im2.TOP_BG, 'rings'
+        try:
+            return _verdict_anim(r, plates_dir, checks)
+        finally:
+            im2.TOP_BG = top0
     return BUILDERS[style](r, plates_dir)
 
 
