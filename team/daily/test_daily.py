@@ -555,14 +555,17 @@ def test_channel_recap():
                  'Изменены в канале (взят текст после правки): №100, №104, №105', 'в канале дважды (№101 и №104)'):
         assert want in intro, (want, intro)
     assert [m.get('pid') for m in msgs] == [None, '1610-r1'] and msgs[1]['buttons'] == 'post' and msgs[1]['emoji']
-    # баннер «Матчи дня» (results) — только эти 6 матчей: 2 картинки по 3, альбом с подписью-итогами
+    # баннер «Матчи дня» (results) — только эти 6 матчей: одна высокая картинка 1080×1635 (до 8 — одна), подпись — итоги
     out_dir = os.path.join(os.environ.get('TMPDIR', '/tmp'), 'daily_channel_test')
     try:
-        import banner  # noqa: F401
+        import banner
         with contextlib.redirect_stdout(io.StringIO()):
             msgs_c, _, inner_c = morning.build(d, card=True, out_dir=out_dir, led=led, recap_only=True, source='channel')
-        assert len(inner_c['images']) == 2 and msgs_c[1]['type'] == 'album' and msgs_c[1]['text'] == inner_c['recap']['text']
-        banner_ok = 'баннер — альбом из 2 картинок'
+        from PIL import Image
+        assert len(inner_c['images']) == 1 and msgs_c[1]['type'] == 'photo' and msgs_c[1]['text'] == inner_c['recap']['text']
+        with Image.open(inner_c['images'][0]) as im:
+            assert im.size == (1080, banner.height(6)), im.size
+        banner_ok = 'баннер — одна картинка 1080×%d' % banner.height(6)
     except ImportError as e:
         banner_ok = 'баннер не проверен (%s)' % e
     # лента не прочиталась → запасной источник: INBOX «опубликовано владельцем» + SENT.md, во вступлении — крупно

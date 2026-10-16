@@ -23,6 +23,8 @@ WD = ['понедельник', 'вторник', 'среда', 'четверг'
 WD_ACC = ['понедельник', 'вторник', 'среду', 'четверг', 'пятницу', 'субботу', 'воскресенье']
 WD_KEY = ['mon', 'mid', 'mid', 'mid', 'fri', 'sat', 'sun']
 CAPTION_MAX, TEXT_MAX = 1024, 4000
+MORNING_EMOJI_MAX = 8
+EMOJI_ANY = re.compile('[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF\u23E9-\u23FA\u231A\u231B]')
 MORE_BANNED = ('таблиц', 'букмекер', 'фонбет', 'pinnacle', 'пинакл', 'гарантир', 'беспроигрыш', '100%')
 
 DERBY = {  # пара → как назвать (только общеизвестные противостояния)
@@ -100,6 +102,8 @@ def validate(text, photo=False, emoji=True):
         errs.append(bad)
     if not emoji and check.EMOJI.search(text):
         errs.append('эмодзи')
+    if emoji and len(EMOJI_ANY.findall(text)) > max(MORNING_EMOJI_MAX, 2 + text.count('\n')):
+        errs.append('эмодзи больше %d' % MORNING_EMOJI_MAX)
     low = html.unescape(re.sub(r'<[^>]+>', '', re.sub(r'#\w+', '', text))).lower()
     for w in tuple(check.BANNED) + MORE_BANNED:
         if w in low:
@@ -190,44 +194,66 @@ def morning_post(day, khl, nhl, leaders, plan):
     tags = tags_for([lg for lg, gs in (('KHL', khl), ('NHL', nhl)) if gs])
     hello = P('m.hello')
 
+    # эмодзи дня (решение владельца 16.10): из банков движка, каждый — в своём месте и не в каждой строке
+    e_head = plan.one('m.e.head')
+    e_khl, e_nhl = plan.one('m.e.pair').split('|')
+    e_time, e_derby, e_big = plan.one('m.e.time'), plan.one('m.e.derby'), plan.one('m.e.big')
+    big = c['situation'] == 'both_big' or len(nhl) >= 10
+    if big:
+        day_s = '%s %s' % (e_big, day_s)
+    derby_e = '%s %s' % (e_derby, derby) if derby else None
+    khl_te = '%s %s' % (e_time, khl_t) if khl_t else None
+    nhl_te = nhl_t if khl_t else ('%s %s' % (e_time, nhl_t) if nhl_t else None)
+    dkey = (c['derby'] if c.get('derby') else None)
+
+    def line(g):
+        mark = ' ' + e_derby if dkey == '%s — %s' % (g['home'], g['away']) else ''
+        return '%s · <b>%s — %s</b>%s' % (hm(g['start']), esc(g['home']), esc(g['away']), mark)
+
     def listing():
         out = []
         if khl:
-            out += ['<b>КХЛ</b>'] + ['%s %s — %s' % (hm(g['start']), esc(g['home']), esc(g['away'])) for g in khl]
+            out += ['%s <b>КХЛ</b> · %s' % (e_khl, c['n_khl_m'])] + [line(g) for g in khl]
         if nhl:
-            out += ([''] if khl else []) + ['<b>НХЛ</b> · %s' % c['night']] + \
-                   ['%s %s — %s' % (hm(g['start']), esc(g['home']), esc(g['away'])) for g in nhl]
+            out += ([''] if khl else []) + ['%s <b>НХЛ</b> · %s' % (e_nhl, c['night'])] + [line(g) for g in nhl]
         return out
 
     if lay == 'list':
-        text = compose([P('m.head'), '', sent(hello, day_s, derby), ''] + listing() + ['', sent(P('m.cta'), P('m.picks')), '', tags])
+        text = compose(['%s %s' % (e_head, P('m.head')), '', sent(hello, day_s, derby), ''] + listing() +
+                       ['', sent(P('m.cta'), P('m.picks')), '', tags])
     elif lay == 'tablo':
         board = []
         if khl:
-            board.append('<b>КХЛ</b> · %s · %s' % (c['n_khl_m'], c['khl_range']))
+            board.append('%s <b>КХЛ</b> · %s · %s %s' % (e_khl, c['n_khl_m'], e_time, c['khl_range']))
         if nhl:
-            board.append('<b>НХЛ</b> · %s · %s · %s' % (c['n_nhl_m'], c['nhl_range'], c['night']))
+            board.append('%s <b>НХЛ</b> · %s · %s · %s' % (e_nhl, c['n_nhl_m'], c['nhl_range'], c['night']))
         if c.get('derby'):
-            board.append('Главное: %s, %s · %s' % (c['derby'], c['derby_time'], c['derby_name']))
+            board.append('%s Главное: <b>%s</b>, %s · %s' % (e_derby, c['derby'], c['derby_time'], c['derby_name']))
         text = compose([hello, day_s, '', '<blockquote>' + '\n'.join(board) + '</blockquote>', '',
                         sent(wd, P('m.cta')), P('m.close'), '', tags])
     elif lay == 'short':
-        text = compose([sent(hello, day_s), P('m.cta'), '', tags])
+        text = compose(['%s %s' % (e_head, sent(hello, day_s)), P('m.cta'), '', tags])
     elif lay == 'story':
-        text = compose([hello, '', sent(day_s, nhlbig, khl_t, derby, nhl_t, wd), '', sent(P('m.cta'), P('m.picks'), P('m.close')),
-                        '', tags])
+        text = compose(['%s %s' % (e_head, hello), '', sent(day_s, nhlbig, khl_te, derby_e, nhl_te, wd), '',
+                        sent(P('m.cta'), P('m.picks'), P('m.close')), '', tags])
     elif lay == 'qa':
         Q = lambda k: '<b>%s</b>' % plan.one('m.q.' + k)            # noqa: E731
-        text = compose([hello, '', Q('what'), sent(day_s, nhlbig), '', Q('when'), sent(khl_t, nhl_t), '',
-                        Q('main') if derby else None, derby, '' if derby else None, Q('next'), sent(P('m.cta'), P('m.picks')),
+        text = compose(['%s %s' % (e_head, hello), '', Q('what'), sent(day_s, nhlbig), '', Q('when'),
+                        sent(('%s %s' % (e_khl, khl_t)) if khl_t else None, ('%s %s' % (e_nhl, nhl_t)) if nhl_t else None), '',
+                        Q('main') if derby else None, derby_e, '' if derby else None, Q('next'), sent(P('m.cta'), P('m.picks')),
                         '', tags])
     else:  # number
-        text = compose([P('m.num'), '', sent(hello, wd), sent(khl_t, nhl_t, nhlbig), derby, '', sent(P('m.cta'), P('m.close')),
-                        '', tags])
+        text = compose(['%s %s' % (e_head, P('m.num')), '', sent(hello, wd),
+                        sent(('%s %s' % (e_khl, khl_t)) if khl_t else None, ('%s %s' % (e_nhl, nhl_t)) if nhl_t else None,
+                             ('%s %s' % (e_big, nhlbig)) if nhlbig else None), derby_e, '', sent(P('m.cta'), P('m.close')), '', tags])
     lines = text.split('\n')
     k = max(i for i, x in enumerate(lines[:-1]) if x.strip())          # последняя строка текста перед хэштегами
-    lines[k] = lines[k].rstrip() + plan.one('m.emoji')
+    end = plan.one('m.emoji')
+    if end not in text:                                                # то же эмодзи второй раз — не ставим
+        lines[k] = lines[k].rstrip() + end
     text = '\n'.join(lines)
+    while len(EMOJI_ANY.findall(text)) > MORNING_EMOJI_MAX:            # перебор (много дерби в списке) — снимаем с конца
+        text = text[::-1].replace(e_derby[::-1], '', 1)[::-1]
     return dict(text=text, layout=lay, tags=tags, info=dict(situation=c['situation'], khl=len(khl), nhl=len(nhl),
                                                              khl_when=c.get('khl_when'), nhl_when=c.get('nhl_when'),
                                                              derby=c.get('derby')))

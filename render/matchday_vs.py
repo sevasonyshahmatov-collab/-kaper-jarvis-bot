@@ -43,7 +43,8 @@ HEAD, FOOT = 236, 104        # шапка и подвал (база 1080)
 GAP = 18                     # между полосами
 ROW_MAX = 240                # выше полоса — перебор (1–3 матча)
 OSW, ALU, MAN = 'Oswald[wght].ttf', 'AlumniSans[wght].ttf', 'Manrope[wght].ttf'
-TAG = {'KHL': 'KXL', 'NHL': 'NHL', 'KHL+NHL': 'KXL · NHL'}   # 'KHL+NHL' — итоги прогнозов обеих лиг (team/daily)
+TAG = {'KHL': 'KXL', 'NHL': 'NHL', 'KHL+NHL': 'КХЛ · НХЛ',     # 'KHL+NHL' и '*-RU' — итоги прогнозов (team/daily/banner.py):
+       'KHL-RU': 'КХЛ', 'NHL-RU': 'НХЛ'}                          # там лига кириллицей (владелец 16.10), в остальных — бренд KXL
 INK = (24, 20, 14)           # текст на плашках, как у versus
 GREY = (150, 148, 156)
 FOOT_ODDS = recap.FOOT_ODDS  # «…на момент публикации» — без упоминания таблицы
@@ -52,10 +53,19 @@ KHL_ALIAS = {'Металлург Мг': 'Металлург', 'Шанхай': '�
              'Салават': 'Салават Юлаев'}
 
 
-def _layout(n, rows):
+TALL_ROW_MAX = 300           # h_max задан (высокий постер итогов прогнозов) — полосы до 300
+
+
+def _layout(n, rows, h_max=None):
     """→ (высота полосы, верх первой полосы, высота постера). Зависит только от rows (≥ n): в альбоме у всех
-    постеров одинаково, полосы на одних местах."""
+    постеров одинаково, полосы на одних местах. h_max — постер ровно такой высоты (1080×h_max), полосы растягиваются
+    до TALL_ROW_MAX, блок по центру."""
     rows = max(rows or 0, n, 1)
+    if h_max:
+        avail = h_max - HEAD - FOOT
+        row = int(min(TALL_ROW_MAX, (avail + GAP) / rows - GAP))
+        block = rows * (row + GAP) - GAP
+        return row, HEAD + (avail - block) // 2, h_max
     avail = H_MAX - HEAD - FOOT
     row = int(min(ROW_MAX, (avail + GAP) / rows - GAP))
     block = rows * (row + GAP) - GAP
@@ -258,7 +268,7 @@ def _strip(img, it, y0, R, g, league, acc, F, pill_w, i):
 
 
 def render(items, path, league='KHL', title='МАТЧИ ДНЯ', date_title=None, cont=False, rows=None, *, style='strips',
-           results=False):
+           results=False, h_max=None):
     """style — макет (STYLES): strips (по умолчанию), diagonal, cards, center, fav, minimal. Неизвестный style
     (например, 'columns' из вызова preview_ice.render) — strips. Шапка, подвал, фон и размер постера — общие.
     results=True — «Итоги дня»: items [{home, away, sh, sa, mark: '' | 'ОТ' | 'Б'}], заголовок «ИТОГИ ДНЯ»."""
@@ -269,7 +279,8 @@ def render(items, path, league='KHL', title='МАТЧИ ДНЯ', date_title=None
     acc = poster.ACC if 'KHL' in league else nhl.ICE
     if results:
         title = 'ИТОГИ ДНЯ' if title == 'МАТЧИ ДНЯ' else title
-        H, paint = _RES[style](items, rows, league, acc)
+        H, paint = (_rs_strips(items, rows, league, acc, h_max) if h_max and style == 'strips'   # высокий постер: h_max
+                    else _RES[style](items, rows, league, acc))
     else:
         H, paint = _STYLE[style](items, rows, league, acc)
 
@@ -929,8 +940,8 @@ def _skew_plate(img, bx, by, bw, bh, sl):
 
 # strips — полосы: счёт на месте «vs/время», «ПОБЕДА» под аббревиатурой победителя, «ОТ/Б» — посередине вместо «Х»
 
-def _rs_strips(items, rows, league, acc):
-    R, top, H = _layout(len(items), rows)
+def _rs_strips(items, rows, league, acc, h_max=None):
+    R, top, H = _layout(len(items), rows, h_max)
     g = _geom(R)
     F = _res_fonts(g['ab'], min(70, R * 0.34), g['ph'])
 
