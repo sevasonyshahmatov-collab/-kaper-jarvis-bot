@@ -764,42 +764,66 @@ class Film(Base):
 
 
 # ════════════════════════════ 9. Storm ════════════════════════════
-def _bolt(rng, x0, y0, x1, y1, depth=5, spread=0.22):
+def _bolt(rng, x0, y0, x1, y1, depth=8, spread=0.13):
+    """Ломаная молнии: деление отрезков пополам со случайным сдвигом поперёк (мелкая «рваность» на всех масштабах)."""
     pts = [(x0, y0), (x1, y1)]
-    for _ in range(depth):
+    for lvl in range(depth):
         new = [pts[0]]
+        sp = spread * (0.85 ** lvl)
         for (ax, ay), (bx, by) in zip(pts, pts[1:]):
             L = math.hypot(bx - ax, by - ay)
             mx, my = (ax + bx) / 2, (ay + by) / 2
             nx, ny = -(by - ay) / (L + 1e-6), (bx - ax) / (L + 1e-6)
-            off = rng.normal(0, spread * L)
+            off = rng.normal(0, sp * L * 2)
             new += [(mx + nx * off, my + ny * off), (bx, by)]
         pts = new
     return pts
 
 
+def _tree(rng, d, x0, y0, x1, y1, level, out):
+    """Молния с ветками: ветки короче, тоньше и тусклее; ветка от ветки — ещё слабее."""
+    pts = _bolt(rng, x0, y0, x1, y1, depth=8 - level)
+    width, val = (3, 255) if level == 0 else (2, 150) if level == 1 else (1, 80)
+    out.append((pts, width, val))
+    if level >= 2:
+        return
+    nb = int(rng.integers(5, 9)) if level == 0 else int(rng.integers(1, 4))
+    for _ in range(nb):
+        k = int(rng.integers(len(pts) // 8, len(pts) * 4 // 5))
+        bx, by = pts[k]
+        L = math.hypot(x1 - x0, y1 - y0) * (0.35 if level == 0 else 0.25) * rng.uniform(0.5, 1.2)
+        ang = math.atan2(y1 - y0, x1 - x0) + rng.choice([-1, 1]) * rng.uniform(0.35, 0.9)
+        _tree(rng, d, bx, by, bx + math.cos(ang) * L, by + math.sin(ang) * L, level + 1, out)
+
+
 def bolt_layer(seed, x0, x1, y1=1300, y0=-20):
-    """Молния с ответвлениями на прозрачном кадре: ядро белое, ореол холодно-голубой."""
+    """Молния как свет (RGB для сложения): тонкое пересвеченное ядро и многослойное свечение — от резкого к широкому,
+    ядро белое, ореол холодный сине-фиолетовый, как на фото ночной грозы."""
     rng = np.random.default_rng(seed)
+    segs = []
+    _tree(rng, None, x0, y0, x1, y1, 0, segs)
     core = Image.new('L', (W, H), 0)
     d = ImageDraw.Draw(core)
-    main = _bolt(rng, x0, y0, x1, y1)
-    d.line(main, fill=255, width=9)
-    for _ in range(7):
-        k = int(rng.integers(len(main) // 5, len(main) * 3 // 4))
-        bx, by = main[k]
-        br = _bolt(rng, bx, by, bx + rng.normal(0, 260), by + rng.uniform(150, 420), depth=4, spread=0.25)
-        d.line(br, fill=220, width=4)
-    halo = core.filter(ImageFilter.GaussianBlur(22))
-    halo2 = core.filter(ImageFilter.GaussianBlur(6))
-    a = np.clip(np.asarray(core, np.float32) + np.asarray(halo2, np.float32) * 1.6 + np.asarray(halo, np.float32) * 2.2, 0, 255)
-    arr = np.zeros((H, W, 4), np.uint8)
-    arr[..., 0], arr[..., 1], arr[..., 2] = 200, 222, 255
-    core_a = np.asarray(core, np.float32) / 255
-    arr[..., 0] = (200 + 55 * core_a).astype(np.uint8)
-    arr[..., 1] = (222 + 33 * core_a).astype(np.uint8)
-    arr[..., 3] = a.astype(np.uint8)
-    return Image.fromarray(arr, 'RGBA')
+    for pts, width, val in sorted(segs, key=lambda s: s[2]):
+        d.line(pts, fill=val, width=width, joint='curve')
+    c = np.asarray(core, np.float32) / 255
+    layers = [(c, 1.0), (np.asarray(core.filter(ImageFilter.GaussianBlur(3)), np.float32) / 255, 2.2),
+              (np.asarray(core.filter(ImageFilter.GaussianBlur(12)), np.float32) / 255, 3.0),
+              (np.asarray(core.filter(ImageFilter.GaussianBlur(40)), np.float32) / 255, 4.0),
+              (np.asarray(core.resize((W // 8, H // 8), Image.BILINEAR).filter(ImageFilter.GaussianBlur(14)).resize((W, H), Image.BICUBIC), np.float32) / 255, 6.0)]
+    cols = [(255, 255, 255), (235, 240, 255), (190, 205, 255), (150, 160, 255), (120, 120, 230)]
+    acc = np.zeros((H, W, 3), np.float32)
+    for (lay, g), col in zip(layers, cols):
+        acc += lay[..., None] * g * np.array(col, np.float32)
+    return Image.fromarray(np.clip(acc, 0, 255).astype(np.uint8), 'RGB')
+
+
+def add_rgb(fr, light, k):
+    """Сложить свет: fr (RGBA) + light (RGB) × k."""
+    if k <= 0.01:
+        return fr
+    arr = np.asarray(fr.convert('RGB'), np.float32) + np.asarray(light, np.float32) * k
+    return Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), 'RGB').convert('RGBA')
 
 
 class Storm(Base):
@@ -815,7 +839,7 @@ class Storm(Base):
             g = rng.random((H // (64 // k) + 2, (W + 400) // (64 // k) + 2)).astype(np.float32)
             n += np.asarray(Image.fromarray(g).resize((n.shape[1], n.shape[0]), Image.BICUBIC)) / k
         n = (n - n.min()) / (n.max() - n.min())
-        cl = Image.fromarray((n ** 1.6 * 255).astype(np.uint8)).resize((W + 400, H), Image.BICUBIC).filter(ImageFilter.GaussianBlur(20))
+        cl = Image.fromarray((n ** 1.6 * 255).astype(np.uint8)).resize((W + 400, H), Image.BICUBIC).filter(ImageFilter.GaussianBlur(34))
         self.clouds = cl
         self.sky = C.vgrad(W, H, [(0, (10, 13, 22)), (0.55, (6, 8, 14)), (1, (3, 4, 7))]).convert('RGBA')
         # дождь — три слоя разной скорости
@@ -863,15 +887,13 @@ class Storm(Base):
         # облака подсвечены вспышкой
         off = int((t * 18) % 400)
         cl = self.clouds.crop((off, 0, off + W, H))
-        cl_a = cl.point(lambda v: int(min(255, v * (0.22 + 1.3 * k))))
-        fr.alpha_composite(Image.merge('RGBA', (Image.new('L', (W, H), 120), Image.new('L', (W, H), 135),
-                                                Image.new('L', (W, H), 165), cl_a)))
+        cl_a = cl.point(lambda v: int(min(255, v * (0.16 + 1.2 * k))))
+        fr.alpha_composite(Image.merge('RGBA', (Image.new('L', (W, H), 110), Image.new('L', (W, H), 120),
+                                                Image.new('L', (W, H), 160), cl_a)))
         if bi is not None and k > 0.05:
-            if bi == -1:
-                for b in (self.big, self.big2, self.big3):
-                    fr.alpha_composite(C.fade(b, min(1.0, k * 1.4)))
-            else:
-                fr.alpha_composite(C.fade(self.bolts[bi], min(1.0, k * 1.4)))
+            bl = [self.big, self.big2, self.big3] if bi == -1 else [self.bolts[bi]]
+            for b in bl:
+                fr = add_rgb(fr, b, min(1.2, k * 1.3))
         for lay, sp in self.rain:
             y = int((t * sp) % H)
             x = int((t * sp * 0.25) % 200)
