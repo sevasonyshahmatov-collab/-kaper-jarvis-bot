@@ -100,6 +100,21 @@ def goals_of(p, g):
     return out
 
 
+def channel_post(p):
+    """Номер поста прогноза в канале (лента t.me/s/jarvibet, team/daily/channel.py): тот же матч и начало. Нет — None."""
+    try:
+        import channel
+        from datetime import timedelta
+        picks, _ = channel.posts(p['start'] - timedelta(minutes=1), p['start'] + timedelta(minutes=1))
+        for q in picks:
+            if q['league'] == p['league'] and q['home'] == p['home'] and q['away'] == p['away']:
+                print('пост прогноза в канале: №%d' % q['msg_id'], flush=True)
+                return q['msg_id']
+    except Exception as e:  # noqa: BLE001
+        print('POSTMATCHERR лента канала: %r' % e, flush=True)
+    return None
+
+
 # ───────────────────────────── текст ─────────────────────────────
 
 def name(team, case='nom'):
@@ -295,8 +310,10 @@ def main():
     path = os.path.join('out', 'postmatch', '%s.mp4' % p['pid'])
     if not a.no_render:
         render(p, g, legs, res, res_legs, path)
+    ch = p['ch'] if str(p.get('ch') or '').isdigit() else channel_post(p)
+    # номер итога: <прогноз>r<номер поста прогноза в канале> — бот публикует итог ответом на этот пост
     msg = {'to': 'owner', 'type': 'animation', 'files': [path], 'text': text, 'html': True, 'emoji': True,
-           'buttons': 'post', 'pid': p['pid'] + 'r'}
+           'buttons': 'post', 'pid': '%sr%s' % (p['pid'], ch or '')}
     with open(a.job_file, encoding='utf-8') as f:
         job = json.load(f)
     job['messages'] = (job.get('messages') or []) + [msg]
