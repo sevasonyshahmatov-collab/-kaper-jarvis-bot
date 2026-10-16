@@ -48,8 +48,9 @@ F32 = np.float32
 FPS, SECONDS = 30, 4
 GRAIN = va.GRAIN
 
-STYLES = ['versus_final', 'tablo_final', 'stamp_pick']
-NAMES = {'versus_final': 'Versus-итог', 'tablo_final': 'Табло-финал', 'stamp_pick': 'Штамп на прогнозе'}
+STYLES = ['versus_final', 'tablo_final', 'stamp_pick', 'verdict_anim']
+NAMES = {'versus_final': 'Versus-итог', 'tablo_final': 'Табло-финал', 'stamp_pick': 'Штамп на прогнозе',
+         'verdict_anim': 'Вердикт (анимация)'}
 
 HIT, MISS, VOID = (47, 191, 95), (228, 58, 62), (150, 152, 160)             # зашло / минус / возврат
 INK_HIT, INK_MISS, INK_VOID = (22, 140, 66), (200, 32, 40), (112, 116, 124)  # те же — чернилами по бумаге
@@ -150,6 +151,16 @@ def _sym(d, cx, cy, r, hit, fill, w):
     return strokes
 
 
+def _pass(tau, xx, yy, box, ang, width, k, t0, t1):
+    """prematch_styles._sweep, но полоса проходит box (x0, y0, x1, y1) целиком: вне [t0, t1] она за его краем
+    (у _sweep начало и конец — по оси, наклонённой на ang, а не по x)."""
+    x0, y0, x1, y1 = box
+    tn = math.tan(math.radians(ang))
+    cu = (x0 + x1) / 2 + (y0 + y1) / 2 * tn
+    half = (x1 - x0) / 2 + (y1 - y0) / 2 * abs(tn) + 3.6 * width
+    return ps._sweep(tau, xx, yy, cu - half, cu + half, ang=ang, width=width, k=k, t0=t0, t1=t1)
+
+
 # ───────────────────────────── штамп ─────────────────────────────
 def _noise(rng, w, h, cell):
     n = rng.random((h // cell + 3, w // cell + 3))
@@ -210,10 +221,13 @@ def _stamp_master(word, hit, ink, w, h, seed=7, backing=None, sym=True):
 
 
 class Stamp:
-    """Штамп, повёрнутый на angle (°, + — против часовой) вокруг (cx, cy); pose(tau) → (масштаб, подъём 0..1).
-    Покой рисуется один раз; движение — только в кадрах удара. sheen(tau, xx, yy) → добавка света по чернилам."""
+    """Штамп (или любой спрайт), повёрнутый на angle (°, + — против часовой) вокруг (cx, cy).
+    pose(tau) → (масштаб, подъём 0..1) или (масштаб, подъём, dx, dy, доворот °) — для «парящей» эмблемы.
+    Покой рисуется один раз; движение — только в кадрах, где поза не нулевая. sheen(tau, xx, yy) → добавка света
+    по чернилам. shadow — (dx, dy, размытие, сила); тень цвета shadow_rgb отстаёт от сдвига спрайта (lag)."""
 
-    def __init__(self, master, cx, cy, angle, pose=None, shadow=(5, 12, 9, 0.55), sheen=None):
+    def __init__(self, master, cx, cy, angle, pose=None, shadow=(5, 12, 9, 0.55), sheen=None, shadow_rgb=(0, 0, 0),
+                 lag=0.6):
         rgb, a, ink = master
         prem = rgb * a[..., None]
         self.ch = [Image.fromarray(np.clip(c, 0, 255).astype(np.uint8), 'L') for c in
@@ -223,6 +237,7 @@ class Stamp:
         self.c = np.array((cx, cy), F32)
         self.ox, self.oy = int(round(cx - self.T / 2)), int(round(cy - self.T / 2))
         self.angle, self.pose, self.shadow, self.sheen = angle, pose or (lambda tau: (1.0, 0.0)), shadow, sheen
+        self.shadow_rgb, self.lag = np.array(shadow_rgb, F32), lag
         self.cache = {}
         T = self.T
         # видимая часть тайла (штамп у края кадра): кадр[fy, fx] ↔ тайл[ty, tx]
@@ -232,21 +247,21 @@ class Stamp:
         self.ty, self.tx = slice(Y0 - self.oy, Y1 - self.oy), slice(X0 - self.ox, X1 - self.ox)
         self.xx, self.yy = np.meshgrid(np.arange(X0, X1, dtype=F32), np.arange(Y0, Y1, dtype=F32))
 
-    def tile(self, scale):
-        key = round(scale, 4)
+    def tile(self, scale, dx=0.0, dy=0.0, dang=0.0):
+        key = round(scale, 4) if not (dx or dy or dang) else None
         if key in self.cache:
             return self.cache[key]
         T = self.T
-        ct = SS * (self.c - (self.ox, self.oy))
+        ct = SS * (self.c + (dx, dy) - (self.ox, self.oy))
         cm = self.ms / 2
-        th = math.radians(self.angle)
+        th = math.radians(self.angle + dang)
         cs, sn = math.cos(th) / scale, math.sin(th) / scale
         a, b, dd, e = cs, -sn, sn, cs
         coef = (a, b, cm[0] - a * ct[0] - b * ct[1], dd, e, cm[1] - dd * ct[0] - e * ct[1])
         ch = [np.asarray(c.transform((T * SS, T * SS), Image.AFFINE, coef, resample=Image.BICUBIC)
                          .resize((T, T), Image.BOX), F32) for c in self.ch]
         out = (np.dstack(ch[:3]), ch[3] / 255, ch[4] / 255)
-        if key == 1.0 or len(self.cache) < 2:
+        if key is not None and (key == 1.0 or len(self.cache) < 2):
             self.cache[key] = out
         return out
 
@@ -255,13 +270,16 @@ class Stamp:
         return tuple(x[self.ty, self.tx] for x in self.tile(1.0))
 
     def __call__(self, img, i, tau):
-        scale, lift = self.pose(tau)
-        prem, a, ink = self.tile(scale)
+        pose = self.pose(tau)
+        scale, lift = pose[:2]
+        mx, my, dang = pose[2:] if len(pose) > 2 else (0.0, 0.0, 0.0)
+        prem, a, ink = self.tile(scale, mx, my, dang)
         if self.shadow:
             dx, dy, blur, k = self.shadow
             sh = Image.fromarray((a * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(blur + 10 * lift))
             sh = np.asarray(sh, F32) / 255 * k * (1 - 0.35 * lift)
-            ps._over(img, self.ox + int(dx + 8 * lift), self.oy + int(dy + 22 * lift), np.zeros(sh.shape + (3,), F32), sh)
+            ps._over(img, self.ox + int(round(dx + 8 * lift - self.lag * mx)),
+                     self.oy + int(round(dy + 22 * lift - self.lag * my)), np.broadcast_to(self.shadow_rgb, sh.shape + (3,)), sh)
         reg = img[self.fy, self.fx]
         a, prem, ink = a[self.ty, self.tx], prem[self.ty, self.tx], ink[self.ty, self.tx]
         reg *= 1 - a[..., None]
@@ -401,7 +419,7 @@ def _versus_final(r, plates_dir):
     master = _stamp_master(r.word, r.hit, versus._mix(r.col, 0.08), sw, sh_, seed=11, backing=((12, 13, 16), 0.80))
 
     def sheen(tau, xx, yy):
-        return ps._sweep(tau, xx, yy, cx - sw * 0.75, cx + sw * 0.75, ang=-30, width=34, k=0.42, t0=0.30, t1=0.62)
+        return _pass(tau, xx, yy, (cx - sw / 2, cy - sh_ / 2 - 50, cx + sw / 2, cy + sh_ / 2 + 50), -30, 34, 0.42, 0.30, 0.62)
     stamp = Stamp(master, cx, cy, ang, pose=_vf_pose, shadow=(6, 14, 10, 0.6), sheen=sheen)
     # вспышка удара: ореол по контуру штампа цвета вердикта
     a0 = stamp.rest()[1]
@@ -872,20 +890,252 @@ def _stamp_pick(r, plates_dir):
     xs, ys_ = stamp.xx, stamp.yy
 
     def sheen(img, i, tau):
-        add = ps._sweep(tau, xs, ys_, cx - sw * 0.7, cx + sw * 0.7, ang=-34, width=46, k=0.30, t0=0.25, t1=0.85)
+        add = _pass(tau, xs, ys_, (cx - sw / 2, cy - sh_ / 2 - 70, cx + sw / 2, cy + sh_ / 2 + 70), -34, 46, 0.30, 0.25, 0.85)
         breath = 0.5 + 0.5 * math.cos(2 * math.pi * tau)
         img[stamp.fy, stamp.fx] += (add + np.array(r.ink, F32) * 0.10 * breath) * sa[..., None]
     sc.dyn(sheen)
     return sc
 
 
-BUILDERS = {'versus_final': _versus_final, 'tablo_final': _tablo_final, 'stamp_pick': _stamp_pick}
+# ═════════════════════════════ 4. ВЕРДИКТ — АНИМАЦИЯ ═════════════════════════════
+# Тот же «Разбор прогноза», что ice_more2.single(m, style='verdict') (его вывод не меняется): все слои рисует
+# сам ice_more2 — здесь только перехватываются эмблема победителя (она «парит» отдельно) и готовые фон/слой перед
+# сохранением. Движение: верх цвета победителя колышется как ткань, эмблема победителя парит с тенью, проигравший
+# неподвижен; по счёту проходит блик; плашка «✓ ЗАШЁЛ» мягко пульсирует, по ней пробегает глянец; маленькая ✓
+# в строке расчёта дорисовывается заново. Лёд и карточка неподвижны.
+VD_TOP = 640                                  # высота «шёлка» в цвете победителя (ice_more2._final_top)
+
+
+@contextlib.contextmanager
+def _verdict_capture(win_idx):
+    """ice_more2._put → эмблема победителя (win_idx-й вызов) не рисуется, а запоминается;
+    results_styles._finish → фон и слой запоминаются, файл не пишется."""
+    import ice_more2 as im2
+    import results_styles as rs
+    cap, calls = {}, []
+    put0, fin0 = im2._put, rs._finish
+
+    def put(ov, im, cx, cy, shadow=True, blur=8):
+        calls.append(1)
+        if len(calls) - 1 == win_idx:
+            cap['emblem'] = (im, cx, cy, blur)
+            return None
+        return put0(ov, im, cx, cy, shadow, blur)
+
+    def finish(bg, ov, H_, path, grain):
+        cap.update(bg=bg, ov=ov, grain=grain)
+        return path
+    im2._put, rs._finish = put, finish
+    try:
+        yield cap
+    finally:
+        im2._put, rs._finish = put0, fin0
+
+
+def verdict_m(r, checks=None):
+    """Словарь матча для ice_more2.single(..., style='verdict') из данных рендера. checks=None — строка расчёта
+    по итогу: «1:5 — ПОБЕДА СПАРТАКА В ОСНОВНОЕ ВРЕМЯ» с отметкой hit."""
+    import ice_more2 as im2
+    m = r.m
+    if checks is None and r.win:
+        w = im2._short(m.home['ru'] if r.win == 'home' else m.away['ru'])
+        how = {'': 'В ОСНОВНОЕ ВРЕМЯ', 'ОТ': 'В ОВЕРТАЙМЕ', 'Б': 'ПО БУЛЛИТАМ'}.get(r.mark, '')
+        checks = [('%d:%d%s — ПОБЕДА %s %s' % (r.sh, r.sa, (' ' + r.mark) if r.mark else '', im2.WIN_GEN.get(w, w), how),
+                   r.hit)]
+    pick = dict(text=(m.pick or '').upper(), odds=m.kef, hit=r.hit, checks=checks or [])
+    return dict(home=m.home['ru'], away=m.away['ru'], sh=r.sh, sa=r.sa, mark=r.mark or '', date=m.date, tag=m.tag,
+                pick=pick)
+
+
+def _verdict_geom(vm):
+    """Положение плашки «ЗАШЁЛ» и кружков строки расчёта — те же формулы, что в ice_more2._s_verdict (px кадра)."""
+    import ice_more2 as im2
+    S = im2.S
+    pk = vm['pick']
+    hit = pk.get('hit')
+    lift = 0 if pk.get('odds') else 40
+    word = 'ЗАШЁЛ' if hit else 'НЕ ЗАШЁЛ' if hit is not None else 'ВОЗВРАТ'
+    fs = im2.F(OSW, 70 * S, 700)
+    sw = (fs.getlength(word) + (150 if hit is not None else 90) * S) / S
+    y0, y1 = 690, 1258
+    ys0, ys1 = y0 + 262 - lift, y0 + 372 - lift
+    pill = (540 - sw / 2, ys0, 540 + sw / 2, ys1)
+    fill = im2.GREEN if hit else im2.LOSS if hit is not None else (120, 128, 142)
+    ticks = []
+    checks = list(pk.get('checks') or [])
+    if checks:
+        fc = im2.F(MAN, 22 * S, 800)
+        lh = 54
+        bw = (max(fc.getlength(t) for t, _ in checks) + 46 * S) / S
+        bx = 540 - bw / 2
+        yc = (ys1 + y1) / 2 - lh * (len(checks) - 1) / 2
+        for k, (_, ok) in enumerate(checks):
+            ticks.append((bx + 15, yc + k * lh, ok, (120, 128, 142) if ok is None else im2.GREEN if ok else im2.LOSS))
+    return pill, fill, ticks
+
+
+def _float_pose(tau):
+    """Парение эмблемы победителя: в нуле цикла — ровно поза статичного баннера."""
+    s1 = math.sin(2 * math.pi * tau)
+    return 1 + 0.014 * s1, 0.25 * max(0.0, s1), 1.6 * math.sin(2 * math.pi * tau + 0.5) - 1.6 * math.sin(0.5), \
+        -5.0 * s1, 1.2 * math.sin(2 * math.pi * tau)
+
+
+def _bump(tau, t0, t1):
+    if not t0 < tau < t1:
+        return 0.0
+    return math.sin(math.pi * (tau - t0) / (t1 - t0)) ** 2
+
+
+def _verdict_anim(r, plates_dir, checks=None):
+    import ice_more2 as im2
+    import quality
+    vm = verdict_m(r, checks)
+    S = im2.S
+    with _verdict_capture(0 if r.sh > r.sa else 1) as cap:
+        im2.single(vm, os.devnull, style='verdict', league=r.m.league)
+    bg, ov = cap['bg'], cap['ov']
+    sc = Scene(grain=cap['grain'])                                  # то же зерно, что у статичного (0.2)
+    bg1 = np.asarray(bg.convert('RGB'), F32)
+    sc.static(bg1)
+
+    # верх цвета победителя колышется как ткань (versus_anim._Flag; края — за кадром, нижняя кромка ровная)
+    silk = bg1[:VD_TOP]
+
+    def src(w, h, pad):
+        return Image.fromarray(np.clip(np.pad(silk, ((pad, pad), (pad, pad), (0, 0)), mode='reflect'), 0, 255)
+                               .astype(np.uint8))
+    flag = va._Flag(((0, 0, W, VD_TOP), (0, 0, 0), '', 0, (0.5, 0.5), None), 'l', 0.0, sc.cv, src=src)
+    flag.open['b'] = True
+    zero = np.zeros((H, W), F32)
+    scr_top = sc.cv.screen[:VD_TOP]
+
+    def cloth(img, i, tau):
+        saved = va.WAVES, va.FOLD
+        va.WAVES = tuple((amp * 0.85,) + tuple(w) for amp, *w in saved[0])
+        va.FOLD = saved[1] * 0.75
+        try:
+            box, rgb, a, _ = flag.frame(tau, zero, (0, 0), 0.0)
+        finally:
+            va.WAVES, va.FOLD = saved
+        img[:VD_TOP] = va._Canvas.apply(rgb[:VD_TOP - box[1], :W - box[0]], scr_top)
+    sc.dyn(cloth)
+
+    # эмблема победителя парит; тень — как у ice_more._put (сдвиг 0/4, размытие 10, (20, 40, 80, 80)), отстаёт
+    if 'emblem' in cap:
+        em, ecx, ecy, blur = cap['emblem']
+        if S != SS:
+            em = em.resize((round(em.width * SS / S), round(em.height * SS / S)), Image.LANCZOS)
+        e = np.asarray(em, F32)
+        master = (e[..., :3], e[..., 3] / 255, e[..., 3] / 255)
+        sprite = Stamp(master, ecx / S, ecy / S, 0.0, pose=_float_pose, shadow=(0, 4, blur, 80 / 255),
+                       shadow_rgb=(20, 40, 80), lag=0.6)
+        sc.dyn(sprite)
+
+    # всё остальное — слой ice_more2 как есть (текст, проигравший, счёт, плашки, карточка, @jarvibet)
+    sc.layer(ov)
+    ov_a = _arr(ov)[1]
+
+    # блик по счёту: полоса света через цифры и шёлк вокруг (белые цифры светятся ореолом)
+    SB = (360, 286, 720, 456)
+    xs, ys_ = np.meshgrid(np.arange(SB[0], SB[2], dtype=F32), np.arange(SB[1], SB[3], dtype=F32))
+    glyph = ov_a[SB[1]:SB[3], SB[0]:SB[2]]
+    halo = np.clip(ps._blur_arr(glyph, 6) * 1.4, 0, 1)
+    soft = np.exp(-(((xs - 540) / 170) ** 4 + ((ys_ - 372) / 72) ** 4))
+
+    def score_sweep(img, i, tau):
+        if not 0.04 < tau < 0.42:
+            return
+        add = _pass(tau, xs, ys_, SB, -22, 30, 0.42, 0.05, 0.40)
+        img[SB[1]:SB[3], SB[0]:SB[2]] += add * (0.30 * soft + 0.75 * halo)[..., None]
+    sc.dyn(score_sweep)
+
+    # плашка вердикта: мягкий пульс (масштаб из кадра 3×), ореол её цвета, потом глянец
+    pill, fill, ticks = _verdict_geom(vm)
+    comp = quality.compose(bg, ov)                                  # 3× — тот же состав, что у статичного
+    PX0, PY0, PX1, PY1 = int(pill[0]) - 34, int(pill[1]) - 30, int(math.ceil(pill[2])) + 34, int(pill[3]) + 40
+    crop = comp.crop((PX0 * S, PY0 * S, PX1 * S, PY1 * S))
+    cw, ch_ = PX1 - PX0, PY1 - PY0
+    pm_ = Image.new('L', (cw * S, ch_ * S), 0)
+    ImageDraw.Draw(pm_).rounded_rectangle(((pill[0] - PX0) * S, (pill[1] - PY0) * S, (pill[2] - PX0) * S,
+                                           (pill[3] - PY0) * S), radius=55 * S, fill=255)
+    pmask = np.asarray(pm_.resize((cw, ch_), Image.LANCZOS), F32) / 255
+    pglow = ps._blur_arr(pmask, 12) * (1 - pmask)
+    pcol = np.array(versus._mix(fill, 0.25), F32)
+    scr_p = sc.cv.screen[PY0:PY1, PX0:PX1]
+    pxs, pys = np.meshgrid(np.arange(PX0, PX1, dtype=F32), np.arange(PY0, PY1, dtype=F32))
+    pc = np.array(((pill[0] + pill[2]) / 2 - PX0, (pill[1] + pill[3]) / 2 - PY0), F32) * S
+
+    def pill_fx(img, i, tau):
+        b = _bump(tau, 0.34, 0.62)
+        reg = img[PY0:PY1, PX0:PX1]
+        if b > 0:
+            sk = 1 + 0.035 * b
+            coef = (1 / sk, 0, pc[0] - pc[0] / sk, 0, 1 / sk, pc[1] - pc[1] / sk)
+            big = crop.transform(crop.size, Image.AFFINE, coef, resample=Image.BICUBIC)
+            rgb = np.asarray(big.convert('RGB').resize((cw, ch_), Image.LANCZOS), F32)
+            reg[:] = va._Canvas.apply(rgb, scr_p)
+            reg += (pglow * 0.55 * b)[..., None] * pcol
+        g = _pass(tau, pxs, pys, pill, -24, 34, 0.38, 0.60, 0.86)
+        reg += g * pmask[..., None]
+    sc.dyn(pill_fx)
+
+    # маленькая ✓ в строке расчёта дорисовывается заново
+    tk = []
+    for tx, ty, ok, col in ticks:
+        bx0, by0 = int(tx - 22), int(ty - 22)
+        base = comp.crop((bx0 * S, by0 * S, (bx0 + 44) * S, (by0 + 44) * S)).convert('RGB')
+        tk.append((bx0, by0, tx - bx0, ty - by0, ok, col, base))
+
+    def tick_fx(img, i, tau):
+        if not 0.70 <= tau < 0.86:
+            return
+        p = _ease((tau - 0.70) / 0.12)
+        for bx0, by0, cx, cy, ok, col, base in tk:
+            t = base.copy()
+            d = ImageDraw.Draw(t)
+            d.ellipse(((cx - 15) * S, (cy - 15) * S, (cx + 15) * S, (cy + 15) * S), fill=col)
+            _partial_tick(d, cx * S, cy * S, 8 * S, ok, (255, 255, 255), 3 * S, p)
+            rgb = np.asarray(t.resize((44, 44), Image.LANCZOS), F32)
+            img[by0:by0 + 44, bx0:bx0 + 44] = va._Canvas.apply(rgb, sc.cv.screen[by0:by0 + 44, bx0:bx0 + 44])
+    sc.dyn(tick_fx)
+    return sc
+
+
+def _partial_tick(d, x, y, r, ok, fill, w, p):
+    """ice_more2._tick, нарисованная на долю p длины (✓ — одним штрихом, ✗ — двумя по очереди, черта)."""
+    if ok is None:
+        strokes = [[(x - r * .75, y), (x + r * .75, y)]]
+    elif ok:
+        strokes = [[(x - r, y), (x - r * 0.3, y + r * 0.7), (x + r, y - r * 0.7)]]
+    else:
+        strokes = [[(x - r * .7, y - r * .7), (x + r * .7, y + r * .7)], [(x - r * .7, y + r * .7), (x + r * .7, y - r * .7)]]
+    segs = [(a, b) for st in strokes for a, b in zip(st[:-1], st[1:])]
+    total = sum(math.dist(a, b) for a, b in segs)
+    left = p * total
+    for a, b in segs:
+        if left <= 0:
+            break
+        L = math.dist(a, b)
+        k = min(1.0, left / L)
+        e = (a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k)
+        d.line((a, e), fill=fill, width=int(w))
+        for q in (a, e):
+            d.ellipse((q[0] - w / 2, q[1] - w / 2, q[0] + w / 2, q[1] + w / 2), fill=fill)
+        left -= L
+
+
+BUILDERS = {'versus_final': _versus_final, 'tablo_final': _tablo_final, 'stamp_pick': _stamp_pick,
+            'verdict_anim': _verdict_anim}
 
 
 # ───────────────────────────── сборка ─────────────────────────────
 def scene(home, away, sh, sa, mark='', league='KHL', date='', pick='', kef=None, hit=True, periods=None,
-          style='versus_final', plates_dir='out/anim/plates'):
-    return BUILDERS[style](_result(home, away, sh, sa, mark, league, date, pick, kef, hit, periods), plates_dir)
+          style='versus_final', plates_dir='out/anim/plates', checks=None):
+    r = _result(home, away, sh, sa, mark, league, date, pick, kef, hit, periods)
+    if style == 'verdict_anim':
+        return _verdict_anim(r, plates_dir, checks)
+    return BUILDERS[style](r, plates_dir)
 
 
 def still(home, away, sh, sa, path_jpg, tau=0.0, **kw):
@@ -903,11 +1153,11 @@ def still(home, away, sh, sa, path_jpg, tau=0.0, **kw):
 
 
 def render(home, away, sh, sa, path_mp4, mark='', league='KHL', date='', pick='', kef=None, hit=True, periods=None,
-           style='versus_final', plates_dir='out/anim/plates', first=None, sheet=None, target_mb=2.8):
+           style='versus_final', plates_dir='out/anim/plates', first=None, sheet=None, target_mb=2.8, checks=None):
     """Анимированный послематчевый баннер стиля style → path_mp4 (H.264 1080×1350, 30 fps, 4 с, бесшовный цикл).
     → dict(path, seconds — время сборки вместе с недостающими плашками, mb — размер)."""
     t0 = _clock.time()
-    sc = scene(home, away, sh, sa, mark, league, date, pick, kef, hit, periods, style, plates_dir)
+    sc = scene(home, away, sh, sa, mark, league, date, pick, kef, hit, periods, style, plates_dir, checks)
     n = SECONDS * FPS
     try:
         frames = [sc.frame(i, i / n) for i in range(n)]
