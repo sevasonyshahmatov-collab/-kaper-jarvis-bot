@@ -12,3 +12,6 @@ team/out/**/frames/
 
 # данные и баннеры ежедневных прогнозов (team/picks) — рисуются в сессии для проверки, в git не храним
 /out/picks/
+
+# рабочие файлы прогнозов (brief.md, баннеры) — team/picks/README.md: out/ в git не класть
+/out/
