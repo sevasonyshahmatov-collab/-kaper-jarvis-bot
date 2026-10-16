@@ -48,7 +48,24 @@ PLAN = {
 }
 
 
+# длинные версии (~30 с, два прогноза подряд): имя: (стиль, трек, дроп, доля, матч 1, матч 2)
+LONG = {
+    'long_storm': ('storm', 'doomsday', 43.181, 0.4444, 'sha', 'neft'),
+    'long_spotlight': ('spotlight', 'demons', 86.296, 0.6522, 'col', 'ana'),
+    'long_film': ('film', 'vampire', 92.101, 0.8219, 'neft', 'adm'),
+    'long_card': ('card', 'militant', 8.060, 0.4762, 'sha', 'avg'),
+}
+
+
+def build_long(name):
+    style, track, drop_t, u, m1, m2 = LONG[name]
+    pre = max(1, round(4.5 / u)) * u
+    return P.Double(P.STYLES[style], MATCHES[m1], MATCHES[m2], u=u, drop=pre), track, drop_t - pre
+
+
 def build(style):
+    if style in LONG:
+        return build_long(style)
     track, drop_t, u, mk = PLAN[style]
     pre = max(1, round(4.5 / u)) * u
     reel = P.STYLES[style](MATCHES[mk], u=u, drop=pre)
@@ -63,8 +80,13 @@ def main():
     os.makedirs(out, exist_ok=True)
     for st in styles:
         reel, track, start = build(st)
-        base = os.path.join(out, '%02d_%s_%s' % (list(PLAN).index(st) + 1, st, PLAN[st][0]))
+        base = os.path.join(out, ('%02d_%s_%s' % (list(PLAN).index(st) + 1, st, PLAN[st][0])) if st in PLAN else
+                            '%02d_%s_%s' % (10 + list(LONG).index(st), st, LONG[st][1]))
         if frames_only:
+            if st in LONG:
+                ts = [reel.cut - 1, reel.cut + 0.5, reel.cut + reel.b.drop + 0.6, reel.dur - 1]
+                print(C.render(reel, base + '.mp4', frames=[int(t * C.FPS) for t in ts]))
+                continue
             D = reel.drop
             ts = [1.0, D - 0.6, D + 0.6, reel.t_kef + 0.7, reel.t_f2 + 0.8, reel.t_end + 1.2]
             print(C.render(reel, base + '.mp4', frames=[int(t * C.FPS) for t in ts]))

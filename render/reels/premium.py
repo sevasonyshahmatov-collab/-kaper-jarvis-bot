@@ -949,3 +949,27 @@ class Storm(Base):
 
 STYLES = {'editorial': Editorial, 'spotlight': Spotlight, 'broadcast': Broadcast, 'split': Split,
           'card': Card, 'kinetic': Kinetic, 'glass': Glass, 'film': Film, 'storm': Storm}
+
+
+class Double(C.Reel):
+    """Длинная версия (~30 с): два прогноза подряд в одной подаче — первый без финальной заставки, склейка на долю,
+    второй со своим вступлением покороче и заставкой в конце."""
+
+    def __init__(self, cls, m1, m2, u=0.5, drop=4.5):
+        super().__init__(u, drop)
+        self.a = cls(m1, u=u, drop=drop)
+        pre2 = max(1, round(3.0 / u)) * u
+        self.b = cls(m2, u=u, drop=pre2)
+        self.cut = self.a.t_end
+        self.dur = self.cut + self.b.dur
+        self.cover_t = self.a.cover_t
+
+    def frame(self, t):
+        if t < self.cut:
+            fr = self.a.frame(t)
+            k = C.seg(t, self.cut - 0.25, self.cut)
+            if k > 0:
+                fr = fr.convert('RGBA')
+                fr.alpha_composite(Image.new('RGBA', (W, H), (0, 0, 0, int(255 * k))))
+            return fr
+        return self.b.frame(t - self.cut)
