@@ -153,13 +153,16 @@ def _badge(abbr, color, size):
     return im
 
 
-def _emblem(img, team, cx, cy, size, abbr='', color=(110, 112, 120)):
-    """Эмблема-наклейка (poster._emblem) с тенью, как versus._paste_emblem, но тень по размеру эмблемы."""
+def _emblem(img, team, cx, cy, size, abbr='', color=(110, 112, 120), dim=False):
+    """Эмблема-наклейка (poster._emblem) с тенью, как versus._paste_emblem, но тень по размеру эмблемы.
+    dim=True — проигравший в итогах: эмблема приглушена (_fade)."""
     slug = poster.TEAMS.get(team, (None,))[0]
     if slug and os.path.exists(os.path.join(poster.EMB, slug + '.png')):
         em = poster._emblem(team, int(size))
     else:
         em = _badge(abbr or team[:3].upper(), color, size)
+    if dim:
+        em = _fade(em)
     k = size / (380 * S)
     x, y = cx - em.width / 2, cy - em.height / 2
     _soft_shadow(img, em.getchannel('A'), (x + 10 * S * k, y + 22 * S * k), max(3 * S, 26 * S * k), 150)
@@ -254,15 +257,21 @@ def _strip(img, it, y0, R, g, league, acc, F, pill_w, i):
             _pill(d, x * S, yp * S, pill_w * S, g['ph'] * S, lab, '%.2f' % v, F['pl'], F['pv'], acc)
 
 
-def render(items, path, league='KHL', title='МАТЧИ ДНЯ', date_title=None, cont=False, rows=None, *, style='strips'):
+def render(items, path, league='KHL', title='МАТЧИ ДНЯ', date_title=None, cont=False, rows=None, *, style='strips',
+           results=False):
     """style — макет (STYLES): strips (по умолчанию), diagonal, cards, center, fav, minimal. Неизвестный style
-    (например, 'columns' из вызова preview_ice.render) — strips. Шапка, подвал, фон и размер постера — общие."""
+    (например, 'columns' из вызова preview_ice.render) — strips. Шапка, подвал, фон и размер постера — общие.
+    results=True — «Итоги дня»: items [{home, away, sh, sa, mark: '' | 'ОТ' | 'Б'}], заголовок «ИТОГИ ДНЯ»."""
     style = style if style in STYLES else 'strips'
     league = league.upper()
     if league == 'NHL':
         nhl.register()
     acc = poster.ACC if league == 'KHL' else nhl.ICE
-    H, paint = _STYLE[style](items, rows, league, acc)
+    if results:
+        title = 'ИТОГИ ДНЯ' if title == 'МАТЧИ ДНЯ' else title
+        H, paint = _RES[style](items, rows, league, acc)
+    else:
+        H, paint = _STYLE[style](items, rows, league, acc)
 
     img = _background(H)
     d = ImageDraw.Draw(img)
@@ -277,7 +286,10 @@ def render(items, path, league='KHL', title='МАТЧИ ДНЯ', date_title=None
     paint(img)
 
     d = ImageDraw.Draw(img)
-    note = 'ВРЕМЯ МОСКОВСКОЕ' + (' · ' + FOOT_ODDS if any(it.get('odds') for it in items) else '')
+    if results:
+        note = 'ФИНАЛЬНЫЙ СЧЁТ' + (' · ' + RES_FOOT if any(_res(it)[2] for it in items) else '')
+    else:
+        note = 'ВРЕМЯ МОСКОВСКОЕ' + (' · ' + FOOT_ODDS if any(it.get('odds') for it in items) else '')
     _spaced(d, W / 2 * S, (H - 66) * S, note, _cap(MAN, 700, 10 * S), GREY, 1.2 * S)
     _spaced(d, W / 2 * S, (H - 32) * S, '@jarvibet', _cap(OSW, 600, 19 * S), acc, 2 * S)
 
