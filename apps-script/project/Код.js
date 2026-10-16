@@ -15838,9 +15838,13 @@ function pmEditSync_(chat, mid, ch, sch, html) {
   });
 }
 
-/** Номер поста прогноза в канале для итога «ММДД-Nr» — ответить на него; иначе null. */
+/** Номер поста прогноза в канале для итога «ММДД-Nr<номер>» (номер дописывает скрипт — из записи бота или ленты канала)
+ *  или «ММДД-Nr» (тогда — из записи PMW_) — ответить на него; иначе null. */
 function pmReplyTo_(pid) {
-  var m = String(pid || '').match(/^(\d{4}-\d+)r$/), w = m ? pmGet_(m[1]) : null;
+  var m = String(pid || '').match(/^(\d{4}-\d+)r(\d*)$/);
+  if (!m) return null;
+  if (m[2]) return Number(m[2]);
+  var w = pmGet_(m[1]);
   return w && w.ch ? w.ch : null;
 }
 

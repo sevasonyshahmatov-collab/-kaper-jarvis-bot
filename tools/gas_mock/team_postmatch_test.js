@@ -70,6 +70,9 @@ const cp2 = of('copyMessage')[0];
 assert.ok(cp2, 'итог опубликован сразу');
 assert.deepStrictEqual(cp2.payload.reply_parameters, { message_id: 9000, allow_sending_without_reply: true });
 assert.ok(!env.props['PMW_1610-1r']);
+// итог с номером поста в канале прямо в номере (прогноз вышел до обновления бота, номер нашёлся в ленте канала)
+press('tm|pub|1609-3r104', Object.assign({}, res, { message_id: 701, reply_markup: kb('1609-3r104') }));
+assert.deepStrictEqual(of('copyMessage')[0].payload.reply_parameters, { message_id: 104, allow_sending_without_reply: true });
 
 // 5. НХЛ, пост по расписанию: запись появляется при выходе
 const nhl = { message_id: 610, chat: { id: CHAT, type: 'private' }, from: BOT, animation: {},
