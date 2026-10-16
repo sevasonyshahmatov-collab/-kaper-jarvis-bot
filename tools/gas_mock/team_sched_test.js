@@ -126,4 +126,11 @@ const nc = [];
 night.ctx.tgRaw_ = (method, payload) => { nc.push({ method, payload }); return { ok: true, result: { message_id: 1 } }; };
 night.ctx.teamPublishNow_(CHAT, 700, null);
 assert.ok(nc[0].method === 'copyMessage' && nc[0].payload.disable_notification === true);
+// 13. НХЛ — за 4 часа до матча (владелец 16.10): матч 16.10 05:00 МСК → выход 16.10 01:00 МСК
+press('tm|pub|1510-14', post(610, 'НХЛ · 16 октября · 05:00 МСК', '1510-14'));
+assert.ok(/Выйдет 16\.10 в 01:00 МСК — за 4 часа до матча/.test(toast().text), toast().text);
+assert.strictEqual(sched(610).at, Date.UTC(2026, 9, 15, 22, 0));
+// НХЛ, до выхода меньше минуты (матч через 3 часа) — сразу
+press('tm|pub|1510-13', post(611, 'НХЛ · 15 октября · 13:00 МСК', '1510-13'));
+assert.ok(of('copyMessage').length === 1 && !sched(611));
 console.log('ok');

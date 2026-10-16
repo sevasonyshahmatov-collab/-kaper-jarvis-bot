@@ -15521,10 +15521,11 @@ function teamCallback_(q, parts) {
       var nowFlag = parts[album ? 5 : 3] === 'now';
       var start = teamEditStart_(String(m.caption || m.text || ''));
       if (start && Date.now() >= start) { answer('Матч уже начался — прогноз в канал не отправляю', true); return; }
-      var at = start ? start - TEAM_PUB_LEAD_MS : 0;
+      var lead = teamPubLead_(String(m.caption || m.text || ''));
+      var at = start ? start - lead.ms : 0;
       if (!nowFlag && at - Date.now() > 60000) {
         teamSchedSave_(m, pid, album, at, start, title);
-        answer('Выйдет ' + teamSchedWhen_(at) + ' МСК — за полтора часа до матча');
+        answer('Выйдет ' + teamSchedWhen_(at) + ' МСК — ' + lead.text + ' до матча');
         return;
       }
       if (cache.get(key)) { answer('Уже отмечено'); return; }
@@ -15568,11 +15569,20 @@ function teamCallback_(q, parts) {
  *  «Опубликовать» под постом, в шапке которого есть дата и время матча («КХЛ · 16 октября · 19:00 МСК»), ставит пост на выход
  *  за TEAM_PUB_LEAD_MS до начала: под постом — «⏰ Выйдет … · опубликовать сейчас», «Редактировать», «Отменить выход».
  *  До выхода пост можно править — в канал уйдёт последний вариант (бот копирует черновик в момент выхода).
+ *  НХЛ (шапка «НХЛ · …») — за 4 часа до начала (TEAM_PUB_LEAD_NHL_MS, владелец 16.10): матчи ночью.
  *  Публикует teamSchedTick_ из liveUpdateAuto_ (раз в 5 минут). До матча меньше полутора часов или в шапке нет времени — сразу;
  *  матч уже начался — не публикуем (и по расписанию тоже: «не успел» — пост остаётся черновиком).
  *  В INBOX: «запланировано владельцем …», потом «опубликовано владельцем (по расписанию) …».
  */
 var TEAM_PUB_LEAD_MS = 90 * 60000;
+var TEAM_PUB_LEAD_NHL_MS = 4 * 3600000;   // НХЛ — за 4 часа: матчи ночью, за полтора часа — слишком поздно (владелец 16.10)
+
+/** За сколько до матча выходит пост: шапка «НХЛ · …» — за 4 часа, остальные — за полтора часа. */
+function teamPubLead_(text) {
+  var head = String(text || '').split('\n')[0];                     // шапка поста или «… — альбом выше: НХЛ · …»
+  return /(^|:)\s*НХЛ\s*·/.test(head) ? { ms: TEAM_PUB_LEAD_NHL_MS, text: 'за 4 часа' }
+    : { ms: TEAM_PUB_LEAD_MS, text: 'за полтора часа' };
+}
 
 /** Обычные кнопки готового поста (на случай, если исходные не сохранились). */
 function teamPostKb_(pid) {
