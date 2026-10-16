@@ -55,37 +55,24 @@ let w = boot('2026-10-16T01:55:00Z');
 assert.strictEqual(w.tick(), '');
 assert.strictEqual(w.calls.length, 0);
 
-// 1. 05:00 МСК — вопрос и по кнопке на каждый вчерашний прогноз; опубликованные — ☑; правка владельца — в подписи
+// 1. 05:00 МСК — вопрос: прогнозы владелец пишет сам (владелец 16.10), кнопки — только «Готово» и «Сегодня без итогов»
 w = boot('2026-10-16T02:00:00Z');
-assert.strictEqual(w.tick(), 'опрос: 5');
+assert.strictEqual(w.tick(), 'опрос');
 let sm = w.of('sendMessage');
 assert.strictEqual(sm.length, 1);
 assert.strictEqual(sm[0].payload.chat_id, String(CHAT));
 assert.ok(/^Доброе утро! На какие прогнозы вчера ставили\?/.test(sm[0].payload.text), sm[0].payload.text);
+assert.ok(/Прогноз: Лада — СКА, победа СКА в основное время, кэф 1,64/.test(sm[0].payload.text));
 let kb = kbOf(sm[0]);
-assert.deepStrictEqual(kb.map(r => r.map(b => b.text)), [
-  ['☐ Лада — СКА · победа СКА с учётом ОТ'],
-  ['☑ Северсталь — Локомотив · тотал меньше 4,5 (1510-2)'],
-  ['☐ Северсталь — Локомотив · тотал меньше 4,5 (1510-15)'],
-  ['☑ Тампа-Бэй — Сиэтл · фора Сиэтла +1,5'],
-  ['☐ Вегас — Калгари · тотал больше 5,5'],
-  ['Готово', 'Сегодня без итогов']]);
-assert.deepStrictEqual(kb.flat().map(b => b.callback_data), ['tm|rat|1510-1|2026-10-16', 'tm|rat|1510-2|2026-10-16', 'tm|rat|1510-15|2026-10-16',
-  'tm|rat|1510-6|2026-10-16', 'tm|rat|1510-14|2026-10-16', 'tm|rad||2026-10-16', 'tm|ran||2026-10-16']);
-assert.ok(kb.flat().every(b => Buffer.byteLength(b.callback_data) <= 64));
+assert.deepStrictEqual(kb.map(r => r.map(b => b.text)), [['Готово', 'Сегодня без итогов']]);
+assert.deepStrictEqual(kb.flat().map(b => b.callback_data), ['tm|rad||2026-10-16', 'tm|ran||2026-10-16']);
 assert.strictEqual(w.tick(), '');                                   // через 5 минут второго вопроса нет
 assert.strictEqual(w.calls.length, 0);
 
-// 2. переключение: ☐ → ☑ (editMessageReplyMarkup), повторно — обратно
-w.press('tm|rat|1510-1|2026-10-16', askMsg(w, kb));
-let ed = w.of('editMessageReplyMarkup');
-assert.strictEqual(ed.length, 1);
-assert.strictEqual(kbOf(ed[0])[0][0].text, '☑ Лада — СКА · победа СКА с учётом ОТ');
-assert.strictEqual(w.toast().text, 'Отмечено');
-w.press('tm|rat|1510-2|2026-10-16', askMsg(w, kbOf(ed[0])));
-assert.strictEqual(kbOf(w.of('editMessageReplyMarkup')[0])[1][0].text, '☐ Северсталь — Локомотив · тотал меньше 4,5 (1510-2)');
-assert.strictEqual(w.toast().text, 'Снято');
-assert.deepStrictEqual(Object.keys(w.state().sel).sort(), ['1510-1', '1510-6']);
+// 2. «Готово» до первого прогноза — подсказка, ничего не запускается
+w.press('tm|rad||2026-10-16', askMsg(w, kb));
+assert.ok(w.toast().show_alert && /Пока ни одного прогноза/.test(w.toast().text), w.toast().text);
+assert.strictEqual(w.gh.length + w.inbox.length, 0);
 
 // 3. свои прогнозы строками «Прогноз: …» — записаны, в ответ — что понял (кэф или «не указан»)
 w.say('Прогноз: победа СКА в основное время, кэф 1,85\nпрогноз: тотал больше 5,5 в матче Вегас — Калгари 1.66\nПрогноз: ИТБ Юты 2,5');
@@ -114,18 +101,18 @@ assert.ok(!w.state().done);
 w.ghCode = 204;
 w.press('tm|rad||2026-10-16', askMsg(w, kb));
 assert.strictEqual(w.inbox.length, 1, 'повторное «Готово» не дублирует строку INBOX');
-assert.ok(/^- \[x\] 16\.10 05:00 · итоги ставок 16\.10: выбрано 1510-1, 1510-6; свои: "Прогноз: победа СКА в основное время, кэф 1,85"; "Прогноз: тотал больше 5,5 в матче Вегас — Калгари 1\.66"; "Прогноз: ИТБ Юты 2,5"; "Прогноз: Динамо выиграет"$/.test(w.inbox[0]), w.inbox[0]);
+assert.ok(/^- \[x\] 16\.10 05:00 · итоги ставок 16\.10: выбрано —; свои: "Прогноз: победа СКА в основное время, кэф 1,85"; "Прогноз: тотал больше 5,5 в матче Вегас — Калгари 1\.66"; "Прогноз: ИТБ Юты 2,5"; "Прогноз: Динамо выиграет"$/.test(w.inbox[0]), w.inbox[0]);
 const d = w.gh[w.gh.length - 1];
 assert.strictEqual(d.method, 'post');
 assert.strictEqual(d.url, '/repos/sevasonyshahmatov-collab/-kaper-jarvis-bot/actions/workflows/itogi.yml/dispatches');
 assert.strictEqual(d.body.ref, 'claude/project-migration-old-account-6e31vz');
 const pl = JSON.parse(d.body.inputs.payload);
-assert.deepStrictEqual(pl, { kind: 'team', job: 'team/out/2026-10-16/recap_ask.json', pids: ['1510-1', '1510-6'],
+assert.deepStrictEqual(pl, { kind: 'team', job: 'team/out/2026-10-16/recap_ask.json', pids: [],
   free: w.state().free, day: '2026-10-16', at: '2026-10-16 05:00' });
 assert.ok(w.of('sendMessage').some(c => c.payload.text === 'Принято — итоги будут через 2–3 минуты'));
-assert.strictEqual(kbOf(w.of('editMessageReplyMarkup')[0])[0][0].text, '✅ Итоги заказаны: 6');
+assert.strictEqual(kbOf(w.of('editMessageReplyMarkup')[0])[0][0].text, '✅ Итоги заказаны: 4');
 assert.strictEqual(w.state().done, 'ok');
-w.press('tm|rat|1510-14|2026-10-16', askMsg(w, kb));               // после «Готово» опрос закрыт
+w.press('tm|rad||2026-10-16', askMsg(w, kb));                      // после «Готово» опрос закрыт
 assert.strictEqual(w.toast().text, 'Итоги уже заказаны');
 assert.strictEqual(w.gh.length, 2);
 
@@ -159,21 +146,11 @@ assert.strictEqual(w.state().free.length, 0);
 w.press('tm|rad||2026-10-16', askMsg(w, kb));
 assert.strictEqual(w.gh.length, 0);
 
-// 7. «Готово» без единой отметки — подсказка, ничего не запускается
-w = boot('2026-10-16T02:00:00Z');
-w.files['team/INBOX.md'] = '';                                       // ничего не опубликовано — всё ☐
-w.tick();
-w.press('tm|rad||2026-10-16', askMsg(w, kbOf(w.of('sendMessage')[0] || { payload: { reply_markup: { inline_keyboard: [] } } })));
-assert.ok(w.toast().show_alert && /Ничего не отмечено/.test(w.toast().text));
-assert.strictEqual(w.gh.length + w.inbox.length, 0);
-
-// 8. отправленных на вчера прогнозов нет — не спрашиваем (и не проверяем GitHub каждые 5 минут)
+// 8. в SENT.md за вчера ничего нет — всё равно спрашиваем (владелец ставит и мимо постов бота)
 w = boot('2026-10-17T02:00:00Z');
 w.files['team/picks/SENT.md'] = SENT.split('\n').slice(0, 3).join('\n');
-assert.strictEqual(w.tick(), 'нет прогнозов');
-assert.strictEqual(w.of('sendMessage').length, 0);
-w.ctx.teamFile_ = () => { throw new Error('не должен ходить в GitHub'); };
-assert.strictEqual(w.tick(), '');
+assert.strictEqual(w.tick(), 'опрос');
+assert.strictEqual(w.of('sendMessage').length, 1);
 
 // 9. «Прогноз: …» без открытого опроса — не перехватываем
 w = boot('2026-10-16T02:00:00Z');

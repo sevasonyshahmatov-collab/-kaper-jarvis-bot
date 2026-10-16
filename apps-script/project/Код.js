@@ -15657,11 +15657,9 @@ function teamSchedTick_() {
 
 /* ── 🗳 Утренний опрос «На какие прогнозы вчера ставили?» → итоги ровно по выбору владельца (решение владельца 16.10) ──
  *  В 05:00 МСК (проверка из liveUpdateAuto_ раз в 5 минут — отдельный запуск ставить не нужно) бот присылает владельцу
- *  вопрос и по кнопке на каждый прогноз, отправленный ему на вчерашние матчи (начало с 08:00 вчера до 08:00 сегодня, МСК).
- *  Список — team/picks/SENT.md с ветки команды (туда команда пишет каждый отправленный пост-прогноз; сами посты шлёт
- *  GitHub Actions, бот их не видит), ставка — с последней правкой владельца из INBOX. Опубликованные через бота
- *  («опубликовано владельцем …» в INBOX) — сразу отмечены ☑. Кнопка переключает ☐/☑ (editMessageReplyMarkup).
- *  Свои прогнозы мимо списка — сообщением, строками «Прогноз: …» (несколько в одном сообщении можно).
+ *  вопрос; прогнозы владелец пишет сам сообщением, строками «Прогноз: …» (несколько в одном сообщении можно) — он ставит
+ *  и на то, чего не было в постах бота (владелец 16.10: кнопок по прогнозам из SENT.md больше нет; recapSentPicks_ /
+ *  recapLabels_ / кнопки tm|rat остались для совместимости, новый опрос их не показывает). Кнопки — «Готово», «Сегодня без итогов».
  *  «Готово»: строка «итоги ставок ДД.ММ: выбрано …; свои: "…"» в team/INBOX.md (коммит на ветку команды), затем запуск
  *  itogi.yml на ветке команды (workflow_dispatch) с payload {kind: team, job: team/out/<D>/recap_ask.json, pids, free, day, at}:
  *  team/daily/morning.py --ask строит итоги из выбранного и присылает владельцу пост с кнопками. Выбор едет в самом payload,
@@ -15740,7 +15738,7 @@ function recapLabels_(items) {
 }
 
 function recapAskKb_(st) {
-  var rows = st.items.map(function (it) {
+  var rows = (st.items || []).map(function (it) {
     return [{ text: (st.sel[it.pid] ? '☑ ' : '☐ ') + it.label, callback_data: 'tm|rat|' + it.pid + '|' + st.day }];
   });
   rows.push([{ text: 'Готово', callback_data: 'tm|rad||' + st.day }, { text: 'Сегодня без итогов', callback_data: 'tm|ran||' + st.day }]);
@@ -15749,9 +15747,10 @@ function recapAskKb_(st) {
 
 function recapAskText_(st) {
   return 'Доброе утро! На какие прогнозы вчера ставили?\n\n' +
-    (st.items.length ? 'Отметьте кнопками (☑ — уже опубликованные через бота). ' : '') +
-    'Свои прогнозы, которых нет в списке, пришлите сообщением — по строке на каждый:\nПрогноз: победа СКА в основное время, кэф 1,85\n\n' +
-    'Потом «Готово» — соберу итоги только по выбранному.';
+    'Пришлите их сообщением — по строке на каждый прогноз, с командой и кэфом:\n' +
+    'Прогноз: Лада — СКА, победа СКА в основное время, кэф 1,64\n' +
+    'Прогноз: тотал меньше 5,5 Северсталь — Локомотив 1,78\n\n' +
+    'Можно несколькими сообщениями. Потом «Готово» — соберу итоги только по ним.';
 }
 
 /** Из liveUpdateAuto_ (раз в 5 минут): в 05:00 МСК — опрос, в 08:00 — одно напоминание. Возвращает, что сделано. */
@@ -15770,22 +15769,16 @@ function recapAskTick_() {
     st.reminded = Date.now();
     recapAskPut_(st);
     tgRaw_('sendMessage', { chat_id: st.chat, reply_to_message_id: st.mid,
-      text: 'Напоминаю: на какие прогнозы вчера ставили? Отметьте их в сообщении выше и нажмите «Готово» — без вашего ответа итоги не собираю и ничего не публикую.' });
+      text: 'Напоминаю: на какие прогнозы вчера ставили? Пришлите их строками «Прогноз: …» и нажмите «Готово» — без вашего ответа итоги не собираю и ничего не публикую.' });
     return 'напоминание';
   }
   return '';
 }
 
-/** Отправить опрос дня day (yyyy-MM-dd). Отправленных на вчера прогнозов нет — не спрашиваем. */
+/** Отправить опрос дня day (yyyy-MM-dd). Прогнозы владелец пишет сам строками «Прогноз: …» (владелец 16.10:
+ *  ставит и на то, чего не было в постах бота) — кнопок по прогнозам нет, только «Готово» и «Сегодня без итогов». */
 function recapAskSend_(day) {
-  var t1 = Date.parse(day + 'T08:00:00+03:00'), t0 = t1 - 86400000, items;
-  try { items = recapSentPicks_(teamFile_('team/picks/SENT.md').text, teamFile_('team/INBOX.md').text, t0, t1); }
-  catch (e) { console.log('опрос итогов: ' + e.message); return ''; }        // GitHub не ответил — попробуем через 5 минут
   var st = { day: day, items: [], sel: {}, free: [], t: Date.now() };
-  if (!items.length) { st.skipped = 'нет отправленных прогнозов'; recapAskPut_(st); return 'нет прогнозов'; }
-  var labels = recapLabels_(items);
-  st.items = items.map(function (it, i) { return { pid: it.pid, label: labels[i] }; });
-  items.forEach(function (it) { if (it.pub) st.sel[it.pid] = true; });
   st.chat = recapOwnerChat_();
   if (!st.chat) { st.skipped = 'не знаю чат владельца'; recapAskPut_(st); return ''; }
   var r = tgRaw_('sendMessage', { chat_id: st.chat, text: recapAskText_(st), reply_markup: recapAskKb_(st) });
@@ -15793,7 +15786,7 @@ function recapAskSend_(day) {
   st.mid = r.result.message_id;
   st.sentAt = Date.now();
   recapAskPut_(st);
-  return 'опрос: ' + items.length;
+  return 'опрос';
 }
 
 /** Кнопки опроса: tm|rat|<номер>|<день> — отметить/снять, tm|rad||<день> — «Готово», tm|ran||<день> — «Сегодня без итогов». */
@@ -15821,7 +15814,7 @@ function recapAskCallback_(q, parts, answer) {
   }
   if (act !== 'rad') { answer(); return; }
   var pids = st.items.filter(function (it) { return st.sel[it.pid]; }).map(function (it) { return it.pid; });
-  if (!pids.length && !st.free.length) { answer('Ничего не отмечено. Отметьте прогнозы или нажмите «Сегодня без итогов»', true); return; }
+  if (!pids.length && !st.free.length) { answer('Пока ни одного прогноза. Пришлите их сообщением — строками «Прогноз: …» — или нажмите «Сегодня без итогов»', true); return; }
   if (!st.inboxed) {                                   // сначала запись в INBOX (коммит), потом запуск — повтор «Готово» строку не дублирует
     try {
       teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · ' + recapInboxLine_(day, pids, st.free), 'Inbox: owner picked bets for the recap');
@@ -15900,7 +15893,7 @@ function recapFreeMessage_(msg) {
   });
   tgRaw_('sendMessage', { chat_id: msg.chat.id, reply_to_message_id: msg.message_id, parse_mode: 'HTML',
     text: '📝 Записал ' + (add.length === 1 ? 'свой прогноз' : 'свои прогнозы (' + add.length + ')') + ':\n' + echo.join('\n') +
-      '\n\nВсего своих: ' + st.free.length + '. Матч найду по названиям команд; что не пойму — напишу «не понял» в итогах. Когда всё отметите — «Готово».' });
+      '\n\nВсего прогнозов: ' + st.free.length + '. Матч найду по названиям команд; что не пойму — напишу «не понял» в итогах. Когда пришлёте все — «Готово» в сообщении с вопросом.' });
   return true;
 }
 
