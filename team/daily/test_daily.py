@@ -5,7 +5,10 @@
   2) INBOX + SENT.md репозитория: какие прогнозы ушли в канал (правки владельца, двойная публикация);
   3) 7 дней подряд на макете API: подача утра и итогов не повторяется в соседние дни и в один день, ни одна фраза
      из банков не повторяется 7 дней, ни одно предложение текста (без цифр и названий) не повторяется 7 дней;
-     все посты проходят compose.validate (эмодзи, запретные слова, теги, длина, первая строка без времени матча).
+     все посты проходят compose.validate (эмодзи, запретные слова, теги, длина, первая строка без времени матча);
+  4) утренний опрос бота (ask.py, morning.py --ask): свои строки «Прогноз: …» обеих лиг → матч, ставка, кэф; непонятные
+     и «Динамо» без уточнения — владельцу «не понял»; итоги по отмеченным номерам с правками владельца, недоигранные —
+     в итоги следующего утра (и не дважды); выбор из INBOX и из payload; render/team_job.py: заготовка и переменные.
 Макет API (mock_api) — тот же вид, что отдают приложение КХЛ и api-web.nhle.com; им же пользуются примеры."""
 import os
 import random
@@ -17,6 +20,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [HERE, os.path.join(HERE, '..', 'picks')]
 os.environ.setdefault('JARVIS_S', '1')
 
+import ask  # noqa: E402
 import calc  # noqa: E402
 import compose  # noqa: E402
 import data  # noqa: E402
@@ -315,7 +319,162 @@ def simulate(d0, days=7, show=False, seed=11):
     return report
 
 
+# ---------------------------------------------------------------- утренний опрос «на что ставили»
+
+ASK_GAMES = [
+    game('KHL', '2026-10-15 17:00', 'Салават Юлаев', 'Шанхайские Драконы', 4, 1), game('KHL', '2026-10-15 17:00', 'Трактор', 'Металлург', 2, 3, 'Б'),
+    game('KHL', '2026-10-15 18:00', 'Лада', 'СКА', 2, 4), game('KHL', '2026-10-15 19:00', 'Северсталь', 'Локомотив', 5, 2),
+    game('KHL', '2026-10-15 19:30', 'Динамо Москва', 'Спартак', 3, 2, 'ОТ'), game('KHL', '2026-10-15 19:30', 'Динамо Минск', 'Ак Барс', 1, 3),
+    game('NHL', '2026-10-16 02:00', 'Тампа-Бэй', 'Сиэтл', 4, 3, 'ОТ'), game('NHL', '2026-10-16 02:00', 'Нью-Джерси', 'Рейнджерс', 2, 3),
+    game('NHL', '2026-10-16 02:30', 'Питтсбург', 'Филадельфия', 1, 4), game('NHL', '2026-10-16 03:00', 'Чикаго', 'Виннипег', 3, 4, 'ОТ'),
+    game('NHL', '2026-10-16 04:00', 'Эдмонтон', 'Юта', 5, 2), game('NHL', '2026-10-16 05:00', 'Вегас', 'Калгари', 3, 2),
+    game('KHL', '2026-10-16 16:30', 'Авангард', 'Автомобилист', 1, 2), game('KHL', '2026-10-16 19:00', 'Нефтехимик', 'Сибирь', 3, 1),
+    game('NHL', '2026-10-17 02:00', 'Бостон', 'Баффало', 2, 5),
+]
+
+# строка владельца → (хозяева матча, ставка в итогах, кэф) или (None, начало причины «не понял»)
+FREE_CASES = [
+    ('Прогноз: победа СКА в основное время, кэф 1,85', 'Лада', 'победа СКА в основное время', 1.85),
+    ('Прогноз: Лада — СКА П2 1.85', 'Лада', 'победа СКА в основное время', 1.85),
+    ('прогноз: тотал больше 5,5 в матче Вегас — Калгари 1.66', 'Вегас', 'тотал матча больше 5,5', 1.66),
+    ('Прогноз: фора Сиэтла +1,5', 'Тампа-Бэй', 'фора Сиэтла +1,5', None),
+    ('Прогноз: Тампа-Бэй — Сиэтл Ф2(+1.5) @1.83', 'Тампа-Бэй', 'фора Сиэтла +1,5', 1.83),
+    ('Прогноз: ИТБ Юты 2,5', 'Эдмонтон', 'индивидуальный тотал Юты больше 2,5', None),
+    ('Прогноз: Рейнджерс не проиграют, коэф. 1,77', 'Нью-Джерси', 'Рейнджерс не проиграет в основное время', 1.77),
+    ('Прогноз: итоговая победа Виннипега 2.21', 'Чикаго', 'итоговая победа Виннипега', 2.21),
+    ('Прогноз: Салават тотал меньше 4,5', 'Салават Юлаев', 'тотал матча меньше 4,5', None),
+    ('Прогноз: победа Трактора с учётом ОТ кф 2,10', 'Трактор', 'итоговая победа Трактора', 2.1),
+    ('Прогноз: Динамо Мн — Ак Барс ТМ 5', 'Динамо Минск', 'тотал матча меньше 5', None),
+    ('Прогноз: Питсбург Филадельфия П1 и ТБ 4,5', 'Питтсбург', 'победа Питтсбурга в основное время и тотал матча больше 4,5', None),
+    ('Прогноз: Динамо — Спартак П1', 'Динамо Москва', 'победа Динамо Москва в основное время', None),
+    ('Прогноз: Динамо Москва - Спартак X2 кэф 1.9', 'Динамо Москва', 'Спартак не проиграет в основное время', 1.9),
+    ('Прогноз: ставка на Ладу с форой +1,5', 'Лада', 'фора Лады +1,5', None),
+    ('Прогноз: победа Сиэтла над Тампой 2,4', 'Тампа-Бэй', 'победа Сиэтла в основное время', 2.4),
+    ('Прогноз: тотал меньше 6 Северсталь Локомотив', 'Северсталь', 'тотал матча меньше 6', None),
+    ('Прогноз: победа Динамо', None, 'непонятно, какая команда: Динамо Минск или Динамо Москва'),
+    ('Прогноз: победа Бостона', None, 'вчера не играли: Бостон'),
+    ('Прогноз: что-то хорошее', None, 'не нашёл команду'),
+    ('Прогноз: СКА фора -1,25', None, 'ставка: азиатская линия'),
+    ('Прогноз: Вегас нормально сыграет', None, 'ставка: не понял ставку'),
+]
+
+
+def ask_mock(now):
+    os.environ['DAILY_NOW'] = now
+    data.set_mock(mock_api(ASK_GAMES, datetime.strptime(now, '%Y-%m-%d %H:%M').replace(tzinfo=MSK)))
+
+
+def test_ask_free():
+    ask_mock('2026-10-16 05:10')
+    games, errs = ask.window_games(date(2026, 10, 16))
+    assert not errs and len(games) == 12, (errs, [(g['home'], g['start']) for g in games])   # 16.10 16:30 и позже — не вчера
+    for case in FREE_CASES:
+        line, home = case[0], case[1]
+        p, why = ask.parse_line(line, games)
+        if home is None:
+            assert p is None and why.startswith(case[2]), (line, p, why)
+            continue
+        assert p, (line, why)
+        assert (p['home'], p['bet'], p['kef']) == (home, case[2], case[3]), (line, p['home'], p['bet'], p['kef'])
+        legs = settle.parse(p['bet'], p['home'], p['away'])                     # форма для поста разбирается так же
+        assert legs == settle.parse(p['bet'], p['home'], p['away']) and p['league'] in ('KHL', 'NHL')
+    ok, bad = ask.parse_free([c[0] for c in FREE_CASES] + ['Прогноз:   '], games)
+    assert len(ok) == sum(1 for c in FREE_CASES if c[1]) and len(bad) == sum(1 for c in FREE_CASES if not c[1])
+    # только одно Динамо играло вчера — «Динамо» без уточнения понятно
+    one = [g for g in games if g['home'] != 'Динамо Минск']
+    p, why = ask.parse_line('Прогноз: победа Динамо', one)
+    assert p and p['home'] == 'Динамо Москва' and p['bet'] == 'победа Динамо Москва в основное время', (p, why)
+    print('свои строки «Прогноз: …»: %d формулировок КХЛ и НХЛ — матч, ставка, кэф; %d непонятных (в т. ч. «Динамо» при двух '
+          'Динамо) — владельцу «не понял» — ок' % (sum(1 for c in FREE_CASES if c[1]), sum(1 for c in FREE_CASES if not c[1])))
+
+
+ASK_SENT = [dict(pid='1510-1', league='KHL', home='Лада', away='СКА', start=game('KHL', '2026-10-15 18:00', '', '')['start'],
+                 bet='победа СКА в осн. время', kef=1.64),
+            dict(pid='1510-2', league='KHL', home='Северсталь', away='Локомотив', start=game('KHL', '2026-10-15 19:00', '', '')['start'],
+                 bet='тотал матча меньше 4,5', kef=2.05),
+            dict(pid='1510-6', league='NHL', home='Тампа-Бэй', away='Сиэтл', start=game('NHL', '2026-10-16 02:00', '', '')['start'],
+                 bet='фора Сиэтла +1,5', kef=1.83),
+            dict(pid='1510-13', league='NHL', home='Эдмонтон', away='Юта', start=game('NHL', '2026-10-16 04:00', '', '')['start'],
+                 bet='индивидуальный тотал Юты больше 2,5 в основное время', kef=1.62),
+            dict(pid='1610-2', league='KHL', home='Авангард', away='Автомобилист', start=game('KHL', '2026-10-16 16:30', '', '')['start'],
+                 bet='Автомобилист не проиграет в основное время', kef=1.71)]
+
+
+def test_ask_recap():
+    sent, _ = ledger_texts(ASK_SENT, published=False)
+    inbox = ['- [x] 15.10 12:00 · правка владельца в боте: 1510-1 — новый текст поста; Прогноз: победа СКА в осн. время; Кэф: 1,70',
+             '- [x] 16.10 00:30 · опубликовано владельцем (по расписанию): 1510-6 «НХЛ · 16 октября · 02:00 МСК»']
+    d = date(2026, 10, 16)
+    env = dict(RECAP_DAY='2026-10-16', RECAP_PIDS='1510-1,1510-6,1510-13,1599-9', RECAP_AT='2026-10-16 05:10',
+               RECAP_FREE='["Прогноз: победа Трактора с учётом ОТ кф 2,10", "Прогноз: победа Динамо", "Прогноз: Бостон молодцы"]')
+    led = ledger.Ledger(morning.cutoff(d), inbox='\n'.join(inbox), sent=sent, picks='')
+    sel = ask.selection(d, led.inbox_text, env=env)
+    assert sel['src'] == 'payload' and sel['pids'] == ['1510-1', '1510-6', '1510-13', '1599-9'] and len(sel['free']) == 3
+    ask_mock('2026-10-16 05:12')
+    msgs, summary, inner = morning.build(d, card=False, led=led, recap_only=True, sel=sel)
+    rd = inner['rd']
+    got = {(r.get('pid') or 'свой', r['home']): r for r in rd['rows']}
+    assert sorted(got) == [('1510-1', 'Лада'), ('1510-6', 'Тампа-Бэй'), ('свой', 'Трактор')], sorted(got)
+    assert got[('1510-1', 'Лада')]['kef'] == 1.70 and got[('1510-1', 'Лада')]['res'] == settle.WIN       # правка владельца
+    assert got[('1510-6', 'Тампа-Бэй')]['res'] == settle.WIN and got[('свой', 'Трактор')]['res'] == settle.LOSS
+    assert [p['pid'] for p in rd['carry']] == ['1510-13']                                              # Эдмонтон ещё играет
+    rec = inner['recap']['text']
+    assert sum(1 for x in rec.split('\n') if x and x[0] in '✅❌↩') == 3 and '(итоговая победа Трактора)' in rec, rec
+    intro = msgs[0]['text']
+    for want in ('по вашему выбору', 'Источник: ваш выбор в утреннем опросе (16.10 05:10) — свой, 1510-1, 1510-6',
+                 'Свой: «Прогноз: победа Трактора с учётом ОТ кф 2,10» → Трактор — Металлург, итоговая победа Трактора, кэф 2,10',
+                 'не понял: «Прогноз: победа Динамо» — непонятно, какая команда', 'не понял: «Прогноз: Бостон молодцы»',
+                 'В завтрашние итоги: Эдмонтон — Юта (1510-13', '1599-9 нет в SENT.md'):
+        assert want in intro, (want, intro)
+    assert [m.get('pid') for m in msgs] == [None, '1610-r1'] and all(m.get('buttons') == 'post' for m in msgs[1:])
+    # утро 17.10: выбор из INBOX (без payload) — Эдмонтон из вчерашнего опроса доигран и входит; Лада — СКА второй раз не входит
+    inbox += ['- [x] 16.10 05:10 · итоги ставок 16.10: выбрано 1510-1, 1510-6, 1510-13; свои: "Прогноз: победа Трактора с учётом ОТ кф 2,10"',
+              '- [x] 17.10 05:20 · итоги ставок 17.10: выбрано 1610-2']
+    d2 = date(2026, 10, 17)
+    led2 = ledger.Ledger(morning.cutoff(d2), inbox='\n'.join(inbox), sent=sent, picks='')
+    sel2 = ask.selection(d2, led2.inbox_text, env={})
+    assert sel2['src'] == 'inbox' and sel2['pids'] == ['1610-2'] and sel2['at'].strftime('%d.%m %H:%M') == '17.10 05:20'
+    ask_mock('2026-10-17 05:22')
+    msgs2, _, inner2 = morning.build(d2, card=False, led=led2, recap_only=True, sel=sel2)
+    got2 = sorted((r['pid'], r['res']) for r in inner2['rd']['rows'])
+    assert got2 == [('1510-13', settle.LOSS), ('1610-2', settle.WIN)], got2
+    assert 'Из вчерашнего опроса (доигрались позже): Эдмонтон — Юта' in msgs2[0]['text'], msgs2[0]['text']
+    # «Сегодня без итогов» и разбор строки INBOX
+    sels = ask.parse_selections('- [x] 18.10 05:30 · итоги ставок 18.10: сегодня без итогов\n' + '\n'.join(inbox), datetime(2026, 10, 18, tzinfo=MSK))
+    assert sels[date(2026, 10, 18)]['none'] and sels[date(2026, 10, 16)]['free'] == ['Прогноз: победа Трактора с учётом ОТ кф 2,10']
+    print('итоги по выбору владельца: номера с правкой кэфа, свой прогноз, «не понял», Эдмонтон (ещё играл в 05:10) — в итогах '
+          '17.10 один раз; выбор из payload и из INBOX — ок')
+
+
+def test_team_job_ask():
+    sys.path.insert(0, os.path.join(HERE, '..', '..', 'render'))
+    import team_job
+    env = team_job.recap_env({'kind': 'team', 'job': 'team/out/2026-10-16/recap_ask.json', 'day': '2026-10-16', 'at': '2026-10-16 05:10',
+                              'pids': ['1510-1', '1510-6', 'x; rm -rf /'], 'free': ['Прогноз: победа СКА\nвторая строка', ' ']})
+    assert env == {'RECAP_DAY': '2026-10-16', 'RECAP_PIDS': '1510-1,1510-6', 'RECAP_AT': '2026-10-16 05:10',
+                   'RECAP_FREE': '["Прогноз: победа СКА вторая строка"]'}, env
+    assert team_job.recap_env({'job': 'team/out/2026-10-16/morning.json'}) == {}
+    job = 'team/out/2099-01-02/recap_ask.json'
+    path = os.path.join(team_job.ROOT, job)
+    try:
+        assert team_job.from_template(job) and not team_job.from_template(job)        # второй раз — уже есть
+        import json
+        with open(path, encoding='utf-8') as f:
+            j = json.load(f)
+        assert j['day'] == '2099-01-02' and j['make'] == ['team/daily/morning.py 2099-01-02 --ask --recap-only --no-wait '
+                                                          '--job-file team/out/2099-01-02/recap_ask.json'], j
+        assert not team_job.from_template('team/out/2099-01-02/../x.json') and not team_job.from_template('team/out/2099-01-02/nope.json')
+    finally:
+        if os.path.exists(path):
+            os.remove(path)
+            os.rmdir(os.path.dirname(path))
+    print('team_job: задание из заготовки team/daily/jobs/recap_ask.json, выбор владельца → RECAP_* (только проверенное) — ок')
+
+
 if __name__ == '__main__':
+    test_ask_free()
+    test_ask_recap()
+    test_team_job_ask()
     test_settle()
     test_repo_ledger()
     test_run162()

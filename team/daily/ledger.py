@@ -157,6 +157,7 @@ class Ledger:
         sent = _read(os.path.join(root, 'team', 'picks', 'SENT.md')) if sent is None else sent
         inbox = _read(os.path.join(root, 'team', 'INBOX.md')) if inbox is None else inbox
         picks = _read(os.path.join(root, 'team', 'PICKS.md')) if picks is None else picks
+        self.inbox_text = inbox                                # для выбора владельца в утреннем опросе (ask.selection)
         self.sent = parse_sent(sent, ref)
         self.pub, self.edits, self.unclear = parse_inbox(inbox, ref)
         self.picks_md = parse_picks_md(picks, ref)
@@ -196,6 +197,21 @@ class Ledger:
             if any(x.get('pid') == pid and x['start'] >= note_from for x in by_match.values()):
                 notes.append('правка %s — проверьте вручную' % u)
         return sorted(by_match.values(), key=lambda p: p['start']), notes
+
+    def chosen(self, pids):
+        """Прогнозы по номерам, которые владелец отметил в утреннем опросе: ставка и кэф — как в канале, если опубликован
+        через бота, иначе последний вариант черновика (правки владельца в боте). → (прогнозы, заметки)."""
+        out, notes = [], []
+        far = datetime(2100, 1, 1, tzinfo=MSK)
+        for pid in pids:
+            row = self.sent.get(pid)
+            if not row:
+                notes.append('%s нет в SENT.md — в итоги не вошёл' % pid)
+                continue
+            ts = self.pub.get(pid)
+            bet, kef, changed = channel_version(row, ts or far, self.edits)
+            out.append(dict(row, bet=bet, kef=kef, src='ask', published=ts, edited=changed))
+        return out, notes
 
     def sent_only(self, t0, t1):
         """Запасной вариант: отправленные владельцу (не опубликованные) на матчи в [t0, t1), один на матч — последний номер."""

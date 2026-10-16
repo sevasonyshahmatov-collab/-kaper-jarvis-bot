@@ -14,6 +14,9 @@
   "emoji": true         — не вычищать эмодзи из поста (по умолчанию в постах для канала их убираем); только для рубрик,
                           где владелец разрешил эмодзи: утренние посты team/daily (16.10).
 Сама команда отправляет в канал только задания с "approved": "owner" и "qa": "ok" — то, что владелец одобрил кнопкой «Да».
+Задания, которые запускает бот (утренний опрос «на что ставили», team/daily/README.md): если team/out/<день>/<имя>.json
+нет, а есть заготовка team/daily/jobs/<имя>.json, задание создаётся из неё ({day} → день); поля payload pids / free / day / at
+уходят скриптам переменными RECAP_PIDS / RECAP_FREE / RECAP_DAY / RECAP_AT.
 
 job.json:
 {
@@ -39,9 +42,13 @@ python render/itogi_job.py payload.json (без TG_BOT_TOKEN только рис
 """
 import json
 import os
+import re
 import subprocess
 import sys
 
+TEMPLATES = 'team/daily/jobs'   # заготовки заданий, которые запускает бот (утренний опрос → recap_ask.json)
+JOB_RE = re.compile(r'team/out/(\d{4}-\d\d-\d\d)/([a-z0-9_]+)\.json')
+PID_RE = re.compile(r'\d{4}-[0-9a-z]+')
 CHANNEL_MAX = 3
 TEXT_MAX = 4000
 CAPTION_MAX = 1024
@@ -149,11 +156,46 @@ def send(token, chat, msg, to_channel):
         raise RuntimeError('неизвестный тип сообщения: %s' % kind)
 
 
+def from_template(job):
+    """Задания team/out/<день>/<имя>.json нет в репозитории, а заготовка team/daily/jobs/<имя>.json есть — создать
+    задание из неё, подставив день ({day}). Так бот запускает итоги без коммита задания на каждый день."""
+    m = JOB_RE.fullmatch(job)
+    tpl = _path(os.path.join(TEMPLATES, m.group(2) + '.json')) if m else ''
+    if not m or os.path.exists(_path(job)) or not os.path.exists(tpl):
+        return False
+    with open(tpl, encoding='utf-8') as f:
+        text = f.read().replace('{day}', m.group(1))
+    os.makedirs(os.path.dirname(_path(job)), exist_ok=True)
+    with open(_path(job), 'w', encoding='utf-8') as f:
+        f.write(text)
+    print('задание из заготовки:', job)
+    return True
+
+
+def recap_env(payload):
+    """Выбор владельца из утреннего опроса (payload бота: pids, free, day, at) → переменные для make-скриптов.
+    Только проверенные значения: номера ММДД-N, строки до 300 знаков (не больше 30), день и время по шаблону."""
+    out = {}
+    day = str(payload.get('day') or '')
+    if not re.fullmatch(r'\d{4}-\d\d-\d\d', day) or not ('pids' in payload or 'free' in payload):
+        return out
+    pids = [str(x) for x in payload.get('pids') or [] if PID_RE.fullmatch(str(x))][:100]
+    free = [str(x).replace('\n', ' ')[:300] for x in payload.get('free') or [] if str(x).strip()][:30]
+    out = {'RECAP_DAY': day, 'RECAP_PIDS': ','.join(pids), 'RECAP_FREE': json.dumps(free, ensure_ascii=False)}
+    at = str(payload.get('at') or '')
+    if re.fullmatch(r'\d{4}-\d\d-\d\d \d\d:\d\d', at):
+        out['RECAP_AT'] = at
+    return out
+
+
 def main(payload):
-    job_path = _path(str(payload.get('job') or ''))
+    job = str(payload.get('job') or '')
+    from_template(job)
+    job_path = _path(job)
     with open(job_path, encoding='utf-8') as f:
         job = json.load(f)
     env = dict(os.environ, PYTHONPATH=os.path.join(ROOT, 'render') + os.pathsep + os.environ.get('PYTHONPATH', ''))
+    env.update(recap_env(payload))           # утренний опрос: RECAP_PIDS / RECAP_FREE / RECAP_DAY / RECAP_AT (team/daily/ask.py)
     errors = []
     for script in job.get('make') or []:
         print('рисую:', script)

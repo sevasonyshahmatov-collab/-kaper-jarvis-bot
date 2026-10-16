@@ -17,6 +17,11 @@
 CUTOFF дня D−1 и CUTOFF дня D (06:00 МСК; другое — переменная DAILY_CUTOFF=ЧЧ:ММ). Матч НХЛ, что доигрывается после
 CUTOFF (обычно начало в 04:00 и позже), уходит в итоги следующего утра — так каждый прогноз попадает в итоги ровно один
 раз, а повторный запуск дня даёт то же самое. Запущено раньше CUTOFF+5 мин — в Actions ждёт (не дольше 35 мин).
+
+--ask — итоги по выбору владельца из утреннего опроса бота (team/daily/ask.py): отмеченные номера (SENT.md с правками
+из INBOX) и свои строки «Прогноз: …». Граница — момент его ответа (RECAP_AT, иначе время строки «итоги ставок» в INBOX):
+в итоги — матчи, которые к этому моменту закончились (по той же оценке конца); остальные выбранные — в итоги следующего
+утра (берутся из вчерашнего выбора). Задание — team/daily/jobs/recap_ask.json (render/team_job.py создаёт его сам).
 """
 import argparse
 import json
@@ -30,6 +35,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 sys.path[:0] = [HERE, os.path.join(ROOT, 'team', 'picks'), os.path.join(ROOT, 'render')]
 
+import ask  # noqa: E402
 import compose  # noqa: E402
 import data  # noqa: E402
 import ledger  # noqa: E402
@@ -130,7 +136,43 @@ def recap_data(d, led):
     return dict(rows=rows, week=week, src=src, notes=notes + errs, pending=pending, bad=bad, carry=carry, late=late)
 
 
+def recap_ask_data(d, led, sel):
+    """Итоги по выбору владельца (утренний опрос). → dict как у recap_data + ask: свои строки, «не понял», перенос."""
+    at = sel['at']
+    picks, notes = led.chosen(sel['pids'])
+    games, gerr = ask.window_games(d) if sel['free'] else ([], [])
+    free, unparsed = ask.parse_free(sel['free'], games)
+    picks += free
+    prev = ask.selection(d - timedelta(days=1), led.inbox_text, env={})   # вчерашний выбор: что тогда ещё не доиграли
+    prev_picks = []
+    if prev and not prev['none']:
+        pp, _ = led.chosen(prev['pids'])
+        if prev['free']:
+            g2, _ = ask.window_games(d - timedelta(days=1))
+            pp += ask.parse_free(prev['free'], g2)[0]
+        mine = {(p['league'], p['home'], p['away'], p['start'].date()) for p in picks}
+        prev_picks = [dict(p, carried=True) for p in pp if (p['league'], p['home'], p['away'], p['start'].date()) not in mine]
+    allp = picks + prev_picks
+    found, errs = data.games_for(allp) if allp else ({}, [])
+    rows_all, pending, bad = settle_rows(allp, found)
+    # вчерашние: вошли во вчерашние итоги (закончились до вчерашнего ответа) — второй раз не берём
+    rows_all = [r for r in rows_all if not r.get('carried') or est_end(r['g']) >= prev['at']]
+    pending = [(p, why) for p, why in pending if not p.get('carried') or p['start'] + GAME_LEN >= prev['at']]
+    bad = [(p, why) for p, why in bad if not p.get('carried')]
+    rows = sorted([r for r in rows_all if est_end(r['g']) < at], key=lambda r: r['g']['start'])
+    late = [r for r in rows_all if est_end(r['g']) >= at]
+    carry = [p for p, why in pending if why == 'не доигран' and p['start'] + GAME_LEN >= at]
+    return dict(rows=rows, week=None, src='ask', notes=notes + gerr + errs, pending=pending, bad=bad, carry=carry, late=late,
+                ask=dict(at=at, pids=sel['pids'], free=free, unparsed=unparsed, prev=[r for r in rows if r.get('carried')],
+                         src=sel.get('src', '')))
+
+
 # ---------------------------------------------------------------- сообщения
+
+def src_label(p):
+    """Как назвать прогноз владельцу: номер, «свой» (строка «Прогноз: …» из опроса) или PICKS.md."""
+    return p.get('pid') or ('свой' if p.get('src') == 'free' else 'PICKS.md')
+
 
 def intro(d, morning, recap, rd, merr, card_note, recap_only=False):
     pid_m, pid_r = '%s-m1' % mmdd(d), '%s-r1' % mmdd(d)
@@ -144,6 +186,8 @@ def intro(d, morning, recap, rd, merr, card_note, recap_only=False):
             parts.append('НХЛ %s (ночь на %s, %s)' % (compose.plural(i['nhl'], 'матч', 'матча', 'матчей'),
                                                      compose.dm(d + timedelta(days=1)), i['nhl_when']))
         out.append('1. Начало игрового дня (%s): %s. Подача «%s».' % (pid_m, ', '.join(parts), texts.LAYOUT_RU[morning['layout']]))
+    elif rd['src'] == 'ask':
+        out[0] = '<b>Итоги вчерашних ставок на %s</b> — по вашему выбору, проверьте и опубликуйте' % compose.dm(d)
     elif recap_only:
         out.append('1. Начало игрового дня: в этом запуске только итоги.')
     else:
@@ -153,30 +197,44 @@ def intro(d, morning, recap, rd, merr, card_note, recap_only=False):
     if recap:
         t = recap['tally']
         src = ('опубликованные вами' if rd['src'] == 'inbox' else
+               'ваш выбор в утреннем опросе (%s)' % rd['ask']['at'].strftime('%d.%m %H:%M') if rd['src'] == 'ask' else
                'ОПУБЛИКОВАННЫХ НЕТ — по отправленным вам (в канал не выходили; в самом посте об этом не сказано)')
-        ids = ', '.join(r.get('pid') or 'PICKS.md' for r in rd['rows'])
-        out.append('2. Итоги вчерашних ставок (%s): %s, зашло %d из %d%s%s.' % (
+        ids = ', '.join(src_label(r) for r in rd['rows'])
+        out.append(('' if rd['src'] == 'ask' and not morning else '2. ') + 'Итоги вчерашних ставок (%s): %s, зашло %d из %d%s%s.' % (
             pid_r, compose.plural(t['n'], 'прогноз', 'прогноза', 'прогнозов'), t['w'], t['d'],
             ', возвратов %d' % t['p'] if t['p'] else '', card_note))
         out.append('   Источник: %s — %s.' % (src, ids))
         edited = [r['pid'] for r in rd['rows'] if r.get('edited')]
         if edited:
             out.append('   С вашей правкой в боте: %s.' % ', '.join(edited))
+    elif rd['src'] == 'ask':
+        out.append('Из выбранного вами ещё ничего не доиграно — поста нет.')
     else:
         out.append('2. Итоги вчерашних ставок: прогнозов на вчерашние матчи нет — поста нет.')
+    if rd['src'] == 'ask':
+        a = rd['ask']
+        for p in a['free']:
+            out.append('   Свой: «%s» → %s — %s, %s%s.' % (compose.esc(p['note']), compose.esc(p['home']), compose.esc(p['away']),
+                                                       compose.esc(p['bet']), ', кэф ' + compose.kef_s(p['kef']) if p['kef'] else ', кэф не указан'))
+        for line, why in a['unparsed']:
+            out.append('   не понял: «%s» — %s.' % (compose.esc(line), compose.esc(why)))
+        if a['prev']:
+            out.append('   Из вчерашнего опроса (доигрались позже): %s.' % ', '.join(
+                compose.esc('%s — %s' % (r['home'], r['away'])) for r in a['prev']))
     for p, why in rd['pending']:
         if p in rd['carry']:
             continue
-        out.append('   Не вошёл: %s — %s (%s) — %s.' % (compose.esc(p['home']), compose.esc(p['away']), p.get('pid') or 'PICKS.md', why))
+        out.append('   Не вошёл: %s — %s (%s) — %s.' % (compose.esc(p['home']), compose.esc(p['away']), src_label(p), why))
     for p in rd['carry']:
         out.append('   В завтрашние итоги: %s — %s (%s, начало %s) — ещё играют.' % (
-            compose.esc(p['home']), compose.esc(p['away']), p.get('pid') or 'PICKS.md', compose.hm(p['start'])))
+            compose.esc(p['home']), compose.esc(p['away']), src_label(p), compose.hm(p['start'])))
     for r in rd['late']:
         if r not in rd['rows']:
-            out.append('   В завтрашние итоги: %s — %s (%s) — закончился после %02d:%02d.' % (
-                compose.esc(r['home']), compose.esc(r['away']), r.get('pid') or 'PICKS.md', *CUTOFF))
+            out.append('   В завтрашние итоги: %s — %s (%s) — закончился после %s.' % (
+                compose.esc(r['home']), compose.esc(r['away']), src_label(r),
+                'вашего ответа (%s)' % compose.hm(rd['ask']['at']) if rd['src'] == 'ask' else '%02d:%02d' % CUTOFF))
     for p, why in rd['bad']:
-        out.append('   Не разобрал ставку %s «%s» (%s) — посчитайте вручную.' % (p.get('pid') or 'PICKS.md', compose.esc(p['bet']), why))
+        out.append('   Не разобрал ставку %s «%s» (%s) — посчитайте вручную.' % (src_label(p), compose.esc(p['bet']), why))
     for n in rd['notes']:
         out.append('   ' + compose.esc(n))
     out += ['', '«Опубликовать» — пост выйдет сразу (в первой строке нет времени матча). «Редактировать» — поправить текст.']
@@ -209,17 +267,17 @@ def log_scores(rd):
         reg = settle.scores(g, 'reg')
         print('DAILY_SCORES %s | %s | %s (дома) — %s (в гостях) | начало %s МСК | %s | итог %d:%d%s | осн. время %d:%d (%s) | '
               'ставка «%s» → %s | кэф %s | %s%s' % (
-                  r.get('pid') or 'PICKS.md', r['league'], r['home'], r['away'], g['start'].strftime('%d.%m %H:%M'), g.get('src', '?'),
+                  src_label(r), r['league'], r['home'], r['away'], g['start'].strftime('%d.%m %H:%M'), g.get('src', '?'),
                   g['hg'], g['ag'], ' ' + g['end'] if g.get('end') else '', reg[0], reg[1], g.get('how', '—'), r['bet'], side_s(r),
                   r.get('kef') or '—', settle.MARK[r['res']], ' | ВНИМАНИЕ: ' + g['warn'] if g.get('warn') else ''), flush=True)
     for p, why in rd['pending']:
-        print('DAILY_SCORES %s | %s | %s — %s | %s — %s' % (p.get('pid') or 'PICKS.md', p['league'], p['home'], p['away'], why,
+        print('DAILY_SCORES %s | %s | %s — %s | %s — %s' % (src_label(p), p['league'], p['home'], p['away'], why,
                                                              'в завтрашние итоги' if p in rd['carry'] else 'в итоги не вошёл'))
     for p, why in rd['bad']:
-        print('DAILY_SCORES %s | %s — %s | ставка «%s» не разобрана: %s' % (p.get('pid') or 'PICKS.md', p['home'], p['away'], p['bet'], why))
+        print('DAILY_SCORES %s | %s — %s | ставка «%s» не разобрана: %s' % (src_label(p), p['home'], p['away'], p['bet'], why))
 
 
-def build(d, variant=0, card=True, out_dir=None, led=None, recap_only=False):
+def build(d, variant=0, card=True, out_dir=None, led=None, recap_only=False, sel=None):
     """Всё утро: → (сообщения задания, сводка для лога, внутренности). Посты — с "emoji": true (team_job их не чистит)."""
     plan = engine().plan(d, variant)
     morning, merr = None, []
@@ -227,7 +285,7 @@ def build(d, variant=0, card=True, out_dir=None, led=None, recap_only=False):
         khl, nhl, leaders, merr = data.morning_games(d)
         morning = compose.morning_post(d, khl, nhl, leaders, plan)
     led = led or ledger.Ledger(cutoff(d))
-    rd = recap_data(d, led)
+    rd = recap_ask_data(d, led, sel) if sel else recap_data(d, led)
     log_scores(rd)
     recap, card_note, images = None, '', []
     if rd['rows']:
@@ -326,18 +384,33 @@ def main(argv=None):
     ap.add_argument('--no-card', action='store_true')     # баннер итогов в шаблоне «Матчи дня» — по умолчанию есть (16.10, вечер)
     ap.add_argument('--no-wait', action='store_true')
     ap.add_argument('--recap-only', action='store_true')
+    ap.add_argument('--ask', action='store_true', help='итоги по выбору владельца из утреннего опроса бота (ask.py)')
     ap.add_argument('--job-file', help='куда писать сообщения (по умолчанию team/out/<D>/morning.json)')
     ap.add_argument('--name', default='morning', help='с --job: имя файла задания (morning2 → morning2.json)')
     a = ap.parse_args(argv)
     if a.job:
-        extra = ' '.join(x for x, on in (('--no-wait', a.no_wait), ('--recap-only', a.recap_only), ('--no-card', a.no_card)) if on)
+        extra = ' '.join(x for x, on in (('--no-wait', a.no_wait), ('--recap-only', a.recap_only), ('--no-card', a.no_card),
+                                         ('--ask', a.ask)) if on)
         return make_template(date.fromisoformat(a.job), a.name, extra)
     if a.history:
         return history(date.fromisoformat(a.history))
     d = date.fromisoformat(a.day) if a.day else data.now_msk().date()
-    if not a.no_wait and not a.dry:
+    sel, led = None, None
+    if a.ask:                                  # выбор владельца: переменные от бота (RECAP_*) или строка INBOX
+        led = ledger.Ledger(cutoff(d))
+        sel = ask.selection(d, led.inbox_text)
+        if not sel or sel['none'] or not (sel['pids'] or sel['free']):
+            why = 'вы выбрали «Сегодня без итогов»' if sel and sel['none'] else 'вашего выбора в опросе нет (ни в запуске, ни в INBOX)'
+            msgs = [{'to': 'owner', 'type': 'text', 'html': True,
+                     'text': '<b>Итоги на %s</b>: не собираю — %s.' % (compose.dm(d), why)}]
+            print('DAILY ' + json.dumps(dict(day=d.isoformat(), ask='нет выбора'), ensure_ascii=False), flush=True)
+            if not a.dry:
+                jf = os.path.join(ROOT, a.job_file) if a.job_file and not os.path.isabs(a.job_file) else a.job_file
+                write_job(d, msgs, jf)
+            return
+    elif not a.no_wait and not a.dry:
         wait_cutoff(d)
-    msgs, summary, _ = build(d, a.variant, card=not a.no_card, recap_only=a.recap_only)
+    msgs, summary, _ = build(d, a.variant, card=not a.no_card, led=led, recap_only=a.recap_only or a.ask, sel=sel)
     print('DAILY ' + json.dumps(summary, ensure_ascii=False), flush=True)
     if a.dry:
         for m in msgs:
