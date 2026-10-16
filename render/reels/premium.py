@@ -769,7 +769,7 @@ def _bolt(rng, x0, y0, x1, y1, depth=8, spread=0.13):
     pts = [(x0, y0), (x1, y1)]
     for lvl in range(depth):
         new = [pts[0]]
-        sp = spread * (0.85 ** lvl)
+        sp = spread * (0.72 ** lvl)
         for (ax, ay), (bx, by) in zip(pts, pts[1:]):
             L = math.hypot(bx - ax, by - ay)
             mx, my = (ax + bx) / 2, (ay + by) / 2
@@ -782,12 +782,12 @@ def _bolt(rng, x0, y0, x1, y1, depth=8, spread=0.13):
 
 def _tree(rng, d, x0, y0, x1, y1, level, out):
     """Молния с ветками: ветки короче, тоньше и тусклее; ветка от ветки — ещё слабее."""
-    pts = _bolt(rng, x0, y0, x1, y1, depth=8 - level)
-    width, val = (3, 255) if level == 0 else (2, 150) if level == 1 else (1, 80)
+    pts = _bolt(rng, x0, y0, x1, y1, depth=7 - level, spread=0.11)
+    width, val = (5, 255) if level == 0 else (2, 170) if level == 1 else (1, 80)
     out.append((pts, width, val))
     if level >= 2:
         return
-    nb = int(rng.integers(5, 9)) if level == 0 else int(rng.integers(1, 4))
+    nb = int(rng.integers(1, 4)) if level == 0 else int(rng.integers(0, 2))
     for _ in range(nb):
         k = int(rng.integers(len(pts) // 8, len(pts) * 4 // 5))
         bx, by = pts[k]
@@ -807,11 +807,10 @@ def bolt_layer(seed, x0, x1, y1=1300, y0=-20):
     for pts, width, val in sorted(segs, key=lambda s: s[2]):
         d.line(pts, fill=val, width=width, joint='curve')
     c = np.asarray(core, np.float32) / 255
-    layers = [(c, 1.0), (np.asarray(core.filter(ImageFilter.GaussianBlur(3)), np.float32) / 255, 2.2),
-              (np.asarray(core.filter(ImageFilter.GaussianBlur(12)), np.float32) / 255, 3.0),
-              (np.asarray(core.filter(ImageFilter.GaussianBlur(40)), np.float32) / 255, 4.0),
-              (np.asarray(core.resize((W // 8, H // 8), Image.BILINEAR).filter(ImageFilter.GaussianBlur(14)).resize((W, H), Image.BICUBIC), np.float32) / 255, 6.0)]
-    cols = [(255, 255, 255), (235, 240, 255), (190, 205, 255), (150, 160, 255), (120, 120, 230)]
+    layers = [(c, 1.0), (np.asarray(core.filter(ImageFilter.GaussianBlur(1.5)), np.float32) / 255, 1.6),
+              (np.asarray(core.filter(ImageFilter.GaussianBlur(7)), np.float32) / 255, 1.4),
+              (np.asarray(core.filter(ImageFilter.GaussianBlur(30)), np.float32) / 255, 1.6)]
+    cols = [(255, 255, 255), (245, 245, 248), (225, 226, 232), (200, 202, 210)]   # как на ч/б съёмке грозы
     acc = np.zeros((H, W, 3), np.float32)
     for (lay, g), col in zip(layers, cols):
         acc += lay[..., None] * g * np.array(col, np.float32)
@@ -836,12 +835,12 @@ class Storm(Base):
         # облака: шум низкого разрешения, растянутый
         n = np.zeros((H // 8, (W + 400) // 8), np.float32)
         for k in (1, 2, 4):
-            g = rng.random((H // (64 // k) + 2, (W + 400) // (64 // k) + 2)).astype(np.float32)
+            g = rng.random((H // (160 // k) + 2, (W + 400) // (160 // k) + 2)).astype(np.float32)
             n += np.asarray(Image.fromarray(g).resize((n.shape[1], n.shape[0]), Image.BICUBIC)) / k
         n = (n - n.min()) / (n.max() - n.min())
         cl = Image.fromarray((n ** 1.6 * 255).astype(np.uint8)).resize((W + 400, H), Image.BICUBIC).filter(ImageFilter.GaussianBlur(34))
         self.clouds = cl
-        self.sky = C.vgrad(W, H, [(0, (10, 13, 22)), (0.55, (6, 8, 14)), (1, (3, 4, 7))]).convert('RGBA')
+        self.sky = C.vgrad(W, H, [(0, (9, 9, 10)), (0.6, (5, 5, 6)), (1, (2, 2, 2))]).convert('RGBA')
         # дождь — три слоя разной скорости
         self.rain = []
         for k, (cnt, ln, al) in enumerate(((260, 46, 60), (180, 70, 90), (90, 110, 120))):
@@ -851,19 +850,20 @@ class Storm(Base):
                 x, y = rng.uniform(0, W + 200), rng.uniform(0, H)
                 d.line((x, y, x - ln * 0.25, y + ln), fill=(190, 205, 230, al), width=1 + k // 2)
             self.rain.append((lay, 900 + 500 * k))
+        self.dry = True                      # как в образце владельца (ч/б гроза) — без дождя
         self.bolts = [bolt_layer(s, x0, x1, 720) for s, x0, x1 in ((3, 260, 500), (7, 860, 590), (12, 480, 545), (21, 120, 470), (33, 980, 620))]
         self.big = bolt_layer(99, 560, 520, 1500)
         self.big2 = bolt_layer(55, 120, 900, 1200)
         self.big3 = bolt_layer(77, 1000, 180, 1250)
         self.e_h, self.e_a = self.h.emb(420), self.a.emb(420)
         self.s_h, self.s_a = self.h.emb(200), self.a.emb(200)
-        self.head = C.text(head_line(m), 'manrope', 30, (175, 190, 215), 800, track=0.25)
-        self.hn = C.text(self.h.up, 'osw', 130, (235, 240, 250), 700, max_w=920)
-        self.an = C.text(self.a.up, 'osw', 130, (235, 240, 250), 700, max_w=920)
-        self.lab = C.text('ПРОГНОЗ', 'manrope', 32, (175, 190, 215), 800, track=0.6)
-        self.pick = C.lines(self.pick_up, 'osw', 110, 920, (240, 244, 252), 700, gap=0.03, max_lines=3)
+        self.head = C.text(head_line(m), 'manrope', 30, (170, 170, 176), 800, track=0.25)
+        self.hn = C.text(self.h.up, 'osw', 130, (238, 238, 240), 700, max_w=920)
+        self.an = C.text(self.a.up, 'osw', 130, (238, 238, 240), 700, max_w=920)
+        self.lab = C.text('ПРОГНОЗ', 'manrope', 32, (170, 170, 176), 800, track=0.6)
+        self.pick = C.lines(self.pick_up, 'osw', 110, 920, (242, 242, 244), 700, gap=0.03, max_lines=3)
         self.kef = C.text(kef_s(m['kef']), 'osw', 210, (255, 255, 255), 700)
-        self.facts = [C.lines(f.upper(), 'manrope', 38, 900, (205, 215, 232), 700, gap=0.2, max_lines=2) for f in m['facts']]
+        self.facts = [C.lines(f.upper(), 'manrope', 38, 900, (210, 210, 214), 700, gap=0.2, max_lines=2) for f in m['facts']]
         # удары: каждые две доли до дропа, на дропе — большой, после — раз в 4 доли
         u, D = self.u, self.drop
         self.hits = [(D - k * 2 * u, k % len(self.bolts)) for k in range(1, int(D / (2 * u)) + 1)]
@@ -887,14 +887,14 @@ class Storm(Base):
         # облака подсвечены вспышкой
         off = int((t * 18) % 400)
         cl = self.clouds.crop((off, 0, off + W, H))
-        cl_a = cl.point(lambda v: int(min(255, v * (0.16 + 1.2 * k))))
-        fr.alpha_composite(Image.merge('RGBA', (Image.new('L', (W, H), 110), Image.new('L', (W, H), 120),
-                                                Image.new('L', (W, H), 160), cl_a)))
+        cl_a = cl.point(lambda v: int(min(255, v * (0.17 + 0.85 * k))))
+        fr.alpha_composite(Image.merge('RGBA', (Image.new('L', (W, H), 150), Image.new('L', (W, H), 150),
+                                                Image.new('L', (W, H), 156), cl_a)))
         if bi is not None and k > 0.05:
-            bl = [self.big, self.big2, self.big3] if bi == -1 else [self.bolts[bi]]
+            bl = [self.big] if bi == -1 else [self.bolts[bi]]
             for b in bl:
                 fr = add_rgb(fr, b, min(1.2, k * 1.3))
-        for lay, sp in self.rain:
+        for lay, sp in ([] if self.dry else self.rain):
             y = int((t * sp) % H)
             x = int((t * sp * 0.25) % 200)
             part = lay.crop((x, 0, x + W, H))
@@ -906,10 +906,10 @@ class Storm(Base):
             e, nm = (self.e_h, self.hn) if first else (self.e_a, self.an)
             t0 = 0 if first else half
             a = C.seg(t, t0 + 0.1, t0 + 0.6) * (1 - C.seg(t, t0 + half - 0.25, t0 + half))
-            lit = 0.5 + 0.5 * k
+            lit = 0.22 + 0.78 * min(1.0, k * 1.4)
             em = C.scale(e, 1 + 0.06 * k)
             if k > 0.15:
-                em = C.glow(em, 26, 1.2 * k, (170, 205, 255))
+                em = C.glow(em, 26, 1.2 * k, (225, 228, 236))
             C.put(fr, C.with_shadow(em, 30, 0.7, 20) if k <= 0.15 else em, W / 2, 800, a * lit)
             C.put(fr, nm, W / 2, 1180, a)
             C.put(fr, self.head, W / 2, 262, C.seg(t, 0.2, 0.9))
@@ -917,15 +917,15 @@ class Storm(Base):
             q = self.q(t, D + 0.05, 0.5)
             C.put(fr, self.s_h, W / 2 - 230, 430, q)
             C.put(fr, self.s_a, W / 2 + 230, 430, q)
-            C.put(fr, C.text('VS', 'osw', 56, (175, 190, 215), 600, track=0.2), W / 2, 430, q)
+            C.put(fr, C.text('VS', 'osw', 56, (170, 170, 176), 600, track=0.2), W / 2, 430, q)
             C.put(fr, self.lab, W / 2, 610, self.q(t, D + 0.1))
             qp = self.q(t, D + 0.15, 0.5)
-            pg = self.pick if k < 0.1 else C.glow(self.pick, 14, 0.9 * k, (150, 190, 255))
+            pg = self.pick if k < 0.1 else C.glow(self.pick, 14, 0.9 * k, (220, 222, 230))
             C.put(fr, pg, W / 2, 650 + self.pick.height / 2 + 30 * (1 - qp), qp)
             y = 680 + self.pick.height + 40
             qk = self.q(t, self.t_kef, 0.4)
-            C.put(fr, C.text('КЭФ', 'manrope', 30, (175, 190, 215), 800, track=0.6), W / 2, y, qk)
-            C.put(fr, C.glow(self.kef, 16, 0.6, (150, 190, 255)), W / 2, y + 125, qk)
+            C.put(fr, C.text('КЭФ', 'manrope', 30, (170, 170, 176), 800, track=0.6), W / 2, y, qk)
+            C.put(fr, C.glow(self.kef, 16, 0.6, (220, 222, 230)), W / 2, y + 125, qk)
             y += 270
             for i, (f_, t0) in enumerate(((self.facts[0], self.t_f1), (self.facts[1], self.t_f2))):
                 qf = self.q(t, t0, 0.45)
@@ -935,13 +935,13 @@ class Storm(Base):
             if t > self.t_end:
                 qe = self.q(t, self.t_end, 0.6)
                 fr.alpha_composite(Image.new('RGBA', (W, H), (5, 7, 12, int(225 * qe))))
-                C.put(fr, C.glow(C.text('JARVIS', 'osw', 130, (240, 244, 252), 700, track=0.2), 18, 0.7, (150, 190, 255)), W / 2, 800, qe)
-                C.put(fr, C.text(C.HANDLE, 'manrope', 44, (190, 205, 230), 800), W / 2, 920, qe)
+                C.put(fr, C.glow(C.text('JARVIS', 'osw', 130, (242, 242, 244), 700, track=0.2), 18, 0.7, (220, 222, 230)), W / 2, 800, qe)
+                C.put(fr, C.text(C.HANDLE, 'manrope', 44, (200, 200, 205), 800), W / 2, 920, qe)
         # белая вспышка на дропе и лёгкая на каждом ударе
         wf = max(0.0, 1 - abs(t - D) / 0.14) if t >= D - 0.02 else 0
         wf = max(wf, 0.25 * k if bi != -1 else 0)
         if wf > 0:
-            fr.alpha_composite(Image.new('RGBA', (W, H), (225, 235, 255, int(210 * wf))))
+            fr.alpha_composite(Image.new('RGBA', (W, H), (235, 235, 238, int(150 * wf))))
         dx, dy = C.shake(t, D, 26, 0.5)
         fr = C.zoom(fr, 1.02, dx=dx, dy=dy)
         return C.grain(C.vignette(fr, 0.55), t, 6)
