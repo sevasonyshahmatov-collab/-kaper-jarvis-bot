@@ -7833,6 +7833,7 @@ function liveUpdateAuto_() {
   try {
     try { teamSchedTick_(); } catch (e) { console.log('выход постов: ' + e.message); }   // посты команды за полтора часа до матча
     try { recapAutoTick_(); } catch (e) { console.log('утренние посты: ' + e.message); }   // 06:00 МСК — «Начало игрового дня», 08:30 — итоги из канала
+    try { pmTick_(); } catch (e) { console.log('послематчевые посты: ' + e.message); }      // итог по каждому опубликованному прогнозу после финала
     var lv = null, lw = null;
     try { lv = liveUpdate_(new Date()); } catch (e) { console.log('live: ' + e.message); autoMark_('liveUpdateAuto_', false, 'LIVE: ' + e.message); }
     try { lw = lineupWatch_(new Date()); } catch (e) { console.log('lineups: ' + e.message); autoMark_('liveUpdateAuto_', false, 'заявки: ' + e.message); }
@@ -15529,11 +15530,12 @@ function teamCallback_(q, parts) {
       }
       if (cache.get(key)) { answer('Уже отмечено'); return; }
       cache.put(key, act, 21600);
-      var r = teamPublishNow_(m.chat.id, m.message_id, album);
+      var r = teamPublishNow_(m.chat.id, m.message_id, album, pmReplyTo_(pid));
       if (!r || !r.ok) { cache.remove(key); throw new Error((r && r.description) || 'Telegram не ответил'); }
       teamSchedDrop_(m.chat.id, m.message_id);
       mark('✅ Опубликовано');
       teamEditPubSave_(m.chat.id, m.message_id, album ? album.first : null, r.result);   // номер поста в канале — для правок до начала матча
+      try { pmWatchSave_(pid, String(m.caption || m.text || ''), r.result); } catch (e) { console.log('послематчевый пост: ' + e.message); }
       answer('Опубликовано в канал');
       teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · опубликовано владельцем: ' + pid + ' ' + title, 'Inbox: draft published by the owner');
     } else if (act === 'unsched') {
@@ -15611,7 +15613,7 @@ function teamSchedDrop_(chat, mid) { PropertiesService.getScriptProperties().del
 function teamSchedSave_(m, pid, album, at, start, title) {
   var old = teamSchedGet_(m.chat.id, m.message_id);
   var s = { chat: m.chat.id, mid: m.message_id, pid: pid, album: album, at: at, start: start, title: title,
-    kb: (old && old.kb) || m.reply_markup || null, t: Date.now() };
+    kb: (old && old.kb) || m.reply_markup || null, t: Date.now(), txt: String(m.caption || m.text || '').slice(0, 1500) };
   PropertiesService.getScriptProperties().setProperty('TMSCHED_' + m.chat.id + '_' + m.message_id, JSON.stringify(s));
   tg_('editMessageReplyMarkup', { chat_id: m.chat.id, message_id: m.message_id, reply_markup: teamSchedKb_(s) });
   try {
@@ -15621,15 +15623,16 @@ function teamSchedSave_(m, pid, album, at, start, title) {
 }
 
 /** Скопировать черновик (или альбом) в канал. */
-function teamPublishNow_(chat, mid, album) {
+function teamPublishNow_(chat, mid, album, replyTo) {
   var h = Number(Utilities.formatDate(new Date(), 'Europe/Moscow', 'H')), quiet = h >= 23 || h < 8;   // ночью — без звука (team/POSTS.md)
   if (album) {
     var ids = [];
     for (var k = 0; k < album.n; k++) ids.push(album.first + k);
     return tgRaw_('copyMessages', { chat_id: TEAM_CHANNEL, from_chat_id: chat, message_ids: ids, disable_notification: quiet });
   }
-  return tgRaw_('copyMessage', { chat_id: TEAM_CHANNEL, from_chat_id: chat, message_id: mid, reply_markup: { inline_keyboard: [] },
-    disable_notification: quiet });
+  var q = { chat_id: TEAM_CHANNEL, from_chat_id: chat, message_id: mid, reply_markup: { inline_keyboard: [] }, disable_notification: quiet };
+  if (replyTo) q.reply_parameters = { message_id: Number(replyTo), allow_sending_without_reply: true };   // итог матча — ответом на прогноз
+  return tgRaw_('copyMessage', q);
 }
 
 /** Из liveUpdateAuto_ (раз в 5 минут): опубликовать посты, у которых подошло время выхода. */
@@ -15646,7 +15649,7 @@ function teamSchedTick_() {
       tgRaw_('sendMessage', { chat_id: s.chat, reply_to_message_id: s.mid, text: '⚠️ ' + why + ' Пост остался черновиком.' });
     };
     if (s.start && now >= s.start) { back('Не успел опубликовать до начала матча.'); return; }
-    var r = teamPublishNow_(s.chat, s.mid, s.album);
+    var r = teamPublishNow_(s.chat, s.mid, s.album, pmReplyTo_(s.pid));
     if (!r || !r.ok) {
       s.fails = (s.fails || 0) + 1;
       if (s.fails < 3) { p.setProperty(k, JSON.stringify(s)); return; }
@@ -15657,6 +15660,7 @@ function teamSchedTick_() {
     tgRaw_('editMessageReplyMarkup', { chat_id: s.chat, message_id: s.mid,
       reply_markup: { inline_keyboard: [[{ text: '✅ Опубликовано в ' + Utilities.formatDate(new Date(), 'Europe/Moscow', 'HH:mm'), callback_data: 'tm|done' }]] } });
     teamEditPubSave_(s.chat, s.mid, s.album ? s.album.first : null, r.result);
+    try { if (s.txt) pmWatchSave_(s.pid, s.txt, r.result); } catch (e) { console.log('послематчевый пост: ' + e.message); }
     try {
       teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · опубликовано владельцем (по расписанию): ' + s.pid + ' ' + s.title,
         'Inbox: scheduled post published');
@@ -15765,6 +15769,121 @@ function recapDispatch_(payload) {
   return { ok: false, why: 'GitHub ответил ' + code + (code === 403 || code === 404 ?
     ' — у токена GITHUB_TOKEN нет права Actions: Read and write (GitHub → Settings → Developer settings → Fine-grained tokens → токен → Repository permissions → Actions).' :
     ': ' + r.getContentText().slice(0, 150)) };
+}
+
+/* ── 🏁 Послематчевый пост по каждому опубликованному прогнозу (решение владельца 16.10, team/postmatch/README.md) ──
+ *  Прогноз (номер ММДД-N, в шапке «КХЛ · 16 октября · 12:30 МСК», дальше «Хозяева — Гости», «Прогноз: …», «Кэф: …») вышел
+ *  в канал — сразу или по расписанию — бот запоминает его: PMW_<номер> = {лига, команды, начало, ставка, кэф, ch — номер поста
+ *  в канале}. Правка поста до выхода или после (до начала матча) обновляет запись.
+ *  pmTick_ (из liveUpdateAuto_, раз в 5 минут): с PM_AFTER_* после начала матча проверяет, закончен ли он (приложение КХЛ /
+ *  API НХЛ); закончен — запускает itogi.yml (задание team/out/<D>/postmatch_auto.json из заготовки, payload pm) — скрипт
+ *  team/postmatch/run.py присылает владельцу гифку «Итог матча» и текст с кнопками «Опубликовать» (номер <ММДД-N>r).
+ *  «Опубликовать» под таким постом копирует его в канал ответом на пост прогноза (reply_parameters, номер ch).
+ *  Не дождались финала за PM_GIVEUP_MS — пропускаем (матч перенесли и т. п.). Записи живут PM_KEEP_MS после начала.
+ */
+var PM_PROP = 'PMW_';
+var PM_AFTER_KHL_MS = 125 * 60000;     // КХЛ: проверять с 2 ч 05 мин после начала (матч с перерывами ~2 ч 20 мин)
+var PM_AFTER_NHL_MS = 140 * 60000;     // НХЛ: с 2 ч 20 мин
+var PM_GIVEUP_MS = 8 * 3600000;
+var PM_KEEP_MS = 4 * 86400000;
+var PM_NHL_API = 'https://api-web.nhle.com/v1/';
+
+/** Пост прогноза → {league, home, away, start, pick, kef} или null (не прогноз на матч). */
+function pmParse_(text) {
+  var lines = String(text || '').replace(/<[^>]+>/g, '').split('\n').map(function (x) { return x.trim(); }).filter(String);
+  if (!lines.length) return null;
+  var head = lines[0], lg = /^НХЛ\s*·/.test(head) ? 'NHL' : /^КХЛ\s*·/.test(head) ? 'KHL' : null, start = teamEditStart_(head);
+  if (!lg || !start) return null;
+  var w = { league: lg, start: start, kef: '' };
+  lines.slice(1).forEach(function (l) {
+    var t = l.match(/^(.+?)\s+[—–]\s+(.+)$/), pk = l.match(/^Прогноз:\s*(.+)$/i), kf = l.match(/^Кэф:\s*([\d.,]+)/i);
+    if (t && !w.home && !/:/.test(l)) { w.home = t[1].trim(); w.away = t[2].trim(); }
+    if (pk && !w.pick) w.pick = pk[1].trim();
+    if (kf && !w.kef) w.kef = kf[1];
+  });
+  return w.home && w.pick ? w : null;
+}
+
+function pmGet_(pid) {
+  try { return JSON.parse(PropertiesService.getScriptProperties().getProperty(PM_PROP + pid) || 'null'); } catch (e) { return null; }
+}
+function pmPut_(w) { PropertiesService.getScriptProperties().setProperty(PM_PROP + w.pid, JSON.stringify(w)); }
+
+/** Прогноз вышел в канал: запомнить для итога. res — ответ copyMessage(s). */
+function pmWatchSave_(pid, text, res) {
+  if (!/^\d{4}-\d+$/.test(String(pid || ''))) return null;               // только посты-прогнозы, не итоги (ММДД-Nr) и не служебные
+  var w = pmParse_(text);
+  if (!w) return null;
+  var ch = Array.isArray(res) ? res[0] && res[0].message_id : res && res.message_id;
+  w.pid = pid; w.ch = ch || null; w.st = 'wait'; w.t = Date.now();
+  pmPut_(w);
+  return w;
+}
+
+/** Правка поста владельцем: обновить ставку/кэф в записи (по номеру в канале) и текст поста на выходе. */
+function pmEditSync_(chat, mid, ch, sch, html) {
+  var plain = String(html || '').replace(/<[^>]+>/g, '');
+  if (sch) {
+    sch.txt = plain.slice(0, 1500);
+    PropertiesService.getScriptProperties().setProperty('TMSCHED_' + chat + '_' + mid, JSON.stringify(sch));
+  }
+  if (!ch) return;
+  var p = PropertiesService.getScriptProperties();
+  p.getKeys().forEach(function (k) {
+    if (k.indexOf(PM_PROP) !== 0) return;
+    var w = pmGet_(k.slice(PM_PROP.length)), nw;
+    if (!w || w.ch !== ch || w.st !== 'wait' || !(nw = pmParse_(plain))) return;
+    w.pick = nw.pick; w.kef = nw.kef || w.kef; w.home = nw.home; w.away = nw.away;
+    pmPut_(w);
+  });
+}
+
+/** Номер поста прогноза в канале для итога «ММДД-Nr<номер>» (номер дописывает скрипт — из записи бота или ленты канала)
+ *  или «ММДД-Nr» (тогда — из записи PMW_) — ответить на него; иначе null. */
+function pmReplyTo_(pid) {
+  var m = String(pid || '').match(/^(\d{4}-\d+)r(\d*)$/);
+  if (!m) return null;
+  if (m[2]) return Number(m[2]);
+  var w = pmGet_(m[1]);
+  return w && w.ch ? w.ch : null;
+}
+
+/** Закончен ли матч записи w. КХЛ — событие приложения с этими командами; НХЛ — все матчи в это время (±30 мин) доиграны. */
+function pmFinished_(w) {
+  if (w.league === 'KHL') {
+    var s = Math.floor(w.start / 1000);
+    var ev = khlAppEvents_(s - 1800, s + 1800).filter(function (e) { return e.home === w.home && e.away === w.away; })[0];
+    return !!(ev && ev.state === 'finished');
+  }
+  var day = Utilities.formatDate(new Date(w.start - 6 * 3600000), 'America/New_York', 'yyyy-MM-dd');
+  var r = UrlFetchApp.fetch(PM_NHL_API + 'score/' + day, { muteHttpExceptions: true });
+  if (r.getResponseCode() !== 200) return false;
+  var games = (JSON.parse(r.getContentText()).games || []).filter(function (g) {
+    return Math.abs(new Date(g.startTimeUTC).getTime() - w.start) <= 30 * 60000;
+  });
+  return games.length > 0 && games.every(function (g) { return g.gameState === 'OFF' || g.gameState === 'FINAL'; });
+}
+
+/** Из liveUpdateAuto_ (раз в 5 минут): итоги по опубликованным прогнозам, матчи которых закончились. */
+function pmTick_() {
+  var p = PropertiesService.getScriptProperties(), now = Date.now(), done = [];
+  p.getKeys().forEach(function (k) {
+    if (k.indexOf(PM_PROP) !== 0) return;
+    var w = pmGet_(k.slice(PM_PROP.length));
+    if (!w || !w.start || now - w.start > PM_KEEP_MS) { p.deleteProperty(k); return; }
+    if (w.st !== 'wait' || now < w.start + (w.league === 'NHL' ? PM_AFTER_NHL_MS : PM_AFTER_KHL_MS)) return;
+    if (now > w.start + PM_GIVEUP_MS) { w.st = 'skip'; pmPut_(w); return; }
+    var fin = false;
+    try { fin = pmFinished_(w); } catch (e) { console.log('послематчевый пост ' + w.pid + ': ' + e.message); }
+    if (!fin) return;
+    var day = Utilities.formatDate(new Date(w.start), 'Europe/Moscow', 'yyyy-MM-dd');
+    var r = recapDispatch_({ kind: 'team', job: 'team/out/' + day + '/postmatch_auto.json', day: day,
+      pm: { pid: w.pid, league: w.league, home: w.home, away: w.away, start: Utilities.formatDate(new Date(w.start), 'Europe/Moscow', 'yyyy-MM-dd HH:mm'),
+        pick: w.pick, kef: w.kef, ch: w.ch } });
+    if (r.ok) { w.st = 'sent'; w.sent = now; done.push(w.pid); } else { w.fails = (w.fails || 0) + 1; w.why = r.why; }
+    pmPut_(w);
+  });
+  return done.length ? 'итоги: ' + done.join(', ') : '';
 }
 
 /* ── ✏️ «Редактировать» пост (решение владельца 15.10) ──
@@ -15936,6 +16055,7 @@ function teamEditWrite_(chat, tgt, html) {
   if (ch && start && Date.now() >= start) throw new Error('матч уже начался — опубликованный прогноз после начала не меняем; если нужно, поправьте вручную в канале');
   if (ch) teamEditSend_(TEAM_CHANNEL, ch, tgt.cap, html, null);                // сначала канал — если не вышло, черновик не трогаем
   var sch = ch ? null : teamSchedGet_(chat, tgt.mid);                    // стоит на выходе — кнопки расписания не теряем
+  try { pmEditSync_(chat, tgt.mid, ch, sch, html); } catch (e) { console.log('послематчевый пост: ' + e.message); }
   try { teamEditSend_(chat, tgt.mid, tgt.cap, html, ch ? TEAM_PUBLISHED_KB : sch ? teamSchedKb_(sch) : tgt.kb); } catch (e) { if (!ch) throw e; }
   return !!ch;
 }
