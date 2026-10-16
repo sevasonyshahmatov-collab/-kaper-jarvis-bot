@@ -7832,6 +7832,7 @@ function liveUpdateAuto_() {
   if (!lock.tryLock(1000)) return;
   try {
     try { teamSchedTick_(); } catch (e) { console.log('выход постов: ' + e.message); }   // посты команды за полтора часа до матча
+    try { recapAskTick_(); } catch (e) { console.log('опрос итогов: ' + e.message); }   // 05:00 МСК — «на какие прогнозы вчера ставили?»
     var lv = null, lw = null;
     try { lv = liveUpdate_(new Date()); } catch (e) { console.log('live: ' + e.message); autoMark_('liveUpdateAuto_', false, 'LIVE: ' + e.message); }
     try { lw = lineupWatch_(new Date()); } catch (e) { console.log('lineups: ' + e.message); autoMark_('liveUpdateAuto_', false, 'заявки: ' + e.message); }
@@ -15450,6 +15451,7 @@ function teamBotMessage_(msg, cmd) {
   var isFix = !!(rep && String(rep.text || '').indexOf(TEAM_FIX_ASK) === 0);
   var free = !isTask && !isList && !isLog && !/^\//.test(text);
   var editing = free && !isFix ? teamEditPending_(chat, rep, msg.text) : null;   // «Редактировать»: новый текст поста целиком
+  if (free && !isFix && !editing && recapFreeMessage_(msg)) return true;    // «Прогноз: …» — свои прогнозы для утренних итогов
   var repBot = !!(rep && rep.from && rep.from.is_bot && !isFix && !editing);   // ответ прямо на сообщение бота (пост, фото альбома)
   var repTeam = repBot && teamKbPid_(rep.reply_markup) !== null;           // … и это пост команды с кнопками
   var quick = free && repBot ? teamEditParse_(msg.text) : null;           // «заменить прогноз на: …» ответом на пост
@@ -15496,6 +15498,11 @@ function teamCallback_(q, parts) {
   var answer = function (t, alert) { tg_('answerCallbackQuery', { callback_query_id: q.id, text: t || '', show_alert: !!alert }); };
   if (act === 'done' || !m) { answer(); return; }
   if (!tgIsChannelAdmin_(q.from.id)) { answer('Только для администраторов канала', true); return; }
+  if (m.chat && m.chat.type === 'private') {                         // чат владельца — сюда утренний опрос об итогах
+    var pp = PropertiesService.getScriptProperties();
+    if (pp.getProperty('TEAM_OWNER_CHAT') !== String(m.chat.id)) pp.setProperty('TEAM_OWNER_CHAT', String(m.chat.id));
+  }
+  if (act === 'rat' || act === 'rad' || act === 'ran') { recapAskCallback_(q, parts, answer); return; }   // опрос «на что ставили»
   var title = '«' + (String(m.caption || m.text || '').split('\n')[0].trim().slice(0, 80) || 'без подписи') + '»';
   var mark = function (label) {
     tg_('editMessageReplyMarkup', { chat_id: m.chat.id, message_id: m.message_id,
@@ -15646,6 +15653,255 @@ function teamSchedTick_() {
         'Inbox: scheduled post published');
     } catch (e) { /* */ }
   });
+}
+
+/* ── 🗳 Утренний опрос «На какие прогнозы вчера ставили?» → итоги ровно по выбору владельца (решение владельца 16.10) ──
+ *  В 05:00 МСК (проверка из liveUpdateAuto_ раз в 5 минут — отдельный запуск ставить не нужно) бот присылает владельцу
+ *  вопрос и по кнопке на каждый прогноз, отправленный ему на вчерашние матчи (начало с 08:00 вчера до 08:00 сегодня, МСК).
+ *  Список — team/picks/SENT.md с ветки команды (туда команда пишет каждый отправленный пост-прогноз; сами посты шлёт
+ *  GitHub Actions, бот их не видит), ставка — с последней правкой владельца из INBOX. Опубликованные через бота
+ *  («опубликовано владельцем …» в INBOX) — сразу отмечены ☑. Кнопка переключает ☐/☑ (editMessageReplyMarkup).
+ *  Свои прогнозы мимо списка — сообщением, строками «Прогноз: …» (несколько в одном сообщении можно).
+ *  «Готово»: строка «итоги ставок ДД.ММ: выбрано …; свои: "…"» в team/INBOX.md (коммит на ветку команды), затем запуск
+ *  itogi.yml на ветке команды (workflow_dispatch) с payload {kind: team, job: team/out/<D>/recap_ask.json, pids, free, day, at}:
+ *  team/daily/morning.py --ask строит итоги из выбранного и присылает владельцу пост с кнопками. Выбор едет в самом payload,
+ *  поэтому от того, успел ли коммит INBOX, ничего не зависит; INBOX — запись для команды и запасной источник (ручной перезапуск).
+ *  Нужно: GITHUB_TOKEN с правами Contents: Read and write (уже есть) и Actions: Read and write (для запуска workflow).
+ *  Без ответа к 08:00 — одно напоминание. Сам бот ничего не публикует.
+ */
+var RECAP_ASK_HOUR = 5;                 // МСК: когда спрашивать
+var RECAP_ASK_LAST_HOUR = 12;           // позже не спрашиваем (таблица не работала утром — вопрос уже не к месту)
+var RECAP_REMIND_HOUR = 8;              // МСК: одно напоминание, если ответа нет
+var RECAP_ASK_PROP = 'RECAP_ASK_';      // + yyyy-MM-dd: состояние опроса дня
+var RECAP_WORKFLOW = 'itogi.yml';
+var RECAP_FREE_MAX = 20;
+
+function recapAskGet_(day) {
+  try { return JSON.parse(PropertiesService.getScriptProperties().getProperty(RECAP_ASK_PROP + day) || 'null'); } catch (e) { return null; }
+}
+function recapAskPut_(st) { PropertiesService.getScriptProperties().setProperty(RECAP_ASK_PROP + st.day, JSON.stringify(st)); }
+function recapDm_(day) { return day.slice(8, 10) + '.' + day.slice(5, 7); }
+
+/** Чат владельца для опроса: тот, где владелец нажимал кнопки команды, иначе создатель канала, иначе TG_OWNER_ID / TG_ADMIN_ID. */
+function recapOwnerChat_() {
+  var p = PropertiesService.getScriptProperties(), c = p.getProperty('TEAM_OWNER_CHAT');
+  if (c) return c;
+  try {
+    var r = tgRaw_('getChatAdministrators', { chat_id: TEAM_CHANNEL });
+    (r && r.ok ? r.result : []).forEach(function (m) { if (!c && m.status === 'creator') c = String(m.user.id); });
+  } catch (e) { c = ''; }
+  return c || p.getProperty('TG_OWNER_ID') || p.getProperty('TG_ADMIN_ID') || '';
+}
+
+/** Ставка покороче для кнопки: «победа СКА в осн. время» → «победа СКА». */
+function recapShortBet_(bet) {
+  return String(bet || '').replace(/\s*\([^)]*\)/g, '').replace(/\s+в\s+осн(\.|овное)\s+время/gi, '').replace(/^индивидуальный тотал/i, 'ИТ')
+    .replace(/тотал матча/gi, 'тотал').replace(/\s+/g, ' ').trim();
+}
+
+/** Прогнозы, отправленные владельцу на матчи с началом в [t0, t1): из текста SENT.md и INBOX.
+ *  → [{pid, match, bet, start, pub}] по времени начала. Год даты «дд.ММ» — ближайший к сейчас. */
+function recapSentPicks_(sentText, inboxText, t0, t1) {
+  var now = Date.now(), edits = {}, pub = {}, out = [];
+  String(inboxText || '').split('\n').forEach(function (l) {
+    var m = l.match(/опубликовано владельцем(?: \(по расписанию\))?: (\d{4}-\d+)\b/);
+    if (m) pub[m[1]] = true;
+    var e = l.match(/правка владельца в боте(?: \(и в канале\))?: (\d{4}-\d+) — (.*)$/);
+    if (e) {
+      var b = e[2].match(/Прогноз:\s*([^;]+)/) || e[2].match(/прогноз → «([^»]+)»/);
+      if (b) edits[e[1]] = b[1].trim();
+    }
+  });
+  String(sentText || '').split('\n').forEach(function (l) {
+    var c = l.trim().replace(/^\||\|$/g, '').split('|').map(function (x) { return x.trim(); });
+    if (c.length < 5 || !/^\d{4}-\d+$/.test(c[0])) return;
+    var m = c[2].match(/^(.+?)\s+[—–-]\s+(.+?),\s*(\d\d)\.(\d\d)\s+(\d\d):(\d\d)/);
+    if (!m) return;
+    var y = new Date(now).getUTCFullYear(), best = null;
+    [y - 1, y, y + 1].forEach(function (yy) {
+      var t = Date.parse(yy + '-' + m[4] + '-' + m[3] + 'T' + m[5] + ':' + m[6] + ':00+03:00');
+      if (isFinite(t) && (best === null || Math.abs(t - now) < Math.abs(best - now))) best = t;
+    });
+    if (best === null || best < t0 || best >= t1) return;
+    out.push({ pid: c[0], match: m[1].trim() + ' — ' + m[2].trim(), bet: edits[c[0]] || c[3], start: best, pub: !!pub[c[0]] });
+  });
+  out.sort(function (a, b) { return a.start - b.start || Number(a.pid.split('-')[1]) - Number(b.pid.split('-')[1]); });
+  return out;
+}
+
+/** Подписи кнопок: «Лада — СКА · победа СКА»; одинаковые — с номером. Не длиннее 60 знаков. */
+function recapLabels_(items) {
+  var base = items.map(function (it) { return it.match + ' · ' + recapShortBet_(it.bet); }), cnt = {};
+  base.forEach(function (b) { cnt[b] = (cnt[b] || 0) + 1; });
+  return base.map(function (b, i) {
+    var t = cnt[b] > 1 ? b + ' (' + items[i].pid + ')' : b;
+    return t.length > 60 ? t.slice(0, 59) + '…' : t;
+  });
+}
+
+function recapAskKb_(st) {
+  var rows = st.items.map(function (it) {
+    return [{ text: (st.sel[it.pid] ? '☑ ' : '☐ ') + it.label, callback_data: 'tm|rat|' + it.pid + '|' + st.day }];
+  });
+  rows.push([{ text: 'Готово', callback_data: 'tm|rad||' + st.day }, { text: 'Сегодня без итогов', callback_data: 'tm|ran||' + st.day }]);
+  return { inline_keyboard: rows };
+}
+
+function recapAskText_(st) {
+  return 'Доброе утро! На какие прогнозы вчера ставили?\n\n' +
+    (st.items.length ? 'Отметьте кнопками (☑ — уже опубликованные через бота). ' : '') +
+    'Свои прогнозы, которых нет в списке, пришлите сообщением — по строке на каждый:\nПрогноз: победа СКА в основное время, кэф 1,85\n\n' +
+    'Потом «Готово» — соберу итоги только по выбранному.';
+}
+
+/** Из liveUpdateAuto_ (раз в 5 минут): в 05:00 МСК — опрос, в 08:00 — одно напоминание. Возвращает, что сделано. */
+function recapAskTick_() {
+  var h = Number(mskNow_('H')), day = mskNow_('yyyy-MM-dd'), p = PropertiesService.getScriptProperties();
+  var old = addDaysKey_(day, -7);
+  p.getKeys().forEach(function (k) { if (k.indexOf(RECAP_ASK_PROP) === 0 && k.slice(RECAP_ASK_PROP.length) < old) p.deleteProperty(k); });
+  if (h < RECAP_ASK_HOUR) return '';
+  var st = recapAskGet_(day);
+  if (!st) {
+    if (h >= RECAP_ASK_LAST_HOUR) return '';
+    if (!p.getProperty('GITHUB_TOKEN')) return '';                       // без GitHub списка нет — молчим
+    return recapAskSend_(day);
+  }
+  if (st.mid && !st.done && !st.reminded && h >= RECAP_REMIND_HOUR && Date.now() - (st.sentAt || 0) >= 3600000) {
+    st.reminded = Date.now();
+    recapAskPut_(st);
+    tgRaw_('sendMessage', { chat_id: st.chat, reply_to_message_id: st.mid,
+      text: 'Напоминаю: на какие прогнозы вчера ставили? Отметьте их в сообщении выше и нажмите «Готово» — без вашего ответа итоги не собираю и ничего не публикую.' });
+    return 'напоминание';
+  }
+  return '';
+}
+
+/** Отправить опрос дня day (yyyy-MM-dd). Отправленных на вчера прогнозов нет — не спрашиваем. */
+function recapAskSend_(day) {
+  var t1 = Date.parse(day + 'T08:00:00+03:00'), t0 = t1 - 86400000, items;
+  try { items = recapSentPicks_(teamFile_('team/picks/SENT.md').text, teamFile_('team/INBOX.md').text, t0, t1); }
+  catch (e) { console.log('опрос итогов: ' + e.message); return ''; }        // GitHub не ответил — попробуем через 5 минут
+  var st = { day: day, items: [], sel: {}, free: [], t: Date.now() };
+  if (!items.length) { st.skipped = 'нет отправленных прогнозов'; recapAskPut_(st); return 'нет прогнозов'; }
+  var labels = recapLabels_(items);
+  st.items = items.map(function (it, i) { return { pid: it.pid, label: labels[i] }; });
+  items.forEach(function (it) { if (it.pub) st.sel[it.pid] = true; });
+  st.chat = recapOwnerChat_();
+  if (!st.chat) { st.skipped = 'не знаю чат владельца'; recapAskPut_(st); return ''; }
+  var r = tgRaw_('sendMessage', { chat_id: st.chat, text: recapAskText_(st), reply_markup: recapAskKb_(st) });
+  if (!r || !r.ok) { console.log('опрос итогов: ' + ((r && r.description) || 'Telegram не ответил')); return ''; }
+  st.mid = r.result.message_id;
+  st.sentAt = Date.now();
+  recapAskPut_(st);
+  return 'опрос: ' + items.length;
+}
+
+/** Кнопки опроса: tm|rat|<номер>|<день> — отметить/снять, tm|rad||<день> — «Готово», tm|ran||<день> — «Сегодня без итогов». */
+function recapAskCallback_(q, parts, answer) {
+  var act = parts[1], pid = parts[2] || '', day = parts[3] || '', m = q.message, st = recapAskGet_(day);
+  if (!st || !st.items) { answer('Этот опрос устарел', true); return; }
+  if (st.done) { answer(st.done === 'none' ? 'Отмечено: сегодня без итогов' : 'Итоги уже заказаны'); return; }
+  if (act === 'rat') {
+    if (!st.items.some(function (it) { return it.pid === pid; })) { answer(); return; }
+    if (st.sel[pid]) delete st.sel[pid]; else st.sel[pid] = true;
+    recapAskPut_(st);
+    tg_('editMessageReplyMarkup', { chat_id: m.chat.id, message_id: m.message_id, reply_markup: recapAskKb_(st) });
+    answer(st.sel[pid] ? 'Отмечено' : 'Снято');
+    return;
+  }
+  var dm = recapDm_(day);
+  if (act === 'ran') {
+    st.done = 'none';
+    recapAskPut_(st);
+    tg_('editMessageReplyMarkup', { chat_id: m.chat.id, message_id: m.message_id,
+      reply_markup: { inline_keyboard: [[{ text: 'Сегодня без итогов', callback_data: 'tm|done' }]] } });
+    answer('Ок, сегодня без итогов');
+    try { teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · итоги ставок ' + dm + ': сегодня без итогов', 'Inbox: no recap today'); } catch (e) { /* */ }
+    return;
+  }
+  if (act !== 'rad') { answer(); return; }
+  var pids = st.items.filter(function (it) { return st.sel[it.pid]; }).map(function (it) { return it.pid; });
+  if (!pids.length && !st.free.length) { answer('Ничего не отмечено. Отметьте прогнозы или нажмите «Сегодня без итогов»', true); return; }
+  if (!st.inboxed) {                                   // сначала запись в INBOX (коммит), потом запуск — повтор «Готово» строку не дублирует
+    try {
+      teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · ' + recapInboxLine_(day, pids, st.free), 'Inbox: owner picked bets for the recap');
+      st.inboxed = Date.now();
+    } catch (e) { st.inboxErr = String(e.message).slice(0, 120); }
+    recapAskPut_(st);
+  }
+  var at = Utilities.formatDate(new Date(st.inboxed || Date.now()), 'Europe/Moscow', 'yyyy-MM-dd HH:mm');
+  var r = recapDispatch_({ kind: 'team', job: 'team/out/' + day + '/recap_ask.json', pids: pids, free: st.free, day: day, at: at });
+  if (!r.ok) {
+    answer('Итоги не запустились', true);
+    tg_('sendMessage', { chat_id: m.chat.id, text: '⚠️ Итоги не запустились: ' + r.why + '\nВыбор сохранён — нажмите «Готово» ещё раз.' });
+    return;
+  }
+  st.done = 'ok';
+  st.at = at;
+  recapAskPut_(st);
+  tg_('editMessageReplyMarkup', { chat_id: m.chat.id, message_id: m.message_id,
+    reply_markup: { inline_keyboard: [[{ text: '✅ Итоги заказаны: ' + (pids.length + st.free.length), callback_data: 'tm|done' }]] } });
+  answer('Принято');
+  tg_('sendMessage', { chat_id: m.chat.id, text: 'Принято — итоги будут через 2–3 минуты' });
+}
+
+/** Строка INBOX: «итоги ставок 16.10: выбрано 1510-1, 1510-6; свои: "Прогноз: …"; "Прогноз: …"». */
+function recapInboxLine_(day, pids, free) {
+  return 'итоги ставок ' + recapDm_(day) + ': выбрано ' + (pids.length ? pids.join(', ') : '—') +
+    (free.length ? '; свои: ' + free.map(function (f) { return '"' + String(f).replace(/"/g, '\'') + '"'; }).join('; ') : '');
+}
+
+/** Запуск itogi.yml на ветке команды (workflow_dispatch; токену нужно право Actions: Read and write). → {ok} | {ok:false, why}. */
+function recapDispatch_(payload) {
+  var r = itogiGithub_('post', '/repos/' + ITOGI_REPO + '/actions/workflows/' + RECAP_WORKFLOW + '/dispatches',
+    { ref: TEAM_BRANCH, inputs: { payload: JSON.stringify(payload) } });
+  if (!r) return { ok: false, why: 'GitHub не подключён (меню «📣 … · ТГ группа» → «🔑 Подключить GitHub для постеров»).' };
+  var code = r.getResponseCode();
+  if (code === 204 || code === 200) return { ok: true };
+  return { ok: false, why: 'GitHub ответил ' + code + (code === 403 || code === 404 ?
+    ' — у токена GITHUB_TOKEN нет права Actions: Read and write (GitHub → Settings → Developer settings → Fine-grained tokens → токен → Repository permissions → Actions).' :
+    ': ' + r.getContentText().slice(0, 150)) };
+}
+
+/** Кэф из строки своего прогноза (только для ответа владельцу; считает итоги team/daily/ask.py):
+ *  «кэф 1,85» / «коэф. 1.85» / «@1.85»; число в конце строки — кэф, если перед ним есть ещё число или в строке нет линии
+ *  (тотал, фора, ИТБ…): «победа СКА 1,85» — кэф, «тотал больше 5,5» — нет. → {text без кэфа, kef: '1,85' | ''}. */
+function recapFreeKef_(body) {
+  var t = String(body || '').trim(), m = t.match(/[,;]?\s*(?:кэф|коэф\w*\.?|кф|@)\s*[:=]?\s*(\d+[.,]\d+)/i);
+  if (m) return { text: (t.slice(0, m.index) + t.slice(m.index + m[0].length)).replace(/\s+/g, ' ').trim(), kef: m[1].replace('.', ',') };
+  m = t.match(/[,;]?\s(\d{1,2}[.,]\d{1,3})\s*$/);
+  if (m) {
+    var before = t.slice(0, m.index);
+    if (/\d/.test(before) || !/тотал|фор[аоуы]|инд|(?:^|[^а-яё])(?:ит[бм]|т[бм]|ф[12])(?![а-яё])/i.test(before)) return { text: before.trim(), kef: m[1].replace('.', ',') };
+  }
+  return { text: t, kef: '' };
+}
+
+/** Строки «Прогноз: …» от владельца, пока опрос дня открыт: запомнить и показать, что понял. true — сообщение наше. */
+function recapFreeMessage_(msg) {
+  var lines = String(msg.text || '').split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+  if (!lines.length || !lines.every(function (l) { return /^прогноз\s*:/i.test(l); })) return false;
+  var day = mskNow_('yyyy-MM-dd'), st = recapAskGet_(day), rep = msg.reply_to_message;
+  if (!st || !st.mid) return false;
+  if (rep && rep.from && rep.from.is_bot && rep.message_id !== st.mid) return false;   // ответ на другой пост бота — не наше
+  if (!tgIsChannelAdmin_(msg.from.id)) { tgAdminDenied_(msg.chat.id, msg.from.id); return true; }
+  if (st.done) {
+    tgRaw_('sendMessage', { chat_id: msg.chat.id, text: st.done === 'none' ? 'Сегодня вы выбрали «без итогов» — эти строки не записал.' :
+      'Итоги за сегодня уже заказаны — эти строки не вошли. Если нужно переделать, напишите задачей: /задача пересобрать итоги …' });
+    return true;
+  }
+  var add = lines.map(function (l) { return 'Прогноз: ' + l.replace(/^прогноз\s*:\s*/i, '').replace(/\s+/g, ' ').slice(0, 200); })
+    .filter(function (l) { return l.length > 'Прогноз: '.length; });
+  st.free = st.free.concat(add).slice(0, RECAP_FREE_MAX);
+  recapAskPut_(st);
+  var echo = add.map(function (l, i) {
+    var r = recapFreeKef_(l.slice('Прогноз: '.length));
+    return (i + 1) + '. ' + escHtml_(r.text) + (r.kef ? ' — кэф ' + r.kef : ' — кэф не указан');
+  });
+  tgRaw_('sendMessage', { chat_id: msg.chat.id, reply_to_message_id: msg.message_id, parse_mode: 'HTML',
+    text: '📝 Записал ' + (add.length === 1 ? 'свой прогноз' : 'свои прогнозы (' + add.length + ')') + ':\n' + echo.join('\n') +
+      '\n\nВсего своих: ' + st.free.length + '. Матч найду по названиям команд; что не пойму — напишу «не понял» в итогах. Когда всё отметите — «Готово».' });
+  return true;
 }
 
 /* ── ✏️ «Редактировать» пост (решение владельца 15.10) ──
