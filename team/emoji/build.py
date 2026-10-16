@@ -1,18 +1,13 @@
 # -*- coding: utf-8 -*-
-"""Сборка наборов эмодзи для публикации: PNG (make.py), анимированные WEBM (anim.py) и «живые» клубы —
-эмблемы клубов (clubs_logo.py, по умолчанию вид B: эмблема на флаге цвета клуба) → team/emoji/build/,
-список → build/manifest.json (его читает publish.py в Actions). Текстовые плашки (clubs_anim.py) остаются
-запасным вариантом: передать их папку третьим аргументом.
+"""Сборка наборов эмодзи для публикации: PNG (make.py), анимированные WEBM (anim.py) и «живые» плашки клубов
+(clubs_anim.py) → team/emoji/build/, список → build/manifest.json (его читает publish.py в Actions).
 Наборы: «JARVIS · хоккей» (base + цифры + шкала) и «JARVIS · клубы» (КХЛ + НХЛ).
 
 Плашки клубов уже опубликованы статичными, поэтому их WEBM идут с пометкой "replace": publish.py заменит
 стикер на той же позиции (replaceStickerInSet) — ссылка t.me/addemoji/jarvibet_clubs_… не меняется.
 Перед перезаписью сверяет порядок и эмодзи с прежним build/manifest.json (= опубликованным): расхождение — ошибка.
 
-Если в наборе на месте клубов уже видео (например, опубликованы текстовые плашки), --force-replace пишет
-"replace": "force" — publish.py заменит и видео на видео (когда размер файла в Telegram отличается).
-
-Запуск: python team/emoji/build.py [папка PNG] [папка WEBM] [папка WEBM клубов] [--force-replace]"""
+Запуск: python team/emoji/build.py [папка PNG] [папка WEBM] [папка WEBM клубов]"""
 import json
 import os
 import shutil
@@ -23,11 +18,9 @@ sys.path.insert(0, HERE)
 import make  # noqa: E402
 
 SCR = '/tmp/claude-0/-home-user--kaper-jarvis-bot/750ccff3-fed4-56c4-8b4f-e7d578ed1f4d/scratchpad'
-ARGS = [a for a in sys.argv[1:] if not a.startswith('--')]
-PNG = ARGS[0] if len(ARGS) > 0 else os.path.join(SCR, 'emoji')
-WEBM = ARGS[1] if len(ARGS) > 1 else os.path.join(SCR, 'emoji_anim')
-CLUBS = ARGS[2] if len(ARGS) > 2 else os.path.join(SCR, 'owner8_9', 'clubs_logo', 'B')
-REPLACE_MODE = 'force' if '--force-replace' in sys.argv else True
+PNG = sys.argv[1] if len(sys.argv) > 1 else os.path.join(SCR, 'emoji')
+WEBM = sys.argv[2] if len(sys.argv) > 2 else os.path.join(SCR, 'emoji_anim')
+CLUBS = sys.argv[3] if len(sys.argv) > 3 else os.path.join(SCR, 'owner8_9', 'clubs_anim')
 OUT = os.path.join(HERE, 'build')
 SETS = [('jarvibet_emoji', 'JARVIS · хоккей', ('base', 'score', 'bar')),
         ('jarvibet_clubs', 'JARVIS · клубы КХЛ и НХЛ', ('khl', 'nhl'))]
@@ -50,7 +43,7 @@ for name, title, groups in SETS:
                 files[key + '.webm'] = webm
                 it = {'key': key, 'file': key + '.webm', 'format': 'video', 'emoji': emoji}
                 if name in REPLACE:
-                    it['replace'] = REPLACE_MODE
+                    it['replace'] = True
             else:
                 files[key + '.png'] = os.path.join(PNG, key + '.png')
                 it = {'key': key, 'file': key + '.png', 'format': 'static', 'emoji': emoji}
