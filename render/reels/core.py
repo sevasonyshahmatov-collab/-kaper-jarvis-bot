@@ -183,6 +183,11 @@ def lines(words, name, size, max_w, fill=(255, 255, 255), wght=700, gap=0.12, al
                 cur = w
         if cur:
             rows.append(cur)
+        for k in range(len(rows) - 1):                       # предлог/союз в конце строки — на следующую
+            ws = rows[k].split()
+            if len(ws) > 1 and len(ws[-1]) <= 2:
+                rows[k] = ' '.join(ws[:-1])
+                rows[k + 1] = ws[-1] + ' ' + rows[k + 1]
         if len(rows) <= max_lines or size < 30:
             break
         size = int(size * 0.9)
