@@ -14,9 +14,10 @@
   "emoji": true         — не вычищать эмодзи из поста (по умолчанию в постах для канала их убираем); только для рубрик,
                           где владелец разрешил эмодзи: утренние посты team/daily (16.10).
 Сама команда отправляет в канал только задания с "approved": "owner" и "qa": "ok" — то, что владелец одобрил кнопкой «Да».
-Задания, которые запускает бот (утренний опрос «на что ставили», team/daily/README.md): если team/out/<день>/<имя>.json
-нет, а есть заготовка team/daily/jobs/<имя>.json, задание создаётся из неё ({day} → день); поля payload pids / free / day / at
-уходят скриптам переменными RECAP_PIDS / RECAP_FREE / RECAP_DAY / RECAP_AT.
+Задания, которые запускает бот сам (team/daily/README.md): 06:00 МСК — morning_greet («Начало игрового дня»), 08:30 МСК —
+recap_auto (итоги по постам канала); прежний утренний опрос — recap_ask. Если team/out/<день>/<имя>.json нет, а есть
+заготовка team/daily/jobs/<имя>.json, задание создаётся из неё ({day} → день); поля payload pids / free / day / at (только
+у recap_ask) уходят скриптам переменными RECAP_PIDS / RECAP_FREE / RECAP_DAY / RECAP_AT.
 
 job.json:
 {
@@ -46,7 +47,7 @@ import re
 import subprocess
 import sys
 
-TEMPLATES = 'team/daily/jobs'   # заготовки заданий, которые запускает бот (утренний опрос → recap_ask.json)
+TEMPLATES = 'team/daily/jobs'   # заготовки заданий, которые запускает бот (morning_greet, recap_auto; recap_ask)
 JOB_RE = re.compile(r'team/out/(\d{4}-\d\d-\d\d)/([a-z0-9_]+)\.json')
 PID_RE = re.compile(r'\d{4}-[0-9a-z]+')
 CHANNEL_MAX = 3

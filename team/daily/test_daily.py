@@ -8,7 +8,11 @@
      все посты проходят compose.validate (эмодзи, запретные слова, теги, длина, первая строка без времени матча);
   4) утренний опрос бота (ask.py, morning.py --ask): свои строки «Прогноз: …» обеих лиг → матч, ставка, кэф; непонятные
      и «Динамо» без уточнения — владельцу «не понял»; итоги по отмеченным номерам с правками владельца, недоигранные —
-     в итоги следующего утра (и не дважды); выбор из INBOX и из payload; render/team_job.py: заготовка и переменные.
+     в итоги следующего утра (и не дважды); выбор из INBOX и из payload; render/team_job.py: заготовка и переменные;
+  5) итоги из канала (channel.py, источник по умолчанию с 16.10): сохранённая лента t.me/s/jarvibet (fixtures/: фото,
+     видео, гифка, альбом, правки «edited», ответ, закреп, утренний пост, пост без «Прогноз:», чужие даты) → прогнозы
+     вчерашних матчей, дубль матча — последний пост; итоги и баннер только по ним; лента недоступна — INBOX + SENT.md,
+     во вступлении сказано, какой источник; «Начало игрового дня» отдельно (--greet-only); заготовки заданий бота.
 Макет API (mock_api) — тот же вид, что отдают приложение КХЛ и api-web.nhle.com; им же пользуются примеры."""
 import os
 import random
@@ -22,6 +26,7 @@ os.environ.setdefault('JARVIS_S', '1')
 
 import ask  # noqa: E402
 import calc  # noqa: E402
+import channel  # noqa: E402
 import compose  # noqa: E402
 import data  # noqa: E402
 import ledger  # noqa: E402
@@ -188,7 +193,7 @@ def run_day(d, games, picks, published=True, leaders=(), card=False, out_dir=Non
     data.set_mock(mock_api(games, now, leaders))
     sent, inbox = ledger_texts(picks, published)
     led = ledger.Ledger(morning.cutoff(d), inbox=inbox, sent=sent, picks='')
-    return morning.build(d, variant=variant, card=card, out_dir=out_dir, led=led)
+    return morning.build(d, variant=variant, card=card, out_dir=out_dir, led=led, source='ledger')
 
 
 # ---------------------------------------------------------------- проверки
@@ -248,7 +253,7 @@ def test_run162():
     now = morning.cutoff(d) + timedelta(minutes=5)
     os.environ['DAILY_NOW'] = now.strftime('%Y-%m-%d %H:%M')
     data.set_mock(mock_api(G, now))
-    msgs, s, inner = morning.build(d, card=False, recap_only=True, led=ledger.Ledger(morning.cutoff(d)))
+    msgs, s, inner = morning.build(d, card=False, recap_only=True, led=ledger.Ledger(morning.cutoff(d)), source='ledger')
     rows = {r['home']: r for r in inner['rd']['rows']}
     assert sorted(r.get('pid') for r in rows.values()) == ['1510-1', '1510-10', '1510-12', '1510-15', '1510-6'], rows.keys()
     assert rows['Чикаго']['g']['end'] == 'ОТ' and rows['Чикаго']['res'] == settle.LOSS, rows['Чикаго']
@@ -471,7 +476,158 @@ def test_team_job_ask():
     print('team_job: задание из заготовки team/daily/jobs/recap_ask.json, выбор владельца → RECAP_* (только проверенное) — ок')
 
 
+# ---------------------------------------------------------------- итоги из канала (t.me/s/jarvibet)
+
+FIX = os.path.join(HERE, 'fixtures')
+
+
+def channel_fixture():
+    pages = {}
+    for key, name in ((None, 'tme_s_jarvibet.html'), (104, 'tme_s_jarvibet_before104.html')):
+        with open(os.path.join(FIX, name), encoding='utf-8') as f:
+            pages[key] = f.read()
+    channel.set_pages(pages)
+
+
+def test_channel_parse():
+    channel_fixture()
+    posts = channel.parse_page(channel.fetch())
+    assert [p['id'] for p in posts] == [104, 105, 106, 107, 108, 110, 111], [p['id'] for p in posts]
+    by = {p['id']: p for p in posts}
+    assert by[104]['media'] == 'видео' and by[104]['edited'] and by[105]['media'] == 'гифка' and by[105]['edited']
+    assert by[108]['media'] == 'альбом' and not by[107]['edited'] and by[107]['media'] == 'фото'
+    assert by[104]['posted'].strftime('%d.%m %H:%M') == '15.10 15:12'
+    assert by[104]['text'][1] == ('Северсталь — Локомотив', 'Северсталь — Локомотив')       # строка матча жирным
+    assert by[105]['text'][0][0] == '🏒 НХЛ · 16 октября · 02:00 МСК'                        # эмодзи-картинка → символ
+    assert any('В очных встречах прошлого сезона — 2:1, 3:1 и 1:2!' in t for t, _ in by[104]['text'])   # &#33;
+    assert any('Бедар "горит"' in t for t, _ in by[107]['text'])                               # &quot;
+    assert by[106]['text'][0][0].startswith('Друзья, Сиэтл') and channel.pick_of(by[106]) == (None, None)   # ответ — не прогноз
+    d = date(2026, 10, 16)
+    t0, t1 = ask.window(d)
+    picks, info = channel.posts(t0, t1)
+    assert info['pages'] == 3 and info['total'] == 13, info                     # листает ?before=104, дальше постов нет
+    got = [(p['msg_id'], p['league'], p['home'], p['away'], p['start'].strftime('%d.%m %H:%M'), p['bet'], p['kef']) for p in picks]
+    assert got == [
+        (100, 'KHL', 'Лада', 'СКА', '15.10 18:00', 'победа СКА в основное время', 1.70),          # правка в канале: кэф 1,70
+        (104, 'KHL', 'Северсталь', 'Локомотив', '15.10 19:00', 'тотал матча меньше 5,5', 1.78),  # дубль №101 — взят последний
+        (105, 'NHL', 'Тампа-Бэй', 'Сиэтл', '16.10 02:00', 'фора Сиэтла +1,5', 1.80),            # гифка, шапка с эмодзи
+        (107, 'NHL', 'Чикаго', 'Виннипег', '16.10 03:00', 'победа Виннипега в основное время', 2.40),
+        (108, 'NHL', 'Эдмонтон', 'Юта', '16.10 04:00', 'индивидуальный тотал Юты больше 2,5', 1.62),   # альбом; «ИТБ» → полная форма
+        (110, 'NHL', 'Вегас', 'Калгари', '16.10 05:00', 'тотал матча меньше 5,5', 1.66),        # «ТМ 5,5», кэф в той же строке
+    ], got
+    assert [p['tg_edited'] for p in picks] == [True, True, True, False, False, False]
+    assert any('№101 и №104' in n for n in info['notes']) and any('№102' in n and 'Прогноз' in n for n in info['notes']), info['notes']
+    log = '\n'.join(info['log'])
+    for want in ('DAILY_SOURCE №101 | КХЛ · 15 октября · 19:00 МСК | Северсталь — Локомотив | тотал матча меньше 4,5 | кэф 2,05 | фото '
+                 '| опубликован 15.10 09:14 | дубль — взят №104',
+                 'DAILY_SOURCE №111 | КХЛ · 16 октября · 16:30 МСК | Авангард — Автомобилист', 'вне окна', 'DAILY_SOURCE №98 |'):
+        assert want in log, (want, log)
+    assert not any(x in log for x in ('№99 ', '№103 ', '№106 ')), log            # утренний пост, закреп, ответ — не прогнозы
+    print('лента канала: %d постов на 2 страницах, 6 прогнозов вчерашних матчей (фото, видео, гифка, альбом; правки канала; '
+          'дубль Северсталь — Локомотив → последний №104), утро / закреп / ответ / пост без «Прогноз:» / чужие даты — мимо — ок'
+          % info['total'])
+
+
+def test_channel_recap():
+    import contextlib
+    import io
+    channel_fixture()
+    d = date(2026, 10, 16)
+    ask_mock('2026-10-16 08:40')
+    led = ledger.Ledger(morning.cutoff(d), inbox='', sent='', picks='')
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        msgs, summary, inner = morning.build(d, card=False, led=led, recap_only=True, source='channel')
+    log = buf.getvalue()
+    assert 'DAILY_SOURCE канал @jarvibet: страниц 3, постов 13' in log and 'DAILY_SOURCE №104 |' in log, log
+    rd = inner['rd']
+    res = [(r['pid'], r['res']) for r in rd['rows']]
+    assert res == [('№100', settle.WIN), ('№104', settle.LOSS), ('№105', settle.WIN), ('№107', settle.LOSS),
+                   ('№108', settle.LOSS), ('№110', settle.WIN)], res
+    assert summary['src'] == 'channel' and summary['picks'] == 6
+    rec = inner['recap']['text']
+    lines = [x for x in rec.split('\n') if x and x[0] in '✅❌↩']
+    assert len(lines) == 6 and lines[0] == '✅Лада — СКА 2:4 (победа СКА в основное время);', lines
+    assert '❌Северсталь — Локомотив 5:2 (тотал матча меньше 5,5);' in lines and '✅Тампа-Бэй — Сиэтл 4:3 ОТ (фора Сиэтла +1,5);' in lines
+    intro = msgs[0]['text']
+    for want in ('<b>Итоги вчерашних ставок на 16 октября</b>', 'Итоги вчерашних ставок (1610-r1): 6 прогнозов, зашло 3 из 6',
+                 'Источник: посты канала @jarvibet (матчи с началом 15.10 08:00 – 16.10 08:00 МСК', '№100, №104, №105, №107, №108, №110',
+                 'Изменены в канале (взят текст после правки): №100, №104, №105', 'в канале дважды (№101 и №104)'):
+        assert want in intro, (want, intro)
+    assert [m.get('pid') for m in msgs] == [None, '1610-r1'] and msgs[1]['buttons'] == 'post' and msgs[1]['emoji']
+    # баннер «Матчи дня» (results) — только эти 6 матчей: 2 картинки по 3, альбом с подписью-итогами
+    out_dir = os.path.join(os.environ.get('TMPDIR', '/tmp'), 'daily_channel_test')
+    try:
+        import banner  # noqa: F401
+        with contextlib.redirect_stdout(io.StringIO()):
+            msgs_c, _, inner_c = morning.build(d, card=True, out_dir=out_dir, led=led, recap_only=True, source='channel')
+        assert len(inner_c['images']) == 2 and msgs_c[1]['type'] == 'album' and msgs_c[1]['text'] == inner_c['recap']['text']
+        banner_ok = 'баннер — альбом из 2 картинок'
+    except ImportError as e:
+        banner_ok = 'баннер не проверен (%s)' % e
+    # лента не прочиталась → запасной источник: INBOX «опубликовано владельцем» + SENT.md, во вступлении — крупно
+    channel.set_pages({})
+    sent, inbox = ledger_texts([dict(p, pid=p['pid']) for p in ASK_SENT])
+    led2 = ledger.Ledger(morning.cutoff(d), inbox=inbox, sent=sent, picks='')
+    with contextlib.redirect_stdout(io.StringIO()) as b2:
+        msgs2, summary2, inner2 = morning.build(d, card=False, led=led2, recap_only=True, source='channel')
+    assert summary2['src'] == 'ledger' and 'DAILY_SOURCE канал недоступен' in b2.getvalue(), b2.getvalue()
+    assert sorted(r['pid'] for r in inner2['rd']['rows']) == ['1510-1', '1510-13', '1510-2', '1510-6'], inner2['rd']['rows']
+    assert 'Источник: КАНАЛ НЕ ПРОЧИТАЛСЯ' in msgs2[0]['text'] and 'INBOX «опубликовано владельцем» + SENT.md' in msgs2[0]['text']
+    # ни ленты, ни записей — поста нет, но владелец знает, откуда смотрели
+    with contextlib.redirect_stdout(io.StringIO()):
+        msgs3, _, _ = morning.build(d, card=False, led=led, recap_only=True, source='channel')
+    assert len(msgs3) == 1 and 'и в записях бота прогнозов на эти матчи нет — поста нет' in msgs3[0]['text'], msgs3[0]['text']
+    # лента прочиталась, но вчерашних прогнозов в ней нет (утро 18.10)
+    channel_fixture()
+    ask_mock('2026-10-18 08:40')
+    with contextlib.redirect_stdout(io.StringIO()):
+        msgs4, _, _ = morning.build(date(2026, 10, 18), card=False, led=led, recap_only=True, source='channel')
+    assert len(msgs4) == 1 and 'в канале нет прогнозов на эти матчи — поста нет' in msgs4[0]['text'], msgs4[0]['text']
+    channel.set_pages(None)
+    print('итоги из канала: 6 прогнозов → 3 из 6, строки ✅/❌ по шаблону, %s; лента недоступна → INBOX + SENT.md с пометкой '
+          'во вступлении; пустой канал — «поста нет» с источником — ок' % banner_ok)
+
+
+def test_greet_only():
+    ask_mock('2026-10-16 06:01')
+    msgs, summary, inner = morning.build(date(2026, 10, 16), card=False, greet_only=True,
+                                         led=ledger.Ledger(morning.cutoff(date(2026, 10, 16)), inbox='', sent='', picks=''))
+    assert inner['rd'] is None and summary['picks'] == 0
+    assert [m.get('pid') for m in msgs] == [None, '1610-m1'], [m.get('pid') for m in msgs]
+    assert 'Итоги вчерашних ставок — отдельным сообщением позже утром' in msgs[0]['text'], msgs[0]['text']
+    print('06:00 — только «Начало игрового дня» (--greet-only), итоги отдельно — ок')
+
+
+def test_team_job_templates():
+    sys.path.insert(0, os.path.join(HERE, '..', '..', 'render'))
+    import json
+    import team_job
+    want = {'morning_greet': 'team/daily/morning.py 2099-01-03 --greet-only --no-wait --job-file team/out/2099-01-03/morning_greet.json',
+            'recap_auto': 'team/daily/morning.py 2099-01-03 --recap-only --source channel --job-file team/out/2099-01-03/recap_auto.json'}
+    for name, make in want.items():
+        job = 'team/out/2099-01-03/%s.json' % name
+        path = os.path.join(team_job.ROOT, job)
+        try:
+            assert team_job.from_template(job)
+            with open(path, encoding='utf-8') as f:
+                j = json.load(f)
+            assert j['day'] == '2099-01-03' and j['make'] == [make] and j['messages'] == [], j
+        finally:
+            if os.path.exists(path):
+                os.remove(path)
+    d = os.path.join(team_job.ROOT, 'team/out/2099-01-03')
+    if os.path.isdir(d) and not os.listdir(d):
+        os.rmdir(d)
+    assert team_job.recap_env({'kind': 'team', 'job': 'team/out/2099-01-03/recap_auto.json', 'day': '2099-01-03'}) == {}
+    print('team_job: заготовки morning_greet.json (06:00) и recap_auto.json (08:30) → задания дня — ок')
+
+
 if __name__ == '__main__':
+    test_channel_parse()
+    test_channel_recap()
+    test_greet_only()
+    test_team_job_templates()
     test_ask_free()
     test_ask_recap()
     test_team_job_ask()
