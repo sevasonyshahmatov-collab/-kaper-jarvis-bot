@@ -1297,7 +1297,7 @@ def _cards(m, plates_dir):
         lay.alpha_composite(blk)
         d.ellipse(((CXc - R) * SS, (CYc - R) * SS, (CXc + R) * SS, (CYc + R) * SS), fill=(20, 19, 24), outline=acc,
                   width=3 * SS)
-        _t(d, CXc, CYc - 18, 'Х', F(MAN, 16, 800), (200, 198, 206))
+        _t(d, CXc, CYc - 20, 'Х', F(OSW, 20, 600), (200, 198, 206))
         _t(d, CXc, CYc + 12, _n(m.odds[1]), F(OSW, 30, 700), acc)
     y = 862
     if m.pick:
