@@ -47,7 +47,7 @@ import re
 import subprocess
 import sys
 
-TEMPLATES = 'team/daily/jobs'   # заготовки заданий, которые запускает бот (morning_greet, recap_auto; recap_ask)
+TEMPLATES = 'team/daily/jobs'   # заготовки заданий, которые запускает бот (morning_greet, recap_auto; recap_ask; postmatch_auto)
 JOB_RE = re.compile(r'team/out/(\d{4}-\d\d-\d\d)/([a-z0-9_]+)\.json')
 PID_RE = re.compile(r'\d{4}-[0-9a-z]+')
 CHANNEL_MAX = 3
@@ -189,6 +189,20 @@ def recap_env(payload):
     return out
 
 
+def postmatch_env(payload):
+    """Прогноз для послематчевого поста (payload бота: pm = {pid, league, home, away, start, pick, kef, ch}) → POSTMATCH.
+    Только проверенные значения: номер ММДД-N, лига, начало «ГГГГ-ММ-ДД ЧЧ:ММ», строки до 200 знаков."""
+    pm = payload.get('pm')
+    if not isinstance(pm, dict) or not PID_RE.fullmatch(str(pm.get('pid') or '')):
+        return {}
+    if not re.fullmatch(r'\d{4}-\d\d-\d\d \d\d:\d\d', str(pm.get('start') or '')):
+        return {}
+    out = {k: str(pm.get(k) or '').replace('\n', ' ')[:200] for k in ('pid', 'league', 'home', 'away', 'start', 'pick', 'kef')}
+    if str(pm.get('ch') or '').isdigit():
+        out['ch'] = int(pm['ch'])
+    return {'POSTMATCH': json.dumps(out, ensure_ascii=False)}
+
+
 def main(payload):
     job = str(payload.get('job') or '')
     from_template(job)
@@ -197,6 +211,7 @@ def main(payload):
         job = json.load(f)
     env = dict(os.environ, PYTHONPATH=os.path.join(ROOT, 'render') + os.pathsep + os.environ.get('PYTHONPATH', ''))
     env.update(recap_env(payload))           # утренний опрос: RECAP_PIDS / RECAP_FREE / RECAP_DAY / RECAP_AT (team/daily/ask.py)
+    env.update(postmatch_env(payload))       # послематчевый пост: POSTMATCH — прогноз из payload бота (team/postmatch/run.py)
     errors = []
     for script in job.get('make') or []:
         print('рисую:', script)
