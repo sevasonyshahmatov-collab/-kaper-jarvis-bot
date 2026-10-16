@@ -143,9 +143,10 @@ class Editorial(Base):
                 nm = C.text(team.up, 'osw', 150, (245, 243, 238), 700, max_w=900)
                 C.put(fr, nm, W / 2, 1270)
             else:
-                C.put(fr, self.hn, W / 2, 700, self.q(t, D - 2 * self.u, 0.25))
-                C.put(fr, self.vs, W / 2, 860, self.q(t, D - 1.6 * self.u, 0.25))
-                C.put(fr, self.an, W / 2, 1020, self.q(t, D - 1.2 * self.u, 0.25))
+                ts = min(n * self.u * 2, D - 2 * self.u) if t < D - 2 * self.u else D - 2 * self.u
+                C.put(fr, self.hn, W / 2, 700, self.q(t, ts, 0.25))
+                C.put(fr, self.vs, W / 2, 860, self.q(t, ts + 0.4 * self.u, 0.25))
+                C.put(fr, self.an, W / 2, 1020, self.q(t, ts + 0.8 * self.u, 0.25))
             C.put(fr, self.head, W / 2, 258)
         else:
             z = 1 + 0.03 * C.seg(t, D, self.dur)
