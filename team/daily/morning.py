@@ -6,7 +6,7 @@
   python3 team/daily/morning.py 2026-10-16              (make задания, в Actions) данные → посты → сообщения в то же задание
   python3 team/daily/morning.py 2026-10-16 --dry        то же без записи в задание: тексты в консоль
   python3 team/daily/morning.py --history 2026-10-16    какие подачи и фразы выпали за 7 дней до даты (без сети)
-  ключи: --variant N — другой вариант текстов этого дня; --no-card — итоги без картинки; --no-wait — не ждать CUTOFF+5 мин
+  ключи: --variant N — другой вариант текстов этого дня; --card — итоги с картинкой (по умолчанию без — владелец 16.10); --no-wait — не ждать CUTOFF+5 мин
 
 Номера постов — ММДД-m1 (утро) и ММДД-r1 (итоги; картинка отдельно, если подпись не влезла, — ММДД-r2): бот принимает
 любой номер без «|» (tm|pub|<номер>), а буква не попадает под ММДД-N, по которому check.py --next считает номера
@@ -288,7 +288,7 @@ def main(argv=None):
     ap.add_argument('--history')
     ap.add_argument('--dry', action='store_true')
     ap.add_argument('--variant', type=int, default=0)
-    ap.add_argument('--no-card', action='store_true')
+    ap.add_argument('--card', action='store_true')        # картинка к итогам — владелец 16.10: пока без неё
     ap.add_argument('--no-wait', action='store_true')
     a = ap.parse_args(argv)
     if a.job:
@@ -298,7 +298,7 @@ def main(argv=None):
     d = date.fromisoformat(a.day) if a.day else data.now_msk().date()
     if not a.no_wait and not a.dry:
         wait_cutoff(d)
-    msgs, summary, _ = build(d, a.variant, card=not a.no_card)
+    msgs, summary, _ = build(d, a.variant, card=a.card)
     print('DAILY ' + json.dumps(summary, ensure_ascii=False), flush=True)
     if a.dry:
         for m in msgs:
