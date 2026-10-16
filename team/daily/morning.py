@@ -6,9 +6,10 @@
   python3 team/daily/morning.py 2026-10-16              (make задания, в Actions) данные → посты → сообщения в то же задание
   python3 team/daily/morning.py 2026-10-16 --dry        то же без записи в задание: тексты в консоль
   python3 team/daily/morning.py --history 2026-10-16    какие подачи и фразы выпали за 7 дней до даты (без сети)
-  ключи: --variant N — другой вариант текстов этого дня; --card — итоги с картинкой (по умолчанию без — владелец 16.10); --no-wait — не ждать CUTOFF+5 мин
+  ключи: --variant N — другой вариант текстов этого дня; --no-card — итоги без баннера; --recap-only — только итоги;
+         --no-wait — не ждать CUTOFF+5 мин; --job-file — куда писать сообщения (с --job: --name morning2 → morning2.json)
 
-Номера постов — ММДД-m1 (утро) и ММДД-r1 (итоги; картинка отдельно, если подпись не влезла, — ММДД-r2): бот принимает
+Номера постов — ММДД-m1 (утро) и ММДД-r1 (итоги; баннер отдельно, если подпись не влезла, — ММДД-r2): бот принимает
 любой номер без «|» (tm|pub|<номер>), а буква не попадает под ММДД-N, по которому check.py --next считает номера
 прогнозов, и под ММДД-N, по которому итоги ищут опубликованные прогнозы в INBOX.
 
@@ -131,7 +132,7 @@ def recap_data(d, led):
 
 # ---------------------------------------------------------------- сообщения
 
-def intro(d, morning, recap, rd, merr, card_note):
+def intro(d, morning, recap, rd, merr, card_note, recap_only=False):
     pid_m, pid_r = '%s-m1' % mmdd(d), '%s-r1' % mmdd(d)
     out = ['<b>Утренние посты на %s</b> — проверьте и опубликуйте' % compose.dm(d), '']
     if morning:
@@ -143,6 +144,8 @@ def intro(d, morning, recap, rd, merr, card_note):
             parts.append('НХЛ %s (ночь на %s, %s)' % (compose.plural(i['nhl'], 'матч', 'матча', 'матчей'),
                                                      compose.dm(d + timedelta(days=1)), i['nhl_when']))
         out.append('1. Начало игрового дня (%s): %s. Подача «%s».' % (pid_m, ', '.join(parts), texts.LAYOUT_RU[morning['layout']]))
+    elif recap_only:
+        out.append('1. Начало игрового дня: в этом запуске только итоги.')
     else:
         out.append('1. Начало игрового дня: матчей сегодня нет — поста нет.')
     for e in merr:
@@ -152,9 +155,9 @@ def intro(d, morning, recap, rd, merr, card_note):
         src = ('опубликованные вами' if rd['src'] == 'inbox' else
                'ОПУБЛИКОВАННЫХ НЕТ — по отправленным вам (в канал не выходили; в самом посте об этом не сказано)')
         ids = ', '.join(r.get('pid') or 'PICKS.md' for r in rd['rows'])
-        out.append('2. Итоги вчерашних ставок (%s): %s, зашло %d из %d%s. Подача «%s»%s.' % (
+        out.append('2. Итоги вчерашних ставок (%s): %s, зашло %d из %d%s%s.' % (
             pid_r, compose.plural(t['n'], 'прогноз', 'прогноза', 'прогнозов'), t['w'], t['d'],
-            ', возвратов %d' % t['p'] if t['p'] else '', texts.LAYOUT_RU[recap['layout']], card_note))
+            ', возвратов %d' % t['p'] if t['p'] else '', card_note))
         out.append('   Источник: %s — %s.' % (src, ids))
         edited = [r['pid'] for r in rd['rows'] if r.get('edited')]
         if edited:
@@ -180,58 +183,88 @@ def intro(d, morning, recap, rd, merr, card_note):
     return '\n'.join(out)
 
 
-def build(d, variant=0, card=True, out_dir=None, led=None):
-    """Всё утро: → (сообщения задания, сводка для лога)."""
+def date_range(rows):
+    """«15 октября» / «15–16 октября» / «31 октября – 1 ноября» по датам начала матчей (МСК)."""
+    ds = sorted({r['g']['start'].date() for r in rows})
+    a, b = ds[0], ds[-1]
+    if a == b:
+        return compose.dm(a)
+    if a.month == b.month:
+        return '%d–%s' % (a.day, compose.dm(b))
+    return '%s – %s' % (compose.dm(a), compose.dm(b))
+
+
+def log_scores(rd):
+    """Строки DAILY_SCORES в лог Actions: по каждому матчу итогов — источник, итог, основное время, ОТ/Б, как
+    определили, кто дома, на кого ставка, вердикт. Плюс не вошедшие и не разобранные."""
+    def side_s(r):
+        out = []
+        for l_ in r['legs']:
+            who = '' if 'side' not in l_ else ' на %s (%s)' % (r['home'] if l_['side'] == 'h' else r['away'],
+                                                              'хозяева' if l_['side'] == 'h' else 'гости')
+            out.append('%s%s, %s' % (l_['kind'], who, 'осн. время' if l_.get('scope', 'reg') == 'reg' else 'с ОТ/Б'))
+        return '; '.join(out)
+    for r in rd['rows']:
+        g = r['g']
+        reg = settle.scores(g, 'reg')
+        print('DAILY_SCORES %s | %s | %s (дома) — %s (в гостях) | начало %s МСК | %s | итог %d:%d%s | осн. время %d:%d (%s) | '
+              'ставка «%s» → %s | кэф %s | %s%s' % (
+                  r.get('pid') or 'PICKS.md', r['league'], r['home'], r['away'], g['start'].strftime('%d.%m %H:%M'), g.get('src', '?'),
+                  g['hg'], g['ag'], ' ' + g['end'] if g.get('end') else '', reg[0], reg[1], g.get('how', '—'), r['bet'], side_s(r),
+                  r.get('kef') or '—', settle.MARK[r['res']], ' | ВНИМАНИЕ: ' + g['warn'] if g.get('warn') else ''), flush=True)
+    for p, why in rd['pending']:
+        print('DAILY_SCORES %s | %s | %s — %s | %s — %s' % (p.get('pid') or 'PICKS.md', p['league'], p['home'], p['away'], why,
+                                                             'в завтрашние итоги' if p in rd['carry'] else 'в итоги не вошёл'))
+    for p, why in rd['bad']:
+        print('DAILY_SCORES %s | %s — %s | ставка «%s» не разобрана: %s' % (p.get('pid') or 'PICKS.md', p['home'], p['away'], p['bet'], why))
+
+
+def build(d, variant=0, card=True, out_dir=None, led=None, recap_only=False):
+    """Всё утро: → (сообщения задания, сводка для лога, внутренности). Посты — с "emoji": true (team_job их не чистит)."""
     plan = engine().plan(d, variant)
-    khl, nhl, leaders, merr = data.morning_games(d)
-    morning = compose.morning_post(d, khl, nhl, leaders, plan)
+    morning, merr = None, []
+    if not recap_only:
+        khl, nhl, leaders, merr = data.morning_games(d)
+        morning = compose.morning_post(d, khl, nhl, leaders, plan)
     led = led or ledger.Ledger(cutoff(d))
     rd = recap_data(d, led)
-    recap, card_note, card_path = None, '', None
-    msgs = []
+    log_scores(rd)
+    recap, card_note, images = None, '', []
     if rd['rows']:
+        recap = compose.recap_post(d, rd['rows'], rd['week'], plan)
         if card:
-            t = compose.tally(rd['rows'])
+            t = recap['tally']
             try:
-                import card as card_mod
-                card_path = card_mod.render(rd['rows'], os.path.join(out_dir or os.path.join(ROOT, 'out', 'daily', d.isoformat()), 'recap.jpg'),
-                                            title_date=compose.dm(d - timedelta(days=1)),
-                                            score='%d из %d' % (t['w'], t['d']) + (', возврат %d' % t['p'] if t['p'] else ''))
-                if not card_path:
-                    card_note = ', без картинки (больше %d матчей)' % card_mod.MAX_ROWS
+                import banner
+                images = banner.render(rd['rows'], out_dir or os.path.join(ROOT, 'out', 'daily', d.isoformat()),
+                                       '%s · зашло %s' % (date_range(rd['rows']), compose.score_line(t)))
+                card_note = ', баннер' if len(images) == 1 else ', %d баннера альбомом' % len(images)
             except Exception as e:  # noqa: BLE001
                 traceback.print_exc()
-                card_note = ', без картинки (не нарисовалась: %s)' % compose.esc(repr(e)[:80])
-        recap = compose.recap_post(d, rd['rows'], rd['week'], plan, photo=bool(card_path))
-        if card_path and len(recap['text']) > compose.CAPTION_MAX:
-            recap = compose.recap_post(d, rd['rows'], rd['week'], plan, photo=True, compact=True)
-        split_card = card_path and len(recap['text']) > compose.CAPTION_MAX
-        if card_path:
-            card_note = ', картинка отдельным постом %s-r2 (подпись длиннее 1024)' % mmdd(d) if split_card else ', с картинкой'
-        recap['photo'] = card_path if card_path and not split_card else None
-        recap['card'] = card_path if split_card else None
-    msgs.append({'to': 'owner', 'type': 'text', 'html': True, 'text': intro(d, morning, recap, rd, merr, card_note)})
+                card_note = ', без баннера (не нарисовался: %s)' % compose.esc(repr(e)[:80])
+        if images and len(recap['text']) > compose.CAPTION_MAX:
+            card_note += ' — подпись длиннее 1024: баннер отдельным постом %s-r2' % mmdd(d)
+    msgs = [{'to': 'owner', 'type': 'text', 'html': True, 'text': intro(d, morning, recap, rd, merr, card_note, recap_only)}]
     problems = []
+    post = dict(to='owner', html=True, buttons='post', emoji=True)
     if morning:
         problems += ['утро: ' + e for e in compose.validate(morning['text'])]
-        msgs.append({'to': 'owner', 'type': 'text', 'html': True, 'text': morning['text'], 'buttons': 'post', 'pid': '%s-m1' % mmdd(d)})
+        msgs.append(dict(post, type='text', text=morning['text'], pid='%s-m1' % mmdd(d)))
     if recap:
-        problems += ['итоги: ' + e for e in compose.validate(recap['text'], photo=bool(recap['photo']))]
-        rel = lambda p: os.path.relpath(p, ROOT)                     # noqa: E731
-        if recap['photo']:
-            msgs.append({'to': 'owner', 'type': 'photo', 'html': True, 'files': [rel(recap['photo'])], 'text': recap['text'],
-                         'buttons': 'post', 'pid': '%s-r1' % mmdd(d)})
+        rel = [os.path.relpath(p, ROOT) for p in images]
+        fits = len(recap['text']) <= compose.CAPTION_MAX
+        problems += ['итоги: ' + e for e in compose.validate(recap['text'], photo=bool(rel) and fits)]
+        if rel and fits:
+            msgs.append(dict(post, type='photo' if len(rel) == 1 else 'album', files=rel, text=recap['text'], pid='%s-r1' % mmdd(d)))
         else:
-            msgs.append({'to': 'owner', 'type': 'text', 'html': True, 'text': recap['text'], 'buttons': 'post', 'pid': '%s-r1' % mmdd(d)})
-            if recap['card']:
-                cap = '<b>Итоги прогнозов · %s</b>\n\n%s' % (compose.dm(d - timedelta(days=1)), recap['tags'])
-                msgs.append({'to': 'owner', 'type': 'photo', 'html': True, 'files': [rel(recap['card'])], 'text': cap,
-                             'buttons': 'post', 'pid': '%s-r2' % mmdd(d)})
+            msgs.append(dict(post, type='text', text=recap['text'], pid='%s-r1' % mmdd(d)))
+            if rel:
+                msgs.append(dict(post, type='photo' if len(rel) == 1 else 'album', files=rel, text='', pid='%s-r2' % mmdd(d)))
     if problems:
         msgs[0]['text'] += '\n\nПроверка постов: ' + compose.esc('; '.join(problems))
-    summary = dict(day=d.isoformat(), morning=morning and morning['layout'], recap=recap and recap['layout'],
-                   picks=len(rd['rows']), src=rd['src'], problems=problems)
-    return msgs, summary, dict(plan=plan, morning=morning, recap=recap, rd=rd)
+    summary = dict(day=d.isoformat(), morning=morning and morning['layout'], recap=recap and recap['tone'],
+                   picks=len(rd['rows']), src=rd['src'], images=len(images), problems=problems)
+    return msgs, summary, dict(plan=plan, morning=morning, recap=recap, rd=rd, images=images)
 
 
 # ---------------------------------------------------------------- запуск
@@ -245,8 +278,8 @@ def wait_cutoff(d):
         time.sleep(sec)
 
 
-def write_job(d, msgs):
-    p = job_path(d)
+def write_job(d, msgs, path=None):
+    p = path or job_path(d)
     try:
         with open(p, encoding='utf-8') as f:
             job = json.load(f)
@@ -260,10 +293,12 @@ def write_job(d, msgs):
     return p
 
 
-def make_template(d):
-    p = job_path(d)
+def make_template(d, name='morning', extra=''):
+    p = os.path.join(ROOT, 'team', 'out', d.isoformat(), name + '.json')
     os.makedirs(os.path.dirname(p), exist_ok=True)
-    job = {'day': d.isoformat(), 'make': ['team/daily/morning.py %s' % d.isoformat()], 'messages': []}
+    rel = os.path.relpath(p, ROOT)
+    job = {'day': d.isoformat(), 'make': [('team/daily/morning.py %s --job-file %s %s' % (d.isoformat(), rel, extra)).strip()],
+           'messages': []}
     with open(p, 'w', encoding='utf-8') as f:
         json.dump(job, f, ensure_ascii=False, indent=1)
         f.write('\n')
@@ -288,23 +323,28 @@ def main(argv=None):
     ap.add_argument('--history')
     ap.add_argument('--dry', action='store_true')
     ap.add_argument('--variant', type=int, default=0)
-    ap.add_argument('--card', action='store_true')        # картинка к итогам — владелец 16.10: пока без неё
+    ap.add_argument('--no-card', action='store_true')     # баннер итогов в шаблоне «Матчи дня» — по умолчанию есть (16.10, вечер)
     ap.add_argument('--no-wait', action='store_true')
+    ap.add_argument('--recap-only', action='store_true')
+    ap.add_argument('--job-file', help='куда писать сообщения (по умолчанию team/out/<D>/morning.json)')
+    ap.add_argument('--name', default='morning', help='с --job: имя файла задания (morning2 → morning2.json)')
     a = ap.parse_args(argv)
     if a.job:
-        return make_template(date.fromisoformat(a.job))
+        extra = ' '.join(x for x, on in (('--no-wait', a.no_wait), ('--recap-only', a.recap_only), ('--no-card', a.no_card)) if on)
+        return make_template(date.fromisoformat(a.job), a.name, extra)
     if a.history:
         return history(date.fromisoformat(a.history))
     d = date.fromisoformat(a.day) if a.day else data.now_msk().date()
     if not a.no_wait and not a.dry:
         wait_cutoff(d)
-    msgs, summary, _ = build(d, a.variant, card=a.card)
+    msgs, summary, _ = build(d, a.variant, card=not a.no_card, recap_only=a.recap_only)
     print('DAILY ' + json.dumps(summary, ensure_ascii=False), flush=True)
     if a.dry:
         for m in msgs:
             print('\n=== %s %s ===\n%s' % (m.get('pid', 'владельцу'), m['type'], m['text']))
         return
-    print('DAILY задание: ' + os.path.relpath(write_job(d, msgs), ROOT), flush=True)
+    jf = os.path.join(ROOT, a.job_file) if a.job_file and not os.path.isabs(a.job_file) else a.job_file
+    print('DAILY задание: ' + os.path.relpath(write_job(d, msgs, jf), ROOT), flush=True)
 
 
 if __name__ == '__main__':

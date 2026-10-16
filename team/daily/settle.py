@@ -166,6 +166,8 @@ def parse(bet, home, away):
 def scores(g, scope):
     """g — {hg, ag, end: ''|'ОТ'|'Б'} → счёт для расчёта: 'reg' — основное время, 'fin' — итоговый."""
     hg, ag = int(g['hg']), int(g['ag'])
+    if scope == 'reg' and g.get('reg'):
+        return tuple(g['reg'])                      # по периодам из данных лиги (data.khl_regulation / nhl_regulation)
     if scope == 'reg' and g.get('end'):
         m = min(hg, ag)
         return m, m

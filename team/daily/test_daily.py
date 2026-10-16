@@ -34,10 +34,24 @@ NHL_TEAMS = sorted(NHL_AB)
 
 # ---------------------------------------------------------------- макет API
 
-def game(league, start, home, away, hg=None, ag=None, end=''):
-    """start — 'YYYY-MM-DD HH:MM' МСК. Счёт None — матч ещё не сыгран (на момент now — live/future)."""
+def game(league, start, home, away, hg=None, ag=None, end='', no_outcome=False):
+    """start — 'YYYY-MM-DD HH:MM' МСК. Счёт None — матч ещё не сыгран (на момент now — live/future).
+    no_outcome=True — НХЛ отдаёт матч в состоянии FINAL без gameOutcome и periodDescriptor (ОТ видно только по голам) —
+    так в run 162 матч Чикаго — Виннипег с ОТ посчитали как в основное время."""
     return dict(league=league, start=datetime.strptime(start, '%Y-%m-%d %H:%M').replace(tzinfo=MSK), home=home, away=away,
-                hg=hg, ag=ag, end=end)
+                hg=hg, ag=ag, end=end, no_outcome=no_outcome)
+
+
+def _periods(g):
+    """Голы по периодам основного времени [(х, г)]×3 под итоговый счёт (ОТ/Б — +1 победителю сверху)."""
+    m = min(g['hg'], g['ag'])
+    rh, ra = (m, m) if g['end'] else (g['hg'], g['ag'])
+    per = [[0, 0], [0, 0], [0, 0]]
+    for k in range(rh):
+        per[k % 3][0] += 1
+    for k in range(ra):
+        per[(k + 1) % 3][1] += 1
+    return per
 
 
 def mock_api(games, now, leaders=()):
@@ -55,17 +69,35 @@ def mock_api(games, now, leaders=()):
                 'team_a': {'id': KHL_ID[g['home']], 'name': g['home']}, 'team_b': {'id': KHL_ID[g['away']], 'name': g['away']},
                 'score': '%d:%d' % (g['hg'], g['ag']) if done else ''}})
             if done:
-                khl['details'][str(eid)] = {'id': eid, 'score': '%d:%d' % (g['hg'], g['ag']),
-                                            'scores': {'overtime': '1:0' if g['end'] else '', 'bullitt': '1:0' if g['end'] == 'Б' else ''}}
+                per = _periods(g)
+                win_h = g['hg'] > g['ag']
+                khl['details'][str(eid)] = {'id': eid, 'score': '%d:%d' % (g['hg'], g['ag']), 'scores': {
+                    'first_period': '%d:%d' % tuple(per[0]), 'second_period': '%d:%d' % tuple(per[1]),
+                    'third_period': '%d:%d' % tuple(per[2]),
+                    'overtime': ('1:0' if win_h else '0:1') if g['end'] == 'ОТ' else '0:0',     # как в приложении: «0:0», если ОТ не было
+                    'bullitt': ('1:0' if win_h else '0:1') if g['end'] == 'Б' else ''}}
         else:
             day = data.nhl_game_day(g['start'])
-            st = 'OFF' if done else ('LIVE' if g['start'] <= now else 'FUT')
+            st = ('FINAL' if g.get('no_outcome') else 'OFF') if done else ('LIVE' if g['start'] <= now else 'FUT')
             row = {'id': 2026020000 + i, 'gameType': 2, 'gameState': st,
                    'startTimeUTC': g['start'].astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
                    'homeTeam': {'abbrev': NHL_AB[g['home']], 'score': g['hg'] if done else None},
                    'awayTeam': {'abbrev': NHL_AB[g['away']], 'score': g['ag'] if done else None}}
             if done:
-                row['gameOutcome'] = {'lastPeriodType': {'ОТ': 'OT', 'Б': 'SO'}.get(g['end'], 'REG')}
+                hab, aab = NHL_AB[g['home']], NHL_AB[g['away']]
+                goals = []
+                for n, (x, y) in enumerate(_periods(g), 1):
+                    goals += [{'periodDescriptor': {'number': n, 'periodType': 'REG'}, 'teamAbbrev': {'default': hab}}] * x
+                    goals += [{'periodDescriptor': {'number': n, 'periodType': 'REG'}, 'teamAbbrev': {'default': aab}}] * y
+                if g['end']:
+                    n, t = (4, 'OT') if g['end'] == 'ОТ' else (5, 'SO')
+                    goals.append({'periodDescriptor': {'number': n, 'periodType': t},
+                                  'teamAbbrev': {'default': hab if g['hg'] > g['ag'] else aab}})
+                row['goals'] = goals
+                if not g.get('no_outcome'):
+                    row['gameOutcome'] = {'lastPeriodType': {'ОТ': 'OT', 'Б': 'SO'}.get(g['end'], 'REG')}
+                    row['periodDescriptor'] = {'number': {'ОТ': 4, 'Б': 5}.get(g['end'], 3),
+                                               'periodType': {'ОТ': 'OT', 'Б': 'SO'}.get(g['end'], 'REG')}
             nhl.setdefault('score/' + day, {'games': []})['games'].append(row)
     nhl['standings/now'] = {'standings': [{'teamAbbrev': {'default': NHL_AB.get(t, t)}, 'leagueSequence': i + 1, 'gamesPlayed': 9}
                                           for i, t in enumerate(leaders)]}
@@ -200,6 +232,27 @@ def test_repo_ledger():
         print('  заметка:', n)
 
 
+def test_run162():
+    """Утро 16.10 как в run 162: Чикаго — Виннипег закончился в ОТ, а НХЛ отдал его как FINAL без gameOutcome;
+    1510-2 и 1510-15 — один матч Северсталь — Локомотив. Ждём: 5 прогнозов (1510-1 Лада — СКА на месте),
+    Виннипег «в основное время» — минус, Северсталь — один раз."""
+    d = date(2026, 10, 16)
+    G = [game('KHL', '2026-10-15 18:00', 'Лада', 'СКА', 2, 4), game('KHL', '2026-10-15 19:00', 'Северсталь', 'Локомотив', 5, 2),
+         game('NHL', '2026-10-16 02:00', 'Тампа-Бэй', 'Сиэтл', 4, 3, 'ОТ'), game('NHL', '2026-10-16 03:00', 'Миннесота', 'Сент-Луис', 5, 4),
+         game('NHL', '2026-10-16 03:00', 'Чикаго', 'Виннипег', 3, 4, 'ОТ', no_outcome=True),
+         game('NHL', '2026-10-16 04:00', 'Эдмонтон', 'Юта', 5, 2), game('NHL', '2026-10-16 05:00', 'Вегас', 'Калгари', 3, 2)]
+    now = morning.cutoff(d) + timedelta(minutes=5)
+    os.environ['DAILY_NOW'] = now.strftime('%Y-%m-%d %H:%M')
+    data.set_mock(mock_api(G, now))
+    msgs, s, inner = morning.build(d, card=False, recap_only=True, led=ledger.Ledger(morning.cutoff(d)))
+    rows = {r['home']: r for r in inner['rd']['rows']}
+    assert sorted(r.get('pid') for r in rows.values()) == ['1510-1', '1510-10', '1510-12', '1510-15', '1510-6'], rows.keys()
+    assert rows['Чикаго']['g']['end'] == 'ОТ' and rows['Чикаго']['res'] == settle.LOSS, rows['Чикаго']
+    assert rows['Тампа-Бэй']['res'] == settle.WIN and rows['Северсталь']['res'] == settle.LOSS
+    print('run 162 (16.10): 5 прогнозов, ОТ у Чикаго — Виннипег найден по голам, «победа Виннипега в осн. время» — минус — ок')
+    return msgs, inner
+
+
 def sentences(text):
     plain = re.sub(r'<[^>]+>', '', text)
     for t in KHL_TEAMS + NHL_TEAMS + [settle.gen(x) for x in KHL_TEAMS + NHL_TEAMS]:
@@ -207,7 +260,8 @@ def sentences(text):
     plain = re.sub(r'\d+([:,.]\d+)?', '0', plain)
     out = []
     for line in plain.split('\n'):
-        if line.startswith('#') or re.match(r'^0 К — К|^(КХЛ|НХЛ)( ·|$)|^Главное:', line) or re.search(r'→|ЗАШЛО|МИНУС|ВОЗВРАТ', line) or \
+        if line.startswith('#') or line[:1] in '✅❌↩' or re.match(r'^0 К — К|^(КХЛ|НХЛ)( ·|$)|^Главное:', line) or \
+                re.search(r'→|ЗАШЛО|МИНУС|ВОЗВРАТ', line) or \
                 ' — К' in line[:40] and re.search(r'\b0\b', line):
             continue                                      # строки матчей, подзаголовки лиг, табло и хэштеги — данные, а не фразы
         out += [s.strip() for s in re.split(r'(?<=[.!?])(?<!ед\.)\s+', line) if len(s.strip()) > 12]
@@ -223,11 +277,14 @@ def simulate(d0, days=7, show=False, seed=11):
         d = d0 + timedelta(days=k)
         msgs, summary, inner = run_day(d, games, picks)
         plan = inner['plan']
-        lay = (plan.layout('m'), plan.layout('r'))
-        assert lay[0] != lay[1], 'утро и итоги одним макетом: %s' % d
+        lay = (plan.layout('m'), 'шаблон')
         if prev:
-            assert lay[0] != prev[0] and lay[1] != prev[1], 'макет повторился день в день: %s %s %s' % (d, prev, lay)
+            assert lay[0] != prev[0], 'макет утра повторился день в день: %s %s %s' % (d, prev, lay)
         prev = lay
+        rec = inner['recap']
+        if rec:                                           # строк прогнозов столько же, сколько в строке «ставили на N»
+            n_lines = sum(1 for x in rec['text'].split('\n') if x and x[0] in '✅❌↩')
+            assert n_lines == rec['tally']['n'] == len(inner['rd']['rows']), (d, n_lines, rec['tally'])
         for bank, items in plan.picks.items():
             if bank.endswith('.layout') or bank == 'addr':
                 continue
@@ -248,11 +305,12 @@ def simulate(d0, days=7, show=False, seed=11):
                 seen_sent.setdefault(s, (d, m['pid']))
         report.append((d, summary, msgs))
         if show:
-            print('\n######## %s (%s): утро «%s», итоги «%s», прогнозов %d' % (d, compose.WD[d.weekday()], lay[0], lay[1], summary['picks']))
+            print('\n######## %s (%s): утро «%s», прогнозов в итогах %d' % (d, compose.WD[d.weekday()], lay[0], summary['picks']))
             for m in msgs:
                 print('--- %s ---\n%s' % (m.get('pid', 'владельцу'), m['text']))
     assert not problems, '\n'.join(problems)
-    print('симуляция %s … %s: макеты без повторов подряд, фразы банков и предложения — без повторов 7 дней, проверки постов — ок'
+    print('симуляция %s … %s: макет утра не повторяется подряд, строки прогнозов = «ставили на N», фразы банков и '
+          'предложения — без повторов 7 дней, проверки постов — ок'
           % (d0, d0 + timedelta(days=days - 1)))
     return report
 
@@ -260,5 +318,6 @@ def simulate(d0, days=7, show=False, seed=11):
 if __name__ == '__main__':
     test_settle()
     test_repo_ledger()
+    test_run162()
     simulate(date(2026, 10, 17), 7, show='--show' in sys.argv)
     simulate(date(2026, 11, 2), 7, seed=5)

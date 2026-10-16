@@ -43,7 +43,7 @@ HEAD, FOOT = 236, 104        # шапка и подвал (база 1080)
 GAP = 18                     # между полосами
 ROW_MAX = 240                # выше полоса — перебор (1–3 матча)
 OSW, ALU, MAN = 'Oswald[wght].ttf', 'AlumniSans[wght].ttf', 'Manrope[wght].ttf'
-TAG = {'KHL': 'KXL', 'NHL': 'NHL'}
+TAG = {'KHL': 'KXL', 'NHL': 'NHL', 'KHL+NHL': 'KXL · NHL'}   # 'KHL+NHL' — итоги прогнозов обеих лиг (team/daily)
 INK = (24, 20, 14)           # текст на плашках, как у versus
 GREY = (150, 148, 156)
 FOOT_ODDS = recap.FOOT_ODDS  # «…на момент публикации» — без упоминания таблицы
@@ -264,9 +264,9 @@ def render(items, path, league='KHL', title='МАТЧИ ДНЯ', date_title=None
     results=True — «Итоги дня»: items [{home, away, sh, sa, mark: '' | 'ОТ' | 'Б'}], заголовок «ИТОГИ ДНЯ»."""
     style = style if style in STYLES else 'strips'
     league = league.upper()
-    if league == 'NHL':
+    if league == 'NHL' or any(str(it.get('league', '')).upper() == 'NHL' for it in items):
         nhl.register()
-    acc = poster.ACC if league == 'KHL' else nhl.ICE
+    acc = poster.ACC if 'KHL' in league else nhl.ICE
     if results:
         title = 'ИТОГИ ДНЯ' if title == 'МАТЧИ ДНЯ' else title
         H, paint = _RES[style](items, rows, league, acc)
@@ -941,6 +941,7 @@ def _rs_strips(items, rows, league, acc):
 
 
 def _strip_res(img, it, y0, R, g, league, acc, F, i):
+    league = str(it.get('league') or league).upper()          # у итогов прогнозов в одном постере обе лиги
     (hn, hc, ha), (an, ac, aa) = _pair(it, league)
     sh, sa, mark, win = _res(it)
     pw, off, ph = g['pw'], g['off'], g['ph']
@@ -960,12 +961,58 @@ def _strip_res(img, it, y0, R, g, league, acc, F, i):
         c = _dim_ink(col) if _lost(win, k) else _readable(col)
         _txt(d, x * S, ya * S, abbr, _fit_room(abbr, ALU, 900, F['ab'], room), c + (255,), anchor)
     yp = y0 + R * 0.79
+    if it.get('verdict'):                                     # итоги прогнозов: вместо «ПОБЕДА» — знак и наша ставка
+        _pick_row(d, it, yp, g, ph, F, acc)
+        return
     if win is not None:
         ww = _win_w(F, ph)
         x = g['zx0'] + ww / 2 if win == 0 else g['zx1'] - ww / 2
         _win_pill(d, x * S, yp * S, ww * S, ph * S, F, acc)
     if mark:
         _mark_pill(d, zc * S, yp * S, ph * S, mark, F, acc)
+
+
+VERDICT_COL = {'win': (46, 160, 67), 'loss': (218, 54, 51), 'push': (72, 132, 226)}   # как ✅ / ❌ / ↩️ у Telegram
+
+
+def _verdict_icon(d, cx, cy, h, kind):
+    """Знак вердикта, нарисованный (в шрифтах постера нет эмодзи): «зашло» — зелёный квадрат с белой галочкой (✅),
+    «минус» — красный крест (❌), «возврат» — синий квадрат со стрелкой назад (↩️). Масштаб S."""
+    r, w = h / 2, max(2, int(h * 0.14))
+    col = VERDICT_COL[kind]
+    if kind == 'loss':
+        k = r * 0.78
+        for a, b in (((cx - k, cy - k), (cx + k, cy + k)), ((cx - k, cy + k), (cx + k, cy - k))):
+            d.line((a, b), fill=col, width=int(w * 1.6))
+        return
+    d.rounded_rectangle((cx - r, cy - r, cx + r, cy + r), radius=int(h * 0.22), fill=col)
+    if kind == 'win':
+        d.line([(cx - r * 0.50, cy + r * 0.02), (cx - r * 0.12, cy + r * 0.42), (cx + r * 0.55, cy - r * 0.45)], fill=(255, 255, 255),
+               width=w, joint='curve')
+    else:
+        d.arc((cx - r * 0.45, cy - r * 0.45, cx + r * 0.55, cy + r * 0.55), 270, 90, fill=(255, 255, 255), width=w)
+        d.line([(cx + r * 0.05, cy + r * 0.55), (cx - r * 0.35, cy + r * 0.55)], fill=(255, 255, 255), width=w)
+        d.line([(cx + r * 0.05, cy - r * 0.45), (cx - r * 0.45, cy - r * 0.45)], fill=(255, 255, 255), width=w)
+        d.polygon([(cx - r * 0.62, cy - r * 0.45), (cx - r * 0.25, cy - r * 0.72), (cx - r * 0.25, cy - r * 0.18)], fill=(255, 255, 255))
+
+
+def _pick_row(d, it, yp, g, ph, F, acc):
+    """Нижняя строка полосы итогов прогнозов: знак вердикта, ставка (it['bet']), справа «ОТ»/«Б»."""
+    x0, x1 = g['zx0'], g['zx1']
+    ih = ph * 0.92
+    _verdict_icon(d, (x0 + ih / 2) * S, yp * S, ih * S, it['verdict'])
+    mark = str(it.get('mark') or '').strip().upper()
+    right = x1
+    if mark:
+        mw = _mark_w(F, ph * 0.86 * S, mark) / S
+        _mark_pill(d, (x1 - mw / 2) * S, yp * S, ph * 0.86 * S, mark, F, acc)
+        right = x1 - mw - 12
+    if 'bet' not in F:
+        F['bet'] = _cap(MAN, 800, max(12, min(22, ph * 0.40)) * S)
+    room = (right - (x0 + ih + 12)) * S
+    text = str(it.get('bet') or '')
+    f = _fit_room(text, MAN, 800, F['bet'], room)
+    _txt(d, (x0 + ih + 12) * S, yp * S, text, f, (238, 236, 244) + (255,), 'l')
 
 
 # diagonal — счёт в тёмной скошенной плашке на срезе, «ОТ/Б» — такая же плашка поменьше ниже по срезу

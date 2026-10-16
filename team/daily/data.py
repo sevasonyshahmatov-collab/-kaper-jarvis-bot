@@ -130,7 +130,7 @@ def khl_games(t0, t1, detail_if=None):
             continue
         g = dict(league='KHL', id=e.get('id'), start=st, home=_khl_team(e.get('team_a')), away=_khl_team(e.get('team_b')),
                  state='final' if e.get('game_state_key') == 'finished' else 'live' if st <= now else 'future',
-                 hg=None, ag=None, end='')
+                 hg=None, ag=None, end='', src='КХЛ-прил event %s' % e.get('id'))
         sc = str(e.get('score') or '').split(':')
         if g['state'] == 'final' and len(sc) == 2 and all(x.strip().isdigit() for x in sc):
             g['hg'], g['ag'] = int(sc[0]), int(sc[1])
@@ -148,8 +148,8 @@ def khl_games(t0, t1, detail_if=None):
         sc = str(d.get('score') or '').split(':')
         if len(sc) == 2 and all(x.strip().isdigit() for x in sc):
             g['hg'], g['ag'] = int(sc[0]), int(sc[1])
-        s = d.get('scores') or {}
-        g['end'] = 'Б' if s.get('bullitt') else 'ОТ' if s.get('overtime') else ''
+        khl_regulation(g, d.get('scores') or {})
+
     with ThreadPoolExecutor(8) as ex:
         list(ex.map(det, need))
     for g in games:
@@ -159,7 +159,77 @@ def khl_games(t0, t1, detail_if=None):
     return games
 
 
+def _pair_goals(v):
+    m = re.match(r'\s*(\d+)\s*[:\-]\s*(\d+)', str(v or ''))
+    return (int(m.group(1)), int(m.group(2))) if m else None
+
+
+def khl_regulation(g, s):
+    """Счёт основного времени и ОТ/Б матча КХЛ из карточки (scores: first_period, second_period, third_period,
+    overtime, bullitt — строки «1:0»). Главный признак — сумма трёх периодов: совпала с итоговым счётом — ОТ не было
+    (строка overtime «0:0» — не овертайм). Не совпала: в овертайме есть шайбы — ОТ, иначе буллиты. Периодов нет —
+    по флагам overtime/bullitt (только с шайбами) и правилу «победа в ОТ/Б — на одну шайбу»."""
+    per = [_pair_goals(s.get(k)) for k in ('first_period', 'second_period', 'third_period')]
+    ot, so = _pair_goals(s.get('overtime')), _pair_goals(s.get('bullitt'))
+    if all(per) and g.get('hg') is not None:
+        rh, ra = sum(x[0] for x in per), sum(x[1] for x in per)
+        if (rh, ra) == (g['hg'], g['ag']):
+            g['end'], g['reg'], g['how'] = '', (rh, ra), 'периоды'
+        else:
+            g['end'] = 'ОТ' if ot and sum(ot) > 0 else 'Б'
+            g['reg'], g['how'] = (rh, ra), 'периоды'
+            if rh != ra:
+                g['warn'] = 'КХЛ: периоды %d:%d не ничья, а итог %d:%d — проверить' % (rh, ra, g['hg'], g['ag'])
+        return
+    has_ot = bool(ot and sum(ot) > 0) or (s.get('overtime') not in (None, '', '0:0', '0-0', False, 0) and not ot)
+    has_so = bool(so and sum(so) > 0) or (s.get('bullitt') not in (None, '', '0:0', '0-0', False, 0) and not so)
+    g['end'] = 'Б' if has_so else 'ОТ' if has_ot else ''
+    if g['end'] and g.get('hg') is not None and abs(g['hg'] - g['ag']) != 1:
+        g['warn'] = 'КХЛ: отмечен %s, но разница %d:%d — считаю основным временем' % (g['end'], g['hg'], g['ag'])
+        g['end'] = ''
+    g['how'] = 'флаги карточки'
+
+
 # ---------------------------------------------------------------- НХЛ
+
+def nhl_regulation(g, raw):
+    """ОТ/Б и счёт основного времени матча НХЛ из ответа score/<день>. Три источника: gameOutcome.lastPeriodType,
+    periodDescriptor (номер > 3 или тип OT/SO) и голы по периодам (goals[].periodDescriptor). Раньше брали только
+    gameOutcome — в состоянии FINAL (до OFF) его бывает нет, и матч с ОТ считался как в основное время."""
+    last = (raw.get('gameOutcome') or {}).get('lastPeriodType')
+    pd = raw.get('periodDescriptor') or {}
+    by_pd = pd.get('periodType') if pd.get('periodType') in ('OT', 'SO') else ('OT' if (pd.get('number') or 0) > 3 else None)
+    reg = [0, 0]
+    goals = raw.get('goals') or []
+    so_goal = ot_goal = False
+    hab = raw['homeTeam']['abbrev']
+    for gl in goals:
+        d = gl.get('periodDescriptor') or {}
+        n, t = d.get('number') or gl.get('period') or 0, d.get('periodType')
+        if t == 'SO' or n >= 5 and t != 'OT':
+            so_goal = True
+            continue
+        if t == 'OT' or n > 3:
+            ot_goal = True
+            continue
+        ab = gl.get('teamAbbrev')
+        ab = ab.get('default') if isinstance(ab, dict) else ab
+        reg[0 if ab == hab else 1] += 1
+    from_goals = 'SO' if so_goal else 'OT' if ot_goal else None
+    kinds = [x for x in (last, by_pd, from_goals) if x in ('OT', 'SO')]
+    kind = 'SO' if 'SO' in kinds else 'OT' if kinds else None
+    g['end'] = {'OT': 'ОТ', 'SO': 'Б'}.get(kind, '')
+    g['how'] = 'gameOutcome=%s periodDescriptor=%s/%s голы=%s' % (last, pd.get('number'), pd.get('periodType'), len(goals))
+    total = g['hg'] + g['ag']
+    if goals and sum(reg) + (1 if g['end'] else 0) == total:
+        g['reg'] = tuple(reg)
+    elif not g['end']:
+        g['reg'] = (g['hg'], g['ag'])
+    if g['end'] and abs(g['hg'] - g['ag']) != 1:
+        g['warn'] = 'НХЛ: %s, но разница %d:%d — проверить' % (g['end'], g['hg'], g['ag'])
+    if last in ('OT', 'SO', 'REG') and last != (kind or 'REG'):
+        g['warn'] = 'НХЛ: источники ОТ/Б расходятся (%s)' % g['how']
+
 
 def nhl_get(path):
     m = _mock()
@@ -185,11 +255,13 @@ def nhl_day(day):
         s = g.get('gameState')
         state = 'final' if s in ('OFF', 'FINAL') else 'off' if s in ('PPD', 'CNCL', 'SUSP') else \
             'live' if s in ('LIVE', 'CRIT') or st <= now else 'future'
-        end = {'OT': 'ОТ', 'SO': 'Б'}.get((g.get('gameOutcome') or {}).get('lastPeriodType'), '')
-        out.append(dict(league='NHL', id=g.get('id'), start=st, home=teams.NHL_RU.get(h['abbrev'], h['abbrev']),
-                        away=teams.NHL_RU.get(a['abbrev'], a['abbrev']), ab_h=h['abbrev'], ab_a=a['abbrev'], state=state,
-                        hg=int(h.get('score') or 0) if state == 'final' else None,
-                        ag=int(a.get('score') or 0) if state == 'final' else None, end=end if state == 'final' else ''))
+        x = dict(league='NHL', id=g.get('id'), start=st, home=teams.NHL_RU.get(h['abbrev'], h['abbrev']),
+                 away=teams.NHL_RU.get(a['abbrev'], a['abbrev']), ab_h=h['abbrev'], ab_a=a['abbrev'], state=state,
+                 hg=int(h.get('score') or 0) if state == 'final' else None,
+                 ag=int(a.get('score') or 0) if state == 'final' else None, end='', src='НХЛ-API score/%s' % day)
+        if state == 'final':
+            nhl_regulation(x, g)
+        out.append(x)
     out.sort(key=lambda g: g['start'])
     return out
 

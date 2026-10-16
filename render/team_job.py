@@ -11,6 +11,8 @@
                           «Не надо»; у альбома кнопки — следующим сообщением;
   "buttons": "proposal" — предложение работы: «Да» (согласие пишется в team/INBOX.md, команда выполнит), «Нет», «Поправить».
   "pid": "1012-3"       — номер предложения (месяц-день-№), по нему команда находит решение владельца в INBOX.
+  "emoji": true         — не вычищать эмодзи из поста (по умолчанию в постах для канала их убираем); только для рубрик,
+                          где владелец разрешил эмодзи: утренние посты team/daily (16.10).
 Сама команда отправляет в канал только задания с "approved": "owner" и "qa": "ok" — то, что владелец одобрил кнопкой «Да».
 
 job.json:
@@ -95,8 +97,8 @@ def send(token, chat, msg, to_channel):
     import itogi_job as ij
     kind = msg.get('type', 'text')
     text = str(msg.get('text') or '')
-    if to_channel or msg.get('buttons') == 'post':          # пост для канала — без эмодзи (правило канала)
-        text = ij.no_emoji(text)
+    if (to_channel or msg.get('buttons') == 'post') and not msg.get('emoji'):   # пост для канала — без эмодзи (правило канала);
+        text = ij.no_emoji(text)                     # "emoji": true — исключение владельца (утренние посты team/daily, 16.10)
     mode = {'parse_mode': 'HTML'} if msg.get('html') else {}
     kb = {} if to_channel else markup(msg)
     files = [_path(p) for p in msg.get('files') or []]

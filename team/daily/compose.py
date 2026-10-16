@@ -16,6 +16,7 @@ sys.path.insert(0, os.path.join(HERE, '..', 'picks'))
 
 import check  # noqa: E402  tags_ok, EMOJI, BANNED — те же проверки, что у постов-прогнозов
 import settle  # noqa: E402
+import texts  # noqa: E402
 
 MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
 WD = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
@@ -91,13 +92,13 @@ def bot_start(first_line):
     return bool(d and t)
 
 
-def validate(text, photo=False):
-    """→ список ошибок (пусто — можно отправлять)."""
+def validate(text, photo=False, emoji=True):
+    """→ список ошибок (пусто — можно отправлять). emoji=True — эмодзи разрешены (утренние посты, решение владельца 16.10)."""
     errs = []
     bad = check.tags_ok(text)
     if bad:
         errs.append(bad)
-    if check.EMOJI.search(text):
+    if not emoji and check.EMOJI.search(text):
         errs.append('эмодзи')
     low = html.unescape(re.sub(r'<[^>]+>', '', re.sub(r'#\w+', '', text))).lower()
     for w in tuple(check.BANNED) + MORE_BANNED:
@@ -223,6 +224,10 @@ def morning_post(day, khl, nhl, leaders, plan):
     else:  # number
         text = compose([P('m.num'), '', sent(hello, wd), sent(khl_t, nhl_t, nhlbig), derby, '', sent(P('m.cta'), P('m.close')),
                         '', tags])
+    lines = text.split('\n')
+    k = max(i for i, x in enumerate(lines[:-1]) if x.strip())          # последняя строка текста перед хэштегами
+    lines[k] = lines[k].rstrip() + plan.one('m.emoji')
+    text = '\n'.join(lines)
     return dict(text=text, layout=lay, tags=tags, info=dict(situation=c['situation'], khl=len(khl), nhl=len(nhl),
                                                              khl_when=c.get('khl_when'), nhl_when=c.get('nhl_when'),
                                                              derby=c.get('derby')))
@@ -263,105 +268,32 @@ def tone(t):
     return ('up', 'up') if r > 0.5 else ('even', 'even') if r == 0.5 else ('down', 'down')
 
 
-def recap_ctx(day, rows, week, plan):
-    t = tally(rows)
-    addr = plan.one('addr', 1)
-    c = dict(addr=addr, Addr=cap(addr), ydate=dm(day - timedelta(days=1)), n_sob=plural(t['n'], 'событие', 'события', 'событий'),
-             n_prog=plural(t['n'], 'прогноз', 'прогноза', 'прогнозов'), n_count=t['n'], w=t['w'], d=t['d'],
-             score='%d из %d' % (t['w'], t['d']),
-             ret_note='' if not t['p'] else ' и один возврат' if t['p'] == 1 else ' и %s' % plural(t['p'], 'возврат', 'возврата', 'возвратов'))
-    if t['units'] is not None:
-        c['units'] = units_s(t['units']) + ('' if t['known'] == t['n'] else ' (по %s с известным кэфом)'
-                                            % plural(t['known'], 'прогнозу', 'прогнозам', 'прогнозам'))
-    if week:
-        wt = tally(week)
-        c['wscore'] = '%d из %d' % (wt['w'], wt['d']) + ('' if not wt['p'] else ', %s' % plural(wt['p'], 'возврат', 'возврата', 'возвратов'))
-        c['wunits'] = ', %s' % units_s(wt['units']) if wt['units'] is not None and wt['known'] == wt['n'] else ''
-    return c, t
+def score_line(t):
+    """«3 из 4», «3 из 4, плюс возврат», «2 из 2, плюс 2 возврата»."""
+    out = '%d из %d' % (t['w'], t['d'])
+    if t['p']:
+        out += ', плюс возврат' if t['p'] == 1 else ', плюс %s' % plural(t['p'], 'возврат', 'возврата', 'возвратов')
+    return out
 
 
-def recap_post(day, rows, week, plan, photo=False, compact=False):
-    """week — прогнозы недели (вместе с вчерашними) или None."""
+def pick_line(r):
+    """Строка прогноза — всегда одна форма (шаблон владельца): «✅Тампа-Бэй — Сиэтл 4:3 ОТ (фора Сиэтла +1,5)»."""
+    return '%s%s — %s %s (%s)' % (texts.MARK_EMOJI[r['res']], esc(r['home']), esc(r['away']), score_s(r['g']), esc(r['bet']))
+
+
+def recap_post(day, rows, week, plan, photo=False):
+    """Итоги — шаблон владельца 16.10: приветствие + «итоги» / «куда ставили» / строки прогнозов / итог / настрой.
+    Счёт в строке «куда ставили» и число строк — из одного списка rows (не расходятся)."""
     if not rows:
         return None
-    c, t = recap_ctx(day, rows, week, plan)
-    P = lambda bank: fill(plan.one(bank), c)                      # noqa: E731
-    lay = plan.layout('r')
-    res_kind, close_kind = tone(t)
-    res = P('r.res.' + res_kind)
-    units = P('r.units') if 'units' in c and t['d'] else None
-    weekline = None
-    if week and len(week) > len(rows):
-        weekline = P('r.week_done' if day.weekday() == 0 else 'r.week')
-    close = P('r.close.' + close_kind)
-    hello, count = P('r.hello'), P('r.count')
-    pushes = [r for r in rows if r['res'] == settle.PUSH]
-    ret = fill(plan.one('r.ret'), dict(match='%s — %s' % (pushes[0]['home'], pushes[0]['away']), reason=pushes[0]['why'])) \
-        if pushes and lay not in ('list', 'tablo') else None
-    leagues = sorted({r['league'] for r in rows}, key=lambda x: x != 'KHL')
-    tags = tags_for(leagues)
-    sections = []
-    for r in rows:
-        s = section(r)
-        if not sections or sections[-1][0] != s:
-            sections.append((s, []))
-        sections[-1][1].append(r)
-    multi = len(sections) > 1
-    mark = lambda r: '<b>%s</b>' % settle.MARK[r['res']]          # noqa: E731
-    match = lambda r: '%s — %s' % (esc(r['home']), esc(r['away']))  # noqa: E731
-
-    def full(r):
-        k = kef_s(r.get('kef'))
-        return ['<b>%s %s</b>' % (match(r), score_s(r['g'])), '%s%s → %s' % (esc(r['bet']), ' · ' + k if k else '', mark(r))]
-
-    def comp(r):
-        return ['%s %s · %s · %s' % (match(r), score_s(r['g']), esc(r['short']), mark(r))]
-
-    def listing(fmt, label=True):
-        out = []
-        for s, rs in sections:
-            if multi and label:
-                out += ([''] if out and fmt is full else []) + ['<i>%s</i>' % s]
-            for r in rs:
-                out += fmt(r)
-        return out
-
-    def items(kind):
-        rs = [r for r in rows if r['res'] == kind]
-        return '; '.join('%s %s (%s)' % (match(r), score_s(r['g']), esc(r['bet'])) for r in rs)
-
-    if lay == 'list':
-        body = listing(comp if compact else full)
-        text = compose([P('r.head'), '', sent(hello, count), '', P('r.trans')] + body +
-                       ['', sent(res, units), weekline, close, '', tags])
-    elif lay == 'tablo':
-        board = []
-        for s, rs in sections:
-            if multi:
-                board.append('<i>%s</i>' % s)
-            board += ['%s · %s · %s · %s' % (match(r), score_s(r['g']), esc(r['short']), mark(r)) for r in rs]
-        text = compose([hello, count, '', '<blockquote>' + '\n'.join(board) + '</blockquote>', '', sent(res, units), weekline,
-                        close, '', tags])
-    elif lay == 'short':
-        groups = []
-        for kind in (settle.WIN, settle.LOSS, settle.PUSH):
-            rs = [r for r in rows if r['res'] == kind]
-            if rs:
-                groups.append('<b>%s</b> · %s' % (settle.MARK[kind], ', '.join('%s %s' % (match(r), score_s(r['g'])) for r in rs)))
-        text = compose([sent(hello, res)] + groups + [sent(units, weekline), close, '', tags])
-    elif lay == 'story':
-        parts = []
-        for kind, key in ((settle.WIN, 'won'), (settle.LOSS, 'lost')):
-            if any(r['res'] == kind for r in rows):
-                parts.append(fill(plan.one('r.story.' + key), dict(items=items(kind))))
-        if pushes:
-            parts.append(fill(plan.one('r.story.push'), dict(items=items(settle.PUSH))))
-        text = compose([hello, '', sent(count, *parts), ret, '', sent(res, units, weekline), close, '', tags])
-    elif lay == 'qa':
-        Q = lambda k: '<b>%s</b>' % plan.one('r.q.' + k)            # noqa: E731
-        won, lost = items(settle.WIN), items(settle.LOSS)
-        text = compose([hello, '', Q('count'), count, '', Q('won'), (won + '.') if won else 'Ничего.', '', Q('lost'),
-                        (lost + '.') if lost else 'Ничего.', ret, '', Q('total'), sent(res, units), weekline, '', close, '', tags])
-    else:  # number
-        text = compose([P('r.num'), '', sent(hello, count)] + listing(comp) + [ret, '', sent(units, weekline), close, '', tags])
-    return dict(text=text, layout=lay, tags=tags, tally=t, tone=res_kind)
+    t = tally(rows)
+    addr = plan.one('addr', 1)
+    c = dict(addr=addr, Addr=cap(addr), n_sob=plural(t['n'], 'событие', 'события', 'событий'),
+             n_prog=plural(t['n'], 'прогноз', 'прогноза', 'прогнозов'), n_count=t['n'], score=score_line(t))
+    res_kind, mood = tone(t)
+    picks = [pick_line(r) + (';' if i < len(rows) - 1 else '.') for i, r in enumerate(rows)]
+    text = compose([fill(plan.one('r.hello'), c), '', fill(plan.one('r.count'), c)] + picks +
+                   ['', fill(plan.one('r.total.' + res_kind), c), plan.one('r.wish.' + mood)])
+    assert len(picks) == t['n']
+    return dict(text=text, layout='шаблон владельца', tags='', tally=t, tone=res_kind,
+                leagues=sorted({r['league'] for r in rows}, key=lambda x: x != 'KHL'))
