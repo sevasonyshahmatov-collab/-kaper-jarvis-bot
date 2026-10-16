@@ -778,18 +778,18 @@ def _bolt(rng, x0, y0, x1, y1, depth=5, spread=0.22):
     return pts
 
 
-def bolt_layer(seed, x0, x1, y1=1300):
+def bolt_layer(seed, x0, x1, y1=1300, y0=-20):
     """Молния с ответвлениями на прозрачном кадре: ядро белое, ореол холодно-голубой."""
     rng = np.random.default_rng(seed)
     core = Image.new('L', (W, H), 0)
     d = ImageDraw.Draw(core)
-    main = _bolt(rng, x0, -20, x1, y1)
-    d.line(main, fill=255, width=6)
-    for _ in range(4):
+    main = _bolt(rng, x0, y0, x1, y1)
+    d.line(main, fill=255, width=9)
+    for _ in range(7):
         k = int(rng.integers(len(main) // 5, len(main) * 3 // 4))
         bx, by = main[k]
         br = _bolt(rng, bx, by, bx + rng.normal(0, 260), by + rng.uniform(150, 420), depth=4, spread=0.25)
-        d.line(br, fill=200, width=3)
+        d.line(br, fill=220, width=4)
     halo = core.filter(ImageFilter.GaussianBlur(22))
     halo2 = core.filter(ImageFilter.GaussianBlur(6))
     a = np.clip(np.asarray(core, np.float32) + np.asarray(halo2, np.float32) * 1.6 + np.asarray(halo, np.float32) * 2.2, 0, 255)
@@ -827,8 +827,10 @@ class Storm(Base):
                 x, y = rng.uniform(0, W + 200), rng.uniform(0, H)
                 d.line((x, y, x - ln * 0.25, y + ln), fill=(190, 205, 230, al), width=1 + k // 2)
             self.rain.append((lay, 900 + 500 * k))
-        self.bolts = [bolt_layer(s, x0, x1) for s, x0, x1 in ((3, 300, 420), (7, 820, 640), (12, 520, 560), (21, 150, 330), (33, 940, 760))]
+        self.bolts = [bolt_layer(s, x0, x1, 720) for s, x0, x1 in ((3, 260, 500), (7, 860, 590), (12, 480, 545), (21, 120, 470), (33, 980, 620))]
         self.big = bolt_layer(99, 560, 520, 1500)
+        self.big2 = bolt_layer(55, 120, 900, 1200)
+        self.big3 = bolt_layer(77, 1000, 180, 1250)
         self.e_h, self.e_a = self.h.emb(420), self.a.emb(420)
         self.s_h, self.s_a = self.h.emb(200), self.a.emb(200)
         self.head = C.text(head_line(m), 'manrope', 30, (175, 190, 215), 800, track=0.25)
@@ -849,7 +851,7 @@ class Storm(Base):
         for t0, i in [(self.drop, -1)] + self.hits:
             dt = t - t0
             if 0 <= dt < 0.45:
-                k = math.exp(-dt * 9) * (0.75 + 0.25 * math.cos(dt * 70))      # мерцание
+                k = math.exp(-dt * 6) * (0.55 + 0.45 * abs(math.cos(dt * 38)))   # 2–3 вспышки подряд
                 if k > best[0]:
                     best = (k, i)
         return best
@@ -861,12 +863,15 @@ class Storm(Base):
         # облака подсвечены вспышкой
         off = int((t * 18) % 400)
         cl = self.clouds.crop((off, 0, off + W, H))
-        cl_a = cl.point(lambda v: int(v * (0.35 + 0.9 * k)))
+        cl_a = cl.point(lambda v: int(min(255, v * (0.22 + 1.3 * k))))
         fr.alpha_composite(Image.merge('RGBA', (Image.new('L', (W, H), 120), Image.new('L', (W, H), 135),
                                                 Image.new('L', (W, H), 165), cl_a)))
         if bi is not None and k > 0.05:
-            b = self.big if bi == -1 else self.bolts[bi]
-            fr.alpha_composite(C.fade(b, min(1.0, k * 1.3)))
+            if bi == -1:
+                for b in (self.big, self.big2, self.big3):
+                    fr.alpha_composite(C.fade(b, min(1.0, k * 1.4)))
+            else:
+                fr.alpha_composite(C.fade(self.bolts[bi], min(1.0, k * 1.4)))
         for lay, sp in self.rain:
             y = int((t * sp) % H)
             x = int((t * sp * 0.25) % 200)
@@ -879,10 +884,11 @@ class Storm(Base):
             e, nm = (self.e_h, self.hn) if first else (self.e_a, self.an)
             t0 = 0 if first else half
             a = C.seg(t, t0 + 0.1, t0 + 0.6) * (1 - C.seg(t, t0 + half - 0.25, t0 + half))
-            lit = 0.55 + 0.45 * k
-            em = C.tint(e, (255, 255, 255), 0.0)
-            em = Image.eval(em, lambda v: v) if lit > 0.99 else em
-            C.put(fr, C.with_shadow(e, 30, 0.7, 20), W / 2, 800, a * lit)
+            lit = 0.5 + 0.5 * k
+            em = C.scale(e, 1 + 0.06 * k)
+            if k > 0.15:
+                em = C.glow(em, 26, 1.2 * k, (170, 205, 255))
+            C.put(fr, C.with_shadow(em, 30, 0.7, 20) if k <= 0.15 else em, W / 2, 800, a * lit)
             C.put(fr, nm, W / 2, 1180, a)
             C.put(fr, self.head, W / 2, 262, C.seg(t, 0.2, 0.9))
         else:
@@ -892,7 +898,8 @@ class Storm(Base):
             C.put(fr, C.text('VS', 'osw', 56, (175, 190, 215), 600, track=0.2), W / 2, 430, q)
             C.put(fr, self.lab, W / 2, 610, self.q(t, D + 0.1))
             qp = self.q(t, D + 0.15, 0.5)
-            C.put(fr, self.pick, W / 2, 650 + self.pick.height / 2 + 30 * (1 - qp), qp)
+            pg = self.pick if k < 0.1 else C.glow(self.pick, 14, 0.9 * k, (150, 190, 255))
+            C.put(fr, pg, W / 2, 650 + self.pick.height / 2 + 30 * (1 - qp), qp)
             y = 680 + self.pick.height + 40
             qk = self.q(t, self.t_kef, 0.4)
             C.put(fr, C.text('КЭФ', 'manrope', 30, (175, 190, 215), 800, track=0.6), W / 2, y, qk)
@@ -913,7 +920,7 @@ class Storm(Base):
         wf = max(wf, 0.25 * k if bi != -1 else 0)
         if wf > 0:
             fr.alpha_composite(Image.new('RGBA', (W, H), (225, 235, 255, int(210 * wf))))
-        dx, dy = C.shake(t, D, 14, 0.35)
+        dx, dy = C.shake(t, D, 26, 0.5)
         fr = C.zoom(fr, 1.02, dx=dx, dy=dy)
         return C.grain(C.vignette(fr, 0.55), t, 6)
 
