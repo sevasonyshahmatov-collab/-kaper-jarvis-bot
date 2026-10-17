@@ -1,0 +1,5 @@
+{
+ "day": "2026-10-17",
+ "make": ["team/out/2026-10-17/voices/make_voices.py base --job team/out/2026-10-17/voices/job_base.json"],
+ "messages": []
+}
