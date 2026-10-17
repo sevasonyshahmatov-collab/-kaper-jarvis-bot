@@ -21,12 +21,15 @@ def enabled():
 
 def _token():
     if not _state['token']:
-        r = requests.post(TOKEN_URL, data=dict(client_id=os.environ['YT_CLIENT_ID'], client_secret=os.environ['YT_CLIENT_SECRET'],
-                                               refresh_token=os.environ['YT_REFRESH_TOKEN'].strip(), grant_type='refresh_token'),
-                          timeout=30)
+        env = {k: ''.join(os.environ[k].split()) for k in ('YT_CLIENT_ID', 'YT_CLIENT_SECRET', 'YT_REFRESH_TOKEN')}   # без пробелов из вставки
+        r = requests.post(TOKEN_URL, data=dict(client_id=env['YT_CLIENT_ID'], client_secret=env['YT_CLIENT_SECRET'],
+                                               refresh_token=env['YT_REFRESH_TOKEN'], grant_type='refresh_token'), timeout=30)
         if r.status_code != 200:
-            raise RuntimeError('доступ к YouTube не обновился (%s) — обновите YT_REFRESH_TOKEN через OAuth Playground'
-                               % r.json().get('error', r.status_code))
+            err = r.json().get('error', r.status_code)
+            fix = {'invalid_client': 'проверьте секреты YT_CLIENT_ID и YT_CLIENT_SECRET (тот ли Client secret и включён ли он)',
+                   'unauthorized_client': 'проверьте секреты YT_CLIENT_ID и YT_CLIENT_SECRET',
+                   'invalid_grant': 'токен истёк или отозван — получите новый в OAuth Playground и обновите YT_REFRESH_TOKEN'}
+            raise RuntimeError('доступ к YouTube не обновился (%s) — %s' % (err, fix.get(err, 'проверьте секреты YT_*')))
         _state['token'] = r.json()['access_token']
     return _state['token']
 
