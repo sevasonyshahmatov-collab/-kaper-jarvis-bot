@@ -1,0 +1,29 @@
+{
+ "day": "2026-10-17",
+ "make": [
+  "team/out/2026-10-17/tracks_owner.py"
+ ],
+ "messages": [
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "out/tracks/slx.mp3",
+    "out/tracks/kizaru.mp3",
+    "out/tracks/vace.mp3",
+    "out/tracks/rotten.mp3",
+    "out/tracks/north.mp3",
+    "out/tracks/jefe.mp3"
+   ],
+   "captions": [
+    "slx — «Состав»",
+    "kizaru — «Состав»",
+    "vace — «Состав»",
+    "rotten — «Сравнение»",
+    "north — «Терминал»",
+    "jefe — «Карточка»"
+   ],
+   "text": "Треки роликов 12.10 (утверждённые форматы «Состав», «Сравнение», «Терминал», «Карточка»)."
+  }
+ ]
+}
