@@ -38,3 +38,14 @@ jobs:
           INPUT_PAYLOAD: ${{ github.event.inputs.payload }}
           EVENT_KIND: ${{ github.event.action }}
         run: python render/itogi_job.py
+      # каждый ролик сохраняется (владелец 17.10): полные версии — артефактом запуска на 90 дней
+      - name: Сохранить ролики
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: videos
+          path: |
+            team/out/**/*.mp4
+            render/out/**/*.mp4
+          if-no-files-found: ignore
+          retention-days: 90
