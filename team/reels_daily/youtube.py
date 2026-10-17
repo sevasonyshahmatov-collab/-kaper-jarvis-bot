@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Загрузка ролика на YouTube (YouTube Data API v3, videos.insert) — секреты YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN.
 
-Пока приложение Google не прошло проверку (YouTube API Services Audit), ролики загружаются закрытыми — владелец открывает
-доступ в YouTube Studio; квота — около 6 загрузок в день, кончилась (quotaExceeded) — остальные ролики только в Telegram.
+Ролики публикуются сразу «для всех» (владелец 17.10). Пока приложение Google не прошло проверку (YouTube API Services
+Audit), YouTube может оставить ролик закрытым — тогда в подписи Telegram об этом сказано; квота — около 6 загрузок в день, кончилась (quotaExceeded) — остальные ролики только в Telegram.
 Режим «Testing» в Google Cloud: refresh token живёт 7 дней — потом обновить YT_REFRESH_TOKEN (OAuth Playground)."""
 import json
 import os
@@ -43,7 +43,7 @@ def upload(path, title, description, tags):
     try:
         meta = {'snippet': {'title': title[:100], 'description': description[:4900], 'categoryId': SPORTS,
                             'tags': [t.lstrip('#') for t in tags], 'defaultLanguage': 'ru', 'defaultAudioLanguage': 'ru'},
-                'status': {'privacyStatus': 'private', 'selfDeclaredMadeForKids': False}}
+                'status': {'privacyStatus': 'public', 'selfDeclaredMadeForKids': False}}
         h = {'Authorization': 'Bearer ' + _token()}
         r = requests.post(UPLOAD_URL, headers=dict(h, **{'Content-Type': 'application/json; charset=UTF-8',
                                                          'X-Upload-Content-Type': 'video/mp4',
@@ -53,9 +53,11 @@ def upload(path, title, description, tags):
             with open(path, 'rb') as f:
                 r = requests.put(r.headers['Location'], headers=dict(h, **{'Content-Type': 'video/mp4'}), data=f, timeout=600)
         if r.status_code in (200, 201):
-            vid = r.json()['id']
-            print('YOUTUBE загружен %s: %s' % (vid, title), flush=True)
-            return 'https://youtu.be/%s' % vid, 'загружен закрытым — открыть доступ в YouTube Studio'
+            j = r.json()
+            vid, priv = j['id'], (j.get('status') or {}).get('privacyStatus')
+            print('YOUTUBE загружен %s (%s): %s' % (vid, priv, title), flush=True)
+            return 'https://youtu.be/%s' % vid, ('опубликован, доступ — для всех' if priv == 'public' else
+                                                 'загружен, но YouTube оставил его закрытым — откройте доступ в Studio')
         reason = ''
         try:
             reason = r.json()['error']['errors'][0].get('reason', '')
