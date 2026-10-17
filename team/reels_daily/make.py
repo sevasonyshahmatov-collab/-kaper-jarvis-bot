@@ -29,18 +29,25 @@ import yt_texts  # noqa: E402
 CFG = os.path.join(ROOT, 'team', 'out', '2026-10-13', 'reels_cfg')
 WEEK = ('ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС')
 
-# утверждённые шаблоны 14.10 (team/reels_selected/README.md): модуль, класс, трек, доля трека (с), дроп в треке (с)
-TEMPLATES = [
-    ('cinema', 'Cinema', 'withyou', 60 / 73, 52.11),
-    ('broadcast', 'Broadcast', 'packs', 60 / 71, 29.59),
-    ('dashboard', 'Dashboard', 'truck', 60 / 65, 103.98),
-    ('graffiti', 'Graffiti', 'vvs', 60 / 90, 98.69),
-    ('jewel', 'Jewel', 'vvs', 60 / 90, 27.47),
-    ('kinetic', 'Kinetic', 'packs', 60 / 71, 97.20),
-    ('race', 'Race', 'horses', 60 / 76, 37.92),
-    ('radar', 'Radar', 'bats', 60 / 73, 39.46),
-    ('vhs', 'Vhs', 'downdown', 60 / 61, 78.25),
-]
+# утверждённые шаблоны 14.10 (team/reels_selected/README.md) и их варианты с треками серии 16–17.10 (владелец 17.10:
+# «с новой музыкой пойдёт» — это отдельные шаблоны, чтобы ролики отличались; быстрые треки — на половинном темпе).
+# код: модуль, класс, трек, доля трека (с), дроп в треке (с)
+TEMPLATES = {
+    'cinema': ('cinema', 'Cinema', 'withyou', 60 / 73, 52.11),
+    'broadcast': ('broadcast', 'Broadcast', 'packs', 60 / 71, 29.59),
+    'dashboard': ('dashboard', 'Dashboard', 'truck', 60 / 65, 103.98),
+    'graffiti': ('graffiti', 'Graffiti', 'vvs', 60 / 90, 98.69),
+    'jewel': ('jewel', 'Jewel', 'vvs', 60 / 90, 27.47),
+    'kinetic': ('kinetic', 'Kinetic', 'packs', 60 / 71, 97.20),
+    'race': ('race', 'Race', 'horses', 60 / 76, 37.92),
+    'radar': ('radar', 'Radar', 'bats', 60 / 73, 39.46),
+    'vhs': ('vhs', 'Vhs', 'downdown', 60 / 61, 78.25),
+    'cinema_vampire': ('cinema', 'Cinema', 'vampire', 60 / 73, 92.101),
+    'graffiti_demons': ('graffiti', 'Graffiti', 'demons', 0.6522, 86.296),
+    'dashboard_doomsday': ('dashboard', 'Dashboard', 'doomsday', 2 * 0.4444, 43.181),
+    'race_cant_say': ('race', 'Race', 'cant_say', 2 * 0.3871, 49.161),
+    'vhs_two_faced': ('vhs', 'Vhs', 'two_faced', 2 * 0.4839, 33.871),
+}
 BOTH = 'broadcast'      # прогноз на матч целиком (тотал) — пока только «Эфир» показывает в финале обе команды
 
 
@@ -52,19 +59,16 @@ def out_dir(league, day):
 
 
 def assign(matches, day):
-    """Шаблон каждому матчу: чередование по кругу, начало круга сдвигается по дням; тотал — «Эфир»."""
+    """Шаблон каждому матчу: все по очереди, прошли круг — заново; начало круга сдвигается по дням; тотал — «Эфир»."""
     n = date.fromisoformat(day).toordinal()
-    names = [t[0] for t in TEMPLATES]
-    ring = names[n % len(names):] + names[:n % len(names)]
-    ring = [x for x in ring if x != BOTH]
-    used = set()
+    ring = [x for x in TEMPLATES if x != BOTH]
+    k = n % len(ring)
     for m in matches:
         if m['g'] == 'tot':
             m['tpl'] = BOTH
             continue
-        free = [x for x in ring if x not in used] or ring
-        m['tpl'] = free[0]
-        used.add(free[0])
+        m['tpl'] = ring[k % len(ring)]
+        k += 1
     return matches
 
 
@@ -111,7 +115,7 @@ def plan(league, day, top, per):
 
 
 def reel(m, stats, code):
-    mod, cls, key, u, tdrop = next(t for t in TEMPLATES if t[0] == m['tpl'])
+    mod, cls, key, u, tdrop = TEMPLATES[m['tpl']]
     p = os.path.join(CFG, mod + '.json')
     c = json.load(open(p, encoding='utf-8')) if os.path.exists(p) else {'drop_beats': 20, 'kw': {}}
     drop = c.get('drop_beats', 20) * u
