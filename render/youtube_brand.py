@@ -439,12 +439,17 @@ CLUBS = ['ЦСКА', 'Оттава', 'Локомотив', 'Флорида', 'С
          'Чикаго', 'Шанхайские Драконы', 'Детройт', 'Нефтехимик', 'Вашингтон']
 
 
-def emblem_wall(size=150, gap=70, gray=False, seed=4):
+NHL_CLUBS = ['Оттава', 'Флорида', 'Миннесота', 'Бостон', 'Торонто', 'Эдмонтон', 'Колорадо', 'Вегас', 'Монреаль',
+             'Питтсбург', 'Нью-Йорк Рейнджерс', 'Тампа-Бэй', 'Даллас', 'Чикаго', 'Детройт', 'Вашингтон', 'Каролина',
+             'Нью-Джерси', 'Лос-Анджелес', 'Виннипег', 'Ванкувер', 'Филадельфия', 'Сиэтл', 'Калгари', 'Нэшвилл', 'Анахайм']
+
+
+def emblem_wall(size=150, gap=70, gray=False, seed=4, clubs=None):
     """Шахматная сетка эмблем КХЛ и НХЛ на весь баннер → (RGBA-слой, список центров)."""
     import nhl
     nhl.register()
     rng = np.random.default_rng(seed)
-    order = list(CLUBS)
+    order = list(clubs or CLUBS)
     rng.shuffle(order)
     lay = Image.new('RGBA', (BW, BH), (0, 0, 0, 0))
     step = size + gap
@@ -516,7 +521,7 @@ def banner_storm_clubs(lang):
     arr = np.clip(np.stack([lum, lum, lum * 1.03], -1), 0, 255)
     img = Image.fromarray(arr.astype(np.uint8), 'RGB').convert('RGBA')
     # эмблемы в темноте: высвечены там, куда достаёт свет молний
-    wall, _ = emblem_wall(170, 80, gray=True)
+    wall, _ = emblem_wall(170, 80, gray=True, clubs=NHL_CLUBS if lang == 'en' else None)
     light = np.clip(0.3 + halo / 60, 0.3, 1.0)
     w = np.asarray(wall, np.float32)
     w[..., :3] *= light[..., None] * 0.95
@@ -548,14 +553,14 @@ def _circle(av, d):
     return a
 
 
-def _ui(img, x, y, av, d, name, handle, dark, big=True):
+def _ui(img, x, y, av, d, name, handle, dark, big=True, lang='ru'):
     """Блок канала под баннером как в YouTube: аватар, название, @имя и подписчики."""
     C.put(img, _circle(av, d), x + d / 2, y + d / 2)
     ink = (241, 241, 241) if dark else (15, 15, 15)
     sub = (170, 170, 170) if dark else (96, 96, 96)
     tx = x + d + (36 if big else 22)
     C.put(img, C.text(name, 'rubik', 56 if big else 34, ink, 700), tx, y + d * 0.22, anchor='tl')
-    C.put(img, C.text(handle + ' · 0 подписчиков · 0 видео', 'rubik', 30 if big else 22, sub, 400), tx,
+    C.put(img, C.text(handle + (' · 0 подписчиков · 0 видео' if lang == 'ru' else ' · 0 subscribers · 0 videos'), 'rubik', 30 if big else 22, sub, 400), tx,
           y + d * 0.22 + (80 if big else 50), anchor='tl')
 
 
@@ -574,7 +579,7 @@ def preview(banner, av, title, lang):
     m = C.rrect(desk.width, desk.height, 24).getchannel('A')
     desk.putalpha(m)
     sheet.alpha_composite(desk, (60, 110))
-    _ui(sheet, 60, 110 + desk.height + 40, av, 180, name, handle, dark)
+    _ui(sheet, 60, 110 + desk.height + 40, av, 180, name, handle, dark, lang=lang)
     # телефон
     py = 110 + desk.height + 300
     C.put(sheet, lab('ТЕЛЕФОН — видна только зона 1546×423'), 60, py, anchor='tl')
@@ -582,7 +587,7 @@ def preview(banner, av, title, lang):
     ph = banner.crop(SAFE).resize((700, int(700 * 423 / 1546)), Image.LANCZOS)
     ph.putalpha(C.rrect(ph.width, ph.height, 18).getchannel('A'))
     phone.alpha_composite(ph, (30, 120))
-    _ui(phone, 30, 120 + ph.height + 30, av, 120, name, handle, dark, big=False)
+    _ui(phone, 30, 120 + ph.height + 30, av, 120, name, handle, dark, big=False, lang=lang)
     frame = C.rrect(780, 1020, 70, None, outline=(80, 80, 86), width=10)
     sheet.alpha_composite(C.rrect(780, 1020, 70, (0, 0, 0)), (60, py + 60))
     sheet.alpha_composite(phone.crop((0, 0, 760, 1000)), (70, py + 70))
