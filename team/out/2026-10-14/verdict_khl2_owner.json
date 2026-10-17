@@ -1,0 +1,28 @@
+{
+ "day": "2026-10-14",
+ "make": [
+  "render/make_pick_khl_1410.py"
+ ],
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "out/1410/pick_khl_salavat_sibir.jpg"
+   ],
+   "text": "КХЛ · итог прогноза\n\nСалават Юлаев — Сибирь 2:4\nПрогноз: тотал больше 4,5 — зашёл",
+   "buttons": "post",
+   "pid": "1410-25"
+  },
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "out/1410/pick_khl_salavat_sibir.jpg"
+   ],
+   "captions": [
+    "Салават Юлаев — Сибирь 2:4 · 4К"
+   ]
+  }
+ ]
+}

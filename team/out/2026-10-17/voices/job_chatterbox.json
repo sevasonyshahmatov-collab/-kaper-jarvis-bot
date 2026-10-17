@@ -1,0 +1,5 @@
+{
+ "day": "2026-10-17",
+ "make": ["team/out/2026-10-17/voices/make_voices.py chatterbox --job team/out/2026-10-17/voices/job_chatterbox.json"],
+ "messages": []
+}

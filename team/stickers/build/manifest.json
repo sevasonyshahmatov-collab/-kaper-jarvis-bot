@@ -1,0 +1,352 @@
+{
+ "sets": [
+  {
+   "name": "jarvibet_stickers",
+   "title": "JARVIS · хоккей стикеры",
+   "sticker_type": "regular",
+   "items": [
+    {
+     "key": "neon_zahod",
+     "file": "neon_zahod.webm",
+     "format": "video",
+     "emoji": "✅",
+     "keywords": [
+      "заход",
+      "зашло",
+      "плюс",
+      "победа"
+     ],
+     "style": "neon"
+    },
+    {
+     "key": "stamp_zahod",
+     "file": "stamp_zahod.webm",
+     "format": "video",
+     "emoji": "✅",
+     "keywords": [
+      "заход",
+      "зашло",
+      "печать",
+      "купон"
+     ],
+     "style": "stamp"
+    },
+    {
+     "key": "neon_minus",
+     "file": "neon_minus.webm",
+     "format": "video",
+     "emoji": "❌",
+     "keywords": [
+      "минус",
+      "не зашло",
+      "проигрыш"
+     ],
+     "style": "neon"
+    },
+    {
+     "key": "stamp_minus",
+     "file": "stamp_minus.webm",
+     "format": "video",
+     "emoji": "❌",
+     "keywords": [
+      "минус",
+      "не зашло",
+      "печать"
+     ],
+     "style": "stamp"
+    },
+    {
+     "key": "ice_vozvrat",
+     "file": "ice_vozvrat.webm",
+     "format": "video",
+     "emoji": "🔁",
+     "keywords": [
+      "возврат",
+      "ставка вернулась"
+     ],
+     "style": "ice"
+    },
+    {
+     "key": "stamp_vozvrat",
+     "file": "stamp_vozvrat.webm",
+     "format": "video",
+     "emoji": "🔁",
+     "keywords": [
+      "возврат",
+      "печать"
+     ],
+     "style": "stamp"
+    },
+    {
+     "key": "flag_stavka",
+     "file": "flag_stavka.webm",
+     "format": "video",
+     "emoji": "⭐",
+     "keywords": [
+      "ставка дня",
+      "главный прогноз"
+     ],
+     "style": "flag"
+    },
+    {
+     "key": "led_kef",
+     "file": "led_kef.webm",
+     "format": "video",
+     "emoji": "💰",
+     "keywords": [
+      "кэф дня",
+      "коэффициент"
+     ],
+     "style": "led"
+    },
+    {
+     "key": "led_express",
+     "file": "led_express.webm",
+     "format": "video",
+     "emoji": "🔗",
+     "keywords": [
+      "экспресс",
+      "экспресс дня"
+     ],
+     "style": "led"
+    },
+    {
+     "key": "comic_zanos",
+     "file": "comic_zanos.webm",
+     "format": "video",
+     "emoji": "🤑",
+     "keywords": [
+      "занос",
+      "выигрыш",
+      "деньги"
+     ],
+     "style": "comic"
+    },
+    {
+     "key": "flag_zanos",
+     "file": "flag_zanos.webm",
+     "format": "video",
+     "emoji": "💰",
+     "keywords": [
+      "занос",
+      "выигрыш"
+     ],
+     "style": "flag"
+    },
+    {
+     "key": "ice_ot",
+     "file": "ice_ot.webm",
+     "format": "video",
+     "emoji": "⏱",
+     "keywords": [
+      "овертайм",
+      "ОТ",
+      "дополнительное время"
+     ],
+     "style": "ice"
+    },
+    {
+     "key": "led_bullity",
+     "file": "led_bullity.webm",
+     "format": "video",
+     "emoji": "🎯",
+     "keywords": [
+      "буллиты",
+      "серия буллитов"
+     ],
+     "style": "led"
+    },
+    {
+     "key": "comic_gol",
+     "file": "comic_gol.webm",
+     "format": "video",
+     "emoji": "🥅",
+     "keywords": [
+      "гол",
+      "шайба",
+      "забили"
+     ],
+     "style": "comic"
+    },
+    {
+     "key": "led_gol",
+     "file": "led_gol.webm",
+     "format": "video",
+     "emoji": "🚨",
+     "keywords": [
+      "гол",
+      "табло",
+      "забили"
+     ],
+     "style": "led"
+    },
+    {
+     "key": "ice_suhar",
+     "file": "ice_suhar.webm",
+     "format": "video",
+     "emoji": "🥶",
+     "keywords": [
+      "сухарь",
+      "на ноль",
+      "вратарь"
+     ],
+     "style": "ice"
+    },
+    {
+     "key": "comic_razgrom",
+     "file": "comic_razgrom.webm",
+     "format": "video",
+     "emoji": "💥",
+     "keywords": [
+      "разгром",
+      "крупная победа"
+     ],
+     "style": "comic"
+    },
+    {
+     "key": "neon_verim",
+     "file": "neon_verim.webm",
+     "format": "video",
+     "emoji": "🙏",
+     "keywords": [
+      "верим",
+      "верю",
+      "вера"
+     ],
+     "style": "neon"
+    },
+    {
+     "key": "flag_verim",
+     "file": "flag_verim.webm",
+     "format": "video",
+     "emoji": "💪",
+     "keywords": [
+      "верим",
+      "поддержка"
+     ],
+     "style": "flag"
+    },
+    {
+     "key": "ice_zhdem",
+     "file": "ice_zhdem.webm",
+     "format": "video",
+     "emoji": "⏳",
+     "keywords": [
+      "ждём",
+      "ждем",
+      "ожидание"
+     ],
+     "style": "ice"
+    },
+    {
+     "key": "board_zhdem",
+     "file": "board_zhdem.webm",
+     "format": "video",
+     "emoji": "⏳",
+     "keywords": [
+      "ждём",
+      "ждем",
+      "терпение"
+     ],
+     "style": "board"
+    },
+    {
+     "key": "led_plus",
+     "file": "led_plus.webm",
+     "format": "video",
+     "emoji": "➕",
+     "keywords": [
+      "плюс",
+      "в плюсе",
+      "профит"
+     ],
+     "style": "led"
+    },
+    {
+     "key": "neon_tb",
+     "file": "neon_tb.webm",
+     "format": "video",
+     "emoji": "⬆️",
+     "keywords": [
+      "тотал больше",
+      "ТБ",
+      "больше"
+     ],
+     "style": "neon"
+    },
+    {
+     "key": "neon_tm",
+     "file": "neon_tm.webm",
+     "format": "video",
+     "emoji": "⬇️",
+     "keywords": [
+      "тотал меньше",
+      "ТМ",
+      "меньше"
+     ],
+     "style": "neon"
+    },
+    {
+     "key": "flag_pognali",
+     "file": "flag_pognali.webm",
+     "format": "video",
+     "emoji": "🚀",
+     "keywords": [
+      "погнали",
+      "поехали",
+      "старт"
+     ],
+     "style": "flag"
+    },
+    {
+     "key": "comic_ogon",
+     "file": "comic_ogon.webm",
+     "format": "video",
+     "emoji": "🔥",
+     "keywords": [
+      "огонь",
+      "жара",
+      "топ"
+     ],
+     "style": "comic"
+    },
+    {
+     "key": "stamp_proveren",
+     "file": "stamp_proveren.webm",
+     "format": "video",
+     "emoji": "👌",
+     "keywords": [
+      "проверено",
+      "одобрено",
+      "разбор"
+     ],
+     "style": "stamp"
+    },
+    {
+     "key": "board_plan",
+     "file": "board_plan.webm",
+     "format": "video",
+     "emoji": "📋",
+     "keywords": [
+      "план",
+      "план есть",
+      "тактика"
+     ],
+     "style": "board"
+    },
+    {
+     "key": "board_itogi",
+     "file": "board_itogi.webm",
+     "format": "video",
+     "emoji": "📊",
+     "keywords": [
+      "итоги",
+      "итоги дня",
+      "статистика"
+     ],
+     "style": "board"
+    }
+   ]
+  }
+ ]
+}

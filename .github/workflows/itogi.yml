@@ -23,7 +23,7 @@ concurrency:
 jobs:
   poster:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -33,7 +33,19 @@ jobs:
       - name: Нарисовать и отправить
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TRACKS_KEY: ${{ secrets.TRACKS_KEY }}   # ключ треков владельца для роликов (render/reels/owner_tracks.py)
           PAYLOAD: ${{ toJSON(github.event.client_payload) }}
           INPUT_PAYLOAD: ${{ github.event.inputs.payload }}
           EVENT_KIND: ${{ github.event.action }}
         run: python render/itogi_job.py
+      # каждый ролик сохраняется (владелец 17.10): полные версии — артефактом запуска на 90 дней
+      - name: Сохранить ролики
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: videos
+          path: |
+            team/out/**/*.mp4
+            render/out/**/*.mp4
+          if-no-files-found: ignore
+          retention-days: 90

@@ -1,0 +1,28 @@
+{
+  "day": "2026-10-12",
+  "make": [
+    "render/make_pick_khl_1210.py"
+  ],
+  "messages": [
+    {
+      "to": "owner",
+      "type": "photo",
+      "files": [
+        "out/1210/pick_khl_barys_sibir.jpg"
+      ],
+      "text": "КХЛ · итог прогноза\n\nБарыс — Сибирь 2:3\nПрогноз: 1X + тотал больше 3,5 за 1,78 — не зашёл\nТотал больше 3,5 зашёл (5 голов), но Барыс проиграл в основное время",
+      "buttons": "post",
+      "pid": "1210-21"
+    },
+    {
+      "to": "owner",
+      "type": "documents",
+      "files": [
+        "out/1210/pick_khl_barys_sibir.jpg"
+      ],
+      "captions": [
+        "Барыс — Сибирь 2:3 · баннер в 4К"
+      ]
+    }
+  ]
+}

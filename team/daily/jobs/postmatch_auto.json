@@ -1,0 +1,5 @@
+{
+ "day": "{day}",
+ "make": ["team/postmatch/run.py --job-file team/out/{day}/postmatch_auto.json"],
+ "messages": []
+}

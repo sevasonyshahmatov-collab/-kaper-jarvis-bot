@@ -1,0 +1,666 @@
+{
+ "sets": [
+  {
+   "name": "jarvibet_emoji",
+   "title": "JARVIS · хоккей",
+   "sticker_type": "custom_emoji",
+   "items": [
+    {
+     "key": "zahod",
+     "file": "zahod.webm",
+     "format": "video",
+     "emoji": "✅"
+    },
+    {
+     "key": "minus",
+     "file": "minus.webm",
+     "format": "video",
+     "emoji": "❌"
+    },
+    {
+     "key": "vozvrat",
+     "file": "vozvrat.webm",
+     "format": "video",
+     "emoji": "↩️"
+    },
+    {
+     "key": "zhdem",
+     "file": "zhdem.webm",
+     "format": "video",
+     "emoji": "⏳"
+    },
+    {
+     "key": "seriya",
+     "file": "seriya.webm",
+     "format": "video",
+     "emoji": "🔥"
+    },
+    {
+     "key": "stavka_dnya",
+     "file": "stavka_dnya.webm",
+     "format": "video",
+     "emoji": "⭐"
+    },
+    {
+     "key": "express",
+     "file": "express.png",
+     "format": "static",
+     "emoji": "🔗"
+    },
+    {
+     "key": "ordinar",
+     "file": "ordinar.png",
+     "format": "static",
+     "emoji": "1️⃣"
+    },
+    {
+     "key": "live",
+     "file": "live.webm",
+     "format": "video",
+     "emoji": "🔴"
+    },
+    {
+     "key": "topkef",
+     "file": "topkef.png",
+     "format": "static",
+     "emoji": "📈"
+    },
+    {
+     "key": "puck",
+     "file": "puck.webm",
+     "format": "video",
+     "emoji": "⚫"
+    },
+    {
+     "key": "sticks",
+     "file": "sticks.png",
+     "format": "static",
+     "emoji": "🏒"
+    },
+    {
+     "key": "goal",
+     "file": "goal.png",
+     "format": "static",
+     "emoji": "🥅"
+    },
+    {
+     "key": "goal_lamp",
+     "file": "goal_lamp.webm",
+     "format": "video",
+     "emoji": "🚨"
+    },
+    {
+     "key": "mask",
+     "file": "mask.png",
+     "format": "static",
+     "emoji": "🥶"
+    },
+    {
+     "key": "ot",
+     "file": "ot.png",
+     "format": "static",
+     "emoji": "⏱"
+    },
+    {
+     "key": "so",
+     "file": "so.png",
+     "format": "static",
+     "emoji": "🎯"
+    },
+    {
+     "key": "whistle",
+     "file": "whistle.png",
+     "format": "static",
+     "emoji": "📣"
+    },
+    {
+     "key": "ice",
+     "file": "ice.png",
+     "format": "static",
+     "emoji": "🧊"
+    },
+    {
+     "key": "khl_tag",
+     "file": "khl_tag.png",
+     "format": "static",
+     "emoji": "🇷🇺"
+    },
+    {
+     "key": "nhl_tag",
+     "file": "nhl_tag.png",
+     "format": "static",
+     "emoji": "🌐"
+    },
+    {
+     "key": "jarvis",
+     "file": "jarvis.png",
+     "format": "static",
+     "emoji": "🤖"
+    },
+    {
+     "key": "kef",
+     "file": "kef.png",
+     "format": "static",
+     "emoji": "💰"
+    },
+    {
+     "key": "clock_msk",
+     "file": "clock_msk.png",
+     "format": "static",
+     "emoji": "🕖"
+    },
+    {
+     "key": "calendar_today",
+     "file": "calendar_today.png",
+     "format": "static",
+     "emoji": "📅"
+    },
+    {
+     "key": "stats",
+     "file": "stats.webm",
+     "format": "video",
+     "emoji": "📊"
+    },
+    {
+     "key": "news",
+     "file": "news.png",
+     "format": "static",
+     "emoji": "⚡"
+    },
+    {
+     "key": "vs",
+     "file": "vs.png",
+     "format": "static",
+     "emoji": "🆚"
+    },
+    {
+     "key": "d0",
+     "file": "d0.png",
+     "format": "static",
+     "emoji": "0️⃣"
+    },
+    {
+     "key": "d1",
+     "file": "d1.png",
+     "format": "static",
+     "emoji": "1️⃣"
+    },
+    {
+     "key": "d2",
+     "file": "d2.png",
+     "format": "static",
+     "emoji": "2️⃣"
+    },
+    {
+     "key": "d3",
+     "file": "d3.png",
+     "format": "static",
+     "emoji": "3️⃣"
+    },
+    {
+     "key": "d4",
+     "file": "d4.png",
+     "format": "static",
+     "emoji": "4️⃣"
+    },
+    {
+     "key": "d5",
+     "file": "d5.png",
+     "format": "static",
+     "emoji": "5️⃣"
+    },
+    {
+     "key": "d6",
+     "file": "d6.png",
+     "format": "static",
+     "emoji": "6️⃣"
+    },
+    {
+     "key": "d7",
+     "file": "d7.png",
+     "format": "static",
+     "emoji": "7️⃣"
+    },
+    {
+     "key": "d8",
+     "file": "d8.png",
+     "format": "static",
+     "emoji": "8️⃣"
+    },
+    {
+     "key": "d9",
+     "file": "d9.png",
+     "format": "static",
+     "emoji": "9️⃣"
+    },
+    {
+     "key": "dcolon",
+     "file": "dcolon.png",
+     "format": "static",
+     "emoji": "▪️"
+    },
+    {
+     "key": "bar_l",
+     "file": "bar_l.png",
+     "format": "static",
+     "emoji": "◀️"
+    },
+    {
+     "key": "bar_win",
+     "file": "bar_win.png",
+     "format": "static",
+     "emoji": "🟩"
+    },
+    {
+     "key": "bar_loss",
+     "file": "bar_loss.png",
+     "format": "static",
+     "emoji": "🟥"
+    },
+    {
+     "key": "bar_push",
+     "file": "bar_push.png",
+     "format": "static",
+     "emoji": "🟦"
+    },
+    {
+     "key": "bar_wait",
+     "file": "bar_wait.png",
+     "format": "static",
+     "emoji": "⬛"
+    },
+    {
+     "key": "bar_r",
+     "file": "bar_r.png",
+     "format": "static",
+     "emoji": "▶️"
+    }
+   ]
+  },
+  {
+   "name": "jarvibet_clubs",
+   "title": "JARVIS · клубы КХЛ и НХЛ",
+   "sticker_type": "custom_emoji",
+   "items": [
+    {
+     "key": "khl_AVG",
+     "file": "khl_AVG.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_AVT",
+     "file": "khl_AVT.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_ADM",
+     "file": "khl_ADM.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_AKB",
+     "file": "khl_AKB.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_AMR",
+     "file": "khl_AMR.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_BAR",
+     "file": "khl_BAR.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_DIN",
+     "file": "khl_DIN.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_DMN",
+     "file": "khl_DMN.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_LAD",
+     "file": "khl_LAD.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_LOK",
+     "file": "khl_LOK.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_MMG",
+     "file": "khl_MMG.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_NHK",
+     "file": "khl_NHK.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_SYUL",
+     "file": "khl_SYUL.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_SEV",
+     "file": "khl_SEV.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_SIB",
+     "file": "khl_SIB.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_SKA",
+     "file": "khl_SKA.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_SOCH",
+     "file": "khl_SOCH.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_SPR",
+     "file": "khl_SPR.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_TOR",
+     "file": "khl_TOR.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_TRK",
+     "file": "khl_TRK.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_CSK",
+     "file": "khl_CSK.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "khl_SHAN",
+     "file": "khl_SHAN.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_ana",
+     "file": "nhl_ana.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_bos",
+     "file": "nhl_bos.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_buf",
+     "file": "nhl_buf.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_car",
+     "file": "nhl_car.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_cbj",
+     "file": "nhl_cbj.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_cgy",
+     "file": "nhl_cgy.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_chi",
+     "file": "nhl_chi.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_col",
+     "file": "nhl_col.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_dal",
+     "file": "nhl_dal.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_det",
+     "file": "nhl_det.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_edm",
+     "file": "nhl_edm.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_fla",
+     "file": "nhl_fla.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_lak",
+     "file": "nhl_lak.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_min",
+     "file": "nhl_min.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_mtl",
+     "file": "nhl_mtl.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_njd",
+     "file": "nhl_njd.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_nsh",
+     "file": "nhl_nsh.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_nyi",
+     "file": "nhl_nyi.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_nyr",
+     "file": "nhl_nyr.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_ott",
+     "file": "nhl_ott.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_phi",
+     "file": "nhl_phi.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_pit",
+     "file": "nhl_pit.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_sea",
+     "file": "nhl_sea.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_sjs",
+     "file": "nhl_sjs.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_stl",
+     "file": "nhl_stl.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_tbl",
+     "file": "nhl_tbl.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_tor",
+     "file": "nhl_tor.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_uta",
+     "file": "nhl_uta.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_van",
+     "file": "nhl_van.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_vgk",
+     "file": "nhl_vgk.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_wpg",
+     "file": "nhl_wpg.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    },
+    {
+     "key": "nhl_wsh",
+     "file": "nhl_wsh.webm",
+     "format": "video",
+     "emoji": "🏒",
+     "replace": true
+    }
+   ]
+  }
+ ]
+}

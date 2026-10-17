@@ -1,0 +1,5 @@
+{
+ "day": "2026-10-15",
+ "make": ["team/out/2026-10-15/khl_fetch.py", "team/out/2026-10-15/khl_picks_calc.py"],
+ "messages": []
+}

@@ -1,0 +1,28 @@
+{
+  "day": "2026-10-12",
+  "make": [
+    "render/make_pick_khl_1210.py"
+  ],
+  "messages": [
+    {
+      "to": "owner",
+      "type": "photo",
+      "files": [
+        "out/1210/pick_khl_amur_lada.jpg"
+      ],
+      "text": "КХЛ · итог прогноза\n\nАмур — Лада 1:0\nПрогноз: победа Амура за 1,84 — зашёл",
+      "buttons": "post",
+      "pid": "1210-20"
+    },
+    {
+      "to": "owner",
+      "type": "documents",
+      "files": [
+        "out/1210/pick_khl_amur_lada.jpg"
+      ],
+      "captions": [
+        "Амур — Лада 1:0 · баннер в 4К"
+      ]
+    }
+  ]
+}

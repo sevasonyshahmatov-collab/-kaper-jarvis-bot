@@ -32,6 +32,17 @@ import recap
 import results_styles as rs
 from results_styles2 import F, fit, club, spaced, OSW, UNB, _sticker
 from results_ice2 import _background, MANROPE, NAVY, RED
+# родительный падеж для «ПОБЕДА …» (несклоняемые — Колорадо, Торонто, Чикаго, Калгари, Сан-Хосе, Нью-Джерси, Баффало,
+# Рейнджерс, Айлендерс, СКА, ЦСКА, Сочи, Торпедо, Динамо — пишутся как есть)
+WIN_GEN = {'КАРОЛИНА': 'КАРОЛИНЫ', 'ФЛОРИДА': 'ФЛОРИДЫ', 'ФИЛАДЕЛЬФИЯ': 'ФИЛАДЕЛЬФИИ', 'МИННЕСОТА': 'МИННЕСОТЫ',
+           'ОТТАВА': 'ОТТАВЫ', 'ЮТА': 'ЮТЫ', 'БОСТОН': 'БОСТОНА', 'МОНРЕАЛЬ': 'МОНРЕАЛЯ', 'ЭДМОНТОН': 'ЭДМОНТОНА',
+           'ВАНКУВЕР': 'ВАНКУВЕРА', 'ВЕГАС': 'ВЕГАСА', 'ПИТТСБУРГ': 'ПИТТСБУРГА', 'ВАШИНГТОН': 'ВАШИНГТОНА',
+           'ДЕТРОЙТ': 'ДЕТРОЙТА', 'ДАЛЛАС': 'ДАЛЛАСА', 'АНАХАЙМ': 'АНАХАЙМА', 'ВИННИПЕГ': 'ВИННИПЕГА', 'НЭШВИЛЛ': 'НЭШВИЛЛА',
+           'ЛОС-АНДЖЕЛЕС': 'ЛОС-АНДЖЕЛЕСА', 'КОЛАМБУС': 'КОЛАМБУСА', 'СЕНТ-ЛУИС': 'СЕНТ-ЛУИСА', 'ТАМПА-БЭЙ': 'ТАМПЫ',
+           'СИЭТЛ': 'СИЭТЛА', 'АК БАРС': 'АК БАРСА', 'АВАНГАРД': 'АВАНГАРДА', 'АДМИРАЛ': 'АДМИРАЛА', 'АМУР': 'АМУРА',
+           'АВТОМОБИЛИСТ': 'АВТОМОБИЛИСТА', 'БАРЫС': 'БАРЫСА', 'ЛОКОМОТИВ': 'ЛОКОМОТИВА', 'ЛАДА': 'ЛАДЫ',
+           'МЕТАЛЛУРГ': 'МЕТАЛЛУРГА', 'НЕФТЕХИМИК': 'НЕФТЕХИМИКА', 'САЛАВАТ ЮЛАЕВ': 'САЛАВАТА ЮЛАЕВА',
+           'СЕВЕРСТАЛЬ': 'СЕВЕРСТАЛИ', 'СИБИРЬ': 'СИБИРИ', 'СПАРТАК': 'СПАРТАКА', 'ТРАКТОР': 'ТРАКТОРА'}
 from ice_more import (_resolve, _start, _end, _emb, _put, _card, _chance, _fav, _odds_line, _short, _rows, _ring,
                       GOLD, GOLD_T, INK, DARK, GREY, HEAD, GAP, FOOT, FOOT_ODDS, FOOT_CHANCE)
 
@@ -551,6 +562,9 @@ def _s_tape(m, path, league, title):
     return _end(bg, ov, H, path, FOOT_ODDS if o else None)
 
 
+TOP_BG = 'silk'      # фон верха «ИТОГА МАТЧА»: 'silk' — шёлк (по умолчанию), 'rings' — кольца как у «Versus»
+
+
 def _final_top(m, league, title, H=1350):
     """Верх «ИТОГА МАТЧА» (до 640 px): фон в цвете победителя, шапка, эмблемы, крупный счёт, плашка «ПОБЕДА …»."""
     hw = m['sh'] > m['sa']
@@ -561,7 +575,13 @@ def _final_top(m, league, title, H=1350):
     arr = np.asarray(bg, np.float32).copy()
     # верх — шёлк с переливами и текстурой холста, как фон «Боков»: в цвете победителя, на его стороне светлее
     hi, lo = tuple(int(v) for v in c), tuple(int(v * 0.62) for v in c)
-    silk = poster._fluid_bg(W, top_h, *((hi, lo) if hw else (lo, hi)), seed=sum(map(ord, m['home'] + m['away'])) % 997)
+    seed = sum(map(ord, m['home'] + m['away'])) % 997
+    if TOP_BG == 'rings':                     # кольца как у панелей «Versus» — вокруг эмблемы победителя
+        import versus
+        silk = versus._panel(W, top_h, tuple(int(v) for v in c), (210 if hw else W - 210, 330), seed, fade=None,
+                               freq=15 * W / 520)
+    else:
+        silk = poster._fluid_bg(W, top_h, *((hi, lo) if hw else (lo, hi)), seed=seed)
     silk = poster._canvas_texture(silk, 0.8)
     arr[:top_h, :, :3] = np.asarray(silk, np.float32)[..., :3] * 1.12
     edge = np.linspace(1, 0, 40, dtype=np.float32)[:, None, None]            # мягкий переход ко льду
@@ -589,7 +609,8 @@ def _final_top(m, league, title, H=1350):
         d.text((x * S, 548 * S), _short(team), font=fit(_short(team), OSW, 36 * S, 330 * S, 700), anchor='mm', fill=tc + (255 if team == win else 150,))
     mk = rs.MARK_TEXT.get(m.get('mark') or '', '')
     # mark=None — не знаем, было ли ОТ: без приписки про время
-    lab = ('ПОБЕДА ' + _short(win) + ('' if m.get('mark', '') is None else (' · ' + mk if mk else ' · ОСНОВНОЕ ВРЕМЯ')))
+    lab = ('ПОБЕДА ' + WIN_GEN.get(_short(win).upper(), _short(win)) +
+           ('' if m.get('mark', '') is None else (' · ' + mk if mk else ' · ОСНОВНОЕ ВРЕМЯ')))
     f = F(MANROPE, 17 * S, 800)
     tw = f.getlength(lab) + 40 * S
     d.rounded_rectangle((cx * S - tw / 2, 470 * S, cx * S + tw / 2, 512 * S), radius=21 * S, fill=DARK + (235,))

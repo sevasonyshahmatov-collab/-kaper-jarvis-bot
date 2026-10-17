@@ -1,0 +1,38 @@
+{
+ "day": "2026-10-12",
+ "make": [
+  "team/out/2026-10-12/mk3.py"
+ ],
+ "messages": [
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "team/out/2026-10-12/reels2/tape_barys.mp4"
+   ],
+   "captions": [
+    "Сравнение — Барыс — Сибирь"
+   ]
+  },
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "team/out/2026-10-12/reels2/jarvis_florida.mp4"
+   ],
+   "captions": [
+    "Терминал — Баффало — Флорида"
+   ]
+  },
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "team/out/2026-10-12/reels2/card_wild.mp4"
+   ],
+   "captions": [
+    "Карточка — Миннесота — Вегас"
+   ]
+  }
+ ]
+}

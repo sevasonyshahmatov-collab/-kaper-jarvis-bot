@@ -1,0 +1,30 @@
+# Эмблемы НХЛ в 4К: на ветках claude/team-dev-* при изменении списка render/emblems/nhl_fetch.txt качает официальные SVG
+# лиги, переводит в PNG 2048 px (tools/emblems_nhl_fetch.py) и коммитит в ту же ветку. В ветку команды попадает только через PR.
+name: Эмблемы НХЛ в 4К
+
+on:
+  push:
+    branches: ['claude/team-dev-**']
+    paths: ['render/emblems/nhl_fetch.txt']
+
+permissions:
+  contents: write
+
+jobs:
+  emblems:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: sudo apt-get update -q && sudo apt-get install -y -q librsvg2-bin && pip install "pillow>=11"
+      - run: python tools/emblems_nhl_fetch.py
+      - name: Закоммитить эмблемы
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add render/emblems
+          git diff --cached --quiet || git commit -m "NHL emblems from league SVG, 2048 px"
+          git push

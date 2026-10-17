@@ -1,0 +1,5 @@
+{
+ "day": "{day}",
+ "make": ["team/daily/morning.py {day} --ask --recap-only --no-wait --job-file team/out/{day}/recap_ask.json"],
+ "messages": []
+}
