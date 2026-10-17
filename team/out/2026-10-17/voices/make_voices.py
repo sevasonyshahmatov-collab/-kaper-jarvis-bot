@@ -124,10 +124,10 @@ def card(title, mp3, mp4):
     sys.path.insert(0, os.path.join(ROOT, 'render'))
     from reels import core as C
     from PIL import Image
-    im = Image.new('RGB', (1080, 1080), (12, 12, 14))
+    im = Image.new('RGBA', (1080, 1080), (12, 12, 14, 255))
     C.put(im, C.lines(title.upper(), 'mont', 54, 940, (240, 240, 244), 800), 540, 540)
     png = mp4[:-4] + '.png'
-    im.save(png)
+    im.convert('RGB').save(png)
     sh(['ffmpeg', '-loglevel', 'error', '-y', '-loop', '1', '-i', png, '-i', mp3, '-c:v', 'libx264', '-tune', 'stillimage',
         '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-shortest', mp4])
     os.remove(png)
@@ -148,7 +148,10 @@ def main():
         try:
             ENGINES[eng](arg, text, wav)
             to_mp3(wav, mp3)
-            card(title, mp3, os.path.join(OUT, vid + '.mp4'))
+            try:
+                card(title, mp3, os.path.join(OUT, vid + '.mp4'))
+            except Exception as e:                   # noqa: BLE001 — видеоверсия не обязательна, звук всё равно отправим
+                print('видеоверсия не получилась:', vid, repr(e)[:200], flush=True)
             msgs.append({'to': 'owner', 'type': 'documents', 'files': [os.path.relpath(mp3, ROOT)], 'captions': [title]})
             done.append(vid)
         except Exception as e:                       # noqa: BLE001 — остальные голоса всё равно делаем
