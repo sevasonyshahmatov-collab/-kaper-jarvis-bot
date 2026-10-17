@@ -247,6 +247,191 @@ STYLES = {'night': (banner_night, avatar_night, 'Ночь'), 'ice': (banner_ice,
           'storm': (banner_storm, avatar_storm, 'Гроза')}
 
 
+# ─────────────────────────── яркие: 4. «Неон», 5. «Гол», 6. «Скорость» ───────────────────────────
+def _disc(S, arr_or_img):
+    im = arr_or_img if isinstance(arr_or_img, Image.Image) else Image.fromarray(np.clip(arr_or_img, 0, 255).astype(np.uint8), 'RGB')
+    im = im.convert('RGBA')
+    m = Image.new('L', (S, S), 0)
+    ImageDraw.Draw(m).ellipse((0, 0, S - 1, S - 1), fill=255)
+    im.putalpha(m)
+    return im
+
+
+def neon_text(txt, size, col, font='unb', wght=800, track=0.1, core=(255, 255, 255)):
+    """Неоновая трубка: белое ядро, цветной ореол в два слоя."""
+    t = C.text(txt, font, size, core, wght, track=track)
+    pad = int(size * 0.6)
+    big = Image.new('RGBA', (t.width + 2 * pad, t.height + 2 * pad), (0, 0, 0, 0))
+    big.alpha_composite(t, (pad, pad))
+    a = big.getchannel('A')
+    out = Image.new('RGBA', big.size, (0, 0, 0, 0))
+    for r, k in ((size * 0.45, 0.9), (size * 0.16, 1.0), (size * 0.05, 1.0)):
+        g = Image.new('RGBA', big.size, col + (0,))
+        g.putalpha(a.filter(ImageFilter.GaussianBlur(r)).point(lambda v: min(255, int(v * k * 1.6))))
+        out.alpha_composite(g)
+    tint = Image.new('RGBA', big.size, C.mix(core, col, 0.25) + (0,))
+    tint.putalpha(a)
+    out.alpha_composite(tint)
+    return out
+
+
+CYAN, MAGENTA = (40, 220, 255), (255, 50, 170)
+
+
+def banner_neon(lang):
+    t = TXT[lang]
+    cx, cy = BW / 2, BH / 2
+    yy, xx = np.mgrid[0:BH, 0:BW].astype(np.float32)
+    base = np.array((8, 6, 20), np.float32)[None, None, :] + ((noise(BW, BH, 300, 13) - 0.5) * 10)[..., None]
+    for (gx, gy, col, r) in ((cx - 900, cy, CYAN, 900), (cx + 900, cy, MAGENTA, 900)):
+        g = np.exp(-(((xx - gx) / r) ** 2 + ((yy - gy) / (r * 0.7)) ** 2))
+        base += g[..., None] * np.array(col, np.float32) * 0.28
+    img = Image.fromarray(np.clip(base, 0, 255).astype(np.uint8), 'RGB').convert('RGBA')
+    # отражающий пол и неоновые линии площадки
+    lay = Image.new('RGBA', (BW, BH), (0, 0, 0, 0))
+    d = ImageDraw.Draw(lay)
+    for k, col in ((-1, CYAN), (1, MAGENTA)):
+        x = cx + k * 1000
+        d.line((x, 0, x, BH), fill=col + (200,), width=10)
+    d.ellipse((cx - 560, cy - 560, cx + 560, cy + 560), outline=CYAN + (120,), width=8)
+    glow = lay.filter(ImageFilter.GaussianBlur(26))
+    img.alpha_composite(glow)
+    img.alpha_composite(glow)
+    img.alpha_composite(lay)
+    C.put(img, C.radial(1800, 640, (0, 0, 0), 150, 1.3), cx, cy)
+    C.put(img, neon_text('JARVIS', 190, CYAN), cx, cy - 66)
+    C.put(img, neon_text(t['sub'], 48, MAGENTA, 'mont', 800, 0.3), cx, cy + 86)
+    C.put(img, C.text(t['line'], 'mont', 40, (230, 226, 255), 600, track=0.04), cx, cy + 178)
+    return C.vignette(img, 0.45, 2.2).convert('RGBA')
+
+
+def avatar_neon():
+    S = 800
+    im = _disc(S, Image.new('RGB', (S, S), (10, 8, 24)))
+    ring = Image.new('RGBA', (S, S), (0, 0, 0, 0))
+    ImageDraw.Draw(ring).ellipse((70, 70, S - 70, S - 70), outline=MAGENTA + (255,), width=14)
+    im.alpha_composite(ring.filter(ImageFilter.GaussianBlur(18)))
+    im.alpha_composite(ring)
+    C.put(im, neon_text('J', 430, CYAN, track=0), S / 2, S / 2 + 10)
+    return im
+
+
+RED, ORANGE = (255, 40, 30), (255, 150, 40)
+
+
+def banner_goal(lang):
+    t = TXT[lang]
+    cx, cy = BW / 2, BH / 2
+    yy, xx = np.mgrid[0:BH, 0:BW].astype(np.float32)
+    g = np.exp(-(((xx - cx) / 1300) ** 2 + ((yy - cy) / 620) ** 2))
+    base = np.array((30, 4, 6), np.float32)[None, None, :] + g[..., None] * np.array((235, 40, 24), np.float32)
+    base += (np.exp(-(((xx - cx) / 700) ** 2 + ((yy - cy) / 260) ** 2)) * 70)[..., None] * np.array((1, 0.6, 0.2))
+    base += ((noise(BW, BH, 200, 17) - 0.5) * 22)[..., None]
+    img = Image.fromarray(np.clip(base, 0, 255).astype(np.uint8), 'RGB').convert('RGBA')
+    # лучи от центра и искры
+    rng = np.random.default_rng(3)
+    lay = Image.new('RGBA', (BW, BH), (0, 0, 0, 0))
+    d = ImageDraw.Draw(lay)
+    for k in range(28):
+        a = k / 28 * 2 * math.pi + 0.05
+        d.polygon([(cx, cy), (cx + 3000 * math.cos(a - 0.025), cy + 3000 * math.sin(a - 0.025)),
+                   (cx + 3000 * math.cos(a + 0.025), cy + 3000 * math.sin(a + 0.025))], fill=(255, 180, 120, 26))
+    img.alpha_composite(lay.filter(ImageFilter.GaussianBlur(10)))
+    sp = Image.new('RGBA', (BW, BH), (0, 0, 0, 0))
+    d = ImageDraw.Draw(sp)
+    for _ in range(420):
+        x, y = rng.uniform(0, BW), rng.uniform(0, BH)
+        if abs(x - cx) < 760 and abs(y - cy) < 240:
+            continue
+        L = rng.uniform(8, 50)
+        a = math.atan2(y - cy, x - cx)
+        d.line((x, y, x + L * math.cos(a), y + L * math.sin(a)), fill=(255, int(rng.uniform(170, 240)), 120, int(rng.uniform(120, 255))), width=3)
+    img.alpha_composite(C.glow(sp, 6, 1.0).crop((18, 18, 18 + BW, 18 + BH)))
+    wm = wordmark('JARVIS', 196, (255, 255, 255), 0.1)
+    C.put(img, C.shadow(wm, r=20, a=0.55, col=(60, 0, 0)), cx + 8, cy - 60)
+    C.put(img, wm, cx, cy - 70)
+    sub = C.text(t['sub'], 'mont', 50, (255, 236, 196), 800, track=0.3)
+    C.put(img, C.shadow(sub, r=8, a=0.7, col=(50, 0, 0)), cx + 3, cy + 88)
+    C.put(img, sub, cx, cy + 84)
+    C.put(img, C.text(t['line'], 'mont', 40, (255, 226, 214), 600, track=0.04), cx, cy + 172)
+    return C.vignette(img, 0.4, 2.2).convert('RGBA')
+
+
+def avatar_goal():
+    S = 800
+    yy, xx = np.mgrid[0:S, 0:S].astype(np.float32)
+    g = np.exp(-(((xx - S / 2) / 420) ** 2 + ((yy - S / 2) / 420) ** 2))
+    arr = np.array((40, 4, 6), np.float32)[None, None, :] + g[..., None] * np.array((230, 50, 26), np.float32)
+    im = _disc(S, arr)
+    j = C.text('J', 'unb', 470, (255, 255, 255), 800)
+    C.put(im, C.shadow(j, r=20, a=0.6, col=(60, 0, 0)), S / 2 + 8, S / 2 + 22)
+    C.put(im, j, S / 2, S / 2 + 10)
+    ring = Image.new('RGBA', (S, S), (0, 0, 0, 0))
+    ImageDraw.Draw(ring).ellipse((36, 36, S - 36, S - 36), outline=(255, 214, 140, 255), width=10)
+    im.alpha_composite(ring)
+    return im
+
+
+def banner_speed(lang):
+    t = TXT[lang]
+    cx, cy = BW / 2, BH / 2
+    yy, xx = np.mgrid[0:BH, 0:BW].astype(np.float32)
+    k = np.clip((xx + yy * 0.6) / (BW + BH * 0.6), 0, 1)
+    c0, c1, c2 = np.array((20, 40, 160.)), np.array((0, 170, 230.)), np.array((120, 50, 220.))
+    base = np.where(k[..., None] < 0.5, c0 + (c1 - c0) * (k[..., None] / 0.5), c1 + (c2 - c1) * ((k[..., None] - 0.5) / 0.5))
+    base *= (0.75 + 0.25 * noise(BW, BH, 400, 19))[..., None]
+    img = Image.fromarray(np.clip(base, 0, 255).astype(np.uint8), 'RGB').convert('RGBA')
+    rng = np.random.default_rng(8)
+    lay = Image.new('RGBA', (BW, BH), (0, 0, 0, 0))
+    d = ImageDraw.Draw(lay)
+    for _ in range(90):
+        y0 = rng.uniform(-200, BH + 200)
+        x0 = rng.uniform(-400, BW)
+        L = rng.uniform(300, 1400)
+        w = int(rng.uniform(2, 16))
+        a = int(rng.uniform(30, 120))
+        d.line((x0, y0, x0 + L, y0 - L * 0.32), fill=(255, 255, 255, a), width=w)
+    img.alpha_composite(lay.filter(ImageFilter.GaussianBlur(2)))
+    # крупный срез-полоса за текстом
+    band = Image.new('RGBA', (BW, BH), (0, 0, 0, 0))
+    ImageDraw.Draw(band).polygon([(0, cy - 150), (BW, cy - 420), (BW, cy + 160), (0, cy + 430)], fill=(6, 14, 46, 150))
+    img.alpha_composite(band.filter(ImageFilter.GaussianBlur(8)))
+    wm = wordmark('JARVIS', 196, (255, 255, 255), 0.1)
+    C.put(img, C.shadow(wm, r=16, a=0.5, col=(0, 0, 40)), cx + 8, cy - 60)
+    C.put(img, wm, cx, cy - 70)
+    C.put(img, gold_text(t['sub'], 50), cx, cy + 84)
+    C.put(img, C.text(t['line'], 'mont', 40, (226, 240, 255), 600, track=0.04), cx, cy + 172)
+    return img
+
+
+def avatar_speed():
+    S = 800
+    yy, xx = np.mgrid[0:S, 0:S].astype(np.float32)
+    k = np.clip((xx + yy) / (2 * S), 0, 1)[..., None]
+    arr = np.array((20, 40, 160.)) + (np.array((120, 50, 220.)) - np.array((20, 40, 160.))) * k
+    im = _disc(S, arr)
+    lay = Image.new('RGBA', (S, S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(lay)
+    for i in range(10):
+        y = 120 + i * 62
+        d.line((-50, y + 160, S + 50, y - 100), fill=(255, 255, 255, 40), width=6)
+    m = Image.new('L', (S, S), 0)
+    ImageDraw.Draw(m).ellipse((0, 0, S - 1, S - 1), fill=255)
+    lay.putalpha(Image.fromarray(np.minimum(np.asarray(lay.getchannel('A')), np.asarray(m))))
+    im.alpha_composite(lay)
+    j = C.text('J', 'unb', 470, (255, 255, 255), 800)
+    C.put(im, C.shadow(j, r=18, a=0.5, col=(0, 0, 40)), S / 2 + 8, S / 2 + 20)
+    C.put(im, j, S / 2, S / 2 + 10)
+    ring = Image.new('RGBA', (S, S), (0, 0, 0, 0))
+    ImageDraw.Draw(ring).ellipse((36, 36, S - 36, S - 36), outline=GOLD + (255,), width=10)
+    im.alpha_composite(ring)
+    return im
+
+
+STYLES.update({'neon': (banner_neon, avatar_neon, 'Неон'), 'goal': (banner_goal, avatar_goal, 'Гол'),
+               'speed': (banner_speed, avatar_speed, 'Скорость')})
+
+
 # ─────────────────────────── примерка ───────────────────────────
 def _circle(av, d):
     a = av.resize((d, d), Image.LANCZOS)
