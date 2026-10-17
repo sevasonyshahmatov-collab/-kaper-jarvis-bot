@@ -46,8 +46,10 @@ def choose(rows, x1x2, avoid=()):
     return near[0]
 
 
-def human(t, h, a):
-    """Строка «Что заходит» → прогноз по-человечески (как в постах канала)."""
+def human(t, h, a, ot=False):
+    """Строка «Что заходит» → прогноз по-человечески (как в постах канала). ot — дописать «в основное время» к форе
+    и тоталам (НХЛ: там по умолчанию считают с овертаймом)."""
+    tail = ' в основное время' if ot else ''
     num = lambda s: s.replace('-', '−')  # noqa: E731
     m = re.match(r'П([12]) (.+) в осн\. время$', t)
     if m:
@@ -62,17 +64,17 @@ def human(t, h, a):
         return 'Итоговая победа %s' % gen(m.group(1))
     m = re.match(r'Ф[12]\(([-+][\d,]+)\) (.+)$', t)
     if m:
-        return 'Фора %s %s' % (gen(m.group(2)), num(m.group(1)))
+        return 'Фора %s %s%s' % (gen(m.group(2)), num(m.group(1)), tail)
     m = re.match(r'Т([БМ]) ([\d,]+) в осн\. время$', t)
     if m:
-        return 'Тотал матча %s %s' % ('больше' if m.group(1) == 'Б' else 'меньше', m.group(2))
+        return 'Тотал матча %s %s%s' % ('больше' if m.group(1) == 'Б' else 'меньше', m.group(2), tail)
     m = re.match(r'ИТ([БМ]) ([\d,]+) (.+) в осн\. время$', t)
     if m:
-        return 'Тотал %s %s %s' % (gen(m.group(3)), 'больше' if m.group(1) == 'Б' else 'меньше', m.group(2))
+        return 'Тотал %s %s %s%s' % (gen(m.group(3)), 'больше' if m.group(1) == 'Б' else 'меньше', m.group(2), tail)
     return t
 
 
-def day_picks(games, nxt, pins, fon):
+def day_picks(games, nxt, pins, fon, league='khl'):
     """→ [{h, a, d, arena, x1x2, t, g, p, odds, pick}] — по матчу дня, у кого нашёлся прогноз по правилу."""
     G = calc.prep(games)
     T = calc.team_games(G)
@@ -96,7 +98,8 @@ def day_picks(games, nxt, pins, fon):
             continue
         kinds.append(c['g'])
         out.append(dict(h=H, a=A, d=x['d'], arena=x.get('arena') or '', x1x2=x1x2, t=c['t'], g=c['g'], p=c['p'],
-                        odds=round(c['odds'], 2), pick=human(c['t'], H, A)))
+                        odds=round(c['odds'], 2),
+                        pick=human(c['t'], H, A, ot=league == 'nhl' and not str(c.get('src')).startswith('с ОТ ='))))
         print('PICK %s — %s | %s | %.1f%% | кэф %.2f | линия %s' % (H, A, out[-1]['pick'], 100 * c['p'], c['odds'],
                                                                ' / '.join('%.2f' % v for v in x1x2)), flush=True)
     return out
