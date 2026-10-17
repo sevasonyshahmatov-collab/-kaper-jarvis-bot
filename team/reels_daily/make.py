@@ -89,6 +89,9 @@ def plan(league, day, top, per):
         print('PINERR %r' % e, flush=True)
         pins = {}
     ms = pick.day_picks(games, nxt, pins, fon, league)
+    only = [x for x in os.environ.get('REELS_ONLY', '').split(',') if x]     # только эти клубы (ручной запуск)
+    if only:
+        ms = [m for m in ms if m['h'] in only or m['a'] in only]
     if top:
         ms = sorted(ms, key=lambda m: -m['p'])[:top]                                # самые уверенные
     ms.sort(key=lambda m: m['d'])

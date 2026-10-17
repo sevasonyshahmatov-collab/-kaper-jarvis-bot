@@ -1,14 +1,15 @@
 # Конвейер шортсов (team/reels_daily/make.py, docs/handoff/CONVEYOR.md): матчи дня, прогноз по правилу владельца (кэф 1,6–2,3),
 # один матч — один ролик, шаблоны по очереди; владельцу в Telegram ролик со звуком и без + тексты для YouTube.
-# КХЛ — утром, НХЛ — днём (матчи ночи).
+# Оба — рано утром по Красноярску, чтобы ролики выходили за 12–15 ч до матча.
 # Ролики — артефактом запуска на 2 дня (владелец 17.10), в репозиторий не кладём.
 # Секреты: TG_BOT_TOKEN (бот таблиц), TRACKS_KEY (треки, ветка claude/team-dev-tracks-v2).
 name: Шортсы — конвейер
 
 on:
   schedule:
-    - cron: '20 3 * * *'          # КХЛ — 06:20 МСК (по расписанию GitHub запускает только из основной ветки)
-    - cron: '20 8 * * *'          # НХЛ — 11:20 МСК, матчи ночи
+    # владелец 17.10: ролики заранее, за 12–15 ч до матча — к утру по Красноярску (МСК+4); день — дата по Москве
+    - cron: '0 23 * * *'          # НХЛ — 02:00 МСК (06:00 Красноярск): матчи ближайшей ночи (игровой день НХЛ = дата по Москве)
+    - cron: '30 23 * * *'         # КХЛ — 02:30 МСК (06:30 Красноярск): матчи этого дня (по расписанию — только из main)
   workflow_dispatch:
     inputs:
       league:
@@ -24,7 +25,7 @@ on:
         default: '0'
   repository_dispatch:
     types: [reels]                # из бота/таблицы: client_payload {"league": "khl", "day": "…", "max": 0}
-  push:                           # ручной запуск из ветки claude/**: записать в team/reels_daily/RUN «khl 2026-10-17 [сколько роликов]» и запушить
+  push:                           # ручной запуск из ветки claude/**: записать в team/reels_daily/RUN «khl 2026-10-17 [сколько роликов] [Клуб,Клуб]» и запушить
     branches: ['claude/**']
     paths: ['team/reels_daily/RUN']
 
@@ -55,9 +56,10 @@ jobs:
           LG_IN: ${{ github.event.inputs.league || github.event.client_payload.league }}
           CRON: ${{ github.event.schedule }}
         run: |
-          if [ "${{ github.event_name }}" = push ]; then read -r LG_IN DAY_IN MAX_RUN < team/reels_daily/RUN || true; fi
+          if [ "${{ github.event_name }}" = push ]; then read -r LG_IN DAY_IN MAX_RUN ONLY_RUN < team/reels_daily/RUN || true; fi
           echo "max=${MAX_RUN:-}" >> "$GITHUB_OUTPUT"
-          [ "$CRON" = '20 8 * * *' ] && LG_IN=nhl
+          echo "only=${ONLY_RUN:-}" >> "$GITHUB_OUTPUT"
+          [ "$CRON" = '0 23 * * *' ] && LG_IN=nhl
           lg="${LG_IN:-khl}"; lg="${lg,,}"
           [[ "$lg" =~ ^(khl|nhl)$ ]] || { echo "плохая лига: $lg"; exit 1; }
           d="${DAY_IN:-$(TZ=Europe/Moscow date +%F)}"
@@ -68,6 +70,7 @@ jobs:
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           MAX_IN: ${{ github.event.inputs.max || github.event.client_payload.max || steps.day.outputs.max || '0' }}
+          REELS_ONLY: ${{ steps.day.outputs.only }}             # «Сочи,Локомотив» — только матчи этих клубов
         run: |
           m="$MAX_IN"; [[ "$m" =~ ^[0-9]{1,2}$ ]] || m=0
           python team/reels_daily/make.py plan "${{ steps.day.outputs.league }}" "${{ steps.day.outputs.day }}" --max "$m" --per 3
