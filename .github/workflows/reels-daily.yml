@@ -24,7 +24,7 @@ on:
         default: '0'
   repository_dispatch:
     types: [reels]                # из бота/таблицы: client_payload {"league": "khl", "day": "…", "max": 0}
-  push:                           # ручной запуск из ветки claude/**: записать в team/reels_daily/RUN «khl 2026-10-17 [сколько роликов]» и запушить
+  push:                           # ручной запуск из ветки claude/**: записать в team/reels_daily/RUN «khl 2026-10-17 [сколько роликов] [Клуб,Клуб]» и запушить
     branches: ['claude/**']
     paths: ['team/reels_daily/RUN']
 
@@ -55,8 +55,9 @@ jobs:
           LG_IN: ${{ github.event.inputs.league || github.event.client_payload.league }}
           CRON: ${{ github.event.schedule }}
         run: |
-          if [ "${{ github.event_name }}" = push ]; then read -r LG_IN DAY_IN MAX_RUN < team/reels_daily/RUN || true; fi
+          if [ "${{ github.event_name }}" = push ]; then read -r LG_IN DAY_IN MAX_RUN ONLY_RUN < team/reels_daily/RUN || true; fi
           echo "max=${MAX_RUN:-}" >> "$GITHUB_OUTPUT"
+          echo "only=${ONLY_RUN:-}" >> "$GITHUB_OUTPUT"
           [ "$CRON" = '20 8 * * *' ] && LG_IN=nhl
           lg="${LG_IN:-khl}"; lg="${lg,,}"
           [[ "$lg" =~ ^(khl|nhl)$ ]] || { echo "плохая лига: $lg"; exit 1; }
@@ -68,6 +69,7 @@ jobs:
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           MAX_IN: ${{ github.event.inputs.max || github.event.client_payload.max || steps.day.outputs.max || '0' }}
+          REELS_ONLY: ${{ steps.day.outputs.only }}             # «Сочи,Локомотив» — только матчи этих клубов
         run: |
           m="$MAX_IN"; [[ "$m" =~ ^[0-9]{1,2}$ ]] || m=0
           python team/reels_daily/make.py plan "${{ steps.day.outputs.league }}" "${{ steps.day.outputs.day }}" --max "$m" --per 3
