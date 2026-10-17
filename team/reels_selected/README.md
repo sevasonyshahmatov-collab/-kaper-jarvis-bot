@@ -77,9 +77,8 @@ NO_TRACK=1 PYTHONPATH=render python team/out/2026-10-13/reels_make.py cinema    
 - В репозиторий музыку в открытом виде не кладём.
 - slx, kizaru, vace, rotten, north, jefe, kilo, depto, quantum — зашифрованы в ветке `claude/team-dev-tracks-v2`
   (`render/reels/owner_tracks.py`, ключ — секрет `TRACKS_KEY`, работает в Actions).
-- withyou, packs, truck, vvs, horses, bats, downdown (шаблоны 14.10) — **пока не сохранены надёжно**: владелец прислал их
-  в чат 17.10, лежат только во временной среде сессии. Нужно положить в папку Google Диска «JARVIS — треки для роликов»
-  или зашифровать в ветку треков через Actions (по слову владельца). Без них шаблоны 14.10 собираются только без музыки.
+- withyou, packs, truck, vvs, horses, bats, downdown (шаблоны 14.10) и треки серии 16–17.10 (demons, cant_say, doomsday,
+  too_fast, two_face, two_faced, vampire, militant) — тоже зашифрованы в ветке треков (17.10, `tools/tracks_inbox/`).
 - refl (для «Чата»), tiki и bbt — тоже вне ветки треков: брать у владельца.
 
 ## Не утверждены / отклонены
