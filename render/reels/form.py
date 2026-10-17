@@ -126,6 +126,15 @@ def split_pick(pick):
     return p.upper(), ''
 
 
+def pick_team(h, a, pick):
+    """'h' | 'a' — если в прогнозе названа команда; None — прогноз на матч целиком (тотал и т. п.)."""
+    p = pick.lower().replace('-', ' ')
+    for side, t in (('a', a), ('h', h)):
+        if t.short.lower().replace('-', ' ').split()[0][:4] in p:
+            return side
+    return None
+
+
 def fav_side(h, a, pick):
     """Чей прогноз: 'h' | 'a' — по основе названия в тексте прогноза."""
     p = pick.lower()

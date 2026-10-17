@@ -232,6 +232,7 @@ class Broadcast(C.Reel):
         self.league, self.when, self.coef, self.line = league, when, coef, line
         self.pick1, self.pick2 = F.split_pick(pick)
         self.side = F.fav_side(self.h, self.a, pick)
+        self.both = F.pick_team(self.h, self.a, pick) is None      # прогноз на матч целиком (тотал) — в финале обе команды
         self.other = 'a' if self.side == 'h' else 'h'
         self.fav = self.h if self.side == 'h' else self.a
         self.raw = {'h': sh or {}, 'a': sa or {}}
@@ -291,7 +292,13 @@ class Broadcast(C.Reel):
         # сравнение
         self.cmp = self._cmp_data()
         # прогноз
-        self.p_emb = C.glow(self.fav.emb(410), 26, 0.9, (255, 255, 255))
+        if self.both:
+            pe = Image.new('RGBA', (820, 410), (0, 0, 0, 0))
+            C.put(pe, C.fit(self.h.emb(340), 330, 330), 200, 205)
+            C.put(pe, C.fit(self.a.emb(340), 330, 330), 620, 205)
+            self.p_emb = C.glow(pe, 26, 0.9, (255, 255, 255))
+        else:
+            self.p_emb = C.glow(self.fav.emb(410), 26, 0.9, (255, 255, 255))
         m = re.match(r'(ПОБЕДА)\s+(.+)$', self.pick1)
         self.p_l1 = C.text(m.group(1), 'robci', 92, WHITE, 900, track=0.04) if m else None
         self.p_l2 = C.text(m.group(2) if m else self.pick1, 'robci', 184, WHITE, 900, max_w=1000)
@@ -346,7 +353,7 @@ class Broadcast(C.Reel):
         tmw = tm.width + 40
         C.put(im, tm, w - tmw / 2 - 6, h / 2)
         x0, x1 = tw + 18, w - tmw - 10
-        sides = [self.side] if mode == 'pick' else ['h', 'a']
+        sides = [self.side] if mode == 'pick' and not self.both else ['h', 'a']
         sw = (x1 - x0) / len(sides)
         for i, k in enumerate(sides):
             sx = x0 + i * sw
