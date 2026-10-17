@@ -138,8 +138,11 @@ def main():
             base = os.path.join(os.environ.get('FRAMES_DIR') or OUT, fn)
             print(C.render(reel, base + '.mp4', frames=[int(round(float(x) * C.FPS)) for x in frames.split(',')]))
             continue
-        from reels import owner_tracks
-        C.render(reel, base + '.mp4', track=owner_tracks.wav(key), start=start, extra_out=base + '_clean.mp4')
+        if os.environ.get('NO_TRACK'):               # трека нет под рукой — только версия без музыки (тайминг сцен тот же)
+            C.render(reel, base + '_clean.mp4')
+        else:
+            from reels import owner_tracks
+            C.render(reel, base + '.mp4', track=owner_tracks.wav(key), start=start, extra_out=base + '_clean.mp4')
         lines.append('%s: трек %s, старт %.2f с, дроп на %.2f с ролика; ролик %.1f с' % (fn, key, start, reel.drop, reel.dur))
         print(lines[-1], '· сборка %.0f с' % (time.time() - t0), flush=True)
     if lines:                                        # ролики могут собираться по одному — заменяем только свои строки
