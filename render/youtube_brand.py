@@ -432,6 +432,113 @@ STYLES.update({'neon': (banner_neon, avatar_neon, 'Неон'), 'goal': (banner_g
                'speed': (banner_speed, avatar_speed, 'Скорость')})
 
 
+# ─────────────────────────── клубные эмблемы на фоне: «Лёд» и «Гроза» ───────────────────────────
+CLUBS = ['ЦСКА', 'Оттава', 'Локомотив', 'Флорида', 'Северсталь', 'Миннесота', 'СКА', 'Бостон', 'Ак Барс', 'Торонто',
+         'Авангард', 'Эдмонтон', 'Металлург', 'Колорадо', 'Спартак', 'Вегас', 'Динамо Москва', 'Монреаль', 'Трактор',
+         'Питтсбург', 'Салават Юлаев', 'Нью-Йорк Рейнджерс', 'Автомобилист', 'Тампа-Бэй', 'Сибирь', 'Даллас', 'Торпедо',
+         'Чикаго', 'Шанхайские Драконы', 'Детройт', 'Нефтехимик', 'Вашингтон']
+
+
+def emblem_wall(size=150, gap=70, gray=False, seed=4):
+    """Шахматная сетка эмблем КХЛ и НХЛ на весь баннер → (RGBA-слой, список центров)."""
+    import nhl
+    nhl.register()
+    rng = np.random.default_rng(seed)
+    order = list(CLUBS)
+    rng.shuffle(order)
+    lay = Image.new('RGBA', (BW, BH), (0, 0, 0, 0))
+    step = size + gap
+    k = 0
+    centers = []
+    for j, y in enumerate(range(-size // 2, BH + size, step)):
+        off = (step / 2) if j % 2 else 0
+        for x in np.arange(-size / 2 + off, BW + size, step):
+            em = C.fit(C.Team(order[k % len(order)]).emb(size * 2), size, size)
+            k += 1
+            if gray:
+                g = em.convert('LA').convert('RGBA')
+                g.putalpha(em.getchannel('A'))
+                em = g
+            C.put(lay, em, x, y)
+            centers.append((x, y))
+    return lay, centers
+
+
+def _fade_center(lay, rx=820, ry=300, soft=1.6, floor=0.0):
+    """Оставить эмблемы по краям: в центре (под текстом) — прозрачно."""
+    yy, xx = np.mgrid[0:BH, 0:BW].astype(np.float32)
+    d = np.sqrt(((xx - BW / 2) / rx) ** 2 + ((yy - BH / 2) / ry) ** 2)
+    k = np.clip((d - 1) / soft, 0, 1) * (1 - floor) + floor
+    a = np.asarray(lay.getchannel('A'), np.float32) * k
+    lay.putalpha(Image.fromarray(a.astype(np.uint8)))
+    return lay
+
+
+def banner_ice_clubs(lang):
+    t = TXT[lang]
+    cx, cy = BW / 2, BH / 2
+    n = noise(BW, BH, 300, 7)
+    yy = np.mgrid[0:BH, 0:BW][0].astype(np.float32)
+    base = np.array((226, 236, 246), np.float32)[None, None, :] + ((n - 0.5) * 18)[..., None]
+    base -= (np.clip((np.abs(yy - cy) / 900) ** 2, 0, 1) * 30)[..., None]
+    img = Image.fromarray(np.clip(base, 0, 255).astype(np.uint8), 'RGB').convert('RGBA')
+    wall, _ = emblem_wall(170, 80)
+    wall = wall.filter(ImageFilter.GaussianBlur(1.2))
+    wall.putalpha(wall.getchannel('A').point(lambda v: int(v * 0.42)))
+    img.alpha_composite(_fade_center(wall, 760, 270, 0.9))
+    img.alpha_composite(rink_lines(BW, BH, cx, cy, 1.0, 50))
+    img.alpha_composite(scratches(BW, BH, 9, 520, 80, (150, 170, 196)))
+    frost = Image.fromarray((np.clip((n - 0.4) * 3, 0, 1) * 120).astype(np.uint8)).filter(ImageFilter.GaussianBlur(6))
+    fl = Image.new('RGBA', (BW, BH), (240, 246, 252, 0))
+    fl.putalpha(frost)
+    img.alpha_composite(fl)
+    C.put(img, C.radial(1900, 760, (236, 242, 250), 235, 1.0), cx, cy)
+    wm = wordmark('JARVIS', 190, NAVY, 0.1)
+    C.put(img, C.shadow(wm, r=14, a=0.25), cx + 6, cy - 60)
+    C.put(img, wm, cx, cy - 70)
+    C.put(img, C.text(t['sub'], 'mont', 50, (176, 128, 40), 800, track=0.3), cx, cy + 82)
+    C.put(img, Image.new('RGBA', (900, 4), NAVY + (90,)), cx, cy + 130)
+    C.put(img, C.text(t['line'], 'mont', 40, (60, 76, 104), 600, track=0.04), cx, cy + 172)
+    return img
+
+
+def banner_storm_clubs(lang):
+    t = TXT[lang]
+    cx, cy = BW / 2, BH / 2
+    n = noise(BW, BH, 420, 11, 4)
+    cl = n ** 1.5
+    yy = np.mgrid[0:BH, 0:BW][0].astype(np.float32)
+    lum = 6 + cl * 64 * (0.55 + 0.45 * np.exp(-((yy - cy) / 700) ** 2))
+    bolt = _bolt_light(BW, BH, 99, 2330, -40, 2180, BH * 0.95)
+    bolt2 = _bolt_light(BW, BH, 55, 230, -40, 400, BH * 0.75) * 0.6
+    halo = np.asarray(Image.fromarray(np.clip(bolt + bolt2, 0, 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(160)), np.float32)
+    lum = lum + cl * halo * 1.2
+    arr = np.clip(np.stack([lum, lum, lum * 1.03], -1), 0, 255)
+    img = Image.fromarray(arr.astype(np.uint8), 'RGB').convert('RGBA')
+    # эмблемы в темноте: высвечены там, куда достаёт свет молний
+    wall, _ = emblem_wall(170, 80, gray=True)
+    light = np.clip(0.3 + halo / 60, 0.3, 1.0)
+    w = np.asarray(wall, np.float32)
+    w[..., :3] *= light[..., None] * 0.95
+    w[..., 3] *= np.clip(0.55 + halo / 90, 0.55, 0.95)
+    wall = Image.fromarray(np.clip(w, 0, 255).astype(np.uint8), 'RGBA')
+    img.alpha_composite(_fade_center(wall, 760, 270, 0.9))
+    lit = np.clip(np.stack([bolt + bolt2] * 3, -1) * 0.9, 0, 255).astype(np.uint8)
+    img = Image.fromarray(np.clip(np.asarray(img.convert('RGB'), np.float32) + lit, 0, 255).astype(np.uint8), 'RGB').convert('RGBA')
+    img = C.vignette(img, 0.5, 2.0).convert('RGBA')
+    C.put(img, C.radial(1800, 700, (0, 0, 0), 200, 1.2), cx, cy)
+    wm = wordmark('JARVIS', 190, (244, 244, 248), 0.1, glow=(210, 214, 226))
+    C.put(img, wm, cx, cy - 70)
+    C.put(img, C.text(t['sub'], 'mont', 50, (210, 212, 220), 800, track=0.3), cx, cy + 82)
+    C.put(img, Image.new('RGBA', (900, 3), (230, 230, 236, 120)), cx, cy + 130)
+    C.put(img, C.text(t['line'], 'mont', 40, (170, 172, 180), 600, track=0.04), cx, cy + 172)
+    return img
+
+
+STYLES.update({'ice_clubs': (banner_ice_clubs, avatar_ice, 'Лёд + клубы'),
+               'storm_clubs': (banner_storm_clubs, avatar_storm, 'Гроза + клубы')})
+
+
 # ─────────────────────────── примерка ───────────────────────────
 def _circle(av, d):
     a = av.resize((d, d), Image.LANCZOS)
