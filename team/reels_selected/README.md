@@ -86,7 +86,7 @@ NO_TRACK=1 PYTHONPATH=render python team/out/2026-10-13/reels_make.py cinema    
 pack, sim, results, board, pixel, fight, weather, collage, led (серия 1); notify, channel, ticket, swipe, paper, notes, poll,
 keynote (серия 2); particles, liquid, visualizer, ink; нуар, арена, трейлеры; polaroid, dossier, orbit, highway, tunnel,
 kaleido, wanted, treasure, vinyl, pinball, hologram (13–14.10); премиум-серия 16.10 (9 стилей) и серия 3 (монета, доска,
-табло, кейс) — отклонены владельцем 16–17.10.
+табло, кейс) — отклонены владельцем 16–17.10; серия 4: «Шахматы» (не делать), «Штаб» — отклонены 17.10.
 
 ## Как передать в другой чат
 «Прочитай `team/reels_selected/README.md` в репозитории sevasonyshahmatov-collab/-kaper-jarvis-bot, ветка

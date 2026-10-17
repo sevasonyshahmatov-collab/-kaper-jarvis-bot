@@ -2,7 +2,7 @@
 """Серия 4 (17.10): новые шаблоны под треки владельца, драматургия утверждённых 12.10 / 14.10 (render/reels/s4.py).
 Образцы — на матчах НХЛ ночи 13→14.10 (данные клубов team_stats_1014.json, линия П1/Х/П2 — как в reels_make.py).
 
-    PYTHONPATH=render python team/out/2026-10-17/reels4_make.py [storm hq …] [--frames 1,5,…]
+    PYTHONPATH=render python team/out/2026-10-17/reels4_make.py [storm …] [--frames 1,5,…]
 
 Треки — TRACKS_DIR с <ключ>.wav (в репозиторий треки не кладём). Результат — OUT (по умолчанию team/out/2026-10-17/reels4):
 <имя>.mp4 (с треком), <имя>_clean.mp4 (без музыки), <имя>_cover.jpg; затем сжатая копия — в videos/архив (tools/video_archive.py)."""
@@ -27,8 +27,6 @@ from reels import s4  # noqa: E402
 REELS = {
     'storm': ('s4_storm', 'Storm', 'Нэшвилл', 'Вегас', 'СР 14.10 · 03:45 МСК', 'Победа Вегаса в основное время', 2.20,
               (2.75, 4.17, 2.20), 'doomsday', 0.4444, 43.181, 'storm_vegas'),
-    'hq': ('s4_hq', 'HQ', 'Монреаль', 'Баффало', 'СР 14.10 · 01:30 МСК', 'Победа Монреаля в основное время', 2.05,
-           (2.05, 4.22, 3.01), 'militant', 0.4762, 69.014, 'hq_montreal'),
 }
 
 
