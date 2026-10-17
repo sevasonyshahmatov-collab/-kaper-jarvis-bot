@@ -15,6 +15,7 @@ from reels.run_premium import MATCHES
 # ролик: (модуль.класс, трек, дроп в треке, доля, матч)
 PLAN = {
     'coin': ('s3_coin.Coin', 'twofaced', 33.871, 0.4839, 'adm'),
+    'board': ('s3_board.Board', 'demons', 86.296, 0.6522, 'col'),
 }
 
 
