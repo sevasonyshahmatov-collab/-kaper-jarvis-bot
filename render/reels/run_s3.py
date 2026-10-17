@@ -17,6 +17,7 @@ PLAN = {
     'coin': ('s3_coin.Coin', 'twofaced', 33.871, 0.4839, 'adm'),
     'board': ('s3_board.Board', 'demons', 86.296, 0.6522, 'col'),
     'arena': ('s3_arena.Arena', 'say', 49.161, 0.3871, 'avg'),
+    'case': ('s3_case.Case', 'militant', 8.060, 0.4762, 'sha'),
 }
 
 
