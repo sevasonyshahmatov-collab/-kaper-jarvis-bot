@@ -1,0 +1,27 @@
+# Приём треков владельца в ветку claude/team-dev-tracks-v2 (tools/tracks_inbox/intake.sh): ключ TRACKS_KEY только здесь.
+name: Треки — приём в ветку треков
+
+on:
+  push:
+    branches: ['claude/**']
+    paths: ['tools/tracks_inbox/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tracks-intake
+  cancel-in-progress: false
+
+jobs:
+  intake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get install -y -qq ffmpeg >/dev/null
+      - name: Принять треки
+        env:
+          TRACKS_KEY: ${{ secrets.TRACKS_KEY }}
+        run: bash tools/tracks_inbox/intake.sh
