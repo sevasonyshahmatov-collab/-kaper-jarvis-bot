@@ -1,0 +1,99 @@
+# Конвейер шортсов КХЛ (team/reels_daily/make.py, docs/handoff/CONVEYOR.md): раз в день утром — матчи дня, прогноз по правилу
+# владельца (кэф 1,6–2,3), ролик на утверждённом шаблоне, владельцу в Telegram ролик со звуком и без + тексты для YouTube.
+# Ролики — артефактом запуска на 2 дня (владелец 17.10), в репозиторий не кладём.
+# Секреты: TG_BOT_TOKEN (бот таблиц), TRACKS_KEY (треки, ветка claude/team-dev-tracks-v2).
+name: Шортсы КХЛ — конвейер
+
+on:
+  schedule:
+    - cron: '20 3 * * *'          # 06:20 МСК (по расписанию GitHub запускает только из основной ветки)
+  workflow_dispatch:
+    inputs:
+      day:
+        description: 'День ГГГГ-ММ-ДД (пусто — сегодня по Москве)'
+        required: false
+      max:
+        description: 'Сколько роликов максимум'
+        required: false
+        default: '6'
+  repository_dispatch:
+    types: [reels]                # из бота/таблицы: client_payload {"day": "…", "max": 6}
+  push:                           # ручной запуск из любой ветки claude/**: изменить и запушить team/reels_daily/RUN (день — первая строка)
+    branches: ['claude/**']
+    paths: ['team/reels_daily/RUN']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: reels-daily-${{ github.event.inputs.day || github.event.client_payload.day || 'today' }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      parts: ${{ steps.plan.outputs.parts }}
+      day: ${{ steps.day.outputs.day }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install "pillow>=11" numpy requests
+      - id: day
+        env:
+          DAY_IN: ${{ github.event.inputs.day || github.event.client_payload.day }}
+        run: |
+          [ -z "$DAY_IN" ] && [ "${{ github.event_name }}" = push ] && DAY_IN="$(head -1 team/reels_daily/RUN | tr -d '[:space:]')"
+          d="${DAY_IN:-$(TZ=Europe/Moscow date +%F)}"
+          [[ "$d" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "плохой день: $d"; exit 1; }
+          echo "day=$d" >> "$GITHUB_OUTPUT"
+      - id: plan
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          MAX_IN: ${{ github.event.inputs.max || github.event.client_payload.max || '6' }}
+        run: |
+          m="$MAX_IN"; [[ "$m" =~ ^[0-9]{1,2}$ ]] || m=6
+          python team/reels_daily/make.py plan "${{ steps.day.outputs.day }}" --max "$m" --per 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan
+          path: out/reels_daily/
+          retention-days: 2
+
+  render:
+    needs: plan
+    if: needs.plan.outputs.parts != '[]' && needs.plan.outputs.parts != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        part: ${{ fromJSON(needs.plan.outputs.parts) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null
+          pip install "pillow>=11" numpy requests
+      - uses: actions/download-artifact@v4
+        with:
+          name: plan
+          path: out/reels_daily/
+      - name: Собрать и отправить
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TRACKS_KEY: ${{ secrets.TRACKS_KEY }}
+        run: PYTHONPATH=render python team/reels_daily/make.py render "${{ needs.plan.outputs.day }}" --part ${{ matrix.part }}
+      - name: Сохранить ролики (2 дня)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: videos-${{ needs.plan.outputs.day }}-${{ matrix.part }}
+          path: out/reels_daily/**/*.mp4
+          if-no-files-found: ignore
+          retention-days: 2
