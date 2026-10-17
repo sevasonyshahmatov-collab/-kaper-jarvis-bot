@@ -96,8 +96,8 @@
 
 ## Оформление
 - Утверждённые шаблоны: итоги — `results_ice2` variant 10 («Ячейки»), матчи дня — `preview_ice` columns, «Бока» —
-  `nhl_kit._side`, разбор прогноза — `ice_more2.single(style='verdict')`, ролики — `render/reels`
-  (владельцу понравились форматы coupon, chat, top3), новые подачи — `render/banners_new.py`. Каталог — `render/STYLES.md`.
+  `nhl_kit._side`, разбор прогноза — `ice_more2.single(style='verdict')`, ролики — только 16 утверждённых шаблонов из `team/reels_selected/README.md`
+  (coupon, chat, top3; lineup, tape, jarvis, card; 9 форматов 14.10), новые подачи — `render/banners_new.py`. Каталог — `render/STYLES.md`.
 - Все баннеры в 4К (`render/quality.py`). Не править `render/poster.py`. Решения из `docs/handoff/*` «к этому не возвращаемся» — не возвращаемся.
 - Перед отправкой картинку обязательно посмотреть (уменьшенную копию): обрезанный текст, наложения, пустые места.
 - Посты-прогнозы (решение владельца 15.10): шаблон и правила — `team/POSTS.md`, «Прогноз на матч — как пишем»: прогноз
