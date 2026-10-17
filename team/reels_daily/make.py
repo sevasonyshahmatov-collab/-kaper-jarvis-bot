@@ -24,6 +24,7 @@ for p in (os.path.join(ROOT, 'render'), os.path.join(ROOT, 'team', 'picks'), os.
 
 import form  # noqa: E402
 import pick  # noqa: E402
+import youtube  # noqa: E402
 import yt_texts  # noqa: E402
 
 CFG = os.path.join(ROOT, 'team', 'out', '2026-10-13', 'reels_cfg')
@@ -161,7 +162,10 @@ def one(P, i, league, day, code, lg, frames):
     C.render(r, base + '.mp4', track=owner_tracks.wav(key), start=start, extra_out=base + '_clean.mp4')
     print('REEL %s — %s | %s | трек %s с %.2f с, дроп на %.2f с | %.1f с ролика за %.0f с'
           % (m['h'], m['a'], m['tpl'], key, start, r.drop, r.dur, time.time() - t0), flush=True)
-    tg_reel(base + '.mp4', base + '_clean.mp4', yt_texts.block(m, lg), yt_texts.youtube(m, lg)['title'])
+    y = yt_texts.youtube(m, lg)
+    url, note = youtube.upload(base + '.mp4', y['title'], y['description'], y['tags'])
+    head = ('YouTube: %s\n%s\n\n' % (url, note)) if url else ('YouTube: %s\n\n' % note) if note else ''
+    tg_reel(base + '.mp4', base + '_clean.mp4', head + yt_texts.block(m, lg), y['title'])
 
 
 # ---------- Telegram (как render/team_job.py) ----------
