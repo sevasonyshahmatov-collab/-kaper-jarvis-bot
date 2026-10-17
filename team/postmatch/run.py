@@ -129,7 +129,139 @@ def plural(n, one, few, many):
     return settle.plural(n, one, few, many)
 
 
-def story(p, g, goals, rnd):
+def _pick(pool, k):
+    """Вариант из пула по номеру прогноза: у соседних прогнозов одного дня — разные фразы."""
+    return pool[k % len(pool)]
+
+
+def _num_of(p):
+    m = re.search(r'-(\d+)', p['pid'])
+    return int(m.group(1)) if m else 0
+
+
+def _line(x):
+    return ('%g' % x).replace('.', ',')
+
+
+def _goals_word(n):
+    return plural(n, 'шайба', 'шайбы', 'шайб')          # settle.plural уже ставит число: «4 шайбы»
+
+
+def _periods(goals):
+    reg = [x for x in goals if x['per'] <= 3]
+    return [(sum(1 for x in reg if x['per'] == k and x['side'] == 'h'), sum(1 for x in reg if x['per'] == k and x['side'] == 'a'))
+            for k in (1, 2, 3)]
+
+
+def _details(p, g, goals, ou):
+    """Факты о ходе матча (без оценки победителя) — для постов про тоталы."""
+    team = {'h': p['home'], 'a': p['away']}
+    out = []
+    if goals:
+        f = goals[0]
+        T, m = team[f['side']], minute(f['sec'] - (f['per'] - 1) * 1200)
+        who = (' (%s)' % f['who']) if f['who'] else ''
+        out.append('Первую шайбу забросил%s %s на %d-й минуте %s периода%s.' % (_end(T), T, m, _ord(f['per']), who))
+        per = _periods(goals)
+        tot = [a + b for a, b in per]
+        k = max(range(3), key=lambda i: tot[i])
+        if tot[k] >= 2:
+            out.append('Больше всего голов было %s периоде — %d:%d.' % ((_v(k + 1),) + per[k]))
+        zero = [i for i in range(3) if tot[i] == 0]
+        if zero:
+            out.append('%s период и вовсе прошёл без голов.' % _ord(zero[0] + 1, 'nom').capitalize())
+    shots = g.get('shots') or ()
+    if len(shots) == 2 and all(isinstance(x, int) for x in shots):
+        out.append(('Бросков в створ — %d:%d, но вратари своё отработали.' if ou == 'under'
+                    else 'Бросков в створ — %d:%d, вратарям досталось.') % shots)
+    return out
+
+
+def _ot_note(p, g, k):
+    """Фраза про овертайм/буллиты для ставок на основное время: исход дополнительного времени на ставку не влиял."""
+    end = g.get('end') or ''
+    if not end:
+        return ''
+    team = {'h': p['home'], 'a': p['away']}
+    W = team['h' if g['hg'] > g['ag'] else 'a']
+    where = 'в овертайме' if end == 'ОТ' else 'в серии буллитов'
+    extra = 'Дальше был овертайм' if end == 'ОТ' else 'Дальше были буллиты'
+    return _pick(['%s дожал%s соперника %s, но для ставки важны были только 60 минут.' % (W, _end(W), where),
+                  '%s — на ставку это уже не влияло.' % extra,
+                  'Победителя определили %s (%s), а ставка к тому моменту уже сыграла.' % (where, W)], k)
+
+
+def story_total(p, g, goals, leg, res, k):
+    """Пост про тотал: главное — сколько забили за время ставки, а не кто победил."""
+    h, a = settle.scores(g, leg.get('scope', 'reg'))
+    n, L, ou = h + a, _line(leg['line']), leg['ou']
+    reg = leg.get('scope', 'reg') == 'reg'
+    span = 'За 60 минут' if reg else 'За матч'
+    hit = res == settle.WIN
+    if ou == 'under' and hit:
+        pool = ['%s — %s на двоих: до %s так и не дотянули.' % (span, _goals_word(n), L),
+                ('Основное время — %d:%d, всего %s при линии %s.' if reg else 'Итог — %d:%d, всего %s при линии %s.') % (
+                    h, a, _goals_word(n), L),
+                'Матч получился %s: %d:%d, %s — меньше %s.' % ('закрытым' if n <= 3 else 'без перестрелки', h, a, _goals_word(n), L),
+                ('Шайб было немного — %s, линия %s осталась с запасом.' if leg['line'] - n >= 1.5 else
+                 'Уложились впритык: %s при линии %s.') % (_goals_word(n), L)]
+    elif ou == 'under':
+        pool = ['%s забросили %s — больше %s.' % (span, _goals_word(n), L),
+                'Спокойной игры не вышло: %d:%d, %s при линии %s.' % (h, a, _goals_word(n), L),
+                'Линию %s пробили — %s.' % (L, _goals_word(n))]
+    elif hit:
+        pool = ['%s — %s на двоих, больше %s.' % (span, _goals_word(n), L),
+                'Голов хватило: %d:%d, %s при линии %s.' % (h, a, _goals_word(n), L),
+                'Открытый хоккей — %s, линия %s пройдена.' % (_goals_word(n), L)]
+    else:
+        pool = ['%s — только %s, до %s не хватило.' % (span, _goals_word(n), L),
+                'Вратари оказались сильнее: %d:%d, %s при линии %s.' % (h, a, _goals_word(n), L),
+                'Голов не хватило — %s.' % _goals_word(n)]
+    s = [_pick(pool, k)]
+    det = _details(p, g, goals, ou)
+    if det:
+        s.append(_pick(det, k + 1))
+    ot = _ot_note(p, g, k) if reg else ''
+    if ot:
+        s.append(ot)
+    return ' '.join(s)
+
+
+def story_it(p, g, goals, leg, res, k):
+    """Пост про индивидуальный тотал: сколько забила команда за время ставки."""
+    h, a = settle.scores(g, leg.get('scope', 'reg'))
+    T = p['home'] if leg['side'] == 'h' else p['away']
+    me = h if leg['side'] == 'h' else a
+    L = _line(leg['line'])
+    if me > leg['line']:
+        pool = ['%s забросил%s %s — больше %s.' % (T, _end(T), _goals_word(me), L),
+                'У %s %s за время ставки, линия %s пройдена.' % (name(T, 'gen'), _goals_word(me), L)]
+    else:
+        pool = ['У %s только %s — меньше %s.' % (name(T, 'gen'), _goals_word(me), L),
+                'Итог %s — %s, линия %s не пройдена.' % (name(T, 'gen'), _goals_word(me), L)]
+    s = [_pick(pool, k)]
+    det = _details(p, g, goals, leg['ou'])
+    if det:
+        s.append(_pick(det, k + 1))
+    if leg.get('scope', 'reg') == 'reg':
+        ot = _ot_note(p, g, k)
+        if ot:
+            s.append(ot)
+    return ' '.join(s)
+
+
+def story(p, g, goals, rnd, legs=None, res=None):
+    """Рассказ о матче по фактам — от вида ставки: тотал — сколько забили, исход — как к нему пришли."""
+    k = _num_of(p)
+    leg = legs[0] if legs and len(legs) == 1 else None
+    if leg and leg['kind'] == 'tot':
+        return story_total(p, g, goals, leg, res, k)
+    if leg and leg['kind'] == 'it':
+        return story_it(p, g, goals, leg, res, k)
+    return story_side(p, g, goals, k)
+
+
+def story_side(p, g, goals, k):
     """Рассказ о матче по фактам: кто открыл счёт, ход по периодам, решающий отрезок, броски. Только то, что есть в данных."""
     H, A = p['home'], p['away']
     hg, ag = g['hg'], g['ag']
@@ -148,9 +280,12 @@ def story(p, g, goals, rnd):
     T, m = team[f['side']], minute(f['sec'] - (f['per'] - 1) * 1200)
     who = (' — отличился %s' % f['who']) if f['who'] else ''
     if f['per'] == 1 and m <= 5:
-        s.append('%s открыл%s счёт уже на %d-й минуте%s.' % (T, _end(T), m, who))
+        s.append(_pick(['%s открыл%s счёт уже на %d-й минуте%s.' % (T, _end(T), m, who),
+                        'Быстрый старт — уже на %d-й минуте забил%s %s%s.' % (m, _end(T), T, who)], k))
     else:
-        s.append('Счёт открыл%s %s на %d-й минуте %s периода%s.' % (_end(T), T, m, _ord(f['per']), who))
+        s.append(_pick(['Счёт открыл%s %s на %d-й минуте %s периода%s.' % (_end(T), T, m, _ord(f['per']), who),
+                        'Первой отличилась команда «%s» — %d-я минута %s периода%s.' % (T, m, _ord(f['per']), who),
+                        'Первый гол в матче — за командой «%s»: %s период, %d-я минута%s.' % (T, _ord(f['per'], 'nom'), m, who)], k))
     reg = [x for x in goals if x['per'] <= 3]
     by_per = [(sum(1 for x in reg if x['per'] == k and x['side'] == 'h'), sum(1 for x in reg if x['per'] == k and x['side'] == 'a'))
               for k in (1, 2, 3)]
@@ -164,8 +299,11 @@ def story(p, g, goals, rnd):
     names = [x['who'] for x in reg if x['per'] == key + 1 and x['side'] == win and x['who']]
     before = after[key - 1] if key else (0, 0)
     if end:
-        s.append('После трёх периодов %d:%d, и всё решилось %s — %s дожал%s.' % (
-            after[2][0], after[2][1], 'в овертайме' if end == 'ОТ' else 'в серии буллитов', W, _end(W)))
+        where = 'в овертайме' if end == 'ОТ' else 'в серии буллитов'
+        s.append(_pick(['После трёх периодов %d:%d, и всё решилось %s — %s дожал%s.' % (after[2][0], after[2][1], where, W, _end(W)),
+                        'Основное время закончилось %d:%d, победителя определили %s — им стал%s %s.' % (
+                            after[2][0], after[2][1], where, _end(W), W),
+                        'За 60 минут — %d:%d, а %s сильнее был%s %s.' % (after[2][0], after[2][1], where, _end(W), W)], k))
     elif diffs[key] >= 2:
         sc = _scored(by_per[key], win, names, W)
         if key == 0:
@@ -175,9 +313,9 @@ def story(p, g, goals, rnd):
                 s.append('Два периода прошли на равных, и на последний перерыв ушли при %d:%d.' % before)
             else:
                 s.append('После %s периода было %d:%d.' % ((_ord(key),) + before))
-            s.append('А в %s периоде %s включил%s по-настоящему и %s.' % (_ord(key + 1, 'pr'), W, _end(W, 'ся'), sc))
+            s.append('А %s периоде %s прибавил%s по-настоящему и %s.' % (_v(key + 1), W, _end(W), sc))
         else:
-            s.append('В %s периоде %s окончательно забрал%s игру: %s.' % (_ord(key + 1, 'pr'), W, _end(W), sc))
+            s.append('%s периоде %s окончательно забрал%s игру: %s.' % (_v(key + 1).capitalize(), W, _end(W), sc))
     else:
         s.append('После двух периодов было %d:%d, финал — %d:%d.' % (after[1] + (hg, ag)))
     shots = g.get('shots') or ()
@@ -205,7 +343,13 @@ def _end(team, base=''):
 def _ord(n, case='gen'):
     gen = {1: 'первого', 2: 'второго', 3: 'третьего'}
     pr = {1: 'первом', 2: 'втором', 3: 'третьем'}
-    return (pr if case == 'pr' else gen).get(n, str(n))
+    nom = {1: 'первый', 2: 'второй', 3: 'третий'}
+    return {'pr': pr, 'nom': nom}.get(case, gen).get(n, str(n))
+
+
+def _v(n):
+    """«в первом», «во втором», «в третьем» периоде."""
+    return ('во ' if n == 2 else 'в ') + _ord(n, 'pr')
 
 
 def _scored(per, win, names, W):
@@ -221,16 +365,18 @@ def _num(n):
     return {1: 'одну', 2: 'две', 3: 'три', 4: 'четыре', 5: 'пять', 6: 'шесть'}.get(n, str(n))
 
 
+# концовки без «команда дожала»: ставка может быть на тотал, а не на клуб (замечание владельца 17.10)
 OUTRO = {
-    settle.WIN: ['Понервничал, но команда дожала 💪 Едем дальше!', 'Как и ждал — забираем 💪 Работаем дальше!',
-                 'Спокойно и по делу ✔️ Двигаемся дальше 💪', 'Плюс в копилку 🔥 Дальше — больше!'],
+    settle.WIN: ['Как и ждал — забираем 💪 Работаем дальше!', 'Спокойно и по делу ✔️ Двигаемся дальше 💪',
+                 'Плюс в копилку 🔥 Дальше — больше!', 'Расчёт сработал 👌 Идём дальше!', 'Записываем в плюс ✅ Следующий матч уже скоро.',
+                 'Есть! 🔥 Едем дальше.', 'Прочитали матч верно 💪 Работаем дальше!'],
     settle.LOSS: ['Ждал совсем другого, но что есть, то есть. Работаем дальше 💪', 'Сегодня не наш день. Без эмоций — работаем дальше.',
-                  'Обидно, но это хоккей. Делаем выводы и идём дальше 💪'],
+                  'Обидно, но это хоккей. Делаем выводы и идём дальше 💪', 'Мимо. Разберём и вернёмся с новым прогнозом 💪'],
     settle.PUSH: ['Ставка вернулась — ни плюса, ни минуса. Едем дальше.', 'Возврат: при своих. Работаем дальше 💪'],
 }
 
 
-def post_text(p, g, goals, res, why):
+def post_text(p, g, goals, res, why, legs=None):
     rnd = random.Random(int(hashlib.md5(p['pid'].encode()).hexdigest()[:8], 16))
     mark = {'ОТ': ' ОТ', 'Б': ' Б'}.get(g.get('end') or '', '')
     sign = {settle.WIN: '✅', settle.LOSS: '❌', settle.PUSH: '↩️'}[res]
@@ -243,8 +389,8 @@ def post_text(p, g, goals, res, why):
     lines.append(('📈 Кэф: <b>%s</b> — <b>%s</b>%s' % (kef, word, tail)) if kef else ('📈 Итог: <b>%s</b>%s' % (word, tail)))
     if res == settle.PUSH and why:
         lines[-1] += ' (%s)' % e(why)
-    st = story(p, g, goals, rnd)
-    lines += ['', '<i>%s</i>%s' % (e(st), ' 🔥' if res == settle.WIN else ''), '', rnd.choice(OUTRO[res]), '',
+    st = story(p, g, goals, rnd, legs, res)
+    lines += ['', '<i>%s</i>%s' % (e(st), ' 🔥' if res == settle.WIN else ''), '', _pick(OUTRO[res], _num_of(p)), '',
               '#%s #итог #jarvibet' % ('кхл' if p['league'] == 'KHL' else 'нхл')]
     return '\n'.join(lines)
 
@@ -305,7 +451,7 @@ def main():
     res, legs, why = settle.settle(p['pick'], p['home'], p['away'], g)
     res_legs = [settle.settle_leg(l_, g) for l_ in legs]
     goals = goals_of(p, g)
-    text = post_text(p, g, goals, res, why)
+    text = post_text(p, g, goals, res, why, legs)
     print(text, flush=True)
     path = os.path.join('out', 'postmatch', '%s.mp4' % p['pid'])
     if not a.no_render:
