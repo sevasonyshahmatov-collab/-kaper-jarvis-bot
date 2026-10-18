@@ -624,11 +624,56 @@ def _footer_layers():
     return _FOOT
 
 
+# Бегущая строка на месте плашки (владелец 18.10): весь ролик, кроме последних FOOTER_END_S секунд, сразу под безопасной
+# зоной — ярлык «МАТЧИ ДНЯ» и матчи дня бегут влево. Ролик задаёт reel.ticker = ['НХЛ · 19.10', 'Калгари — Каролина 03:00', …];
+# нет списка — строки нет.
+TICK_Y, TICK_H, TICK_V = SAFE_BOT + 22, 76, 110                        # верх, высота, скорость (px/с)
+_TICK = {}
+
+
+def _ticker_layers(items):
+    key = tuple(items)
+    if key not in _TICK:
+        _TICK.clear()
+        tag = text('МАТЧИ ДНЯ', 'mont', 30, (10, 16, 28), 900, track=0.1)
+        tw = tag.width + 44
+        sep = '   •   '
+        one = text(sep.join(items) + sep, 'mont', 34, (236, 241, 250), 800, track=0.04, trim=False)
+        strip = Image.new('RGBA', (one.width * (2 + W // max(1, one.width)), one.height), (0, 0, 0, 0))
+        for x in range(0, strip.width, one.width):
+            strip.alpha_composite(one, (x, 0))
+        band = Image.new('RGBA', (W, TICK_H), (8, 12, 22, 200))
+        band.alpha_composite(Image.new('RGBA', (W, 3), (120, 200, 255, 230)), (0, 0))
+        box = Image.new('RGBA', (tw, TICK_H), (120, 200, 255, 255))
+        put(box, tag, tw / 2, TICK_H / 2)
+        _TICK.update(key=key, tw=tw, one=one.width, strip=strip, band=band, box=box)
+    return _TICK
+
+
+def ticker(fr, t, end):
+    items = getattr(_R, 'ticker', None)
+    if not items or t > end:
+        return fr
+    L = _ticker_layers(items)
+    k = min(1.0, t / 0.4, max(0.0, (end - t) / 0.3))                     # появление в начале, уход перед финалом
+    lay = Image.new('RGBA', (W, TICK_H), (0, 0, 0, 0))
+    lay.alpha_composite(L['band'])
+    off = int(t * TICK_V) % L['one']
+    s = L['strip'].crop((off, 0, off + W - L['tw'], L['strip'].height))
+    lay.alpha_composite(s, (L['tw'], (TICK_H - s.height) // 2 + 2))
+    lay.alpha_composite(L['box'])
+    if k < 1:
+        lay.putalpha(lay.getchannel('A').point(lambda v: int(v * k)))
+    fr = fr.convert('RGBA')
+    fr.alpha_composite(lay, (0, TICK_Y))
+    return fr
+
+
 def footer(fr, t, dur):
     """Нижняя зона кадра — только в конце ролика: затемнение + строка про ссылку (или плашка Telegram). fr — RGB/RGBA W×H."""
     end = dur - FOOTER_END_S
     if t < end:
-        return fr
+        return ticker(fr, t, end)
     L = _footer_layers()
     k = min(1.0, (t - end) / 0.3)                                       # плавное появление за 0,3 с
     fr = fr.convert('RGBA')
