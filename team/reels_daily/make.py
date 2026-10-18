@@ -156,11 +156,11 @@ def render(league, day, part, frames=None):
 
 
 def ticker(P, lg):
-    """Бегущая строка внизу ролика (core.ticker, владелец 18.10): все матчи дня лиги по времени МСК."""
+    """Бегущая строка внизу ролика (core.ticker, владелец 18.10): ярлык «МАТЧИ ДНЯ · дата» стоит на месте (дата
+    в ленте уезжала под ярлык), в ленте — лига и все матчи дня по времени МСК. → (ярлык, пункты ленты)."""
     ms = P.get('all') or P['matches']
     d = ms[0]['d']
-    head = '%s · %s%s.%s · время МСК' % (lg, 'ночь на ' if lg == 'НХЛ' else '', d[8:10], d[5:7])
-    return [head] + ['%s — %s %s' % (m['h'], m['a'], m['d'][11:16]) for m in ms]
+    return 'МАТЧИ ДНЯ · %s.%s' % (d[8:10], d[5:7]), ['%s · время МСК' % lg] + ['%s — %s %s' % (m['h'], m['a'], m['d'][11:16]) for m in ms]
 
 
 def one(P, i, league, day, code, lg, frames):
@@ -170,7 +170,7 @@ def one(P, i, league, day, code, lg, frames):
     m = P['matches'][i]
     t0 = time.time()
     r, key, start = reel(m, P['stats'], code)
-    r.ticker = ticker(P, lg)
+    r.ticker_tag, r.ticker = ticker(P, lg)
     base = os.path.join(out_dir(league, day), '%02d_%s' % (i + 1, m['tpl']))
     if frames:
         print(C.render(r, base + '.mp4', frames=[int(round(float(x) * C.FPS)) for x in frames.split(',')]))

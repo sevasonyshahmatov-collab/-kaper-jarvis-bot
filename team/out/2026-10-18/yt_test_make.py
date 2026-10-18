@@ -19,7 +19,7 @@ from reels import core as C  # noqa: E402
 from reels.cinema import Cinema  # noqa: E402
 
 HOME, AWAY = 'Калгари', 'Каролина'
-TICKER = ['НХЛ · ночь на 19.10 · время МСК', 'Миннесота — Коламбус 01:00', 'Калгари — Каролина 03:00']
+TICKER = ['НХЛ · время МСК', 'Миннесота — Коламбус 01:00', 'Калгари — Каролина 03:00']
 U, TDROP, KEY, FN = 60 / 73, 52.11, 'withyou', 'kino_calgary_carolina'
 
 
@@ -29,7 +29,7 @@ def make():
     drop = c.get('drop_beats', 20) * U
     r = Cinema(HOME, AWAY, 'NHL', 'ПН 19.10 · 03:00 МСК', 'Победа Каролины в основное время', 1.79, S[HOME], S[AWAY],
                u=U, drop=drop, line=(3.64, 4.43, 1.79), **c.get('kw', {}))
-    r.ticker = TICKER
+    r.ticker, r.ticker_tag = TICKER, 'МАТЧИ ДНЯ · 19.10'
     return r, TDROP - drop
 
 

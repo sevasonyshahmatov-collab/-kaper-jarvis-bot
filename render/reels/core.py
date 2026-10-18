@@ -632,11 +632,11 @@ TICK_X = 60                                                            # отс�
 _TICK = {}
 
 
-def _ticker_layers(items):
-    key = tuple(items)
+def _ticker_layers(items, label='МАТЧИ ДНЯ'):
+    key = (label,) + tuple(items)
     if key not in _TICK:
         _TICK.clear()
-        tag = text('МАТЧИ ДНЯ', 'mont', 26, (10, 16, 28), 900, track=0.1)
+        tag = text(label, 'mont', 26, (10, 16, 28), 900, track=0.1)
         tw = tag.width + 36
         sep = '   •   '
         one = text(sep.join(items) + sep, 'mont', 34, (236, 241, 250), 800, track=0.04, trim=False)
@@ -655,11 +655,11 @@ def ticker(fr, t, end):
     items = getattr(_R, 'ticker', None)
     if not items or t > end:
         return fr
-    L = _ticker_layers(items)
+    L = _ticker_layers(items, getattr(_R, 'ticker_tag', None) or 'МАТЧИ ДНЯ')   # дата — в ярлыке, иначе уезжает под него
     k = min(1.0, t / 0.4, max(0.0, (end - t) / 0.3))                     # появление в начале, уход перед финалом
     lay = Image.new('RGBA', (W, TICK_H), (0, 0, 0, 0))
     lay.alpha_composite(L['band'])
-    off = int(t * TICK_V) % L['one']
+    off = int(max(0.0, t - 2.0) * TICK_V) % L['one']                    # первые 2 с стоит — начало ленты читается
     x0 = TICK_X + L['tw']
     s = L['strip'].crop((off, 0, off + W - x0, L['strip'].height))
     lay.alpha_composite(s, (x0, (TICK_H - s.height) // 2 + 2))
