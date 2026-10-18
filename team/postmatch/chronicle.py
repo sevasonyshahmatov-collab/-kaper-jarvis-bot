@@ -14,6 +14,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'daily'))
 import data  # noqa: E402
 
+NOISE = re.compile(r'(?i)добрый (день|вечер)|гимн|приглашаются на л|онлайн-трансляц')
 KEEP_KHL = ('goal', 'violation', 'video_review', 'replace', 'info', 'state')
 
 
@@ -32,8 +33,8 @@ def khl(p, g):
     if per:
         out.append('По периодам: ' + ', '.join(per) + '.')
     for t, nm in ((ta, p['home']), (tb, p['away'])):
-        out.append('%s: бросков в створ %s, голов в большинстве %s из %s попыток, штрафных минут %s.' % (
-            nm, t.get('shots', '?'), t.get('ppg', '?'), t.get('ppc', '?'), t.get('pim', '?')))
+        out.append('%s: бросков в створ %s, голов в большинстве %s, штрафных минут %s.' % (
+            nm, t.get('shots', '?'), t.get('ppg', '?'), t.get('pim', '?')))
     ps = e.get('this_pair_stat') or {}
     if ps.get('events_count'):
         out.append('История пары: %s матчей, побед %s — %s, %s — %s.' % (
@@ -50,10 +51,15 @@ def khl(p, g):
         if x.get('type') not in KEEP_KHL or not x.get('text'):
             continue
         txt = re.sub(r'\s+', ' ', x['text']).strip()
-        for name, n in gps.items():
-            if name in txt and x['type'] == 'goal':
-                txt += ' (%s-й гол в сезоне)' % n
-        when = ('П%s %s' % (x['period'], x.get('time_s'))) if x.get('period') else ''
+        if NOISE.search(txt):
+            continue
+        if x['type'] == 'goal':
+            head = txt.split('(')[0]
+            for name, n in gps.items():
+                if re.search(r'\d+\.' + re.escape(name), head):
+                    txt += ' (%s-й гол автора в сезоне)' % n
+        # у отметок начала/конца периода time_s — время на часах, не игровое
+        when = ('П%s %s' % (x['period'], x.get('time_s'))) if x.get('period') and x['type'] != 'state' else ''
         out.append(('%s — %s' % (when, txt)) if when else txt)
     return '\n'.join(out)
 
