@@ -29,11 +29,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install "pillow>=11" numpy requests
+      - run: pip install "pillow>=11" numpy requests anthropic
       - name: Нарисовать и отправить
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TRACKS_KEY: ${{ secrets.TRACKS_KEY }}   # ключ треков владельца для роликов (render/reels/owner_tracks.py)
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # тексты послематчевых разборов (team/postmatch, владелец 18.10)
           PAYLOAD: ${{ toJSON(github.event.client_payload) }}
           INPUT_PAYLOAD: ${{ github.event.inputs.payload }}
           EVENT_KIND: ${{ github.event.action }}
