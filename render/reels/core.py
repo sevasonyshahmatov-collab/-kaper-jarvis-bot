@@ -602,9 +602,10 @@ class Reel:
 _R = None
 
 
-# Нижняя зона под безопасной (ниже SAFE_BOT) на площадках (Shorts, TikTok, Reels) — не пустая (владелец 14.10):
-# затемнение и крупная плашка Telegram; в последние FOOTER_END_S секунд, где у роликов своя плашка Telegram, —
-# строка «ссылка на канал — в описании». Отключить: REELS_FOOTER=0.
+# Нижняя зона под безопасной (ниже SAFE_BOT): плашка Telegram — только в последние FOOTER_END_S секунд (владелец 18.10:
+# «из-за неё текст плохо читается — убрать и показывать только в конце»; раньше, 14.10, она стояла весь ролик).
+# В конце: затемнение снизу и строка «ссылка на канал — в описании» (у ролика своя плашка Telegram в финале) или,
+# если ролик просит footer_plate_to_end, — плашка Telegram. Отключить: REELS_FOOTER=0.
 FOOTER = os.environ.get('REELS_FOOTER', '1') != '0'
 FOOTER_END_S = 2.5
 _FOOT = {}
@@ -624,27 +625,43 @@ def _footer_layers():
 
 
 def footer(fr, t, dur):
-    """Нижняя зона кадра: затемнение + плашка Telegram (в конце — строка про ссылку). fr — RGB/RGBA W×H."""
+    """Нижняя зона кадра — только в конце ролика: затемнение + строка про ссылку (или плашка Telegram). fr — RGB/RGBA W×H."""
+    end = dur - FOOTER_END_S
+    if t < end:
+        return fr
     L = _footer_layers()
+    k = min(1.0, (t - end) / 0.3)                                       # плавное появление за 0,3 с
     fr = fr.convert('RGBA')
-    fr.alpha_composite(L['band'], (0, L['top']))
+    lay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    lay.alpha_composite(L['band'], (0, L['top']))
     cy = (L['top'] + H) // 2 + 10
-    end = dur - FOOTER_END_S if not getattr(_R, 'footer_plate_to_end', False) else dur + 1
-    k = 0.0 if t < end - 0.3 else min(1.0, (t - (end - 0.3)) / 0.3)       # 0 — плашка, 1 — строка про ссылку
-    if k < 1:
-        lay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    if getattr(_R, 'footer_plate_to_end', False):                       # у ролика нет своей плашки в финале
         put(lay, L['plate'], W / 2, cy - 22)
         put(lay, L['sub'], W / 2, cy - 22 + 100 + 34)
-        if k > 0:
-            lay.putalpha(lay.getchannel('A').point(lambda v: int(v * (1 - k))))
-        fr.alpha_composite(lay)
-    if k > 0:
-        lay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    else:
         put(lay, L['last'], W / 2, cy)
-        if k < 1:
-            lay.putalpha(lay.getchannel('A').point(lambda v: int(v * k)))
-        fr.alpha_composite(lay)
+    if k < 1:
+        lay.putalpha(lay.getchannel('A').point(lambda v: int(v * k)))
+    fr.alpha_composite(lay)
     return fr
+
+
+# Поле по краям (владелец 18.10: на телефоне картинка «тютелька в тютельку», как будто чуть больше кадра):
+# кадр ужимается до INSET и ставится по центру на размытую растянутую копию самого себя — края не обрезаются
+# скруглёнными углами и интерфейсом плеера. REELS_INSET=1 — без поля.
+INSET = float(os.environ.get('REELS_INSET', '0.94'))
+
+
+def inset(fr):
+    if INSET >= 0.999:
+        return fr
+    from PIL import ImageFilter
+    fr = fr.convert('RGB')
+    bg = fr.resize((W // 8, H // 8), Image.BILINEAR).filter(ImageFilter.GaussianBlur(6)).resize((W, H), Image.BILINEAR)
+    bg = Image.eval(bg, lambda v: int(v * 0.55))                         # фон темнее — внимание на кадре
+    w, h = int(round(W * INSET)), int(round(H * INSET))
+    bg.paste(fr.resize((w, h), Image.LANCZOS), ((W - w) // 2, (H - h) // 2))
+    return bg
 
 
 def _frame_bytes(i):
@@ -653,6 +670,7 @@ def _frame_bytes(i):
         fr = fr.resize((W, H), Image.LANCZOS)
     if FOOTER:
         fr = footer(fr, i / FPS, _R.dur)
+    fr = inset(fr)
     return fr.convert('RGB').tobytes()
 
 
