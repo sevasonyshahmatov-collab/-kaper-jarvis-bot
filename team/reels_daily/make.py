@@ -16,7 +16,7 @@ import json
 import os
 import sys
 import time
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 for p in (os.path.join(ROOT, 'render'), os.path.join(ROOT, 'team', 'picks'), os.path.dirname(os.path.abspath(__file__))):
@@ -28,6 +28,7 @@ import youtube  # noqa: E402
 import yt_texts  # noqa: E402
 
 CFG = os.path.join(ROOT, 'team', 'out', '2026-10-13', 'reels_cfg')
+MSK = timezone(timedelta(hours=3))
 WEEK = ('ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС')
 
 # утверждённые шаблоны 14.10 (team/reels_selected/README.md) и их варианты с треками серии 16–17.10 (владелец 17.10:
@@ -89,6 +90,8 @@ def plan(league, day, top, per):
         print('PINERR %r' % e, flush=True)
         pins = {}
     ms = pick.day_picks(games, nxt, pins, fon, league)
+    soon = (datetime.now(MSK) + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M')   # уже начавшиеся матчи — без ролика
+    ms = [m for m in ms if m['d'] >= soon]
     only = [x for x in os.environ.get('REELS_ONLY', '').split(',') if x]     # только эти клубы (ручной запуск)
     if only:
         ms = [m for m in ms if m['h'] in only or m['a'] in only]
@@ -99,7 +102,8 @@ def plan(league, day, top, per):
     names = sorted({t for m in ms for t in (m['h'], m['a'])})
     stats = (form.khl if league == 'khl' else form.nhl)(games, day, names)
     parts = [list(range(i, min(i + per, len(ms)))) for i in range(0, len(ms), per)]
-    P = dict(day=day, league=league, matches=ms, stats=stats, parts=parts, skipped=len(nxt) - len(ms))
+    P = dict(day=day, league=league, matches=ms, stats=stats, parts=parts, skipped=len(nxt) - len(ms),
+             all=[dict(d=x['d'], h=x['h'], a=x['a']) for x in sorted(nxt, key=lambda x: x['d'])])
     os.makedirs(out_dir(league, day), exist_ok=True)
     with open(os.path.join(out_dir(league, day), 'plan.json'), 'w', encoding='utf-8') as f:
         json.dump(P, f, ensure_ascii=False, indent=1)
@@ -151,6 +155,14 @@ def render(league, day, part, frames=None):
         raise SystemExit('; '.join(errors))
 
 
+def ticker(P, lg):
+    """Бегущая строка внизу ролика (core.ticker, владелец 18.10): все матчи дня лиги по времени МСК."""
+    ms = P.get('all') or P['matches']
+    d = ms[0]['d']
+    head = '%s · %s%s.%s · время МСК' % (lg, 'ночь на ' if lg == 'НХЛ' else '', d[8:10], d[5:7])
+    return [head] + ['%s — %s %s' % (m['h'], m['a'], m['d'][11:16]) for m in ms]
+
+
 def one(P, i, league, day, code, lg, frames):
     """Один ролик: собрать (со звуком и без) и отправить владельцу."""
     from reels import core as C
@@ -158,6 +170,7 @@ def one(P, i, league, day, code, lg, frames):
     m = P['matches'][i]
     t0 = time.time()
     r, key, start = reel(m, P['stats'], code)
+    r.ticker = ticker(P, lg)
     base = os.path.join(out_dir(league, day), '%02d_%s' % (i + 1, m['tpl']))
     if frames:
         print(C.render(r, base + '.mp4', frames=[int(round(float(x) * C.FPS)) for x in frames.split(',')]))

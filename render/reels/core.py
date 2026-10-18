@@ -628,6 +628,7 @@ def _footer_layers():
 # зоной — ярлык «МАТЧИ ДНЯ» и матчи дня бегут влево. Ролик задаёт reel.ticker = ['НХЛ · 19.10', 'Калгари — Каролина 03:00', …];
 # нет списка — строки нет.
 TICK_Y, TICK_H, TICK_V = SAFE_BOT + 22, 76, 110                        # верх, высота, скорость (px/с)
+TICK_X = 60                                                            # отступ ярлыка слева (владелец 18.10: «М» не видно на телефоне)
 _TICK = {}
 
 
@@ -635,8 +636,8 @@ def _ticker_layers(items):
     key = tuple(items)
     if key not in _TICK:
         _TICK.clear()
-        tag = text('МАТЧИ ДНЯ', 'mont', 30, (10, 16, 28), 900, track=0.1)
-        tw = tag.width + 44
+        tag = text('МАТЧИ ДНЯ', 'mont', 26, (10, 16, 28), 900, track=0.1)
+        tw = tag.width + 36
         sep = '   •   '
         one = text(sep.join(items) + sep, 'mont', 34, (236, 241, 250), 800, track=0.04, trim=False)
         strip = Image.new('RGBA', (one.width * (2 + W // max(1, one.width)), one.height), (0, 0, 0, 0))
@@ -659,9 +660,10 @@ def ticker(fr, t, end):
     lay = Image.new('RGBA', (W, TICK_H), (0, 0, 0, 0))
     lay.alpha_composite(L['band'])
     off = int(t * TICK_V) % L['one']
-    s = L['strip'].crop((off, 0, off + W - L['tw'], L['strip'].height))
-    lay.alpha_composite(s, (L['tw'], (TICK_H - s.height) // 2 + 2))
-    lay.alpha_composite(L['box'])
+    x0 = TICK_X + L['tw']
+    s = L['strip'].crop((off, 0, off + W - x0, L['strip'].height))
+    lay.alpha_composite(s, (x0, (TICK_H - s.height) // 2 + 2))
+    lay.alpha_composite(L['box'], (TICK_X, 0))
     if k < 1:
         lay.putalpha(lay.getchannel('A').point(lambda v: int(v * k)))
     fr = fr.convert('RGBA')
