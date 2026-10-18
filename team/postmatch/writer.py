@@ -8,6 +8,7 @@ write(...) → (рассказ, вывод) или None — тогда run.py с
 import os
 import random
 import re
+import time
 
 import requests
 
@@ -96,7 +97,8 @@ def _gemini_models(key):
 
 def _gemini(key, user):
     for model in _gemini_models(key):
-        for attempt in range(2):
+        busy = 0
+        for attempt in range(5):
             try:
                 r = requests.post(GEMINI_URL % model, headers={'x-goog-api-key': key}, timeout=120, json={
                     'systemInstruction': {'parts': [{'text': SYSTEM}]},
@@ -109,6 +111,14 @@ def _gemini(key, user):
                 print('POSTMATCHERR Gemini %s: %s (%s) — пробую следующую модель' % (
                     model, r.status_code, 'нет на бесплатном тарифе или лимит' if r.status_code == 429 else 'недоступна'), flush=True)
                 break
+            if r.status_code >= 500 and busy < 3:       # «high demand» у Google обычно проходит за минуту
+                busy += 1
+                print('POSTMATCHERR Gemini %s: %s, перегружена — жду %d с' % (model, r.status_code, 20 * busy), flush=True)
+                time.sleep(20 * busy)
+                continue
+            if r.status_code >= 500:
+                print('POSTMATCHERR Gemini %s: %s — пробую следующую модель' % (model, r.status_code), flush=True)
+                break
             if r.status_code != 200:
                 print('POSTMATCHERR Gemini %s %s: %s' % (model, r.status_code, r.text[:300]), flush=True)
                 return None
@@ -119,7 +129,9 @@ def _gemini(key, user):
             if body:
                 print('POSTMATCH текст: Gemini (%s), %d знаков' % (model, len(body[0]) + len(body[1])), flush=True)
                 return body
-            print('POSTMATCHERR текст Gemini не подошёл (%s) — попытка %d' % (why, attempt + 1), flush=True)
+            print('POSTMATCHERR текст Gemini не подошёл (%s)' % why, flush=True)
+            if RETRY in user:
+                return None
             user = user + [RETRY]
         else:
             return None
