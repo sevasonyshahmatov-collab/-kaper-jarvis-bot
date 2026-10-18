@@ -80,7 +80,7 @@ def _gemini_models(key):
         for m in r.json().get('models') or []:
             n = m.get('name', '').split('/')[-1]
             if 'generateContent' in (m.get('supportedGenerationMethods') or []) and 'flash' in n \
-                    and not re.search(r'image|tts|audio|live|lite|exp|preview|thinking', n):
+                    and not re.search(r'image|tts|audio|live|lite|exp|preview|thinking|omni', n):
                 names.append(n)
         print('POSTMATCH Gemini: модели по ключу — %s' % ', '.join(names[:12]), flush=True)
     except (requests.RequestException, ValueError) as e:
@@ -89,8 +89,9 @@ def _gemini_models(key):
     def ver(n):
         return [int(x) for x in re.findall(r'\d+', n)[:2]] + [n.endswith('latest')]
     names.sort(key=ver, reverse=True)
-    want = os.environ.get('GEMINI_MODEL', '').strip()
-    return ([want] if want else []) + [n for n in names if n != want][:3]
+    # самая новая Flash бывает не на бесплатном тарифе (429) — первым пробуем псевдоним gemini-flash-latest
+    first = [m for m in (os.environ.get('GEMINI_MODEL', '').strip(), 'gemini-flash-latest') if m and (m in names or not names)]
+    return first + [n for n in names if n not in first][:5]
 
 
 def _gemini(key, user):
@@ -104,8 +105,9 @@ def _gemini(key, user):
             except requests.RequestException as e:
                 print('POSTMATCHERR Gemini связь: %r' % e, flush=True)
                 return None
-            if r.status_code == 404:
-                print('POSTMATCHERR Gemini: модели %s нет — пробую следующую' % model, flush=True)
+            if r.status_code in (403, 404, 429):
+                print('POSTMATCHERR Gemini %s: %s (%s) — пробую следующую модель' % (
+                    model, r.status_code, 'нет на бесплатном тарифе или лимит' if r.status_code == 429 else 'недоступна'), flush=True)
                 break
             if r.status_code != 200:
                 print('POSTMATCHERR Gemini %s %s: %s' % (model, r.status_code, r.text[:300]), flush=True)
