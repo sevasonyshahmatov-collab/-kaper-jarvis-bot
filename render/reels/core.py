@@ -602,9 +602,10 @@ class Reel:
 _R = None
 
 
-# Нижняя зона под безопасной (ниже SAFE_BOT) на площадках (Shorts, TikTok, Reels) — не пустая (владелец 14.10):
-# затемнение и крупная плашка Telegram; в последние FOOTER_END_S секунд, где у роликов своя плашка Telegram, —
-# строка «ссылка на канал — в описании». Отключить: REELS_FOOTER=0.
+# Нижняя зона под безопасной (ниже SAFE_BOT): плашка Telegram — только в последние FOOTER_END_S секунд (владелец 18.10:
+# «из-за неё текст плохо читается — убрать и показывать только в конце»; раньше, 14.10, она стояла весь ролик).
+# В конце: затемнение снизу и строка «ссылка на канал — в описании» (у ролика своя плашка Telegram в финале) или,
+# если ролик просит footer_plate_to_end, — плашка Telegram. Отключить: REELS_FOOTER=0.
 FOOTER = os.environ.get('REELS_FOOTER', '1') != '0'
 FOOTER_END_S = 2.5
 _FOOT = {}
@@ -623,28 +624,91 @@ def _footer_layers():
     return _FOOT
 
 
-def footer(fr, t, dur):
-    """Нижняя зона кадра: затемнение + плашка Telegram (в конце — строка про ссылку). fr — RGB/RGBA W×H."""
-    L = _footer_layers()
-    fr = fr.convert('RGBA')
-    fr.alpha_composite(L['band'], (0, L['top']))
-    cy = (L['top'] + H) // 2 + 10
-    end = dur - FOOTER_END_S if not getattr(_R, 'footer_plate_to_end', False) else dur + 1
-    k = 0.0 if t < end - 0.3 else min(1.0, (t - (end - 0.3)) / 0.3)       # 0 — плашка, 1 — строка про ссылку
+# Бегущая строка на месте плашки (владелец 18.10): весь ролик, кроме последних FOOTER_END_S секунд, сразу под безопасной
+# зоной — ярлык «МАТЧИ ДНЯ» и матчи дня бегут влево. Ролик задаёт reel.ticker = ['НХЛ · 19.10', 'Калгари — Каролина 03:00', …];
+# нет списка — строки нет.
+TICK_Y, TICK_H, TICK_V = SAFE_BOT + 22, 76, 110                        # верх, высота, скорость (px/с)
+TICK_X = 60                                                            # отступ ярлыка слева (владелец 18.10: «М» не видно на телефоне)
+_TICK = {}
+
+
+def _ticker_layers(items, label='МАТЧИ ДНЯ'):
+    key = (label,) + tuple(items)
+    if key not in _TICK:
+        _TICK.clear()
+        tag = text(label, 'mont', 26, (10, 16, 28), 900, track=0.1)
+        tw = tag.width + 36
+        sep = '   •   '
+        one = text(sep.join(items) + sep, 'mont', 34, (236, 241, 250), 800, track=0.04, trim=False)
+        strip = Image.new('RGBA', (one.width * (2 + W // max(1, one.width)), one.height), (0, 0, 0, 0))
+        for x in range(0, strip.width, one.width):
+            strip.alpha_composite(one, (x, 0))
+        band = Image.new('RGBA', (W, TICK_H), (8, 12, 22, 200))
+        band.alpha_composite(Image.new('RGBA', (W, 3), (120, 200, 255, 230)), (0, 0))
+        box = Image.new('RGBA', (tw, TICK_H), (120, 200, 255, 255))
+        put(box, tag, tw / 2, TICK_H / 2)
+        _TICK.update(key=key, tw=tw, one=one.width, strip=strip, band=band, box=box)
+    return _TICK
+
+
+def ticker(fr, t, end):
+    items = getattr(_R, 'ticker', None)
+    if not items or t > end:
+        return fr
+    L = _ticker_layers(items, getattr(_R, 'ticker_tag', None) or 'МАТЧИ ДНЯ')   # дата — в ярлыке, иначе уезжает под него
+    k = min(1.0, t / 0.4, max(0.0, (end - t) / 0.3))                     # появление в начале, уход перед финалом
+    lay = Image.new('RGBA', (W, TICK_H), (0, 0, 0, 0))
+    lay.alpha_composite(L['band'])
+    off = int(max(0.0, t - 2.0) * TICK_V) % L['one']                    # первые 2 с стоит — начало ленты читается
+    x0 = TICK_X + L['tw']
+    s = L['strip'].crop((off, 0, off + W - x0, L['strip'].height))
+    lay.alpha_composite(s, (x0, (TICK_H - s.height) // 2 + 2))
+    lay.alpha_composite(L['box'], (TICK_X, 0))
     if k < 1:
-        lay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+        lay.putalpha(lay.getchannel('A').point(lambda v: int(v * k)))
+    fr = fr.convert('RGBA')
+    fr.alpha_composite(lay, (0, TICK_Y))
+    return fr
+
+
+def footer(fr, t, dur):
+    """Нижняя зона кадра — только в конце ролика: затемнение + строка про ссылку (или плашка Telegram). fr — RGB/RGBA W×H."""
+    end = dur - FOOTER_END_S
+    if t < end:
+        return ticker(fr, t, end)
+    L = _footer_layers()
+    k = min(1.0, (t - end) / 0.3)                                       # плавное появление за 0,3 с
+    fr = fr.convert('RGBA')
+    lay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    lay.alpha_composite(L['band'], (0, L['top']))
+    cy = (L['top'] + H) // 2 + 10
+    if getattr(_R, 'footer_plate_to_end', False):                       # у ролика нет своей плашки в финале
         put(lay, L['plate'], W / 2, cy - 22)
         put(lay, L['sub'], W / 2, cy - 22 + 100 + 34)
-        if k > 0:
-            lay.putalpha(lay.getchannel('A').point(lambda v: int(v * (1 - k))))
-        fr.alpha_composite(lay)
-    if k > 0:
-        lay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    else:
         put(lay, L['last'], W / 2, cy)
-        if k < 1:
-            lay.putalpha(lay.getchannel('A').point(lambda v: int(v * k)))
-        fr.alpha_composite(lay)
+    if k < 1:
+        lay.putalpha(lay.getchannel('A').point(lambda v: int(v * k)))
+    fr.alpha_composite(lay)
     return fr
+
+
+# Поле по краям (владелец 18.10: на телефоне картинка «тютелька в тютельку», как будто чуть больше кадра):
+# кадр ужимается до INSET и ставится по центру на размытую растянутую копию самого себя — края не обрезаются
+# скруглёнными углами и интерфейсом плеера. REELS_INSET=1 — без поля.
+INSET = float(os.environ.get('REELS_INSET', '0.94'))
+
+
+def inset(fr):
+    if INSET >= 0.999:
+        return fr
+    from PIL import ImageFilter
+    fr = fr.convert('RGB')
+    bg = fr.resize((W // 8, H // 8), Image.BILINEAR).filter(ImageFilter.GaussianBlur(6)).resize((W, H), Image.BILINEAR)
+    bg = Image.eval(bg, lambda v: int(v * 0.55))                         # фон темнее — внимание на кадре
+    w, h = int(round(W * INSET)), int(round(H * INSET))
+    bg.paste(fr.resize((w, h), Image.LANCZOS), ((W - w) // 2, (H - h) // 2))
+    return bg
 
 
 def _frame_bytes(i):
@@ -653,6 +717,7 @@ def _frame_bytes(i):
         fr = fr.resize((W, H), Image.LANCZOS)
     if FOOTER:
         fr = footer(fr, i / FPS, _R.dur)
+    fr = inset(fr)
     return fr.convert('RGB').tobytes()
 
 

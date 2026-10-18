@@ -101,18 +101,29 @@ def goals_of(p, g):
 
 
 def channel_post(p):
-    """Номер поста прогноза в канале (лента t.me/s/jarvibet, team/daily/channel.py): тот же матч и начало. Нет — None."""
+    """Лента канала (t.me/s/jarvibet, team/daily/channel.py) → (номер поста прогноза или None, обоснование из него,
+    тексты последних послематчевых постов — чтобы новый их не повторял)."""
+    msg_id, why, recent = None, '', []
     try:
         import channel
         from datetime import timedelta
-        picks, _ = channel.posts(p['start'] - timedelta(minutes=1), p['start'] + timedelta(minutes=1))
-        for q in picks:
-            if q['league'] == p['league'] and q['home'] == p['home'] and q['away'] == p['away']:
-                print('пост прогноза в канале: №%d' % q['msg_id'], flush=True)
-                return q['msg_id']
+        posts, _ = channel.feed(p['start'] - timedelta(days=2))
+        for post in posts:
+            lines = [t for t, _ in post['text']]
+            if any('#итог' in t for t in lines):
+                recent.append('\n'.join(t for t in lines if not t.startswith('#')))
+                continue
+            q, _ = channel.pick_of(post)
+            if q and q['league'] == p['league'] and q['home'] == p['home'] and q['away'] == p['away'] \
+                    and abs((q['start'] - p['start']).total_seconds()) <= 60:
+                msg_id = q['msg_id']
+                k = next((i for i, t in enumerate(lines) if re.match(r'(?i)\s*к[эе]ф', t)), 2)
+                why = '\n'.join(t for t in lines[k + 1:] if not t.startswith('#'))
+        if msg_id:
+            print('пост прогноза в канале: №%d' % msg_id, flush=True)
     except Exception as e:  # noqa: BLE001
         print('POSTMATCHERR лента канала: %r' % e, flush=True)
-    return None
+    return msg_id, why, recent[::-1][:4]
 
 
 # ───────────────────────────── текст ─────────────────────────────
@@ -376,7 +387,7 @@ OUTRO = {
 }
 
 
-def post_text(p, g, goals, res, why, legs=None):
+def post_text(p, g, goals, res, why, legs=None, body=None):
     rnd = random.Random(int(hashlib.md5(p['pid'].encode()).hexdigest()[:8], 16))
     mark = {'ОТ': ' ОТ', 'Б': ' Б'}.get(g.get('end') or '', '')
     sign = {settle.WIN: '✅', settle.LOSS: '❌', settle.PUSH: '↩️'}[res]
@@ -389,8 +400,8 @@ def post_text(p, g, goals, res, why, legs=None):
     lines.append(('📈 Кэф: <b>%s</b> — <b>%s</b>%s' % (kef, word, tail)) if kef else ('📈 Итог: <b>%s</b>%s' % (word, tail)))
     if res == settle.PUSH and why:
         lines[-1] += ' (%s)' % e(why)
-    st = story(p, g, goals, rnd, legs, res)
-    lines += ['', '<i>%s</i>%s' % (e(st), ' 🔥' if res == settle.WIN else ''), '', _pick(OUTRO[res], _num_of(p)), '',
+    st, outro = body if body else (story(p, g, goals, rnd, legs, res), _pick(OUTRO[res], _num_of(p)))
+    lines += ['', '<i>%s</i>%s' % (e(st), ' 🔥' if res == settle.WIN else ''), '', e(outro) if body else outro, '',
               '#%s #итог #jarvibet' % ('кхл' if p['league'] == 'KHL' else 'нхл')]
     return '\n'.join(lines)
 
@@ -451,12 +462,17 @@ def main():
     res, legs, why = settle.settle(p['pick'], p['home'], p['away'], g)
     res_legs = [settle.settle_leg(l_, g) for l_ in legs]
     goals = goals_of(p, g)
-    text = post_text(p, g, goals, res, why, legs)
+    ch_num, pick_why, recent = channel_post(p)
+    ch = p['ch'] if str(p.get('ch') or '').isdigit() else ch_num
+    import chronicle
+    import writer
+    word = {settle.WIN: 'зашла', settle.LOSS: 'не зашла', settle.PUSH: 'возврат'}[res]
+    body = writer.write(p, g, word, chronicle.facts(p, g), pick_why, recent)
+    text = post_text(p, g, goals, res, why, legs, body)
     print(text, flush=True)
     path = os.path.join('out', 'postmatch', '%s.mp4' % p['pid'])
     if not a.no_render:
         render(p, g, legs, res, res_legs, path)
-    ch = p['ch'] if str(p.get('ch') or '').isdigit() else channel_post(p)
     # номер итога: <прогноз>r<номер поста прогноза в канале> — бот публикует итог ответом на этот пост
     msg = {'to': 'owner', 'type': 'animation', 'files': [path], 'text': text, 'html': True, 'emoji': True,
            'buttons': 'post', 'pid': '%sr%s' % (p['pid'], ch or '')}
