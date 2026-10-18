@@ -12,8 +12,8 @@ import re
 import requests
 
 MODEL = os.environ.get('PM_MODEL', 'claude-opus-5-5')
-GEMINI_MODELS = [m for m in (os.environ.get('GEMINI_MODEL', ''), 'gemini-2.5-flash', 'gemini-2.0-flash') if m]
-GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent'
+GEMINI_API = 'https://generativelanguage.googleapis.com/v1beta/'
+GEMINI_URL = GEMINI_API + 'models/%s:generateContent'
 
 SYSTEM = """Ты пишешь послематчевый пост для Telegram-канала @jarvibet о хоккее (КХЛ и НХЛ). Пост выходит от лица \
 владельца канала: он сам выбрал ставку перед матчем, сам смотрел игру и теперь рассказывает подписчикам, как всё было.
@@ -72,8 +72,29 @@ def _check(txt):
 RETRY = 'Предыдущий вариант не подошёл: нужно ровно две части через ---, вместе не больше 800 знаков, без запрещённых слов.'
 
 
+def _gemini_models(key):
+    """Модели, доступные по ключу: сначала GEMINI_MODEL, затем свежие Flash (имена у Google меняются — список берём у них)."""
+    names = []
+    try:
+        r = requests.get(GEMINI_API + 'models', headers={'x-goog-api-key': key}, params={'pageSize': 200}, timeout=30)
+        for m in r.json().get('models') or []:
+            n = m.get('name', '').split('/')[-1]
+            if 'generateContent' in (m.get('supportedGenerationMethods') or []) and 'flash' in n \
+                    and not re.search(r'image|tts|audio|live|lite|exp|preview|thinking', n):
+                names.append(n)
+        print('POSTMATCH Gemini: модели по ключу — %s' % ', '.join(names[:12]), flush=True)
+    except (requests.RequestException, ValueError) as e:
+        print('POSTMATCHERR Gemini список моделей: %r' % e, flush=True)
+
+    def ver(n):
+        return [int(x) for x in re.findall(r'\d+', n)[:2]] + [n.endswith('latest')]
+    names.sort(key=ver, reverse=True)
+    want = os.environ.get('GEMINI_MODEL', '').strip()
+    return ([want] if want else []) + [n for n in names if n != want][:3]
+
+
 def _gemini(key, user):
-    for model in GEMINI_MODELS:
+    for model in _gemini_models(key):
         for attempt in range(2):
             try:
                 r = requests.post(GEMINI_URL % model, headers={'x-goog-api-key': key}, timeout=120, json={
