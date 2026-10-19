@@ -41,14 +41,14 @@ TEMPLATES = {
     'cinema': ('cinema', 'Cinema', 'withyou', 60 / 73, 52.11),
     'broadcast': ('broadcast', 'Broadcast', 'packs', 60 / 71, 29.59),
     'dashboard': ('dashboard', 'Dashboard', 'truck', 60 / 65, 103.98),
-    'graffiti': ('graffiti', 'Graffiti', 'vvs', 60 / 90, 98.69),
+    # 'graffiti': ('graffiti', 'Graffiti', 'vvs', 60 / 90, 98.69),   # владелец 19.10: «Граффити» больше не берём
     'jewel': ('jewel', 'Jewel', 'vvs', 60 / 90, 27.47),
     'kinetic': ('kinetic', 'Kinetic', 'packs', 60 / 71, 97.20),
     'race': ('race', 'Race', 'horses', 60 / 76, 37.92),
     'radar': ('radar', 'Radar', 'bats', 60 / 73, 39.46),
     'vhs': ('vhs', 'Vhs', 'downdown', 60 / 61, 78.25),
     'cinema_vampire': ('cinema', 'Cinema', 'vampire', 60 / 73, 92.101),
-    'graffiti_demons': ('graffiti', 'Graffiti', 'demons', 0.6522, 86.296),
+    # 'graffiti_demons': ('graffiti', 'Graffiti', 'demons', 0.6522, 86.296),   # владелец 19.10: «Граффити» больше не берём
     'dashboard_doomsday': ('dashboard', 'Dashboard', 'doomsday', 2 * 0.4444, 43.181),
     'race_cant_say': ('race', 'Race', 'cant_say', 2 * 0.3871, 49.161),
     'vhs_two_faced': ('vhs', 'Vhs', 'two_faced', 2 * 0.4839, 33.871),

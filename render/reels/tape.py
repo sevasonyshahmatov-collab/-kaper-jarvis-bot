@@ -174,18 +174,20 @@ class Tape(C.Reel):
         return out
 
     def _stamp(self):
-        w, h = 940, 440
+        p1, wrap = C.text2(self.pick1, 'dela', 92, (255, 255, 255), max_w=940 - 110)   # длинный прогноз — в две строки (19.10)
+        w, h = 940, 440 + wrap
+        self.stamp_wrap = wrap
         im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
         d = ImageDraw.Draw(im)
         d.rounded_rectangle((0, 0, w - 1, h - 1), 30, fill=RED + (244,))
         d.rounded_rectangle((16, 16, w - 17, h - 17), 22, outline=(255, 255, 255, 255), width=7)
         d.rounded_rectangle((32, 32, w - 33, h - 33), 16, outline=(255, 255, 255, 200), width=3)
         C.put(im, C.text('ПРОГНОЗ', 'mono', 38, (255, 225, 225), 800, track=0.4), w / 2, 78)
-        C.put(im, C.text(self.pick1, 'dela', 92, (255, 255, 255), max_w=w - 110), w / 2, 168)
+        C.put(im, p1, w / 2, 168 + wrap / 2)
         if self.pick2:
-            C.put(im, C.text(self.pick2, 'unb', 44, (255, 255, 255), 800, max_w=w - 140), w / 2, 252)
+            C.put(im, C.text(self.pick2, 'unb', 44, (255, 255, 255), 800, max_w=w - 140), w / 2, 252 + wrap)
         kk = C.text('КЭФ ' + C.fmt_k(self.coef), 'dela', 76, GOLD)
-        C.put(im, kk, w / 2, 348)
+        C.put(im, kk, w / 2, 348 + wrap)
         rnd = np.random.default_rng(4)                        # неровная краска
         al = np.asarray(im.getchannel('A'), np.float32)
         noise = np.asarray(Image.fromarray((rnd.random((h // 6 + 1, w // 6 + 1)) * 255).astype(np.uint8)).resize((w, h), Image.BILINEAR), np.float32) / 255
@@ -229,14 +231,14 @@ class Tape(C.Reel):
             sc = 1.0 + 0.6 * mk if fav else 1.0
             if t >= D and fav:
                 gk = C.out_cubic(C.seg(t, D, D + 0.3))
-                fr = C.add_light(fr, self.ring, xx, 650, 0.9 * gk)
+                fr = C.add_light(fr, self.ring, xx, 600, 0.9 * gk)
             pop = 1.0
             ts = self.t1 if side == 'h' else self.t2
             if t >= ts:
                 pop += 0.10 * (1 - C.seg(t, ts, ts + 0.3)) ** 2
-            C.put(fr, C.scale(self.emb[side], pop * sc), xx + dirn * 260 * (1 - q), 640 + 20 * mk, q * foc)
+            C.put(fr, C.scale(self.emb[side], pop * sc), xx + dirn * 260 * (1 - q), 640 - 50 * mk, q * foc)   # после дропа выше — штамп не закрывает название
             C.put(fr, self.corner[side], xx, 490, q * foc * (1 - mk))
-            C.put(fr, C.scale(self.name[side], 1 + 0.3 * mk) if mk > 0 else self.name[side], xx, 800 + 95 * mk, q * foc)
+            C.put(fr, C.scale(self.name[side], 1 + 0.3 * mk) if mk > 0 else self.name[side], xx, 800 - 10 * mk, q * foc)
         vk = C.seg(t, 0.5, 0.8) * (1 - C.seg(t, D, D + 0.1))
         vs = self.vs
         if tp <= t < D:
@@ -285,12 +287,13 @@ class Tape(C.Reel):
         # штамп на дропе (стол уходит — на прогнозе только выбранная команда)
         if t >= D:
             ps = C.seg(t, D, D + 0.11)
-            st = C.scale(self.stamp, (2.0 - 1.0 * C.out_cubic(ps)) * 0.92)
-            sy = 1200 - 40 * C.in_out(C.seg(t, self.t_cta, self.t_cta + 0.5))
+            ck = C.in_out(C.seg(t, self.t_cta, self.t_cta + 0.5))
+            st = C.scale(self.stamp, (2.0 - 1.0 * C.out_cubic(ps)) * 0.92 * (1 - 0.14 * ck))
+            sy = C.lerp(1190 - self.stamp_wrap * 0.2, 1370 - st.height / 2, ck)   # к плашке TG штамп над ней, не заходят друг на друга
             C.put(fr, C.shadow(st, 26, 0.7 * ps), W / 2 + 12, sy + 22)
             C.put(fr, st, W / 2, sy, min(1.0, 0.3 + ps))
         if t >= self.t_cta:
-            fresh.cta(fr, t, self.t_cta, y=1478)
+            fresh.cta(fr, t, self.t_cta + 0.25, y=1478)   # плашка — когда штамп уже поднялся
         else:
             fresh.handle(fr, C.seg(t, 0.4, 0.8))
         # камера: удары, пульс

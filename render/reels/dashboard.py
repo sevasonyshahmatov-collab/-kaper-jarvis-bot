@@ -400,9 +400,9 @@ class Dashboard(C.Reel):
         # прогноз
         cf = self.cf
         self.p_emb = C.glow(self.fav.emb(300), 22, 0.75, cf)
-        m2 = re.match(r'(ПОБЕДА)\s+(.+)$', self.pick1)
-        self.p_l1 = C.text('ПОБЕДА', 'exo', 66, WHITE, 800, track=0.12) if m2 else None
-        self.p_l2 = glow_txt(m2.group(2) if m2 else self.pick1, 'exoi', 134, cf, 900, 16, 0.7, max_w=900)
+        l1, l2 = F.head_main(self.pick1)                     # «ИНДИВИДУАЛЬНЫЙ ТОТАЛ …» сверху, «МЕНЬШЕ 2,5» крупно (19.10)
+        self.p_l1 = C.text(l1, 'exo', 66, WHITE, 800, track=0.12 if len(l1) < 12 else 0.04, max_w=900) if l1 else None
+        self.p_l2 = glow_txt(l2, 'exoi', 134, cf, 900, 16, 0.7, max_w=900)
         self.p_l3 = C.text(self.pick2, 'robc', 46, (218, 228, 238), 700, track=0.16, max_w=900) if self.pick2 else None
         self.kef = self._kef() if self.coef else None
         self.ring_off, self.ring_on, self.ring_th = self._launch_ring(250, 210, cf)

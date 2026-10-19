@@ -806,11 +806,10 @@ class Jewel(C.Reel):
         pl = metal(w, h, 26, bevel=11, seed=21).copy()
         for x in (34, w - 34):
             C.put(pl, sphere(16), x, 30)
-        m = re.match(r'(ПОБЕДА)\s+(.+)$', self.pick1)
-        top, main = (m.group(1), m.group(2)) if m else ('', self.pick1)
+        top, main = F.head_main(self.pick1)                  # «ИНДИВИДУАЛЬНЫЙ ТОТАЛ …» сверху, «МЕНЬШЕ 2,5» крупно (19.10)
         y = 50
         if top:
-            C.put(pl, engraved(top, 'mont', 42, 800, track=0.34), w / 2, 54)
+            C.put(pl, engraved(top, 'mont', 42, 800, track=0.34 if len(top) < 12 else 0.08, max_w=860), w / 2, 54)
         mi = engraved(main, 'yeseva', 124, 400, max_w=880)
         C.put(pl, mi, w / 2, 140)
         if self.pick2:

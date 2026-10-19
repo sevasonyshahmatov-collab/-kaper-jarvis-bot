@@ -305,10 +305,9 @@ class Radar(C.Reel):
         # прогноз
         self.p_emb = self._emb(self.fav, PICK_E, self.cf, 22)
         self.p_lab = self._bezel_lab('ПРОГНОЗ', self.cf)
-        m = re.match(r'(ПОБЕДА)\s+(.+)$', self.pick1)
-        self.p_l1 = C.text(m.group(1) if m else '', 'tek', 66, WHITE, 800, track=0.08) if m else None
-        nm = m.group(2) if m else self.pick1
-        self.p_l2 = C.glow(C.text(nm, 'tek', 124, self.cf, 900, max_w=1000), 16, 0.75, self.cf)
+        l1, nm = F.head_main(self.pick1)                     # «ИНДИВИДУАЛЬНЫЙ ТОТАЛ …» сверху, «МЕНЬШЕ 2,5» крупно (19.10)
+        self.p_l1 = C.text(l1, 'tek', 66, WHITE, 800, track=0.08, max_w=900) if l1 else None
+        self.p_l2 = C.glow(C.text(nm, 'tek', 124, self.cf, 900, max_w=880), 16, 0.75, self.cf)
         self.p_l3 = C.text(self.pick2, 'tek', 42, (215, 226, 236), 700, track=0.12, max_w=980) if self.pick2 else None
         self.kef = None
         if self.coef:
@@ -724,6 +723,8 @@ class Radar(C.Reel):
         dy = ((G_CTA[1] + G_CTA[2]) - (G_PICK[1] + G_PICK[2])) * kc
         yb = G_PICK[1] + G_PICK[2] + 34 + dy
         y1 = yb + 62
+        bot = y1 + (92 if self.p_l1 is not None else 30) + 90 + (92 + 56 if self.kef is not None else 30)
+        y1 -= max(0.0, bot - 1262) * kc                        # к плашке TG кэф над ней, а не под ней
         if self.p_l1 is not None:
             q1 = C.out_expo(C.seg(t, D + 0.06, D + 0.32))
             C.put(fr, C.scale(self.p_l1, 1.5 - 0.5 * q1), W / 2, y1, min(1.0, q1 * 2))
@@ -783,7 +784,7 @@ class Radar(C.Reel):
         ha = C.seg(t, 0.2, 0.5) * (1 - C.seg(t, self.t_cta, self.t_cta + 0.2))
         C.put(fr, self.handle_im, W / 2, HY, 0.9 * ha * C.HANDLE_BOTTOM)
         if t >= self.t_cta:
-            q = C.out_expo(C.seg(t, self.t_cta + 0.05, self.t_cta + 0.5))
+            q = C.out_expo(C.seg(t, self.t_cta + 0.45, self.t_cta + 0.9))   # после подъёма кэфа (19.10)
             C.put(fr, self.tg, W / 2, 1374 + 50 * (1 - q), q)
         # камера: толчки на склейках, наезд на поиске, удар на дропе, пульс на долях после дропа
         z, dx, dy, rot = 1.0, 0.0, 0.0, 0.0

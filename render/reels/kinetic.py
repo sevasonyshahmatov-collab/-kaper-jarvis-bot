@@ -100,6 +100,20 @@ def fit_size(s, name, size, max_w, wght=700):
     return size
 
 
+def best_lines(s, name, size, max_w, maxn=3):
+    """Разбивка строки на 1…maxn строк с самым крупным кеглем (владелец 19.10: длинный прогноз не мельчить)."""
+    import itertools
+    w = s.split()
+    best = ([s], fit_size(s, name, size, max_w))
+    for n in range(2, min(maxn, len(w)) + 1):
+        for cut in itertools.combinations(range(1, len(w)), n - 1):
+            ls = [' '.join(w[a:b]) for a, b in zip((0,) + cut, cut + (len(w),))]
+            sz = min(fit_size(x, name, size, max_w) for x in ls)
+            if sz > best[1] * 1.08:                           # лишняя строка — только если заметно крупнее
+                best = (ls, sz)
+    return best
+
+
 def name_lines(up):
     """Длинное название — в две строки по дефису / пробелу («ЛОС-» / «АНДЖЕЛЕС»)."""
     if len(up) > 9:
@@ -542,19 +556,21 @@ class Kinetic(C.Reel):
     # ── прогноз и финал ──
     def _pick_card(self):
         D, ac, sd = self.drop, self.acc[self.side], self.side
-        els = [self._el(C.with_shadow(self.fav.emb(450), 30, 0.6, 18), W / 2, 540, kind='slam', z0=2.3, kick=-14, dur=0.2,
-                        pulse=0.05)]
-        p = self.pick1.split(' ', 1) if ' ' in self.pick1 else [self.pick1]
-        size = min(fit_size(s_, 'dela', 150, 900) for s_ in p)
-        blk = stack([T(s_, size, WHITE, max_w=910) for s_ in p], int(size * 0.06))
-        blk_o = stack([O(s_, size, ac['ink'], 6, max_w=910) for s_ in p], int(size * 0.06))
-        y_txt = 800 + blk.height / 2
-        els.append(self._el(blk, W / 2, y_txt, d=0.0, kind='slam', z0=1.6, kick=2, rot=-2, echo=blk_o, off=(12, 12),
+        p, size = best_lines(self.pick1, 'dela', 130 if len(self.pick1) > 20 else 150, 900)
+        size = min(size, 150)
+        gap = int(size * (0.5 if len(p) > 1 else 0.32))                                 # строки не налезают друг на друга (обводка-эхо ниже на 12 px)
+        blk = stack([T(s_, size, WHITE, max_w=910) for s_ in p], gap)
+        blk_o = stack([O(s_, size, ac['ink'], 6, max_w=910) for s_ in p], gap)
+        es = 450 if blk.height < 240 else 340                 # высокий прогноз — эмблема меньше
+        els = [self._el(C.with_shadow(self.fav.emb(es), 30, 0.6, 18), W / 2, 540 - (450 - es) / 2, kind='slam', z0=2.3,
+                        kick=-14, dur=0.2, pulse=0.05)]
+        y_txt = 540 + 450 / 2 - (450 - es) + 60 + blk.height / 2
+        els.append(self._el(blk, W / 2, y_txt, d=0.0, kind='slam', z0=1.6, kick=2, rot=-2, echo=blk_o, off=((7, 7) if len(p) > 1 else (12, 12)),
                             dur=0.18))
-        y = y_txt + blk.height / 2
+        y = y_txt + blk.height / 2 + 12
         if self.pick2:
             st = boxed(T(self.pick2, 60, INK, max_w=880), PAPER, 26, 14, 4)
-            y += 30 + st.height / 2
+            y += 44 + st.height / 2
             els.append(self._el(st, W / 2, y, d=0.06, kind='slam', z0=1.5, kick=-4, rot=1.5))
             y += st.height / 2
         if self.coef:
@@ -565,22 +581,27 @@ class Kinetic(C.Reel):
             C.put(pl, lab, 40 + lab.width / 2, 95 + 4)
             C.put(pl, val, pw - 40 - val.width / 2, 95)
             y += 40 + 95
-            els.append(self._el(pl, W / 2, min(y, 1300), d=0.12, kind='slam', z0=1.7, kick=6, rot=-2, pulse=0.035))
+            els.append(self._el(pl, W / 2, y, d=0.12, kind='slam', z0=1.7, kick=6, rot=-2, pulse=0.035))
+        if y > 1300:                                           # высокий блок — всё выше, а не кэф поверх прогноза
+            for e in els:
+                e['y'] -= y - 1300
         return dict(t0=D, t1=self.TC, bg='glow', side=sd, els=els, chips=None, hit=26, wm=False, pick=True)
 
     def _end_card(self):
         TC, ac = self.TC, self.acc[self.side]
         els = [self._el(self._emb_fit(self.side, 520, 420), W / 2, 570, kind='slam', z0=1.5, rot=-3)]
-        size = fit_size(self.pick1, 'dela', 96, 960)
-        els.append(self._el(T(self.pick1, size, WHITE), W / 2, 880, d=0.04, kind='slam', z0=1.3, rot=-1.5,
-                            echo=O(self.pick1, size, ac['ink'], 4), off=(8, 8)))
+        p, size = best_lines(self.pick1, 'dela', 96, 940, 2)
+        blk = stack([T(s_, size, WHITE) for s_ in p], int(size * 0.5))
+        y_p = 880 + (blk.height - T(p[0], size, WHITE).height) / 2 - (40 if len(p) > 1 else 0)
+        els.append(self._el(blk, W / 2, y_p, d=0.04, kind='slam', z0=1.3, rot=-1.5,
+                            echo=stack([O(s_, size, ac['ink'], 4) for s_ in p], int(size * 0.5)), off=(5, 5)))
         sub = []
         if self.pick2:
             sub.append(self.pick2)
         if self.coef:
             sub.append('КЭФ ' + C.fmt_k(self.coef))
         if sub:
-            els.append(self._el(T(' · '.join(sub), 64, ac['ink'], 'osw', wght=700, track=0.03, max_w=960), W / 2, 984,
+            els.append(self._el(T(' · '.join(sub), 64, ac['ink'], 'osw', wght=700, track=0.03, max_w=960), W / 2, max(984, y_p + blk.height / 2 + 64),
                                 d=0.08, kind='slide', dx0=200))
         els.append(self._el(C.tg_plate(980, 220, font='unb'), W / 2, 1250, d=0.12, kind='slam', z0=1.4, kick=-3))
         return dict(t0=TC, t1=self.dur + 1, bg='ink', side=self.side, els=els, chips=None, hit=12, wm=False, end=True)

@@ -165,10 +165,12 @@ class Card(C.Reel):
         top = C.rrect(CW - 140, 80, 40, GDARK)
         C.put(top, C.text('ПРОГНОЗ', 'mono', 40, GOLD1, 800, track=0.35), top.width / 2, 40)
         C.put(g, top, CW / 2, 100)
-        C.put(g, C.with_shadow(self.fav.emb(330), 18, 0.45, 10), CW / 2, 345)
-        C.put(g, C.text(self.pick1, 'unb', 76, GDARK, 900, max_w=CW - 90), CW / 2, 590)
+        p1, wrap = C.text2(self.pick1, 'unb', 76, GDARK, 900, max_w=CW - 90)     # длинный прогноз — в две строки (19.10)
+        C.put(g, C.with_shadow(self.fav.emb(270 if wrap else 330), 18, 0.45, 10), CW / 2, 320 if wrap else 345)
+        y1 = 575 if wrap else 590
+        C.put(g, p1, CW / 2, y1)
         if self.pick2:
-            C.put(g, C.text(self.pick2, 'unb', 44, GDARK, 800, max_w=CW - 120), CW / 2, 672)
+            C.put(g, C.text(self.pick2, 'unb', 44, GDARK, 800, max_w=CW - 120), CW / 2, max(672, y1 + p1.height / 2 + 45))
         kt = C.text('КЭФ ' + C.fmt_k(self.coef), 'unb', 78, GOLD1, 900)
         kp = C.rrect(kt.width + 100, 140, 70, GDARK)
         C.put(kp, kt, kp.width / 2, 70)
@@ -350,12 +352,12 @@ class Card(C.Reel):
             im = self.flipped(self.gold_back, self.shine(self.gold, t, 0.45), fl) if fl < 1 else self.shine(self.gold, t, 0.45)
             sc = max(0.05, 0.25 + 0.75 * g)
             ck = C.in_out(C.seg(t, self.t_cta, self.t_cta + 0.5))
-            sc *= 1 - 0.1 * ck
-            self.place(fr, im, CX, CY - 40 * ck + 60 * (1 - min(1, g)), sc, -6 * (1 - C.seg(t, D, D + 0.7)))
+            sc *= 1 - 0.1 * ck                                 # к плашке TG карточка чуть меньше и выше — не заходят друг на друга
+            self.place(fr, im, CX, CY - 60 * ck + 60 * (1 - min(1, g)), sc, -6 * (1 - C.seg(t, D, D + 0.7)))
             if ts < 0.35:
                 fr = C.add_light(fr, self.flash, CX, CY, 1.4 * (1 - ts / 0.35)).convert('RGBA')
         if t >= self.t_cta:
-            fresh.cta(fr, t, self.t_cta, y=1462)
+            fresh.cta(fr, t, self.t_cta + 0.25, y=1462)   # плашка — когда карточка уже поднялась
         else:
             fresh.handle(fr, C.seg(t, 0.3, 0.6), col=(200, 200, 210))
         # удары: переворот, вход, дроп
