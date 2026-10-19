@@ -1,0 +1,69 @@
+{
+ "day": "2026-10-19",
+ "make": [
+  "team/out/2026-10-19/new_tracks_make.py"
+ ],
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Пробы новых треков: 7 роликов, каждый трек — со своим шаблоном. Данные матча в пробах условные, смотрим только музыку и удар. Напишите, какие пары берём в ночную очередь (номера), какие нет."
+  },
+  {
+   "to": "owner",
+   "type": "video",
+   "files": [
+    "out/tr/depto.mp4"
+   ],
+   "text": "1. Трек depto · шаблон «Эфир»"
+  },
+  {
+   "to": "owner",
+   "type": "video",
+   "files": [
+    "out/tr/kilo.mp4"
+   ],
+   "text": "2. Трек kilo · шаблон «Кинетик»"
+  },
+  {
+   "to": "owner",
+   "type": "video",
+   "files": [
+    "out/tr/quantum.mp4"
+   ],
+   "text": "3. Трек quantum · шаблон «Радар»"
+  },
+  {
+   "to": "owner",
+   "type": "video",
+   "files": [
+    "out/tr/militant.mp4"
+   ],
+   "text": "4. Трек militant · шаблон «Гонка»"
+  },
+  {
+   "to": "owner",
+   "type": "video",
+   "files": [
+    "out/tr/too_fast.mp4"
+   ],
+   "text": "5. Трек too_fast · шаблон «Дашборд»"
+  },
+  {
+   "to": "owner",
+   "type": "video",
+   "files": [
+    "out/tr/two_face.mp4"
+   ],
+   "text": "6. Трек two_face · шаблон «Карточка»"
+  },
+  {
+   "to": "owner",
+   "type": "video",
+   "files": [
+    "out/tr/demons.mp4"
+   ],
+   "text": "7. Трек demons · шаблон «Лента»"
+  }
+ ]
+}
