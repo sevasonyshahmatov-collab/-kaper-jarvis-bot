@@ -57,7 +57,7 @@ HANDLE_Y = 1560                 # @jarvibet — у низа безопасной
 
 
 def handle(fr, a=1.0, col=(255, 255, 255), y=HANDLE_Y):
-    C.put(fr, C.text(C.HANDLE, 'unb', 38, col, 600), C.W / 2, y, a)
+    C.put(fr, C.text(C.HANDLE, 'unb', 38, col, 600), C.W / 2, y, a * C.HANDLE_BOTTOM)    # выключен (core.HANDLE_BOTTOM, 19.10)
 
 
 def cta(fr, t, t0, y=1430, dark=False, top='TELEGRAM', w=960, h=170):
