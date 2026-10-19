@@ -758,8 +758,8 @@ class Graffiti(C.Reel):
         words = self.pick1.split()
         rows = [words[0], ' '.join(words[1:])] if len(words) > 1 else [self.pick1]
         pc = piece(rows, sizes=(142, 142), max_w=1010, jitter=0.9, seed=110, fill=(lighten(c, 0.5), darken(c, 0.05)),
-                   ext_col=darken(accent, 0.45), ext=16, out1=7, out2=10, gap=-0.1)
-        pc = C.fit(pc, 1060, 420) if pc.width > 1060 or pc.height > 420 else pc
+                   ext_col=darken(accent, 0.45), ext=16, out1=7, out2=10, gap=0.06)   # строки не налезают (19.10)
+        pc = C.fit(pc, 1060, 400) if pc.width > 1060 or pc.height > 400 else pc     # ≤ 400: под ним «в основное время» и кэф
         self.pc_h = pc.height
         ypc = 752 + pc.height / 2
         self._el(E, 'p', pc, 540, ypc, D, 'spray', 0.22 * u, 'rad', drips=6, haze=accent, seed=103, lmax=34, lmin=18,
@@ -772,7 +772,8 @@ class Graffiti(C.Reel):
         tc = INK if 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2] > 150 else WHITE
         C.put(cf, C.text('КЭФ', 'dela', 42, tc), 98, 73)
         C.put(cf, C.text(C.fmt_k(self.coef), 'dela', 96, tc, max_w=230), 290, 75)
-        self.coef_y = min(ysub + 40 + 80, 1205)
+        # кэф — всегда под «в основное время» (раньше min(…, 1205) заезжал на неё при прогнозе в две строки, 19.10)
+        self.coef_y = ysub + 120 if self.pick2 else ypc + pc.height / 2 + 100
         self._el(E, 'p', slap_ready(cf, 4, 12, 0.55, 10), 540, self.coef_y, D + 0.5 * u, 'slap')
         tg = slap_ready(sticker(330, 74, 16, INK), 3, 8, 0.5, 6)
         C.put(tg, stencil(self.tag, 34, WHITE, 270, cut=False), tg.width / 2, tg.height / 2 - 3)

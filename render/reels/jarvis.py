@@ -23,7 +23,7 @@ GOLD = (255, 214, 90)
 DIM = (110, 140, 160)
 BG = (3, 8, 15)
 FS = 52                       # кегль терминала
-LH = 76                       # строка
+LH = 70                       # строка (было 76: у второй команды «шайбы» упирались в «ФОРМА», 19.10)
 PX, PY = 46, 556              # окно терминала
 PW, PH = W - 2 * PX, 1400 - 556
 TX, TY = PX + 36, PY + 100    # первая строка текста
@@ -141,6 +141,15 @@ class Jarvis(C.Reel):
         self.odds_lab = C.text('основное время:', 'mono', 40, DIM, 600)
         self.v_emb = C.glow(self.fav.emb(300), 30, 1.0, fresh.bright(fresh.club(self.fav), 0.3))
         self.v1 = C.text(self.pick1, 'unb', 92, (255, 255, 255), 900, max_w=PW - 80)
+        self.v_wrap = 0                                         # длинный прогноз — в две строки, а не мелко (19.10)
+        if C.text(self.pick1, 'unb', 92, (255, 255, 255), 900).width > PW - 80 and ' ' in self.pick1:
+            w = self.pick1.split()
+            k = min(range(1, len(w)), key=lambda i: abs(len(' '.join(w[:i])) - len(' '.join(w[i:]))))
+            r1, r2 = (C.text(x, 'unb', 74, (255, 255, 255), 900, max_w=PW - 80) for x in (' '.join(w[:k]), ' '.join(w[k:])))
+            im = Image.new('RGBA', (max(r1.width, r2.width), r1.height + r2.height + 14), (0, 0, 0, 0))
+            C.put(im, r1, im.width / 2, r1.height / 2)
+            C.put(im, r2, im.width / 2, r1.height + 14 + r2.height / 2)
+            self.v1, self.v_wrap = im, 62
         self.v2 = C.text(self.pick2, 'unb', 54, TXT, 800, max_w=PW - 120) if self.pick2 else None
         self.fav_t = C.text(self.fav.up, 'unb', 52, TXT, 800, max_w=640)
 
@@ -262,12 +271,16 @@ class Jarvis(C.Reel):
         q = C.out_back(C.seg(t, D + 0.05, D + 0.4), 1.2)
         C.put(fr, C.scale(self.v_emb, max(0.01, q)), W / 2, PY + 340)
         s1 = self.scramble(self.pick1, t, D, 0.55)
-        im = self.v1 if s1 == self.pick1 else C.text(s1, 'unb', 92, (255, 255, 255), 900, max_w=PW - 80)
-        C.put(fr, im, W / 2, PY + 548)
+        sh = self.v_wrap
+        if sh:                                                  # две строки — без «перебора букв», проявлением
+            C.put(fr, self.v1, W / 2, PY + 548 + sh / 2, C.seg(t, D, D + 0.4))
+        else:
+            im = self.v1 if s1 == self.pick1 else C.text(s1, 'unb', 92, (255, 255, 255), 900, max_w=PW - 80)
+            C.put(fr, im, W / 2, PY + 548)
         if self.v2:
-            C.put(fr, self.v2, W / 2, PY + 632, C.seg(t, D + 0.4, D + 0.6))
+            C.put(fr, self.v2, W / 2, PY + 632 + sh, C.seg(t, D + 0.4, D + 0.6))
         kq = C.out_expo(C.seg(t, D + 1.0 * u, D + 1.4 * u))
-        C.put(fr, self.kef, W / 2, PY + 745 + 30 * (1 - kq), kq)
+        C.put(fr, self.kef, W / 2, PY + 745 + sh + 30 * (1 - kq), kq)
 
     def glitch(self, fr, t, k):
         """Рваные горизонтальные полосы + расслоение цвета, k — сила 0..1."""
