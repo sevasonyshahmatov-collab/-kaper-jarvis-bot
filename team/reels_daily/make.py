@@ -58,11 +58,7 @@ TEMPLATES = {
     'lineup_slx': ('lineup', 'Lineup', 'slx', 60 / 95, 35.42, None, dict(ni=4, nt=9, nv=3, nh=6, nf=4)),
     'lineup_kizaru': ('lineup', 'Lineup', 'kizaru', 60 / 60, 40.08, None, dict(ni=3, nt=6, nv=2, nh=4, nf=2)),
     'lineup_vace': ('lineup', 'Lineup', 'vace', 60 / 64, 36.08, None, dict(ni=3, nt=6, nv=2, nh=4, nf=3)),
-}
-
-# Пробы 19.10 (team/out/2026-10-19/new_tracks_make.py, run 268): треки, которых ещё не было. Владелец одобряет по номеру —
-# одобренные переносятся в TEMPLATES (и в FIRST — сразу в начало очереди).
-CANDIDATES = {
+    # треки, которых раньше не было (пробы 19.10, run 268; владелец 19.10: «все ролики берём по очереди»)
     'broadcast_depto': ('broadcast', 'Broadcast', 'depto', 0.621762, 39.219),                        # 1
     'kinetic_kilo': ('kinetic', 'Kinetic', 'kilo', 0.9375, 60.082),                                   # 2
     'radar_quantum': ('radar', 'Radar', 'quantum', 1.0, 55.147),                                      # 3
@@ -81,7 +77,9 @@ def out_dir(league, day):
 
 
 # Сначала — шаблоны, которых в автозагрузке ещё не было (владелец 19.10: «начать с них»), потом остальные.
-FIRST = ('lineup_slx', 'tape', 'jarvis', 'card', 'jewel', 'kinetic', 'lineup_kizaru', 'lineup_vace')
+FIRST = ('lineup_slx', 'tape', 'jarvis', 'card', 'jewel', 'kinetic', 'lineup_kizaru', 'lineup_vace',
+         'broadcast_depto', 'kinetic_kilo', 'radar_quantum', 'race_militant', 'dashboard_too_fast', 'card_two_face',
+         'tape_demons')
 RING_START = date(2026, 10, 20)
 PER_DAY = 12                      # мест очереди на день: НХЛ 0–5, КХЛ 6–11 (раньше обе лиги начинали с одного места)
 
