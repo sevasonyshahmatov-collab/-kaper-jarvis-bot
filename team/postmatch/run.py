@@ -468,14 +468,22 @@ def main():
     import writer
     word = {settle.WIN: 'зашла', settle.LOSS: 'не зашла', settle.PUSH: 'возврат'}[res]
     body = writer.write(p, g, word, chronicle.facts(p, g), pick_why, recent)
-    text = post_text(p, g, goals, res, why, legs, body)
-    print(text, flush=True)
-    path = os.path.join('out', 'postmatch', '%s.mp4' % p['pid'])
-    if not a.no_render:
-        render(p, g, legs, res, res_legs, path)
-    # номер итога: <прогноз>r<номер поста прогноза в канале> — бот публикует итог ответом на этот пост
-    msg = {'to': 'owner', 'type': 'animation', 'files': [path], 'text': text, 'html': True, 'emoji': True,
-           'buttons': 'post', 'pid': '%sr%s' % (p['pid'], ch or '')}
+    if body:
+        text = post_text(p, g, goals, res, why, legs, body)
+        print(text, flush=True)
+        path = os.path.join('out', 'postmatch', '%s.mp4' % p['pid'])
+        if not a.no_render:
+            render(p, g, legs, res, res_legs, path)
+        # номер итога: <прогноз>r<номер поста прогноза в канале> — бот публикует итог ответом на этот пост
+        msg = {'to': 'owner', 'type': 'animation', 'files': [path], 'text': text, 'html': True, 'emoji': True,
+               'buttons': 'post', 'pid': '%sr%s' % (p['pid'], ch or '')}
+    else:
+        # владелец 19.10: короткий пост из заготовок не нужен — только предупреждение, текст допишем вручную
+        print('POSTMATCHERR текста от нейросети нет — пост из заготовок не отправляю', flush=True)
+        msg = {'to': 'owner', 'type': 'text',
+               'text': 'Послематчевый пост %s — %s %d:%d (ставка %s) не готов: нейросеть для текста сейчас не отвечает. '
+                       'Пост из заготовок не отправляю — напишу полный текст вручную и пришлю с кнопкой «Опубликовать».'
+                       % (p['home'], p['away'], g['hg'], g['ag'], word)}
     with open(a.job_file, encoding='utf-8') as f:
         job = json.load(f)
     job['messages'] = (job.get('messages') or []) + [msg]

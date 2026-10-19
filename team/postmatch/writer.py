@@ -3,7 +3,8 @@
 писал человек, а не по шаблону»).
 Основной — Gemini по бесплатному ключу Google AI Studio (секрет GEMINI_API_KEY, решение владельца 18.10: счёт Claude API
 не пополняем). Запасной — Claude API (секрет ANTHROPIC_API_KEY), если на его счёте есть деньги. Оба передаёт itogi.yml.
-write(...) → (рассказ, вывод) или None — тогда run.py собирает текст по-старому, из заготовок.
+write(...) → (рассказ, вывод) или None — тогда run.py пост не собирает (владелец 19.10: заготовки не слать), а пишет
+владельцу, что текста нет.
 """
 import os
 import random
@@ -104,14 +105,17 @@ def _gemini(key, user):
     for model in _gemini_models(key):
         busy = 0
         for attempt in range(5):
+            if time.time() > _deadline[0]:
+                print('POSTMATCHERR Gemini: вышло время на текст', flush=True)
+                return None
             try:
-                r = requests.post(GEMINI_URL % model, headers={'x-goog-api-key': key}, timeout=120, json={
+                r = requests.post(GEMINI_URL % model, headers={'x-goog-api-key': key}, timeout=90, json={
                     'systemInstruction': {'parts': [{'text': SYSTEM}]},
                     'contents': [{'role': 'user', 'parts': [{'text': '\n\n'.join(user)}]}],
                     'generationConfig': {'temperature': 1.0, 'maxOutputTokens': 8192}})
             except requests.RequestException as e:
-                print('POSTMATCHERR Gemini связь: %r' % e, flush=True)
-                return None
+                print('POSTMATCHERR Gemini %s связь: %r — пробую следующую модель' % (model, e), flush=True)
+                break
             if r.status_code in (403, 404, 429):
                 print('POSTMATCHERR Gemini %s: %s (%s) — пробую следующую модель' % (
                     model, r.status_code, 'нет на бесплатном тарифе или лимит' if r.status_code == 429 else 'недоступна'), flush=True)
@@ -149,11 +153,27 @@ def write(p, g, res_word, chronicle, why='', recent=()):
         return None
     user = _prompt(p, res_word, chronicle, why, recent)
     gkey = os.environ.get('GEMINI_API_KEY', '').strip()
-    if gkey:
-        body = _gemini(gkey, user)
+    _deadline[0] = time.time() + BUDGET
+    # владелец 19.10: пост по заготовке не отправлять — у Google перегрузка обычно проходит за минуты, пробуем ещё раунды
+    for rnd, pause in enumerate(ROUNDS):
+        if pause:
+            if time.time() + pause > _deadline[0]:
+                break
+            print('POSTMATCH текст: нейросеть не ответила — жду %d с, раунд %d' % (pause, rnd + 1), flush=True)
+            time.sleep(pause)
+        if gkey:
+            body = _gemini(gkey, user)
+            if body:
+                return body
+        body = _claude(p, user)
         if body:
             return body
-    return _claude(p, user)
+    return None
+
+
+ROUNDS = (0, 120, 240)
+BUDGET = 15 * 60          # на текст не больше 15 мин: задание itogi.yml ограничено 40 мин, финал ждём до 14
+_deadline = [0.0]
 
 
 def _claude(p, user):
