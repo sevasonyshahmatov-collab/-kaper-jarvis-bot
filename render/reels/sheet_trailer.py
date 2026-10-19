@@ -385,10 +385,13 @@ class SheetTrailer(C.Reel):
     def sc_acc(self, lay, t, t0):
         A = self.D['acc']
         q = C.out_expo(C.seg(t, t0 + 0.2, t0 + 1.6))
-        C.put(lay, T('УГАДАН ИСХОД МАТЧА', 30, DIM, 800, track=0.1), CW_ / 2, 70)
-        big = C.text('%d%%' % round(A['pct'] * q), 'unb', 190, GREEN, 900)
+        sure = A['sure_n'] >= 20 and A['sure_pct'] > A['pct']       # крупно — бо́льшая из двух честных цифр
+        pct, hits, n = (A['sure_pct'], A['sure_hits'], A['sure_n']) if sure else (A['pct'], A['hits'], A['n'])
+        lab = 'УГАДАНО, КОГДА МОДЕЛЬ УВЕРЕНА (ОТ 60%)' if sure else 'УГАДАН ИСХОД МАТЧА'
+        C.put(lay, T(lab, 30, DIM, 800, track=0.06, max_w=CW_ - 40), CW_ / 2, 70)
+        big = C.text('%d%%' % round(pct * q), 'unb', 190, GREEN, 900)
         C.put(lay, big, CW_ / 2, 210)
-        C.put(lay, T('%d из %d матчей сезона' % (round(A['hits'] * q), A['n']), 34, INK, 700), CW_ / 2, 345)
+        C.put(lay, T('%d из %d матчей' % (round(hits * q), n), 34, INK, 700), CW_ / 2, 345)
         # точки: каждый матч — зелёная или красная
         roll = A.get('dots') or ([1] * A['hits'] + [0] * (A['n'] - A['hits']))
         n = len(roll)
@@ -401,8 +404,9 @@ class SheetTrailer(C.Reel):
             x, y = x0 + (i % cols) * 34, 410 + (i // cols) * 34
             d.ellipse((x - r_, y - r_, x + r_, y + r_), fill=(GREEN if roll[i] else RED) + (255,))
         qs = C.out_back(C.seg(t, t0 + 2.6 * self.u, t0 + 2.6 * self.u + 0.35), 1.5)
-        if qs > 0.01 and A['sure_n']:
-            s = self._bubble('уверенность от 60%% — угадано %d%% (%d из %d)' % (A['sure_pct'], A['sure_hits'], A['sure_n']))
+        if qs > 0.01:
+            s = self._bubble(('все матчи сезона — угадано %d%% (%d из %d)' % (A['pct'], A['hits'], A['n'])) if sure else
+                             ('уверенность от 60%% — угадано %d%% (%d из %d)' % (A['sure_pct'], A['sure_hits'], A['sure_n'])))
             C.put(lay, C.scale(s, qs), CW_ / 2, CH_ - 60)
         return lay
 
@@ -492,3 +496,47 @@ class SheetTrailer(C.Reel):
         if qt > 0.01:
             C.put(fr, C.scale(self.tg, max(0.05, qt)), W / 2, 1250)
         return fr
+
+
+def cover(data):
+    """Кликабельная обложка 1080×1920 (владелец 19.10): заголовок, таблица наискосок, красный круг и стрелка на «ЗАШЛО»,
+    стикер с процентом угаданного (та же честная цифра, что в сцене «Точность»). Главное — в середине кадра."""
+    r = SheetTrailer(data)
+    img = r.bg.copy()
+    img = C.add_light(img, C.radial(1600, 1500, (30, 140, 255), 170, 1.6), W / 2, 1000, 1.0).convert('RGBA')
+    img = C.add_light(img, C.radial(900, 900, (40, 220, 110), 120, 1.8), W * 0.78, 1330, 0.8).convert('RGBA')
+    win = r.frames[0].copy()
+    body = Image.new('RGBA', (CW_, CH_), (0, 0, 0, 0))
+    win.alpha_composite(r.sc_pred(body, 99.0, 0.0), (NUM_W, BAR_H + COL_H))
+    d = ImageDraw.Draw(win)                                           # красный «маркер» вокруг столбца «ИТОГ»
+    x0, x1 = NUM_W + r.pred_cols[5] - 6, NUM_W + r.pred_cols[6] + 2
+    y0, y1 = BAR_H + COL_H + RH - 4, BAR_H + COL_H + RH * (len(data['pred']) + 1) + 4
+    for k in range(3):
+        d.rounded_rectangle((x0 - k * 3, y0 - k * 3, x1 + k * 3, y1 + k * 3), 30, outline=(230, 30, 40, 255), width=4)
+    w2 = C.rotate(C.scale(win, 0.86), -5)
+    C.put(img, C.shadow(w2, 40, 0.75), W / 2 + 16, 1130)
+    C.put(img, w2, W / 2, 1100)
+    # стрелка к столбцу
+    ar = Image.new('RGBA', (300, 300), (0, 0, 0, 0))
+    da = ImageDraw.Draw(ar)
+    da.line((30, 20, 190, 200), fill=(235, 35, 45, 255), width=28)
+    da.polygon([(130, 215), (250, 280), (230, 150)], fill=(235, 35, 45, 255))
+    C.put(img, C.with_shadow(ar, 10, 0.5, 6), 790, 690)
+    # заголовок
+    t1 = C.with_shadow(C.text('Я СДЕЛАЛ ТАБЛИЦУ,', 'unb', 78, (255, 255, 255), 900, max_w=1000), 14, 0.8, 6)
+    t2 = C.with_shadow(C.text('КОТОРАЯ ПРОГНОЗИРУЕТ', 'unb', 64, (255, 255, 255), 900, max_w=1000), 14, 0.8, 6)
+    t3 = C.glow(C.text('ЛУЧШЕ БУКМЕКЕРА', 'unb', 104, GOLD, 900, max_w=1020, stroke=6, stroke_fill=(40, 20, 0)), 26, 0.9,
+                (255, 150, 30))
+    C.put(img, t1, W / 2, 300)
+    C.put(img, t2, W / 2, 390)
+    C.put(img, t3, W / 2, 505)
+    # стикер с процентом
+    A = data['acc']
+    sure = A['sure_n'] >= 20 and A['sure_pct'] > A['pct']
+    pct = A['sure_pct'] if sure else A['pct']
+    st = C.rrect(470, 250, 40, (30, 170, 80), outline=(255, 255, 255), width=8)
+    C.put(st, C.text('%d%%' % pct, 'unb', 120, (255, 255, 255), 900), 235, 105)
+    C.put(st, C.text('УГАДАНО', 'unb', 46, (225, 255, 230), 900, track=0.08), 235, 200)
+    C.put(img, C.with_shadow(C.rotate(st, 8), 20, 0.6, 10), 790, 1500)
+    C.put(img, C.text('КХЛ · ТАБЛИЦА ПРОГНОЗОВ', 'mont', 40, (170, 205, 255), 900, track=0.14), W / 2, 1720)
+    return img.convert('RGB')
