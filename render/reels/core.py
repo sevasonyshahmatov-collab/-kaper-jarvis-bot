@@ -260,6 +260,22 @@ def window(t, a, b, fi=0.2, fo=0.2):
     return k
 
 
+def text2(s, name, size, fill=(255, 255, 255), wght=700, max_w=None, k=0.8, gap=0.16, **kw):
+    """Строка, а если в max_w кеглем size не помещается — две сбалансированные строки кеглем size·k (владелец 19.10:
+    длинный прогноз не мельчить). → (картинка, на сколько она выше однострочной)."""
+    one = text(s, name, size, fill, wght, max_w=max_w, **kw)
+    if not max_w or ' ' not in s.strip() or text(s, name, size, fill, wght, **kw).width <= max_w:
+        return one, 0
+    w = s.split()
+    i = min(range(1, len(w)), key=lambda j: max(len(' '.join(w[:j])), len(' '.join(w[j:]))))
+    r1, r2 = (text(x, name, size * k, fill, wght, max_w=max_w, **kw) for x in (' '.join(w[:i]), ' '.join(w[i:])))
+    g = int(size * k * gap)
+    im = Image.new('RGBA', (max(r1.width, r2.width), r1.height + g + r2.height), (0, 0, 0, 0))
+    im.alpha_composite(r1, ((im.width - r1.width) // 2, 0))
+    im.alpha_composite(r2, ((im.width - r2.width) // 2, r1.height + g))
+    return im, max(0, im.height - one.height)
+
+
 # ─────────────────────────────── картинки ───────────────────────────────
 def put(dst, im, cx, cy, a=1.0, anchor='c'):
     """Наложить im на dst центром (anchor='c') или левым верхним углом ('tl'), с прозрачностью a; можно за край."""
