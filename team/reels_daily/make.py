@@ -31,9 +31,11 @@ CFG = os.path.join(ROOT, 'team', 'out', '2026-10-13', 'reels_cfg')
 MSK = timezone(timedelta(hours=3))
 WEEK = ('ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС')
 
-# утверждённые шаблоны 14.10 (team/reels_selected/README.md) и их варианты с треками серии 16–17.10 (владелец 17.10:
-# «с новой музыкой пойдёт» — это отдельные шаблоны, чтобы ролики отличались; быстрые треки — на половинном темпе).
-# код: модуль, класс, трек, доля трека (с), дроп в треке (с)
+# Все утверждённые шаблоны (team/reels_selected/README.md) — по очереди, независимо от вида ставки (владелец 19.10).
+# 14.10 и их варианты с треками 16–17.10 (владелец 17.10: «с новой музыкой пойдёт» — отдельные шаблоны; быстрые треки —
+# на половинном темпе): параметры сцен — reels_cfg/<модуль>.json.
+# 12.10 («Сравнение», «Терминал», «Карточка», «Состав» на трёх треках): параметры — как в team/out/2026-10-12/*_make.py.
+# код: модуль, класс, трек, доля трека (с), дроп в треке (с)[, доли до дропа, аргументы класса]
 TEMPLATES = {
     'cinema': ('cinema', 'Cinema', 'withyou', 60 / 73, 52.11),
     'broadcast': ('broadcast', 'Broadcast', 'packs', 60 / 71, 29.59),
@@ -49,8 +51,13 @@ TEMPLATES = {
     'dashboard_doomsday': ('dashboard', 'Dashboard', 'doomsday', 2 * 0.4444, 43.181),
     'race_cant_say': ('race', 'Race', 'cant_say', 2 * 0.3871, 49.161),
     'vhs_two_faced': ('vhs', 'Vhs', 'two_faced', 2 * 0.4839, 33.871),
+    'tape': ('tape', 'Tape', 'rotten', 60 / 72, 28.20, 2.5 + 2 * 6 + 1.5, dict(per=1, pre=1.5, hold=4, cta=2.5)),
+    'jarvis': ('jarvis', 'Jarvis', 'north', 120 / 142, 57.50, 19, dict(team=7, pre=2, hold=5, cta=2.5)),
+    'card': ('card', 'Card', 'jefe', 60 / 81, 20.80, 21, dict(team=8, rush=2, hold=5.5, cta=3)),
+    'lineup_slx': ('lineup', 'Lineup', 'slx', 60 / 95, 35.42, None, dict(ni=4, nt=9, nv=3, nh=6, nf=4)),
+    'lineup_kizaru': ('lineup', 'Lineup', 'kizaru', 60 / 60, 40.08, None, dict(ni=3, nt=6, nv=2, nh=4, nf=2)),
+    'lineup_vace': ('lineup', 'Lineup', 'vace', 60 / 64, 36.08, None, dict(ni=3, nt=6, nv=2, nh=4, nf=3)),
 }
-BOTH = 'broadcast'      # прогноз на матч целиком (тотал) — пока только «Эфир» показывает в финале обе команды
 
 
 LG = {'khl': ('KHL', 'КХЛ'), 'nhl': ('NHL', 'НХЛ')}
@@ -61,14 +68,10 @@ def out_dir(league, day):
 
 
 def assign(matches, day):
-    """Шаблон каждому матчу: все по очереди, прошли круг — заново; начало круга сдвигается по дням; тотал — «Эфир»."""
-    n = date.fromisoformat(day).toordinal()
-    ring = [x for x in TEMPLATES if x != BOTH]
-    k = n % len(ring)
+    """Шаблон каждому матчу: все по очереди, прошли круг — заново; начало круга сдвигается по дням."""
+    ring = list(TEMPLATES)
+    k = date.fromisoformat(day).toordinal() % len(ring)
     for m in matches:
-        if m['g'] == 'tot':
-            m['tpl'] = BOTH
-            continue
         m['tpl'] = ring[k % len(ring)]
         k += 1
     return matches
@@ -123,15 +126,27 @@ def plan(league, day, top, per):
 
 
 def reel(m, stats, code):
-    mod, cls, key, u, tdrop = TEMPLATES[m['tpl']]
-    p = os.path.join(CFG, mod + '.json')
-    c = json.load(open(p, encoding='utf-8')) if os.path.exists(p) else {'drop_beats': 20, 'kw': {}}
-    drop = c.get('drop_beats', 20) * u
+    mod, cls, key, u, tdrop, *rest = TEMPLATES[m['tpl']]
     d = date.fromisoformat(m['d'][:10])
     when = '%s %s · %s МСК' % (WEEK[d.weekday()], d.strftime('%d.%m'), m['d'][11:16])
     Cls = getattr(importlib.import_module('reels.' + mod), cls)
+    line = tuple(m['x1x2'])
+    if mod == 'lineup':                       # «Состав»: дроп считает сам шаблон
+        from reels import form as F
+        from reels import core as C
+        h, a = C.match(m['h'], m['a'], code)
+        r = Cls(m['h'], m['a'], code, m['pick'], m['odds'], when, stats, side=F.fav_side(h, a, m['pick']), u=u, line=line,
+                **rest[1])
+        return r, key, tdrop - r.drop
+    if rest:                                  # 12.10: доли до дропа и аргументы — свои
+        beats, kw = rest
+    else:                                     # 14.10: reels_cfg/<модуль>.json
+        p = os.path.join(CFG, mod + '.json')
+        c = json.load(open(p, encoding='utf-8')) if os.path.exists(p) else {'drop_beats': 20, 'kw': {}}
+        beats, kw = c.get('drop_beats', 20), c.get('kw', {})
+    drop = beats * u
     r = Cls(m['h'], m['a'], code, when, m['pick'], m['odds'], stats.get(m['h'], {}), stats.get(m['a'], {}), u=u, drop=drop,
-            line=tuple(m['x1x2']), **c.get('kw', {}))
+            line=line, **kw)
     return r, key, tdrop - drop
 
 
