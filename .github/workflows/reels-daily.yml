@@ -108,6 +108,8 @@ jobs:
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}           # загрузка на YouTube (team/reels_daily/youtube.py); нет — только Telegram
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}                   # Instagram Reels (team/reels_daily/instagram.py)
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
         run: PYTHONPATH=render python team/reels_daily/make.py render "${{ needs.plan.outputs.league }}" "${{ needs.plan.outputs.day }}" --part ${{ matrix.part }}
       - name: Сохранить ролики (2 дня)
         if: always()

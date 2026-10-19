@@ -1052,7 +1052,7 @@ class Dashboard(C.Reel):
         self.blinkers(fr, t)
         C.put(fr, self.tag, W / 2, TAG_Y, 0.95)
         ha = 1 - C.seg(t, self.t_cta, self.t_cta + 0.2)
-        C.put(fr, self.handle_im, W / 2, HY, 0.92 * ha)
+        C.put(fr, self.handle_im, W / 2, HY, 0.92 * ha * C.HANDLE_BOTTOM)
         if t >= self.t_cta:
             q = C.out_expo(C.seg(t, self.t_cta + 0.05, self.t_cta + 0.5))
             C.put(fr, self.tg, W / 2, 1344 + 50 * (1 - q), q)

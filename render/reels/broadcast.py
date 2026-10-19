@@ -787,7 +787,7 @@ class Broadcast(C.Reel):
         mode = None if t < self.t1 else 'h' if t < self.t2 else 'a' if t < self.tp else None if t < D else 'pick'
         C.put(fr, self.bugs[mode], W / 2, BUG_Y - 40 * (1 - bq), bq)
         ha = C.seg(t, 0.2, 0.45) * (1 - C.seg(t, self.t_cta, self.t_cta + 0.2))
-        C.put(fr, self.handle, W / 2, HY, ha)
+        C.put(fr, self.handle, W / 2, HY, ha * C.HANDLE_BOTTOM)
         if t >= self.t_cta:
             q = C.out_expo(C.seg(t, self.t_cta + 0.24, self.t_cta + 0.6))
             C.put(fr, self.tg, W / 2, 1316 + 60 * (1 - q), q)

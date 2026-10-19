@@ -1024,7 +1024,7 @@ class Race(C.Reel):
         ha = 0.92 * C.seg(t, 0.2, 0.5)
         if t >= self.t_cta:
             ha *= 1 - C.seg(t, self.t_cta + 0.1, self.t_cta + 0.35)
-        C.put(fr, L['handle_pl'], W / 2, HANDLE_Y, ha)
+        C.put(fr, L['handle_pl'], W / 2, HANDLE_Y, ha * C.HANDLE_BOTTOM)
         fr = fr.convert('RGB')
         if D <= t < D + 1 / 30 + 0.001:                                      # кадр-вспышка фотокамеры
             fr = Image.blend(fr, Image.new('RGB', fr.size, (255, 253, 246)), 0.85)

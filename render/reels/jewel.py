@@ -1129,7 +1129,7 @@ class Jewel(C.Reel):
         C.put(fr, self.tag, W / 2, TAG_Y, a0)
         C.put(fr, self.date, W / 2, DATE_Y, a0)
         ha = C.seg(t, 0.15, 0.45) * (1 - C.seg(t, TC, TC + 0.2))
-        C.put(fr, self.handle, W / 2, HY, ha)
+        C.put(fr, self.handle, W / 2, HY, ha * C.HANDLE_BOTTOM)
         if t >= TC:
             q = C.out_expo(C.seg(t, TC + 0.05, TC + 0.5))
             C.put(fr, self.tg, W / 2, 1372 + 60 * (1 - q), q)
