@@ -28,6 +28,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageOps
 
 import poster
 from reels import core as C
+from reels import form as F
 from reels.core import W, H
 
 NAVY = (7, 27, 78)
@@ -131,11 +132,8 @@ class Lineup(C.Reel):
         self.lg = 'НХЛ' if str(league).upper() == 'NHL' else 'КХЛ'
         self.tag = 'JARVIS | NHL' if self.lg == 'НХЛ' else 'JARVIS | KXL'
         self.coef, self.when, self.side, self.line = coef, when, side, line
-        m = re.match(r'(?i)\s*(победа)\s+(.*?)(\s+в основное время)?\s*$', pick)
-        if m:
-            self.p1, self.p2, self.p3 = 'ПОБЕДА', m.group(2).upper(), ('В ОСНОВНОЕ ВРЕМЯ' if m.group(3) else '')
-        else:
-            self.p1, self.p2, self.p3 = '', pick.upper(), ''
+        pk, self.p3 = F.split_pick(pick)                     # «ИНДИВИДУАЛЬНЫЙ ТОТАЛ …» сверху, «МЕНЬШЕ 2,5» крупно (19.10)
+        self.p1, self.p2 = F.head_main(pk)
         self.ch = club(self.h)
         self.ca = club(self.a, avoid=self.ch)
         self.cf = self.ch if side == 'h' else self.ca
@@ -216,7 +214,7 @@ class Lineup(C.Reel):
         """Подписи удержания: короткое имя (акцент), роль, 3 игры строками, сезон."""
         st = self.st[key]
         acc = bright(col, 0.28)
-        name = C.text(tm.up, 'mont', 190, acc, 900, max_w=980)
+        name = C.text(tm.up, 'mont', 168, acc, 900, max_w=920)
         role = C.text('%s · %s' % ('ХОЗЯЕВА' if key == 'h' else 'ГОСТИ', self.lg), 'mont', 40, WHITE, 800, track=0.18)
         rows = []
         for g in (st.get('last3') or [])[:3]:
@@ -239,7 +237,7 @@ class Lineup(C.Reel):
             C.put(row, bd, rw - 52, rh / 2)
             rows.append(row)
         head = C.text('ПОСЛЕДНИЕ 3 ИГРЫ', 'mont', 34, GRAY, 800, track=0.25)
-        season = [C.text(s, 'mont', 46, WHITE, 800, track=0.04, max_w=900) for s in season_lines(st)]
+        season = [C.text(s, 'mont', 42, WHITE, 800, track=0.04, max_w=900) for s in season_lines(st)]
         return dict(name=name, role=role, rows=rows, head=head, season=season)
 
     # ── общие слои ──
@@ -320,9 +318,9 @@ class Lineup(C.Reel):
         C.put(fr, e, W / 2, 595)
         q = C.out_expo(C.seg(t, th, th + 0.3 * u))
         nm = S['name']
-        C.put(fr, C.with_shadow(nm, 14, 0.55, 6), W / 2 + sg * 60 * (1 - q), 910, q)
+        C.put(fr, C.with_shadow(nm, 14, 0.55, 6), W / 2 + sg * 60 * (1 - q), 880, q)
         C.put(fr, S['role'], W / 2, 345, C.seg(t, th, th + 0.25 * u))
-        y = 1040
+        y = 1005                                               # всё чуть выше — сезон не касается бегущей строки (19.10)
         if S['rows']:
             C.put(fr, S['head'], W / 2, y, C.seg(t, th + 0.3 * u, th + 0.55 * u))
             y += 44
@@ -332,13 +330,13 @@ class Lineup(C.Reel):
             q = C.out_expo(C.seg(t, ti, ti + 0.3 * u))
             if q > 0:
                 C.put(fr, row, XC - sg * 120 * (1 - q), y + row.height / 2, min(1.0, q * 1.5))
-            y += row.height + 10
-        y += 26
+            y += row.height + 8
+        y += 18
         for j, s in enumerate(S['season']):
             ti = t0 + (self.r0 + self.rs * (n_rows + j)) * u
             q = C.out_expo(C.seg(t, ti, ti + 0.3 * u))
             C.put(fr, s, XC, y + s.height / 2 + 14 * (1 - q), q)
-            y += s.height + 22
+            y += s.height + 16
         return fr
 
     def versus(self, fr, t):
@@ -416,16 +414,16 @@ class Lineup(C.Reel):
         C.put(fr, C.scale(lab, 1.6 - 0.6 * q), W / 2, 840, min(1.0, q * 2))
         y = 950
         if self.p1:
-            im = C.with_shadow(C.text(self.p1, 'mont', 150, WHITE, 900, max_w=1000), 14, 0.6, 8)
+            im = C.with_shadow(C.text(self.p1, 'mont', 150, WHITE, 900, max_w=900), 14, 0.6, 8)
             C.put(fr, C.scale(im, 2.2 - 1.2 * q), W / 2, y, min(1.0, q * 2))
-            y += 150
+            y += min(150, im.height / 2 + 100)
         q2 = C.out_expo(C.seg(t, D + 0.04, D + 0.3 * u))
-        nm = C.glow(C.text(self.p2, 'mont', 180, bright(self.cf, 0.3), 900, max_w=980), 18, 0.8, self.cf)
+        nm = C.glow(C.text(self.p2, 'mont', 180, bright(self.cf, 0.3), 900, max_w=900), 18, 0.8, self.cf)
         C.put(fr, C.scale(nm, (2.4 - 1.4 * q2) * (1 + 0.025 * self.pulse(t))), W / 2, y + 10, min(1.0, q2 * 2))
         y += 135
         if self.p3:
             q3 = C.out_expo(C.seg(t, D + 0.5 * u, D + 0.9 * u))
-            C.put(fr, C.text(self.p3, 'mont', 58, WHITE, 800, track=0.12, max_w=980), W / 2, y + 30 * (1 - q3), q3)
+            C.put(fr, C.text(self.p3, 'mont', 58, WHITE, 800, track=0.12, max_w=900), W / 2, y + 30 * (1 - q3), q3)
             y += 95
         if self.coef:
             q4 = C.out_back(C.seg(t, D + 1.0 * u, D + 1.35 * u), 1.8)
