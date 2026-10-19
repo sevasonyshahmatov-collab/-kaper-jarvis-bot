@@ -92,7 +92,8 @@ OWNER_PICKS = os.path.join(ROOT, 'team', 'reels_daily', 'owner_picks.json')
 
 def owner_picks(ms):
     """Решения владельца по матчам (team/reels_daily/owner_picks.json, ключ «ГГГГ-ММ-ДД Хозяева — Гости»):
-    null — без ролика; {"pick": "…", "odds": 1.95} — ролик с прогнозом владельца вместо прогноза модели."""
+    null — без ролика; {"pick": "…", "odds": 1.95[, "tpl": "broadcast_depto"]} — ролик с прогнозом владельца вместо прогноза
+    модели (и, если задан, этим шаблоном из TEMPLATES)."""
     try:
         with open(OWNER_PICKS, encoding='utf-8') as f:
             o = json.load(f)
@@ -105,6 +106,8 @@ def owner_picks(ms):
             out.append(m)
         elif o[k]:
             out.append(dict(m, pick=o[k]['pick'], odds=float(o[k]['odds'])))
+            if o[k].get('tpl') in TEMPLATES:
+                out[-1]['tpl_owner'] = o[k]['tpl']
             print('OWNERPICK %s: %s %s' % (k, o[k]['pick'], o[k]['odds']), flush=True)
         else:
             print('OWNERSKIP %s' % k, flush=True)
@@ -112,7 +115,15 @@ def owner_picks(ms):
 
 
 def ring():
-    return list(FIRST) + [t for t in TEMPLATES if t not in FIRST + LAST] + list(LAST)
+    """Порядок очереди: FIRST, остальные, LAST — но варианты одного шаблона (тот же модуль, другой трек) не встают рядом
+    (владелец 20.10: «почему два раза подряд один и тот же шаблон»)."""
+    want = list(FIRST) + [t for t in TEMPLATES if t not in FIRST + LAST] + list(LAST)
+    out = []
+    while want:
+        prev = TEMPLATES[out[-1]][0] if out else None
+        k = next((i for i, t in enumerate(want) if TEMPLATES[t][0] != prev), 0)
+        out.append(want.pop(k))
+    return out
 
 
 def assign(matches, day, league='khl'):
@@ -120,7 +131,7 @@ def assign(matches, day, league='khl'):
     r = ring()
     k = (date.fromisoformat(day) - RING_START).days * PER_DAY + (6 if league == 'khl' else 0)
     for m in matches:
-        m['tpl'] = r[k % len(r)]
+        m['tpl'] = m.get('tpl_owner') or r[k % len(r)]          # шаблон, выбранный владельцем, — вместо очереди
         k += 1
     return matches
 
@@ -144,13 +155,14 @@ def plan(league, day, top, per):
     soon = (datetime.now(MSK) + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M')   # уже начавшиеся матчи — без ролика
     ms = [m for m in ms if m['d'] >= soon]
     ms = owner_picks(ms)
+    ms.sort(key=lambda m: m['d'])
+    assign(ms, day, league)                         # место в очереди — по всему дню, и при ручном запуске части матчей
     only = [x for x in os.environ.get('REELS_ONLY', '').split(',') if x]     # только эти клубы (ручной запуск)
     if only:
         ms = [m for m in ms if m['h'] in only or m['a'] in only]
     if top:
         ms = sorted(ms, key=lambda m: -m['p'])[:top]                                # самые уверенные
     ms.sort(key=lambda m: m['d'])
-    assign(ms, day, league)
     names = sorted({t for m in ms for t in (m['h'], m['a'])})
     stats = (form.khl if league == 'khl' else form.nhl)(games, day, names)
     parts = [list(range(i, min(i + per, len(ms)))) for i in range(0, len(ms), per)]
