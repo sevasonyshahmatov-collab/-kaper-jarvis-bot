@@ -11,7 +11,6 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'team', 'picks'))
 import calc  # noqa: E402
 
-MIN_GAMES = 4          # прогноз в «Точность» — когда у обеих команд уже есть матчи
 
 
 def _fin(r):
@@ -22,20 +21,23 @@ def _res3(r):
     return [x for x in r['rows'] if x['k'][:2] == ('ml', 6)]
 
 
+HOME_P = 0.55          # у команды ещё нет игр в сезоне — прогноз «хозяева» (домашнее преимущество)
+
+
 def rolling(G):
-    """Каждый матч сезона глазами модели «накануне»: [(g, p хозяев на итоговую победу)]."""
+    """Каждый матч сезона с первого дня (владелец 19.10: «учитывать с самого начала») глазами модели «накануне»:
+    [(g, p хозяев на итоговую победу)]. Первый игровой день и матчи команд без игр — прогноз «хозяева»."""
     out, cache = [], {}
     days = sorted({g['day'] for g in G})
     for d in days:
         prev = [g for g in G if g['day'] < d]
-        if len(prev) < 30:
-            continue
         T = calc.team_games(prev)
-        if d not in cache:
+        if prev and d not in cache:
             cache[d] = calc.model(prev)
-        M = cache[d]
+        M = cache.get(d)
         for g in (x for x in G if x['day'] == d):
-            if len(T.get(g['home'], [])) < MIN_GAMES or len(T.get(g['away'], [])) < MIN_GAMES:
+            if M is None or not T.get(g['home']) or not T.get(g['away']):
+                out.append((g, HOME_P))
                 continue
             fin = _fin(calc.match(T, M, g['home'], g['away']))
             out.append((g, fin[0]['p'] / (fin[0]['p'] + fin[1]['p'])))
@@ -68,7 +70,7 @@ def build(raw, nxt=None, n_pred=8):
     roll = rolling(G)
     # прогнозы: последние сыгранные матчи — прогноз модели накануне и итог
     pred = []
-    for g, p in roll[-n_pred:]:
+    for g, p in [x for x in roll if x[1] != HOME_P][-n_pred:]:
         fav_home = p >= 0.5
         won_home = g['hg'] > g['ag']
         pred.append(dict(d=g['day'][8:10] + '.' + g['day'][5:7], h=g['home'], a=g['away'],
@@ -78,7 +80,8 @@ def build(raw, nxt=None, n_pred=8):
     sure = [(g, p) for g, p in roll if max(p, 1 - p) >= 0.6]
     sure_hits = sum(1 for g, p in sure if (p >= 0.5) == (g['hg'] > g['ag']))
     acc = dict(n=len(roll), hits=hits, pct=round(100 * hits / max(1, len(roll))),
-               sure_n=len(sure), sure_hits=sure_hits, sure_pct=round(100 * sure_hits / max(1, len(sure))))
+               sure_n=len(sure), sure_hits=sure_hits, sure_pct=round(100 * sure_hits / max(1, len(sure))),
+               dots=[1 if (p >= 0.5) == (g['hg'] > g['ag']) else 0 for g, p in roll])
     # «Что заходит»: доля матчей сезона, где ставка зашла бы у команды (её глазами)
     what = []
     for r in tb[:9]:

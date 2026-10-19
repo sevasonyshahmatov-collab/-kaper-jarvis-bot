@@ -207,6 +207,9 @@ def one(P, i, league, day, code, lg, frames):
     from reels import core as C
     from reels import owner_tracks
     m = P['matches'][i]
+    if not frames and instagram.posted(yt_texts.youtube(m, lg)['description'].split('\n')[0]):
+        print('REELSKIP %s — %s: ролик уже выложен (Instagram)' % (m['h'], m['a']), flush=True)
+        return
     t0 = time.time()
     r, key, start = reel(m, P['stats'], code)
     r.ticker_tag, r.ticker = ticker(P, lg)
