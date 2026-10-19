@@ -59,7 +59,6 @@ function demoCreate() {
             '\n\nОбновляется сама каждый день в ' + DEMO_HOUR + ':00.' });
   }
   Logger.log('Демо: ' + url + ' — ' + shared);
-  try { SpreadsheetApp.getUi().alert('Демо-таблица: ' + shared + '\n' + url); } catch (e) { /* запуск из редактора — без окна */ }
   return url;
 }
 
