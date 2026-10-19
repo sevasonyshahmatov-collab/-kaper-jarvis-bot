@@ -21,6 +21,22 @@ def _env():
     return ''.join(os.environ['IG_TOKEN'].split()), os.environ['IG_USER_ID'].strip()
 
 
+def posted(first_line):
+    """Ролик на этот матч уже есть в Instagram — подпись начинается с той же первой строки (владелец 20.10: ролики выкладываем
+    вечером накануне, ночной запуск того же дня не должен их дублировать). Последние 50 публикаций, один запрос за запуск."""
+    if not enabled() or not first_line:
+        return False
+    if _state.get('captions') is None:
+        tok, uid = _env()
+        try:
+            j = requests.get(API + uid + '/media', params=dict(fields='caption', limit=50, access_token=tok), timeout=30).json()
+            _state['captions'] = [str(x.get('caption') or '') for x in j.get('data') or []]
+        except Exception as e:  # noqa: BLE001 — не удалось проверить — собираем как обычно
+            print('INSTAGRAMERR список публикаций: %r' % e, flush=True)
+            _state['captions'] = []
+    return any(c.startswith(first_line) for c in _state['captions'])
+
+
 def caption(m, y):
     """Подпись: описание для YouTube (матч, прогноз, Telegram) + хэштеги; ≤ 2200 знаков, хэштегов ≤ 30."""
     return y['description'][:2100]
