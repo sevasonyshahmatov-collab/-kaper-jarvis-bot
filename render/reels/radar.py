@@ -784,7 +784,7 @@ class Radar(C.Reel):
         ha = C.seg(t, 0.2, 0.5) * (1 - C.seg(t, self.t_cta, self.t_cta + 0.2))
         C.put(fr, self.handle_im, W / 2, HY, 0.9 * ha * C.HANDLE_BOTTOM)
         if t >= self.t_cta:
-            q = C.out_expo(C.seg(t, self.t_cta + 0.05, self.t_cta + 0.5))
+            q = C.out_expo(C.seg(t, self.t_cta + 0.45, self.t_cta + 0.9))   # после подъёма кэфа (19.10)
             C.put(fr, self.tg, W / 2, 1374 + 50 * (1 - q), q)
         # камера: толчки на склейках, наезд на поиске, удар на дропе, пульс на долях после дропа
         z, dx, dy, rot = 1.0, 0.0, 0.0, 0.0

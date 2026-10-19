@@ -558,14 +558,14 @@ class Kinetic(C.Reel):
         D, ac, sd = self.drop, self.acc[self.side], self.side
         p, size = best_lines(self.pick1, 'dela', 130 if len(self.pick1) > 20 else 150, 900)
         size = min(size, 150)
-        gap = int(size * 0.32)                                 # строки не налезают друг на друга (обводка-эхо ниже на 12 px)
+        gap = int(size * (0.5 if len(p) > 1 else 0.32))                                 # строки не налезают друг на друга (обводка-эхо ниже на 12 px)
         blk = stack([T(s_, size, WHITE, max_w=910) for s_ in p], gap)
         blk_o = stack([O(s_, size, ac['ink'], 6, max_w=910) for s_ in p], gap)
         es = 450 if blk.height < 240 else 340                 # высокий прогноз — эмблема меньше
         els = [self._el(C.with_shadow(self.fav.emb(es), 30, 0.6, 18), W / 2, 540 - (450 - es) / 2, kind='slam', z0=2.3,
                         kick=-14, dur=0.2, pulse=0.05)]
         y_txt = 540 + 450 / 2 - (450 - es) + 60 + blk.height / 2
-        els.append(self._el(blk, W / 2, y_txt, d=0.0, kind='slam', z0=1.6, kick=2, rot=-2, echo=blk_o, off=(12, 12),
+        els.append(self._el(blk, W / 2, y_txt, d=0.0, kind='slam', z0=1.6, kick=2, rot=-2, echo=blk_o, off=((7, 7) if len(p) > 1 else (12, 12)),
                             dur=0.18))
         y = y_txt + blk.height / 2 + 12
         if self.pick2:
@@ -591,10 +591,10 @@ class Kinetic(C.Reel):
         TC, ac = self.TC, self.acc[self.side]
         els = [self._el(self._emb_fit(self.side, 520, 420), W / 2, 570, kind='slam', z0=1.5, rot=-3)]
         p, size = best_lines(self.pick1, 'dela', 96, 940, 2)
-        blk = stack([T(s_, size, WHITE) for s_ in p], int(size * 0.3))
+        blk = stack([T(s_, size, WHITE) for s_ in p], int(size * 0.5))
         y_p = 880 + (blk.height - T(p[0], size, WHITE).height) / 2 - (40 if len(p) > 1 else 0)
         els.append(self._el(blk, W / 2, y_p, d=0.04, kind='slam', z0=1.3, rot=-1.5,
-                            echo=stack([O(s_, size, ac['ink'], 4) for s_ in p], int(size * 0.3)), off=(8, 8)))
+                            echo=stack([O(s_, size, ac['ink'], 4) for s_ in p], int(size * 0.5)), off=(5, 5)))
         sub = []
         if self.pick2:
             sub.append(self.pick2)
