@@ -299,9 +299,9 @@ class Broadcast(C.Reel):
             self.p_emb = C.glow(pe, 26, 0.9, (255, 255, 255))
         else:
             self.p_emb = C.glow(self.fav.emb(410), 26, 0.9, (255, 255, 255))
-        m = re.match(r'(ПОБЕДА)\s+(.+)$', self.pick1)
-        self.p_l1 = C.text(m.group(1), 'robci', 92, WHITE, 900, track=0.04) if m else None
-        self.p_l2 = C.text(m.group(2) if m else self.pick1, 'robci', 184, WHITE, 900, max_w=1000)
+        l1, l2 = F.head_main(self.pick1)                     # «ИНДИВИДУАЛЬНЫЙ ТОТАЛ …» сверху, «МЕНЬШЕ 2,5» крупно (19.10)
+        self.p_l1 = C.text(l1, 'robci', 92, WHITE, 900, track=0.04, max_w=900) if l1 else None
+        self.p_l2 = C.text(l2, 'robci', 184, WHITE, 900, max_w=920)
         self.p_l2s = C.shadow(self.p_l2, 16, 0.55)
         self.p_l3 = None
         if self.pick2:
