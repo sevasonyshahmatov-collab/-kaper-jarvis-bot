@@ -60,6 +60,18 @@ TEMPLATES = {
     'lineup_vace': ('lineup', 'Lineup', 'vace', 60 / 64, 36.08, None, dict(ni=3, nt=6, nv=2, nh=4, nf=3)),
 }
 
+# Пробы 19.10 (team/out/2026-10-19/new_tracks_make.py, run 268): треки, которых ещё не было. Владелец одобряет по номеру —
+# одобренные переносятся в TEMPLATES (и в FIRST — сразу в начало очереди).
+CANDIDATES = {
+    'broadcast_depto': ('broadcast', 'Broadcast', 'depto', 0.621762, 39.219),                        # 1
+    'kinetic_kilo': ('kinetic', 'Kinetic', 'kilo', 0.9375, 60.082),                                   # 2
+    'radar_quantum': ('radar', 'Radar', 'quantum', 1.0, 55.147),                                      # 3
+    'race_militant': ('race', 'Race', 'militant', 0.952381, 29.733),                                  # 4
+    'dashboard_too_fast': ('dashboard', 'Dashboard', 'too_fast', 1.061946, 33.576),                   # 5
+    'card_two_face': ('card', 'Card', 'two_face', 0.731707, 23.336, 21, dict(team=8, rush=2, hold=5.5, cta=3)),   # 6
+    'tape_demons': ('tape', 'Tape', 'demons', 0.869565, 85.438, 16.0, dict(per=1, pre=1.5, hold=4, cta=2.5)),     # 7
+}
+
 
 LG = {'khl': ('KHL', 'КХЛ'), 'nhl': ('NHL', 'НХЛ')}
 
