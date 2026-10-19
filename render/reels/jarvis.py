@@ -310,7 +310,7 @@ class Jarvis(C.Reel):
         else:
             self.verdict(fr, t)
         if t >= self.t_cta:
-            fresh.cta(fr, t, self.t_cta, y=1492, h=160)
+            fresh.cta(fr, t, self.t_cta, y=1530, h=150)    # ниже — не касается кэфа (19.10)
         else:
             fresh.handle(fr, C.seg(t, 0.4, 0.8), col=DIM)
         fr.alpha_composite(self.scan)

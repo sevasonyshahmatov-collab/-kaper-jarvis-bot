@@ -695,7 +695,7 @@ class Race(C.Reel):
         L['fav'] = comb
         L['fav_sh'] = C.shadow(fav, 22, 0.7)
         L['flash_ring'] = C.radial(900, 900, (255, 250, 236), 255, 1.4)
-        p1, self.p1_wrap = C.text2(self.pick1, 'osw', 124, (255, 255, 255), 700, max_w=860, k=0.72, gap=0.1)  # в кадре с полями; длинный — в 2 строки
+        p1, L['p1_wrap'] = C.text2(self.pick1, 'osw', 124, (255, 255, 255), 700, max_w=860, k=0.72, gap=0.1)  # в кадре с полями; длинный — в 2 строки
         L['p1'] = C.with_shadow(p1, 14, 0.7, 6)
         L['p2'] = C.text(self.pick2, 'osw', 56, GOLD_L, 500, track=0.12, max_w=860) if self.pick2 else None
         kt = C.text('КЭФ ' + C.fmt_k(self.coef), 'osw', 112, GOLD_D, 700)
@@ -932,14 +932,14 @@ class Race(C.Reel):
         # прогноз
         y1 = C.lerp(940, 772, ck)
         q1 = C.out_expo(C.seg(t, D + 0.04, D + 0.3))
-        wr = self.p1_wrap
+        wr = L['p1_wrap']
         C.put(fr, C.scale(L['p1'], 1.1 - 0.1 * q1), W / 2, y1 + wr * 0.25, min(1.0, q1 * 1.8))
         if L['p2'] is not None:
             q2 = C.out_expo(C.seg(t, D + 0.2, D + 0.5))
             C.put(fr, L['p2'], W / 2, y1 + 104 + wr * 0.75 + 20 * (1 - q2), q2)
         qk = C.out_back(C.seg(t, D + u, D + u + 0.4), 1.6)
         if qk > 0.01:
-            ky = C.lerp(1224, 1034, ck) + self.p1_wrap * 0.6
+            ky = C.lerp(1224, 1034, ck) + L['p1_wrap'] * 0.6
             kp = C.scale(L['kef'], max(0.05, (0.5 + 0.5 * qk) * (1 + 0.02 * pulse * (t >= D + 2 * u))))
             C.put(fr, C.scale(L['kef_sh'], kp.width / L['kef'].width), W / 2 + 8, ky + 22, min(1.0, qk))
             C.put(fr, kp, W / 2, ky, min(1.0, qk * 1.5))
