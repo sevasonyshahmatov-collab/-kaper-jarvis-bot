@@ -938,7 +938,7 @@ class Graffiti(C.Reel):
                     break
         fr = fr.convert('RGBA')
         a_h = 1.0 if t < self.TC else 1 - C.seg(t, self.TC, self.TC + 0.12)
-        C.put(fr, G['handle'], W / 2, HANDLE_Y, a_h)
+        C.put(fr, G['handle'], W / 2, HANDLE_Y, a_h * C.HANDLE_BOTTOM)
         if t >= self.TC:
             p = C.seg(t, self.TC, self.TC + 0.18)
             s = 1 + 0.14 * (1 - C.out_back(p, 2.0))

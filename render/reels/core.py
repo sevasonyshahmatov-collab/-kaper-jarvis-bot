@@ -25,6 +25,9 @@ import poster
 W, H, FPS = 1080, 1920, 30
 SAFE_TOP, SAFE_BOT = 230, 1480          # выше/ниже — интерфейс площадки (шапка, подпись, кнопки)
 HANDLE = '@jarvibet'
+# @jarvibet у низа безопасной зоны в шаблонах — выключен (владелец 19.10: мешает бегущей строке «МАТЧИ ДНЯ»; вернуть —
+# REELS_HANDLE_BOTTOM=1). Плашки Telegram в финале роликов это не трогает.
+HANDLE_BOTTOM = os.environ.get('REELS_HANDLE_BOTTOM', '0') == '1'
 TG_BLUE = (42, 171, 238)
 FD = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'fonts')
 

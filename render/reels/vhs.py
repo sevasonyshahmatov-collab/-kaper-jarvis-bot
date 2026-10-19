@@ -789,4 +789,4 @@ class Vhs(C.Reel):
         C.put(fr, cnt, X0, Y_CNT - cnt.height / 2, anchor='tl')
         tg = osd(self.tag, 40, OW, 2)
         C.put(fr, tg, X1 - tg.width, Y_OSD - tg.height / 2, anchor='tl')
-        C.put(fr, osd(C.HANDLE, 48, OW, 2), W / 2, Y_HANDLE)
+        C.put(fr, osd(C.HANDLE, 48, OW, 2), W / 2, Y_HANDLE, float(C.HANDLE_BOTTOM))

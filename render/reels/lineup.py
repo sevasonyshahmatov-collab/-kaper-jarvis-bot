@@ -247,7 +247,7 @@ class Lineup(C.Reel):
         C.put(fr, C.text(self.tag, 'unb', 34, WHITE, 700, track=0.12), W / 2, 262, a * 0.92)
 
     def handle(self, fr, a=1.0):
-        C.put(fr, C.text(C.HANDLE, 'unb', 38, WHITE, 600), W / 2, 1560, a * 0.85)     # у низа безопасной зоны Shorts
+        C.put(fr, C.text(C.HANDLE, 'unb', 38, WHITE, 600), W / 2, 1560, a * 0.85 * C.HANDLE_BOTTOM)     # у низа безопасной зоны Shorts
 
     def particles(self, fr, t, a=1.0, bokeh=True):
         if bokeh:

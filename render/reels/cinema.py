@@ -675,5 +675,5 @@ class Cinema(C.Reel):
         img = Image.fromarray(out).convert('RGBA')
         if t < self.TC:
             a = 1.0 - C.seg(t, self.TC - 0.2, self.TC)
-            C.put(img, txt(C.HANDLE, 'tenor', 50, INK, 0.08), W / 2, Y_HANDLE, a)
+            C.put(img, txt(C.HANDLE, 'tenor', 50, INK, 0.08), W / 2, Y_HANDLE, a * C.HANDLE_BOTTOM)
         return img.convert('RGB')

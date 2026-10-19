@@ -26,17 +26,35 @@ def caption(m, y):
     return y['description'][:2100]
 
 
-def zoomed(path):
-    """Копия для Instagram (владелец 19.10): ×1,12 и обрезка — Instagram закрывает низ меньше, чем Shorts, и под бегущей
-    строкой оставалась пустая полоса. Картинка крупнее, строка ниже, к подписи Instagram. Не вышло — исходный ролик."""
+def zoomed(path, cover=None):
+    """Копия для Instagram (владелец 19.10): Instagram закрывает низ меньше, чем Shorts, и под бегущей строкой оставалась
+    пустая полоса. ×1,06 — ровно настолько, чтобы ушли только размытые поля по бокам (кадр ужат до 94 %, core.INSET):
+    содержимое по ширине не режется (×1,12 срезал края у шаблонов во всю ширину — «Северсталь», 19.10); обрезка — только
+    снизу, поэтому картинка и строка опускаются к подписи Instagram.
+    Обложка (render/vk_covers.py): Instagram берёт обложку только по общедоступной ссылке или кадром ролика, поэтому
+    последние 0,3 с копии — кадр обложки, а thumb_offset указывает на него (в ленте — обложка, а не чёрный первый кадр).
+    → (файл, thumb_offset в мс | None). Не вышло — исходный ролик."""
     import subprocess
     out = path[:-4] + '_ig.mp4'
-    r = subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', path, '-vf', 'scale=1210:2150,crop=1080:1920:65:70',
-                        '-c:v', 'libx264', '-preset', 'fast', '-crf', '18', '-pix_fmt', 'yuv420p', '-c:a', 'copy', out])
-    return out if r.returncode == 0 and os.path.exists(out) else path
+    vf, inputs, thumb = '[0:v]scale=1146:2036,crop=1080:1920:33:0[v]', ['-i', path], None
+    if cover and os.path.exists(cover):
+        dur = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path],
+                                   capture_output=True, text=True).stdout.strip() or 0)
+        if dur > 1:
+            t0 = dur - 0.3
+            inputs += ['-loop', '1', '-t', '%.2f' % dur, '-i', cover]
+            vf += ';[1:v]scale=1080:1920,setsar=1[c];[v][c]overlay=0:0:enable=\'gte(t,%.3f)\'[v]' % t0
+            vf = vf.replace('[v];[1:v]', '[z];[1:v]').replace('[v][c]', '[z][c]')
+            thumb = int((t0 + 0.1) * 1000)
+    r = subprocess.run(['ffmpeg', '-loglevel', 'error', '-y'] + inputs + [
+        '-filter_complex', vf, '-map', '[v]', '-map', '0:a?', '-shortest',
+        '-c:v', 'libx264', '-preset', 'fast', '-crf', '18', '-pix_fmt', 'yuv420p', '-c:a', 'copy', out])
+    if r.returncode == 0 and os.path.exists(out):
+        return out, thumb
+    return path, None
 
 
-def upload(path, text):
+def upload(path, text, cover=None):
     """→ (ссылка на ролик | None, пояснение для владельца)."""
     if not enabled():
         return None, ''
@@ -44,12 +62,15 @@ def upload(path, text):
         return None, _state['stop']
     tok, uid = _env()
     try:
-        r = requests.post(API + uid + '/media', timeout=60, data=dict(
-            media_type='REELS', upload_type='resumable', caption=text, share_to_feed='true', access_token=tok)).json()
+        video, thumb = zoomed(path, cover)
+        meta = dict(media_type='REELS', upload_type='resumable', caption=text, share_to_feed='true', access_token=tok)
+        if thumb is not None:
+            meta['thumb_offset'] = str(thumb)
+        r = requests.post(API + uid + '/media', timeout=60, data=meta).json()
         if 'id' not in r:
             raise RuntimeError('контейнер: %s' % (r.get('error') or r))
         cid, uri = r['id'], r['uri']
-        with open(zoomed(path), 'rb') as f:
+        with open(video, 'rb') as f:
             data = f.read()
         u = requests.post(uri, data=data, timeout=600, headers={
             'Authorization': 'OAuth ' + tok, 'offset': '0', 'file_size': str(len(data))}).json()

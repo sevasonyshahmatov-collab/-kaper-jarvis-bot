@@ -781,7 +781,7 @@ class Radar(C.Reel):
             self.shock(fr, t)
         C.put(fr, self.tag, W / 2, TAG_Y, C.seg(t, 0, 0.3) * 0.95)
         ha = C.seg(t, 0.2, 0.5) * (1 - C.seg(t, self.t_cta, self.t_cta + 0.2))
-        C.put(fr, self.handle_im, W / 2, HY, 0.9 * ha)
+        C.put(fr, self.handle_im, W / 2, HY, 0.9 * ha * C.HANDLE_BOTTOM)
         if t >= self.t_cta:
             q = C.out_expo(C.seg(t, self.t_cta + 0.05, self.t_cta + 0.5))
             C.put(fr, self.tg, W / 2, 1374 + 50 * (1 - q), q)

@@ -777,5 +777,6 @@ class Kinetic(C.Reel):
         mode = 'time' if t >= D else (c['side'] if c['side'] and t >= self.T1 else 'none')
         fr.alpha_composite(self._strip(mode), (0, STRIP_Y - STRIP_H // 2))
         if t < self.TC:
-            fr.alpha_composite(self._handle(), (0, HAND_Y - HAND_H // 2))
+            if C.HANDLE_BOTTOM:
+                fr.alpha_composite(self._handle(), (0, HAND_Y - HAND_H // 2))
         return C.grain(fr, t, 9)
