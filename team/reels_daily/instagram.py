@@ -101,7 +101,11 @@ def upload(path, text, cover=None):
             time.sleep(5)
         else:
             raise RuntimeError('Instagram не обработал видео за 5 минут')
-        p = requests.post(API + uid + '/media_publish', data=dict(creation_id=cid, access_token=tok), timeout=60).json()
+        for _ in range(6):            # FINISHED бывает раньше, чем медиа готово к публикации (код 9007 / 2207027) — ждём
+            p = requests.post(API + uid + '/media_publish', data=dict(creation_id=cid, access_token=tok), timeout=60).json()
+            if 'id' in p or (p.get('error') or {}).get('code') != 9007:
+                break
+            time.sleep(15)
         if 'id' not in p:
             raise RuntimeError('публикация: %s' % (p.get('error') or p))
         link = requests.get(API + p['id'], params=dict(fields='permalink', access_token=tok), timeout=30).json()
