@@ -39,20 +39,27 @@ function demoCreate() {
     p.setProperty('DEMO_ID', demo.getId());
   }
   demoSync();
-  var file = DriveApp.getFileById(demo.getId());
-  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  demoNoCopy_(demo.getId());
+  var shared = '';
+  try {
+    DriveApp.getFileById(demo.getId()).setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    shared = demoNoCopy_(demo.getId()) ? 'открыта по ссылке, только просмотр, копирование отключено'
+                                       : 'открыта по ссылке, только просмотр; копирование отключите вручную (⚙️ в «Настройках доступа»)';
+  } catch (e) {                                                      // в проекте Google Cloud выключен Drive API
+    shared = 'доступ НЕ открыт: включите Google Drive API в проекте Google Cloud скрипта и запустите demoCreate ещё раз ' +
+             '(или откройте доступ вручную: «Настройки доступа» → «Все, у кого есть ссылка» → «Читатель», ⚙️ → снять галочку копирования)';
+    Logger.log('Демо: ' + e);
+  }
   ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'demoSync') ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('demoSync').timeBased().everyDays(1).atHour(DEMO_HOUR).create();
   var url = demo.getUrl();
   var owner = p.getProperty('TG_OWNER_ID');
   if (owner && typeof tgRaw_ === 'function') {
     tgRaw_('sendMessage', { chat_id: owner, disable_web_page_preview: true,
-      text: '🎁 Демо-таблица готова и открыта по ссылке (только просмотр, копирование отключено):\n' + url +
+      text: '🎁 Демо-таблица готова — ' + shared + ':\n' + url +
             '\n\nОбновляется сама каждый день в ' + DEMO_HOUR + ':00.' });
   }
-  Logger.log('Демо: ' + url);
-  try { SpreadsheetApp.getUi().alert('Демо-таблица готова:\n' + url); } catch (e) { /* запуск из редактора — без окна */ }
+  Logger.log('Демо: ' + url + ' — ' + shared);
+  try { SpreadsheetApp.getUi().alert('Демо-таблица: ' + shared + '\n' + url); } catch (e) { /* запуск из редактора — без окна */ }
   return url;
 }
 
@@ -64,6 +71,7 @@ function demoNoCopy_(id) {
     payload: JSON.stringify({ copyRequiresWriterPermission: true })
   });
   if (r.getResponseCode() !== 200) Logger.log('Демо: запрет копирования не поставился — ' + r.getContentText().slice(0, 300));
+  return r.getResponseCode() === 200;
 }
 
 /** Обновить демо: листы из DEMO_SHEETS — значения и оформление, без формул; лист «О демо» первым. */
@@ -95,11 +103,18 @@ function demoCopySheet_(s, demo, c) {
   t.getRange(1, 1, t.getMaxRows(), t.getMaxColumns()).clearContent();   // формулы копии ссылались бы на чужие листы
   t.clearNotes();
   t.getRange(1, 1, h, w).setValues(vals);
-  if (t.getMaxRows() > h + 1) t.deleteRows(h + 2, t.getMaxRows() - h - 1);
+  var fc = t.getFrozenColumns(), fr = t.getFrozenRows();
+  if (fc) t.setFrozenColumns(0);                                     // объединения ниже (конструктор матча) иначе не дают резать лист
+  if (t.getMaxRows() > h) {
+    t.getRange(h + 1, 1, t.getMaxRows() - h, t.getMaxColumns()).breakApart();
+    if (t.getMaxRows() > h + 1) t.deleteRows(h + 2, t.getMaxRows() - h - 1);
+  }
   var lock = t.getRange(h + 1, 1, 1, w);
   try { lock.breakApart(); if (w > 1) lock.merge(); } catch (e) { lock = t.getRange(h + 1, 1); }
   lock.setValue('🔒 Остальное — в полной версии таблицы · прогнозы каждый день: ' + DEMO_CHANNEL)
       .setFontStyle('italic').setFontColor('#80868b').setBackground('#f1f3f4').setFontWeight('normal');
+  if (fc) { try { t.setFrozenColumns(fc); } catch (e) { /* закреплять не обязательно */ } }
+  if (fr > h) t.setFrozenRows(Math.min(fr, h));
   t.getProtections(SpreadsheetApp.ProtectionType.SHEET).forEach(function (p) { p.remove(); });
   t.getProtections(SpreadsheetApp.ProtectionType.RANGE).forEach(function (p) { p.remove(); });
 }
