@@ -73,3 +73,27 @@ def upload(path, title, description, tags):
         _state['stop'] = 'не загружен: %s' % e
         print('YOUTUBEERR %r' % e, flush=True)
         return None, _state['stop']
+
+
+THUMB_URL = 'https://www.googleapis.com/upload/youtube/v3/thumbnails/set'
+
+
+def thumbnail(url, path):
+    """Своя обложка ролику (владелец 19.10, render/vk_covers.py). url — ссылка youtu.be/<id> из upload.
+    YouTube ставит свои обложки только подтверждённым по телефону каналам; в ленте Shorts может показывать кадр ролика.
+    → пояснение для владельца ('' — поставлена)."""
+    if not enabled() or not url:
+        return ''
+    vid = url.rstrip('/').rsplit('/', 1)[-1]
+    try:
+        with open(path, 'rb') as f:
+            r = requests.post(THUMB_URL, params={'videoId': vid}, data=f.read(), timeout=60,
+                              headers={'Authorization': 'Bearer ' + _token(), 'Content-Type': 'image/jpeg'})
+        if r.status_code == 200:
+            print('YOUTUBE обложка %s' % vid, flush=True)
+            return ''
+        print('YOUTUBEERR обложка %s %s %s' % (vid, r.status_code, r.text[:400]), flush=True)
+        return 'обложка не поставлена (YouTube %s) — канал подтверждён по телефону?' % r.status_code
+    except Exception as e:  # noqa: BLE001
+        print('YOUTUBEERR обложка %r' % e, flush=True)
+        return 'обложка не поставлена: %s' % e

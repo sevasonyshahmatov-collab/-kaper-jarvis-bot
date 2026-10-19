@@ -195,8 +195,23 @@ def one(P, i, league, day, code, lg, frames):
           % (m['h'], m['a'], m['tpl'], key, start, r.drop, r.dur, time.time() - t0), flush=True)
     y = yt_texts.youtube(m, lg)
     url, note = youtube.upload(base + '.mp4', y['title'], y['description'], y['tags'])
+    cover = cover_for(m, code, base)
+    tnote = youtube.thumbnail(url, cover) if cover else ''
+    note = '\n'.join(x for x in (note, tnote) if x)
     head = ('YouTube: %s\n%s\n\n' % (url, note)) if url else ('YouTube: %s\n\n' % note) if note else ''
-    tg_reel(base + '.mp4', base + '_clean.mp4', head + yt_texts.block(m, lg), y['title'])
+    tg_reel(base + '.mp4', base + '_clean.mp4', head + yt_texts.block(m, lg), y['title'], cover)
+
+
+def cover_for(m, code, base):
+    """Обложка 1080×1920 для YouTube и клипов VK (render/vk_covers.py, владелец 19.10). Не нарисовалась — None."""
+    try:
+        import vk_covers
+        p = base + '_vk_cover.jpg'
+        vk_covers.cover(dict(league=code, h=m['h'], a=m['a'], d=m['d'])).save(p, quality=90)
+        return p
+    except Exception as e:  # noqa: BLE001 — без обложки ролик всё равно уходит
+        print('COVERERR %r' % e, flush=True)
+        return None
 
 
 # ---------- Telegram (как render/team_job.py) ----------
@@ -217,7 +232,7 @@ def tg_text(text):
         tj._api(tok, 'sendMessage', dict(chat_id=chat, text=text[:tj.TEXT_MAX], disable_web_page_preview='true'))
 
 
-def tg_reel(video, clean, caption, title):
+def tg_reel(video, clean, caption, title, cover=None):
     tok, chat = _tg()
     if not tok:
         return
@@ -228,6 +243,10 @@ def tg_reel(video, clean, caption, title):
     with open(clean, 'rb') as f:
         tj._api(tok, 'sendDocument', dict(chat_id=chat, caption=('Без музыки (если YouTube заявит права на трек): ' + title)[:tj.CAPTION_MAX]),
                 {'document': f}, timeout=300)
+    if cover:
+        with open(cover, 'rb') as f:
+            tj._api(tok, 'sendDocument', dict(chat_id=chat, caption=('Обложка для YouTube и клипа VK: ' + title)[:tj.CAPTION_MAX]),
+                    {'document': f}, timeout=120)
 
 
 def main():

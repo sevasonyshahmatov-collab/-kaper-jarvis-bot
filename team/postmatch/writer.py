@@ -8,12 +8,13 @@ write(...) → (рассказ, вывод) или None — тогда run.py с
 import os
 import random
 import re
+import time
 
 import requests
 
 MODEL = os.environ.get('PM_MODEL', 'claude-opus-5-5')
-GEMINI_MODELS = [m for m in (os.environ.get('GEMINI_MODEL', ''), 'gemini-2.5-flash', 'gemini-2.0-flash') if m]
-GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent'
+GEMINI_API = 'https://generativelanguage.googleapis.com/v1beta/'
+GEMINI_URL = GEMINI_API + 'models/%s:generateContent'
 
 SYSTEM = """Ты пишешь послематчевый пост для Telegram-канала @jarvibet о хоккее (КХЛ и НХЛ). Пост выходит от лица \
 владельца канала: он сам выбрал ставку перед матчем, сам смотрел игру и теперь рассказывает подписчикам, как всё было.
@@ -21,6 +22,11 @@ SYSTEM = """Ты пишешь послематчевый пост для Telegra
 Как писать:
 - от первого лица: «я смотрел», «я ждал», «я ошибся», «мне понравилось», «ставил на…»; живо и спокойно, как человек, \
 который разбирается в хоккее и говорит с друзьями;
+- тон спокойный и взрослый: без надрыва и пафоса («шок», «пусто на душе», «полнейшее разочарование», «похоронили»), \
+и в минус, и в плюс — ровно, по делу;
+- точно понимай ставку: тотал меньше — это ставка на малое число голов в матче (не на «сухарь» и не на «сухие серии»), \
+тотал больше — на результативный матч, фора — на разницу в счёте; не приписывай мне доводов, которых нет \
+в обосновании из поста-прогноза;
 - рассказ — это рисунок матча по хронике: кто как начал, где был перелом, что решило исход (большинство, вратарь, \
 снятие вратаря, игрок, броски, концовка). Конкретные минуты, фамилии, цифры — только из хроники, ничего не выдумывай;
 - свяжи рассказ со ставкой: почему ставили (обоснование из поста-прогноза, если оно дано) и подтвердилось ли это \
@@ -72,9 +78,32 @@ def _check(txt):
 RETRY = 'Предыдущий вариант не подошёл: нужно ровно две части через ---, вместе не больше 800 знаков, без запрещённых слов.'
 
 
+def _gemini_models(key):
+    """Модели, доступные по ключу: сначала GEMINI_MODEL, затем свежие Flash (имена у Google меняются — список берём у них)."""
+    names = []
+    try:
+        r = requests.get(GEMINI_API + 'models', headers={'x-goog-api-key': key}, params={'pageSize': 200}, timeout=30)
+        for m in r.json().get('models') or []:
+            n = m.get('name', '').split('/')[-1]
+            if 'generateContent' in (m.get('supportedGenerationMethods') or []) and 'flash' in n \
+                    and not re.search(r'image|tts|audio|live|lite|exp|preview|thinking|omni', n):
+                names.append(n)
+        print('POSTMATCH Gemini: модели по ключу — %s' % ', '.join(names[:12]), flush=True)
+    except (requests.RequestException, ValueError) as e:
+        print('POSTMATCHERR Gemini список моделей: %r' % e, flush=True)
+
+    def ver(n):
+        return [int(x) for x in re.findall(r'\d+', n)[:2]] + [n.endswith('latest')]
+    names.sort(key=ver, reverse=True)
+    # самая новая Flash бывает не на бесплатном тарифе (429) — первым пробуем псевдоним gemini-flash-latest
+    first = [m for m in (os.environ.get('GEMINI_MODEL', '').strip(), 'gemini-flash-latest') if m and (m in names or not names)]
+    return first + [n for n in names if n not in first][:5]
+
+
 def _gemini(key, user):
-    for model in GEMINI_MODELS:
-        for attempt in range(2):
+    for model in _gemini_models(key):
+        busy = 0
+        for attempt in range(5):
             try:
                 r = requests.post(GEMINI_URL % model, headers={'x-goog-api-key': key}, timeout=120, json={
                     'systemInstruction': {'parts': [{'text': SYSTEM}]},
@@ -83,8 +112,17 @@ def _gemini(key, user):
             except requests.RequestException as e:
                 print('POSTMATCHERR Gemini связь: %r' % e, flush=True)
                 return None
-            if r.status_code == 404:
-                print('POSTMATCHERR Gemini: модели %s нет — пробую следующую' % model, flush=True)
+            if r.status_code in (403, 404, 429):
+                print('POSTMATCHERR Gemini %s: %s (%s) — пробую следующую модель' % (
+                    model, r.status_code, 'нет на бесплатном тарифе или лимит' if r.status_code == 429 else 'недоступна'), flush=True)
+                break
+            if r.status_code >= 500 and busy < 3:       # «high demand» у Google обычно проходит за минуту
+                busy += 1
+                print('POSTMATCHERR Gemini %s: %s, перегружена — жду %d с' % (model, r.status_code, 20 * busy), flush=True)
+                time.sleep(20 * busy)
+                continue
+            if r.status_code >= 500:
+                print('POSTMATCHERR Gemini %s: %s — пробую следующую модель' % (model, r.status_code), flush=True)
                 break
             if r.status_code != 200:
                 print('POSTMATCHERR Gemini %s %s: %s' % (model, r.status_code, r.text[:300]), flush=True)
@@ -96,7 +134,9 @@ def _gemini(key, user):
             if body:
                 print('POSTMATCH текст: Gemini (%s), %d знаков' % (model, len(body[0]) + len(body[1])), flush=True)
                 return body
-            print('POSTMATCHERR текст Gemini не подошёл (%s) — попытка %d' % (why, attempt + 1), flush=True)
+            print('POSTMATCHERR текст Gemini не подошёл (%s)' % why, flush=True)
+            if RETRY in user:
+                return None
             user = user + [RETRY]
         else:
             return None
