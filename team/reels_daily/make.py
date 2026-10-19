@@ -76,15 +76,25 @@ def out_dir(league, day):
     return os.environ.get('OUT') or os.path.join(ROOT, 'out', 'reels_daily', '%s-%s' % (league, day))
 
 
-# Сначала — шаблоны, которых в автозагрузке ещё не было (владелец 19.10: «начать с них»), потом остальные.
-FIRST = ('lineup_slx', 'tape', 'jarvis', 'card', 'jewel', 'kinetic', 'lineup_kizaru', 'lineup_vace',
-         'broadcast_depto', 'kinetic_kilo', 'radar_quantum', 'race_militant', 'dashboard_too_fast', 'card_two_face',
-         'tape_demons')
+# Очередь шаблонов (владелец 20.10: «каждый раз другой шаблон, чтобы не повторялись один за одним; когда закончатся все —
+# по кругу заново, и так всегда, без исключения»). Шаблон = вид ролика (модуль): 12 разных видов идут подряд без повторов,
+# потом круг заново; внутри вида от круга к кругу меняется трек (варианты ниже — в порядке очереди).
+VIEWS = [
+    ['tape', 'tape_demons'],                                         # «Лента»
+    ['jarvis'],                                                      # «Джарвис»
+    ['card', 'card_two_face'],                                       # «Карточка»
+    ['jewel'],                                                       # «Ювелир»
+    ['kinetic', 'kinetic_kilo'],                                     # «Кинетик»
+    ['radar_quantum', 'radar'],                                      # «Радар»
+    ['race_militant', 'race', 'race_cant_say'],                      # «Гонка»
+    ['vhs_two_faced', 'vhs'],                                        # «VHS»
+    ['cinema_vampire', 'cinema'],                                    # «Кино»
+    ['broadcast_depto', 'broadcast'],                                # «Эфир»
+    ['dashboard_too_fast', 'dashboard_doomsday', 'dashboard'],       # «Дашборд»
+    ['lineup_slx', 'lineup_kizaru', 'lineup_vace'],                  # «Состав» — в конце круга: 20.10 уже вышли два
+]
 RING_START = date(2026, 10, 20)
-PER_DAY = 12                      # мест очереди на день: НХЛ 0–5, КХЛ 6–11 (раньше обе лиги начинали с одного места)
-
-
-LAST = ('cinema', 'broadcast', 'dashboard')                # шли почти каждую ночь до 19.10 — в конец очереди
+PER_DAY = len(VIEWS)                  # на день — один полный круг: НХЛ места 0–5, КХЛ 6–11
 
 
 OWNER_PICKS = os.path.join(ROOT, 'team', 'reels_daily', 'owner_picks.json')
@@ -114,24 +124,17 @@ def owner_picks(ms):
     return out
 
 
-def ring():
-    """Порядок очереди: FIRST, остальные, LAST — но варианты одного шаблона (тот же модуль, другой трек) не встают рядом
-    (владелец 20.10: «почему два раза подряд один и тот же шаблон»)."""
-    want = list(FIRST) + [t for t in TEMPLATES if t not in FIRST + LAST] + list(LAST)
-    out = []
-    while want:
-        prev = TEMPLATES[out[-1]][0] if out else None
-        k = next((i for i, t in enumerate(want) if TEMPLATES[t][0] != prev), 0)
-        out.append(want.pop(k))
-    return out
+def slot(k):
+    """Шаблон k-го места сквозной очереди: вид — по кругу, трек вида — по номеру круга."""
+    v = VIEWS[k % len(VIEWS)]
+    return v[(k // len(VIEWS)) % len(v)]
 
 
 def assign(matches, day, league='khl'):
-    """Шаблон каждому матчу: одна сквозная очередь на все дни и обе лиги — шаблон повторяется, только когда прошли все."""
-    r = ring()
+    """Шаблон каждому матчу дня: одна сквозная очередь на все дни и обе лиги, соседние ролики — всегда разные виды."""
     k = (date.fromisoformat(day) - RING_START).days * PER_DAY + (6 if league == 'khl' else 0)
     for m in matches:
-        m['tpl'] = m.get('tpl_owner') or r[k % len(r)]          # шаблон, выбранный владельцем, — вместо очереди
+        m['tpl'] = m.get('tpl_owner') or slot(k)                 # шаблон, выбранный владельцем, — вместо очереди
         k += 1
     return matches
 
