@@ -87,6 +87,30 @@ PER_DAY = 12                      # мест очереди на день: НХ�
 LAST = ('cinema', 'broadcast', 'dashboard')                # шли почти каждую ночь до 19.10 — в конец очереди
 
 
+OWNER_PICKS = os.path.join(ROOT, 'team', 'reels_daily', 'owner_picks.json')
+
+
+def owner_picks(ms):
+    """Решения владельца по матчам (team/reels_daily/owner_picks.json, ключ «ГГГГ-ММ-ДД Хозяева — Гости»):
+    null — без ролика; {"pick": "…", "odds": 1.95} — ролик с прогнозом владельца вместо прогноза модели."""
+    try:
+        with open(OWNER_PICKS, encoding='utf-8') as f:
+            o = json.load(f)
+    except (OSError, ValueError):
+        return ms
+    out = []
+    for m in ms:
+        k = '%s %s — %s' % (m['d'][:10], m['h'], m['a'])
+        if k not in o:
+            out.append(m)
+        elif o[k]:
+            out.append(dict(m, pick=o[k]['pick'], odds=float(o[k]['odds'])))
+            print('OWNERPICK %s: %s %s' % (k, o[k]['pick'], o[k]['odds']), flush=True)
+        else:
+            print('OWNERSKIP %s' % k, flush=True)
+    return out
+
+
 def ring():
     return list(FIRST) + [t for t in TEMPLATES if t not in FIRST + LAST] + list(LAST)
 
@@ -119,6 +143,7 @@ def plan(league, day, top, per):
     ms = pick.day_picks(games, nxt, pins, fon, league)
     soon = (datetime.now(MSK) + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M')   # уже начавшиеся матчи — без ролика
     ms = [m for m in ms if m['d'] >= soon]
+    ms = owner_picks(ms)
     only = [x for x in os.environ.get('REELS_ONLY', '').split(',') if x]     # только эти клубы (ручной запуск)
     if only:
         ms = [m for m in ms if m['h'] in only or m['a'] in only]
