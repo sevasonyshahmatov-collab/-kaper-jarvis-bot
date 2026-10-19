@@ -26,6 +26,16 @@ def caption(m, y):
     return y['description'][:2100]
 
 
+def zoomed(path):
+    """Копия для Instagram (владелец 19.10): ×1,12 и обрезка — Instagram закрывает низ меньше, чем Shorts, и под бегущей
+    строкой оставалась пустая полоса. Картинка крупнее, строка ниже, к подписи Instagram. Не вышло — исходный ролик."""
+    import subprocess
+    out = path[:-4] + '_ig.mp4'
+    r = subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', path, '-vf', 'scale=1210:2150,crop=1080:1920:65:70',
+                        '-c:v', 'libx264', '-preset', 'fast', '-crf', '18', '-pix_fmt', 'yuv420p', '-c:a', 'copy', out])
+    return out if r.returncode == 0 and os.path.exists(out) else path
+
+
 def upload(path, text):
     """→ (ссылка на ролик | None, пояснение для владельца)."""
     if not enabled():
@@ -39,7 +49,7 @@ def upload(path, text):
         if 'id' not in r:
             raise RuntimeError('контейнер: %s' % (r.get('error') or r))
         cid, uri = r['id'], r['uri']
-        with open(path, 'rb') as f:
+        with open(zoomed(path), 'rb') as f:
             data = f.read()
         u = requests.post(uri, data=data, timeout=600, headers={
             'Authorization': 'OAuth ' + tok, 'offset': '0', 'file_size': str(len(data))}).json()
