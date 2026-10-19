@@ -68,12 +68,25 @@ def out_dir(league, day):
     return os.environ.get('OUT') or os.path.join(ROOT, 'out', 'reels_daily', '%s-%s' % (league, day))
 
 
-def assign(matches, day):
-    """Шаблон каждому матчу: все по очереди, прошли круг — заново; начало круга сдвигается по дням."""
-    ring = list(TEMPLATES)
-    k = date.fromisoformat(day).toordinal() % len(ring)
+# Сначала — шаблоны, которых в автозагрузке ещё не было (владелец 19.10: «начать с них»), потом остальные.
+FIRST = ('lineup_slx', 'tape', 'jarvis', 'card', 'jewel', 'kinetic', 'lineup_kizaru', 'lineup_vace')
+RING_START = date(2026, 10, 20)
+PER_DAY = 12                      # мест очереди на день: НХЛ 0–5, КХЛ 6–11 (раньше обе лиги начинали с одного места)
+
+
+LAST = ('cinema', 'broadcast', 'dashboard')                # шли почти каждую ночь до 19.10 — в конец очереди
+
+
+def ring():
+    return list(FIRST) + [t for t in TEMPLATES if t not in FIRST + LAST] + list(LAST)
+
+
+def assign(matches, day, league='khl'):
+    """Шаблон каждому матчу: одна сквозная очередь на все дни и обе лиги — шаблон повторяется, только когда прошли все."""
+    r = ring()
+    k = (date.fromisoformat(day) - RING_START).days * PER_DAY + (6 if league == 'khl' else 0)
     for m in matches:
-        m['tpl'] = ring[k % len(ring)]
+        m['tpl'] = r[k % len(r)]
         k += 1
     return matches
 
@@ -102,7 +115,7 @@ def plan(league, day, top, per):
     if top:
         ms = sorted(ms, key=lambda m: -m['p'])[:top]                                # самые уверенные
     ms.sort(key=lambda m: m['d'])
-    assign(ms, day)
+    assign(ms, day, league)
     names = sorted({t for m in ms for t in (m['h'], m['a'])})
     stats = (form.khl if league == 'khl' else form.nhl)(games, day, names)
     parts = [list(range(i, min(i + per, len(ms)))) for i in range(0, len(ms), per)]
