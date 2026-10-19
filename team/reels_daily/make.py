@@ -25,6 +25,7 @@ for p in (os.path.join(ROOT, 'render'), os.path.join(ROOT, 'team', 'picks'), os.
 import form  # noqa: E402
 import pick  # noqa: E402
 import youtube  # noqa: E402
+import instagram  # noqa: E402
 import yt_texts  # noqa: E402
 
 CFG = os.path.join(ROOT, 'team', 'out', '2026-10-13', 'reels_cfg')
@@ -199,6 +200,8 @@ def one(P, i, league, day, code, lg, frames):
     tnote = youtube.thumbnail(url, cover) if cover else ''
     note = '\n'.join(x for x in (note, tnote) if x)
     head = ('YouTube: %s\n%s\n\n' % (url, note)) if url else ('YouTube: %s\n\n' % note) if note else ''
+    ig, ignote = instagram.upload(base + '.mp4', instagram.caption(m, y))
+    head += ('Instagram: %s\n\n' % ig) if ig else ('Instagram: %s\n\n' % ignote) if ignote else ''
     tg_reel(base + '.mp4', base + '_clean.mp4', head + yt_texts.block(m, lg), y['title'], cover)
 
 
