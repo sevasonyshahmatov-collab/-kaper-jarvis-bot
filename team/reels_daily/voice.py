@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """Озвучка и субтитры шортсов (владелец 20.10: «давай воспользуемся всеми» — голос и субтитры как в CapCut).
 
+Голос — Yandex SpeechKit (владелец 20.10: Piper «неестественный», берём Яндекс): секрет YANDEX_TTS_KEY, голос и подача —
+REELS_YVOICE «имя:роль@скорость» (по умолчанию ermil:good@1.12). Без ключа — запасной Piper (ниже).
+
 Голос — Piper (github.com/rhasspy/piper, синтез речи на своём раннере, без внешних сервисов), русский голос из
 rhasspy/piper-voices (лицензия голоса — его MODEL_CARD, печатается в лог при загрузке). Silero не берём: русские голоса
 у него только для некоммерческого использования.
@@ -55,8 +58,37 @@ def _ensure():
 _V = {}
 
 
+YANDEX = 'https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize'
+# голос Яндекса: имя[:роль][@скорость] — владелец 20.10: «уверенная, бодрая, ровная», выбор на слух из превью
+YVOICE = os.environ.get('REELS_YVOICE', 'ermil:good@1.12')
+
+
+def engine():
+    return 'yandex' if os.environ.get('YANDEX_TTS_KEY', '').strip() else 'piper'
+
+
+def say_yandex(text, spec=None):
+    """Yandex SpeechKit (секрет YANDEX_TTS_KEY — API-ключ сервисного аккаунта). → float32 моно SR Гц."""
+    import requests
+    spec = spec or YVOICE
+    name, _, speed = spec.partition('@')
+    name, _, role = name.partition(':')
+    data = dict(text=text, lang='ru-RU', voice=name, speed=speed or '1.0', format='lpcm', sampleRateHertz=str(SR))
+    if role:
+        data['emotion'] = role
+    r = requests.post(YANDEX, headers={'Authorization': 'Api-Key ' + os.environ['YANDEX_TTS_KEY'].strip()}, data=data,
+                      timeout=60)
+    if r.status_code != 200:
+        raise RuntimeError('Yandex SpeechKit %s: %s' % (r.status_code, r.text[:300]))
+    x = np.frombuffer(r.content, '<i2').astype(np.float32) / 32768
+    nz = np.where(np.abs(x) > 0.02)[0]
+    return x[max(0, nz[0] - 200):nz[-1] + 400] if len(nz) else x
+
+
 def say(text):
-    """Фраза → float32 моно SR Гц (тишина по краям обрезана)."""
+    """Фраза → float32 моно SR Гц (тишина по краям обрезана). Есть ключ Яндекса — Yandex SpeechKit, нет — Piper."""
+    if engine() == 'yandex':
+        return say_yandex(text)
     path = _ensure()
     from piper import PiperVoice
     if 'v' not in _V:
