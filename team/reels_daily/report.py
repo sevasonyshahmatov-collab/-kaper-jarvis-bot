@@ -64,6 +64,44 @@ def yt_videos(days):
     return out
 
 
+SEED = 'Qv08K1ye9To'                   # любой наш ролик: по нему находим канал, если токен без права читать (только загрузка)
+
+
+def yt_feed(days):
+    """Без права чтения у токена: открытая лента канала (15 свежих роликов, просмотры и лайки, без ключей).
+    Канал — YT_CHANNEL_ID или по нашему ролику (oEmbed → страница автора → UC…). Шаблон в ленте не виден."""
+    import re
+    import xml.etree.ElementTree as ET
+    hdr = {'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'ru'}
+    cid = os.environ.get('YT_CHANNEL_ID', '').strip()
+    if not cid:
+        au = requests.get('https://www.youtube.com/oembed', params=dict(url='https://youtu.be/' + SEED, format='json'),
+                          headers=hdr, timeout=30).json()['author_url']
+        page = requests.get(au, headers=hdr, timeout=30, cookies={'CONSENT': 'YES+1'}).text
+        m = re.search(r'"(?:externalId|channelId)":"(UC[\w-]{22})"', page) or re.search(r'/channel/(UC[\w-]{22})', page)
+        if not m:
+            raise RuntimeError('канал не найден по ' + au)
+        cid = m.group(1)
+    print('REPORT_CHANNEL', cid, flush=True)
+    x = requests.get('https://www.youtube.com/feeds/videos.xml', params=dict(channel_id=cid), headers=hdr, timeout=30).text
+    ns = {'a': 'http://www.w3.org/2005/Atom', 'yt': 'http://www.youtube.com/xml/schemas/2015',
+          'm': 'http://search.yahoo.com/mrss/'}
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    out = []
+    for e in ET.fromstring(x).findall('a:entry', ns):
+        at = datetime.fromisoformat(e.find('a:published', ns).text.replace('Z', '+00:00'))
+        if at < since:
+            continue
+        st = e.find('m:group/m:community/m:statistics', ns)
+        rt = e.find('m:group/m:community/m:starRating', ns)
+        title = e.find('a:title', ns).text or ''
+        out.append(dict(id=e.find('yt:videoId', ns).text, title=title, at=at,
+                        views=int(st.get('views', 0)) if st is not None else 0,
+                        likes=int(rt.get('count', 0)) if rt is not None else 0, comments=0, tpl=None,
+                        league='НХЛ' if 'нхл' in title.lower() else 'КХЛ'))
+    return out
+
+
 def yt_retention(vids, days):
     """Средний % досмотра по роликам (YouTube Analytics). Нет доступа — {} и пояснение."""
     if not vids:
@@ -93,33 +131,44 @@ def ig_views(days):
     since = datetime.now(timezone.utc) - timedelta(days=days)
     r = requests.get('https://graph.facebook.com/v21.0/%s/media' % uid, timeout=30,
                      params=dict(fields='id,caption,media_type,timestamp,permalink', limit=50, access_token=tok)).json()
-    out = []
+    out, said = [], False
     for m in r.get('data', []):
         t = datetime.fromisoformat(m['timestamp'].replace('+0000', '+00:00'))
         if t < since or m.get('media_type') not in ('VIDEO', 'REELS'):
             continue
         views = None
-        for metric in ('views', 'plays'):
+        for metric in ('views', 'plays', 'reach'):
             ins = requests.get('https://graph.facebook.com/v21.0/%s/insights' % m['id'], timeout=30,
                                params=dict(metric=metric, access_token=tok)).json()
             if ins.get('data'):
-                views = ins['data'][0]['values'][0]['value']
+                d = ins['data'][0]
+                views = d['values'][0]['value'] if d.get('values') else d.get('total_value', {}).get('value')
                 break
+            if not said:
+                print('REPORTERR Instagram %s: %s' % (metric, str(ins.get('error', ins))[:300]), flush=True)
+        said = True
         out.append(dict(link=m.get('permalink'), title=(m.get('caption') or '').split('\n')[0][:60], at=t, views=views))
     return out
 
 
 def build(days=7):
     lines = ['Отчёт по шортсам за %d дней (до %s)' % (days, datetime.now(MSK).strftime('%d.%m %H:%M МСК'))]
+    feed = False
     try:
         vids = yt_videos(days)
     except Exception as e:  # noqa: BLE001
-        msg = str(e)
-        print('REPORTERR YouTube: %s' % msg[:300], flush=True)
-        vids = []
-        lines.append('YouTube: не получил список роликов (%s)' % (
-            'у токена нет права читать канал — нужен YT_REFRESH_TOKEN с youtube.readonly' if '403' in msg else msg[:120]))
-    ret, why = yt_retention(vids, days)
+        print('REPORTERR YouTube: %s' % str(e)[:300], flush=True)
+        try:
+            vids, feed = yt_feed(days), True
+        except Exception as e2:  # noqa: BLE001
+            print('REPORTERR YouTube лента: %r' % e2, flush=True)
+            vids = []
+            lines.append('YouTube: не получил список роликов')
+    if feed:
+        ret, why = {}, 'токен YouTube только для загрузки — цифры из открытой ленты канала (15 свежих роликов, без досмотра ' \
+                       'и шаблонов)'
+    else:
+        ret, why = yt_retention(vids, days)
     if vids:
         tot = sum(v['views'] for v in vids)
         lines += ['', 'YouTube: %d роликов, %d просмотров (в среднем %d), лайков %d' % (
@@ -164,7 +213,8 @@ def build(days=7):
         ig = []
     if ig:
         known = [m for m in ig if m['views'] is not None]
-        lines += ['', 'Instagram: %d роликов, %d просмотров' % (len(ig), sum(m['views'] for m in known))]
+        lines += ['', 'Instagram: %d роликов, %s' % (len(ig), '%d просмотров' % sum(m['views'] for m in known) if known
+                                                   else 'просмотры не отдаёт (у токена нет права на статистику)')]
         for m in sorted(known, key=lambda m: -m['views'])[:5]:
             lines.append('  %d · %s · %s' % (m['views'], m['title'], m['link']))
     text = '\n'.join(lines)
