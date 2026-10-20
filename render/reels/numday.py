@@ -81,6 +81,7 @@ class NumDay(C.Reel):
             C.put(c, C.text(score, 'robci', 44, INK if ok else (200, 200, 206), 900, max_w=CW - 16), CW / 2, CH * 0.42)
             C.put(c, C.text('ДОМА' if home else 'В ГОСТЯХ', 'robc', 20, INK if ok else GRAY, 800, track=0.1), CW / 2,
                   CH * 0.8)
+            c.alpha_composite(C.icon('check-circle' if ok else 'x-circle', 26, INK if ok else GRAY, 'fill'), (CW - 32, 6))
             self.cells.append(c)
         self.q = C.text('А СЕГОДНЯ?', 'unb', 130, YEL, 900, max_w=W - 80)
         p1, p2 = F.split_pick(self.pick)

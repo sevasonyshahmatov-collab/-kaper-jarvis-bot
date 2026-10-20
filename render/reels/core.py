@@ -113,6 +113,15 @@ def icon(name, size, fill=(255, 255, 255), weight='bold'):
     return _TC[key]
 
 
+def icon_text(name, im, size, fill, gap=14, weight='bold'):
+    """Иконка слева от готовой надписи im, по центру строки."""
+    ic = icon(name, size, fill, weight)
+    out = Image.new('RGBA', (ic.width + gap + im.width, max(ic.height, im.height)), (0, 0, 0, 0))
+    out.alpha_composite(ic, (0, (out.height - ic.height) // 2))
+    out.alpha_composite(im, (ic.width + gap, (out.height - im.height) // 2))
+    return out
+
+
 class Lottie:
     """Анимация LottieFiles (Lottie Simple License; render/reels/lottie/<имя>.json; владелец 20.10) через rlottie.
     frame(t, size) — RGBA кадр на время t от начала (с; дальше последнего кадра — последний кадр, loop=True — по кругу)."""

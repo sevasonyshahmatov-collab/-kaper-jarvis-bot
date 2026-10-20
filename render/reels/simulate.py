@@ -97,9 +97,9 @@ class Simulate(C.Reel):
         p1, p2 = F.split_pick(self.pick)
         self.what = C.lines('ПРОВЕРЯЕМ: ' + p1 + (' ' + p2 if p2 else ''), 'robc', 40, W - 460, ACC, 800,
                             max_lines=2)
-        self.lab_n = C.text('РОЗЫГРЫШЕЙ', 'mono', 28, GRAY, 700, track=0.1)
-        self.lab_p = C.text('ПРОГНОЗ ЗАШЁЛ', 'mono', 28, GRAY, 700, track=0.1)
-        self.lab_go = C.text('▶ ЗАПУСК', 'mono', 40, HIT, 800, track=0.2)
+        self.lab_n = C.icon_text('dice-five', C.text('РОЗЫГРЫШЕЙ', 'mono', 28, GRAY, 700, track=0.1), 34, GRAY, 10)
+        self.lab_p = C.icon_text('target', C.text('ПРОГНОЗ ЗАШЁЛ', 'mono', 28, GRAY, 700, track=0.1), 34, HIT, 10)
+        self.lab_go = C.icon_text('cpu', C.text('ЗАПУСК', 'mono', 40, HIT, 800, track=0.2), 52, HIT, 14)
         # дроп
         pct = round(100 * self.hits / self.n)
         self.big = C.glow(C.text('%d%%' % pct, 'unb', 260, HIT, 900), 26, 1.2, HIT)
