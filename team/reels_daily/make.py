@@ -66,6 +66,10 @@ TEMPLATES = {
     'dashboard_too_fast': ('dashboard', 'Dashboard', 'too_fast', 1.061946, 33.576),                   # 5
     'card_two_face': ('card', 'Card', 'two_face', 0.731707, 23.336, 21, dict(team=8, rush=2, hold=5.5, cta=3)),   # 6
     'tape_demons': ('tape', 'Tape', 'demons', 0.869565, 85.438, 16.0, dict(per=1, pre=1.5, hold=4, cta=2.5)),     # 7
+    # 20.10 — по трендам шортсов (владелец 20.10: «давай попробуем»): данные — pick.simulate / pick.fact; в очередь VIEWS
+    # встают после одобрения превью
+    'simulate': ('simulate', 'Simulate', 'quantum', 1.0, 55.147, 12, dict(intro=8, hold=6, cta=2.5)),
+    'numday': ('numday', 'NumDay', 'horses', 60 / 76, 37.92, 12, dict(num=6, pre=2, hold=6, cta=2.5)),
 }
 
 
@@ -115,7 +119,7 @@ def owner_picks(ms):
         if k not in o:
             out.append(m)
         elif o[k]:
-            out.append(dict(m, pick=o[k]['pick'], odds=float(o[k]['odds'])))
+            out.append(dict(m, pick=o[k]['pick'], odds=float(o[k]['odds']), sim=None, fact=None))   # данные модели — не к этому прогнозу
             if o[k].get('tpl') in TEMPLATES:
                 out[-1]['tpl_owner'] = o[k]['tpl']
             print('OWNERPICK %s: %s %s' % (k, o[k]['pick'], o[k]['odds']), flush=True)
@@ -189,6 +193,9 @@ def plan(league, day, top, per):
     return P
 
 
+DATA = {'simulate': ('sim',), 'numday': ('fact',)}     # шаблонам — данные прогноза из plan.json
+
+
 def reel(m, stats, code):
     mod, cls, key, u, tdrop, *rest = TEMPLATES[m['tpl']]
     d = date.fromisoformat(m['d'][:10])
@@ -209,6 +216,7 @@ def reel(m, stats, code):
         c = json.load(open(p, encoding='utf-8')) if os.path.exists(p) else {'drop_beats': 20, 'kw': {}}
         beats, kw = c.get('drop_beats', 20), c.get('kw', {})
     drop = beats * u
+    kw = dict(kw, **{k: m.get(k) for k in DATA.get(mod, ())})
     r = Cls(m['h'], m['a'], code, when, m['pick'], m['odds'], stats.get(m['h'], {}), stats.get(m['a'], {}), u=u, drop=drop,
             line=line, **kw)
     return r, key, tdrop - drop

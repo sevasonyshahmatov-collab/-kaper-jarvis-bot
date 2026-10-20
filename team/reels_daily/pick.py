@@ -3,6 +3,7 @@
 с кэфом 1,6–2,3. Равный матч (П1 и П2 близки) — ближе к 1,6–1,7; аутсайдер против сильного — 1,8–2,0.
 Пример 17.10: Сибирь — Барыс (2.60/3.70/2.40) → ТБ 4,5 за 1,61; Сочи — Локомотив (6.80/4.70/1.41) → фора Локомотива −1,5 за 1,75."""
 import os
+import random
 import re
 import sys
 
@@ -97,9 +98,58 @@ def day_picks(games, nxt, pins, fon, league='khl'):
             print('PICK %s — %s: нет ставки от %d %% с кэфом %.1f–%.1f — без ролика' % (H, A, MIN_P * 100, LO, HI), flush=True)
             continue
         kinds.append(c['g'])
+        mk = next((k for k in calc.markets(H, A) if k['t'] == c['t']), None)
         out.append(dict(h=H, a=A, d=x['d'], arena=x.get('arena') or '', x1x2=x1x2, t=c['t'], g=c['g'], p=c['p'],
-                        odds=round(c['odds'], 2),
+                        odds=round(c['odds'], 2), sim=simulate(r, M, mk, H + A), fact=fact(T, H, A, mk),
                         pick=human(c['t'], H, A, ot=league == 'nhl' and not str(c.get('src')).startswith('с ОТ ='))))
         print('PICK %s — %s | %s | %.1f%% | кэф %.2f | линия %s' % (H, A, out[-1]['pick'], 100 * c['p'], c['odds'],
                                                                ' / '.join('%.2f' % v for v in x1x2)), flush=True)
     return out
+
+
+N_SIM = 10000
+
+
+def simulate(r, M, mk, key):
+    """Шаблон «10 000 симуляций»: матч разыгрывается N_SIM раз по модели счёта (Пуассон, ничьи подогнаны под лигу —
+    calc.scores; итоговая победа — ничья в осн. время делится по доле побед в ОТ/Б). → dict(n, hits, curve — доля заходов
+    после каждой сотни, top — 3 самых частых счёта [(хозяева, гости, раз)]) или None."""
+    if not mk:
+        return None
+    P = calc.scores(r['lam'][0], r['lam'][1], M['rho'])
+    cells = [(i, j) for i in range(calc.MAXG + 1) for j in range(calc.MAXG + 1)]
+    rnd = random.Random(key)
+    draw = rnd.choices(cells, weights=[P[i][j] for i, j in cells], k=N_SIM)
+    hits, curve, cnt = 0, [], {}
+    for n, (i, j) in enumerate(draw, 1):
+        if mk['fin']:
+            ok = mk['f'](dict(fh=i, fa=j)) if i != j else rnd.random() < (r['s'] if mk['fin'] == 'h' else 1 - r['s'])
+        else:
+            ok = mk['f'](dict(h=i, a=j))
+        hits += bool(ok)
+        cnt[(i, j)] = cnt.get((i, j), 0) + 1
+        if n % 100 == 0:
+            curve.append(round(hits / n, 4))
+    top = sorted(cnt.items(), key=lambda kv: -kv[1])[:3]
+    return dict(n=N_SIM, hits=hits, curve=curve, top=[(i, j, c) for (i, j), c in top])
+
+
+def fact(T, H, A, mk):
+    """Шаблон «Цифра дня»: как часто ставка прогноза заходила в матчах сезона у каждой из команд (хозяева — их глазами,
+    гости — глазами соперника, как в «Что заходит»). → dict(team, side, k, n, games — [(заход, счёт, дома)] по порядку)
+    у команды с большей долей (от 4 матчей) или None."""
+    if not mk:
+        return None
+    best = None
+    for side, t in (('h', H), ('a', A)):
+        rows = []
+        for x in T.get(t) or []:
+            o = calc.view(x, side == 'h')
+            rows.append((bool(mk['f'](o)), '%d:%d%s' % (x['gf'], x['ga'], ' ' + x['e'] if x['e'] else ''), x['home']))
+        if len(rows) < 4:
+            continue
+        k = sum(1 for ok, *_ in rows if ok)
+        cand = dict(team=t, side=side, k=k, n=len(rows), games=rows[-12:])
+        if best is None or k / len(rows) > best['k'] / best['n']:
+            best = cand
+    return best
