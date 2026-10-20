@@ -2,143 +2,52 @@
  "license": "LottieFiles free animations — Lottie Simple License (коммерческое использование без указания автора)",
  "items": [
   {
-   "name": "success_1",
-   "src": "https://assets-v2.lottiefiles.com/a/5e5be768-117c-11ee-b23a-4344ea344fa9/chFv4cpUu2.lottie",
-   "frames": 151,
-   "fps": 30.0,
-   "kb": 2
-  },
-  {
-   "name": "success_2",
-   "src": "https://assets-v2.lottiefiles.com/a/a03173b0-4214-11ee-8796-83095fab89a7/JGIGUR22fl.lottie",
-   "frames": 31,
-   "fps": 29.970001220703125,
-   "kb": 1
-  },
-  {
-   "name": "checkmark_1",
-   "src": "https://assets-v2.lottiefiles.com/a/618c10fe-1184-11ee-94cf-cb548f8431aa/gFpuks6NKt.lottie",
-   "frames": 243,
-   "fps": 60.0,
-   "kb": 17
-  },
-  {
-   "name": "checkmark_2",
-   "src": "https://assets-v2.lottiefiles.com/a/b893c4ca-1178-11ee-ac10-8bc3fed09895/ffoTmA7fNU.lottie",
-   "frames": 61,
-   "fps": 29.970001220703125,
-   "kb": 1
-  },
-  {
-   "name": "hockey_1",
-   "src": "https://assets-v2.lottiefiles.com/a/04757dee-1164-11ee-9e5d-5ff176570ecb/3Mci8GGemM.lottie",
-   "frames": 289,
-   "fps": 24.0,
-   "kb": 4
-  },
-  {
-   "name": "hockey_2",
-   "src": "https://assets-v2.lottiefiles.com/a/c34c8d9e-1181-11ee-bced-3f592a48debe/toFkGwTLhr.lottie",
-   "frames": 1717,
-   "fps": 60.0,
-   "kb": 82
-  },
-  {
-   "name": "fire_1",
+   "name": "fire",
    "src": "https://assets-v2.lottiefiles.com/a/61bfb5e8-1176-11ee-bd3f-7f146038e4ad/kQpIOJcdYY.lottie",
    "frames": 391,
    "fps": 60.0,
    "kb": 4
   },
   {
-   "name": "fire_2",
-   "src": "https://assets-v2.lottiefiles.com/a/2eb7e182-a052-11ee-a0b8-efffc28c3ed2/2z3YXmtMDy.lottie",
-   "frames": 11,
-   "fps": 12.0,
-   "kb": 19
-  },
-  {
-   "name": "trophy_1",
+   "name": "trophy",
    "src": "https://assets-v2.lottiefiles.com/a/cb2d095e-1185-11ee-bb0a-b71d225cf0ae/eQaQfBy7D0.lottie",
    "frames": 121,
    "fps": 29.970001220703125,
    "kb": 3
   },
   {
-   "name": "trophy_2",
-   "src": "https://assets-v2.lottiefiles.com/a/b8826f2a-1189-11ee-80a7-ebf80f110504/Hh3gl3pZZh.lottie",
-   "frames": 128,
-   "fps": 29.970001220703125,
-   "kb": 38
-  },
-  {
-   "name": "confetti_1",
-   "src": "https://assets-v2.lottiefiles.com/a/c447857e-ac61-11ef-878c-3f284e931cb0/B9aHDSL0PB.lottie",
-   "frames": 76,
-   "fps": 30.0,
-   "kb": 7
-  },
-  {
-   "name": "confetti_2",
+   "name": "check_badge",
    "src": "https://assets-v2.lottiefiles.com/a/90ed30d6-1188-11ee-b87c-4bb1d187c461/PK8lp5Ut8O.lottie",
    "frames": 91,
    "fps": 30.0,
    "kb": 1
   },
   {
-   "name": "chart_1",
-   "src": "https://assets-v2.lottiefiles.com/a/22372f10-1152-11ee-8103-ff9f900483db/lmOKE89vgx.lottie",
-   "frames": 161,
-   "fps": 23.975997924804688,
-   "kb": 10
-  },
-  {
-   "name": "chart_2",
+   "name": "charts",
    "src": "https://assets-v2.lottiefiles.com/a/61666e48-1176-11ee-bcff-9ba035da5e3f/fmOwr0265d.lottie",
    "frames": 358,
    "fps": 29.970001220703125,
    "kb": 11
   },
   {
-   "name": "stopwatch_1",
-   "src": "https://assets-v2.lottiefiles.com/a/883e11be-3b65-11ef-84af-6f6f9cb6cb84/M6b8Hi8E2d.lottie",
-   "frames": 31,
-   "fps": 29.970001220703125,
-   "kb": 1
-  },
-  {
-   "name": "stopwatch_2",
+   "name": "hourglass",
    "src": "https://assets-v2.lottiefiles.com/a/bdbfe63a-1174-11ee-9ee3-c3841658c03c/8wGrGVYWoD.lottie",
    "frames": 61,
    "fps": 60.0,
    "kb": 2
   },
   {
-   "name": "target_1",
+   "name": "target",
    "src": "https://assets-v2.lottiefiles.com/a/74a5c384-1151-11ee-b231-6fbb2403aa18/a5KxKlA0BQ.lottie",
    "frames": 89,
    "fps": 60.0,
    "kb": 2
   },
   {
-   "name": "target_2",
+   "name": "target_flat",
    "src": "https://assets-v2.lottiefiles.com/a/fc716016-1188-11ee-af58-d790cd70a0d5/WFondoBCX6.lottie",
    "frames": 105,
    "fps": 30.0,
-   "kb": 1
-  },
-  {
-   "name": "loading_1",
-   "src": "https://assets-v2.lottiefiles.com/a/69989162-a187-11ee-a801-43c84c9ba79b/ACBTkE3ATt.lottie",
-   "frames": 363,
-   "fps": 60.0,
-   "kb": 2
-  },
-  {
-   "name": "loading_2",
-   "src": "https://assets-v2.lottiefiles.com/a/d62d68ce-1150-11ee-836b-2fdc9f56f40f/nlrTeVZKPl.lottie",
-   "frames": 198,
-   "fps": 25.0,
    "kb": 1
   }
  ]
