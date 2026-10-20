@@ -49,7 +49,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install "pillow>=11" numpy requests
+      - run: pip install "pillow>=11" numpy requests cairosvg rlottie-python
       - id: day
         env:
           DAY_IN: ${{ github.event.inputs.day || github.event.client_payload.day }}
@@ -96,7 +96,7 @@ jobs:
           python-version: '3.11'
       - run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null
-          pip install "pillow>=11" numpy requests
+          pip install "pillow>=11" numpy requests cairosvg rlottie-python
       - uses: actions/download-artifact@v4
         with:
           name: plan

@@ -91,6 +91,50 @@ def emoji(s, size):
     return _TC[key]
 
 
+ICONS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons')
+LOTTIE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lottie')
+
+
+def icon(name, size, fill=(255, 255, 255), weight='bold'):
+    """Иконка Phosphor (MIT, render/reels/icons/<имя>-<bold|fill|duotone>.svg; владелец 20.10) — RGBA size×size.
+    Нужен cairosvg (в Actions ставится); без него — пустой слой, ролик не падает."""
+    key = ('icon', name, int(size), tuple(fill), weight)
+    if key not in _TC:
+        try:
+            import cairosvg
+            with open(os.path.join(ICONS, '%s-%s.svg' % (name, weight)), encoding='utf-8') as f:
+                svg = f.read().replace('currentColor', '#%02x%02x%02x' % tuple(fill[:3]))
+            import io
+            _TC[key] = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg.encode(), output_width=int(size),
+                                                              output_height=int(size)))).convert('RGBA')
+        except (ImportError, OSError) as e:
+            print('icon %s: %s' % (name, e), flush=True)
+            _TC[key] = Image.new('RGBA', (int(size), int(size)), (0, 0, 0, 0))
+    return _TC[key]
+
+
+class Lottie:
+    """Анимация LottieFiles (Lottie Simple License; render/reels/lottie/<имя>.json; владелец 20.10) через rlottie.
+    frame(t, size) — RGBA кадр на время t от начала (с; дальше последнего кадра — последний кадр, loop=True — по кругу)."""
+
+    def __init__(self, name, loop=False):
+        from rlottie_python import LottieAnimation
+        self.anim = LottieAnimation.from_file(os.path.join(LOTTIE, name + '.json'))
+        self.n = self.anim.lottie_animation_get_totalframe()
+        self.fps = self.anim.lottie_animation_get_framerate() or 30
+        self.dur = self.n / self.fps
+        self.loop = loop
+        self._c = {}
+
+    def frame(self, t, size):
+        i = int(max(0.0, t) * self.fps)
+        i = i % self.n if self.loop else min(i, self.n - 1)
+        key = (i, int(size))
+        if key not in self._c:
+            self._c[key] = self.anim.render_pillow_frame(frame_num=i, width=int(size), height=int(size)).convert('RGBA')
+        return self._c[key]
+
+
 def text(s, name, size, fill=(255, 255, 255), wght=700, track=0.0, max_w=None, stroke=0, stroke_fill=(0, 0, 0),
          outline=False, trim=True, wdth=None, a=255):
     """Строка текста → RGBA (кеш). track — разрядка в долях кегля; max_w — ужать кегль до ширины;
