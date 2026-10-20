@@ -158,7 +158,16 @@ def plan(league, day, top, per):
     except Exception as e:  # noqa: BLE001 — без Pinnacle в КХЛ остаётся линия Фонбета
         print('PINERR %r' % e, flush=True)
         pins = {}
-    ms = pick.day_picks(games, nxt, pins, fon, league)
+    backup = set()
+    if league == 'nhl' and any((x['h'], x['a']) not in pins for x in nxt):
+        try:                                        # владелец 20.10: нет матча у Pinnacle — линия DraftKings с ESPN
+            import espn
+            for k, mk in espn.fetch(day, [x for x in nxt if (x['h'], x['a']) not in pins]).items():
+                pins[k] = mk
+                backup.add(k)
+        except Exception as e:  # noqa: BLE001
+            print('ESPNERR %r' % e, flush=True)
+    ms = pick.day_picks(games, nxt, pins, fon, league, backup=backup)
     soon = (datetime.now(MSK) + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M')   # уже начавшиеся матчи — без ролика
     ms = [m for m in ms if m['d'] >= soon]
     ms = owner_picks(ms)
@@ -201,7 +210,7 @@ def reel(m, stats, code):
     d = date.fromisoformat(m['d'][:10])
     when = '%s %s · %s МСК' % (WEEK[d.weekday()], d.strftime('%d.%m'), m['d'][11:16])
     Cls = getattr(importlib.import_module('reels.' + mod), cls)
-    line = tuple(m['x1x2'])
+    line = tuple(m['x1x2']) if m.get('x1x2') else None       # запасная линия (ESPN) — без П1 · Х · П2
     if mod == 'lineup':                       # «Состав»: дроп считает сам шаблон
         from reels import form as F
         from reels import core as C

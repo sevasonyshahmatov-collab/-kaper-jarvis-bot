@@ -75,7 +75,7 @@ def human(t, h, a, ot=False):
     return t
 
 
-def day_picks(games, nxt, pins, fon, league='khl'):
+def day_picks(games, nxt, pins, fon, league='khl', backup=()):
     """→ [{h, a, d, arena, x1x2, t, g, p, odds, pick}] — по матчу дня, у кого нашёлся прогноз по правилу."""
     G = calc.prep(games)
     T = calc.team_games(G)
@@ -91,8 +91,10 @@ def day_picks(games, nxt, pins, fon, league='khl'):
         rows, _ = calc.brief(H, A, r, mks, fb)
         x1x2 = [calc.odds_for(('ml', 6, s), mks)[0] or calc.fonbet_for(('ml', 6, s), fb) for s in ('home', 'draw', 'away')]
         if not all(x1x2):
-            print('PICK %s — %s: нет линии П1/Х/П2 — без ролика' % (H, A), flush=True)
-            continue
+            if (H, A) not in backup:
+                print('PICK %s — %s: нет линии П1/Х/П2 — без ролика' % (H, A), flush=True)
+                continue
+            x1x2 = None                     # запасная линия ESPN: только рынки с ОТ, коридор кэфа — общий 1,6–2,3
         c = choose(rows, x1x2, avoid=kinds)
         if not c:
             print('PICK %s — %s: нет ставки от %d %% с кэфом %.1f–%.1f — без ролика' % (H, A, MIN_P * 100, LO, HI), flush=True)
@@ -102,8 +104,10 @@ def day_picks(games, nxt, pins, fon, league='khl'):
         out.append(dict(h=H, a=A, d=x['d'], arena=x.get('arena') or '', x1x2=x1x2, t=c['t'], g=c['g'], p=c['p'],
                         odds=round(c['odds'], 2), sim=simulate(r, M, mk, H + A), fact=fact(T, H, A, mk),
                         pick=human(c['t'], H, A, ot=league == 'nhl' and not str(c.get('src')).startswith('с ОТ ='))))
+        out[-1]['line_src'] = 'DraftKings (ESPN)' if (H, A) in backup else 'Pinnacle'
         print('PICK %s — %s | %s | %.1f%% | кэф %.2f | линия %s' % (H, A, out[-1]['pick'], 100 * c['p'], c['odds'],
-                                                               ' / '.join('%.2f' % v for v in x1x2)), flush=True)
+                                                               ' / '.join('%.2f' % v for v in x1x2) if x1x2 else
+                                                               'DraftKings (ESPN), без П1/Х/П2'), flush=True)
     return out
 
 
