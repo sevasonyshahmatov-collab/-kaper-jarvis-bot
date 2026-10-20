@@ -1,0 +1,35 @@
+# Еженедельный отчёт по шортсам (владелец 20.10): просмотры YouTube и Instagram, шаблоны, время выхода — владельцу в Telegram
+# (team/reels_daily/report.py). По расписанию — только из main; вручную — Run workflow.
+name: Шортсы — отчёт за неделю
+
+on:
+  schedule:
+    - cron: '52 5 * * 1'           # понедельник, 08:52 МСК
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'За сколько дней'
+        required: false
+        default: '7'
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests
+      - run: python team/reels_daily/report.py "${{ github.event.inputs.days || '7' }}"
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}

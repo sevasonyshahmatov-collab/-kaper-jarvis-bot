@@ -284,7 +284,8 @@ def one(P, i, league, day, code, lg, frames):
     print('REEL %s — %s | %s | трек %s с %.2f с, дроп на %.2f с | %.1f с ролика за %.0f с'
           % (m['h'], m['a'], m['tpl'], key, start, r.drop, r.dur, time.time() - t0), flush=True)
     y = yt_texts.youtube(m, lg)
-    url, note = youtube.upload(base + '.mp4', y['title'], y['description'], y['tags'])
+    url, note = youtube.upload(base + '.mp4', y['title'], y['description'], y['tags'] + ['tpl_' + m['tpl']],
+                               publish_at=publish_time(P, i))
     cover = cover_for(m, code, base)
     tnote = youtube.thumbnail(url, cover) if cover else ''
     note = '\n'.join(x for x in (note, tnote) if x)
@@ -292,6 +293,28 @@ def one(P, i, league, day, code, lg, frames):
     ig, ignote = instagram.upload(base + '.mp4', instagram.caption(m, y), cover)
     head += ('Instagram: %s\n\n' % ig) if ig else ('Instagram: %s\n\n' % ignote) if ignote else ''
     tg_reel(base + '.mp4', base + '_clean.mp4', head + yt_texts.block(m, lg), y['title'], cover)
+
+
+SPREAD_FROM, SPREAD_STEP, SPREAD_LEAD = 9, 90, 120     # МСК: с 09:00, шаг 90 мин, не позже чем за 2 ч до матча
+
+
+def publish_time(P, i):
+    """Время выхода ролика на YouTube (UTC) — владелец 20.10: не пачкой ночью, а с интервалами. Ролик i дня выходит
+    в 09:00 МСК + i × 90 мин (КХЛ — со сдвигом 45 мин), но не позже чем за 2 ч до начала своего матча; время уже прошло — None (сразу).
+    Выключить: REELS_SPREAD=0."""
+    if os.environ.get('REELS_SPREAD', '1') == '0':
+        return None
+    m = P['matches'][i]
+    start = datetime.strptime(m['d'][:16], '%Y-%m-%d %H:%M').replace(tzinfo=MSK)
+    now = datetime.now(MSK)
+    day0 = (start - timedelta(minutes=SPREAD_LEAD)).replace(hour=SPREAD_FROM, minute=0, second=0, microsecond=0)
+    if day0 > start - timedelta(minutes=SPREAD_LEAD):
+        day0 -= timedelta(days=1)
+    off = 45 if P.get('league') == 'khl' else 0          # КХЛ — между роликами НХЛ того же утра
+    t = min(day0 + timedelta(minutes=SPREAD_STEP * i + off), start - timedelta(minutes=SPREAD_LEAD))
+    if t <= now + timedelta(minutes=20):
+        return None
+    return t.astimezone(timezone.utc)
 
 
 def cover_for(m, code, base):
