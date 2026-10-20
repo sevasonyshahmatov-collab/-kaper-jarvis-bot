@@ -67,9 +67,9 @@ TEMPLATES = {
     'card_two_face': ('card', 'Card', 'two_face', 0.731707, 23.336, 21, dict(team=8, rush=2, hold=5.5, cta=3)),   # 6
     'tape_demons': ('tape', 'Tape', 'demons', 0.869565, 85.438, 16.0, dict(per=1, pre=1.5, hold=4, cta=2.5)),     # 7
     # 20.10 — по трендам шортсов (владелец 20.10: «давай попробуем»): данные — pick.simulate / pick.fact; в очередь VIEWS
-    # встают после одобрения превью
-    'simulate': ('simulate', 'Simulate', 'quantum', 1.0, 55.147, 12, dict(intro=8, hold=6, cta=2.5)),
-    'numday': ('numday', 'NumDay', 'horses', 60 / 76, 37.92, 12, dict(num=6, pre=2, hold=6, cta=2.5)),
+    # встают после одобрения превью. Треки — Mixkit (владелец 20.10: «берём»; tools/assets_fetch.py, tracks/mixkit.json)
+    'simulate': ('simulate', 'Simulate', 'mx_614', 0.857143, 27.191, 12, dict(intro=8, hold=7, cta=3)),
+    'numday': ('numday', 'NumDay', 'mx_318', 0.631579, 19.563, 16, dict(num=8, pre=3, hold=8, cta=4)),
 }
 
 
