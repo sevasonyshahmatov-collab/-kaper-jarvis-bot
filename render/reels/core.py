@@ -13,6 +13,7 @@ import multiprocessing
 import os
 import random
 import subprocess
+import sys
 import tempfile
 
 import numpy as np
@@ -124,24 +125,37 @@ def icon_text(name, im, size, fill, gap=14, weight='bold'):
 
 class Lottie:
     """Анимация LottieFiles (Lottie Simple License; render/reels/lottie/<имя>.json; владелец 20.10) через rlottie.
-    frame(t, size) — RGBA кадр на время t от начала (с; дальше последнего кадра — последний кадр, loop=True — по кругу)."""
+    rlottie виснет в пуле процессов render (fork после его потоков), поэтому все кадры размера size рисуются заранее
+    отдельным чистым процессом в массив; frame(t) — RGBA кадр на время t от начала (дальше конца — последний кадр,
+    loop=True — по кругу)."""
 
-    def __init__(self, name, loop=False):
-        from rlottie_python import LottieAnimation
-        self.anim = LottieAnimation.from_file(os.path.join(LOTTIE, name + '.json'))
-        self.n = self.anim.lottie_animation_get_totalframe()
-        self.fps = self.anim.lottie_animation_get_framerate() or 30
+    _SCRIPT = ('import sys, numpy as np\nfrom rlottie_python import LottieAnimation\n'
+               'a = LottieAnimation.from_file(sys.argv[1]); s = int(sys.argv[2])\n'
+               'n = a.lottie_animation_get_totalframe()\n'
+               'np.save(sys.argv[3], np.stack([np.asarray(a.render_pillow_frame(frame_num=i, width=s, height=s)'
+               '.convert("RGBA")) for i in range(n)]))\n'
+               'print(a.lottie_animation_get_framerate())')
+
+    def __init__(self, name, size, loop=False):
+        out = tempfile.NamedTemporaryFile(suffix='.npy', delete=False).name
+        r = subprocess.run([sys.executable, '-c', self._SCRIPT, os.path.join(LOTTIE, name + '.json'),
+                            str(int(size)), out], capture_output=True, text=True, timeout=300)
+        if r.returncode:
+            raise RuntimeError(r.stderr.strip()[-300:])
+        self.fps = float(r.stdout.split()[-1]) or 30.0
+        self.frames = np.load(out)
+        os.unlink(out)
+        self.n = len(self.frames)
         self.dur = self.n / self.fps
         self.loop = loop
         self._c = {}
 
-    def frame(self, t, size):
+    def frame(self, t):
         i = int(max(0.0, t) * self.fps)
         i = i % self.n if self.loop else min(i, self.n - 1)
-        key = (i, int(size))
-        if key not in self._c:
-            self._c[key] = self.anim.render_pillow_frame(frame_num=i, width=int(size), height=int(size)).convert('RGBA')
-        return self._c[key]
+        if i not in self._c:
+            self._c[i] = Image.fromarray(self.frames[i], 'RGBA')
+        return self._c[i]
 
 
 def text(s, name, size, fill=(255, 255, 255), wght=700, track=0.0, max_w=None, stroke=0, stroke_fill=(0, 0, 0),

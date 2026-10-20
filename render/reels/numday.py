@@ -38,9 +38,9 @@ def gen(t):
     return C.gen_case(t.short, 'g').upper()
 
 
-def _lottie(name, loop=False):
+def _lottie(name, size, loop=False):
     try:
-        return C.Lottie(name, loop)
+        return C.Lottie(name, size, loop)
     except Exception as e:  # noqa: BLE001  (нет rlottie — без анимации)
         print('lottie %s: %r' % (name, e), flush=True)
         return None
@@ -92,7 +92,7 @@ class NumDay(C.Reel):
             c.alpha_composite(C.icon('check-circle' if ok else 'x-circle', 26, INK if ok else GRAY, 'fill'), (CW - 32, 6))
             self.cells.append(c)
         self.q = C.text('А СЕГОДНЯ?', 'unb', 130, YEL, 900, max_w=W - 80)
-        self.hg = _lottie('hourglass', loop=True)                    # песочные часы LottieFiles над вопросом
+        self.hg = _lottie('hourglass', 520, loop=True)                    # песочные часы LottieFiles над вопросом
         p1, p2 = F.split_pick(self.pick)
         head, main = F.head_main(p1)
         self.p_head = C.text(head, 'robci', 56, GRAY, 900, max_w=W - 120) if head else None
@@ -161,7 +161,7 @@ class NumDay(C.Reel):
         q = C.out_back(C.seg(t, self.tp, self.tp + 0.3), 1.6)
         C.put(fr, C.scale(self.q, 0.7 + 0.3 * q), W / 2, 760, min(1.0, q * 1.5))
         if self.hg:
-            C.put(fr, self.hg.frame(t - self.tp, 520), W / 2, 540, min(1.0, q * 1.5))
+            C.put(fr, self.hg.frame(t - self.tp), W / 2, 540, min(1.0, q * 1.5))
 
     def pick_scene(self, fr, t):
         D, u = self.drop, self.u

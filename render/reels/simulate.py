@@ -42,9 +42,9 @@ def fmt_int(n):
     return '{:,}'.format(int(n)).replace(',', ' ')
 
 
-def _lottie(name, loop=False):
+def _lottie(name, size, loop=False):
     try:
-        return C.Lottie(name, loop)
+        return C.Lottie(name, size, loop)
     except Exception as e:  # noqa: BLE001  (нет rlottie — без анимации)
         print('lottie %s: %r' % (name, e), flush=True)
         return None
@@ -121,7 +121,7 @@ class Simulate(C.Reel):
         top = (self.sim.get('top') or [None])[0]
         self.score = C.text('чаще всего: %d:%d' % (top[0], top[1]), 'robc', 40, GRAY, 700) if top else None
         self.tg = C.tg_plate()
-        self.target = _lottie('target')                              # стрела в мишень LottieFiles на дропе
+        self.target = _lottie('target', 150)                              # стрела в мишень LottieFiles на дропе
         self.handle = C.text(C.HANDLE, 'mont', 40, (200, 214, 230), 800)
         self.flash = Image.new('RGBA', (GRID, CELL), (255, 255, 255, 120))
 
@@ -193,7 +193,7 @@ class Simulate(C.Reel):
               min(1.0, qb * 1.5))
         C.put(fr, self.sub, W / 2, C.lerp(800, 690, kc), C.out_expo(C.seg(t, D + 0.4, D + 0.7)))
         if self.target:
-            C.put(fr, self.target.frame(t - D - 0.2, 150), min(W - 92, W / 2 + self.big.width / 2 + 40), C.lerp(560, 480, kc),
+            C.put(fr, self.target.frame(t - D - 0.2), min(W - 92, W / 2 + self.big.width / 2 + 40), C.lerp(560, 480, kc),
                   min(1.0, qb * 1.5) * (1 - kc))
         y0 = C.lerp(930, 800, kc)
         qp = C.out_expo(C.seg(t, D + u, D + u + 0.35))
