@@ -274,7 +274,13 @@ def one(P, i, league, day, code, lg, frames):
     if frames:
         print(C.render(r, base + '.mp4', frames=[int(round(float(x) * C.FPS)) for x in frames.split(',')]))
         return
-    C.render(r, base + '.mp4', track=owner_tracks.wav(key), start=start, extra_out=base + '_clean.mp4')
+    track = owner_tracks.wav(key)
+    if os.environ.get('REELS_TTS') == '1':          # владелец 20.10: озвучка и субтитры (пока по флагу, на пробу)
+        import voice
+        r, mix = voice.voiced(r, m, TEMPLATES[m['tpl']][0], track, start, base)
+        if mix:
+            track, start = mix, 0.0
+    C.render(r, base + '.mp4', track=track, start=start, extra_out=base + '_clean.mp4')
     print('REEL %s — %s | %s | трек %s с %.2f с, дроп на %.2f с | %.1f с ролика за %.0f с'
           % (m['h'], m['a'], m['tpl'], key, start, r.drop, r.dur, time.time() - t0), flush=True)
     y = yt_texts.youtube(m, lg)

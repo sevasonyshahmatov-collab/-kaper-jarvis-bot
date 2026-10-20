@@ -781,10 +781,11 @@ def render(reel, path, track=None, start=0.0, crf=20, workers=None, frames=None,
         code = pr.wait()
     if code != 0:
         raise RuntimeError('ffmpeg не собрал видеоряд: %s' % path)
-    outs = [(path, track)] + ([(extra_out, None)] if extra_out else [])
+    # чистая версия — без музыки; у озвученного ролика (team/reels_daily/voice.py) в ней остаётся голос
+    outs = [(path, track)] + ([(extra_out, getattr(reel, 'voice_only', None))] if extra_out else [])
     for p, tr in outs:
         wav = tempfile.NamedTemporaryFile(suffix='.wav', delete=False).name
-        _audio(wav, reel.dur, tr, start)
+        _audio(wav, reel.dur, tr, start if tr == track else 0.0)
         subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', tmpv, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy',
                         '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', p], check=True)
         os.unlink(wav)
