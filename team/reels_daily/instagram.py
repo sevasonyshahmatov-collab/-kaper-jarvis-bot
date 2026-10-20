@@ -70,8 +70,19 @@ def zoomed(path, cover=None):
     return path, None
 
 
-def upload(path, text, cover=None):
-    """→ (ссылка на ролик | None, пояснение для владельца)."""
+def upload(path, text, cover=None, tries=3):
+    """→ (ссылка на ролик | None, пояснение для владельца). Instagram иногда отвечает ProcessingFailedError на загрузку
+    файла (19–20.10: со второй попытки проходило) — повторяем загрузку с новым контейнером до tries раз."""
+    for k in range(tries):
+        url, note = _upload(path, text, cover)
+        if url or 'ProcessingFailedError' not in note or k == tries - 1:
+            return url, note
+        print('INSTAGRAM повтор %d: %s' % (k + 2, note[:120]), flush=True)
+        time.sleep(20)
+    return url, note
+
+
+def _upload(path, text, cover=None):
     if not enabled():
         return None, ''
     if _state['stop']:

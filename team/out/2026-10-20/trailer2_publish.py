@@ -16,11 +16,17 @@ import make  # noqa: E402
 import youtube  # noqa: E402
 
 video, cover = 'out/trailer2/trailer2.mp4', 'out/trailer2/trailer2_cover.jpg'
-yt, ytnote = youtube.upload(video, g['title'], g['desc'], ['кхл', 'хоккей', 'прогнозы на спорт', 'аналитика', 'таблица'])
+if os.environ.get('PUB2_ONLY') == 'ig':                  # YouTube — отдельно, когда обновится дневной лимит
+    yt, ytnote = None, 'позже — дневной лимит YouTube'
+else:
+    yt, ytnote = youtube.upload(video, g['title'], g['desc'], ['кхл', 'хоккей', 'прогнозы на спорт', 'аналитика', 'таблица'])
 tnote = youtube.thumbnail(yt, cover) if yt else ''
 print('PUB2 YouTube %s %s %s' % (yt, ytnote, tnote), flush=True)
 ig_text = g['desc'].replace('в Telegram: @jarvibet', 'в Telegram — ссылка в профиле')
-ig, ignote = instagram.upload(video, ig_text, cover)
+if os.environ.get('PUB2_ONLY') == 'yt':
+    ig, ignote = None, 'уже выложен раньше'
+else:
+    ig, ignote = instagram.upload(video, ig_text, cover)
 print('PUB2 Instagram %s %s' % (ig, ignote), flush=True)
 make.tg_text('Трейлер таблицы №2 выложен:\nYouTube: %s\nInstagram: %s' % (
     yt or ('не загрузился — ' + ytnote), ig or ('не загрузился — ' + ignote)) + (('\nОбложка YouTube: ' + tnote) if tnote else ''))
