@@ -444,6 +444,31 @@ def render(p, g, legs, res, res_legs, path):
                      checks=checks_for(p, g, legs, res_legs))
 
 
+# Тексты, уже отправленные владельцу (владелец 21.10: «текст по сути дублируется»): в канале видны только опубликованные,
+# а посты одной ночи пишутся раньше, чем выходят. Файл переходит из задания в задание через кэш Actions (itogi.yml).
+SENT = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), '.pm_recent', 'sent.json')
+
+
+def sent_texts():
+    try:
+        with open(SENT, encoding='utf-8') as f:
+            return [x['text'] for x in json.load(f)][-6:]
+    except (OSError, ValueError, KeyError, TypeError):
+        return []
+
+
+def remember(p, body):
+    try:
+        with open(SENT, encoding='utf-8') as f:
+            old = json.load(f)
+    except (OSError, ValueError):
+        old = []
+    old = [x for x in old if x.get('pid') != p['pid']] + [dict(pid=p['pid'], text=' '.join(body))]
+    os.makedirs(os.path.dirname(SENT), exist_ok=True)
+    with open(SENT, 'w', encoding='utf-8') as f:
+        json.dump(old[-12:], f, ensure_ascii=False, indent=1)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--pm', default=os.environ.get('POSTMATCH', ''))
@@ -467,8 +492,11 @@ def main():
     import chronicle
     import writer
     word = {settle.WIN: 'зашла', settle.LOSS: 'не зашла', settle.PUSH: 'возврат'}[res]
-    body = writer.write(p, g, word, chronicle.facts(p, g), pick_why, recent)
+    mine = [t for t in sent_texts() if t not in recent]
+    print('POSTMATCH сверка с недавними: в канале %d, отправлено владельцу %d' % (len(recent), len(mine)), flush=True)
+    body = writer.write(p, g, word, chronicle.facts(p, g), pick_why, (mine[::-1] + list(recent))[:6])
     if body:
+        remember(p, body)
         text = post_text(p, g, goals, res, why, legs, body)
         print(text, flush=True)
         path = os.path.join('out', 'postmatch', '%s.mp4' % p['pid'])
