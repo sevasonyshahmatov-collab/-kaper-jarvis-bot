@@ -1,0 +1,54 @@
+# Карусель Instagram — 1 в день на самый уверенный матч дня (team/carousel/make.py, владелец 22.10).
+# Проба из ветки claude/**: записать в team/carousel/RUN «preview [ГГГГ-ММ-ДД]» и запушить — слайды владельцу в Telegram.
+name: Карусель Instagram
+
+on:
+  schedule:
+    - cron: '30 9 * * *'     # 12:30 МСК — матчи этого дня
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'publish или preview'
+        required: true
+        default: 'preview'
+      day:
+        description: 'День ГГГГ-ММ-ДД (пусто — сегодня по Москве)'
+        required: false
+  push:
+    branches: ['claude/**']
+    paths: ['team/carousel/RUN']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: carousel
+  cancel-in-progress: false
+
+jobs:
+  carousel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install "pillow>=11" numpy requests cairosvg rlottie-python scipy
+      - id: args
+        env:
+          MODE_IN: ${{ github.event.inputs.mode }}
+          DAY_IN: ${{ github.event.inputs.day }}
+          EV: ${{ github.event_name }}
+        run: |
+          if [ "$EV" = push ]; then a="$(grep -v '^#' team/carousel/RUN | head -1 | sed 's/ *#.*//')"; else a="${MODE_IN:-publish} ${DAY_IN}"; fi
+          [[ "$a" =~ ^(preview|publish)(\ [0-9]{4}-[0-9]{2}-[0-9]{2})?\ *$ ]] || { echo "плохие аргументы: $a"; exit 1; }
+          set -- $a
+          flag=''; [ "$1" = preview ] && flag='--preview'
+          echo "a=${2:-} $flag" >> "$GITHUB_OUTPUT"
+      - name: Карусель
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+        run: PYTHONPATH=render python team/carousel/make.py ${{ steps.args.outputs.a }}

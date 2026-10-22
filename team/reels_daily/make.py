@@ -128,6 +128,27 @@ def owner_picks(ms):
     return out
 
 
+# Владелец 22.10: квоты YouTube хватает на ~6 загрузок в сутки (НХЛ 02:00 и КХЛ 02:30 МСК — одни сутки квоты), поэтому
+# автозагрузка — только самым ценным матчам; остальные ролики приходят владельцу одним пакетом (pack.py) для ручной загрузки.
+YT_SLOTS = {'khl': int(os.environ.get('YT_SLOTS_KHL', '4')), 'nhl': int(os.environ.get('YT_SLOTS_NHL', '2'))}
+TOP_CLUBS = {'СКА', 'ЦСКА', 'Спартак', 'Динамо Москва', 'Ак Барс', 'Локомотив', 'Авангард', 'Металлург', 'Трактор',
+             'Салават Юлаев', 'Торонто', 'Монреаль', 'Рейнджерс', 'Бостон', 'Эдмонтон', 'Вашингтон', 'Питтсбург',
+             'Чикаго', 'Детройт', 'Тампа-Бэй', 'Флорида', 'Колорадо', 'Вегас'}
+
+
+def yt_priority(ms, league):
+    """m['yt'] = True — ролик грузится на YouTube автоматически: прайм-тайм (КХЛ с 18:00 МСК, НХЛ — до 04:00 МСК,
+    пока Россия не спит), топ-клубы, затем более уверенный прогноз."""
+    def score(m):
+        hm = m['d'][11:16]
+        prime = hm >= '18:00' if league == 'khl' else hm <= '04:00'
+        return (prime, (m['h'] in TOP_CLUBS) + (m['a'] in TOP_CLUBS), m.get('p') or 0)
+    for m in ms:
+        m['yt'] = False
+    for m in sorted(ms, key=score, reverse=True)[:YT_SLOTS.get(league, 3)]:
+        m['yt'] = True
+
+
 def slot(k):
     """Шаблон k-го места сквозной очереди: вид — по кругу, трек вида — по номеру круга."""
     v = VIEWS[k % len(VIEWS)]
@@ -179,6 +200,7 @@ def plan(league, day, top, per):
     if top:
         ms = sorted(ms, key=lambda m: -m['p'])[:top]                                # самые уверенные
     ms.sort(key=lambda m: m['d'])
+    yt_priority(ms, league)
     names = sorted({t for m in ms for t in (m['h'], m['a'])})
     stats = (form.khl if league == 'khl' else form.nhl)(games, day, names)
     parts = [list(range(i, min(i + per, len(ms)))) for i in range(0, len(ms), per)]
@@ -194,8 +216,8 @@ def plan(league, day, top, per):
             f.write('parts=%s\n' % json.dumps(list(range(1, len(parts) + 1))))
     lg = LG[league][1]
     head = ['Шортсы %s на %s.%s: %d' % (lg, day[8:10], day[5:7], len(ms))]
-    head += ['%s %s — %s · %s · %s' % (m['d'][11:16], m['h'], m['a'], m['pick'], ('%.2f' % m['odds']).replace('.', ','))
-             for m in ms]
+    head += ['%s %s — %s · %s · %s%s' % (m['d'][11:16], m['h'], m['a'], m['pick'], ('%.2f' % m['odds']).replace('.', ','),
+                                         ' · YouTube авто' if m.get('yt') else '') for m in ms]
     if P['skipped']:
         head.append('Без ролика: %d (нет ставки с кэфом 1,6–2,3 или линии)' % P['skipped'])
     tg_text('\n'.join(head) if ms else 'Шортсы %s на %s: матчей с прогнозом по правилу нет' % (lg, day))
@@ -284,15 +306,23 @@ def one(P, i, league, day, code, lg, frames):
     print('REEL %s — %s | %s | трек %s с %.2f с, дроп на %.2f с | %.1f с ролика за %.0f с'
           % (m['h'], m['a'], m['tpl'], key, start, r.drop, r.dur, time.time() - t0), flush=True)
     y = yt_texts.youtube(m, lg)
-    url, note = youtube.upload(base + '.mp4', y['title'], y['description'], y['tags'] + ['tpl_' + m['tpl']],
-                               publish_at=publish_time(P, i))
     cover = cover_for(m, code, base)
-    tnote = youtube.thumbnail(url, cover) if cover else ''
-    note = '\n'.join(x for x in (note, tnote) if x)
+    if m.get('yt', True):
+        url, note = youtube.upload(base + '.mp4', y['title'], y['description'], y['tags'] + ['tpl_' + m['tpl']],
+                                   publish_at=publish_time(P, i))
+        tnote = youtube.thumbnail(url, cover) if cover else ''
+        note = '\n'.join(x for x in (note, tnote) if x)
+    else:
+        url, note = None, 'загрузите вручную (автозагрузка — только приоритетным матчам)' if youtube.enabled() else ''
+    yt_url, yt_note = url, note
     head = ('YouTube: %s\n%s\n\n' % (url, note)) if url else ('YouTube: %s\n\n' % note) if note else ''
     ig, ignote = instagram.upload(base + '.mp4', instagram.caption(m, y), cover)
     head += ('Instagram: %s\n\n' % ig) if ig else ('Instagram: %s\n\n' % ignote) if ignote else ''
-    tg_reel(base + '.mp4', base + '_clean.mp4', head + yt_texts.block(m, lg), y['title'], cover)
+    with open(base + '.json', 'w', encoding='utf-8') as f:          # для пакета владельцу (pack.py)
+        json.dump(dict(i=i, d=m['d'], h=m['h'], a=m['a'], lg=lg, video=os.path.basename(base) + '.mp4', yt=yt_url,
+                       yt_note=yt_note, ig=ig, title=y['title'], description=y['description']), f, ensure_ascii=False)
+    if os.environ.get('REELS_TG_EACH') == '1':                       # прежний режим: каждый ролик отдельно
+        tg_reel(base + '.mp4', base + '_clean.mp4', head + yt_texts.block(m, lg), y['title'], cover)
 
 
 SPREAD_FROM, SPREAD_STEP, SPREAD_LEAD = 9, 90, 120     # МСК: с 09:00, шаг 90 мин, не позже чем за 2 ч до матча
