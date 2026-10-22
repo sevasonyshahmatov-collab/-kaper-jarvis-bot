@@ -25,6 +25,8 @@ SERIES = 'КАК РАБОТАЕТ JARVIS'
 class Explainer(C.Reel):
     # длительности сцен в секундах; в доли трека — по ближайшему целому (склейки на долях)
     SEC = dict(hook=3.5, step=4.2, hold=5.0, cta=3.2)
+    VIZ = False             # наследник с визуалом (explainer_viz.py): текст сверху меньше, середина — под visual()
+    TXT_Y, VIZ_Y = 520, 1130
 
     def __init__(self, ep, u=0.5):
         n = {k: max(2, round(v / u)) for k, v in self.SEC.items()}
@@ -41,9 +43,10 @@ class Explainer(C.Reel):
         self.glow = C.radial(900, 900, ACC, a0=70)
         self.tag = C.text('%s · %d' % (SERIES, ep['n']), 'mont', 34, (10, 16, 28), 900, track=0.12)
         self.tagbox = C.rrect(self.tag.width + 48, self.tag.height + 30, 14, fill=ACC)
-        self.hook = C.lines(ep['hook'], 'dela', 112, W - 140, fill=WHITE, max_lines=5)
-        self.s2 = C.lines(ep['s2'], 'unb', 84, W - 150, fill=WHITE, wght=800, max_lines=5)
-        self.s3 = C.lines(ep['s3'], 'unb', 84, W - 150, fill=WHITE, wght=800, max_lines=5)
+        hs, ss = (76, 58) if self.VIZ else (112, 84)
+        self.hook = C.lines(ep['hook'], 'dela', hs, W - 140, fill=WHITE, max_lines=4)
+        self.s2 = C.lines(ep['s2'], 'unb', ss, W - 150, fill=WHITE, wght=800, max_lines=4)
+        self.s3 = C.lines(ep['s3'], 'unb', ss, W - 150, fill=WHITE, wght=800, max_lines=4)
         self.dropt = C.lines(ep['drop'], 'dela', 104, W - 120, fill=(10, 16, 28), max_lines=5)
         self.ctat = C.lines(ep['cta'], 'unb', 64, W - 160, fill=WHITE, wght=800, max_lines=3)
         self.plate = C.tg_plate(980, 220, font='unb')
@@ -71,22 +74,33 @@ class Explainer(C.Reel):
         k = C.out_back(C.seg(t, t0, t0 + 0.28))
         C.put(fr, C.scale(im, z0 + (1 - z0) * k), cx, cy, a=C.clamp((t - t0) / 0.12))
 
+    def visual(self, fr, t, phase, t0):
+        """Середина кадра в сценах хук / s2 / s3 (только при VIZ)."""
+
     def frame(self, t):
         fr = self._base(t)
         u = self.u
         if t < self.T_s2:                                               # хук
             C.put(fr, self.tagbox, W / 2, 300)
             C.put(fr, self.tag, W / 2, 300)
-            self._slam(fr, self.hook, W / 2, H * 0.47, t, 0.15)
+            if self.VIZ:
+                self.visual(fr, t, 'hook', 0.0)
+                self._slam(fr, self.hook, W / 2, self.TXT_Y, t, 0.15)
+            else:
+                self._slam(fr, self.hook, W / 2, H * 0.47, t, 0.15)
         elif t < self.drop:                                             # тезисы 2 и 3
             second = t >= self.T_s3
             t0 = self.T_s3 if second else self.T_s2
             self._progress(fr, 1 + C.clamp((t - self.T_s2) / (self.drop - self.T_s2)) * 2)
-            self._slam(fr, self.circle, W / 2, 560, t, t0, z0=0.4)
-            self._slam(fr, self.nums[3 if second else 2], W / 2, 562, t, t0 + 0.05, z0=0.4)
             im = self.s3 if second else self.s2
             k = C.out_cubic(C.seg(t, t0 + 0.1, t0 + 0.5))
-            C.put(fr, im, W / 2 + (1 - k) * 160, H * 0.52, a=k)
+            if self.VIZ:
+                self.visual(fr, t, 's3' if second else 's2', t0)
+                C.put(fr, im, W / 2 + (1 - k) * 160, self.TXT_Y, a=k)
+            else:
+                self._slam(fr, self.circle, W / 2, 560, t, t0, z0=0.4)
+                self._slam(fr, self.nums[3 if second else 2], W / 2, 562, t, t0 + 0.05, z0=0.4)
+                C.put(fr, im, W / 2 + (1 - k) * 160, H * 0.52, a=k)
             ph = (t - self.drop) / u                                    # разгон к дропу: пульс на каждую долю
             if ph > -4:
                 pulse = 1 - (ph % 1)
