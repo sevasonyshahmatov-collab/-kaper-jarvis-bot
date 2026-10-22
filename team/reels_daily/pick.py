@@ -80,6 +80,7 @@ def day_picks(games, nxt, pins, fon, league='khl', backup=()):
     G = calc.prep(games)
     T = calc.team_games(G)
     M = calc.model(G)
+    calc.LEAGUE = league.upper()
     out, kinds = [], []
     for x in nxt:
         H, A = x['h'], x['a']

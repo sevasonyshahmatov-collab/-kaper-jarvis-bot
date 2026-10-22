@@ -30,12 +30,17 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install "pillow>=11" numpy requests anthropic librosa cairosvg rlottie-python
-      # тексты послематчевых постов, уже отправленные владельцу, — чтобы новый их не повторял (team/postmatch/run.py, 21.10)
+      # состояние между запусками (кэш Actions): .pm_recent — тексты послематчевых постов, уже отправленные владельцу
+      # (team/postmatch/run.py, 21.10); .lines — линия и вероятности модели к каждому матчу (team/picks/calc.py, 22.10)
       - uses: actions/cache/restore@v4
         with:
-          path: .pm_recent
-          key: pm-recent-${{ github.run_id }}
-          restore-keys: pm-recent-
+          path: |
+            .pm_recent
+            .lines
+          key: team-state-${{ github.run_id }}
+          restore-keys: |
+            team-state-
+            pm-recent-
       - name: Нарисовать и отправить
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
@@ -53,10 +58,12 @@ jobs:
           EVENT_KIND: ${{ github.event.action }}
         run: python render/itogi_job.py
       - uses: actions/cache/save@v4
-        if: always() && hashFiles('.pm_recent/sent.json') != ''
+        if: always() && (hashFiles('.pm_recent/sent.json') != '' || hashFiles('.lines/lines.jsonl') != '')
         with:
-          path: .pm_recent
-          key: pm-recent-${{ github.run_id }}
+          path: |
+            .pm_recent
+            .lines
+          key: team-state-${{ github.run_id }}
       # каждый ролик сохраняется (владелец 17.10): полные версии — артефактом запуска на 90 дней
       - name: Сохранить ролики
         if: always()

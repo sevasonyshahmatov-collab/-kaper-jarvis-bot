@@ -89,18 +89,7 @@ def nhl_season(start, end):
 
 # ---------------------------------------------------------------- проверка
 
-def key_of(k):
-    """Вид ставки без стороны: ('ml',6,'draw') → 'Х осн.', ('sp',6,'away',1.5) → 'фора +1,5' …"""
-    t = k[0]
-    if t == 'ml':
-        return 'итоговая победа' if k[1] == 0 else ('ничья осн.' if k[2] == 'draw' else 'победа осн.')
-    if t == 'sp':
-        return 'не проиграет осн.' if abs(k[3]) == 0.5 else 'фора %+g' % k[3]
-    if t == 'tot':
-        return 'тотал %s %g' % ('больше' if k[2] == 'over' else 'меньше', k[3])
-    if t == 'tt':
-        return 'инд. тотал %s %g' % ('больше' if k[3] == 'over' else 'меньше', k[4])
-    return str(k)
+key_of = calc.key_of
 
 
 _G = None

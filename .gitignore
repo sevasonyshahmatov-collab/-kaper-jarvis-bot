@@ -16,3 +16,6 @@ team/out/**/frames/
 # рабочие файлы прогнозов (brief.md, баннеры) — team/picks/README.md: out/ в git не класть
 /out/
 render/out/
+.pm_recent/
+.lines/
+.ig_mirror/

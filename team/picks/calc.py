@@ -16,7 +16,9 @@ BRIEF (ставки с кэфом: вероятность, кэф, «ВЫБОР�
 с кэфом заметно выше), PICKJSON (то же одной строкой для team/picks/parse_log.py).
 Запускается из team/picks/day.py; отдельно: python team/picks/calc.py games.json 'Хозяева|Гости;…'"""
 import json
+from datetime import datetime, timezone
 import math
+import os
 import sys
 
 K, W, MAXG = 6, 0.5, 12
@@ -27,6 +29,36 @@ ALT_P, ALT_K = 0.06, 0.15   # «чуть менее вероятная, но к�
 # обещала ~62 %, заходило ~50 % (тоталы 45 % при 62 %, фора +1,5 — 56 % при 67 %). До большой подгонки на истории —
 # вероятность модели наполовину сдвигаем к вероятности из линии (кэф без маржи ~4 %): «самая вероятная» выбирается по ней.
 W_MKT, MARGIN_EST = 0.5, 1.04
+# Поправка вероятности модели по виду ставки и лиге (team/picks/backtest.py: 2025/26 + этот сезон, ~7000 ставок на лигу):
+# logit(p') = a + b·logit(p). LEAGUE ставят day.py и шортсы ('KHL' | 'NHL'); нет — без поправки.
+LEAGUE = None
+try:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'calib.json'), encoding='utf-8') as _f:
+        CALIB = json.load(_f)
+except (OSError, ValueError):
+    CALIB = {}
+
+
+def key_of(k):
+    """Вид ставки без стороны: ('ml',6,'draw') → 'ничья осн.', ('sp',6,'away',1.5) → 'фора +1.5' …"""
+    t = k[0]
+    if t == 'ml':
+        return 'итоговая победа' if k[1] == 0 else ('ничья осн.' if k[2] == 'draw' else 'победа осн.')
+    if t == 'sp':
+        return 'не проиграет осн.' if abs(k[3]) == 0.5 else 'фора %+g' % k[3]
+    if t == 'tot':
+        return 'тотал %s %g' % ('больше' if k[2] == 'over' else 'меньше', k[3])
+    if t == 'tt':
+        return 'инд. тотал %s %g' % ('больше' if k[3] == 'over' else 'меньше', k[4])
+    return str(k)
+
+
+def calibrate(k, p):
+    ab = (CALIB.get(str(LEAGUE or '').upper()) or {}).get(key_of(k))
+    if not ab:
+        return p
+    x = math.log(max(1e-6, min(1 - 1e-6, p)) / (1 - max(1e-6, min(1 - 1e-6, p))))
+    return 1 / (1 + math.exp(-(ab[0] + ab[1] * x)))
 
 
 def p_adj(p, odds):
@@ -231,6 +263,23 @@ def fonbet_for(k, fon):
         return None
 
 
+LINES = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), '.lines', 'lines.jsonl')
+
+
+def log_lines(H, A, info, rows):
+    """Линия и вероятности модели к каждому матчу — для подбора доли линии W_MKT (владелец 22.10). Файл живёт в кэше
+    Actions (itogi.yml, .lines); итог матча подставит разбор позже по дате и командам."""
+    rec = dict(t=datetime.now(timezone.utc).isoformat()[:16], league=LEAGUE, d=info.get('d'), h=H, a=A,
+               rows=[dict(k=key_of(x['k']) if x.get('k') else x['t'], t=x['t'], pm=x['p_model'], pc=x['p_cal'], o=x['odds'])
+                     for x in rows if x.get('odds')])
+    try:
+        os.makedirs(os.path.dirname(LINES), exist_ok=True)
+        with open(LINES, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(rec, ensure_ascii=False, separators=(',', ':')) + '\n')
+    except OSError as e:
+        print('LINESERR %r' % e, flush=True)
+
+
 def brief(H, A, r, mks, fon):
     """Ставки с кэфом по убыванию вероятности + выбор по правилу владельца."""
     rows = []
@@ -238,7 +287,8 @@ def brief(H, A, r, mks, fon):
         v, src = odds_for(x['k'], mks)
         fb = fonbet_for(x['k'], fon)
         k = v or fb
-        rows.append(dict(t=x['t'], g=x['g'], p=round(p_adj(x['p'], k), 4), p_model=round(x['p'], 4), pm=round(x['pm'], 4),
+        rows.append(dict(t=x['t'], g=x['g'], k=x['k'], p=round(p_adj(calibrate(x['k'], x['p']), k), 4), p_model=round(x['p'], 4),
+                         p_cal=round(calibrate(x['k'], x['p']), 4), pm=round(x['pm'], 4),
                          pe=round(x['pe'], 4), lg=round(x['lg'], 4), pin=v, fon=fb, odds=k,
                          src=src if v else ('Фонбет, осн. время' if fb else '')))
     rows.sort(key=lambda x: -x['p'])
@@ -349,6 +399,7 @@ def run(raw_games, pairs, pins=None, fonbet=None, meta=None):
             out('CALC', '%s—%s | %-40s %5.1f%% | честный %5.2f | модель %5.1f%% | частота %5.1f%% | лига %5.1f%%'
                 % (H, A, x['t'], 100 * x['p'], 1 / x['p'], 100 * x['pm'], 100 * x['pe'], 100 * x['lg']))
         rows, pick = brief(H, A, r, mks, fon)
+        log_lines(H, A, (meta or {}).get((H, A)) or {}, rows)
         for x in rows:
             if not x['odds']:
                 continue

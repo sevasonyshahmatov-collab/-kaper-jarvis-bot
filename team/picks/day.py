@@ -13,6 +13,7 @@ import pin  # noqa: E402
 
 LEAGUE, DAY = sys.argv[1].lower(), sys.argv[2]
 print('DAYJOB %s %s' % (LEAGUE, DAY), flush=True)
+calc.LEAGUE = LEAGUE.upper()                     # поправка вероятностей по лиге (calc.calibrate, team/picks/calib.json)
 if LEAGUE == 'khl':
     import khl_data
     games, nxt = khl_data.fetch(DAY)
