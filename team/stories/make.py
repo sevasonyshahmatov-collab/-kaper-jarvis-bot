@@ -50,7 +50,7 @@ def fact_card(day, path, shift=0):
     J = json.load(open(os.path.join(HERE, 'facts.json'), encoding='utf-8'))
     F = J['facts']
     i = ((day - date(2026, 10, 23)).days * 2 + shift) % len(F)          # два факта в день не совпадают (fact и запасной)
-    return cards.fact(path, F[i]['title'], F[i]['text'], J['label'])
+    return cards.fact(path, F[i]['title'], F[i]['text'], J['label'], swap=i % 2 == 1)   # цвета чередуются
 
 
 def day_matches(day):
