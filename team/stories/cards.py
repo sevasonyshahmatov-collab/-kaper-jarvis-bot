@@ -40,22 +40,52 @@ def canvas(league='KHL'):
     return im if im.size == (W, H) else im.resize((W, H))
 
 
-def place(cv, path, y, max_h, margin=40):
-    """Шаблон тёмной карточкой со скруглёнными углами и тенью на светлом фоне, по центру, верх — y. → низ."""
-    from PIL import ImageFilter
+def dark_canvas():
+    """Фон шаблонов канала (matchday_vs / versus — тот же BG с лёгким подсветом) на весь экран истории."""
+    im = mv._background(H).convert('RGB')
+    return im if im.size == (W, H) else im.resize((W, H))
+
+
+def blend(cv, path, y, f=110):
+    """Шаблон канала — частью фона истории (владелец 22.10: «история — одно целое, не скриншот»): фон у шаблона тот же,
+    края сверху и снизу растворяются в фоне на f px, шов не виден. → низ шаблона."""
     with Image.open(path) as im:
         im = im.convert('RGB')
-        k = min((W - 2 * margin) / im.width, max_h / im.height)
-        im = im.resize((round(im.width * k), round(im.height * k)), Image.LANCZOS)
-        x = (W - im.width) // 2
-        mask = Image.new('L', im.size, 0)
-        ImageDraw.Draw(mask).rounded_rectangle([0, 0, im.width - 1, im.height - 1], radius=28, fill=255)
-        sh = Image.new('L', cv.size, 0)
-        sh.paste(mask, (x, y + 18))
-        sh = sh.filter(ImageFilter.GaussianBlur(26)).point(lambda v: int(v * 0.45))
-        cv.paste(Image.new('RGB', cv.size, (20, 22, 30)), (0, 0), sh)
-        cv.paste(im, (x, y), mask)
+        if im.width != W:
+            im = im.resize((W, round(im.height * W / im.width)), Image.LANCZOS)
+        m = Image.new('L', im.size, 255)
+        dm = ImageDraw.Draw(m)
+        for i in range(f):
+            v = int(255 * (i / f) ** 1.5)
+            dm.line([(0, i), (W, i)], fill=v)
+            dm.line([(0, im.height - 1 - i), (W, im.height - 1 - i)], fill=v)
+        cv.paste(im, (0, y), m)
         return y + im.height
+
+
+CTA_Y = 1600                                        # призыв на тёмных историях — под шаблоном, выше строки ответа
+
+
+def cta_dark(cv, line='ВСЕ ПРОГНОЗЫ — В TELEGRAM'):
+    d = ImageDraw.Draw(cv)
+    f = mv._fit_w(line, mv.OSW, 700, 34, W - 220)
+    tw = d.textlength(line, font=f)
+    d.rounded_rectangle([W / 2 - tw / 2 - 44, CTA_Y - 46, W / 2 + tw / 2 + 44, CTA_Y + 46], radius=14, fill=ACC)
+    mv._txt(d, W / 2, CTA_Y, line, f, INK)
+    mv._spaced(d, W / 2, CTA_Y + 92, '@jarvibet', mv._cap(mv.OSW, 600, 32), ACC, 3)
+
+
+def _tall(h):
+    """Шаблоны matchday_vs ровно h по высоте (полосы крупнее, блок по центру) — на время вызова."""
+    orig = mv._layout
+
+    class _Ctx:
+        def __enter__(self):
+            mv._layout = lambda n, rows, h_max=None: orig(n, rows, h_max or h)
+
+        def __exit__(self, *a):
+            mv._layout = orig
+    return _Ctx()
 
 
 def _wrap(d, text, f, max_w):
@@ -100,20 +130,28 @@ def _tmp(name):
 def matches(path, day_title, items, league='KHL'):
     """items = [{home, away, time}] одной лиги; day_title — «четверг, 23 октября»."""
     p = _tmp('md.jpg')
-    mv.render(items[:8], p, league=league, date_title=day_title, rows=min(len(items), 8))
-    cv = canvas(league)
-    place(cv, p, TOP - 20, BOT - 330 - TOP)
-    cta(cv)
+    with _tall(1360):
+        mv.render(items[:8], p, league=league, date_title=day_title, rows=min(len(items), 8))
+    cv = dark_canvas()
+    blend(cv, p, 190)
+    cta_dark(cv)
     return save(cv, path)
 
 
 def win(path, rows, day_title):
     """rows — рассчитанные прогнозы (team/daily: res, bet, kef, g, league) — только зашедшие."""
     import banner
-    out = banner.render(rows[:6], tempfile.mkdtemp(), day_title)
-    cv = canvas()
-    place(cv, out[0], TOP - 20, BOT - 330 - TOP)
-    cta(cv, 'СЕГОДНЯШНИЕ ПРОГНОЗЫ — В TELEGRAM')
+    rows = rows[:6]
+    leagues = {r['league'] for r in rows}
+    league = 'KHL+NHL' if len(leagues) > 1 else leagues.pop() + '-RU'
+    items = [dict(home=r['home'], away=r['away'], sh=r['g']['hg'], sa=r['g']['ag'], mark=r['g'].get('end') or '',
+                  league=r['league'], verdict=r['res'], bet=banner.bet_label(r)) for r in rows]
+    p = _tmp('win.jpg')
+    mv.render(items, p, league=league, title='ИТОГИ ПРОГНОЗОВ', date_title=day_title, rows=len(items), results=True,
+              style='strips', h_max=1360)
+    cv = dark_canvas()
+    blend(cv, p, 190)
+    cta_dark(cv, 'СЕГОДНЯШНИЕ ПРОГНОЗЫ — В TELEGRAM')
     return save(cv, path)
 
 
@@ -121,11 +159,11 @@ def question(path, home, away, date, time, league='KHL'):
     import versus
     p = _tmp('vs.jpg')
     versus.render(home, away, p, date=date, time=time, odds=None, league=league)
-    cv = canvas(league)
+    cv = dark_canvas()
+    blend(cv, p, 420)
     d = ImageDraw.Draw(cv)
-    mv._txt(d, W / 2, TOP + 70, 'КТО ВОЗЬМЁТ?', mv._fit_w('КТО ВОЗЬМЁТ?', mv.ALU, 900, 96, W - 120), DARK)
-    place(cv, p, TOP + 150, 900)
-    cta(cv, 'ОТВЕТ JARVIS — В TELEGRAM')
+    mv._txt(d, W / 2, 340, 'КТО ВОЗЬМЁТ?', mv._fit_w('КТО ВОЗЬМЁТ?', mv.ALU, 900, 110, W - 120), WHITE)
+    cta_dark(cv, 'ОТВЕТ JARVIS — В TELEGRAM')
     return save(cv, path)
 
 
