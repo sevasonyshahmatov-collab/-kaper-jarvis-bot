@@ -12094,7 +12094,9 @@ function postSentKey_(m) { return 'POST_' + m.day + '_' + m.home + '_' + m.away;
 
 function postAuto_() {
   var p = PropertiesService.getScriptProperties();
-  if (p.getProperty('POST_OFF') === '1' || !p.getProperty('GEMINI_KEY')) return;
+  // владелец 22.10: «такие посты можно больше не собирать» — автоматические посты-прогнозы выключены по умолчанию;
+  // включить снова — меню «✍️ Посты-прогнозы: включить / выключить» (свойство POST_ON = 1)
+  if (p.getProperty('POST_ON') !== '1' || !p.getProperty('GEMINI_KEY')) return;
   var ss = SpreadsheetApp.getActive(), now = new Date(), t0 = Date.now(), done = 0;
   var due = postDue_(ss, now).filter(function (m) { return !p.getProperty(postSentKey_(m)); });
   due.forEach(function (m) {
@@ -12127,8 +12129,8 @@ function postNowMenu_() {
   uiAlert_('Готово: постов отправлено вам в Telegram — ' + ok + '.' + (err.length ? '\n\nНе получилось:\n' + err.join('\n') : ''));
 }
 function postToggle_() {
-  var p = PropertiesService.getScriptProperties(), off = p.getProperty('POST_OFF') === '1';
-  if (off) p.deleteProperty('POST_OFF'); else p.setProperty('POST_OFF', '1');
+  var p = PropertiesService.getScriptProperties(), off = p.getProperty('POST_ON') !== '1';
+  if (off) p.setProperty('POST_ON', '1'); else p.deleteProperty('POST_ON');
   uiAlert_('Автоматические посты-прогнозы ' + (off ? 'включены' : 'выключены') + '.');
 }
 
