@@ -1,0 +1,62 @@
+# Истории Instagram — 6 в день без прогнозов (team/stories/make.py, владелец 22.10). Время — МСК (cron в UTC).
+# Проба из ветки claude/**: записать в team/stories/RUN «preview [ГГГГ-ММ-ДД]» и запушить — все 6 владельцу в Telegram.
+name: Истории Instagram
+
+on:
+  schedule:
+    - cron: '0 6 * * *'      # 09:00 МСК — матчи дня
+    - cron: '30 8 * * *'     # 11:30 — факт про таблицу
+    - cron: '0 11 * * *'     # 14:00 — вчера зашло
+    - cron: '30 13 * * *'    # 16:30 — вопрос дня
+    - cron: '0 16 * * *'     # 19:00 — последний рилс
+    - cron: '30 19 * * *'    # 22:30 — сегодня зашло
+  workflow_dispatch:
+    inputs:
+      slot:
+        description: 'matches | fact | win | question | video | results | preview'
+        required: true
+        default: 'preview'
+      day:
+        description: 'День ГГГГ-ММ-ДД (пусто — сегодня по Москве)'
+        required: false
+  push:
+    branches: ['claude/**']
+    paths: ['team/stories/RUN']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stories-${{ github.event.schedule || github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  story:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install "pillow>=11" numpy requests cairosvg rlottie-python
+      - id: args
+        env:
+          CRON: ${{ github.event.schedule }}
+          SLOT_IN: ${{ github.event.inputs.slot }}
+          DAY_IN: ${{ github.event.inputs.day }}
+          EV: ${{ github.event_name }}
+        run: |
+          case "$CRON" in
+            '0 6 * * *') a=matches;; '30 8 * * *') a=fact;; '0 11 * * *') a=win;;
+            '30 13 * * *') a=question;; '0 16 * * *') a=video;; '30 19 * * *') a=results;;
+            *) if [ "$EV" = push ]; then a="$(grep -v '^#' team/stories/RUN | head -1 | sed 's/ *#.*//')"; else a="$SLOT_IN $DAY_IN"; fi;;
+          esac
+          [[ "$a" =~ ^(matches|fact|win|question|video|results|preview)(\ [0-9]{4}-[0-9]{2}-[0-9]{2})?\ *$ ]] || { echo "плохие аргументы: $a"; exit 1; }
+          echo "a=$a" >> "$GITHUB_OUTPUT"
+      - name: История
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+        run: PYTHONPATH=render python team/stories/make.py ${{ steps.args.outputs.a }}
