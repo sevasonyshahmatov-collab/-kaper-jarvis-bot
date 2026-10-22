@@ -23,6 +23,15 @@ Claude в чате «Соцсети» ведёт Instagram и YouTube проек
 журнал — `.claude/instagram/log.md`, найденные примеры — `.claude/instagram/swipe.md`.
 Навыки рассчитаны на английский; тексты всегда пишем по-русски и сверяем с запретами `voice.md`.
 
+## Плагины (владелец 22.10 поставил в аккаунт)
+- **Marketing** (Anthropic): контент-план, тексты в голосе бренда, отчёты (`marketing:campaign-plan`, `marketing:draft-content`,
+  `marketing:brand-review`, `marketing:performance-report`). Его подключения (Canva, Notion, Slack и др.) из облачной сессии
+  не открываются (прокси) — для нашей работы не нужны.
+- **Social Media Skills**: хуки, сценарии шортсов, обложки, хэштеги, рост в Instagram и YouTube Shorts
+  (`social-media-skills:hook-writer`, `youtube-shorts`, `instagram-growth`, `thumbnail-design`, `content-calendar` и др.).
+- Сторонние публикаторы (Posty, Ayrshare, Hyper) и Windsor.ai не ставим: просят доступ к аккаунтам, публикация и отчёт
+  уже свои (GitHub Actions).
+
 ## Как работаем
 - Тексты и план готовит Claude → владелец говорит «да» → публикация (вручную или автоконвейером после подключения API).
 - Автопубликация в Instagram — после подключения `IG_TOKEN`/`IG_USER_ID` (см. `SOCIAL.md`, раздел Instagram).
