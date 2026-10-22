@@ -73,5 +73,8 @@
   поиска — дороже, не ставим. Everything Claude Code — раздувает контекст, не ставим. FreeLLMAPI для Claude Code — не
   советуем (чужой прокси видит код и ключи).
 
+## SMM-агент
+Роль Claude, навыки `/ig-*`, голос бренда — `docs/handoff/SMM_AGENT.md`, `.claude/instagram/voice.md`.
+
 ## Как передать в новый чат
 «Прочитай `docs/handoff/SOCIAL.md` в репозитории sevasonyshahmatov-collab/-kaper-jarvis-bot, ветка `main`».
