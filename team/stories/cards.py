@@ -46,7 +46,7 @@ def place(cv, path, y, max_h):
 
 def _wrap(d, text, f, max_w):
     rows, cur = [], ''
-    for w_ in text.split():
+    for w_ in text.replace(' — ', '\u00a0— ').split(' '):          # тире не начинает строку
         t = (cur + ' ' + w_).strip()
         if d.textlength(t, font=f) <= max_w or not cur:
             cur = t
@@ -114,12 +114,13 @@ def question(path, home, away, date, time, league='KHL'):
     return save(cv, path)
 
 
-def fact(path, title, text):
+def fact(path, title, text, label='КАК МЫ ДЕЛАЕМ ПРОГНОЗ'):
     cv = canvas()
     d = ImageDraw.Draw(cv)
-    mv._brand(d, W / 2, TOP + 40, 'KHL', 30, ACC)
+    mv._brand(d, W / 2, TOP + 20, 'KHL', 26, ACC)
+    mv._spaced(d, W / 2, TOP + 90, label, mv._cap(mv.OSW, 600, 30), ACC, 4)        # рубрика (владелец 22.10)
     ft = mv._cap(mv.ALU, 900, 140)
-    y = TOP + 250
+    y = TOP + 290
     for ln in _wrap(d, title.upper(), ft, W - 140)[:3]:          # все строки заголовка — одним кеглем
         mv._txt(d, W / 2, y, ln, ft, WHITE)
         y += 170

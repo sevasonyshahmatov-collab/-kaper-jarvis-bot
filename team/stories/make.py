@@ -47,27 +47,29 @@ def day_title(d):
 
 
 def fact_card(day, path, shift=0):
-    F = json.load(open(os.path.join(HERE, 'facts.json'), encoding='utf-8'))['facts']
+    J = json.load(open(os.path.join(HERE, 'facts.json'), encoding='utf-8'))
+    F = J['facts']
     i = ((day - date(2026, 10, 23)).days * 2 + shift) % len(F)          # два факта в день не совпадают (fact и запасной)
-    return cards.fact(path, F[i]['title'], F[i]['text'])
+    return cards.fact(path, F[i]['title'], F[i]['text'], J['label'])
 
 
 def day_matches(day):
-    """→ [('КХЛ', [(время, хоз, гости)]), ('НХЛ · НОЧЬ НА ДД.ММ', […])] — матчи с началом в этот день по Москве."""
+    """→ [('КХЛ', [(время, хоз, гости)]), ('НХЛ', […])]: КХЛ — матчи этого дня, НХЛ — ближайшая ночь (на day+1 по Москве;
+    игровой день НХЛ — дата по Нью-Йорку, team/reels_daily/README.md)."""
     import khl_data
     import nhl_data
     groups = []
-    for lg, mod, d in (('КХЛ', khl_data, day), ('НХЛ', nhl_data, day - timedelta(days=1))):
+    for lg, mod, want in (('КХЛ', khl_data, day), ('НХЛ', nhl_data, day + timedelta(days=1))):
         try:
-            _, nxt = mod.fetch(d.isoformat())
+            _, nxt = mod.fetch(day.isoformat())
         except Exception as e:  # noqa: BLE001
             print('STORYERR %s: %r' % (lg, e), flush=True)
             continue
-        rows = sorted((x['d'][11:16], x['h'], x['a']) for x in nxt if x['d'][:10] == day.isoformat())
+        rows = sorted((x['d'][11:16], x['h'], x['a']) for x in nxt if x['d'][:10] == want.isoformat())
         if lg == 'НХЛ':
             rows = [r for r in rows if r[0] < '12:00']
         if rows:
-            groups.append((lg if lg == 'КХЛ' else 'НХЛ · НОЧЬ НА %s' % dm(day), rows))
+            groups.append((lg, rows))
     return groups
 
 
@@ -163,13 +165,14 @@ def build(slot, day):
     os.makedirs(OUT, exist_ok=True)
     path = os.path.join(OUT, '%s_%s.jpg' % (day.isoformat(), slot))
     if slot == 'matches':
-        g = day_matches(day)
-        if g:
-            lgs = ['KHL' if lg == 'КХЛ' else 'NHL' for lg, _ in g]
-            items = [dict(home=h, away=a, time=tm, league=L) for (lg, rows), L in zip(g, lgs) for tm, h, a in rows]
-            return cards.matches(path, day_title(day), items, league='KHL+NHL' if len(lgs) > 1 else lgs[0]), 'image', \
-                'матчи дня: %d' % len(items)
-        return fact_card(day, path, 1), 'image', 'матчей нет — факт'
+        out = []                                         # владелец 22.10: КХЛ и НХЛ — отдельными историями
+        for lg, rows in day_matches(day):
+            L = 'KHL' if lg == 'КХЛ' else 'NHL'
+            p = os.path.join(OUT, '%s_matches_%s.jpg' % (day.isoformat(), L.lower()))
+            title = day_title(day) if L == 'KHL' else 'ночь на ' + day_title(day + timedelta(days=1)).split(', ')[1]
+            items = [dict(home=h, away=a, time=tm) for tm, h, a in rows]
+            out.append((cards.matches(p, title, items, league=L), 'image', '%s: %d матчей' % (lg, len(items))))
+        return out or (fact_card(day, path, 1), 'image', 'матчей нет — факт')
     if slot == 'fact':
         return fact_card(day, path), 'image', 'факт'
     if slot in ('win', 'results'):
@@ -223,23 +226,25 @@ def main():
     if slot == 'preview':
         for s in SLOTS:
             try:
-                path, kind, note = build(s, day)
+                res = build(s, day)
             except Exception as e:  # noqa: BLE001
                 print('STORYERR %s: %r' % (s, e), flush=True)
                 continue
-            print('STORY %s %s | %s | %s' % (s, day, kind, note), flush=True)
-            to_owner(path, kind, 'ПРОБА истории %s МСК (%s) — не выложено' % (TIMES[s], note))
+            for path, kind, note in (res if isinstance(res, list) else [res]):
+                print('STORY %s %s | %s | %s' % (s, day, kind, note), flush=True)
+                to_owner(path, kind, 'ПРОБА истории %s МСК (%s) — не выложено' % (TIMES[s], note))
         return
-    path, kind, note = build(slot, day)
-    print('STORY %s %s | %s | %s' % (slot, day, kind, note), flush=True)
-    if '--dry' in a:
-        return
-    import instagram
-    if not instagram.enabled():
-        print('STORY нет IG_TOKEN / IG_USER_ID — не выложено', flush=True)
-        return
-    mid = publish_video(path) if kind == 'video' else publish_image(path)
-    print('STORY опубликована %s' % mid, flush=True)
+    res = build(slot, day)
+    for path, kind, note in (res if isinstance(res, list) else [res]):
+        print('STORY %s %s | %s | %s' % (slot, day, kind, note), flush=True)
+        if '--dry' in a:
+            continue
+        import instagram
+        if not instagram.enabled():
+            print('STORY нет IG_TOKEN / IG_USER_ID — не выложено', flush=True)
+            return
+        mid = publish_video(path) if kind == 'video' else publish_image(path)
+        print('STORY опубликована %s' % mid, flush=True)
 
 
 if __name__ == '__main__':
