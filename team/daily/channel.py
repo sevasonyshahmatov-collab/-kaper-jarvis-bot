@@ -137,8 +137,15 @@ def _media(block):
     return 'текст'
 
 
+def _media_url(block):
+    """Ссылка на файл поста на CDN Telegram (видео/гифка — mp4, фото — jpg) или ''. Нужна зеркалу в Instagram."""
+    m = re.search(r'<video[^>]*\bsrc="([^"]+)"', block) or \
+        re.search(r'tgme_widget_message_photo_wrap[^>]*background-image:url\(\'([^\']+)\'\)', block)
+    return _html.unescape(m.group(1)) if m else ''
+
+
 def parse_page(page):
-    """HTML ленты → [{id, text: [(строка, жирное)], media, edited, posted: datetime МСК | None}] по номеру."""
+    """HTML ленты → [{id, text: [(строка, жирное)], media, media_url, edited, posted: datetime МСК | None}] по номеру."""
     out = []
     starts = [m.start() for m in re.finditer(r'<div class="tgme_widget_message_wrap\b', page)]
     for i, a in enumerate(starts):
@@ -160,7 +167,8 @@ def parse_page(page):
                 posted = datetime.fromisoformat(ts.group(1).replace('Z', '+00:00')).astimezone(MSK)
             except ValueError:
                 pass
-        out.append(dict(id=int(num.group(1)), text=text_lines(inner), media=_media(rest), edited=edited, posted=posted))
+        out.append(dict(id=int(num.group(1)), text=text_lines(inner), media=_media(rest), media_url=_media_url(rest),
+                        edited=edited, posted=posted))
     return sorted(out, key=lambda p: p['id'])
 
 
