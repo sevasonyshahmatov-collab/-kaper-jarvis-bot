@@ -44,7 +44,7 @@ jobs:
           DAY_IN: ${{ github.event.inputs.day }}
           EV: ${{ github.event_name }}
         run: |
-          if [ "$EV" = push ]; then a="$(grep -v '^#' team/series/RUN | head -1)"; else a="${MODE_IN:-publish} ${DAY_IN}"; fi
+          if [ "$EV" = push ]; then a="$(grep -v '^#' team/series/RUN | head -1 | sed 's/ *#.*//')"; else a="${MODE_IN:-publish} ${DAY_IN}"; fi
           [[ "$a" =~ ^(preview|publish)(\ [0-9]{4}-[0-9]{2}-[0-9]{2})?(\ (khl|nhl))?\ *$ ]] || { echo "плохие аргументы: $a"; exit 1; }
           echo "a=$a" >> "$GITHUB_OUTPUT"
       - name: Собрать и отправить
