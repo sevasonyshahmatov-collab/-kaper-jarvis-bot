@@ -66,6 +66,10 @@ TEMPLATES = {
     'dashboard_too_fast': ('dashboard', 'Dashboard', 'too_fast', 1.061946, 33.576),                   # 5
     'card_two_face': ('card', 'Card', 'two_face', 0.731707, 23.336, 21, dict(team=8, rush=2, hold=5.5, cta=3)),   # 6
     'tape_demons': ('tape', 'Tape', 'demons', 0.869565, 85.438, 16.0, dict(per=1, pre=1.5, hold=4, cta=2.5)),     # 7
+    # 20.10 — по трендам шортсов (владелец 20.10: «давай попробуем»): данные — pick.simulate / pick.fact; в очередь VIEWS
+    # встают после одобрения превью. Треки — Mixkit (владелец 20.10: «берём»; tools/assets_fetch.py, tracks/mixkit.json)
+    'simulate': ('simulate', 'Simulate', 'mx_614', 0.857143, 27.191, 12, dict(intro=8, hold=7, cta=3)),
+    'numday': ('numday', 'NumDay', 'mx_318', 0.631579, 19.563, 16, dict(num=8, pre=3, hold=8, cta=4)),
 }
 
 
@@ -115,7 +119,7 @@ def owner_picks(ms):
         if k not in o:
             out.append(m)
         elif o[k]:
-            out.append(dict(m, pick=o[k]['pick'], odds=float(o[k]['odds'])))
+            out.append(dict(m, pick=o[k]['pick'], odds=float(o[k]['odds']), sim=None, fact=None))   # данные модели — не к этому прогнозу
             if o[k].get('tpl') in TEMPLATES:
                 out[-1]['tpl_owner'] = o[k]['tpl']
             print('OWNERPICK %s: %s %s' % (k, o[k]['pick'], o[k]['odds']), flush=True)
@@ -154,7 +158,16 @@ def plan(league, day, top, per):
     except Exception as e:  # noqa: BLE001 — без Pinnacle в КХЛ остаётся линия Фонбета
         print('PINERR %r' % e, flush=True)
         pins = {}
-    ms = pick.day_picks(games, nxt, pins, fon, league)
+    backup = set()
+    if league == 'nhl' and any((x['h'], x['a']) not in pins for x in nxt):
+        try:                                        # владелец 20.10: нет матча у Pinnacle — линия DraftKings с ESPN
+            import espn
+            for k, mk in espn.fetch(day, [x for x in nxt if (x['h'], x['a']) not in pins]).items():
+                pins[k] = mk
+                backup.add(k)
+        except Exception as e:  # noqa: BLE001
+            print('ESPNERR %r' % e, flush=True)
+    ms = pick.day_picks(games, nxt, pins, fon, league, backup=backup)
     soon = (datetime.now(MSK) + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M')   # уже начавшиеся матчи — без ролика
     ms = [m for m in ms if m['d'] >= soon]
     ms = owner_picks(ms)
@@ -189,12 +202,15 @@ def plan(league, day, top, per):
     return P
 
 
+DATA = {'simulate': ('sim',), 'numday': ('fact',)}     # шаблонам — данные прогноза из plan.json
+
+
 def reel(m, stats, code):
     mod, cls, key, u, tdrop, *rest = TEMPLATES[m['tpl']]
     d = date.fromisoformat(m['d'][:10])
     when = '%s %s · %s МСК' % (WEEK[d.weekday()], d.strftime('%d.%m'), m['d'][11:16])
     Cls = getattr(importlib.import_module('reels.' + mod), cls)
-    line = tuple(m['x1x2'])
+    line = tuple(m['x1x2']) if m.get('x1x2') else None       # запасная линия (ESPN) — без П1 · Х · П2
     if mod == 'lineup':                       # «Состав»: дроп считает сам шаблон
         from reels import form as F
         from reels import core as C
@@ -209,6 +225,7 @@ def reel(m, stats, code):
         c = json.load(open(p, encoding='utf-8')) if os.path.exists(p) else {'drop_beats': 20, 'kw': {}}
         beats, kw = c.get('drop_beats', 20), c.get('kw', {})
     drop = beats * u
+    kw = dict(kw, **{k: m.get(k) for k in DATA.get(mod, ())})
     r = Cls(m['h'], m['a'], code, when, m['pick'], m['odds'], stats.get(m['h'], {}), stats.get(m['a'], {}), u=u, drop=drop,
             line=line, **kw)
     return r, key, tdrop - drop
@@ -257,11 +274,18 @@ def one(P, i, league, day, code, lg, frames):
     if frames:
         print(C.render(r, base + '.mp4', frames=[int(round(float(x) * C.FPS)) for x in frames.split(',')]))
         return
-    C.render(r, base + '.mp4', track=owner_tracks.wav(key), start=start, extra_out=base + '_clean.mp4')
+    track = owner_tracks.wav(key)
+    if os.environ.get('REELS_TTS') == '1':          # владелец 20.10: озвучка и субтитры (пока по флагу, на пробу)
+        import voice
+        r, mix = voice.voiced(r, m, TEMPLATES[m['tpl']][0], track, start, base)
+        if mix:
+            track, start = mix, 0.0
+    C.render(r, base + '.mp4', track=track, start=start, extra_out=base + '_clean.mp4')
     print('REEL %s — %s | %s | трек %s с %.2f с, дроп на %.2f с | %.1f с ролика за %.0f с'
           % (m['h'], m['a'], m['tpl'], key, start, r.drop, r.dur, time.time() - t0), flush=True)
     y = yt_texts.youtube(m, lg)
-    url, note = youtube.upload(base + '.mp4', y['title'], y['description'], y['tags'])
+    url, note = youtube.upload(base + '.mp4', y['title'], y['description'], y['tags'] + ['tpl_' + m['tpl']],
+                               publish_at=publish_time(P, i))
     cover = cover_for(m, code, base)
     tnote = youtube.thumbnail(url, cover) if cover else ''
     note = '\n'.join(x for x in (note, tnote) if x)
@@ -269,6 +293,28 @@ def one(P, i, league, day, code, lg, frames):
     ig, ignote = instagram.upload(base + '.mp4', instagram.caption(m, y), cover)
     head += ('Instagram: %s\n\n' % ig) if ig else ('Instagram: %s\n\n' % ignote) if ignote else ''
     tg_reel(base + '.mp4', base + '_clean.mp4', head + yt_texts.block(m, lg), y['title'], cover)
+
+
+SPREAD_FROM, SPREAD_STEP, SPREAD_LEAD = 9, 90, 120     # МСК: с 09:00, шаг 90 мин, не позже чем за 2 ч до матча
+
+
+def publish_time(P, i):
+    """Время выхода ролика на YouTube (UTC) — владелец 20.10: не пачкой ночью, а с интервалами. Ролик i дня выходит
+    в 09:00 МСК + i × 90 мин (КХЛ — со сдвигом 45 мин), но не позже чем за 2 ч до начала своего матча; время уже прошло — None (сразу).
+    Выключить: REELS_SPREAD=0."""
+    if os.environ.get('REELS_SPREAD', '1') == '0':
+        return None
+    m = P['matches'][i]
+    start = datetime.strptime(m['d'][:16], '%Y-%m-%d %H:%M').replace(tzinfo=MSK)
+    now = datetime.now(MSK)
+    day0 = (start - timedelta(minutes=SPREAD_LEAD)).replace(hour=SPREAD_FROM, minute=0, second=0, microsecond=0)
+    if day0 > start - timedelta(minutes=SPREAD_LEAD):
+        day0 -= timedelta(days=1)
+    off = 45 if P.get('league') == 'khl' else 0          # КХЛ — между роликами НХЛ того же утра
+    t = min(day0 + timedelta(minutes=SPREAD_STEP * i + off), start - timedelta(minutes=SPREAD_LEAD))
+    if t <= now + timedelta(minutes=20):
+        return None
+    return t.astimezone(timezone.utc)
 
 
 def cover_for(m, code, base):

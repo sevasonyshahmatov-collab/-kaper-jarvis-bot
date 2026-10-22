@@ -70,8 +70,19 @@ def zoomed(path, cover=None):
     return path, None
 
 
-def upload(path, text, cover=None):
-    """→ (ссылка на ролик | None, пояснение для владельца)."""
+def upload(path, text, cover=None, tries=3):
+    """→ (ссылка на ролик | None, пояснение для владельца). Instagram иногда отвечает ProcessingFailedError на загрузку
+    файла (19–20.10: со второй попытки проходило) — повторяем загрузку с новым контейнером до tries раз."""
+    for k in range(tries):
+        url, note = _upload(path, text, cover)
+        if url or 'ProcessingFailedError' not in note or k == tries - 1:
+            return url, note
+        print('INSTAGRAM повтор %d: %s' % (k + 2, note[:120]), flush=True)
+        time.sleep(20)
+    return url, note
+
+
+def _upload(path, text, cover=None):
     if not enabled():
         return None, ''
     if _state['stop']:
@@ -101,7 +112,11 @@ def upload(path, text, cover=None):
             time.sleep(5)
         else:
             raise RuntimeError('Instagram не обработал видео за 5 минут')
-        p = requests.post(API + uid + '/media_publish', data=dict(creation_id=cid, access_token=tok), timeout=60).json()
+        for _ in range(6):            # FINISHED бывает раньше, чем медиа готово к публикации (код 9007 / 2207027) — ждём
+            p = requests.post(API + uid + '/media_publish', data=dict(creation_id=cid, access_token=tok), timeout=60).json()
+            if 'id' in p or (p.get('error') or {}).get('code') != 9007:
+                break
+            time.sleep(15)
         if 'id' not in p:
             raise RuntimeError('публикация: %s' % (p.get('error') or p))
         link = requests.get(API + p['id'], params=dict(fields='permalink', access_token=tok), timeout=30).json()

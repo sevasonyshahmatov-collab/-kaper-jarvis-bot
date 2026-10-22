@@ -1,0 +1,54 @@
+{
+ "license": "LottieFiles free animations — Lottie Simple License (коммерческое использование без указания автора)",
+ "items": [
+  {
+   "name": "fire",
+   "src": "https://assets-v2.lottiefiles.com/a/61bfb5e8-1176-11ee-bd3f-7f146038e4ad/kQpIOJcdYY.lottie",
+   "frames": 391,
+   "fps": 60.0,
+   "kb": 4
+  },
+  {
+   "name": "trophy",
+   "src": "https://assets-v2.lottiefiles.com/a/cb2d095e-1185-11ee-bb0a-b71d225cf0ae/eQaQfBy7D0.lottie",
+   "frames": 121,
+   "fps": 29.970001220703125,
+   "kb": 3
+  },
+  {
+   "name": "check_badge",
+   "src": "https://assets-v2.lottiefiles.com/a/90ed30d6-1188-11ee-b87c-4bb1d187c461/PK8lp5Ut8O.lottie",
+   "frames": 91,
+   "fps": 30.0,
+   "kb": 1
+  },
+  {
+   "name": "charts",
+   "src": "https://assets-v2.lottiefiles.com/a/61666e48-1176-11ee-bcff-9ba035da5e3f/fmOwr0265d.lottie",
+   "frames": 358,
+   "fps": 29.970001220703125,
+   "kb": 11
+  },
+  {
+   "name": "hourglass",
+   "src": "https://assets-v2.lottiefiles.com/a/bdbfe63a-1174-11ee-9ee3-c3841658c03c/8wGrGVYWoD.lottie",
+   "frames": 61,
+   "fps": 60.0,
+   "kb": 2
+  },
+  {
+   "name": "target",
+   "src": "https://assets-v2.lottiefiles.com/a/74a5c384-1151-11ee-b231-6fbb2403aa18/a5KxKlA0BQ.lottie",
+   "frames": 89,
+   "fps": 60.0,
+   "kb": 2
+  },
+  {
+   "name": "target_flat",
+   "src": "https://assets-v2.lottiefiles.com/a/fc716016-1188-11ee-af58-d790cd70a0d5/WFondoBCX6.lottie",
+   "frames": 105,
+   "fps": 30.0,
+   "kb": 1
+  }
+ ]
+}

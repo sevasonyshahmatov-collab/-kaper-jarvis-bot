@@ -13,6 +13,7 @@ import multiprocessing
 import os
 import random
 import subprocess
+import sys
 import tempfile
 
 import numpy as np
@@ -89,6 +90,72 @@ def emoji(s, size):
         k = size / 109
         _TC[key] = im.resize((max(1, int(im.width * k)), max(1, int(im.height * k))), Image.LANCZOS)
     return _TC[key]
+
+
+ICONS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons')
+LOTTIE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lottie')
+
+
+def icon(name, size, fill=(255, 255, 255), weight='bold'):
+    """Иконка Phosphor (MIT, render/reels/icons/<имя>-<bold|fill|duotone>.svg; владелец 20.10) — RGBA size×size.
+    Нужен cairosvg (в Actions ставится); без него — пустой слой, ролик не падает."""
+    key = ('icon', name, int(size), tuple(fill), weight)
+    if key not in _TC:
+        try:
+            import cairosvg
+            with open(os.path.join(ICONS, '%s-%s.svg' % (name, weight)), encoding='utf-8') as f:
+                svg = f.read().replace('currentColor', '#%02x%02x%02x' % tuple(fill[:3]))
+            import io
+            _TC[key] = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg.encode(), output_width=int(size),
+                                                              output_height=int(size)))).convert('RGBA')
+        except (ImportError, OSError) as e:
+            print('icon %s: %s' % (name, e), flush=True)
+            _TC[key] = Image.new('RGBA', (int(size), int(size)), (0, 0, 0, 0))
+    return _TC[key]
+
+
+def icon_text(name, im, size, fill, gap=14, weight='bold'):
+    """Иконка слева от готовой надписи im, по центру строки."""
+    ic = icon(name, size, fill, weight)
+    out = Image.new('RGBA', (ic.width + gap + im.width, max(ic.height, im.height)), (0, 0, 0, 0))
+    out.alpha_composite(ic, (0, (out.height - ic.height) // 2))
+    out.alpha_composite(im, (ic.width + gap, (out.height - im.height) // 2))
+    return out
+
+
+class Lottie:
+    """Анимация LottieFiles (Lottie Simple License; render/reels/lottie/<имя>.json; владелец 20.10) через rlottie.
+    rlottie виснет в пуле процессов render (fork после его потоков), поэтому все кадры размера size рисуются заранее
+    отдельным чистым процессом в массив; frame(t) — RGBA кадр на время t от начала (дальше конца — последний кадр,
+    loop=True — по кругу)."""
+
+    _SCRIPT = ('import sys, numpy as np\nfrom rlottie_python import LottieAnimation\n'
+               'a = LottieAnimation.from_file(sys.argv[1]); s = int(sys.argv[2])\n'
+               'n = a.lottie_animation_get_totalframe()\n'
+               'np.save(sys.argv[3], np.stack([np.asarray(a.render_pillow_frame(frame_num=i, width=s, height=s)'
+               '.convert("RGBA")) for i in range(n)]))\n'
+               'print(a.lottie_animation_get_framerate())')
+
+    def __init__(self, name, size, loop=False):
+        out = tempfile.NamedTemporaryFile(suffix='.npy', delete=False).name
+        r = subprocess.run([sys.executable, '-c', self._SCRIPT, os.path.join(LOTTIE, name + '.json'),
+                            str(int(size)), out], capture_output=True, text=True, timeout=300)
+        if r.returncode:
+            raise RuntimeError(r.stderr.strip()[-300:])
+        self.fps = float(r.stdout.split()[-1]) or 30.0
+        self.frames = np.load(out)
+        os.unlink(out)
+        self.n = len(self.frames)
+        self.dur = self.n / self.fps
+        self.loop = loop
+        self._c = {}
+
+    def frame(self, t):
+        i = int(max(0.0, t) * self.fps)
+        i = i % self.n if self.loop else min(i, self.n - 1)
+        if i not in self._c:
+            self._c[i] = Image.fromarray(self.frames[i], 'RGBA')
+        return self._c[i]
 
 
 def text(s, name, size, fill=(255, 255, 255), wght=700, track=0.0, max_w=None, stroke=0, stroke_fill=(0, 0, 0),
@@ -781,10 +848,11 @@ def render(reel, path, track=None, start=0.0, crf=20, workers=None, frames=None,
         code = pr.wait()
     if code != 0:
         raise RuntimeError('ffmpeg не собрал видеоряд: %s' % path)
-    outs = [(path, track)] + ([(extra_out, None)] if extra_out else [])
+    # чистая версия — без музыки; у озвученного ролика (team/reels_daily/voice.py) в ней остаётся голос
+    outs = [(path, track)] + ([(extra_out, getattr(reel, 'voice_only', None))] if extra_out else [])
     for p, tr in outs:
         wav = tempfile.NamedTemporaryFile(suffix='.wav', delete=False).name
-        _audio(wav, reel.dur, tr, start)
+        _audio(wav, reel.dur, tr, start if tr == track else 0.0)
         subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', tmpv, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy',
                         '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', p], check=True)
         os.unlink(wav)

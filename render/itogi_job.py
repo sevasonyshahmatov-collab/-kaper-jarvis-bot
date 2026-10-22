@@ -503,6 +503,12 @@ def main():
     if kind == 'team':                          # команда JARVIS: задание team/out/<день>/job.json (render/team_job.py)
         import team_job
         return team_job.main(payload)
+    # владелец 22.10: «больше не выпускаем в канал результаты матчей игрового дня и результаты игроков — занимаемся только
+    # ставками». Итоги дня/ночи (itogi, itogi2) и «Игроки дня» (players) не рисуем и не шлём; «Матчи дня» и «Бока» — как были.
+    # Вернуть — переменная ITOGI_RESULTS=1.
+    if kind in ('itogi', 'itogi2', 'players') and os.environ.get('ITOGI_RESULTS') != '1':
+        print('ITOGI «%s» отключены владельцем 22.10 — в канал не отправляю' % kind, flush=True)
+        return
     if kind == 'itogi2':
         return main_both(payload)
     if kind == 'sides':                         # баннеры «Бока» каждого матча дня в 4К → вам файлами

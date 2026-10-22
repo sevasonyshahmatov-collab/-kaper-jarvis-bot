@@ -1,0 +1,39 @@
+# Новые материалы для роликов: треки Mixkit (шифруются TRACKS_KEY в ветку треков) и анимации LottieFiles (в рабочую ветку).
+# Запуск — изменить tools/assets_run (первое слово: mixkit | lottie | all) и запушить; что делает — tools/assets_fetch.py.
+name: Материалы для роликов — Mixkit и LottieFiles
+
+on:
+  push:
+    branches: ['claude/**']
+    paths: ['tools/assets_run']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: assets-fetch
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: sudo apt-get install -y -qq ffmpeg >/dev/null
+      - run: pip install -q "pillow>=11" numpy requests librosa rlottie-python
+      - id: w
+        run: echo "what=$(head -1 tools/assets_run | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+      - name: LottieFiles
+        if: steps.w.outputs.what != 'mixkit'
+        continue-on-error: true
+        run: python tools/assets_fetch.py lottie
+      - name: Mixkit
+        if: steps.w.outputs.what != 'lottie'
+        env:
+          TRACKS_KEY: ${{ secrets.TRACKS_KEY }}
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+        run: python tools/assets_fetch.py mixkit

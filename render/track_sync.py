@@ -81,10 +81,37 @@ def analyze(path, manual=None):
         unit *= 2
     while unit * 4 > 4.6:
         unit /= 2
+    lb = _librosa_check(x, sr, bpm, out)                              # вторая проверка (владелец 20.10: librosa)
+    if lb:
+        out = lb['drops']
     d0 = out[0] if out else 0.0
     first = d0 - int(d0 / beat) * beat
     start = max(0.0, d0 - 4 * unit)
-    return dict(bpm=round(bpm, 2), beat=round(beat, 6), unit=round(unit, 6), drops=out, first=round(first, 3), start=round(start, 3))
+    return dict(bpm=round(bpm, 2), beat=round(beat, 6), unit=round(unit, 6), drops=out, first=round(first, 3), start=round(start, 3),
+                librosa=lb and dict(bpm=lb['bpm'], agree=lb['agree'], snapped=lb['snapped']))
+
+
+def _librosa_check(x, sr, bpm, drops):
+    """librosa (если установлена): свой темп по огибающей атак и сетка долей. Темп сверяем с нашим (с точностью до ×2,
+    расхождение до 2 %) — при согласии дропы притягиваем к ближайшей доле librosa (не дальше 70 мс), иначе оставляем как
+    есть и пишем расхождение. → dict(bpm, agree, snapped, drops) | None."""
+    try:
+        import librosa
+    except ImportError:
+        return None
+    env = librosa.onset.onset_strength(y=x, sr=sr, hop_length=256)
+    tempo, beats = librosa.beat.beat_track(onset_envelope=env, sr=sr, hop_length=256, start_bpm=bpm, tightness=200)
+    lbpm = float(np.atleast_1d(tempo)[0])
+    bt = librosa.frames_to_time(beats, sr=sr, hop_length=256)
+    agree = lbpm > 0 and any(abs(lbpm * k / bpm - 1) < 0.02 for k in (0.5, 1, 2))
+    out, snapped = list(drops), 0
+    if agree and len(bt):
+        for i, d in enumerate(out):
+            j = int(np.argmin(np.abs(bt - d)))
+            if abs(bt[j] - d) <= 0.07:
+                out[i] = round(float(bt[j]), 3)
+                snapped += 1
+    return dict(bpm=round(lbpm, 2), agree=bool(agree), snapped=snapped, drops=out)
 
 
 def energy_map(path, step=1.0):
@@ -110,3 +137,6 @@ if __name__ == '__main__':
     print('темп %.2f уд/мин, доля %.4f с; сцена = 4 × %.4f с' % (r['bpm'], r['beat'], r['unit']))
     print('дропы (вход громкой части):', ', '.join('%.2f с' % d for d in r['drops']) or 'не найдены')
     print('старт трека для ролика: %.2f с (такт-сцена до первого дропа)' % r['start'])
+    if r.get('librosa'):
+        print('librosa: темп %.2f, %s; дропов притянуто к доле: %d' % (r['librosa']['bpm'], 'совпадает' if r['librosa']['agree']
+                                                                      else 'НЕ совпадает — проверить на слух', r['librosa']['snapped']))

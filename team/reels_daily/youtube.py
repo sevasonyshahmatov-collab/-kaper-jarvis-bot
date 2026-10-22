@@ -34,8 +34,9 @@ def _token():
     return _state['token']
 
 
-def upload(path, title, description, tags):
-    """→ (ссылка на ролик | None, пояснение для владельца)."""
+def upload(path, title, description, tags, publish_at=None):
+    """→ (ссылка на ролик | None, пояснение для владельца). publish_at — datetime (UTC): ролик загружается закрытым
+    и YouTube сам открывает его в это время (владелец 20.10: выкладка с интервалами, а не пачкой ночью)."""
     if not enabled():
         return None, ''
     if _state['stop']:
@@ -44,6 +45,8 @@ def upload(path, title, description, tags):
         meta = {'snippet': {'title': title[:100], 'description': description[:4900], 'categoryId': SPORTS,
                             'tags': [t.lstrip('#') for t in tags], 'defaultLanguage': 'ru', 'defaultAudioLanguage': 'ru'},
                 'status': {'privacyStatus': 'public', 'selfDeclaredMadeForKids': False}}
+        if publish_at is not None:
+            meta['status'].update(privacyStatus='private', publishAt=publish_at.strftime('%Y-%m-%dT%H:%M:%SZ'))
         h = {'Authorization': 'Bearer ' + _token()}
         r = requests.post(UPLOAD_URL, headers=dict(h, **{'Content-Type': 'application/json; charset=UTF-8',
                                                          'X-Upload-Content-Type': 'video/mp4',
@@ -56,6 +59,9 @@ def upload(path, title, description, tags):
             j = r.json()
             vid, priv = j['id'], (j.get('status') or {}).get('privacyStatus')
             print('YOUTUBE загружен %s (%s): %s' % (vid, priv, title), flush=True)
+            if publish_at is not None and (j.get('status') or {}).get('publishAt'):
+                return 'https://youtu.be/%s' % vid, 'выйдет по расписанию: %s МСК' % (
+                    (publish_at + __import__('datetime').timedelta(hours=3)).strftime('%d.%m %H:%M'))
             return 'https://youtu.be/%s' % vid, ('опубликован, доступ — для всех' if priv == 'public' else
                                                  'загружен, но YouTube оставил его закрытым — откройте доступ в Studio')
         reason = ''
