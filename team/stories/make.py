@@ -38,10 +38,18 @@ def dm(d):
     return d.strftime('%d.%m')
 
 
+WD = ('понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье')
+MON = ('января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря')
+
+
+def day_title(d):
+    return '%s, %d %s' % (WD[d.weekday()], d.day, MON[d.month - 1])
+
+
 def fact_card(day, path, shift=0):
     F = json.load(open(os.path.join(HERE, 'facts.json'), encoding='utf-8'))['facts']
     i = ((day - date(2026, 10, 23)).days * 2 + shift) % len(F)          # два факта в день не совпадают (fact и запасной)
-    return cards.fact(path, i + 1, F[i]['title'], F[i]['text'])
+    return cards.fact(path, F[i]['title'], F[i]['text'])
 
 
 def day_matches(day):
@@ -64,9 +72,8 @@ def day_matches(day):
 
 
 def hits(t0, t1):
-    """Зашедшие прогнозы канала на матчи с началом в [t0, t1) → [(матч, счёт, прогноз, кэф)], по убыванию кэфа."""
+    """Зашедшие прогнозы канала на матчи с началом в [t0, t1) → строки team/daily (для баннера итогов), по убыванию кэфа."""
     import channel
-    import compose
     import data
     import morning
     import settle
@@ -75,7 +82,7 @@ def hits(t0, t1):
     rows, _, _ = morning.settle_rows(picks, found)
     out = [r for r in rows if r['res'] == settle.WIN]
     out.sort(key=lambda r: -(r.get('kef') or 0))
-    return [('%s — %s' % (r['home'], r['away']), compose.score_s(r['g']), r['bet'], compose.kef_s(r['kef'])) for r in out]
+    return out
 
 
 def main_match(day):
@@ -84,10 +91,10 @@ def main_match(day):
     for lg, rows in g:
         if lg == 'КХЛ':
             tm, h, a = rows[-1]
-            return h, a, '%s · %s МСК' % (dm(day), tm), 'KHL'
+            return h, a, '%d %s' % (day.day, MON[day.month - 1]), tm, 'KHL'
     for lg, rows in g:
         tm, h, a = rows[0]
-        return h, a, 'НОЧЬ НА %s · %s МСК' % (dm(day), tm), 'NHL'
+        return h, a, '%d %s' % (day.day, MON[day.month - 1]), tm, 'NHL'
     return None
 
 
@@ -158,7 +165,10 @@ def build(slot, day):
     if slot == 'matches':
         g = day_matches(day)
         if g:
-            return cards.matches(path, dm(day), g), 'image', 'матчи дня'
+            lgs = ['KHL' if lg == 'КХЛ' else 'NHL' for lg, _ in g]
+            items = [dict(home=h, away=a, time=tm, league=L) for (lg, rows), L in zip(g, lgs) for tm, h, a in rows]
+            return cards.matches(path, day_title(day), items, league='KHL+NHL' if len(lgs) > 1 else lgs[0]), 'image', \
+                'матчи дня: %d' % len(items)
         return fact_card(day, path, 1), 'image', 'матчей нет — факт'
     if slot == 'fact':
         return fact_card(day, path), 'image', 'факт'
@@ -171,8 +181,7 @@ def build(slot, day):
             print('STORYERR итоги: %r' % e, flush=True)
             h = []
         if h:
-            title = 'ВЧЕРА ЗАШЛО · %d' % len(h) if slot == 'win' else 'СЕГОДНЯ ЗАШЛО · %d' % len(h)
-            return cards.win(path, title, h), 'image', '%d зашедших' % len(h)
+            return cards.win(path, h, day_title(y)), 'image', '%d зашедших' % len(h)
         return fact_card(day, path, 1), 'image', 'зашедших нет — факт'
     if slot == 'question':
         m = main_match(day)

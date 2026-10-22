@@ -39,7 +39,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install "pillow>=11" numpy requests cairosvg rlottie-python
+      - run: pip install "pillow>=11" numpy requests cairosvg rlottie-python scipy
       - id: args
         env:
           CRON: ${{ github.event.schedule }}
