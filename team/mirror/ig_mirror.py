@@ -60,10 +60,10 @@ def caption(post):
     body = [t for t in lines if not t.startswith('#')]
     head = '\n'.join(body[:2])
     rest = body[2:]
-    txt = head + ('\n\n' + '\n'.join(rest) if rest else '') + '\n\n' + FOOTER + '\n\n' + (' '.join(tags) or TAGS)
+    txt = '\n'.join(body) + '\n\n' + FOOTER + '\n\n' + (' '.join(tags) or TAGS)
     if len(txt) > 2200:
         keep = 2200 - len(head) - len(FOOTER) - 60
-        txt = head + '\n\n' + '\n'.join(rest)[:keep].rsplit(' ', 1)[0] + '…\n\n' + FOOTER + '\n\n' + TAGS
+        txt = head + '\n' + '\n'.join(rest)[:keep].rsplit(' ', 1)[0] + '…\n\n' + FOOTER + '\n\n' + TAGS
     return head, txt
 
 
