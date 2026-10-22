@@ -705,7 +705,12 @@ def _footer_layers():
         band.putalpha(Image.fromarray(np.repeat(a[:, None], W, axis=1).astype('uint8')))
         plate = tg_plate(w=980, h=200)
         sub = text('ПРОГНОЗЫ НА КХЛ И НХЛ', 'mont', 34, (205, 214, 228), 800, track=0.18, max_w=W - 120)
-        last = text('ССЫЛКА НА КАНАЛ — В ОПИСАНИИ', 'mont', 44, (255, 255, 255), 900, track=0.08, max_w=W - 100)
+        # владелец 22.10: в финале каждого ролика — призыв перейти в Telegram (цель соцсетей — аудитория в канал)
+        l1 = text('ПОЛНЫЙ РАЗБОР И ИТОГИ — В TELEGRAM', 'mont', 44, (255, 255, 255), 900, track=0.06, max_w=W - 100)
+        l2 = text(HANDLE, 'mont', 50, TG_BLUE, 900, track=0.04)
+        last = Image.new('RGBA', (max(l1.width, l2.width), l1.height + 18 + l2.height), (0, 0, 0, 0))
+        last.alpha_composite(l1, ((last.width - l1.width) // 2, 0))
+        last.alpha_composite(l2, ((last.width - l2.width) // 2, l1.height + 18))
         _FOOT.update(top=top, band=band, plate=plate, sub=sub, last=last)
     return _FOOT
 
