@@ -23,6 +23,14 @@ K, W, MAXG = 6, 0.5, 12
 MIN_ODDS = 1.6          # владелец 15.10: самая вероятная ставка с кэфом от 1,6
 MIN_P = (0.5, 0.45)     # выбор — среди ставок от 50 % (нет таких — от 45 %, «ВЫБОР?»); ниже — не «самая вероятная», решает сессия
 ALT_P, ALT_K = 0.06, 0.15   # «чуть менее вероятная, но кэф выше»: до 6 п. п. ниже по вероятности и кэф выше на 0,15+
+# Владелец 22.10: «нужна модель, которая выдаёт наиболее точные вероятные прогнозы». Разбор предложений 15–21.10: модель
+# обещала ~62 %, заходило ~50 % (тоталы 45 % при 62 %, фора +1,5 — 56 % при 67 %). До большой подгонки на истории —
+# вероятность модели наполовину сдвигаем к вероятности из линии (кэф без маржи ~4 %): «самая вероятная» выбирается по ней.
+W_MKT, MARGIN_EST = 0.5, 1.04
+
+
+def p_adj(p, odds):
+    return (1 - W_MKT) * p + W_MKT / (odds * MARGIN_EST) if odds else p
 
 
 def out(tag, text):
@@ -226,12 +234,14 @@ def fonbet_for(k, fon):
 def brief(H, A, r, mks, fon):
     """Ставки с кэфом по убыванию вероятности + выбор по правилу владельца."""
     rows = []
-    for x in sorted(r['rows'], key=lambda x: -x['p']):
+    for x in r['rows']:
         v, src = odds_for(x['k'], mks)
         fb = fonbet_for(x['k'], fon)
         k = v or fb
-        rows.append(dict(t=x['t'], g=x['g'], p=round(x['p'], 4), pm=round(x['pm'], 4), pe=round(x['pe'], 4), lg=round(x['lg'], 4),
-                         pin=v, fon=fb, odds=k, src=src if v else ('Фонбет, осн. время' if fb else '')))
+        rows.append(dict(t=x['t'], g=x['g'], p=round(p_adj(x['p'], k), 4), p_model=round(x['p'], 4), pm=round(x['pm'], 4),
+                         pe=round(x['pe'], 4), lg=round(x['lg'], 4), pin=v, fon=fb, odds=k,
+                         src=src if v else ('Фонбет, осн. время' if fb else '')))
+    rows.sort(key=lambda x: -x['p'])
     pick = None
     for floor, mark in zip(MIN_P, ('ВЫБОР', 'ВЫБОР?')):
         ok = [x for x in rows if x['odds'] and x['odds'] >= MIN_ODDS and x['p'] >= floor]
@@ -342,8 +352,8 @@ def run(raw_games, pairs, pins=None, fonbet=None, meta=None):
         for x in rows:
             if not x['odds']:
                 continue
-            out('BRIEF', '%s—%s | %5.1f%% %-40s | кэф %.2f (%s)%s | p×k %.2f%s'
-                % (H, A, 100 * x['p'], x['t'], x['odds'], x['src'],
+            out('BRIEF', '%s—%s | %5.1f%% (модель %4.1f%%) %-40s | кэф %.2f (%s)%s | p×k %.2f%s'
+                % (H, A, 100 * x['p'], 100 * x['p_model'], x['t'], x['odds'], x['src'],
                    ', Фонбет %.2f' % x['fon'] if x['fon'] and x['pin'] else '', x['p'] * x['odds'],
                    ' | ' + x['mark'] if x.get('mark') else ''))
         if not pick:
