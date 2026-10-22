@@ -15523,11 +15523,11 @@ function teamCallback_(q, parts) {
       var nowFlag = parts[album ? 5 : 3] === 'now';
       var start = teamEditStart_(String(m.caption || m.text || ''));
       if (start && Date.now() >= start) { answer('Матч уже начался — прогноз в канал не отправляю', true); return; }
-      var lead = teamPubLead_(String(m.caption || m.text || ''));
-      var at = start ? start - lead.ms : 0;
+      var lead = start ? teamPubLead_(String(m.caption || m.text || ''), start) : null;
+      var at = lead ? lead.at : 0;
       if (!nowFlag && at - Date.now() > 60000) {
         teamSchedSave_(m, pid, album, at, start, title);
-        answer('Выйдет ' + teamSchedWhen_(at) + ' МСК — ' + lead.text + ' до матча');
+        answer('Выйдет ' + teamSchedWhen_(at) + ' МСК — ' + lead.text);
         return;
       }
       if (cache.get(key)) { answer('Уже отмечено'); return; }
@@ -15572,19 +15572,25 @@ function teamCallback_(q, parts) {
  *  «Опубликовать» под постом, в шапке которого есть дата и время матча («КХЛ · 16 октября · 19:00 МСК»), ставит пост на выход
  *  за TEAM_PUB_LEAD_MS до начала: под постом — «⏰ Выйдет … · опубликовать сейчас», «Редактировать», «Отменить выход».
  *  До выхода пост можно править — в канал уйдёт последний вариант (бот копирует черновик в момент выхода).
- *  НХЛ (шапка «НХЛ · …») — за 4 часа до начала (TEAM_PUB_LEAD_NHL_MS, владелец 16.10): матчи ночью.
+ *  НХЛ (шапка «НХЛ · …») — ночной матч в 20:00 МСК накануне (TEAM_PUB_NHL_HOUR, владелец 22.10), дневной — за 4 часа.
  *  Публикует teamSchedTick_ из liveUpdateAuto_ (раз в 5 минут). До матча меньше полутора часов или в шапке нет времени — сразу;
  *  матч уже начался — не публикуем (и по расписанию тоже: «не успел» — пост остаётся черновиком).
  *  В INBOX: «запланировано владельцем …», потом «опубликовано владельцем (по расписанию) …».
  */
 var TEAM_PUB_LEAD_MS = 90 * 60000;
 var TEAM_PUB_LEAD_NHL_MS = 4 * 3600000;   // НХЛ — за 4 часа: матчи ночью, за полтора часа — слишком поздно (владелец 16.10)
+var TEAM_PUB_NHL_HOUR = 20;               // НХЛ ночью — в 20:00 МСК накануне, «чтобы люди успели увидеть» (владелец 22.10)
 
-/** За сколько до матча выходит пост: шапка «НХЛ · …» — за 4 часа, остальные — за полтора часа. */
-function teamPubLead_(text) {
+/** Когда выходит пост: шапка «НХЛ · …» — ночной матч (до 12:00 МСК) в 20:00 МСК накануне, дневной — за 4 часа;
+ *  остальные — за полтора часа. → { at: время выхода (мс), text: для ответа владельцу }. */
+function teamPubLead_(text, start) {
   var head = String(text || '').split('\n')[0];                     // шапка поста или «… — альбом выше: НХЛ · …»
-  return /(^|:)\s*НХЛ\s*·/.test(head) ? { ms: TEAM_PUB_LEAD_NHL_MS, text: 'за 4 часа' }
-    : { ms: TEAM_PUB_LEAD_MS, text: 'за полтора часа' };
+  if (!/(^|:)\s*НХЛ\s*·/.test(head)) return { at: start - TEAM_PUB_LEAD_MS, text: 'за полтора часа до матча' };
+  var h = Number(Utilities.formatDate(new Date(start), 'Europe/Moscow', 'H'));
+  if (h >= 12) return { at: start - TEAM_PUB_LEAD_NHL_MS, text: 'за 4 часа до матча' };
+  var day = Utilities.formatDate(new Date(start - 24 * 3600000), 'Europe/Moscow', 'yyyy-MM-dd');
+  var at = new Date(day + 'T' + (TEAM_PUB_NHL_HOUR < 10 ? '0' : '') + TEAM_PUB_NHL_HOUR + ':00:00+03:00').getTime();
+  return { at: at, text: 'в ' + TEAM_PUB_NHL_HOUR + ':00 накануне матча' };
 }
 
 /** Обычные кнопки готового поста (на случай, если исходные не сохранились). */
