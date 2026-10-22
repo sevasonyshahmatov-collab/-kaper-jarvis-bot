@@ -81,8 +81,8 @@ def main():
                            frames=[int(round(float(x) * C.FPS)) for x in opt('--frames').split(',')]))
         return
 
-    import data
-    D = data.build(day, league)
+    import series_data
+    D = series_data.build(day, league)
     if not D:
         print('SERIES %s %s: матчей с прогнозом нет' % (league, day), flush=True)
         return

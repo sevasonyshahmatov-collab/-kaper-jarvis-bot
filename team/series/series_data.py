@@ -3,7 +3,7 @@
 следующего дня»). Источники и правило прогноза — как у конвейера шортсов (team/reels_daily/make.py plan), но без
 сообщений в Telegram. → D для render/reels/explainer_viz.py.
 
-    python team/series/data.py 2026-10-23 [khl|nhl]      # печатает D (облачной сессии API КХЛ недоступен — только Actions)
+    python team/series/series_data.py 2026-10-23 [khl|nhl]      # печатает D (облачной сессии API КХЛ недоступен — только Actions)
 """
 import json
 import os
