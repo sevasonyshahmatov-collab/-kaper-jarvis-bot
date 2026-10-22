@@ -3,8 +3,9 @@
 1 — пост-картинка). Поводом остаётся кнопка «Опубликовать» в Telegram: что вышло в канале, то через несколько минут
 выходит и в Instagram — отдельно ничего не одобряется.
 
-- Лента канала t.me/s/jarvibet (team/daily/channel.py): посты с видео/гифкой/фото, вышедшие после START и за последние
-  HOURS часов. Текстовые посты и альбомы пропускаются (Instagram требует картинку).
+- Лента канала t.me/s/jarvibet (team/daily/channel.py): только посты-прогнозы (шапка «КХЛ · дата · время», матч,
+  «Прогноз: …» — channel.pick_of), с баннером, вышедшие после START и за последние HOURS часов. Владелец 22.10: «в Инстаграм
+  только прогнозы — зашёл он, не зашёл, итоги, игроки — всё это только в Телеграме».
 - Картинка: последний кадр баннера (там прогноз/итог уже на месте), под ленту Instagram — от 4:5 до 1,91:1; вертикальный
   баннер садится на 1080×1350 поверх размытого себя же.
 - Instagram берёт картинку только по публичной ссылке (репозиторий закрытый) — файл кладётся на litterbox.catbox.moe на
@@ -152,10 +153,11 @@ def main(dry=False):
     since = max(START, now - timedelta(hours=HOURS))
     posts, pages = channel.feed(since)
     done = load_done()
-    todo = [p for p in posts if p['posted'] and p['posted'] >= since and p['id'] not in done and p['text']
-            and p['media'] in ('видео', 'гифка', 'фото') and p.get('media_url')]
-    if dry:                                       # превью: два последних поста с картинкой, без даты запуска
-        todo = [p for p in posts if p['media'] in ('видео', 'гифка', 'фото') and p.get('media_url') and p['text']][-2:]
+    picks = [p for p in posts if p['text'] and p['media'] in ('видео', 'гифка', 'фото') and p.get('media_url')
+             and channel.pick_of(p)[0]]
+    todo = [p for p in picks if p['posted'] and p['posted'] >= since and p['id'] not in done]
+    if dry:                                       # превью: два последних прогноза с картинкой, без даты запуска
+        todo = picks[-2:]
     print('MIRROR лента: постов %d (страниц %d), к выкладке %d: %s' % (len(posts), pages, len(todo),
                                                                        ', '.join('№%d' % p['id'] for p in todo)), flush=True)
     for post in todo:
