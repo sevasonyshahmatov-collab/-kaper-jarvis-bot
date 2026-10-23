@@ -10,7 +10,7 @@
    lottiefiles.com/free-animations/<слово> — первые подходящие json/.lottie (rlottie открывает, ≤ 600 КБ) →
    render/reels/lottie/<слово>_<n>.json + лист превью render/reels/lottie/_sheet.png; коммит в рабочую ветку.
 
-    python tools/assets_fetch.py [mixkit|lottie|all]
+    python tools/assets_fetch.py [mixkit|lottie|all|video]
 """
 import io
 import json
@@ -226,6 +226,79 @@ def lottie():
                 break
 
 
+VIDEO_PAGES = ['hockey', 'ice-skating', 'skating', 'ice', 'ice-rink', 'stadium', 'winter-sport']
+VIDEO_WORDS = ('hockey', 'ice', 'skat', 'rink', 'puck', 'stadium', 'arena')
+
+
+def video():
+    """3) Видео для первого экрана сайта (владелец 23.10: «бесплатное стоковое видео хоккея»): Mixkit Stock Video Free License
+    (коммерция без указания автора). Со страниц VIDEO_PAGES — ролики про лёд и хоккей → кадр из середины каждого → лист превью
+    с номерами docs/site_video/sheet.jpg и список docs/site_video/candidates.json (номер, название, ссылка); коммит в рабочую
+    ветку. Сами ролики в репозиторий не кладём — выбранный скачает задание сайта."""
+    from PIL import Image, ImageDraw
+    D = os.path.join(ROOT, 'docs', 'site_video')
+    os.makedirs(D, exist_ok=True)
+    found, seen = [], set()
+    for page in VIDEO_PAGES:
+        try:
+            html = get('https://mixkit.co/free-stock-video/%s/' % page).text
+        except Exception as e:  # noqa: BLE001 — такой страницы может не быть
+            print('VIDEOERR %s: %r' % (page, e), flush=True)
+            continue
+        urls = re.findall(r'https://assets\.mixkit\.co/videos/[^"\'\s<>]+?\.mp4', html)
+        slugs = dict((i, sl) for sl, i in re.findall(r'/free-stock-video/([a-z0-9-]+?)-(\d{3,6})/', html))
+        print('VIDEO %s: %d mp4, %d карточек' % (page, len(urls), len(slugs)), flush=True)
+        for u in urls:
+            m = re.search(r'(\d{3,6})', u)
+            vid = m.group(1) if m else u
+            if vid in seen:
+                continue
+            title = slugs.get(vid, os.path.basename(u)[:-4]).replace('-', ' ')
+            if not any(w in title.lower() for w in VIDEO_WORDS):
+                continue
+            seen.add(vid)
+            found.append(dict(id=vid, title=title, src=u, page='https://mixkit.co/free-stock-video/%s-%s/' % (slugs.get(vid, ''), vid)))
+    found = found[:16]
+    tiles = []
+    with tempfile.TemporaryDirectory() as tmp:
+        for n, v in enumerate(found, 1):
+            mp4, jpg = os.path.join(tmp, '%d.mp4' % n), os.path.join(tmp, '%d.jpg' % n)
+            try:
+                with open(mp4, 'wb') as f:
+                    f.write(get(v['src']).content)
+                dur = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', mp4],
+                                           capture_output=True, text=True).stdout.strip() or 0)
+                subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(dur * .4), '-i', mp4, '-frames:v', '1', '-vf', 'scale=480:-2', jpg], check=True)
+                v.update(n=n, sec=round(dur, 1), mb=round(os.path.getsize(mp4) / 1e6, 1))
+                tiles.append((n, v, Image.open(jpg).convert('RGB')))
+            except Exception as e:  # noqa: BLE001
+                print('VIDEOERR %s: %r' % (v['src'], e), flush=True)
+    cols = 3
+    rows = (len(tiles) + cols - 1) // cols or 1
+    sheet = Image.new('RGB', (cols * 480, rows * 300), (7, 18, 37))
+    dr = ImageDraw.Draw(sheet)
+    for k, (n, v, im) in enumerate(tiles):
+        x, y = (k % cols) * 480, (k // cols) * 300
+        im.thumbnail((480, 270))
+        sheet.paste(im, (x, y))
+        dr.rectangle((x, y, x + 44, y + 34), fill=(255, 201, 60))
+        dr.text((x + 12, y + 8), str(n), fill=(7, 18, 37))
+        dr.text((x + 6, y + 274), ('%s  ·  %s с' % (v['title'], v['sec']))[:70], fill=(234, 243, 255))
+    sheet.save(os.path.join(D, 'sheet.jpg'), quality=88)
+    with open(os.path.join(D, 'candidates.json'), 'w') as f:
+        json.dump(dict(license='Mixkit Stock Video Free License — коммерческое использование без указания автора',
+                       items=[v for _, v, _ in tiles]), f, ensure_ascii=False, indent=1)
+    print('VIDEO_GOT %d' % len(tiles), flush=True)
+    br = os.environ.get('GITHUB_REF_NAME')
+    if br:
+        subprocess.run(['git', 'add', D], cwd=ROOT, check=True)
+        subprocess.run(['git', 'commit', '-qm', 'Mixkit videos (free license): candidates for the site hero'], cwd=ROOT, check=True)
+        for _ in range(3):
+            subprocess.run(['git', 'pull', '-q', '--rebase', 'origin', br], cwd=ROOT)
+            if subprocess.run(['git', 'push', '-q', 'origin', 'HEAD:' + br], cwd=ROOT).returncode == 0:
+                break
+
+
 if __name__ == '__main__':
     what = sys.argv[1] if len(sys.argv) > 1 else 'all'
     subprocess.run(['git', 'config', 'user.name', 'github-actions[bot]'], cwd=ROOT)
@@ -234,3 +307,5 @@ if __name__ == '__main__':
         lottie()
     if what in ('mixkit', 'all'):
         mixkit()
+    if what == 'video':
+        video()
