@@ -65,6 +65,8 @@ Claude в чате «Соцсети» ведёт Instagram и YouTube проек
   в окне 12:30–16:00 МСК — `carousel/make.py --auto`), выложенное не повторяет (проверка по Instagram);
 - будильник — cron-job.org (бесплатно): POST `https://api.github.com/repos/sevasonyshahmatov-collab/-kaper-jarvis-bot/actions/workflows/social-tick.yml/dispatches`,
   заголовки `Authorization: Bearer <токен GitHub>`, `Accept: application/vnd.github+json`, тело `{"ref":"main"}`;
-  время (UTC): минуты 0 и 30, часы 6, 8, 9, 10, 11, 13, 14, 16, 19, 20 (≈ 20 запусков в день, ~20 мин Actions).
+  время (UTC): 6:00, 8:30, 9:30, 11:00, 13:30, 16:00, 19:30 — слоты историй и карусель (7 запусков в день).
+  24.10 бесплатные минуты Actions кончились; прежние ≈ 20 тиков в день, зеркало каждые 20 мин и запасные расписания
+  историй и карусели ушли в экономию: страховка — собственное расписание social-tick.yml (make.py берёт слот до 2,5 ч).
   Токен — fine-grained, только этот репозиторий, право Actions: Read and write, хранится только в cron-job.org.
 - `stories-daily.yml` и `carousel-daily.yml` остаются для ручного запуска и проб.
