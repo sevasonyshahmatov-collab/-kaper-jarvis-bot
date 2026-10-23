@@ -48,6 +48,9 @@ def main():
     out = sys.argv[2] if len(sys.argv) > 2 else 'out/months'
     channel.MAX_PAGES = 80                           # ~20 постов на страницу: с запасом до начала сентября
     t1 = datetime.now(MSK)
+    pages = {}
+    fetch = channel.fetch
+    channel.fetch = lambda before=None: pages.setdefault(before, fetch(before))
     seen = {}
     feed = channel.feed
     channel.feed = lambda t: seen.setdefault('v', feed(t))  # лента одна: и для прогнозов, и для списка нераспознанных
@@ -57,6 +60,11 @@ def main():
            and any(w in ' '.join(t for t, _ in x['text']).lower() for w in ('прогноз', 'кэф', 'коэф'))]
     found, errs = data.games_for(picks) if picks else ({}, [])
     rows, pending, bad = morning.settle_rows(picks, found)
+    if os.environ.get('MONTHS_DUMP'):                # копия ленты и счетов — разбирать формат постов без сети
+        import pickle
+        os.makedirs(out, exist_ok=True)
+        with open(os.path.join(out, 'dump.pkl'), 'wb') as f:
+            pickle.dump(dict(pages=pages, found=found), f)
     stats = month_stats(rows)
     os.makedirs(out, exist_ok=True)
     with open(os.path.join(out, 'months.json'), 'w', encoding='utf-8') as f:
@@ -83,6 +91,9 @@ def main():
             lines.append('- №%d %s: %s' % (x['id'], x['posted'].strftime('%d.%m'), ' / '.join(t for t, _ in x['text'])[:160]))
     if chan.get('notes') or errs:
         lines += ['', '## Заметки', ''] + ['- %s' % n for n in chan.get('notes', [])] + ['- %s' % e for e in errs]
+    with open(os.path.join(out, 'odd.json'), 'w', encoding='utf-8') as f:   # полный текст нераспознанных — для разбора формата
+        json.dump([dict(id=x['id'], posted=x['posted'].isoformat(), media=x['media'], edited=x['edited'], text=x['text']) for x in odd],
+                  f, ensure_ascii=False, indent=0)
     text = '\n'.join(lines) + '\n'
     with open(os.path.join(out, 'months.md'), 'w', encoding='utf-8') as f:
         f.write(text)

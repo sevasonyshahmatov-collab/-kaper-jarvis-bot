@@ -34,7 +34,7 @@ jobs:
         run: |
           d="${SINCE_IN:-$(head -c 10 team/site/MONTHS_RUN 2>/dev/null)}"; d="${d:-2026-09-01}"
           [[ "$d" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "плохая дата: $d"; exit 1; }
-          python team/site/months.py "$d" out/months
+          MONTHS_DUMP=1 python team/site/months.py "$d" out/months
       - uses: actions/upload-artifact@v4
         if: always()
         with:
