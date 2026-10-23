@@ -57,3 +57,14 @@ Claude в чате «Соцсети» ведёт Instagram и YouTube проек
   На слайдах «прогноз», не «ставка». Проба: `team/carousel/RUN` «preview ГГГГ-ММ-ДД».
 - Шапку профиля Instagram заполняет владелец.
 - Серия «Как работает JARVIS» — ролики про таблицу на матчах следующего дня; формат выбирает владелец по пробе.
+
+## Автозапуск (владелец 23.10: «наладь автозапуски»)
+Расписание GitHub (`schedule`) в этом репозитории почти не срабатывает: зеркало на каждые 20 мин стартовало 6 раз за двое
+суток, истории и карусель 23.10 утром не стартовали ни разу. Поэтому публикации дёргает внешний будильник:
+- задание `social-tick.yml` — каждый запуск сам решает, что выкладывать (история слота — `stories/make.py auto`, карусель
+  в окне 12:30–16:00 МСК — `carousel/make.py --auto`), выложенное не повторяет (проверка по Instagram);
+- будильник — cron-job.org (бесплатно): POST `https://api.github.com/repos/sevasonyshahmatov-collab/-kaper-jarvis-bot/actions/workflows/social-tick.yml/dispatches`,
+  заголовки `Authorization: Bearer <токен GitHub>`, `Accept: application/vnd.github+json`, тело `{"ref":"main"}`;
+  время (UTC): минуты 0 и 30, часы 6, 8, 9, 10, 11, 13, 14, 16, 19, 20 (≈ 20 запусков в день, ~20 мин Actions).
+  Токен — fine-grained, только этот репозиторий, право Actions: Read and write, хранится только в cron-job.org.
+- `stories-daily.yml` и `carousel-daily.yml` остаются для ручного запуска и проб.

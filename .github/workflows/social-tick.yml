@@ -1,0 +1,44 @@
+# Общий «тик» соцсетей (владелец 23.10: «наладь автозапуски — часто не работают»). Расписание GitHub для этого
+# репозитория почти не срабатывает (зеркало на каждые 20 мин стартовало 6 раз за двое суток), поэтому тик дёргает
+# внешний будильник (cron-job.org → API GitHub, workflow_dispatch; docs/handoff/SMM_AGENT.md, «Автозапуск»).
+# Каждый тик сам решает, что выкладывать: история слота по времени (team/stories/make.py auto) и карусель в окне
+# 12:30–16:00 МСК (team/carousel/make.py --auto); уже выложенное не повторяется. Лишний тик — ~1 мин Actions.
+name: Соцсети — тик
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [social-tick]
+  schedule:                       # на случай, если GitHub всё же запустит
+    - cron: '5 6,9,11,14,16,20 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stories-publish          # один поток выкладки (как stories-daily.yml)
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -q "pillow>=11" numpy requests cairosvg rlottie-python scipy
+      - name: История слота
+        continue-on-error: true
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+        run: PYTHONPATH=render python team/stories/make.py auto
+      - name: Карусель
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+        run: PYTHONPATH=render python team/carousel/make.py --auto
