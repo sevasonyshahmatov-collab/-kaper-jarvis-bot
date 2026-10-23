@@ -27,12 +27,15 @@ jobs:
       - run: pip install -q "pillow>=11" numpy requests librosa rlottie-python
       - id: w
         run: echo "what=$(head -1 tools/assets_run | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+      - name: Видео для сайта (Mixkit)
+        if: steps.w.outputs.what == 'video'
+        run: python tools/assets_fetch.py video
       - name: LottieFiles
-        if: steps.w.outputs.what != 'mixkit'
+        if: steps.w.outputs.what != 'mixkit' && steps.w.outputs.what != 'video'
         continue-on-error: true
         run: python tools/assets_fetch.py lottie
       - name: Mixkit
-        if: steps.w.outputs.what != 'lottie'
+        if: steps.w.outputs.what != 'lottie' && steps.w.outputs.what != 'video'
         env:
           TRACKS_KEY: ${{ secrets.TRACKS_KEY }}
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
