@@ -73,7 +73,8 @@ def send(league, day):
         return
     import team_job as tj
     chat = os.environ.get('OWNER_CHAT') or tj.owner_chat(tok, '@jarvibet')
-    vids = [j for j in manual if os.path.getsize(j['path']) <= TG_VIDEO_MAX]
+    pool = js if os.environ.get('PACK_ALL') == '1' else manual          # PACK_ALL=1 — все ролики дня (повторная отправка)
+    vids = [j for j in pool if os.path.getsize(j['path']) <= TG_VIDEO_MAX]
     for k in range(0, len(vids), 10):                                   # альбом — до 10 видео
         grp = vids[k:k + 10]
         media = [dict(type='video', media='attach://v%d' % i, supports_streaming=True,

@@ -59,7 +59,7 @@ jobs:
             mkdir -p "out/reels_daily/$lg-$DAY"
             find out/reels_daily -path "*/dl-*-$lg/*" -type f -exec mv -t "out/reels_daily/$lg-$DAY/" {} + 2>/dev/null || true
             if [ "$MODE" = pack ]; then
-              PYTHONPATH=render python team/reels_daily/pack.py "$lg" "$DAY"
+              PACK_ALL=1 PYTHONPATH=render python team/reels_daily/pack.py "$lg" "$DAY"
             else
               PYTHONPATH=render python team/reels_daily/retry.py "$lg" "$DAY"
             fi
