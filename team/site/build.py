@@ -357,8 +357,12 @@ def landing(D, logos, base):
     tod = {k: v[:6] for k, v in tod.items() if v}
     res = [dict(t='%s — %s' % (m['h'], m['a']), b=m['pick'], ok=m['res'] == 'win')
            for P in D for m in P['matches'] if m.get('res') in ('win', 'loss')][-14:]
-    inject = '<script>window.__TODAY=%s;window.__TL=%s;window.__RES=%s;</script>\n' % (
-        json.dumps(tod or None, ensure_ascii=False), json.dumps(logos, ensure_ascii=False), json.dumps(res or None, ensure_ascii=False))
+    lim = (today() - timedelta(days=30)).isoformat()
+    done = [m for P in D if P['day'] >= lim for m in P['matches'] if m.get('res') in ('win', 'loss')]
+    tally = dict(w=sum(m['res'] == 'win' for m in done), l=sum(m['res'] == 'loss' for m in done), n=len(done))
+    inject = '<script>window.__SITE=1;window.__TODAY=%s;window.__TL=%s;window.__RES=%s;window.__TALLY=%s;</script>\n' % (
+        json.dumps(tod or None, ensure_ascii=False), json.dumps(logos, ensure_ascii=False), json.dumps(res or None, ensure_ascii=False),
+        json.dumps(tally))
     title = 'JARVIS — прогнозы на хоккей КХЛ и НХЛ по модели'
     desc = 'Прогноз на каждый матч КХЛ и НХЛ от собственной модели: форма команд, вероятность и кэф. Честные итоги каждое утро в Telegram.'
     m = re.search(r'<title>.*?</title>', src)
