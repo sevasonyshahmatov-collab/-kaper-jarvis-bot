@@ -95,7 +95,8 @@ jobs:
         with:
           python-version: '3.11'
       - run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null
+          # 23.10: apt-get update висел 26 мин — сначала без update, ограничение по времени (как series-daily.yml)
+          timeout 300 sudo apt-get install -y -qq ffmpeg >/dev/null 2>&1 || { timeout 600 sudo apt-get update -qq && timeout 300 sudo apt-get install -y -qq ffmpeg >/dev/null; }
           pip install "pillow>=11" numpy requests cairosvg rlottie-python
       - uses: actions/download-artifact@v4
         with:
@@ -117,6 +118,30 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: videos-${{ needs.plan.outputs.league }}-${{ needs.plan.outputs.day }}-${{ matrix.part }}
-          path: out/reels_daily/**/*.mp4
+          path: |
+            out/reels_daily/**/*.mp4
+            out/reels_daily/**/*_cover.jpg
+            out/reels_daily/**/[0-9]*.json
           if-no-files-found: ignore
           retention-days: 2
+
+  pack:                           # владелец 22.10: все ролики дня — в Telegram разом (team/reels_daily/pack.py)
+    needs: [plan, render]
+    if: always() && needs.plan.outputs.parts != '[]' && needs.plan.outputs.parts != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: videos-${{ needs.plan.outputs.league }}-${{ needs.plan.outputs.day }}-*
+          path: out/reels_daily/
+          merge-multiple: true
+      - name: Пакет владельцу
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+        run: PYTHONPATH=render python team/reels_daily/pack.py "${{ needs.plan.outputs.league }}" "${{ needs.plan.outputs.day }}"

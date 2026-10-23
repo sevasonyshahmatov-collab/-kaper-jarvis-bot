@@ -37,9 +37,14 @@ def posted(first_line):
     return any(c.startswith(first_line) for c in _state['captions'])
 
 
+CTA = 'Полный разбор и итоги — в Telegram @jarvibet (ссылка в шапке профиля)'   # владелец 22.10: цель — переход в канал
+
+
 def caption(m, y):
-    """Подпись: описание для YouTube (матч, прогноз, Telegram) + хэштеги; ≤ 2200 знаков, хэштегов ≤ 30."""
-    return y['description'][:2100]
+    """Подпись: описание для YouTube (матч, прогноз, Telegram) + хэштеги; ≤ 2200 знаков, хэштегов ≤ 30.
+    Сразу после первой строки — призыв в Telegram (первая строка не меняется: по ней posted() ищет повторы)."""
+    first, _, rest = y['description'].partition('\n')
+    return (first + '\n' + CTA + '\n' + rest)[:2100]
 
 
 def zoomed(path, cover=None):

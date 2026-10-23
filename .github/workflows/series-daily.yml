@@ -1,0 +1,68 @@
+# Серия «Как работает JARVIS» (team/series/make.py, docs/channel/series/kak_rabotaet.md): ролик про таблицу на матчах
+# следующего дня → Instagram Reels и владельцу в Telegram. Публикация — только когда в team/series/episodes.json выбран "fmt".
+# Проба форматов из ветки claude/**: записать в team/series/RUN «preview [ГГГГ-ММ-ДД] [khl|nhl]» и запушить.
+name: Серия — как работает JARVIS
+
+on:
+  schedule:
+    - cron: '0 11 * * *'          # 18:00 Красноярск (14:00 МСК): эпизод на матчах завтрашнего дня (только из main)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'preview (3 формата владельцу) или publish'
+        required: true
+        default: 'preview'
+      day:
+        description: 'День матчей ГГГГ-ММ-ДД (пусто — завтра по Москве)'
+        required: false
+  push:
+    branches: ['claude/**']
+    paths: ['team/series/RUN']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: series-daily
+  cancel-in-progress: false
+
+jobs:
+  series:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: |
+          # 22.10: apt-get update однажды висел 15 мин — сначала без update, ограничение по времени
+          timeout 300 sudo apt-get install -y -qq ffmpeg >/dev/null 2>&1 || { timeout 600 sudo apt-get update -qq && timeout 300 sudo apt-get install -y -qq ffmpeg >/dev/null; }
+          pip install "pillow>=11" numpy requests cairosvg rlottie-python
+      - id: args
+        env:
+          MODE_IN: ${{ github.event.inputs.mode }}
+          DAY_IN: ${{ github.event.inputs.day }}
+          EV: ${{ github.event_name }}
+        run: |
+          if [ "$EV" = push ]; then a="$(grep -v '^#' team/series/RUN | head -1 | sed 's/ *#.*//')"; else a="${MODE_IN:-publish} ${DAY_IN}"; fi
+          [[ "$a" =~ ^(preview|publish)(\ [0-9]{4}-[0-9]{2}-[0-9]{2})?(\ (khl|nhl))?\ *$ ]] || { echo "плохие аргументы: $a"; exit 1; }
+          echo "a=$a" >> "$GITHUB_OUTPUT"
+      - name: Собрать и отправить
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TRACKS_KEY: ${{ secrets.TRACKS_KEY }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: PYTHONPATH=render python team/series/make.py ${{ steps.args.outputs.a }}
+      - name: Сохранить ролики (2 дня)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: series
+          path: out/series/**/*.mp4
+          if-no-files-found: ignore
+          retention-days: 2
