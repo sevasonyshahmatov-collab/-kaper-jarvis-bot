@@ -372,13 +372,24 @@ def landing(D, logos, base):
 <meta property="og:description" content="%s">
 <meta property="og:url" content="%s">
 <meta name="theme-color" content="#071225">
-<style>body{margin:0}</style>
+%s<style>body{margin:0}</style>
 %s</head>
 <body>
 %s
 </body>
 </html>
-''' % (esc(title), esc(desc), esc(base), esc(title), esc(desc), esc(base), inject, src)
+''' % (esc(title), esc(desc), esc(base), esc(title), esc(desc), esc(base), verify(), inject, src)
+
+
+def verify():
+    """Мета-теги подтверждения прав: Яндекс Вебмастер (код владельца 23.10) и Google Search Console (переменная
+    GOOGLE_VERIFICATION, когда владелец её задаст)."""
+    out = ''
+    for name, code in (('yandex-verification', os.environ.get('YANDEX_VERIFICATION') or '590b1cfd6efbb89d'),
+                       ('google-site-verification', os.environ.get('GOOGLE_VERIFICATION'))):
+        if code:
+            out += '<meta name="%s" content="%s">\n' % (name, esc(code))
+    return out
 
 
 def sitemap(base, pages):
