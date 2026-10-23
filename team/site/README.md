@@ -41,3 +41,11 @@
 
 ## Проверка без сети
     SITE_URL=https://example.github.io/jarvis python team/site/build.py /tmp/site <plan.json> --no-settle
+
+## Состояние (23.10)
+- Сайт: **https://sevasonyshahmatov-collab.github.io/** — репозиторий `sevasonyshahmatov-collab/sevasonyshahmatov-collab.github.io`
+  (переименован из `jarvibet`, чтобы сайт был в корне адреса: Яндекс Вебмастер подтверждает права только на весь адрес).
+  Переменные: `SITE_REPO`, `SITE_URL`, `GOOGLE_VERIFICATION`; секрет `SITE_TOKEN`.
+- Права подтверждены: Яндекс Вебмастер (мета-тег, код в `build.verify`) и Google Search Console (мета-тег из
+  `GOOGLE_VERIFICATION`). Sitemap отправлен в Google. Не удалять мета-теги — иначе подтверждение слетит.
+- Через ~месяц: Вебмастер → «Поисковые запросы», Search Console → «Эффективность» — по каким запросам приходят.
