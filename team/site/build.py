@@ -171,11 +171,14 @@ def settle_all(D):
 def emblem_files(site, teams):
     """Эмблемы клубов render/emblems → <сайт>/img/<slug>.webp (128 px). → {клуб: адрес от корня}."""
     from PIL import Image
+    import nhl
     from poster import TEAMS, EMB
+    nhl.register()                                  # клубы НХЛ в poster.TEAMS (эмблемы emblems/nhl_*.png)
+    alias = {'Рейнджерс': 'Нью-Йорк Рейнджерс', 'Айлендерс': 'Нью-Йорк Айлендерс'}   # так их называет nhl_data
     os.makedirs(os.path.join(site, 'img'), exist_ok=True)
     out = {}
     for t in teams:
-        s = TEAMS.get(t, (None,))[0]
+        s = TEAMS.get(alias.get(t, t), (None,))[0]
         src = os.path.join(EMB, '%s.png' % s) if s else None
         if not src or not os.path.exists(src):
             continue
