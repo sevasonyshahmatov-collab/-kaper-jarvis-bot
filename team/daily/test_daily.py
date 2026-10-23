@@ -505,6 +505,13 @@ def test_channel_parse():
     assert any('В очных встречах прошлого сезона — 2:1, 3:1 и 1:2!' in t for t, _ in by[104]['text'])   # &#33;
     assert any('Бедар "горит"' in t for t, _ in by[107]['text'])                               # &quot;
     assert by[106]['text'][0][0].startswith('Друзья, Сиэтл') and channel.pick_of(by[106]) == (None, None)   # ответ — не прогноз
+    reply = ('<div class="tgme_widget_message_wrap js-widget_message_wrap"><div class="tgme_widget_message" data-post="jarvibet/1138">'
+             '<a class="tgme_widget_message_reply" href="https://t.me/jarvibet/1137"><div class="tgme_widget_message_text '
+             'js-message_reply_text" dir="auto">КХЛ · 21 октября · 12:30 МСК Адмирал — Барыс Прогноз: тотал матча больше 4,5</div></a>'
+             '<div class="tgme_widget_message_text js-message_text" dir="auto">✅ <b>Адмирал — Барыс 5:4 ОТ</b><br/>зашла</div>'
+             '<time datetime="2026-10-21T13:00:00+00:00"></time></div></div>')
+    (rp,) = channel.parse_page(reply)                                            # ответ на пост: текст ответа, не цитата
+    assert rp['text'][0][0] == '✅ Адмирал — Барыс 5:4 ОТ' and channel.pick_of(rp) == (None, None), rp['text']
     d = date(2026, 10, 16)
     t0, t1 = ask.window(d)
     picks, info = channel.posts(t0, t1)

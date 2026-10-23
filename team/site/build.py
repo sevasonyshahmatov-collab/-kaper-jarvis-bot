@@ -340,8 +340,9 @@ def list_page(D, base, logos=None):
     return head(title, desc, base + 'prognozy/', '../') + body + FOOT
 
 
-def landing(D, logos, base):
-    """Главная: лендинг с сегодняшними матчами вместо примеров (window.__TODAY, __TL, __RES — их читает скрипт лендинга)."""
+def landing(D, logos, base, site=None):
+    """Главная: лендинг с сегодняшними матчами вместо примеров (window.__TODAY, __TL, __RES — их читает скрипт лендинга);
+    __MONTHS — статистика постов канала по месяцам из stats/months.json (team/site/months.py), нет файла — блока нет."""
     with open(os.path.join(HERE, 'landing.html'), encoding='utf-8') as f:
         src = f.read()
     td = today().isoformat()
@@ -360,9 +361,17 @@ def landing(D, logos, base):
     lim = (today() - timedelta(days=30)).isoformat()
     done = [m for P in D if P['day'] >= lim for m in P['matches'] if m.get('res') in ('win', 'loss')]
     tally = dict(w=sum(m['res'] == 'win' for m in done), l=sum(m['res'] == 'loss' for m in done), n=len(done))
-    inject = '<script>window.__SITE=1;window.__TODAY=%s;window.__TL=%s;window.__RES=%s;window.__TALLY=%s;</script>\n' % (
+    months = None
+    mp = os.path.join(site, 'stats', 'months.json') if site else ''
+    if mp and os.path.exists(mp):
+        try:
+            with open(mp, encoding='utf-8') as f:
+                months = json.load(f) or None
+        except ValueError as e:
+            print('SITEERR months.json не прочитан: %r' % e, flush=True)
+    inject = '<script>window.__SITE=1;window.__TODAY=%s;window.__TL=%s;window.__RES=%s;window.__TALLY=%s;window.__MONTHS=%s;</script>\n' % (
         json.dumps(tod or None, ensure_ascii=False), json.dumps(logos, ensure_ascii=False), json.dumps(res or None, ensure_ascii=False),
-        json.dumps(tally))
+        json.dumps(tally), json.dumps(months, ensure_ascii=False).replace('</', '<\\/'))
     title = 'JARVIS — прогнозы на хоккей КХЛ и НХЛ по модели'
     desc = 'Прогноз на каждый матч КХЛ и НХЛ от собственной модели: форма команд, вероятность и кэф. Честные итоги каждое утро в Telegram.'
     m = re.search(r'<title>.*?</title>', src)
@@ -435,7 +444,7 @@ def build(site, plans, do_settle=True):
         for m in ms:
             write(site, 'prognozy/' + page_name(m), match_page(P, m, logos, base, ms), changed)
     write(site, 'prognozy/index.html', list_page(D, base, logos), changed)
-    write(site, 'index.html', landing(D, logos, base), changed)
+    write(site, 'index.html', landing(D, logos, base, site), changed)
     # sitemap — по всем страницам матчей, что лежат на сайте (и старше KEEP_DAYS)
     pages = [('', today().isoformat()), ('prognozy/', today().isoformat())]
     for path in sorted(glob.glob(os.path.join(site, 'prognozy', '20*.html'))):
