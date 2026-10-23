@@ -35,7 +35,8 @@
   `tracks-intake.yml` шифрует в ветку треков; потом ящик из ветки убрать.
 
 ## YouTube — ограничения (важно)
-- Приложение Google в режиме **«Testing»** (кнопку «Publish app» опубликовать не удалось): `YT_REFRESH_TOKEN` живёт
+- Приложение Google — **«In production»** (проверено владельцем 23.10, проект «JARVIS YouTube», jarvis-youtube-511907): ключ, выданный
+  после перевода, не истекает; ключ, выданный ещё в «Testing», живёт 7 дней с выдачи. Раньше было «Testing»: `YT_REFRESH_TOKEN` живёт
   **7 дней**. Истёк — в подписи Telegram «обновите YT_REFRESH_TOKEN»: OAuth Playground (свой Client ID/secret,
   Access type Offline, scope `https://www.googleapis.com/auth/youtube.upload`) → новый refresh token в секрет.
 - **Квота ~6 загрузок в сутки**; сутки YouTube — с 10:00 МСК. Сверх лимита — в подписи «загрузите вручную» (ручная

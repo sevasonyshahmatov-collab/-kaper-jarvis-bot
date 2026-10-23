@@ -10,8 +10,6 @@
 """
 import math
 
-from PIL import Image
-
 from reels import core as C
 from reels.core import W, H
 
@@ -41,13 +39,11 @@ class Explainer(C.Reel):
         self.footer_plate_to_end = False
         self.bg = C.vgrad(W, H, [(0, BG0), (0.55, BG1), (1, BG0)]).convert('RGB')
         self.glow = C.radial(900, 900, ACC, a0=70)
-        self.tag = C.text('%s · %d' % (SERIES, ep['n']), 'mont', 34, (10, 16, 28), 900, track=0.12)
-        self.tagbox = C.rrect(self.tag.width + 48, self.tag.height + 30, 14, fill=ACC)
         hs, ss = (76, 58) if self.VIZ else (112, 84)
         self.hook = C.lines(ep['hook'], 'dela', hs, W - 140, fill=WHITE, max_lines=4)
         self.s2 = C.lines(ep['s2'], 'unb', ss, W - 150, fill=WHITE, wght=800, max_lines=4)
         self.s3 = C.lines(ep['s3'], 'unb', ss, W - 150, fill=WHITE, wght=800, max_lines=4)
-        self.dropt = C.lines(ep['drop'], 'dela', 104, W - 120, fill=(10, 16, 28), max_lines=5)
+        self.dropt = C.lines(ep['drop'], 'dela', 76 if self.VIZ else 104, W - 120, fill=WHITE, max_lines=4)
         self.ctat = C.lines(ep['cta'], 'unb', 64, W - 160, fill=WHITE, wght=800, max_lines=3)
         self.plate = C.tg_plate(980, 220, font='unb')
         self.nums = {k: C.text(str(k), 'dela', 92, (10, 16, 28)) for k in (2, 3)}
@@ -81,8 +77,6 @@ class Explainer(C.Reel):
         fr = self._base(t)
         u = self.u
         if t < self.T_s2:                                               # хук
-            C.put(fr, self.tagbox, W / 2, 300)
-            C.put(fr, self.tag, W / 2, 300)
             if self.VIZ:
                 self.visual(fr, t, 'hook', 0.0)
                 self._slam(fr, self.hook, W / 2, self.TXT_Y, t, 0.15)
@@ -106,18 +100,16 @@ class Explainer(C.Reel):
                 pulse = 1 - (ph % 1)
                 C.put(fr, C.radial(W, 400, ACC, a0=int(60 * pulse)), W / 2, H - 200)
         elif t < self.T_cta:                                            # дроп
-            k = C.seg(t, self.drop, self.drop + 0.35)
-            fr.paste(Image.new('RGB', (W, H), C.mix(WHITE, ACC, C.out_cubic(k))), (0, 0))
-            fr = fr.convert('RGBA')
+            # владелец 23.10: без отдельной «плашки»-заливки с текстом — тот же фон и визуал, главный тезис вместо тезиса 3
             n = int((t - self.drop) / u)
-            r = (t - self.drop - n * u) / u                              # волна на каждую долю
-            ring = C.ellipse(int(300 + r * 1400), int(300 + r * 1400), fill=WHITE, a=int(70 * (1 - r)))
-            C.put(fr, ring, W / 2, H * 0.48)
-            self._slam(fr, self.dropt, W / 2, H * 0.48, t, self.drop + 0.05, z0=1.6)
-            fr = C.zoom(fr.convert('RGB'), 1 + 0.02 * (1 - r)).convert('RGBA')
+            r = (t - self.drop - n * u) / u                              # лёгкий толчок на каждую долю
+            if self.VIZ:
+                self.visual(fr, t, 's3', self.T_s3)
+                self._slam(fr, self.dropt, W / 2, self.TXT_Y, t, self.drop + 0.05, z0=1.3)
+            else:
+                self._slam(fr, self.dropt, W / 2, H * 0.48, t, self.drop + 0.05, z0=1.3)
+            fr = C.zoom(fr.convert('RGB'), 1 + 0.012 * (1 - r)).convert('RGBA')
         else:                                                           # финал
-            C.put(fr, self.tagbox, W / 2, 300)
-            C.put(fr, self.tag, W / 2, 300)
             self._slam(fr, self.ctat, W / 2, 760, t, self.T_cta)
             self._slam(fr, self.plate, W / 2, 1060, t, self.T_cta + 0.2, z0=1.3)
         fr = C.grain(fr.convert('RGB'), t, k=8)

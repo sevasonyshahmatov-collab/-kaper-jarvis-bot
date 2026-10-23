@@ -26,9 +26,20 @@ RED = (235, 87, 87)
 INK = (10, 16, 28)
 
 
+def common_size(items, name, size, wght, min_size=14):
+    """Один кегль для всех однотипных надписей (владелец 22.10/23.10: «всё должно быть одного кегля»): самый крупный,
+    при котором каждая надпись влезает в свою ширину. items — [(текст, ширина)]."""
+    while size > min_size:
+        f = C.font(name, size, wght)
+        if all(f.getlength(t) <= w for t, w in items if t):
+            return size
+        size -= 1
+    return min_size
+
+
 def _cell(s, w, h, size=30, col=(30, 34, 44), bold=700, fill=None, align='l'):
     im = Image.new('RGBA', (w, h), fill + (255,) if fill else (0, 0, 0, 0))
-    tx = C.text(s, 'mont', size, col, bold, max_w=w - 20, trim=True) if s else None
+    tx = C.text(s, 'mont', size, col, bold, trim=True) if s else None          # кегль — общий на таблицу (common_size)
     if tx:
         x = 12 if align == 'l' else (w - tx.width) // 2
         im.alpha_composite(tx, (x, (h - tx.height) // 2))
@@ -38,15 +49,18 @@ def _cell(s, w, h, size=30, col=(30, 34, 44), bold=700, fill=None, align='l'):
 class Sheet(Explainer):
     """Формат 1: «экран таблицы»."""
     VIZ = True
-    COLS = [('Время', 104), ('Хозяева', 190), ('Гости', 214), ('П1', 82), ('Х', 82), ('П2', 82), ('Прогноз', 280), ('Кэф', 86)]
+    COLS = [('Время', 104), ('Хозяева', 250), ('Гости', 290), ('П1', 82), ('Х', 82), ('П2', 82), ('Прогноз', 420), ('Кэф', 86)]
     RH = 86
 
     def __init__(self, ep, u=0.5, D=None):
         super().__init__(ep, u=u)
         self.D = D = D or SAMPLE
         self.sw = sum(w for _, w in self.COLS)
-        self.head = self._row([c for c, _ in self.COLS], fill=(232, 236, 244), bold=900, col=(70, 78, 96))
-        self.rows = [self._row(r) for r in D['rows'][:5]]
+        rows = D['rows'][:5]
+        self.fs = common_size([(v, w - 24) for r in rows for (_, w), v in zip(self.COLS, r)], 'mont', 30, 700)
+        self.fh = common_size([(c, w - 24) for c, w in self.COLS], 'mont', 30, 900)
+        self.head = self._row([c for c, _ in self.COLS], fill=(232, 236, 244), bold=900, col=(70, 78, 96), size=self.fh)
+        self.rows = [self._row(r, size=self.fs) for r in rows]
         self.nr = len(self.rows)
         self.title = C.text('%s · МАТЧИ %s' % (D['lg'], D['day']), 'mont', 34, WHITE, 900, track=0.1)
         self.paper = C.rrect(self.sw + 24, self.RH * (self.nr + 1) + 24, 18, fill=(255, 255, 255))
@@ -56,12 +70,12 @@ class Sheet(Explainer):
         self.upd = C.text('ОБНОВЛЕНО · 05:00 МСК', 'mont', 30, (10, 16, 28), 900, track=0.08)
         self.updbox = C.rrect(self.upd.width + 40, self.upd.height + 26, 12, fill=GREEN)
 
-    def _row(self, vals, fill=None, bold=700, col=(30, 34, 44)):
+    def _row(self, vals, fill=None, bold=700, col=(30, 34, 44), size=30):
         im = Image.new('RGBA', (self.sw, self.RH), (255, 255, 255, 255) if not fill else fill + (255,))
         x = 0
         d = ImageDraw.Draw(im)
         for (name, w), v in zip(self.COLS, vals):
-            im.alpha_composite(_cell(v, w, self.RH, col=col, bold=bold, align='c' if w < 110 else 'l'), (x, 0))
+            im.alpha_composite(_cell(v, w, self.RH, size=size, col=col, bold=bold, align='c' if w < 110 else 'l'), (x, 0))
             d.line([(x, 0), (x, self.RH)], fill=(214, 219, 228), width=2)
             x += w
         d.line([(0, self.RH - 1), (self.sw, self.RH - 1)], fill=(214, 219, 228), width=2)
@@ -132,9 +146,10 @@ class Scale(Explainer):
         self.lab_ok = C.text('НАШ КОРИДОР', 'unb', 40, INK, 900)
         self.lab_hi = C.text('ЛОТЕРЕЯ', 'unb', 34, RED, 900)
         self.picks = []
+        ps = common_size([(r[6], 760) for r in D['rows'][:4]], 'mont', 30, 800)
         for r in D['rows'][:4]:
             k = float(r[7])
-            self.picks.append((k, C.text(r[6], 'mont', 30, WHITE, 800, max_w=420), C.text(r[7].replace('.', ','), 'dela', 44, WHITE)))
+            self.picks.append((k, C.text(r[6], 'mont', ps, WHITE, 800), C.text(r[7].replace('.', ','), 'dela', 44, WHITE)))
 
     def x(self, v):
         return self.X0 + (v - self.LO) / (self.HI - self.LO) * (self.X1 - self.X0)
@@ -189,7 +204,8 @@ class Case(Explainer):
         self.h, self.a = C.match(c['h'], c['a'], 'NHL' if D['lg'] == 'НХЛ' else 'KHL')
         self.eh, self.ea = self.h.emb(300), self.a.emb(300)
         self.vs = C.text('%s · %s МСК' % (D['day'], c['time']), 'mont', 36, GREY, 900, track=0.1)
-        self.nh, self.na = (C.text(x.up, 'dela', 64, WHITE, max_w=440) for x in (self.h, self.a))
+        ns = common_size([(x.up, 440) for x in (self.h, self.a)], 'dela', 64, 700)
+        self.nh, self.na = (C.text(x.up, 'dela', ns, WHITE) for x in (self.h, self.a))
         self.forms = []
         for t, last in ((self.h, c['last_h']), (self.a, c['last_a'])):
             cap = C.text('%s · ПОСЛЕДНИЕ МАТЧИ' % t.up, 'mont', 32, GREY, 900, track=0.1, max_w=W - 120)
