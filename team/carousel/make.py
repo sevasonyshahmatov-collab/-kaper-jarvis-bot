@@ -179,9 +179,27 @@ def to_owner(paths, caption):
             f.close()
 
 
+def posted_today(day):
+    """Карусель за этот день уже выложена? (владелец 23.10: расписание GitHub опаздывает — запусков два, повторов нет)."""
+    import instagram
+    tok, uid = instagram._env()
+    j = requests.get(API + uid + '/media', params=dict(fields='media_type,timestamp', limit=15, access_token=tok),
+                     timeout=30).json()
+    for m in j.get('data') or []:
+        ts = datetime.strptime(m['timestamp'], '%Y-%m-%dT%H:%M:%S%z').astimezone(MSK)
+        if m.get('media_type') == 'CAROUSEL_ALBUM' and ts.date() == day:
+            return True
+    return False
+
+
 def main():
     a = sys.argv[1:]
     day = date.fromisoformat(next((x for x in a if x[:2] == '20'), datetime.now(MSK).date().isoformat()))
+    if '--preview' not in a:
+        import instagram
+        if instagram.enabled() and posted_today(day):
+            print('CAROUSEL %s: уже выложена — пропуск' % day, flush=True)
+            return
     D, cap = build(day)
     if not D:
         print('CAROUSEL %s: %s' % (day, cap), flush=True)

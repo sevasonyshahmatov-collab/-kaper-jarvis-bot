@@ -5,6 +5,8 @@ name: Карусель Instagram
 on:
   schedule:
     - cron: '30 9 * * *'     # 12:30 МСК — матчи этого дня
+    - cron: '10 10 * * *'    # запасной (владелец 23.10: расписание GitHub опаздывает/пропускает); повтор make.py не выложит
+    - cron: '50 10 * * *'
   workflow_dispatch:
     inputs:
       mode:

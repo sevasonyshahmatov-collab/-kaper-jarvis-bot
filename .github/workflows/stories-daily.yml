@@ -3,13 +3,22 @@
 name: Истории Instagram
 
 on:
+  # Владелец 23.10: GitHub запускает расписание с опозданием или пропускает. Поэтому на каждый слот два запуска (в срок
+  # и через 35 мин), оба — «auto»: make.py сам берёт слот по времени (до 2,5 ч после срока) и не выкладывает повторно,
+  # если история после времени слота уже есть.
   schedule:
     - cron: '0 6 * * *'      # 09:00 МСК — матчи дня
-    - cron: '30 8 * * *'     # 11:30 — факт про таблицу
-    - cron: '0 11 * * *'     # 14:00 — вчера зашло
-    - cron: '30 13 * * *'    # 16:30 — вопрос дня
+    - cron: '35 6 * * *'
+    - cron: '30 8 * * *'     # 11:30 — как мы делаем прогноз
+    - cron: '5 9 * * *'
+    - cron: '0 11 * * *'     # 14:00 — итоги вчера
+    - cron: '35 11 * * *'
+    - cron: '30 13 * * *'    # 16:30 — кто возьмёт
+    - cron: '5 14 * * *'
     - cron: '0 16 * * *'     # 19:00 — последний рилс
-    - cron: '30 19 * * *'    # 22:30 — сегодня зашло
+    - cron: '35 16 * * *'
+    - cron: '30 19 * * *'    # 22:30 — зашедшие сегодня
+    - cron: '5 20 * * *'
   workflow_dispatch:
     inputs:
       slot:
@@ -27,7 +36,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: stories-${{ github.event.schedule || github.event_name }}
+  group: stories-${{ github.event_name == 'push' && 'preview' || 'publish' }}   # выкладка — строго по одной
   cancel-in-progress: false
 
 jobs:
@@ -47,12 +56,10 @@ jobs:
           DAY_IN: ${{ github.event.inputs.day }}
           EV: ${{ github.event_name }}
         run: |
-          case "$CRON" in
-            '0 6 * * *') a=matches;; '30 8 * * *') a=fact;; '0 11 * * *') a=win;;
-            '30 13 * * *') a=question;; '0 16 * * *') a=video;; '30 19 * * *') a=results;;
-            *) if [ "$EV" = push ]; then a="$(grep -v '^#' team/stories/RUN | head -1 | sed 's/ *#.*//')"; else a="$SLOT_IN $DAY_IN"; fi;;
-          esac
-          [[ "$a" =~ ^(matches|fact|win|question|video|results|preview)(\ [0-9]{4}-[0-9]{2}-[0-9]{2})?\ *$ ]] || { echo "плохие аргументы: $a"; exit 1; }
+          if [ -n "$CRON" ]; then a=auto
+          elif [ "$EV" = push ]; then a="$(grep -v '^#' team/stories/RUN | head -1 | sed 's/ *#.*//')"
+          else a="$SLOT_IN $DAY_IN"; fi
+          [[ "$a" =~ ^(auto|matches|fact|win|question|video|results|preview)(\ [0-9]{4}-[0-9]{2}-[0-9]{2})?\ *$ ]] || { echo "плохие аргументы: $a"; exit 1; }
           echo "a=$a" >> "$GITHUB_OUTPUT"
       - name: История
         env:
