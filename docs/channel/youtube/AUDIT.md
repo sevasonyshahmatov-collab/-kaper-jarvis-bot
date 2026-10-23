@@ -38,6 +38,8 @@ Google требует публичную ссылку на политику. П�
 
 ## Шаг 2. Приложение — из «Testing» в «In production» (10 мин, убирает 7-дневный ключ)
 
+**Сделано: 23.10 статус «In production» (скриншот владельца).** Осталось п. 5 — новый ключ, если текущий выдан до перевода.
+
 console.cloud.google.com → проект «JARVIS YouTube» → **Google Auth Platform** (или APIs & Services → OAuth consent screen):
 1. **Branding**: App name `JARVIS Uploader`; User support email — ваша почта; App home page — `https://www.youtube.com/@<канал>`;
    Privacy policy — ссылка из шага 1; Authorized domains — `telegra.ph` и `youtube.com` (если просит); Developer contact — почта. Save.
