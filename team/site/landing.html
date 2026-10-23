@@ -10,6 +10,7 @@
   --display:"Unbounded","Arial Black",sans-serif;
   --body:"Manrope",system-ui,sans-serif;
   --mono:"JetBrains Mono",ui-monospace,monospace;
+  --out:cubic-bezier(.22,1,.36,1);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -18,8 +19,16 @@ body{background:var(--ice);color:var(--fg);font-family:var(--body);font-size:16p
 h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.05}
 a{color:inherit}
 .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan)}
-.btn{display:inline-flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:15px;padding:16px 26px;border-radius:999px;text-decoration:none;border:0;cursor:pointer;transition:transform .15s,box-shadow .2s}
+.btn{display:inline-flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:15px;padding:16px 26px;border-radius:999px;text-decoration:none;border:0;cursor:pointer;transition:transform .2s var(--out),box-shadow .25s var(--out)}
 .btn:hover{transform:translateY(-2px)}
+.btn:active,.tab:active,.tstep:active{transform:scale(.97);transition-duration:.08s}
+/* motion: one ease-out curve for everything; sections below the first screen rise in once as they reach the viewport */
+.rv{opacity:.001;transform:translateY(18px)}
+.rv.in{opacity:1;transform:none;transition:opacity .7s var(--out),transform .7s var(--out)}
+@keyframes rise{from{opacity:.35;transform:translateY(14px)}to{opacity:1;transform:none}}
+.hero .wrap>div>*{animation:rise .8s var(--out) both}
+.hero .wrap>div>*:nth-child(2){animation-delay:.06s}.hero .wrap>div>*:nth-child(3){animation-delay:.12s}.hero .wrap>div>*:nth-child(4){animation-delay:.18s}
+.hero .board{animation:rise .9s var(--out) .2s both}
 .btn:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .btn-tg{background:linear-gradient(135deg,#2aa8ff,var(--cyan));color:#041022;box-shadow:0 10px 40px -10px var(--cyan)}
 .btn-tg:hover{box-shadow:0 14px 50px -8px var(--cyan)}
@@ -81,9 +90,12 @@ section.s{padding-block:80px;border-top:1px solid var(--line);position:relative}
 .tab[aria-selected="true"]{background:var(--fg);color:var(--ice);border-color:var(--fg)}
 .tab:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .matches{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.card{perspective:900px;height:230px;cursor:pointer;border:0;background:none;padding:0;color:inherit;text-align:left;font:inherit}
+.card{perspective:900px;height:230px;cursor:pointer;border:0;background:none;padding:0;color:inherit;text-align:left;font:inherit;transition:transform .25s var(--out)}
+.card:hover{transform:translateY(-4px)}
+.card:active{transform:scale(.98);transition-duration:.08s}
+.card:hover .front{border-color:rgba(62,224,255,.45)}
 .card:focus-visible{outline:3px solid var(--gold);outline-offset:4px;border-radius:18px}
-.inner{position:relative;width:100%;height:100%;transition:transform .6s cubic-bezier(.3,.7,.2,1);transform-style:preserve-3d}
+.inner{position:relative;width:100%;height:100%;transition:transform .6s var(--out);transform-style:preserve-3d}
 .card.open .inner{transform:rotateY(180deg)}
 .face{position:absolute;inset:0;border-radius:18px;padding:20px;backface-visibility:hidden;border:1px solid var(--line);display:flex;flex-direction:column;justify-content:space-between}
 .front{background:radial-gradient(120% 90% at 0% 0%,rgba(62,224,255,.16),transparent 60%),var(--ice2)}
@@ -291,8 +303,10 @@ html{scroll-padding-top:65px}
   .sheet{transform:none}
   .veil{background:linear-gradient(180deg,rgba(7,18,37,.85) 0%,rgba(7,18,37,.65) 50%,rgba(7,18,37,.25) 100%)}
 }
+@media (max-width:860px){.leagues{display:none}.circle{display:none}.hero .cta-row .btn{padding:14px 20px;font-size:14px}}
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
+  .rv{opacity:1;transform:none}
 }
 </style>
 
@@ -379,7 +393,7 @@ html{scroll-padding-top:65px}
   </div>
 </section>
 
-<section class="s">
+<section class="s" id="honest">
   <div class="wrap">
     <div class="s-head">
       <div class="eyebrow">Честные итоги</div>
@@ -665,6 +679,25 @@ k.oninput=kv;kv();
 const R=window.__RES?window.__RES.map(r=>[r.t,r.b,r.ok?1:0]):[['Ак Барс — Сибирь','П1',1],['Бостон — Рейнджерс','ТБ 5.5',1],['ЦСКА — Динамо','П2',0],['Торонто — Монреаль','П1',1],['Авангард — Салават','ТМ 5.5',0],['Вегас — Сиэтл','П1',1],['Трактор — Металлург','ТБ 4.5',1]];
 const row=R.map(r=>`<span class="res ${r[2]?'win':'loss'}">${r[0]} · ${r[1]} <b>${r[2]?'✓ зашёл':'✕ не зашёл'}</b></span>`).join('');
 document.getElementById('tick').innerHTML=row+row;
+
+// on the site (window.__SITE): real results only; until the first matches are settled say so instead of showing examples
+if(window.__SITE){
+ const T=window.__TALLY,hp=document.querySelector('#honest .s-head p');
+ if(!window.__RES){document.querySelector('.ticker').hidden=true;hp.textContent='Каждое утро на канале — итоги вчерашних матчей, и зашедшие, и нет. Здесь они появятся после первых сыгранных матчей.'}
+ else hp.textContent='Последние прогнозы с сайта — и зашедшие, и нет.';
+ if(T&&T.n){const s=document.querySelectorAll('.honest .stat');
+  s[0].innerHTML=`<strong>${T.w}</strong><span>прогнозов зашло за 30 дней</span>`;
+  s[1].innerHTML=`<strong>${T.l}</strong><span>не зашло — показываем все, без удалений</span>`;
+  s[2].innerHTML=`<strong>${Math.round(100*T.w/T.n)}%</strong><span>зашло из ${T.n} прогнозов</span>`}
+}
+
+// reveal on scroll: only blocks that start below the first screen; everything stays visible without JS or with reduced motion
+if('IntersectionObserver' in window&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
+ const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -8% 0px'});
+ document.querySelectorAll('section.s .s-head, .steps .step, .range, .honest .stat, .product>*, .final .inner-f').forEach((el,i,all)=>{
+  if(el.getBoundingClientRect().top<innerHeight)return;
+  el.classList.add('rv');const sib=[...el.parentElement.children].indexOf(el);el.style.transitionDelay=Math.min(sib,4)*70+'ms';io.observe(el)});
+}
 
 document.getElementById('buy').onclick=()=>{document.getElementById('buymsg').innerHTML='Спасибо за интерес! Напиши в <a href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a> — расскажу про доступ.'};
 
