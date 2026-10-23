@@ -1,0 +1,42 @@
+# Статистика прогнозов канала @jarvibet по месяцам (team/site/months.py, владелец 23.10): только посты, которые владелец
+# выложил и не удалил (лента t.me/s/jarvibet), итог — по счёту матча. Разовый запуск для сверки владельцем: из ветки
+# claude/** записать в team/site/MONTHS_RUN дату начала (ГГГГ-ММ-ДД) и запушить; список — в логе и в артефакте «months».
+name: Статистика канала по месяцам
+
+on:
+  push:
+    branches: ['claude/**']
+    paths: ['team/site/MONTHS_RUN']
+  workflow_dispatch:
+    inputs:
+      since:
+        description: 'С какого дня считать (ГГГГ-ММ-ДД)'
+        required: false
+        default: '2026-09-01'
+
+permissions:
+  contents: read
+
+jobs:
+  months:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install "pillow>=11" numpy requests
+      - name: Посчитать
+        env:
+          SINCE_IN: ${{ github.event.inputs.since }}
+        run: |
+          d="${SINCE_IN:-$(head -c 10 team/site/MONTHS_RUN 2>/dev/null)}"; d="${d:-2026-09-01}"
+          [[ "$d" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "плохая дата: $d"; exit 1; }
+          python team/site/months.py "$d" out/months
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: months
+          path: out/months/
+          retention-days: 7
