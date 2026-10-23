@@ -195,6 +195,11 @@ def posted_today(day):
 def main():
     a = sys.argv[1:]
     day = date.fromisoformat(next((x for x in a if x[:2] == '20'), datetime.now(MSK).date().isoformat()))
+    if '--auto' in a:                                    # общий «тик» (social-tick.yml): только в окне 12:30–16:00 МСК
+        now = datetime.now(MSK)
+        if not ('12:30' <= now.strftime('%H:%M') <= '16:00'):
+            print('CAROUSEL auto: не время (%s МСК)' % now.strftime('%H:%M'), flush=True)
+            return
     if '--preview' not in a:
         import instagram
         if instagram.enabled() and posted_today(day):

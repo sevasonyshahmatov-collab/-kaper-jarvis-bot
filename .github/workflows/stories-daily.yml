@@ -36,7 +36,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: stories-${{ github.event_name == 'push' && 'preview' || 'publish' }}   # выкладка — строго по одной
+  group: ${{ github.event_name == 'push' && 'stories-preview' || 'stories-publish' }}   # выкладка — строго по одной (и social-tick)
   cancel-in-progress: false
 
 jobs:
