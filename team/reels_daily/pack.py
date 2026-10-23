@@ -43,6 +43,9 @@ def texts(league, day, js, manual):
         if j in manual:
             n += 1
             yt = 'загрузить вручную — №%d в альбоме' % n
+            why = (j.get('yt_note') or '').split('\n')[0].replace(' — загрузите вручную', '')
+            if why and not why.startswith('загрузите вручную'):          # автозагрузка была, но YouTube отказал
+                yt += ' (%s)' % why[:120]
         else:
             yt = j['yt'] or j.get('yt_note') or '—'
         lines += ['%s %s — %s' % (j['d'][11:16], j['h'], j['a']), 'YouTube: %s' % yt]
