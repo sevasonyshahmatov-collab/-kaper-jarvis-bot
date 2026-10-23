@@ -306,7 +306,7 @@ def match_page(P, m, logos, base, siblings):
     return head(title, desc, url, '../', extra) + body + FOOT
 
 
-def list_page(D, base):
+def list_page(D, base, logos=None):
     """/prognozy/: ближайшие матчи сверху, ниже сыгранные с итогом; честный счёт за 30 дней."""
     lim = (today() - timedelta(days=30)).isoformat()
     allm = [(P, m) for P in D for m in P['matches']]
@@ -315,15 +315,17 @@ def list_page(D, base):
     days_ = {}
     for P, m in sorted(allm, key=lambda pm: pm[1]['d'], reverse=True):
         days_.setdefault((P['day'], P['league']), []).append(m)
+    logos = logos or {}
+    icon = lambda t: ('<img src="../%s" alt="" width="26" height="26">' % logos[t]) if t in logos else '<i></i>'  # noqa: E731
     blocks = []
     for (dy, lg), ms in days_.items():
         d = date.fromisoformat(dy)
-        rows = ''.join('''<a class="row" href="%s"><time>%s</time><span class="m">%s — %s</span><span class="p">%s · %s</span>%s</a>''' % (
-            page_name(m), m['d'][11:16], esc(m['h']), esc(m['a']), esc(m['pick']), kef_s(m['odds']),
+        rows = ''.join('''<a class="row" href="%s"><time>%s</time><span class="m">%s<span>%s — %s</span>%s</span><span class="p">%s · %s</span>%s</a>''' % (
+            page_name(m), m['d'][11:16], icon(m['h']), esc(m['h']), esc(m['a']), icon(m['a']), esc(m['pick']), kef_s(m['odds']),
             '<b class="mk %s">%s %s</b>' % (m['res'], {'win': '✓', 'loss': '✕'}.get(m['res'], '↩'), esc(m.get('score') or ''))
             if m.get('res') else '<b class="mk soon">ждём</b>') for m in sorted(ms, key=lambda m: m['d']))
         blocks.append('<section><h2>%s · %s</h2><div class="rows">%s</div></section>' % (
-            LG[lg], ('ночь на ' + nice_day(d)) if lg == 'nhl' else nice_day(d), rows))
+            LG[lg], ('ночь на %d %s' % (d.day, MONTHS[d.month - 1])) if lg == 'nhl' else nice_day(d), rows))
     title = 'Прогнозы на хоккей сегодня: КХЛ и НХЛ — все матчи с итогами'
     desc = 'Прогнозы на каждый матч КХЛ и НХЛ от собственной модели: форма команд, вероятность, кэф. Итоги всех прогнозов, и зашедших, и нет.'
     tally = ('<p class="tally">За 30 дней: зашло <b>%d из %d</b> прогнозов. Показываем все, без удалений.</p>' % (w, len(done))) if done else ''
@@ -414,7 +416,7 @@ def build(site, plans, do_settle=True):
         ms = sorted(P['matches'], key=lambda m: m['d'])
         for m in ms:
             write(site, 'prognozy/' + page_name(m), match_page(P, m, logos, base, ms), changed)
-    write(site, 'prognozy/index.html', list_page(D, base), changed)
+    write(site, 'prognozy/index.html', list_page(D, base, logos), changed)
     write(site, 'index.html', landing(D, logos, base), changed)
     # sitemap — по всем страницам матчей, что лежат на сайте (и старше KEEP_DAYS)
     pages = [('', today().isoformat()), ('prognozy/', today().isoformat())]
