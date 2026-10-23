@@ -707,6 +707,19 @@ const cv=document.getElementById('rink'),g=cv.getContext('2d');
 const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ICE='#0b1a33',OUT='#071225',BOX='rgba(234,243,255,.05)',BOXL='rgba(234,243,255,.14)',BOARD='rgba(234,243,255,.24)',RED='rgba(255,59,92,.4)',BLUE='rgba(62,224,255,.32)';
 const TEAM={A:{c:'#3ee0ff',dk:'#0d6e91',d:1,door:-13,b0:-31},B:{c:'#ff3b5c',dk:'#a3203a',d:-1,door:13,b0:17}};
+// team colours from the hero board emblems (match of the day): the most saturated hue of each, brightened for the dark ice;
+// close hues or a colourless emblem — the away side goes white
+function tint(img){try{const n=32,c=document.createElement('canvas');c.width=c.height=n;const x=c.getContext('2d');x.drawImage(img,0,0,n,n);
+ const d=x.getImageData(0,0,n,n).data,bin=Array.from({length:12},()=>[0,0,0,0]);
+ for(let i=0;i<d.length;i+=4){if(d[i+3]<200)continue;const r=d[i]/255,gg=d[i+1]/255,b=d[i+2]/255,mx=Math.max(r,gg,b),mn=Math.min(r,gg,b),l=(mx+mn)/2,ch=mx-mn;
+  if(ch<.12||l<.08||l>.9)continue;let h=mx===r?((gg-b)/ch+6)%6:mx===gg?(b-r)/ch+2:(r-gg)/ch+4;const k=Math.floor(h*2)%12,w=1;
+  bin[k][0]+=h*60*w;bin[k][1]+=w;bin[k][2]+=ch/(1-Math.abs(2*l-1)||1)*w;bin[k][3]++}
+ const top=bin.reduce((a,b)=>b[1]>a[1]?b:a);if(top[3]<20)return null;return{h:top[0]/top[1],s:Math.min(1,top[2]/top[1])}}catch(e){return null}}
+const hsl=(h,s,l)=>`hsl(${h.toFixed(0)} ${(s*100).toFixed(0)}% ${(l*100).toFixed(0)}%)`;
+(async()=>{const im=[...document.querySelectorAll('.board .tm img')];if(im.length<2)return;
+ await Promise.all(im.map(i=>i.decode().catch(()=>{})));const [a,b]=im.map(tint);if(!a&&!b)return;
+ const set=(t,v)=>{if(v){TEAM[t].c=hsl(v.h,Math.max(.6,v.s),.62);TEAM[t].dk=hsl(v.h,Math.max(.5,v.s*.8),.3)}else{TEAM[t].c='#dfe8f5';TEAM[t].dk='#5a6a85'}};
+ set('A',a);const dh=a&&b?Math.min(Math.abs(a.h-b.h),360-Math.abs(a.h-b.h)):0;set('B',a&&b&&dh<35?null:b);draw()})();
 const ROLE={LW:[-1,'F'],C:[0,'F'],RW:[1,'F'],LD:[-1,'D'],RD:[1,'D']};
 const clamp=(v,a,b)=>v<a?a:v>b?b:v,hyp=Math.hypot,rnd=(a,b)=>a+Math.random()*(b-a);
 let W,H,DPR,VS,VP;
@@ -721,6 +734,8 @@ const seatPos=(t,s)=>[TEAM[t].b0+s*3.5,47.3];
 const GK={A:{x:-87.4,y:0,b:0},B:{x:87.4,y:0,b:0}};
 const puck={x:0,y:0,vx:0,vy:0,mode:'hidden',path:null,sp:0,carrier:null,last:'A',onEnd:null};
 const glow={L:0,R:0};
+// camera: eases in on the attacking end and closer still on a goal, then back out to the whole rink
+const cam={z:1,x:0};
 let T=0,shooter=null;
 
 function fpos(p,fx,fy){const d=TEAM[p.t].d,[sv,kind]=ROLE[p.role],sy=sv*d;
@@ -899,7 +914,9 @@ function script(dt){const s=S[si];if(!st)st={t:0};st.t+=dt;
  let done=RUN[s.do](s,st,dt);
  if(!done&&st.t>(s.do==='change'?30:16)){forced++;if(st.p&&st.p.state!=='bench'&&s.do!=='carry'&&s.do!=='celebrate')take(st.p);PL.forEach(p=>p.ov=null);done=true}
  if(done){si=(si+1)%S.length;st=null}}
-function tick(dt){T+=dt;script(dt);upPlayers(dt);upPuck(dt);upGK(dt);glow.L=Math.max(0,glow.L-dt*.35);glow.R=Math.max(0,glow.R-dt*.35)}
+function tick(dt){T+=dt;script(dt);upPlayers(dt);upPuck(dt);upGK(dt);glow.L=Math.max(0,glow.L-dt*.35);glow.R=Math.max(0,glow.R-dt*.35);
+ let z=1,e=0;if(Math.max(glow.L,glow.R)>.05){z=1.5;e=glow.R>glow.L?1:-1}else if(puck.mode!=='hidden'&&Math.abs(puck.x)>64){z=1.18;e=Math.sign(puck.x)}
+ const k=1-Math.exp(-dt*1.3);cam.z+=(z-cam.z)*k;cam.x+=(e*92*(1-1/z)-cam.x)*k}
 
 // drawing
 function rr(x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
@@ -943,7 +960,7 @@ function goalie(t){const c=TEAM[t],k=GK[t],d=c.d,a=d>0?0:Math.PI,b=k.b;
  const [mx,my]=P(.12,0);dot(mx,my,.52*Z,'#e6eef8');g.strokeStyle=c.dk;g.lineWidth=.14;g.beginPath();g.arc(mx,my,.46*Z,a-.9,a+.9);g.stroke();}
 function draw(){
  g.setTransform(DPR,0,0,DPR,0,0);g.fillStyle=OUT;g.fillRect(0,0,W,H);
- g.translate(W/2,H/2);if(VP)g.rotate(Math.PI/2);g.scale(VS,VS);
+ g.translate(W/2,H/2);if(VP)g.rotate(Math.PI/2);g.scale(VS*cam.z,VS*cam.z);g.translate(-cam.x,0);
  g.fillStyle=BOX;g.strokeStyle=BOXL;g.lineWidth=.3;
  [[-34,43.2,23,7.6],[11,43.2,23,7.6],[-17,-50.5,12,7.3],[5,-50.5,12,7.3],[-3.5,-49.5,7,6]].forEach(b=>{g.fillRect(...b);g.strokeRect(...b)});
  rr(-100,-42.5,200,85,28);g.fillStyle=ICE;g.fill();
@@ -968,6 +985,6 @@ size();addEventListener('resize',()=>{size();draw()});
 let last=0;
 function frame(ts){const dt=last?Math.min(.05,(ts-last)/1000):.016;last=ts;tick(dt);draw();requestAnimationFrame(frame)}
 draw();if(!still)requestAnimationFrame(frame);
-window.__rink={PL,puck,get si(){return si},get forced(){return forced},sim(sec){const log=[];let prev=si;for(let t=0;t<sec;t+=1/60){tick(1/60);if(si!==prev){log.push([+T.toFixed(1),prev,S[prev].do]);prev=si}}return log}};
+window.__rink={PL,puck,TEAM,cam,get si(){return si},get forced(){return forced},sim(sec){const log=[];let prev=si;for(let t=0;t<sec;t+=1/60){tick(1/60);if(si!==prev){log.push([+T.toFixed(1),prev,S[prev].do]);prev=si}}return log}};
 })();
 </script>
