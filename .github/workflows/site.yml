@@ -63,20 +63,6 @@ jobs:
           repository: ${{ vars.SITE_REPO }}
           token: ${{ secrets.SITE_TOKEN || github.token }}
           path: site
-      - name: Видео первого экрана
-        # Mixkit «silhouette of ice hockey player during training» (Mixkit Stock Video Free License: коммерция без указания
-        # автора; владелец 23.10 выбрал №1 из docs/site_video). Скачивается один раз, дальше лежит в media/ сайта.
-        if: env.SITE_REPO != ''
-        run: |
-          [ -f site/media/hero-1280.mp4 ] && exit 0
-          command -v ffmpeg >/dev/null || sudo apt-get install -y -qq ffmpeg >/dev/null
-          mkdir -p site/media && cd site/media
-          curl -sSfL -o /tmp/src.mp4 https://assets.mixkit.co/videos/48383/48383-1080.mp4 || curl -sSfL -o /tmp/src.mp4 https://assets.mixkit.co/videos/48383/48383-720.mp4
-          ffmpeg -v error -y -i /tmp/src.mp4 -an -vf "scale=1280:-2,fps=30" -c:v libx264 -crf 30 -preset slow -pix_fmt yuv420p -movflags +faststart hero-1280.mp4
-          ffmpeg -v error -y -i /tmp/src.mp4 -an -vf "scale=720:-2,fps=30" -c:v libx264 -crf 32 -preset slow -pix_fmt yuv420p -movflags +faststart hero-720.mp4
-          ffmpeg -v error -y -ss 4 -i /tmp/src.mp4 -frames:v 1 -vf "scale=1280:-2" -q:v 5 hero.jpg
-          printf 'Mixkit — silhouette of ice hockey player during training (48383)\nhttps://mixkit.co/free-stock-video/silhouette-of-ice-hockey-player-during-training-48383/\nMixkit Stock Video Free License\n' > SOURCE.txt
-          ls -la
       - name: Собрать страницы
         env:
           SITE_URL: ${{ steps.day.outputs.url }}
