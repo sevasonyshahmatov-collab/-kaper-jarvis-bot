@@ -1,0 +1,57 @@
+# Догрузка на YouTube роликов, которым утром отказал лимит канала (team/reels_daily/retry.py; владелец 23.10).
+# Через ~3 ч после утреннего конвейера: берёт артефакты сегодняшних запусков «Шортсы — конвейер» и догружает отказанные.
+name: Шортсы — догрузка на YouTube
+
+on:
+  schedule:
+    - cron: '47 4 * * *'          # 07:47 МСК (11:47 Красноярск); утренний конвейер грузит около 04:30–05:30 МСК
+  workflow_dispatch:
+    inputs:
+      day:
+        description: 'День ГГГГ-ММ-ДД (пусто — сегодня по Москве)'
+        required: false
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: reels-retry
+  cancel-in-progress: false
+
+jobs:
+  retry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests
+      - name: Скачать ролики утренних запусков
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DAY_IN: ${{ github.event.inputs.day }}
+        run: |
+          d="${DAY_IN:-$(TZ=Europe/Moscow date +%F)}"
+          [[ "$d" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "плохой день: $d"; exit 1; }
+          echo "DAY=$d" >> "$GITHUB_ENV"
+          mkdir -p out/reels_daily
+          for id in $(gh run list -R "$GITHUB_REPOSITORY" -w reels-daily.yml -b main -L 8 --json databaseId -q '.[].databaseId'); do
+            for lg in khl nhl; do
+              gh run download "$id" -R "$GITHUB_REPOSITORY" -p "videos-$lg-$d-*" -D "out/reels_daily/dl-$id-$lg" 2>/dev/null && echo "запуск $id: $lg" || true
+            done
+          done
+      - name: Догрузить
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: |
+          for lg in nhl khl; do
+            mkdir -p "out/reels_daily/$lg-$DAY"
+            find out/reels_daily -path "*/dl-*-$lg/*" -type f -exec mv -t "out/reels_daily/$lg-$DAY/" {} + 2>/dev/null || true
+            PYTHONPATH=render python team/reels_daily/retry.py "$lg" "$DAY"
+          done
