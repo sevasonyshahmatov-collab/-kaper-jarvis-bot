@@ -153,7 +153,8 @@ def parse_page(page):
         num = re.search(r'data-post="%s/(\d+)"' % CHANNEL, block, re.I)
         if not num:
             continue
-        mt = re.search(r'<div class="tgme_widget_message_text(?:\s[^"]*)?"', block)
+        # текст поста, не цитата: у ответа на пост сначала идёт js-message_reply_text — текст того поста, на который ответ
+        mt = re.search(r'<div class="tgme_widget_message_text(?![^"]*js-message_reply_text)(?:\s[^"]*)?"', block)
         inner, rest = '', block
         if mt:
             inner, end = _div_inner(block, mt.start())

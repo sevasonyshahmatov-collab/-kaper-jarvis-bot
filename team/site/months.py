@@ -22,6 +22,114 @@ import data  # noqa: E402
 import morning  # noqa: E402
 from data import MSK  # noqa: E402
 
+import difflib  # noqa: E402
+import re  # noqa: E402
+
+import settle  # noqa: E402
+
+# ---------------------------------------------------------------- старый формат (сентябрь — 15 октября)
+# «🏒КХЛ. 🐺НЕФТЕХИМИК - ХК СОЧИ🐆» / «⚔️ Сочи — ЦСКА | 19:30» первой строкой, дальше разбор и строка
+# «✅ Прогноз: Победа Нефтехимика в основное время за 1.72» (кэф — «за 1.72» в той же строке). Даты матча в посте нет:
+# начало ≈ время поста, матч ищется в данных лиги в пределах ±30 ч (data.match_game).
+OLD_TYPO = {'ФЛА': 'Филадельфия', 'АВТОМОБОИЛИСТ': 'Автомобилист', 'ДЕТЙРОЙ': 'Детройт', 'ДИНАМО': 'Динамо Москва',
+            'ДИНАМО МСК': 'Динамо Москва', 'ЛОС-АНДЖЕЛЕС КИНГЗ': 'Лос-Анджелес', 'ФИЛА': 'Филадельфия'}
+NICK = {'шаркс': 'Сан-Хосе', 'кингз': 'Лос-Анджелес', 'кингс': 'Лос-Анджелес', 'джетс': 'Виннипег', 'девилз': 'Нью-Джерси',
+        'девилс': 'Нью-Джерси', 'пингвинз': 'Питтсбург', 'пингвинс': 'Питтсбург', 'пантерз': 'Флорида', 'пантерс': 'Флорида',
+        'кенакс': 'Ванкувер', 'кэнакс': 'Ванкувер', 'эвеланш': 'Колорадо', 'лавины': 'Колорадо', 'ойлерз': 'Эдмонтон',
+        'ойлерс': 'Эдмонтон', 'брюинз': 'Бостон', 'брюинс': 'Бостон', 'лифс': 'Торонто', 'кэпиталз': 'Вашингтон',
+        'кэпиталс': 'Вашингтон', 'флайерз': 'Филадельфия', 'флайерс': 'Филадельфия', 'старз': 'Даллас', 'старс': 'Даллас',
+        'блюз': 'Сент-Луис', 'уайлд': 'Миннесота', 'флэймз': 'Калгари', 'флеймз': 'Калгари', 'кракен': 'Сиэтл',
+        'найтс': 'Вегас', 'голден найтс': 'Вегас', 'предаторз': 'Нэшвилл', 'предаторс': 'Нэшвилл', 'канадиенс': 'Монреаль',
+        'хабс': 'Монреаль', 'сейбрз': 'Баффало', 'сейбрс': 'Баффало', 'сенаторз': 'Оттава', 'сенаторс': 'Оттава',
+        'лайтнинг': 'Тампа-Бэй', 'харрикейнз': 'Каролина', 'харрикейнс': 'Каролина', 'блэкхокс': 'Чикаго',
+        'блэкхоукс': 'Чикаго', 'дакс': 'Анахайм', 'ред уингз': 'Детройт', 'ред уингс': 'Детройт', 'блю джекетс': 'Коламбус',
+        'мамонт': 'Юта'}
+OLD_BET = re.compile(r'(?i)^\W*(?:прогноз|ставка)\s*[:\-–—]?\s*(.+)$')
+OLD_KEF = re.compile(r'(?i)\s*(?:(?:за|на|кэф|кеф|кф|коэф\w*|@)\s*:?\s*(\d+(?:[.,]\d+)?)|\s(\d[.,]\d\d))\W*$')
+
+
+def _old_team(name):
+    name = re.sub(r'[^\w\s.-]', '', name).strip(' .-')
+    name = OLD_TYPO.get(name.upper(), NICK.get(name.lower(), name))
+    n, ok = channel._team(name)
+    if not ok:
+        close = difflib.get_close_matches(n.capitalize(), list(settle.GEN), n=1, cutoff=.8)
+        if close:
+            return close[0], True
+    return n, ok
+
+
+OLD_FIX = [           (r'ренйджерс', 'рейнджерс'), (r'питсбург', 'питтсбург'), (r'оснвоное', 'основное'), (r'\bменше\b', 'меньше'),
+           (r'\bбольще\b', 'больше'), (r'\bтотаю\b', 'тотал'), (r'индивитуадльный итота', 'индивидуальный тотал'),
+           (r'\bит([12])б\b', r'итб\1'), (r'\bит([12])м\b', r'итм\1'), (r'\bтотал м\s*\(', 'тм('), (r'\bтотал б\s*\(', 'тб('),
+           (r'\bи меньше (\d)', r'и тм \1'), (r'\bи больше (\d)', r'и тб \1')]
+
+
+def _old_bet(bet, home, away):
+    """Свободная строка ставки старого поста → ближе к форме, которую понимает settle: опечатки, «с учётом ОТ и буллитов»,
+    прозвища клубов НХЛ («победа лайтнинг» → «победа Тампа-Бэй»)."""
+    b = bet
+    if re.search(r'с уч[её]том', b):
+        m = re.match(r'(?:итоговая )?победа (.+?) с уч[её]том', b)
+        if m:
+            b = 'итоговая победа ' + m.group(1)
+    for rx, to in OLD_FIX:
+        b = re.sub(rx, to, b)
+    for nick, team in NICK.items():
+        if team in (home, away):
+            b = re.sub(r'\b%s\b' % nick, team, b)
+    for team in (home, away):                    # «тотал Авангарда 2.5 больше», «Барыс тотал 2.5 больше» — тотал команды
+        st = re.escape(team.lower()[:4] if len(team) > 4 else team.lower()[:-1])     # «Юта» → «ют»: «тотал Юты»
+        m = re.search(r'(?i)(?:тотал\s+%s[\w-]*|%s[\w-]*\s+тотал)\s+(\d+(?:[.,]\d)?)\s+(больше|меньше)' % (st, st), b)
+        if m:
+            b = 'индивидуальный тотал %s %s %s' % (settle.GEN.get(team, team), m.group(2), m.group(1))
+    return b
+
+
+def old_pick(post):
+    """Пост старого формата → (прогноз, None) / (None, почему) / (None, None) — не прогноз."""
+    lines = [t for t, _ in post['text']]
+    if not lines or not post['posted']:
+        return None, None
+    head = re.sub(r'\|\s*\d{1,2}[:.]\d\d.*$', '', lines[0])
+    league = 'NHL' if re.search(r'НХЛ', head, re.I) else 'KHL' if re.search(r'КХЛ', head, re.I) else None
+    head = re.sub(r'(?i)^\W*(?:кхл|нхл)\W*', '', head)
+    parts = re.split(r'\s+[-—–]\s+|\s*[—–]\s*', head)
+    if len(parts) != 2:
+        return None, None
+    (home, ok_h), (away, ok_a) = _old_team(parts[0]), _old_team(parts[1])
+    if not (ok_h and ok_a):
+        bet_line = any(OLD_BET.match(t) for t in lines[1:])
+        return None, ('команда не узнана: %s' % head) if bet_line else None
+    if league is None:
+        league = 'NHL' if home in settle.NHL_GEN else 'KHL'
+    bet = None
+    for t in lines[1:]:
+        m = OLD_BET.match(t)
+        if m and not re.match(r'(?i)\W*почему', t):
+            bet = m.group(1)
+            break
+    if not bet:
+        stake = any(re.search(r'(?i)ставк|прогноз|\bкэф|\bкф\b', t) for t in lines[1:])
+        return None, ('нет строки «Прогноз: …»' if stake else None)
+    if re.search(r'(?i)брос', bet):
+        return None, 'ставка на броски — по счёту не проверить, посчитать вручную'
+    kef = None
+    mk = OLD_KEF.search(bet)
+    if mk:
+        kef = round(float((mk.group(1) or mk.group(2)).replace(',', '.')), 2)
+        bet = bet[:mk.start()]
+    bet = re.sub(r'[^\w\s().,+\-–—]', ' ', bet)
+    bet = re.sub(r'\s+', ' ', bet).strip(' .,-').lower()
+    bet = _old_bet(bet, home, away)
+    start = post['posted']
+    bet2, kef2, bnote = channel._bet(bet, home, away, league, start)
+    return dict(pid='№%d' % post['id'], msg_id=post['id'], league=league, home=home, away=away, start=start, bet=bet2,
+                kef=kef if kef is not None else kef2, src='channel-old', note=bnote, head=lines[0], exact_time=False,
+                tg_edited=post['edited'], media=post['media'], posted=post['posted'],
+                url='https://t.me/%s/%d' % (channel.CHANNEL, post['id']), edited=False), None
+
+
 MONTH = ['', 'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
 
 
@@ -56,6 +164,18 @@ def main():
     channel.feed = lambda t: seen.setdefault('v', feed(t))  # лента одна: и для прогнозов, и для списка нераспознанных
     picks, chan = channel.posts(t0, t1)
     used = {p['msg_id'] for p in chan['picks']}
+    old, old_bad, last = {}, [], max((p['posted'] for p in chan['picks'] if p.get('posted')), default=t1)
+    first_new = min((p['posted'] for p in chan['picks'] if p.get('posted')), default=t1)
+    for x in seen['v'][0]:                        # старый формат — только до первого поста нового формата
+        if x['id'] in used or not x['posted'] or not (t0 <= x['posted'] < first_new):
+            continue
+        p, why = old_pick(x)
+        if p:
+            old[(p['league'], p['home'], p['away'], p['start'].date())] = p     # повтор поста — берём последний
+            used.add(x['id'])
+        elif why:
+            old_bad.append((x, why))
+    picks = picks + sorted(old.values(), key=lambda p: p['msg_id'])
     odd = [x for x in seen['v'][0] if x['id'] not in used and x['posted'] and x['posted'] >= t0
            and any(w in ' '.join(t for t, _ in x['text']).lower() for w in ('прогноз', 'кэф', 'коэф'))]
     found, errs = data.games_for(picks) if picks else ({}, [])
@@ -78,13 +198,17 @@ def main():
     lines += ['', '## Все прогнозы', '']
     for r in sorted(rows, key=lambda r: r['start']):
         g = r['g']
-        lines.append('- %s №%d %s %s — %s: %s, кэф %s → %s (%s:%s%s)' % (
-            r['start'].astimezone(MSK).strftime('%d.%m %H:%M'), r['msg_id'], r['league'], r['home'], r['away'], r['bet'],
+        lines.append('- %s №%d %s %s — %s: %s [%s], кэф %s → %s (%s:%s%s)' % (
+            r['start'].astimezone(MSK).strftime('%d.%m %H:%M'), r['msg_id'], r['league'], r['home'], r['away'], r['bet'], r['short'],
             r.get('kef'), res.get(r['res'], r['res']), g.get('hg'), g.get('ag'), (' ' + g['end']) if g.get('end') else ''))
     if pending or bad:
         lines += ['', '## Не вошли', '']
         for p, why in pending + bad:
             lines.append('- №%d %s — %s: %s (%s)' % (p['msg_id'], p['home'], p['away'], p['bet'], why))
+    if old_bad:
+        lines += ['', '## Старый формат: похоже на прогноз, но не разобрано', '']
+        for x, why in old_bad:
+            lines.append('- №%d %s: %s — %s' % (x['id'], x['posted'].strftime('%d.%m'), why, x['text'][0][0][:80]))
     if odd:
         lines += ['', '## Посты со словами «прогноз»/«кэф», не узнанные как прогноз (проверить: может, старый формат)', '']
         for x in odd:
