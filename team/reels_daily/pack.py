@@ -75,16 +75,13 @@ def send(league, day):
     chat = os.environ.get('OWNER_CHAT') or tj.owner_chat(tok, '@jarvibet')
     pool = js if os.environ.get('PACK_ALL') == '1' else manual          # PACK_ALL=1 — все ролики дня (повторная отправка)
     vids = [j for j in pool if os.path.getsize(j['path']) <= TG_VIDEO_MAX]
-    for k in range(0, len(vids), 10):                                   # альбом — до 10 видео
-        grp = vids[k:k + 10]
-        media = [dict(type='video', media='attach://v%d' % i, supports_streaming=True,
-                      **({'caption': head} if k == 0 and i == 0 else {})) for i in range(len(grp))]
-        files = {'v%d' % i: open(j['path'], 'rb') for i, j in enumerate(grp)}
-        try:
-            tj._api(tok, 'sendMediaGroup', dict(chat_id=chat, media=json.dumps(media, ensure_ascii=False)), files, timeout=600)
-        finally:
-            for f in files.values():
-                f.close()
+    # по одному: альбом из нескольких роликов по ~27 МБ упирается в предел Bot API 50 МБ на запрос (23.10)
+    tj._api(tok, 'sendMessage', dict(chat_id=chat, text=head))
+    for n, j in enumerate(vids, 1):
+        cap = '%d/%d · %s\n\n%s' % (n, len(vids), j['title'], j['description'])
+        with open(j['path'], 'rb') as f:
+            tj._api(tok, 'sendVideo', dict(chat_id=chat, caption=cap[:tj.CAPTION_MAX], supports_streaming='true'),
+                    {'video': f}, timeout=600)
     tj._api(tok, 'sendMessage', dict(chat_id=chat, text=text[:tj.TEXT_MAX], disable_web_page_preview='true'))
     for k in range(tj.TEXT_MAX, len(text), tj.TEXT_MAX):
         tj._api(tok, 'sendMessage', dict(chat_id=chat, text=text[k:k + tj.TEXT_MAX], disable_web_page_preview='true'))

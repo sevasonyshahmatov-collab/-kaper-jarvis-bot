@@ -14,6 +14,9 @@ on:
         description: 'retry — догрузить на YouTube; pack — заново прислать в Telegram ролики дня для ручной загрузки'
         required: false
         default: 'retry'
+      league:
+        description: 'Лига: khl, nhl или пусто — обе'
+        required: false
 
 permissions:
   contents: read
@@ -50,12 +53,14 @@ jobs:
       - name: Догрузить или прислать пакет
         env:
           MODE: ${{ github.event.inputs.mode || 'retry' }}
+          LGS: ${{ github.event.inputs.league || 'nhl khl' }}
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
         run: |
-          for lg in nhl khl; do
+          for lg in $LGS; do
+            [[ "$lg" =~ ^(khl|nhl)$ ]] || continue
             mkdir -p "out/reels_daily/$lg-$DAY"
             find out/reels_daily -path "*/dl-*-$lg/*" -type f -exec mv -t "out/reels_daily/$lg-$DAY/" {} + 2>/dev/null || true
             if [ "$MODE" = pack ]; then
