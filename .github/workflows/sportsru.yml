@@ -1,0 +1,86 @@
+# Посты для блога на sports.ru (team/sportsru/post.py, владелец 22.10): у sports.ru нет API — пост приходит владельцу в
+# Telegram тремя сообщениями (служебная строка, заголовок, текст), владелец вставляет его в редактор блога сам.
+# Без Claude: данные — те же, что у шортсов (make.py plan), итоги — по постам канала, как утренние итоги.
+# Секрет: TG_BOT_TOKEN (бот таблиц).
+name: Посты sports.ru
+
+on:
+  schedule:
+    - cron: '17 4 * * 2,4,6'      # вт, чт, сб — 07:17 МСК: разбор самого уверенного матча КХЛ дня
+    - cron: '17 4 * * 0'          # вс — 07:17 МСК: прогнозы на все матчи КХЛ дня
+    - cron: '37 6 * * 1'          # пн — 09:37 МСК: итоги прошлой недели (ночь НХЛ доиграна, утренние итоги уже вышли)
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: 'Вид: match (разбор матча), day (прогнозы дня), week (итоги недели)'
+        required: true
+        default: 'match'
+      league:
+        description: 'Лига для match/day: khl или nhl'
+        required: false
+        default: 'khl'
+      day:
+        description: 'День ГГГГ-ММ-ДД (пусто — сегодня по Москве; для week — понедельник после недели)'
+        required: false
+      team:
+        description: 'Для match: клуб, чей матч разобрать (пусто — самый уверенный прогноз дня)'
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sportsru-${{ github.event.schedule || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install "pillow>=11" numpy requests
+      - id: args
+        env:
+          CRON: ${{ github.event.schedule }}
+          KIND_IN: ${{ github.event.inputs.kind }}
+          LG_IN: ${{ github.event.inputs.league }}
+          DAY_IN: ${{ github.event.inputs.day }}
+        run: |
+          kind="${KIND_IN:-match}"
+          [ "$CRON" = '17 4 * * 0' ] && kind=day
+          [ "$CRON" = '37 6 * * 1' ] && kind=week
+          [[ "$kind" =~ ^(match|day|week)$ ]] || { echo "плохой вид: $kind"; exit 1; }
+          lg="${LG_IN:-khl}"; lg="${lg,,}"
+          [[ "$lg" =~ ^(khl|nhl)$ ]] || { echo "плохая лига: $lg"; exit 1; }
+          d="${DAY_IN:-$(TZ=Europe/Moscow date +%F)}"
+          [[ "$d" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "плохой день: $d"; exit 1; }
+          echo "kind=$kind" >> "$GITHUB_OUTPUT"; echo "league=$lg" >> "$GITHUB_OUTPUT"; echo "day=$d" >> "$GITHUB_OUTPUT"
+      - name: Матчи и прогнозы дня
+        if: steps.args.outputs.kind != 'week'
+        # без TG_BOT_TOKEN: список матчей владелец уже получает от конвейера шортсов
+        run: python team/reels_daily/make.py plan "${{ steps.args.outputs.league }}" "${{ steps.args.outputs.day }}" --max 0 --per 3
+      - name: Собрать пост и отправить
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          PYTHONPATH: render
+          OUT: out/sportsru
+          TEAM_IN: ${{ github.event.inputs.team }}
+        run: |
+          k="${{ steps.args.outputs.kind }}"
+          if [ "$k" = week ]; then
+            python team/sportsru/post.py week "${{ steps.args.outputs.day }}" --send
+          else
+            plan="out/reels_daily/${{ steps.args.outputs.league }}-${{ steps.args.outputs.day }}/plan.json"
+            if [ -n "$TEAM_IN" ]; then python team/sportsru/post.py "$k" "$plan" --team "$TEAM_IN" --send
+            else python team/sportsru/post.py "$k" "$plan" --send; fi
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sportsru
+          path: out/sportsru/
+          retention-days: 7

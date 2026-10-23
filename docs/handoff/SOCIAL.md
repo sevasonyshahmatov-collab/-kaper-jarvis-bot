@@ -78,3 +78,12 @@
 
 ## Как передать в новый чат
 «Прочитай `docs/handoff/SOCIAL.md` в репозитории sevasonyshahmatov-collab/-kaper-jarvis-bot, ветка `main`».
+
+## Сайт и sports.ru (22.10)
+- **Лендинг** — артефакт «JARVIS Хоккей» (claude.ai/artifact/TAsKpR3PbhoAGDPrYZBvyV), исходник — `team/site/landing.html`.
+- **Сайт для поиска** — `team/site/` (README: настройка владельцем, Яндекс Вебмастер, Search Console), задание
+  `.github/workflows/site.yml`. Ждёт владельца: открытый репозиторий сайта, секрет `SITE_TOKEN`, переменная `SITE_REPO`.
+- **sports.ru** — `team/sportsru/` (README), задание `.github/workflows/sportsru.yml`: посты приходят владельцу в Telegram,
+  публикует он сам (API у sports.ru нет). Ждёт владельца: регистрация блога.
+- Исправлено в `team/daily/settle.py`: «Тотал Бостона больше 2,5» (как пишет `pick.human`) считается тоталом команды, а не
+  матча; «Салават тотал меньше 4,5» (как пишет владелец) — по-прежнему тотал матча.

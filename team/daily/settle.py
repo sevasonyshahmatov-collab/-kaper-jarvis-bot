@@ -111,6 +111,14 @@ def parse_leg(text, home, away):
         if not s or not ou or line is None:
             raise ValueError('индивидуальный тотал: не понял команду/линию')
         return dict(kind='it', side=s, ou=ou, line=line, scope=scope)
+    # «тотал Бостона больше 2,5» — индивидуальный тотал: команда в родительном падеже сразу после «тотал» (так пишет
+    # team/reels_daily/pick.human). «Салават тотал меньше 4,5» — по-прежнему тотал матча (так пишет владелец)
+    for s_, team in (('h', home), ('a', away)):
+        if re.search(r'\bтотал\s+%s\s+(?:больше|меньше)\b' % re.escape(_norm(gen(team))), t):
+            ou, line = _ou(t), _num(t)
+            if not ou or line is None:
+                raise ValueError('индивидуальный тотал: не понял больше/меньше или линию')
+            return dict(kind='it', side=s_, ou=ou, line=line, scope=scope)
     # тотал матча
     if re.search(r'\bтотал|\bт[бм]\b', t):
         ou, line = _ou(t), _num(t)

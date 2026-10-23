@@ -1,0 +1,109 @@
+# Сайт прогнозов для поиска (team/site/build.py, владелец 22.10: «пробный запуск поиска»): лендинг + страница на каждый
+# матч с прогнозом, после матча — счёт и итог. Сайт лежит в отдельном ОТКРЫТОМ репозитории с GitHub Pages
+# (закрытый основной репозиторий Pages бесплатно не публикует). Без Claude.
+# Настройка (один раз, team/site/README.md): переменная SITE_REPO («владелец/репо» сайта), при своём домене — SITE_URL;
+# секрет SITE_TOKEN — токен с правом записи только в репозиторий сайта. Нет SITE_TOKEN — сайт собирается, но не публикуется.
+name: Сайт прогнозов
+
+on:
+  schedule:
+    - cron: '23 0 * * *'          # 03:23 МСК — после конвейера шортсов: прогнозы КХЛ дня и НХЛ ближайшей ночи + итоги вчера
+    - cron: '23 7 * * *'          # 10:23 МСК — ночь НХЛ доиграна: итоги
+  workflow_dispatch:
+    inputs:
+      day:
+        description: 'День ГГГГ-ММ-ДД (пусто — сегодня по Москве)'
+        required: false
+      plans:
+        description: 'Собрать прогнозы дня (yes) или только обновить итоги (no)'
+        required: false
+        default: 'yes'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site
+  cancel-in-progress: false
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SITE_REPO: ${{ vars.SITE_REPO }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install "pillow>=11" numpy requests
+      - id: day
+        env:
+          DAY_IN: ${{ github.event.inputs.day }}
+          PLANS_IN: ${{ github.event.inputs.plans }}
+          CRON: ${{ github.event.schedule }}
+        run: |
+          d="${DAY_IN:-$(TZ=Europe/Moscow date +%F)}"
+          [[ "$d" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "плохой день: $d"; exit 1; }
+          p="${PLANS_IN:-yes}"; [ "$CRON" = '23 7 * * *' ] && p=no
+          echo "day=$d" >> "$GITHUB_OUTPUT"; echo "plans=$p" >> "$GITHUB_OUTPUT"
+          url="${{ vars.SITE_URL }}"
+          if [ -z "$url" ] && [ -n "$SITE_REPO" ]; then url="https://${SITE_REPO%%/*}.github.io/${SITE_REPO#*/}/"; fi
+          echo "url=${url:-https://example.github.io/jarvis/}" >> "$GITHUB_OUTPUT"
+      - name: Прогнозы дня
+        if: steps.day.outputs.plans == 'yes'
+        # без TG_BOT_TOKEN: список матчей владелец уже получает от конвейера шортсов
+        run: |
+          for lg in khl nhl; do python team/reels_daily/make.py plan "$lg" "${{ steps.day.outputs.day }}" --max 0 --per 3 || echo "SITEERR план $lg не собран"; done
+      - name: Взять сайт
+        if: env.SITE_REPO != ''
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.SITE_REPO }}
+          token: ${{ secrets.SITE_TOKEN || github.token }}
+          path: site
+      - name: Собрать страницы
+        env:
+          SITE_URL: ${{ steps.day.outputs.url }}
+        run: |
+          mkdir -p site
+          python team/site/build.py site $(ls out/reels_daily/*-"${{ steps.day.outputs.day }}"/plan.json 2>/dev/null)
+      - name: Опубликовать
+        if: env.SITE_REPO != ''
+        env:
+          HAS_TOKEN: ${{ secrets.SITE_TOKEN != '' }}
+        run: |
+          [ "$HAS_TOKEN" = true ] || { echo "SITE_TOKEN не задан — сайт собран, но не опубликован"; exit 0; }
+          cd site
+          git config user.name "jarvis-site-bot"; git config user.email "jarvis-site-bot@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && { echo "на сайте ничего не изменилось"; exit 0; }
+          git commit -q -m "Прогнозы и итоги ${{ steps.day.outputs.day }}"
+          git push -q
+      - name: Сообщить Яндексу о новых страницах (IndexNow)
+        if: env.SITE_REPO != ''
+        env:
+          SITE_URL: ${{ steps.day.outputs.url }}
+          HAS_TOKEN: ${{ secrets.SITE_TOKEN != '' }}
+        run: |
+          [ "$HAS_TOKEN" = true ] && [ -s site/.changed ] || exit 0
+          sleep 60   # GitHub Pages обновляется не сразу
+          python - <<'PY'
+          import hashlib, json, os, urllib.parse, urllib.request
+          base = os.environ['SITE_URL'].rstrip('/') + '/'
+          key = os.environ.get('INDEXNOW_KEY') or hashlib.sha1(base.encode()).hexdigest()[:32]
+          urls = [u for u in open('site/.changed', encoding='utf-8').read().split('\n') if u][:500]
+          body = json.dumps(dict(host=urllib.parse.urlparse(base).netloc, key=key, keyLocation=base + key + '.txt', urlList=urls)).encode()
+          req = urllib.request.Request('https://yandex.com/indexnow', body, {'Content-Type': 'application/json; charset=utf-8'})
+          try:
+              print('IndexNow:', urllib.request.urlopen(req, timeout=30).status, len(urls), 'адресов')
+          except Exception as e:  # noqa: BLE001
+              print('IndexNow не принял:', e)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: site
+          path: site/
+          retention-days: 3
