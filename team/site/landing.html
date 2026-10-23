@@ -47,12 +47,6 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .hero{position:relative;overflow:hidden;padding-block:56px 64px}
 .veil{position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(90deg,rgba(7,18,37,.88) 0%,rgba(7,18,37,.6) 38%,rgba(7,18,37,0) 62%)}
 #rink{position:absolute;inset:0;width:100%;height:100%;z-index:0;filter:blur(3px);opacity:.85}
-/* hero video on the site (media/ in the site repo, Mixkit «silhouette of ice hockey player», free license):
-   darkened and tinted into the page blue; on scroll it sinks back and dims */
-.hv{position:absolute;inset:0;z-index:0;overflow:hidden;background:var(--ice)}
-.hv video{width:100%;height:100%;object-fit:cover;object-position:50% 40%;filter:saturate(.55) brightness(.62) contrast(1.15);transform-origin:50% 40%;will-change:transform,opacity}
-.hv i{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,18,37,.35) 0%,rgba(7,18,37,.15) 45%,rgba(7,18,37,.95) 100%),rgba(20,70,160,.28);mix-blend-mode:normal}
-.has-video #rink{display:none}
 .hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center}
 .hero h1{font-size:clamp(40px,7vw,84px);font-weight:900;letter-spacing:-.01em}
 .hero h1 .c{color:var(--cyan)} .hero h1 .r{color:var(--red)}
@@ -325,7 +319,6 @@ html{scroll-padding-top:65px}
 
 <section class="hero">
   <canvas id="rink" aria-hidden="true"></canvas>
-  <div class="hv" id="hv" aria-hidden="true" hidden><video id="herov" muted playsinline loop preload="metadata"></video><i></i></div>
   <div class="veil" aria-hidden="true"></div>
   <div class="wrap">
     <div>
@@ -709,21 +702,7 @@ if('IntersectionObserver' in window&&!matchMedia('(prefers-reduced-motion: reduc
 document.getElementById('buy').onclick=()=>{document.getElementById('buymsg').innerHTML='Спасибо за интерес! Напиши в <a href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a> — расскажу про доступ.'};
 
 // rink canvas: scripted background match, top-down view in feet (rink 200x85, benches below, penalty boxes above).
-// hero video on the published site; the drawn rink stays for the preview
 (()=>{
-if(!window.__SITE)return;
-const hv=document.getElementById('hv'),v=document.getElementById('herov'),hero=document.querySelector('.hero');
-const small=matchMedia('(max-width:860px)').matches,still=matchMedia('(prefers-reduced-motion: reduce)').matches;
-v.poster='media/hero.jpg';v.src=small?'media/hero-720.mp4':'media/hero-1280.mp4';
-hv.hidden=false;hero.classList.add('has-video');
-if(still){v.removeAttribute('loop')}else{v.play().catch(()=>{})}
-let raf=0;
-addEventListener('scroll',()=>{if(still||raf)return;raf=requestAnimationFrame(()=>{raf=0;
- const p=Math.min(1,Math.max(0,scrollY/hero.offsetHeight));v.style.transform=`scale(${1+.12*p}) translateY(${p*6}%)`;v.style.opacity=1-.55*p})},{passive:true});
-})();
-
-(()=>{
-if(window.__SITE)return;                       // on the site the hero video replaces the drawn match
 const cv=document.getElementById('rink'),g=cv.getContext('2d');
 const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ICE='#0b1a33',OUT='#071225',BOX='rgba(234,243,255,.05)',BOXL='rgba(234,243,255,.14)',BOARD='rgba(234,243,255,.24)',RED='rgba(255,59,92,.4)',BLUE='rgba(62,224,255,.32)';
