@@ -10,6 +10,10 @@ on:
       day:
         description: 'День ГГГГ-ММ-ДД (пусто — сегодня по Москве)'
         required: false
+      mode:
+        description: 'retry — догрузить на YouTube; pack — заново прислать в Telegram ролики дня для ручной загрузки'
+        required: false
+        default: 'retry'
 
 permissions:
   contents: read
@@ -43,8 +47,9 @@ jobs:
               gh run download "$id" -R "$GITHUB_REPOSITORY" -p "videos-$lg-$d-*" -D "out/reels_daily/dl-$id-$lg" 2>/dev/null && echo "запуск $id: $lg" || true
             done
           done
-      - name: Догрузить
+      - name: Догрузить или прислать пакет
         env:
+          MODE: ${{ github.event.inputs.mode || 'retry' }}
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
@@ -53,5 +58,9 @@ jobs:
           for lg in nhl khl; do
             mkdir -p "out/reels_daily/$lg-$DAY"
             find out/reels_daily -path "*/dl-*-$lg/*" -type f -exec mv -t "out/reels_daily/$lg-$DAY/" {} + 2>/dev/null || true
-            PYTHONPATH=render python team/reels_daily/retry.py "$lg" "$DAY"
+            if [ "$MODE" = pack ]; then
+              PYTHONPATH=render python team/reels_daily/pack.py "$lg" "$DAY"
+            else
+              PYTHONPATH=render python team/reels_daily/retry.py "$lg" "$DAY"
+            fi
           done
