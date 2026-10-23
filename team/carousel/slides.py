@@ -157,11 +157,15 @@ def table(D, path):
         mv._txt(d, hx[k], 405, ab, mv._cap(mv.ALU, 900, 34), mv._readable(col))
     fv = mv._cap(mv.OSW, 700, 44)
     rows = D['freq'][:5]
+    cap = 26                                    # один кегль для всех событий (владелец 23.10): самый крупный, что влезает у всех
+    while cap > 14 and any(d.textlength(r[0], font=mv._cap(mv.MAN, 800, cap)) > 500 for r in rows):
+        cap -= 1
+    fe = mv._cap(mv.MAN, 800, cap)
     rh = 150
     for i, (ev, xh, nh, xa, na) in enumerate(rows):
         y = 520 + i * rh
         d.rounded_rectangle((50, y - 60, W - 50, y + 60), radius=18, fill=(40, 38, 44) if i % 2 == 0 else (32, 30, 36))
-        mv._txt(d, 90, y, ev, mv._fit_w(ev, mv.MAN, 800, 26, 500), WHITE, 'l')
+        mv._txt(d, 90, y, ev, fe, WHITE, 'l')
         for k, (x, n) in enumerate(((xh, nh), (xa, na))):
             cx = hx[k]
             share = x / n if n else 0
