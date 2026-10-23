@@ -97,21 +97,77 @@ def picture(post, tmp):
     return path
 
 
-def host(path):
-    """Публичная ссылка на файл на 1 час (Instagram забирает картинку по ссылке)."""
+def _is_image(url):
+    """Ссылка действительно отдаёт картинку (а не страницу ошибки — 23.10 tmpfiles отдал HTML, Instagram отказал)."""
     try:
-        with open(path, 'rb') as f:
-            r = requests.post('https://litterbox.catbox.moe/resources/internals/api.php', timeout=120,
-                              data=dict(reqtype='fileupload', time='1h'), files=dict(fileToUpload=f))
-        if r.ok and r.text.startswith('https://'):
-            return r.text.strip()
-        print('MIRRORERR litterbox: %s %s' % (r.status_code, r.text[:200]), flush=True)
-    except requests.RequestException as e:
-        print('MIRRORERR litterbox: %r' % e, flush=True)
+        r = requests.get(url, timeout=30, stream=True, headers={'User-Agent': 'Mozilla/5.0'})
+        ok = r.status_code == 200 and r.headers.get('content-type', '').startswith('image/')
+        r.close()
+        return ok
+    except requests.RequestException:
+        return False
+
+
+def _fb_page(path):
+    """Неопубликованное фото на странице Facebook (IG_TOKEN — маркер страницы): ссылка CDN Facebook, Instagram её берёт."""
+    tok = ''.join(os.environ['IG_TOKEN'].split())
+    page = requests.get(API + 'me', params=dict(fields='id', access_token=tok), timeout=30).json()['id']
+    with open(path, 'rb') as f:
+        r = requests.post(API + page + '/photos', timeout=120, data=dict(published='false', access_token=tok),
+                          files=dict(source=f)).json()
+    if 'id' not in r:
+        raise RuntimeError(r.get('error') or r)
+    imgs = requests.get(API + r['id'], params=dict(fields='images', access_token=tok), timeout=30).json()['images']
+    return max(imgs, key=lambda x: x.get('width', 0))['source']
+
+
+def _catbox(path):
+    with open(path, 'rb') as f:
+        r = requests.post('https://catbox.moe/user/api.php', timeout=120, data=dict(reqtype='fileupload'),
+                          files=dict(fileToUpload=f))
+    if not (r.ok and r.text.startswith('https://')):
+        raise RuntimeError('%s %s' % (r.status_code, r.text[:120]))
+    return r.text.strip()
+
+
+def _litterbox(path):
+    with open(path, 'rb') as f:
+        r = requests.post('https://litterbox.catbox.moe/resources/internals/api.php', timeout=120,
+                          data=dict(reqtype='fileupload', time='1h'), files=dict(fileToUpload=f))
+    if not (r.ok and r.text.startswith('https://')):
+        raise RuntimeError('%s %s' % (r.status_code, r.text[:120]))
+    return r.text.strip()
+
+
+def _uguu(path):
+    with open(path, 'rb') as f:
+        r = requests.post('https://uguu.se/upload', timeout=120, files={'files[]': f})
+    return r.json()['files'][0]['url']
+
+
+def _tmpfiles(path):
     with open(path, 'rb') as f:
         r = requests.post('https://tmpfiles.org/api/v1/upload', timeout=120, files=dict(file=f))
-    url = r.json()['data']['url']
-    return url.replace('tmpfiles.org/', 'tmpfiles.org/dl/', 1)
+    return r.json()['data']['url'].replace('tmpfiles.org/', 'tmpfiles.org/dl/', 1)
+
+
+HOSTS = (('facebook', _fb_page), ('catbox', _catbox), ('litterbox', _litterbox), ('uguu', _uguu), ('tmpfiles', _tmpfiles))
+
+
+def host(path):
+    """Публичная ссылка на картинку (Instagram забирает её по ссылке). Пробуем по очереди, каждую ссылку проверяем:
+    отдаёт ли она картинку. Ни одна не подошла — RuntimeError."""
+    errs = []
+    for name, fn in HOSTS:
+        try:
+            url = fn(path)
+            if _is_image(url):
+                print('HOST %s' % name, flush=True)
+                return url
+            errs.append('%s: не картинка' % name)
+        except Exception as e:  # noqa: BLE001 — следующий способ
+            errs.append('%s: %r' % (name, e))
+    raise RuntimeError('картинку не удалось выложить по ссылке: ' + '; '.join(errs))
 
 
 def publish(url, text):

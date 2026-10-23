@@ -11,6 +11,7 @@
 
     PYTHONPATH=render python team/stories/make.py <слот> [ГГГГ-ММ-ДД] [--dry]   (--dry — не выкладывать)
     PYTHONPATH=render python team/stories/make.py preview [ГГГГ-ММ-ДД]           все 6 — владельцу в Telegram, не выкладывать
+    PYTHONPATH=render python team/stories/make.py auto                           по расписанию: слот по времени (due), без повторов
 """
 import json
 import os
@@ -203,6 +204,39 @@ SLOTS = ('matches', 'fact', 'win', 'question', 'video', 'results')
 TIMES = dict(matches='09:00', fact='11:30', win='14:00', question='16:30', video='19:00', results='22:30')
 
 
+WINDOW = timedelta(minutes=150)        # слот ещё можно выложить, если GitHub запустил задание с опозданием
+
+
+def due(now):
+    """Какой слот выкладывать сейчас: последний, чьё время уже наступило, но не раньше чем WINDOW назад (владелец 23.10:
+    GitHub запускает задания по расписанию с опозданием или пропускает — поэтому запусков два на слот, и каждый
+    проверяет сам). → (слот, день, время слота) или None."""
+    for back in (0, 1):                                   # «зашло сегодня» в 22:30 догоняем и после полуночи
+        d = now.date() - timedelta(days=back)
+        for slot in reversed(SLOTS):
+            hh, mm = map(int, TIMES[slot].split(':'))
+            t = datetime(d.year, d.month, d.day, hh, mm, tzinfo=MSK)
+            if t <= now <= t + WINDOW:
+                return slot, d, t
+            if t <= now:
+                break
+    return None
+
+
+def published_since(t):
+    """Есть ли уже история, выложенная после t (активные истории аккаунта — Instagram отдаёт их 24 ч)."""
+    import instagram
+    tok, uid = instagram._env()
+    j = requests.get(API + uid + '/stories', params=dict(fields='timestamp', limit=50, access_token=tok), timeout=30).json()
+    if 'error' in j:
+        raise RuntimeError('список историй: %s' % j['error'])
+    for m in j.get('data') or []:
+        ts = datetime.strptime(m['timestamp'], '%Y-%m-%dT%H:%M:%S%z')
+        if ts >= t:
+            return True
+    return False
+
+
 def to_owner(path, kind, caption):
     tok = os.environ.get('TG_BOT_TOKEN')
     if not tok:
@@ -223,6 +257,17 @@ def main():
         raise SystemExit(__doc__)
     slot = a[0]
     day = date.fromisoformat(next((x for x in a[1:] if x[:2] == '20'), datetime.now(MSK).date().isoformat()))
+    if slot == 'auto':                                   # запуск по расписанию: слот по времени, без повторов
+        d = due(datetime.now(MSK))
+        if not d:
+            print('STORY auto: сейчас нет слота', flush=True)
+            return
+        slot, day, t = d
+        import instagram
+        if instagram.enabled() and published_since(t):
+            print('STORY auto: слот %s %s уже выложен — пропуск' % (slot, TIMES[slot]), flush=True)
+            return
+        print('STORY auto: слот %s %s' % (slot, TIMES[slot]), flush=True)
     if slot == 'preview':
         for s in SLOTS:
             try:
@@ -234,12 +279,12 @@ def main():
                 print('STORY %s %s | %s | %s' % (s, day, kind, note), flush=True)
                 to_owner(path, kind, 'ПРОБА истории %s МСК (%s) — не выложено' % (TIMES[s], note))
         return
+    import instagram
     res = build(slot, day)
     for path, kind, note in (res if isinstance(res, list) else [res]):
         print('STORY %s %s | %s | %s' % (slot, day, kind, note), flush=True)
         if '--dry' in a:
             continue
-        import instagram
         if not instagram.enabled():
             print('STORY нет IG_TOKEN / IG_USER_ID — не выложено', flush=True)
             return
