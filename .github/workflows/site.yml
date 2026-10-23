@@ -64,17 +64,17 @@ jobs:
           token: ${{ secrets.SITE_TOKEN || github.token }}
           path: site
       - name: Статистика канала по месяцам
-        # team/site/months.py: посты @jarvibet с 1 сентября, итог по счёту → site/data/months.json (карточки «Честных итогов»).
+        # team/site/months.py: посты @jarvibet с 1 сентября, итог по счёту → site/stats/months.json (карточки «Честных итогов»).
         # Лента или счёт не загрузились — на сайте остаётся прежняя статистика (новая заменяет, только если прогнозов не меньше).
         if: env.SITE_REPO != ''
         run: |
           mkdir -p out && python team/site/months.py 2026-09-01 out/months > out/months.log 2>&1 || { tail -5 out/months.log; echo "SITEERR статистика канала не посчитана — на сайте прежняя"; exit 0; }
           grep '^MONTHS ' out/months.log || true
-          mkdir -p site/data
+          mkdir -p site/stats
           python - <<'PY'
           import json, os, shutil
           new = json.load(open('out/months/months.json', encoding='utf-8'))
-          old_p = 'site/data/months.json'
+          old_p = 'site/stats/months.json'
           old = json.load(open(old_p, encoding='utf-8')) if os.path.exists(old_p) else []
           n_new, n_old = sum(m['n'] for m in new), sum(m['n'] for m in old)
           if new and n_new >= n_old:

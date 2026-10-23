@@ -175,7 +175,10 @@ section.s{padding-block:80px;border-top:1px solid var(--line);position:relative}
 .wl .w{background:var(--cyan)} .wl .l{background:var(--red)} .wl .p{background:var(--mute)}
 .month-row{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);font-size:13px;color:var(--mute)}
 .month-row b{color:var(--fg);font-weight:700}
-.month-row .ok{color:var(--cyan)} .month-row .no{color:var(--red)} .month-row .up{color:var(--gold)}
+.month-row .ok{color:var(--cyan)} .month-row .no{color:var(--red)}
+.month-rub{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.month-rub b{font-family:var(--display);font-size:26px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums}
+.month-rub span{color:var(--mute);font-size:13px}
 .months-note{color:var(--mute);font-size:13px;margin:0 0 28px}
 /* month list: every post of the month with a link to it in Telegram */
 .month-open{margin-top:18px;display:inline-flex;align-items:center;gap:8px;background:none;border:1px solid var(--line);color:var(--fg);
@@ -752,13 +755,15 @@ if(window.__SITE){
 // month cards (window.__MONTHS from build.py: posts of the channel, settled by the score); none — the block stays hidden
 (()=>{const M=window.__MONTHS;if(!M||!M.length)return;
  const box=document.getElementById('months'),note=document.getElementById('months-note'),f=(v,d)=>v.toFixed(d).replace('.',',');
+ const STAKE=10000,rub=u=>(Math.round(Math.abs(u)*STAKE/100)*100).toLocaleString('ru-RU').replace(/\u00a0|,/g,' ');   // ставка 10 000 ₽ — решение владельца 23.10
  const plural=(n,a,b,c)=>{const k=n%100,j=n%10;return k>10&&k<20?c:j===1?a:j>1&&j<5?b:c};
  box.innerHTML=M.map(m=>{const dec=m.w+m.l,pct=dec?Math.round(100*m.w/dec):0,y=m.m.slice(0,4);
   return `<div class="month"><div class="month-top"><b>${m.name} ${y}</b>${m.live?'<i>идёт</i>':''}</div>
   <div class="month-pct"><strong>${pct}%</strong><span>зашло из ${m.n} ${plural(m.n,'прогноза','прогнозов','прогнозов')}</span></div>
   <div class="wl" data-w="${m.w}" data-l="${m.l}" data-p="${m.p}"><i class="w"></i><i class="l"></i><i class="p"></i></div>
   <div class="month-row"><span class="ok">✓ <b>${m.w}</b></span><span class="no">✕ <b>${m.l}</b></span>${m.p?`<span>↩ <b>${m.p}</b></span>`:''}
-  ${m.kef?`<span>ср. кэф <b>${f(m.kef,2)}</b></span>`:''}<span class="up">${m.units>=0?'+':'−'}${f(Math.abs(m.units),1)} ед.</span></div>
+  ${m.kef?`<span>ср. кэф <b>${f(m.kef,2)}</b></span>`:''}</div>
+  <div class="month-rub"><b>${m.units>=0?'+':'−'}${rub(m.units)} ₽</b><span>если ставить по ${rub(1)} ₽ на каждый прогноз</span></div>
   ${m.rows&&m.rows.length?`<button class="month-open" type="button" aria-expanded="false" aria-controls="monthlist" data-m="${m.m}">Все прогнозы месяца <span aria-hidden="true">▾</span></button>`:''}</div>`}).join('');
  // the list opens under the cards: date, match, bet, odds, score, result and the post itself in Telegram — anyone can check
  const list=document.getElementById('monthlist'),esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
@@ -776,7 +781,7 @@ if(window.__SITE){
   if(list.getBoundingClientRect().top>innerHeight*.8)list.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})});
  const last=M[M.length-1];
  note.textContent=`Все прогнозы, опубликованные в Telegram-канале @jarvibet, подряд; итог — по счёту матча. `+
-  `«ед.» — результат при одинаковой ставке на каждый прогноз.${last.live&&last.upto?` ${last.name} — по ${last.upto}.`:''}`;
+  `Сумма — расчёт по кэфам из постов при ставке ${rub(1)} ₽ на каждый прогноз, а не обещание дохода.${last.live&&last.upto?` ${last.name} — по ${last.upto}.`:''}`;
  box.hidden=note.hidden=false;
  const fill=()=>box.querySelectorAll('.wl').forEach(b=>{const t=+b.dataset.w+ +b.dataset.l+ +b.dataset.p||1;
   ['w','l','p'].forEach(k=>b.querySelector('.'+k).style.width=(100*b.dataset[k]/t)+'%')});

@@ -342,7 +342,7 @@ def list_page(D, base, logos=None):
 
 def landing(D, logos, base, site=None):
     """Главная: лендинг с сегодняшними матчами вместо примеров (window.__TODAY, __TL, __RES — их читает скрипт лендинга);
-    __MONTHS — статистика постов канала по месяцам из data/months.json (team/site/months.py), нет файла — блока нет."""
+    __MONTHS — статистика постов канала по месяцам из stats/months.json (team/site/months.py), нет файла — блока нет."""
     with open(os.path.join(HERE, 'landing.html'), encoding='utf-8') as f:
         src = f.read()
     td = today().isoformat()
@@ -362,7 +362,7 @@ def landing(D, logos, base, site=None):
     done = [m for P in D if P['day'] >= lim for m in P['matches'] if m.get('res') in ('win', 'loss')]
     tally = dict(w=sum(m['res'] == 'win' for m in done), l=sum(m['res'] == 'loss' for m in done), n=len(done))
     months = None
-    mp = os.path.join(site, 'data', 'months.json') if site else ''
+    mp = os.path.join(site, 'stats', 'months.json') if site else ''
     if mp and os.path.exists(mp):
         try:
             with open(mp, encoding='utf-8') as f:
