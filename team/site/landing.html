@@ -177,6 +177,34 @@ section.s{padding-block:80px;border-top:1px solid var(--line);position:relative}
 .month-row b{color:var(--fg);font-weight:700}
 .month-row .ok{color:var(--cyan)} .month-row .no{color:var(--red)} .month-row .up{color:var(--gold)}
 .months-note{color:var(--mute);font-size:13px;margin:0 0 28px}
+/* month list: every post of the month with a link to it in Telegram */
+.month-open{margin-top:18px;display:inline-flex;align-items:center;gap:8px;background:none;border:1px solid var(--line);color:var(--fg);
+  font:600 13px var(--body);padding:9px 14px;border-radius:999px;cursor:pointer;transition:border-color .2s var(--out),color .2s var(--out)}
+.month-open:hover,.month-open[aria-expanded=true]{border-color:var(--cyan);color:var(--cyan)}
+.month-open:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.month-open span{transition:transform .3s var(--out)} .month-open[aria-expanded=true] span{transform:rotate(180deg)}
+.mlist{border:1px solid var(--line);border-radius:18px;background:rgba(7,18,37,.82);margin-bottom:16px;overflow:hidden}
+.mlist-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 16px;padding:16px 20px;border-bottom:1px solid var(--line);font-size:14px;color:var(--mute)}
+.mlist-head b{color:var(--fg);font-family:var(--display);font-size:16px}
+.mlist-body{max-height:min(70vh,640px);overflow:auto}
+.mrow{display:grid;grid-template-columns:52px minmax(0,1.3fr) minmax(0,1.6fr) 54px 74px 30px 70px;gap:12px;align-items:center;padding:11px 20px;
+  border-bottom:1px solid rgba(30,52,96,.6);font-size:14px}
+.mrow:last-child{border-bottom:0}
+.mrow.th{position:sticky;top:0;background:#0b1a33;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);z-index:1}
+.mrow .d,.mrow .k,.mrow .sc{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+.mrow .d{color:var(--mute)} .mrow .m small{display:block;color:var(--mute);font-family:var(--mono);font-size:11px}
+.mrow .ok{font-weight:800;text-align:center} .mrow .ok.w{color:var(--cyan)} .mrow .ok.l{color:var(--red)} .mrow .ok.p{color:var(--mute)}
+.mrow a{color:var(--cyan);font-family:var(--mono);font-size:12px;text-decoration:none;white-space:nowrap}
+.mrow a:hover{text-decoration:underline}
+@media (max-width:760px){
+  .mrow{grid-template-columns:1fr auto;gap:4px 12px;padding:12px 16px}
+  .mrow.th{display:none}
+  .mrow .d{grid-column:1;grid-row:1} .mrow .ok{grid-column:2;grid-row:1}
+  .mrow .m{grid-column:1/-1} .mrow .b{grid-column:1/-1;color:var(--fg)}
+  .mrow .k::before{content:"кэф "} .mrow .sc::before{content:"счёт "}
+  .mrow .k,.mrow .sc{color:var(--mute);display:inline} .mrow .k{grid-column:1;grid-row:4} .mrow .sc{grid-column:1;grid-row:5}
+  .mrow a{grid-column:2;grid-row:4/6;align-self:center}
+}
 .stat{padding:22px;border:1px solid var(--line);border-radius:18px}
 .stat strong{display:block;font-family:var(--display);font-size:38px;font-weight:900;font-variant-numeric:tabular-nums}
 .stat span{color:var(--mute);font-size:14px}
@@ -431,6 +459,7 @@ html{scroll-padding-top:65px}
   <div class="ticker"><div class="ticker-row" id="tick"></div></div>
   <div class="wrap">
     <div class="months" id="months" hidden></div>
+    <div class="mlist" id="monthlist" hidden></div>
     <p class="months-note" id="months-note" hidden></p>
     <div class="honest">
       <div class="stat"><strong>✓</strong><span>Зашедшие прогнозы — в итогах дня</span></div>
@@ -729,7 +758,22 @@ if(window.__SITE){
   <div class="month-pct"><strong>${pct}%</strong><span>зашло из ${m.n} ${plural(m.n,'прогноза','прогнозов','прогнозов')}</span></div>
   <div class="wl" data-w="${m.w}" data-l="${m.l}" data-p="${m.p}"><i class="w"></i><i class="l"></i><i class="p"></i></div>
   <div class="month-row"><span class="ok">✓ <b>${m.w}</b></span><span class="no">✕ <b>${m.l}</b></span>${m.p?`<span>↩ <b>${m.p}</b></span>`:''}
-  ${m.kef?`<span>ср. кэф <b>${f(m.kef,2)}</b></span>`:''}<span class="up">${m.units>=0?'+':'−'}${f(Math.abs(m.units),1)} ед.</span></div></div>`}).join('');
+  ${m.kef?`<span>ср. кэф <b>${f(m.kef,2)}</b></span>`:''}<span class="up">${m.units>=0?'+':'−'}${f(Math.abs(m.units),1)} ед.</span></div>
+  ${m.rows&&m.rows.length?`<button class="month-open" type="button" aria-expanded="false" aria-controls="monthlist" data-m="${m.m}">Все прогнозы месяца <span aria-hidden="true">▾</span></button>`:''}</div>`}).join('');
+ // the list opens under the cards: date, match, bet, odds, score, result and the post itself in Telegram — anyone can check
+ const list=document.getElementById('monthlist'),esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+ const RES={w:['✓','зашёл'],l:['✕','не зашёл'],p:['↩','возврат']};
+ box.addEventListener('click',e=>{const b=e.target.closest('.month-open');if(!b)return;
+  const open=b.getAttribute('aria-expanded')==='true';box.querySelectorAll('.month-open').forEach(x=>x.setAttribute('aria-expanded','false'));
+  if(open){list.hidden=true;return}
+  const m=M.find(x=>x.m===b.dataset.m);b.setAttribute('aria-expanded','true');
+  list.innerHTML=`<div class="mlist-head"><b>${m.name} ${m.m.slice(0,4)} — ${m.n} ${plural(m.n,'прогноз','прогноза','прогнозов')}</b><span>Нажми на номер поста — откроется в Telegram</span></div>
+  <div class="mlist-body"><div class="mrow th"><span>Дата</span><span>Матч</span><span>Прогноз</span><span>Кэф</span><span>Счёт</span><span>Итог</span><span>Пост</span></div>`+
+  m.rows.map(r=>`<div class="mrow"><span class="d">${r.d}</span><span class="m">${esc(r.h)} — ${esc(r.a)}<small>${r.lg}</small></span><span class="b">${esc(r.bet)}</span>
+   <span class="k">${r.kef?f(r.kef,2):'—'}</span><span class="sc">${r.sc}${r.end?' '+esc(r.end):''}</span><span class="ok ${r.r}" title="${RES[r.r][1]}" aria-label="${RES[r.r][1]}">${RES[r.r][0]}</span>
+   <a href="https://t.me/jarvibet/${+r.id}" target="_blank" rel="noopener">№${+r.id} ↗</a></div>`).join('')+'</div>';
+  list.hidden=false;list.querySelector('.mlist-body').scrollTop=0;
+  if(list.getBoundingClientRect().top>innerHeight*.8)list.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})});
  const last=M[M.length-1];
  note.textContent=`Все прогнозы, опубликованные в Telegram-канале @jarvibet, подряд; итог — по счёту матча. `+
   `«ед.» — результат при одинаковой ставке на каждый прогноз.${last.live&&last.upto?` ${last.name} — по ${last.upto}.`:''}`;

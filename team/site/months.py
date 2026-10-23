@@ -17,6 +17,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 for p in ('team/daily', 'team/picks', 'team/reels_daily', 'render'):
     sys.path.insert(0, os.path.join(ROOT, p))
 
+import ask  # noqa: E402
 import channel  # noqa: E402
 import data  # noqa: E402
 import morning  # noqa: E402
@@ -133,21 +134,39 @@ def old_pick(post):
 MONTH = ['', 'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
 
 
-def month_stats(rows):
-    """Рассчитанные прогнозы → [{m: 'ГГГГ-ММ', name, n, w, l, p, kef (средний), units (плюс/минус при ставке 1 на каждый)}]."""
+def _row(r):
+    """Прогноз для списка на сайте: дата матча, лига, матч, ставка обычными словами, кэф, счёт, итог, номер поста."""
+    g = r['g']
+    try:
+        bet = ask.phrase(r['legs'], r['home'], r['away'])
+    except Exception:  # noqa: BLE001
+        bet = r['bet']
+    return dict(d=r['start'].astimezone(MSK).strftime('%d.%m'), lg='КХЛ' if r['league'] == 'KHL' else 'НХЛ', h=r['home'],
+                a=r['away'], bet=bet[:1].upper() + bet[1:], kef=r.get('kef'), sc='%s:%s' % (g.get('hg'), g.get('ag')),
+                end=g.get('end') or '', r={'win': 'w', 'loss': 'l'}.get(r['res'], 'p'), id=r['msg_id'])
+
+
+def month_stats(rows, now=None):
+    """Рассчитанные прогнозы → [{m: 'ГГГГ-ММ', name, n, w, l, p, kef (средний), units (плюс/минус при ставке 1 на каждый),
+    live (месяц идёт), upto (по какое число), rows (список для сайта)}]."""
+    now = now or datetime.now(MSK)
+    gen = {v: k for k, v in channel.MONTHS.items()}
     by = {}
     for r in rows:
         k = r['start'].astimezone(MSK).strftime('%Y-%m')
         by.setdefault(k, []).append(r)
     out = []
     for k in sorted(by):
-        rs = by[k]
+        rs = sorted(by[k], key=lambda r: (r['start'], r['msg_id']))
         w = [r for r in rs if r['res'] == 'win']
         l = [r for r in rs if r['res'] == 'loss']
         kefs = [r['kef'] for r in rs if r.get('kef')]
         units = sum(r['kef'] - 1 for r in w if r.get('kef')) - len(l)
+        last = rs[-1]['start'].astimezone(MSK)
         out.append(dict(m=k, name=MONTH[int(k[5:])], n=len(rs), w=len(w), l=len(l), p=len(rs) - len(w) - len(l),
-                        kef=round(sum(kefs) / len(kefs), 2) if kefs else None, units=round(units, 2)))
+                        kef=round(sum(kefs) / len(kefs), 2) if kefs else None, units=round(units, 2),
+                        live=int(k == now.strftime('%Y-%m')), upto='%d %s' % (last.day, gen[last.month]),
+                        rows=[_row(r) for r in rs]))
     return out
 
 
@@ -222,7 +241,7 @@ def main():
     with open(os.path.join(out, 'months.md'), 'w', encoding='utf-8') as f:
         f.write(text)
     print(text)
-    print('MONTHS %s' % json.dumps(stats, ensure_ascii=False), flush=True)
+    print('MONTHS %s' % json.dumps([{k: v for k, v in s.items() if k != 'rows'} for s in stats], ensure_ascii=False), flush=True)
     return 0
 
 
