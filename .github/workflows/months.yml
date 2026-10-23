@@ -1,6 +1,7 @@
 # Статистика прогнозов канала @jarvibet по месяцам (team/site/months.py, владелец 23.10): только посты, которые владелец
 # выложил и не удалил (лента t.me/s/jarvibet), итог — по счёту матча. Разовый запуск для сверки владельцем: из ветки
-# claude/** записать в team/site/MONTHS_RUN дату начала (ГГГГ-ММ-ДД) и запушить; список — в логе и в артефакте «months».
+# claude/** записать в team/site/MONTHS_RUN дату начала (ГГГГ-ММ-ДД) и запушить; список — в логе, в артефакте «months» и
+# коммитом в ту же ветку (team/site/months_out/), чтобы облачная сессия прочитала его без логов.
 name: Статистика канала по месяцам
 
 on:
@@ -15,7 +16,7 @@ on:
         default: '2026-09-01'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   months:
@@ -40,3 +41,9 @@ jobs:
           name: months
           path: out/months/
           retention-days: 7
+      - name: Сохранить в ветку
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p team/site/months_out && cp out/months/* team/site/months_out/
+          git config user.name "jarvis-bot"; git config user.email "jarvis-bot@users.noreply.github.com"
+          git add team/site/months_out && git commit -qm "Статистика канала по месяцам — результат запуска" && git push origin "HEAD:${GITHUB_REF_NAME}"
