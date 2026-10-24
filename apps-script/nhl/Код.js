@@ -11627,7 +11627,7 @@ function scoutReportAuto_() {
   try { var vw = videoWatchdog_(); if (vw) console.log('видео: ' + vw); } catch (e) { console.log('видео-сторож: ' + e.message); }
   try { nhlNightDoneAuto_(); } catch (e0) { console.log('итоги дня: ' + e0.message); }
   try { if (Number(mskNow_('HH')) >= MATCHI_HOUR_MSK) matchiAuto_(bannersDay_()); } catch (e1) { console.log('матчи дня: ' + e1.message); }   // «Матчи дня» НХЛ — с 18:00 МСК
-  try { sidesAuto_(bannersDay_()); } catch (e2) { console.log('баннеры 4К: ' + e2.message); }   // баннеры матчей ночи в 4К → вам, с 13:00 МСК
+  try { sidesAuto_(bannersDay_()); } catch (e2) { console.log('баннеры 4К: ' + e2.message); }   // баннеры матчей ночи в 4К → вам, с 08:00 МСК
   try { sidesSnapshot_(); } catch (e3) { console.log('снимок для /баннеры: ' + e3.message); }   // матчи ближайшей ночи — боту КХЛ для «/баннеры нхл»
   var ss = SpreadsheetApp.getActive(), p = agentProps_(), now = Date.now(), to = p.getProperty('TG_ADMIN_ID');
   if (!to) return;
@@ -15904,11 +15904,11 @@ function matchiPosterGroup_() { matchiPosterNow_('channel'); }
  * 🖼 БАННЕРЫ МАТЧЕЙ ДНЯ В 4К → ВАМ В TELEGRAM
  *  Каждый матч дня — отдельный баннер в шаблоне «Бока», как к прогнозам: эмблемы, день и время по МСК, линия П1/Х/П2;
  *  3840×1920. Рисует GitHub Actions (render/itogi_job.py, событие «sides»), приходят вам в личку файлами — без сжатия.
- *  Сами — раз в день: в 13:00 МСК накануне ночи матчей (дневные матчи субботы и воскресенья — с 20:00 МСК); линии ещё нет — ждём её до SIDES_WAIT_H ч,
+ *  Сами — раз в день: в 08:00 МСК накануне ночи матчей (дневные матчи субботы и воскресенья — на день раньше); линии ещё нет — ждём её до SIDES_WAIT_H ч,
  *  потом шлём как есть (у матча без линии баннер без строки коэффициентов). В любой момент — кнопкой меню.
  * ==========================================================================*/
 var SIDES_PROP = 'SIDES_4K_';               // + день: баннеры за этот день уже заказаны
-var SIDES_HOUR_MSK = 13;                // с этого часа по МСК
+var SIDES_HOUR_MSK = 8;                 // с этого часа по МСК (владелец 12.10: баннеры НХЛ тоже в 08:00)
 var SIDES_WAIT_H = 2;                       // сколько часов ждать линию П1/Х/П2 по всем матчам
 
 /** Рисовалка на GitHub уже умеет баннеры: в workflow ветки по умолчанию есть событие «sides» (событие repository_dispatch
