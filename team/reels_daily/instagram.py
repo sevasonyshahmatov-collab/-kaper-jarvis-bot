@@ -34,7 +34,9 @@ def posted(first_line):
         except Exception as e:  # noqa: BLE001 — не удалось проверить — собираем как обычно
             print('INSTAGRAMERR список публикаций: %r' % e, flush=True)
             _state['captions'] = []
-    return any(c.startswith(first_line) for c in _state['captions'])
+    import yt_texts                                   # до 24.10 подпись начиналась сразу с матча, без «Прогноз на матч»
+    lines = {first_line, first_line[len(yt_texts.HEAD):] if first_line.startswith(yt_texts.HEAD) else first_line}
+    return any(c.startswith(x) for c in _state['captions'] for x in lines)
 
 
 CTA = 'Полный разбор и итоги — в Telegram @jarvibet (ссылка в шапке профиля)'   # владелец 22.10: цель — переход в канал
