@@ -1,0 +1,256 @@
+<title>Приложение JARVIS</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one reading column like a scouting report; rink lines as section dividers; tables scroll inside themselves */
+:root{
+  --ice:#f3f6fa; --paper:#ffffff; --ink:#0e1a2b; --muted:#56657a; --line:#d5deea;
+  --blue:#1f4fd1; --red:#d4283c; --green:#178a4c; --amber:#b7791f; --chip:#e8eef8;
+  --display:"Unbounded","Manrope",system-ui,sans-serif;
+  --body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ice:#0b1320; --paper:#111c2e; --ink:#e7eef8; --muted:#94a3b8; --line:#24344d;
+  --blue:#6f9bff; --red:#ff5c6f; --green:#3ccf7f; --amber:#f0b44c; --chip:#1a2840; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ice:#0b1320; --paper:#111c2e; --ink:#e7eef8; --muted:#94a3b8; --line:#24344d;
+  --blue:#6f9bff; --red:#ff5c6f; --green:#3ccf7f; --amber:#f0b44c; --chip:#1a2840; color-scheme:dark}
+body{background:var(--ice);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6}
+.wrap{max-width:860px;margin:0 auto;padding-block:40px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:40px}
+h1,h2,h3{font-family:var(--display);line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,5vw,42px);font-weight:800;letter-spacing:-.01em}
+h2{font-size:clamp(20px,3vw,26px);font-weight:700}
+h3{font-size:17px;font-weight:700}
+p{margin:0;max-width:68ch}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+header{display:grid;gap:14px;padding-bottom:28px;border-bottom:3px solid var(--red)}
+header .lead{font-size:18px;color:var(--ink)}
+section{display:grid;gap:16px}
+section+section{padding-top:32px;border-top:1px solid var(--line)}
+.bluebar{border-top:3px solid var(--blue)!important}
+.verdict{background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:6px;padding:20px 22px;display:grid;gap:10px}
+.verdict ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--paper)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;background:var(--chip)}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-block;font-family:var(--mono);font-size:12px;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.hi{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--red)}
+.mid{background:color-mix(in srgb,var(--amber) 18%,transparent);color:var(--amber)}
+.ok{background:color-mix(in srgb,var(--green) 16%,transparent);color:var(--green)}
+.feat{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:20px 22px;display:grid;gap:12px}
+.feat.hero{border:2px solid var(--blue)}
+.feat .tag{font-family:var(--mono);font-size:12px;color:var(--blue);letter-spacing:.08em;text-transform:uppercase}
+dl{display:grid;grid-template-columns:150px 1fr;gap:6px 16px;margin:0}
+dt{font-weight:700;color:var(--muted);font-size:14px}
+dd{margin:0;min-width:0}
+@media (max-width:560px){dl{grid-template-columns:1fr}dd{margin-bottom:6px}}
+.mock{font-family:var(--mono);font-size:13px;background:var(--chip);border-radius:6px;padding:14px 16px;white-space:pre-wrap;overflow-x:auto;line-height:1.55}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.box{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:16px 18px;display:grid;gap:8px;align-content:start}
+ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.weeks{display:grid;gap:10px}
+.week{display:grid;grid-template-columns:120px 1fr;gap:16px;align-items:start;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:14px 16px}
+.week b{font-family:var(--mono);font-size:13px;color:var(--blue)}
+@media (max-width:560px){.week{grid-template-columns:1fr;gap:4px}}
+.ask{background:var(--paper);border:2px solid var(--red);border-radius:6px;padding:20px 22px;display:grid;gap:10px}
+.src{font-size:13.5px;color:var(--muted)}
+.src a{color:var(--blue);word-break:break-word}
+a{color:var(--blue)}
+small{color:var(--muted)}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">JARVIS · концепция приложения · 24.10.2026</div>
+  <h1>Приложение JARVIS</h1>
+  <p class="lead">Что сделать, чтобы его ставили сами и открывали каждый день, и чего ни у кого ещё нет. Основано на разборе рынка и отзывов (две исследовательские задачи команды), на наших данных и на том, что у проекта уже работает.</p>
+</header>
+
+<div class="verdict">
+  <div class="eyebrow">Коротко</div>
+  <p><b>Делаем «честность как продукт».</b> Главная боль людей, которые ставят на спорт, — им врут: капперы удаляют минусы, рисуют статистику, продают «договорняки». Проверить канал сейчас нечем, на русском такого сервиса нет. У нас уже есть то, на чём его можно построить: результаты КХЛ и НХЛ, модель вероятностей, честный журнал своих прогнозов, бот и рендер карточек.</p>
+  <ol>
+    <li><b>Рентген каппера</b> — вставил ссылку на любой Telegram-канал с прогнозами, получил его настоящую статистику. Главная фишка и двигатель роста.</li>
+    <li><b>Второе мнение</b> — скрин своего купона: честная вероятность против кэфа, дневник ставок, стоп-кран от тильта.</li>
+    <li><b>Обыграй JARVIS</b> — бесплатная игра: ставишь не «кто победит», а проценты, соревнуешься с моделью и друзьями. Повод заходить каждый день.</li>
+    <li><b>Утро без спойлеров</b> — россияне в НХЛ, ночные матчи, итоги только по тапу. Вход для широкой аудитории, не только для тех, кто ставит.</li>
+  </ol>
+  <p>Формат — <b>Telegram Mini App</b> (приложение внутри Telegram): аудитория уже там, без модерации App Store, оплата звёздами. Первая версия — за 4–6 недель, по шагам ниже.</p>
+</div>
+
+<section>
+  <div class="eyebrow">01 · Боли</div>
+  <h2>Что болит у нашей аудитории</h2>
+  <p>Сила — оценка команды по массовости и остроте: точных цифр по размеру аудитории нет ни в одном источнике.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Боль</th><th>Сила</th><th>Что подтверждает</th></tr></thead>
+    <tbody>
+      <tr><td>Капперы врут: удаляют минусовые прогнозы, правят статистику, в канале одно, в личке другое</td><td><span class="pill hi">высокая</span></td><td>Жалобы и чёрные списки «Рейтинга букмекеров», разборы схем на vc.ru и в «Т—Ж»</td></tr>
+      <tr><td>Платные «договорняки» и «инсайды» — люди теряют сотни тысяч</td><td><span class="pill hi">высокая</span></td><td>Истории в «Т—Ж», vc.ru; признаки обмана в обзорах</td></tr>
+      <tr><td>Тильт: после минуса ставки растут, банк уходит</td><td><span class="pill hi">высокая</span></td><td>Гайды по психологии ставок, блоги на sports.ru про отход от флэта</td></tr>
+      <tr><td>НХЛ идёт ночью, легальных трансляций в РФ нет, утром счёт видишь раньше, чем повтор</td><td><span class="pill hi">высокая</span></td><td>Sports.ru, Legalbet, Спорт-Экспресс; у самой НХЛ пуши со счётом прорываются даже при «без спойлеров»</td></tr>
+      <tr><td>Не ведут учёт своих ставок и не знают реальный плюс или минус</td><td><span class="pill mid">средняя</span></td><td>Русские дневники ставок есть, но без закрывающей линии (CLV) и без анализа</td></tr>
+      <tr><td>Не понимают, честный ли кэф (value)</td><td><span class="pill mid">средняя</span></td><td>Общий тезис, русских источников мало</td></tr>
+      <tr><td>Нет живой игры-прогнозиста по КХЛ</td><td><span class="pill mid">средняя</span></td><td>Конкурсы есть у букмекерских сайтов и с призами за прибыль; бесплатной игры на точность нет</td></tr>
+      <tr><td>Слишком много каналов, копипаст, накрутка</td><td><span class="pill mid">средняя</span></td><td>Telemetr продаёт проверку на накрутку подписчиков, но не на честность прогнозов</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <div class="eyebrow">02 · Рынок</div>
+  <h2>Что уже есть и где пусто</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Кто</th><th>Что даёт</th><th>Чего нет</th></tr></thead>
+    <tbody>
+      <tr><td>Flashscore, Sofascore</td><td>Счёт, статистика, уведомления</td><td>Никакой честной оценки прогнозов; КХЛ — по остаточному принципу</td></tr>
+      <tr><td>Приложение КХЛ</td><td>Матчи, новости</td><td>Ни игры, ни прогнозов; в отзывах — реклама, обязательная регистрация, ошибки входа</td></tr>
+      <tr><td>Sports.ru, Чемпионат, Betting Insider</td><td>Новости, фэнтези, прогнозы с виртуальной ставкой</td><td>Проверки капперов нет; Betting Insider — оценка 3,3, «разработчики забросили»</td></tr>
+      <tr><td>Русские дневники ставок</td><td>ROI, винрейт, калькулятор</td><td>Нет CLV, нет оценки цены ставки, нет защиты от тильта</td></tr>
+      <tr><td>Pikkit, Action Network (США)</td><td>Автоучёт ставок, CLV, проекции</td><td>Только английский и американские букмекеры</td></tr>
+      <tr><td>Tipstrr, Blogabet (Европа)</td><td>Проверенные прогнозисты на своей площадке</td><td>Проверяют только тех, кто сам пришёл; Telegram-каналы не проверяют вообще; русского аналога нет</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Пусто:</b> проверка любого Telegram-канала со стороны, без согласия каппера; русский дневник с CLV и антитильтом; бесплатная игра на точность по КХЛ; спойлер-фри для русских болельщиков НХЛ; учёт перелётов и усталости в КХЛ. Это «не нашли в поиске», а не доказанное отсутствие, но крупных игроков в этих нишах нет точно.</p>
+</section>
+
+<section>
+  <div class="eyebrow">03 · Продукт</div>
+  <h2>Пять функций</h2>
+
+  <div class="feat hero">
+    <div class="tag">Главная фишка · рост</div>
+    <h3>Рентген каппера</h3>
+    <dl>
+      <dt>Боль</dt><dd>Не знаешь, врёт ли канал, за который тебе предлагают платить.</dd>
+      <dt>Что делает</dt><dd>Вставляешь ссылку на канал. Приложение читает открытую ленту канала (её видно без подписки на t.me/s/…), находит в постах прогнозы с кэфами, сверяет с результатами матчей и выдаёт карточку: сколько прогнозов, реальная проходимость и плюс или минус в единицах, сколько прогнозов вышло после начала матча, сколько постов пропало или изменено с момента первой проверки.</dd>
+      <dt>Почему ни у кого нет</dt><dd>Европейские площадки проверяют только тех, кто зарегистрировался у них сам. Проверять Telegram-канал снаружи на русском никто не умеет.</dd>
+      <dt>Что у нас уже есть</dt><dd>Результаты КХЛ и НХЛ с Б и ОТ (наши скрипты данных), расчёт «зашло / не зашло» по любому виду ставки (итоги, PICKS.md), разбор текста поста в прогноз (так бот уже читает наш канал), рендер карточек.</dd>
+      <dt>Как растёт</dt><dd>Карточку «мой каппер на самом деле −34 единицы» хочется переслать в чат друзей. Каждая пересылка — реклама приложения и канала. Наш журнал проходит ту же проверку открыто: это лучший аргумент за @jarvibet.</dd>
+      <dt>Ограничения</dt><dd>Сначала только хоккей: для других видов спорта нет результатов. Удалённые посты видно только начиная с первой проверки канала, поэтому популярные каналы проверяем сами каждый день. Формулировки — только факты и цифры, без слов «мошенник» и «обман».</dd>
+    </dl>
+    <div class="mock">Канал «Хоккей на миллион» · проверено 214 прогнозов (01.09–24.10)
+Заявлено в канале: 78% проходимость
+Насчитали: 51% · −38,4 ед. при ставке 1 ед.
+После начала матча опубликовано: 17
+Пропало или изменено с первой проверки: 9
+<small>пример карточки, цифры выдуманы</small></div>
+  </div>
+
+  <div class="feat">
+    <div class="tag">Ежедневная польза</div>
+    <h3>Второе мнение и дневник</h3>
+    <dl>
+      <dt>Боль</dt><dd>Ставишь на глаз, не знаешь, честный ли кэф, не помнишь, в плюсе ли ты за месяц, после минуса заносит.</dd>
+      <dt>Что делает</dt><dd>Присылаешь скриншот купона. Приложение распознаёт матч, вид ставки и кэф и показывает вероятность модели против вероятности в кэфе: «цена честная», «переплачиваешь» или «есть запас». Утром показывает, куда ушла линия к началу матча (CLV): лучший признак, умеешь ли ты ставить, даже при минусе. Банк, ROI и серии считаются сами.</dd>
+      <dt>Стоп-кран</dt><dd>Лимит на день включён по умолчанию, его можно поднять, но не убрать. После трёх минусов подряд или если ставка выросла вдвое после проигрыша — предложение паузы. Исследования показывают: инструменты в настройках почти никто не включает, работает только то, что включено сразу. На рынке так не делает никто, а для канала это отличная репутация.</dd>
+      <dt>Что у нас уже есть</dt><dd>Модель вероятностей по видам ставок, откалиброванная на двух сезонах (team/picks: backtest, calib.json); линия Pinnacle к каждому матчу (из неё и считается CLV).</dd>
+    </dl>
+  </div>
+
+  <div class="feat">
+    <div class="tag">Удержание</div>
+    <h3>Обыграй JARVIS</h3>
+    <dl>
+      <dt>Механика</dt><dd>На каждый матч дня ставишь не исход, а проценты: «Спартак 55%, ничья 20%, ЦСКА 25%». После матча очки считаются по точности (как в метеопрогнозах): уверенный и правый получает много, уверенный и неправый теряет. Рядом — проценты модели, обыграть её трудно.</dd>
+      <dt>Зачем</dt><dd>Серии дней, как в Duolingo; лиги друзей прямо в групповом чате Telegram, как у Sleeper; недельный рейтинг и упоминание лучших в канале. Учит думать вероятностями, а значит, приводит в «Второе мнение» и в канал.</dd>
+      <dt>Почему ни у кого нет</dt><dd>Все конкурсы прогнозистов считают угаданные исходы или прибыль. Игры на точность процентов по хоккею на русском нет.</dd>
+      <dt>Осторожно</dt><dd>Без денежных призов и платного входа. Иначе это уже азартная игра или лотерея. Награды — значки, место в рейтинге, пост в канале.</dd>
+    </dl>
+  </div>
+
+  <div class="grid2">
+    <div class="box">
+      <div class="tag" style="font-family:var(--mono);font-size:12px;color:var(--blue);letter-spacing:.08em;text-transform:uppercase">Вход для всех</div>
+      <h3>Утро без спойлеров</h3>
+      <p>Выбираешь игроков: Овечкин, Капризов, Кучеров, Панарин и других. Утром — дайджест «как сыграли наши» с закрытым счётом, открывается по тапу, хайлайты ссылкой. Время всех матчей по Москве. Подходит и тем, кто не ставит, — это аудитория для сторов и для роста канала.</p>
+      <small>У нас уже есть: данные НХЛ (API лиги), итоги матчей.</small>
+    </div>
+    <div class="box">
+      <div class="tag" style="font-family:var(--mono);font-size:12px;color:var(--blue);letter-spacing:.08em;text-transform:uppercase">Своя цифра</div>
+      <h3>Индекс усталости КХЛ</h3>
+      <p>В карточке матча: сколько тысяч километров и часовых поясов команда пролетела за неделю, второй ли это матч подряд. Лига самая растянутая в мире, тренеры жалуются на календарь, но цифры никто не считает. Сначала проверяем на архиве результатов, влияет ли это на исход; если да — это и фишка приложения, и рубрика канала.</p>
+      <small>Нужно: только расписание и города, они у нас есть.</small>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">04 · Формат и деньги</div>
+  <h2>Где живёт приложение и как зарабатывает</h2>
+  <div class="grid2">
+    <div class="box">
+      <h3>Сначала Telegram Mini App</h3>
+      <ul>
+        <li>Аудитория канала уже в Telegram, установка — одно касание из канала.</li>
+        <li>Нет модерации App Store и Google Play. Они отклоняют даже бесплатные прогнозные приложения по правилам об азартных играх.</li>
+        <li>Оплата — звёздами Telegram.</li>
+        <li>Сайт уже есть: страницы матчей и проверок можно открывать и там, для поиска.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Потом RuStore, без iOS-оплаты</h3>
+      <ul>
+        <li>С 1 апреля 2026 оплата в App Store в России отключена; подписки Google Play для России не работают с 2022.</li>
+        <li>RuStore — для Android, но платёжные инструменты только для ИП или юрлица.</li>
+        <li>Риск Telegram: в России его замедляют с февраля 2026. Поэтому параллельно держим веб-версию на сайте.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Бесплатно</th><th>Pro (звёзды; позже ЮKassa через ИП)</th><th>Не делаем</th></tr></thead>
+    <tbody><tr>
+      <td>3 проверки каналов в месяц, игра, дайджест без спойлеров, дневник до 30 ставок</td>
+      <td>Проверки без лимита, ежедневное слежение за выбранными каналами, «Второе мнение» без лимита, CLV и полная история</td>
+      <td>Партнёрские ссылки букмекеров без юриста и маркировки рекламы; платные прогнозы; денежные призы</td>
+    </tr></tbody>
+  </table></div>
+</section>
+
+<section>
+  <div class="eyebrow">05 · План</div>
+  <h2>Первая версия за 4–6 недель</h2>
+  <div class="weeks">
+    <div class="week"><b>Неделя 0</b><div>Проверка спроса: опрос в канале («Что раздражает больше всего?», «Проверили бы своего каппера?»). Ручной «Рентген» трёх известных каналов и пост с карточками: сколько пересылок и вопросов это даст.</div></div>
+    <div class="week"><b>Недели 1–3</b><div>Mini App: «Рентген каппера» по хоккею и открытый журнал @jarvibet с той же проверкой. Карточка для пересылки — нашим рендером.</div></div>
+    <div class="week"><b>Недели 4–5</b><div>«Второе мнение» по скриншоту, дневник, стоп-кран, CLV утром.</div></div>
+    <div class="week"><b>Неделя 6</b><div>«Обыграй JARVIS» с лигами в групповых чатах. Утро без спойлеров и индекс усталости — следующим этапом, если первые три зайдут.</div></div>
+  </div>
+  <p><b>Как поймём, что работает:</b> доля проверок, которые пересылают дальше (цель — каждая пятая); сколько людей возвращается на 7-й день (цель — 25%); сколько приходит в канал из приложения.</p>
+</section>
+
+<section>
+  <div class="eyebrow">06 · Риски</div>
+  <h2>Что может пойти не так</h2>
+  <ul>
+    <li><b>Посты у всех разные.</b> Разбор прогноза из свободного текста ошибается. Решение: показываем, какие посты засчитали и как, и даём кнопку «неверно распознано».</li>
+    <li><b>Юридическое.</b> Публикуем только факты с датами и ссылками на посты, без оценочных слов. До запуска — консультация юриста: проверка чужих каналов, реклама азартных игр (ст. 27 закона о рекламе; с 1.09.2026 обязательное предупреждение о вреде азартных игр).</li>
+    <li><b>Модель ошибается.</b> «Второе мнение» показывает вероятность и её точность на истории, а не «ставь» или «не ставь».</li>
+    <li><b>Telegram в России.</b> Замедление уже идёт. Веб-версия на сайте страхует.</li>
+    <li><b>Стоимость.</b> Разбор постов и скриншотов нейросетью стоит денег на каждую проверку. Лимиты в бесплатной версии это покрывают.</li>
+  </ul>
+</section>
+
+<div class="ask">
+  <div class="eyebrow">Что нужно от вас</div>
+  <ol style="margin:0;padding-left:20px;display:grid;gap:6px">
+    <li>Согласны ли с главной фишкой — «Рентген каппера» — или ближе другая из пяти.</li>
+    <li>Можно ли на неделе 0 провести опрос в канале и сделать ручной «Рентген» трёх известных каналов (без оценочных слов, только цифры).</li>
+    <li>Название: «JARVIS», «JARVIS Рентген» или своё.</li>
+    <li>Когда дойдёт до оплаты Pro — готовы ли оформить ИП или самозанятость (для RuStore и ЮKassa нужен ИП).</li>
+  </ol>
+</div>
+
+<section class="src">
+  <div class="eyebrow">Источники</div>
+  <p>Жалобы на капперов: <a href="https://bookmaker-ratings.ru/kapper_complaints/zhaloba-na-kappera-alexander-zaharov-easy-money-telegram-11-fevralya-2019/">«Рейтинг букмекеров»</a>; договорные матчи: <a href="https://t-j.ru/fraud-stories-na-dogovornykh-matchakh/">«Т—Ж»</a>, <a href="https://vc.ru/id4711605/1966146-dogovornye-matchi-obman">vc.ru</a>. НХЛ в России: <a href="https://legalbet.ru/shkola-bettinga/gde-smotret-nhl/">Legalbet</a>, <a href="https://stavka.tv/bettingschool/sports/where-watch-nhl-25-26">Stavka.tv</a>. Спойлеры в приложении НХЛ: <a href="https://www.idownloadblog.com/?p=651536">iDownloadBlog</a>. Отзывы приложения КХЛ: <a href="https://www.rustore.ru/catalog/app/ru.sports.khl/reviews">RuStore</a>; Betting Insider: <a href="https://www.rustore.ru/catalog/app/com.tribuna.betting/reviews">RuStore</a>. Площадки прогнозистов: <a href="https://bettoredge.com/post/tipster-platforms-comparison">обзор Tipstrr/Blogabet</a>. Инструменты ответственной игры: <a href="https://agbrief.com/news/australia/05/08/2021/do-online-responsible-gambling-tools-work/">исследование по 39 853 клиентам</a>, <a href="https://sbcnews.co.uk/social-responsibility/2021/07/23/gambleaware-research-blasts-design-of-safer-gambling-tools-of-lagging-behind-expectations/">GambleAware</a>. Удержание: <a href="https://marishalakhiani.substack.com/p/breaking-down-duolingos-growth-model">Duolingo</a>, <a href="https://expa.com/news/founder-spotlight-sleeper">Sleeper</a>. Правила сторов: <a href="https://developer.apple.com/app-store/review/guidelines/">App Store 5.3</a>, <a href="https://support.google.com/googleplay/android-developer/answer/9877032">Google Play</a>; оплата в App Store в России: <a href="https://www.revenuecat.com/blog/growth/russia-app-store-payment-block">RevenueCat</a>. Реклама азартных игр: <a href="https://www.consultant.ru/document/cons_doc_LAW_214522/b004fed0b70d0f223e4a81f8ad6cd92af90a7e3b/">ст. 27 закона «О рекламе»</a>, <a href="https://www.garant.ru/products/ipo/prime/doc/413642142/">41-ФЗ</a>. Telegram в России: <a href="https://www.rbc.ru/technology_and_media/10/02/2026/698afe729a79470c08a17b91">РБК</a>; звёзды: <a href="https://telegram.org/blog/telegram-stars/ru">Telegram</a>.</p>
+  <p>Часть страниц команда видела только в выдаче поиска, не открывая; цифры, которые не удалось сверить, в документ не вошли.</p>
+</section>
+
+</div>
