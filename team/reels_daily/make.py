@@ -289,11 +289,13 @@ def one(P, i, league, day, code, lg, frames):
     if not frames and instagram.posted(yt_texts.youtube(m, lg)['description'].split('\n')[0]):
         print('REELSKIP %s — %s: ролик уже выложен (Instagram)' % (m['h'], m['a']), flush=True)
         return
+    from reels import intro
     t0 = time.time()
     r, key, start = reel(m, P['stats'], code)
     r.ticker_tag, r.ticker = ticker(P, lg)
     base = os.path.join(out_dir(league, day), '%02d_%s' % (i + 1, m['tpl']))
     if frames:
+        r = intro.wrap(r, m['h'], m['a'], code)
         print(C.render(r, base + '.mp4', frames=[int(round(float(x) * C.FPS)) for x in frames.split(',')]))
         return
     track = owner_tracks.wav(key)
@@ -302,6 +304,9 @@ def one(P, i, league, day, code, lg, frames):
         r, mix = voice.voiced(r, m, TEMPLATES[m['tpl']][0], track, start, base)
         if mix:
             track, start = mix, 0.0
+    # владелец 24.10: перед каждым роликом на 1 с — «ПРОГНОЗ НА МАТЧ» и команды; трек — на столько же раньше, дроп на месте
+    r = intro.wrap(r, m['h'], m['a'], code)
+    start -= getattr(r, 'intro', 0.0)
     C.render(r, base + '.mp4', track=track, start=start, extra_out=base + '_clean.mp4')
     print('REEL %s — %s | %s | трек %s с %.2f с, дроп на %.2f с | %.1f с ролика за %.0f с'
           % (m['h'], m['a'], m['tpl'], key, start, r.drop, r.dur, time.time() - t0), flush=True)

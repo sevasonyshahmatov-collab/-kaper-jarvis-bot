@@ -744,8 +744,10 @@ def _ticker_layers(items, label='МАТЧИ ДНЯ'):
 
 def ticker(fr, t, end):
     items = getattr(_R, 'ticker', None)
-    if not items or t > end:
+    t0 = getattr(_R, 'intro', 0.0)                                      # во время заставки (render/reels/intro.py) строки нет
+    if not items or t > end or t < t0:
         return fr
+    t, end = t - t0, end - t0
     L = _ticker_layers(items, getattr(_R, 'ticker_tag', None) or 'МАТЧИ ДНЯ')   # дата — в ярлыке, иначе уезжает под него
     k = min(1.0, t / 0.4, max(0.0, (end - t) / 0.3))                     # появление в начале, уход перед финалом
     lay = Image.new('RGBA', (W, TICK_H), (0, 0, 0, 0))
@@ -816,8 +818,10 @@ def _audio(path, dur, track=None, start=0.0):
     if track:
         # музыка играет до последнего кадра без затухания (владелец 14.10); 30 мс в самом конце — только от щелчка
         af = 'afade=t=in:st=0:d=0.02,afade=t=out:st=%.3f:d=0.03,loudnorm=I=-14:TP=-1.5:LRA=11,aresample=44100' % (dur - 0.03)
-        cmd = ['ffmpeg', '-y', '-loglevel', 'error', '-ss', '%.3f' % start, '-t', '%.3f' % dur, '-i', track, '-af', af,
-               '-ac', '2', '-ar', '44100', path]
+        if start < 0:                         # трек начинается позже начала ролика (заставка перед озвученным роликом)
+            af = 'adelay=%d:all=1,apad,' % round(-start * 1000) + af.replace('afade=t=in:st=0:d=0.02,', '')
+        cmd = ['ffmpeg', '-y', '-loglevel', 'error', '-ss', '%.3f' % max(0.0, start), '-i', track, '-af', af,
+               '-t', '%.3f' % dur, '-ac', '2', '-ar', '44100', path]
     else:
         cmd = ['ffmpeg', '-y', '-loglevel', 'error', '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=stereo', '-t', '%.3f' % dur, path]
     subprocess.run(cmd, check=True)
@@ -857,7 +861,7 @@ def render(reel, path, track=None, start=0.0, crf=20, workers=None, frames=None,
     outs = [(path, track)] + ([(extra_out, getattr(reel, 'voice_only', None))] if extra_out else [])
     for p, tr in outs:
         wav = tempfile.NamedTemporaryFile(suffix='.wav', delete=False).name
-        _audio(wav, reel.dur, tr, start if tr == track else 0.0)
+        _audio(wav, reel.dur, tr, start if tr == track else -getattr(reel, 'intro', 0.0))
         subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', tmpv, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy',
                         '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', p], check=True)
         os.unlink(wav)

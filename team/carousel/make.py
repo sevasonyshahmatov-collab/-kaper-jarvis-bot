@@ -112,7 +112,7 @@ def build(day):
         lg = 'КХЛ' if L == 'KHL' else 'НХЛ'
         tag = lambda s: '#' + s.replace(' ', '').replace('-', '')  # noqa: E731
         cap = '\n'.join([
-            '%s — %s · %s, %s МСК' % (m['h'], m['a'], D['date'], D['time']),
+            'Прогноз на матч %s — %s · %s, %s МСК' % (m['h'], m['a'], D['date'], D['time']),   # владелец 24.10
             'Полный прогноз на матч — в Telegram @jarvibet (ссылка в шапке профиля)' if not D['reveal'] else
             'Прогноз JARVIS: %s · кэф %s. Прогноз — мнение, не совет.' % (m['pick'], D['odds']),
             '',
