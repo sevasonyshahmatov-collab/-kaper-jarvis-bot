@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JARVIS — прогнозы на хоккей</title>
+<meta name="robots" content="noindex">
+<!-- Мини-приложение Telegram, прототип (владелец 25.10). Экраны и переходы рабочие, данные — примеры (DATA ниже).
+     Внутри Telegram: системная кнопка «Назад», цвета шапки, раскрытие на весь экран; в браузере — своя шапка. -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+:root{--bg:#0e1116;--card:#181c24;--card2:#20252f;--line:#2a303c;--fg:#f2f4f8;--mute:#9aa3b2;--acc:#3ee0ff;--gold:#ffc93c;--win:#2fbf71;--loss:#e5484d;--tg:#2aa8ff;
+  --vh:var(--tg-viewport-stable-height,100dvh)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:400 15px/1.35 Inter,system-ui,sans-serif}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.app{height:var(--vh);display:flex;flex-direction:column;max-width:560px;margin:0 auto}
+.bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 6px;min-height:52px}
+.bar b{font:700 16px Inter,sans-serif}
+.bar .back{color:var(--acc);font-weight:600;min-height:44px;min-width:44px;display:flex;align-items:center}
+.in-tg .bar{display:none}
+.scr{flex:1;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column}
+.scr>*{flex-shrink:0}
+.main{flex:1 0 auto;padding:0 12px 12px;display:flex;flex-direction:column;gap:12px}
+.main>*{flex-shrink:0}
+.grow{flex:1 0 auto;display:flex;flex-direction:column}.grow>.fill{flex:1 0 auto}
+.card{background:var(--card);border-radius:14px;overflow:hidden}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.chip{flex:none;min-height:36px;padding:0 14px;border-radius:18px;display:flex;align-items:center;background:var(--card);color:var(--mute);font:600 14px Inter,sans-serif}
+.chip.on{background:var(--fg);color:#0e1116}
+.gh{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);font:700 14px Inter,sans-serif}
+.gh small{margin-left:auto;font:500 13px Inter,sans-serif;color:var(--mute)}
+.badge{display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:8px;font:700 13px Inter,sans-serif;white-space:nowrap;background:rgba(255,201,60,.14);color:var(--gold)}
+.lg{flex:none;width:30px;height:30px;object-fit:contain}
+.btn{display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:12px;font:700 15px Inter,sans-serif;width:100%}
+.btn.tg{background:var(--tg);color:#fff}.btn.gold{background:var(--gold);color:#1d1500}.btn.sec{background:var(--card2)}
+.nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(10px + env(safe-area-inset-bottom))}
+.nav button{min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--mute);font:600 11px Inter,sans-serif}
+.nav svg{width:24px;height:24px}.nav button.on{color:var(--nav,var(--acc))}
+.ex{font:500 12px Inter,sans-serif;color:var(--mute);text-align:center}
+/* матчи */
+.feat{display:block;padding:14px;background:linear-gradient(135deg,var(--h1) 0%,#181c24 45%,#181c24 55%,var(--h2) 100%)}
+.feat .hd{display:flex;justify-content:space-between;align-items:center;font:600 13px Inter,sans-serif;color:var(--mute)}
+.vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin:8px 0 10px}
+.vs .t{display:flex;flex-direction:column;align-items:center;gap:8px;font:700 15px Inter,sans-serif;text-align:center}
+.vs .t img{width:58px;height:58px;object-fit:contain;filter:drop-shadow(0 0 14px rgba(255,255,255,.16)) drop-shadow(0 6px 10px rgba(0,0,0,.5))}
+.vs .c{text-align:center}.vs .c b{display:block;font:800 26px Inter,sans-serif}.vs .c small{color:var(--mute);font-size:12px}
+.feat .ft{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}
+.feat .ft p{margin:0;font:600 14px Inter,sans-serif}.feat .ft small{display:block;color:var(--mute);font-weight:500;font-size:12px}
+.mr{display:grid;grid-template-columns:minmax(0,1fr) auto 50px;gap:10px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line);min-height:58px;width:100%;text-align:left}
+.mr:last-child{border-bottom:0}
+.tt{display:flex;flex-direction:column;gap:4px}.tt span{display:flex;align-items:center;gap:10px;font:600 15px Inter,sans-serif}
+.mr time{font:600 14px Inter,sans-serif;color:var(--mute);text-align:right}
+/* матч */
+.mh{padding:4px 16px 0;background:linear-gradient(180deg,var(--h1) 0%,#0e1116 100%)}
+.mh .vs .t img{width:76px;height:76px}
+.mh .vs .c b{font-size:30px}
+.tabs{display:flex;gap:22px;border-bottom:1px solid var(--line);padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.tabs button{flex:none;padding:12px 0;font:600 14px Inter,sans-serif;color:var(--mute)}
+.tabs button.on{color:var(--fg);box-shadow:inset 0 -3px 0 var(--tab,var(--acc))}
+.pc{padding:14px}.pc .l{font:600 13px Inter,sans-serif;color:var(--mute)}
+.pc .r{display:flex;justify-content:space-between;align-items:center;margin-top:6px}.pc .r b{font:800 22px Inter,sans-serif}.pc .r .k{font:800 28px Inter,sans-serif;color:var(--gold)}
+.pc .s{color:var(--mute);font-size:13px;margin-top:2px}
+.odds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.odds div{background:var(--card2);border-radius:10px;padding:8px 0;text-align:center}.odds small{display:block;color:var(--mute);font-size:12px}.odds b{font:700 17px Inter,sans-serif}
+.odds .on{background:rgba(255,201,60,.14);box-shadow:inset 0 0 0 1.5px var(--gold)}.odds .on b{color:var(--gold)}
+.fl{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:14px;color:#d5dae3}
+.fr{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);width:100%;text-align:left}
+.fr:last-child{border-bottom:0}.fr span{font:600 15px Inter,sans-serif}
+.wl{display:flex;gap:4px}.wl i{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font:700 12px Inter,sans-serif;font-style:normal;color:#fff;background:var(--win)}.wl i.l{background:var(--loss)}
+.h2h{display:flex;align-items:center;gap:12px;padding:0 14px;border-bottom:1px solid var(--line);min-height:46px}.h2h:last-child{border-bottom:0}
+.h2h span{color:var(--mute);font:500 13px Inter,sans-serif;width:64px}.h2h b{font:600 14px Inter,sans-serif}.h2h em{margin-left:auto;font:600 12px Inter,sans-serif;color:var(--mute);font-style:normal}
+.acts{display:grid;grid-template-columns:1fr 1.3fr;gap:10px}
+/* итоги */
+.sum{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.sum div{background:var(--card);border-radius:12px;padding:12px 14px}.sum b{font:800 22px Inter,sans-serif}.sum small{display:block;color:var(--mute);font-size:13px}
+.rr{display:grid;grid-template-columns:30px minmax(0,1fr) auto 26px;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);min-height:60px;width:100%;text-align:left}
+.rr:last-child{border-bottom:0}
+.rr .m{font:600 14px Inter,sans-serif}.rr .m small{display:block;color:var(--mute);font-weight:500;font-size:13px}.rr .s{font:700 15px Inter,sans-serif}
+.res{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font:800 13px Inter,sans-serif;color:#fff;background:var(--win)}.res.l{background:var(--loss)}
+/* таблица */
+.th,.tr{display:grid;grid-template-columns:22px 30px minmax(0,1fr) 36px 52px;gap:10px;align-items:center;padding:0 14px;width:100%;text-align:left}
+.th{min-height:38px;border-bottom:1px solid var(--line);font:600 12px Inter,sans-serif;color:var(--mute)}
+.tr{min-height:52px;border-bottom:1px solid var(--line)}
+.tr .n{font:600 14px Inter,sans-serif;color:var(--mute)}.tr.top .n{color:var(--acc)}
+.tr .t{font:600 15px Inter,sans-serif}.tr .g{text-align:right;color:var(--mute);font:500 14px Inter,sans-serif}.tr .e{text-align:right;font:700 15px Inter,sans-serif}
+.lock{position:relative;overflow:hidden}.lock .rows{filter:blur(5px);opacity:.6}
+.lock .ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:linear-gradient(180deg,rgba(24,28,36,.2),rgba(24,28,36,.9))}
+.lock .ov b{font:700 16px Inter,sans-serif}.lock .ov span{color:var(--mute);font-size:13px}
+/* команда */
+.th3{position:relative;overflow:hidden;padding:12px 16px 16px;background:linear-gradient(125deg,var(--p) 0%,var(--p) 52%,var(--s) 52.2%,var(--s) 100%)}
+.th3::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.55))}
+.th3 .wm{position:absolute;right:-50px;top:-10px;width:230px;height:230px;object-fit:contain;opacity:.16;transform:rotate(-8deg)}
+.th3>*{position:relative}
+.th3 .row1{display:flex;align-items:center;gap:14px}
+.th3 .em{width:74px;height:74px;object-fit:contain;filter:drop-shadow(0 6px 14px rgba(0,0,0,.55))}
+.th3 h1{margin:0;font:800 26px Inter,sans-serif;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.4)}
+.th3 .sub{color:rgba(255,255,255,.82);font-size:13px;margin-top:2px}
+.pills{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.pills span{background:rgba(0,0,0,.35);border-radius:999px;padding:7px 12px;font:600 13px Inter,sans-serif;color:#fff}.pills b{font-weight:800}
+.rad{flex:1;display:flex;align-items:center;justify-content:center;padding:0 0 4px}.rad svg{width:100%;max-height:min(440px,calc(var(--vh) - 400px));min-height:230px}
+.legend{display:flex;justify-content:center;gap:18px;font:500 12px Inter,sans-serif;color:var(--mute);padding:0 0 12px}
+.legend i{display:inline-block;width:18px;height:0;border-top:3px solid var(--tab);vertical-align:middle;margin-right:6px}.legend i.d{border-top:2px dashed rgba(255,255,255,.55)}
+.pl{display:grid;grid-template-columns:minmax(0,1fr) 34px 54px 40px;gap:8px;align-items:center;padding:0 14px;min-height:46px;border-bottom:1px solid var(--line);font:500 14px Inter,sans-serif}
+.pl:last-child{border-bottom:0}.pl span:not(:first-child){text-align:right}.pl b{font-weight:700}.pl small{display:block;color:var(--mute);font-size:12px}
+.pl.h{min-height:34px;font:600 12px Inter,sans-serif;color:var(--mute)}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px;color:var(--mute)}
+.empty b{color:var(--fg);font:700 18px Inter,sans-serif}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="bar"><button class="back" id="back" hidden>Назад</button><b>JARVIS</b><span style="width:44px"></span></div>
+  <div class="scr" id="scr"></div>
+  <nav class="nav" id="nav" aria-label="Разделы"></nav>
+</div>
+<script>
+'use strict';
+// ── данные-примеры: в рабочей версии их подставит сборка сайта (team/site/build.py), как матчи дня на лендинге
+const TEAM={ // слаг: [название, основной цвет, второй, акцент (как в render/poster.py)]
+ akbars:['Ак Барс','#007a48','#e30613','#28aa46'],neftekhimik:['Нефтехимик','#1c3f6e','#c82832','#285aa0'],admiral:['Адмирал','#c8a96a','#141828','#c8a96a'],
+ severstal:['Северсталь','#ffcc00','#3c3c3c','#f0be00'],avangard:['Авангард','#c8102e','#282828','#e0303f'],traktor:['Трактор','#aaaaaa','#1e1e1e','#b8b8be'],
+ spartak:['Спартак','#d7141a','#f0f0f0','#e8323a'],sibir:['Сибирь','#1b325a','#b4c8e6','#7fa6e6'],lokomotiv:['Локомотив','#e30613','#1b4da1','#e8323a'],
+ barys:['Барыс','#2aa7b8','#142d50','#28aabe'],ska:['СКА','#1f4e9e','#e31e24','#5a96ff'],cska:['ЦСКА','#e30613','#1b3a8c','#e8323a'],
+ metallurg:['Металлург','#1b2a5a','#f5a623','#ffaa28'],dinamo_msk:['Динамо Москва','#003da5','#78a0ff','#5a8cff'],nhl_bos:['Бостон','#111111','#ffb81c','#ffb81c'],
+ nhl_tbl:['Тампа-Бэй','#123e8c','#ebebeb','#6f9be6']};
+const CITY={akbars:'Казань',ska:'Санкт-Петербург',metallurg:'Магнитогорск',lokomotiv:'Ярославль',nhl_bos:'Бостон',neftekhimik:'Нижнекамск'};
+const AX=['Атака','Защита','Вратари','Большинство','Меньшинство','Форма'];
+const POWER={akbars:[82,74,88,61,79,90],neftekhimik:[58,47,63,52,55,41],ska:[91,68,72,84,58,70],metallurg:[77,85,81,70,88,64],lokomotiv:[73,92,86,66,90,82],nhl_bos:[69,90,93,57,82,76]};
+const FEAT={id:'m1',h:'akbars',a:'neftekhimik',t:'19:30',pick:'Победа Ак Барса',sub:'в основное время',k:'1,85',bet:0,odds:['1,85','4,20','3,90'],
+  form:{akbars:'ВВПВВ',neftekhimik:'ПВППВ'},h2h:[['12.03.26','Ак Барс 4:2 Нефтехимик',''],['04.01.26','Нефтехимик 3:2 Ак Барс','ОТ']]};
+const LIST=[['admiral','severstal','14:00','П1 1,92'],['avangard','traktor','16:30','ТБ 5,5'],['spartak','sibir','17:00',''],['lokomotiv','barys','19:30','П1 1,70']];
+const RES=[['Суббота, 24 октября',[['sibir','Сибирь — Лада','Победа Сибири','3:2 ОТ',0],['spartak','Спартак — Динамо Москва','Тотал больше 4,5','1:4',1]]],
+ ['Пятница, 23 октября',[['avangard','Авангард — Металлург','Авангард не проиграет','2:3',0],['akbars','Ак Барс — Локомотив','Тотал меньше 5,5','2:1',1],['lokomotiv','Локомотив — СКА','Победа Локомотива','3:1',1]]],
+ ['Четверг, 22 октября',[['traktor','Трактор — Барыс','Тотал меньше 5,5','2:4',0],['ska','СКА — ЦСКА','Победа СКА','3:2',1]]]];
+const ELO=[['lokomotiv',18,1612],['metallurg',18,1598],['akbars',17,1587],['ska',18,1571],['cska',17,1566],['avangard',18,1560],['traktor',17,1549],['spartak',18,1541],['sibir',17,1533]];
+const PLAYERS=[['Нападающий 1','нап.',24,11,14],['Нападающий 2','нап.',24,9,13],['Нападающий 3','нап.',23,8,12],['Защитник 1','защ.',24,3,14],['Нападающий 4','нап.',22,7,8]];
+const CHANNEL='https://t.me/jarvibet';
+
+const tg=window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData!==undefined&&Telegram.WebApp.platform!=='unknown'?Telegram.WebApp:null;
+const $=s=>document.querySelector(s),scr=$('#scr');
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const em=k=>'emb/'+k+'.webp',nm=k=>TEAM[k]?TEAM[k][0]:k;
+const hexA=(h,a)=>{const n=parseInt(h.slice(1),16);return `rgba(${n>>16},${n>>8&255},${n&255},${a})`};
+
+function openChannel(){tg?tg.openTelegramLink(CHANNEL):window.open(CHANNEL,'_blank','noopener')}
+function haptic(){tg&&tg.HapticFeedback&&tg.HapticFeedback.selectionChanged()}
+
+const ICON={ // [контур, заливка для открытого раздела]
+ matches:['<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>','<path d="M8 2.5a1 1 0 0 1 1 1V5h6V3.5a1 1 0 1 1 2 0V5h.5A3.5 3.5 0 0 1 21 8.5V9H3v-.5A3.5 3.5 0 0 1 6.5 5H7V3.5a1 1 0 0 1 1-1zM3 11h18v6.5A3.5 3.5 0 0 1 17.5 21h-11A3.5 3.5 0 0 1 3 17.5z"/>'],
+ results:['<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.5 9"/>','<path d="M12 2.5a9.5 9.5 0 1 1 0 19 9.5 9.5 0 0 1 0-19zm4.2 6a1 1 0 0 0-1.4 0l-4.1 4.2-1.7-1.7a1 1 0 1 0-1.4 1.4l2.4 2.4a1 1 0 0 0 1.4 0l4.8-4.9a1 1 0 0 0 0-1.4z"/>'],
+ table:['<rect x="3.5" y="12" width="5" height="8" rx="1.5"/><rect x="9.5" y="5" width="5" height="15" rx="1.5"/><rect x="15.5" y="9" width="5" height="11" rx="1.5"/>','<rect x="3" y="12" width="5.5" height="9" rx="1.6"/><rect x="9.25" y="4" width="5.5" height="17" rx="1.6"/><rect x="15.5" y="8.5" width="5.5" height="12.5" rx="1.6"/>'],
+ video:['<rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M10.2 9.4v5.2l4.4-2.6z" fill="currentColor"/>','<path d="M6.5 4.5h11A3.5 3.5 0 0 1 21 8v8a3.5 3.5 0 0 1-3.5 3.5h-11A3.5 3.5 0 0 1 3 16V8a3.5 3.5 0 0 1 3.5-3.5zm3.7 4.9v5.2c0 .5.5.8.9.5l4.3-2.6a.6.6 0 0 0 0-1l-4.3-2.6c-.4-.3-.9 0-.9.5z"/>']};
+const TABS=[['matches','Матчи'],['results','Итоги'],['table','Таблица'],['video','Ролики']];
+function nav(on,color){
+ $('#nav').style.setProperty('--nav',color||'var(--acc)');
+ $('#nav').innerHTML=TABS.map(([k,n])=>`<button data-go="${k}" class="${k===on?'on':''}"${k===on?' aria-current="page"':''}>${k===on
+  ?`<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${ICON[k][1]}</svg>`
+  :`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k][0]}</svg>`}${n}</button>`).join('');
+}
+
+// ── экраны
+function matches(){
+ const f=FEAT;
+ return `<div class="main" style="padding-top:8px">
+ <div class="chips" role="group" aria-label="День"><span class="chip">Вчера</span><span class="chip on">Сегодня</span><span class="chip">Завтра</span></div>
+ <a class="card feat" href="#match/${f.id}" style="--h1:${hexA(TEAM[f.h][1],.45)};--h2:${hexA(TEAM[f.a][1],.55)}">
+  <div class="hd"><span>Матч дня · КХЛ</span><span class="badge">Прогноз П1 · ${f.k}</span></div>
+  <div class="vs"><div class="t"><img src="${em(f.h)}" alt="">${nm(f.h)}</div><div class="c"><b>${f.t}</b><small>Сегодня</small></div><div class="t"><img src="${em(f.a)}" alt="">${nm(f.a)}</div></div>
+  <div class="ft"><p>${f.pick}<small>${f.sub}</small></p><span style="color:var(--acc);font:600 14px Inter,sans-serif">Разбор матча</span></div></a>
+ <div class="card grow"><div class="gh">КХЛ<small>ещё ${LIST.length} матча</small></div>
+  ${LIST.map(([h,a,t,p])=>`<a class="mr fill" href="#match/${FEAT.id}"><div class="tt"><span><img class="lg" src="${em(h)}" alt="">${nm(h)}</span><span><img class="lg" src="${em(a)}" alt="">${nm(a)}</span></div>${p?`<span class="badge">${p}</span>`:'<span></span>'}<time>${t}</time></a>`).join('')}</div>
+ <button class="btn tg" data-act="channel">Все прогнозы в канале @jarvibet</button>
+ <div class="ex">Пример данных</div></div>`;
+}
+function match(){
+ const f=FEAT,fm=k=>[...f.form[k]].map(c=>`<i class="${c==='П'?'l':''}">${c}</i>`).join('');
+ return `<div class="mh" style="--h1:${hexA(TEAM[f.h][1],.35)}">
+  <div class="vs" style="padding:8px 0 14px;margin:0"><a class="t" href="#team/${f.h}"><img src="${em(f.h)}" alt="">${nm(f.h)}</a><div class="c"><b>${f.t}</b><small>Вс, 25 октября</small></div><a class="t" href="#team/${f.a}"><img src="${em(f.a)}" alt="">${nm(f.a)}</a></div></div>
+ <div class="tabs"><button class="on">Прогноз</button><button>Форма</button><button>Очные</button></div>
+ <div class="main" style="padding-top:12px">
+ <div class="card pc"><div class="l">Прогноз JARVIS</div><div class="r"><b>${f.pick}</b><span class="k">${f.k}</span></div><div class="s">${f.sub}</div>
+  <div class="odds">${['П1','Ничья','П2'].map((l,i)=>`<div class="${i===f.bet?'on':''}"><small>${l}</small><b>${f.odds[i]}</b></div>`).join('')}</div>
+  <div class="fl">[Цифра матча: проверенный факт с источником]</div></div>
+ <div class="card"><div class="gh">Форма, последние 5</div>
+  ${[f.h,f.a].map(k=>`<a class="fr" href="#team/${k}"><img class="lg" src="${em(k)}" alt=""><span>${nm(k)}</span><div class="wl">${fm(k)}</div></a>`).join('')}</div>
+ <div class="card grow"><div class="gh">Очные встречи<small>последние ${f.h2h.length}</small></div>
+  ${f.h2h.map(([d,s,e])=>`<div class="h2h fill"><span>${d}</span><b>${s}</b>${e?`<em>${e}</em>`:''}</div>`).join('')}</div>
+ <div class="acts"><button class="btn sec" data-act="remind">Напомнить за час</button><button class="btn tg" data-act="channel">Пост в канале</button></div>
+ <div class="ex">Пример данных</div></div>`;
+}
+function results(){
+ return `<div class="main" style="padding-top:8px">
+ <div class="chips"><span class="chip on">Октябрь</span><span class="chip">Сентябрь</span><span class="chip">Все</span></div>
+ <div class="sum"><div><b style="color:var(--win)">[N] зашло</b><small>в октябре</small></div><div><b style="color:var(--loss)">[N] мимо</b><small>показываем все</small></div></div>
+ ${RES.map(([d,rs],i)=>`<div class="card${i===RES.length-1?' grow':''}"><div class="gh">${d}</div>${rs.map(([e,m,p,s,w])=>
+   `<button class="rr fill" data-act="channel"><img class="lg" src="${em(e)}" alt=""><div class="m">${m}<small>${p}</small></div><span class="s">${s}</span><span class="res ${w?'':'l'}" aria-label="${w?'зашёл':'мимо'}">${w?'✓':'✕'}</span></button>`).join('')}</div>`).join('')}
+ <div class="ex">Пример данных · нажмите на прогноз — откроется канал</div></div>`;
+}
+function table(){
+ const row=([k,g,e],i,lock)=>`<${lock?'div':'a href="#team/'+k+'"'} class="tr${i<3?' top':''}"><span class="n">${i+1}</span><img class="lg" src="${em(k)}" alt=""><span class="t">${nm(k)}</span><span class="g">${g}</span><span class="e">${e}</span></${lock?'div':'a'}>`;
+ return `<div class="main" style="padding-top:8px">
+ <div class="chips"><span class="chip on">Рейтинг Эло</span><span class="chip">Что заходит</span><span class="chip">История</span></div>
+ <div class="card grow"><div class="gh">КХЛ · рейтинг силы команд<small>Пример данных</small></div>
+  <div class="th"><span>#</span><span></span><span>Команда</span><span style="text-align:right">И</span><span style="text-align:right">Эло</span></div>
+  ${ELO.slice(0,3).map((r,i)=>row(r,i)).join('')}
+  <div class="lock fill"><div class="rows" aria-hidden="true">${ELO.slice(3).map((r,i)=>row(r,i+3,1)).join('')}</div>
+   <div class="ov"><b>Ещё 20 команд</b><span>Полная таблица — для подписчиков</span></div></div></div>
+ <button class="btn gold" data-act="buy">Открыть полную таблицу</button></div>`;
+}
+function video(){
+ return `<div class="main" style="padding-top:8px"><div class="card grow"><div class="empty">
+  <b>Ролики появятся здесь</b><span>Короткие прогнозы на матчи дня — те же, что на YouTube и в Instagram.</span></div></div>
+  <button class="btn tg" data-act="channel">Смотреть в канале @jarvibet</button></div>`;
+}
+function radar(v,acc){
+ const W=366,H=420,r=142,c=W/2,cy=H/2+4,pt=(i,x)=>[c+r*x/100*Math.sin(Math.PI*i/3),cy-r*x/100*Math.cos(Math.PI*i/3)];
+ const poly=vs=>vs.map((x,i)=>pt(i,x).map(n=>n.toFixed(1)).join(',')).join(' ');
+ let o=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Сила команды: ${AX.map((a,i)=>a+' '+v[i]).join(', ')}"><defs><radialGradient id="gl"><stop offset="0" stop-color="${acc}" stop-opacity=".45"/><stop offset="1" stop-color="${acc}" stop-opacity="0"/></radialGradient></defs><circle cx="${c}" cy="${cy}" r="${r*.7}" fill="url(#gl)"/>`;
+ for(const k of [100,75,50,25])o+=`<polygon points="${poly(Array(6).fill(k))}" fill="${k===100?'rgba(255,255,255,.03)':'none'}" stroke="rgba(255,255,255,${k===100?.16:.08})"/>`;
+ for(let i=0;i<6;i++){const [x,y]=pt(i,100);o+=`<line x1="${c}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,.1)"/>`}
+ o+=`<polygon points="${poly(Array(6).fill(50))}" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5" stroke-dasharray="4 5"/>`;
+ o+=`<polygon points="${poly(v)}" fill="${acc}" fill-opacity=".28" stroke="${acc}" stroke-width="3" stroke-linejoin="round"/>`;
+ v.forEach((x,i)=>{const [px,py]=pt(i,x),[vx,vy]=pt(i,100),ty=[0,1,5].includes(i)?vy-26:vy+22;
+  o+=`<circle cx="${px}" cy="${py}" r="5" fill="${acc}" stroke="#0e1116" stroke-width="2"/><text x="${vx}" y="${ty}" text-anchor="middle" fill="#dfe5ee" font-size="13" font-weight="600">${AX[i]}</text><text x="${vx}" y="${ty+17}" text-anchor="middle" fill="${acc}" font-size="16" font-weight="800">${x}</text>`});
+ return o+'</svg>';
+}
+function team(k,tab){
+ const T=TEAM[k]||TEAM.akbars,acc=T[3],p=POWER[k]||[60,60,60,60,60,60];
+ document.body.style.background=`color-mix(in srgb, ${T[1]} 10%, #0e1116)`;
+ const head=`<div class="th3" style="--p:${T[1]};--s:${T[2]}"><img class="wm" src="${em(k)}" alt="">
+  <div class="row1"><img class="em" src="${em(k)}" alt=""><div><h1>${T[0]}</h1><div class="sub">${CITY[k]||''}${CITY[k]?' · ':''}[N]-е место</div></div></div>
+  <div class="pills"><span><b>[N]</b> очков</span><span><b>[N]–[N]</b> В–П</span><span>форма <b>${(FEAT.form[k]||'ВВПВВ')}</b></span></div></div>
+ <div class="tabs" style="--tab:${acc};background:rgba(0,0,0,.25)"><button class="${tab!=='players'?'on':''}" data-go="team/${k}">Сила команды</button><button class="${tab==='players'?'on':''}" data-go="team/${k}/players">Игроки</button></div>`;
+ const body=tab==='players'
+  ?`<div class="card"><div class="gh">Бомбардиры сезона<small>Пример данных</small></div><div class="pl h"><span>Игрок</span><span>И</span><span>Г+П</span><span>О</span></div>
+    ${PLAYERS.map(([n,pos,g,gl,a])=>`<div class="pl"><span><b>${n}</b><small>${pos}</small></span><span>${g}</span><span>${gl}+${a}</span><span><b>${gl+a}</b></span></div>`).join('')}</div>
+   <div class="card grow"><div class="gh">Вратари</div><div class="pl h"><span>Игрок</span><span>И</span><span>%ОБ</span><span>КН</span></div>
+    <div class="pl fill"><span><b>Вратарь 1</b></span><span>18</span><span>,925</span><span>2,05</span></div><div class="pl fill"><span><b>Вратарь 2</b></span><span>7</span><span>,908</span><span>2,61</span></div></div>`
+  :`<div class="card grow" style="background:rgba(255,255,255,.04);--tab:${acc}"><div class="gh" style="border-color:rgba(255,255,255,.06)">Сила команды<small>Пример данных</small></div>
+    <div class="rad">${radar(p,acc)}</div><div class="legend"><span><i></i>${T[0]}</span><span><i class="d"></i>средний уровень лиги</span></div></div>`;
+ return {html:head+`<div class="main" style="padding-top:12px">${body}</div>`,head:T[1],acc};
+}
+
+// ── переходы: #matches, #match/<id>, #results, #table, #video, #team/<слаг>[/players]
+let depth=0;
+function render(){
+ const [r,a,b]=(location.hash.slice(1)||'matches').split('/');
+ document.body.style.background='';
+ let html,tab=r,head='#0e1116',acc=null;
+ if(r==='match'){html=match();tab='matches'}
+ else if(r==='team'){const t=team(a,b);html=t.html;tab='table';head=t.head;acc=t.acc}
+ else html=({matches,results,table,video}[r]||matches)();
+ scr.innerHTML=html;scr.scrollTop=0;nav(tab,acc);
+ const inner=r==='match'||r==='team';
+ $('#back').hidden=!inner;
+ if(tg){inner?tg.BackButton.show():tg.BackButton.hide();try{tg.setHeaderColor(r==='team'?head:'#0e1116');tg.setBottomBarColor&&tg.setBottomBarColor('#181c24')}catch(e){}}
+}
+addEventListener('hashchange',()=>{haptic();render()});
+document.addEventListener('click',e=>{
+ const go=e.target.closest('[data-go]');if(go){location.hash=go.dataset.go;return}
+ const act=e.target.closest('[data-act]');if(!act)return;
+ const a=act.dataset.act;
+ if(a==='channel')openChannel();
+ else if(a==='remind')(tg?tg.showAlert('Напоминания появятся в рабочей версии: бот пришлёт сообщение за час до матча.'):alert('Напоминания появятся в рабочей версии.'));
+ else if(a==='buy')(tg?tg.showAlert('Оплата появится в рабочей версии. Пока доступ к таблице — через канал @jarvibet.'):alert('Оплата появится в рабочей версии.'));
+});
+const back=()=>history.length>1?history.back():(location.hash='matches');
+$('#back').onclick=back;
+if(tg){
+ document.documentElement.classList.add('in-tg');
+ tg.ready();tg.expand();
+ try{tg.setBackgroundColor('#0e1116');tg.setHeaderColor('#0e1116')}catch(e){}
+ tg.BackButton.onClick(back);
+}
+render();
+</script>
+</body>
+</html>
