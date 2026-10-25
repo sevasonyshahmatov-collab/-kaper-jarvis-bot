@@ -122,6 +122,48 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .l10{font:600 13px Inter,sans-serif;color:var(--mute)}
 .th3 .wm{display:block}
 span.lg{display:inline-block}
+/* фон команды: рисунок-маска (bg/<эмблема>.svg, team/site/app_data/bg_art.py) в цвете клуба */
+.art{position:absolute;inset:0;background:var(--artc,#fff);-webkit-mask:var(--art) right bottom/cover no-repeat;mask:var(--art) right bottom/cover no-repeat;opacity:.38;pointer-events:none}
+.th3 .art{opacity:.42}
+.pagebg{position:fixed;inset:0;z-index:-1;pointer-events:none}
+.pagebg .art{opacity:.16}
+/* сравнение */
+.vsbtn{margin:0 14px 12px;width:calc(100% - 28px)}
+.cmpt{display:grid;grid-template-columns:minmax(0,1fr) 64px 64px;gap:8px;align-items:center;padding:8px 14px;border-top:1px solid rgba(255,255,255,.06);font:500 13px Inter,sans-serif}
+.cmpt b{text-align:right;font:800 15px Inter,sans-serif}.cmpt small{display:block;color:var(--mute);font-size:11px;font-weight:500;text-align:right}
+.cmpt.h{font:600 12px Inter,sans-serif;color:var(--mute)}
+.cmpt.h span{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%}
+.pick-t{display:grid;grid-template-columns:22px 30px minmax(0,1fr) auto;gap:10px;align-items:center;padding:0 14px;min-height:52px;border-bottom:1px solid var(--line)}
+.pick-t .n{color:var(--mute);font:600 13px Inter,sans-serif}.pick-t .t{font:600 15px Inter,sans-serif}.pick-t small{color:var(--mute);font-size:12px}
+.sidelogo{display:none}
+/* ── компьютер: меню слева, содержимое в колонках */
+@media (min-width:900px){
+ html:not(.in-tg) body{background:#0b0e13}
+ html:not(.in-tg) .app{flex-direction:row;max-width:1680px;height:100vh;gap:0}
+ html:not(.in-tg) .bar{display:none}
+ html:not(.in-tg) .nav{order:-1;display:flex;flex-direction:column;justify-content:flex-start;gap:4px;width:220px;flex:none;border-top:0;border-right:1px solid var(--line);padding:20px 12px;background:rgba(24,28,36,.6)}
+ html:not(.in-tg) .nav button{flex-direction:row;justify-content:flex-start;gap:12px;padding:0 14px;min-height:46px;border-radius:12px;font:600 15px Inter,sans-serif}
+ html:not(.in-tg) .nav button.on{background:rgba(255,255,255,.06)}
+ html:not(.in-tg) .sidelogo{display:block;font:800 22px Inter,sans-serif;letter-spacing:.04em;padding:4px 14px 18px}
+ html:not(.in-tg) .sidelogo i{font-style:normal;color:var(--acc)}
+ html:not(.in-tg) .main{padding:20px 28px 28px}
+ .cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+ .cols>section{display:flex;flex-direction:column;gap:12px}
+ .cols3{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .th3{padding:28px 36px 30px;min-height:260px}
+ .th3 .em{width:120px;height:120px}
+ .th3 h1{font-size:42px}
+ .th3 .wm{width:360px;height:360px;right:6%;top:-40px}
+ .tabs{padding:0 36px}
+ .teamgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px;align-items:start}
+ .teamgrid .rad svg{max-height:560px;min-height:420px}
+ .mh{padding:24px 36px 8px}.mh .vs .t img{width:110px;height:110px}.mh .vs .c b{font-size:40px}
+ .feat .vs .t img{width:78px;height:78px}
+ .cmpt{grid-template-columns:minmax(0,1fr) 150px 150px;padding:10px 18px;font-size:14px}
+ .cmpt b{font-size:18px}.cmpt small{font-size:12px}
+}
+
 .note{font-size:12px;color:var(--mute);padding:0 14px 12px}
 </style>
 </head>
@@ -131,6 +173,7 @@ span.lg{display:inline-block}
   <div class="scr" id="scr"></div>
   <nav class="nav" id="nav" aria-label="Разделы"></nav>
 </div>
+<div class="pagebg" id="pagebg" aria-hidden="true"></div>
 <script>
 'use strict';
 // Данные — <сайт>/app/data.json (team/site/build.py → app_data, команды — team/site/app_data/build.py), обновляются вместе
@@ -146,6 +189,9 @@ const SAMPLE={sample:1,axes:['Атака','Защита','Вратари','Бо�
  schedule:[{lg:'khl',d:'2026-10-25 19:30',h:'Ак Барс',a:'Нефтехимик'}],
  results:[{lg:'khl',d:'2026-10-24 19:30',h:'Ак Барс',a:'Нефтехимик',pick:'Победа Ак Барса',k:'1,85',sc:'3:1',r:'win'}],
  logos:{'Ак Барс':'app/emb/akbars.webp','Нефтехимик':'app/emb/neftekhimik.webp'}};
+const BG=new Set(['nhl_col','sibir','admiral','metallurg','lokomotiv','cska']);   // фоны-рисунки — пробные 6 команд
+const art=(t,col)=>t&&t.slug&&BG.has(t.slug)?`<div class="art" style="--art:url('bg/${t.slug}.svg');--artc:${col}"></div>`:'';
+const WIDE=()=>!tg&&matchMedia('(min-width:900px)').matches;
 const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const WD=['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
 let DB=null,LG='khl';
@@ -174,7 +220,7 @@ const ICON={
 const TABS=[['matches','Матчи'],['results','Итоги'],['table','Таблица'],['video','Ролики']];
 function nav(on,color){
  $('#nav').style.setProperty('--nav',color||'var(--acc)');
- $('#nav').innerHTML=TABS.map(([k,n])=>`<button data-go="${k}" class="${k===on?'on':''}"${k===on?' aria-current="page"':''}>${k===on
+ $('#nav').innerHTML='<a class="sidelogo" href="../">JAR<i>V</i>IS</a>'+TABS.map(([k,n])=>`<button data-go="${k}" class="${k===on?'on':''}"${k===on?' aria-current="page"':''}>${k===on
   ?`<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${ICON[k][1]}</svg>`
   :`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k][0]}</svg>`}${n}</button>`).join('');
 }
@@ -183,12 +229,17 @@ const pickBadge=p=>{const s=String(p||'').replace(/ в осн\. время| в �
 
 // ── Матчи дня: самый уверенный прогноз — карточкой, расписание дня — списком (метка «прогноз» у матчей с прогнозом)
 function matches(lg){
+ if(WIDE())return `<div class="main"><div class="cols">${['khl','nhl'].map(l=>`<section><div class="gh" style="border:0;padding:4px 2px;font-size:18px">${l==='khl'?'КХЛ':'НХЛ'}</div>${matchBlock(l)}</section>`).join('')}</div>
+  <button class="btn tg" data-link="${CHANNEL}" style="max-width:420px">Все прогнозы в канале @jarvibet</button>${note()}</div>`;
+ return `<div class="main" style="padding-top:8px">${lgChips(lg,'matches')}${matchBlock(lg)}<button class="btn tg" data-link="${CHANNEL}">Все прогнозы в канале @jarvibet</button>${note()}</div>`;
+}
+function matchBlock(lg){
  const games=(DB.games||[]).filter(g=>g.lg===lg),sched=(DB.schedule||[]).filter(g=>g.lg===lg);
  const byPair={};games.forEach((g,i)=>byPair[g.h+'|'+g.a]=g);
  const f=games.slice().sort((a,b)=>b.p-a.p)[0];
  const list=(sched.length?sched:games).filter(x=>!f||x.h!==f.h||x.a!==f.a);
  const day=(f||list[0]||{}).d;
- let h=`<div class="main" style="padding-top:8px">${lgChips(lg,'matches')}`;
+ let h='';
  if(f){const th=T(f.h)||{},ta=T(f.a)||{};
   h+=`<a class="card feat" href="#match/${encodeURIComponent(f.h+'|'+f.a)}" style="--h1:${hexA((th.colors||[])[0],.45)};--h2:${hexA((ta.colors||[])[0],.55)}">
   <div class="hd"><span>Матч дня · ${lg==='khl'?'КХЛ':'НХЛ'}</span><span class="badge">Кэф ${esc(f.k)}</span></div>
@@ -197,7 +248,7 @@ function matches(lg){
  if(list.length){h+=`<div class="card grow"><div class="gh">${lg==='khl'?'КХЛ':'НХЛ'}${day?' · '+dayLabel(day.slice(0,10)):''}<small>${list.length} ${list.length===1?'матч':list.length<5?'матча':'матчей'}</small></div>`+
   list.map(x=>{const g=byPair[x.h+'|'+x.a];return `<${g?`a href="#match/${encodeURIComponent(x.h+'|'+x.a)}"`:'div'} class="mr fill"><div class="tt"><span>${img(x.h)}${esc(x.h)}</span><span>${img(x.a)}${esc(x.a)}</span></div>${g?`<span class="badge">${esc(pickBadge(g.pick))}</span>`:'<span></span>'}<time>${x.d.slice(11,16)}</time></${g?'a':'div'}>`}).join('')+'</div>'}
  if(!f&&!list.length)h+=`<div class="card grow"><div class="empty"><b>Сегодня матчей нет</b><span>Расписание и прогнозы появятся утром в день игр.</span></div></div>`;
- return h+`<button class="btn tg" data-link="${CHANNEL}">Все прогнозы в канале @jarvibet</button>${note()}</div>`;
+ return h;
 }
 
 // ── Разбор матча: прогноз, линия, сравнение команд по шестиугольнику, форма
@@ -205,35 +256,36 @@ function match(key){
  const g=(DB.games||[]).find(x=>x.h+'|'+x.a===key);if(!g)return matches(LG);
  const th=T(g.h)||{},ta=T(g.a)||{},ax=DB.axes||[];
  const odds=g.x&&g.x.length===3?`<div class="odds">${['П1','Ничья','П2'].map((l,i)=>`<div><small>${l}</small><b>${kef(g.x[i])}</b></div>`).join('')}</div>`:'';
- const cmp=(th.axes&&ta.axes)?`<div class="card"><div class="gh">Сравнение команд<small>место в лиге, 0–100</small></div>${ax.map((a,i)=>{const x=th.axes[i],y=ta.axes[i];const ca=bright((th.colors||[])[2]),cb=bright((ta.colors||[])[2]);return `<div class="cmp"><b style="color:${ca}">${x??'—'}</b><span class="cb l"><i style="width:${x||0}%;background:${ca}"></i></span><span class="lbl">${a}</span><span class="cb"><i style="width:${y||0}%;background:${cb}"></i></span><b style="color:${cb}">${y??'—'}</b></div>`}).join('')}</div>`:'';
+ const cb=bright((ta.colors||[])[2]),ca0=bright((th.colors||[])[2]),ca=ca0===cb?'#ffffff':ca0;
+ const cmp=(th.axes&&ta.axes)?`<div class="card"><div class="gh">Сравнение команд<small>место в лиге, 0–100</small></div><div class="rad">${radar([{v:th.axes,c:ca,name:g.h},{v:ta.axes,c:cb,name:g.a}],ax)}</div>
+  <div class="legend"><span><i style="border-color:${ca}"></i>${esc(g.h)}</span><span><i style="border-color:${cb};border-top-style:dashed"></i>${esc(g.a)}</span></div>${cmpTable(Object.assign({},th,{name:g.h}),Object.assign({},ta,{name:g.a}),ca,cb)}</div>`:'';
  const frm=t=>t.form?[...t.form].map(c=>`<i class="${c==='П'?'l':''}">${c}</i>`).join(''):(t.l10s?`<span class="l10">${esc(t.l10s)} за 10</span>`:'');
- return `<div class="mh" style="--h1:${hexA((th.colors||[])[0],.35)}">
-  <div class="vs" style="padding:8px 0 14px;margin:0"><a class="t" href="${href(g.h)}">${img(g.h,'')}${esc(g.h)}</a><div class="c"><b>${g.d.slice(11,16)}</b><small>${dayLabel(g.d.slice(0,10))}, МСК</small></div><a class="t" href="${href(g.a)}">${img(g.a,'')}${esc(g.a)}</a></div></div>
- <div class="main" style="padding-top:12px">
- <div class="card pc"><div class="l">Прогноз JARVIS</div><div class="r"><b>${esc(g.pick)}</b><span class="k">${esc(g.k)}</span></div>${odds}</div>
+ const head=`<div class="mh" style="--h1:${hexA((th.colors||[])[0],.35)}">
+  <div class="vs" style="padding:8px 0 14px;margin:0"><a class="t" href="${href(g.h)}">${img(g.h,'')}${esc(g.h)}</a><div class="c"><b>${g.d.slice(11,16)}</b><small>${dayLabel(g.d.slice(0,10))}, МСК</small></div><a class="t" href="${href(g.a)}">${img(g.a,'')}${esc(g.a)}</a></div></div>`;
+ const left=`<div class="card pc"><div class="l">Прогноз JARVIS</div><div class="r"><b>${esc(g.pick)}</b><span class="k">${esc(g.k)}</span></div>${odds}</div>
  <div class="card"><div class="gh">Форма${th.form?', последние 5':''}</div>${[[g.h,th],[g.a,ta]].map(([n,t])=>`<a class="fr" href="${href(n)}">${img(n)}<span>${esc(n)}</span><div class="wl">${frm(t)}</div></a>`).join('')}</div>
- ${cmp}
- <div class="acts"><button class="btn sec" data-link="${esc(g.u)}">Полный разбор на сайте</button><button class="btn tg" data-link="${CHANNEL}">Канал @jarvibet</button></div>
- ${note()}</div>`;
+ <div class="acts"><button class="btn sec" data-link="${esc(g.u)}">Полный разбор на сайте</button><button class="btn tg" data-link="${CHANNEL}">Канал @jarvibet</button></div>`;
+ return `${head}<div class="main" style="padding-top:12px">${WIDE()?`<div class="cols"><section>${left}</section><section>${cmp}</section></div>`:left.replace('<div class="acts">',cmp+'<div class="acts">')}${note()}</div>`;
 }
 
 // ── Итоги прогнозов по дням (все, и зашедшие, и нет)
 function results(){
  const rs=DB.results||[],by={};rs.forEach(r=>(by[r.d.slice(0,10)]=by[r.d.slice(0,10)]||[]).push(r));
  const days=Object.keys(by).sort().reverse().slice(0,7);
- let h='<div class="main" style="padding-top:8px">';
+ let h='<div class="main" style="padding-top:8px">'+(WIDE()?'<div class="cols cols3">':'');
  if(!days.length)h+=`<div class="card grow"><div class="empty"><b>Итогов пока нет</b><span>Здесь появятся прогнозы после сыгранных матчей.</span></div></div>`;
  days.forEach((d,i)=>{const dt=new Date(d+'T12:00:00');h+=`<div class="card${i===days.length-1?' grow':''}"><div class="gh">${WD[dt.getDay()]}, ${dayLabel(d)}</div>${by[d].map(r=>
   `<button class="rr fill" data-link="${CHANNEL}">${img(r.h)}<div class="m">${esc(r.h)} — ${esc(r.a)}<small>${esc(r.pick)} · ${esc(r.k)}</small></div><span class="s">${esc(r.sc||'')}</span><span class="res ${r.r==='win'?'':r.r==='push'?'p':'l'}" aria-label="${r.r==='win'?'зашёл':r.r==='push'?'возврат':'не зашёл'}">${r.r==='win'?'✓':r.r==='push'?'↩':'✕'}</span></button>`).join('')}</div>`});
- return h+note()+'</div>';
+ return h+(WIDE()?'</div>':'')+note()+'</div>';
 }
 
 // ── Турнирная таблица по конференциям (нажатие — страница команды) + промо «Таблицы JARVIS»
 function table(lg){
  const rows=(DB.leagues||{})[lg]||[],confs=[...new Set(rows.map(r=>r.conf))].filter(Boolean).sort((a,b)=>a==='Запад'?-1:1);
- let h=`<div class="main" style="padding-top:8px">${lgChips(lg,'table')}`;
+ let h=`<div class="main" style="padding-top:8px">${lgChips(lg,'table')}${WIDE()?'<div class="cols">':''}`;
  confs.forEach((c,ci)=>{const rs=rows.filter(r=>r.conf===c).sort((a,b)=>a.place-b.place);
   h+=`<div class="card"><div class="gh">${esc(c)}<small>И · О</small></div>${rs.map(r=>`<a class="tr${r.place<=8?' top':''}" href="${href(r.name)}"><span class="n">${r.place}</span>${img(r.name)}<span class="t">${esc(r.name)}</span><span class="g">${r.gp}</span><span class="e">${r.pts}</span></a>`).join('')}</div>`});
+ if(WIDE())h+='</div>';
  if(!confs.length)h+=`<div class="card grow"><div class="empty"><b>Таблица появится после сборки</b></div></div>`;
  return h+`<div class="card promo"><b>Таблица JARVIS</b><span>Рейтинг Эло, что чаще всего заходит у каждой команды и история прогнозов — для подписчиков.</span><button class="btn gold" data-act="buy">Узнать про доступ</button></div>${note()}</div>`;
 }
@@ -241,39 +293,62 @@ function video(){
  return `<div class="main" style="padding-top:8px"><div class="card grow"><div class="empty"><b>Ролики появятся здесь</b><span>Короткие прогнозы на матчи дня — те же, что на YouTube и в Instagram.</span></div></div>
   <button class="btn tg" data-link="${CHANNEL}">Смотреть в канале @jarvibet</button></div>`;
 }
-function radar(v,acc,ax){
+function radar(series,ax){ // series: [{v:[6], c:цвет, name}] — первая команда сверху, остальные наложены
  const W=366,H=420,r=142,c=W/2,cy=H/2+4,pt=(i,x)=>[c+r*x/100*Math.sin(Math.PI*i/3),cy-r*x/100*Math.cos(Math.PI*i/3)];
- const vv=v.map(x=>x==null?0:x),poly=vs=>vs.map((x,i)=>pt(i,x).map(n=>n.toFixed(1)).join(',')).join(' ');
- let o=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Сила команды: ${ax.map((a,i)=>a+' '+(v[i]??'нет данных')).join(', ')}"><defs><radialGradient id="gl"><stop offset="0" stop-color="${acc}" stop-opacity=".45"/><stop offset="1" stop-color="${acc}" stop-opacity="0"/></radialGradient></defs><circle cx="${c}" cy="${cy}" r="${r*.7}" fill="url(#gl)"/>`;
+ const poly=vs=>vs.map((x,i)=>pt(i,x==null?0:x).map(n=>n.toFixed(1)).join(',')).join(' ');
+ const one=series.length===1,a0=series[0].c;
+ let o=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${series.map(s=>s.name+': '+ax.map((a,i)=>a+' '+(s.v[i]??'нет данных')).join(', ')).join('; ')}"><defs><radialGradient id="gl"><stop offset="0" stop-color="${a0}" stop-opacity=".4"/><stop offset="1" stop-color="${a0}" stop-opacity="0"/></radialGradient></defs><circle cx="${c}" cy="${cy}" r="${r*.7}" fill="url(#gl)"/>`;
  for(const k of [100,75,50,25])o+=`<polygon points="${poly(Array(6).fill(k))}" fill="${k===100?'rgba(255,255,255,.03)':'none'}" stroke="rgba(255,255,255,${k===100?.16:.08})"/>`;
  for(let i=0;i<6;i++){const [x,y]=pt(i,100);o+=`<line x1="${c}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,.1)"/>`}
- o+=`<polygon points="${poly(Array(6).fill(55))}" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5" stroke-dasharray="4 5"/>`;
- o+=`<polygon points="${poly(vv)}" fill="${acc}" fill-opacity=".28" stroke="${acc}" stroke-width="3" stroke-linejoin="round"/>`;
- vv.forEach((x,i)=>{const [px,py]=pt(i,x),[lx,vy]=pt(i,100),ty=[0,1,5].includes(i)?vy-26:vy+22;
-  o+=`${v[i]==null?'':`<circle cx="${px}" cy="${py}" r="5" fill="${acc}" stroke="#0e1116" stroke-width="2"/>`}<text x="${lx}" y="${ty}" text-anchor="middle" fill="#dfe5ee" font-size="13" font-weight="600">${ax[i]}</text><text x="${lx}" y="${ty+17}" text-anchor="middle" fill="${acc}" font-size="16" font-weight="800">${v[i]??'—'}</text>`});
+ if(one)o+=`<polygon points="${poly(Array(6).fill(55))}" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5" stroke-dasharray="4 5"/>`;
+ series.slice().reverse().forEach((s,k)=>{o+=`<polygon points="${poly(s.v)}" fill="${s.c}" fill-opacity="${one?.28:.18}" stroke="${s.c}" stroke-width="3" stroke-linejoin="round"${k===0&&!one?' stroke-dasharray="7 4"':''}/>`;
+  s.v.forEach((x,i)=>{if(x!=null){const [px,py]=pt(i,x);o+=`<circle cx="${px}" cy="${py}" r="${one?5:4}" fill="${s.c}" stroke="#0e1116" stroke-width="2"/>`}})});
+ ax.forEach((a,i)=>{const [lx,vy]=pt(i,100),ty=[0,1,5].includes(i)?vy-26:vy+22;
+  o+=`<text x="${lx}" y="${ty}" text-anchor="middle" fill="#dfe5ee" font-size="13" font-weight="600">${a}</text><text x="${lx}" y="${ty+17}" text-anchor="middle" font-size="16" font-weight="800">${
+   series.map((s,k)=>`${k?'<tspan fill="#6b7383"> · </tspan>':''}<tspan fill="${s.c}">${s.v[i]??'—'}</tspan>`).join('')}</text>`});
  return o+'</svg>';
 }
-// ── Страница команды в цветах клуба: шестиугольник силы или игроки
-function team(name,tab){
+// подписи к цифрам показателей: что именно посчитано (raw — из team/site/app_data/build.py)
+function rawTxt(t,i){const x=(t.raw||[])[i];if(x==null)return '';const f=(v,d)=>(+v).toFixed(d).replace('.',',');
+ if(i===0)return f(x,2)+' гола за игру';if(i===1)return f(x,2)+' пропущ. за игру';if(i===2)return f(x*100,1)+'% отражённых';
+ if(i===3)return t.lg==='nhl'?f(x*100,1)+'% реализация':f(x,2)+' гола в большинстве';if(i===4)return t.lg==='nhl'?f(x*100,1)+'% нейтрализация':f(x,2)+' пропущ. в меньшинстве';
+ return x+' очков за 10 игр'}
+function cmpTable(a,b,ca,cb){const ax=DB.axes||[];
+ return `<div class="cmpt h"><span></span><span><i class="dot" style="background:${ca}"></i>${esc(a.name)}</span><span><i class="dot" style="background:${cb}"></i>${esc(b.name)}</span></div>`+
+  ax.map((n,i)=>`<div class="cmpt"><span>${n}</span><b style="color:${ca}">${(a.axes||[])[i]??'—'}<small>${rawTxt(a,i)}</small></b><b style="color:${cb}">${(b.axes||[])[i]??'—'}<small>${rawTxt(b,i)}</small></b></div>`).join('')}
+// ── Страница команды в цветах клуба: шестиугольник силы, игроки, сравнение с другой командой своей лиги
+function team(name,tab,other){
  const t=T(name);if(!t)return {html:table(LG)};
- const [p,s,a]=t.colors||['#1b2a44','#2a3a5a','#3ee0ff'],acc=bright(a),ax=DB.axes||[];
+ const [p,s,a]=t.colors||['#1b2a44','#2a3a5a','#3ee0ff'],acc=bright(a),ax=DB.axes||[],wide=WIDE(),enc=encodeURIComponent(name);
  document.body.style.background=`color-mix(in srgb, ${p} 10%, #0e1116)`;
  const frm=t.form?`форма <b>${esc(t.form)}</b>`:(t.l10s?`10 игр <b>${esc(t.l10s)}</b>`:'');
- const head=`<div class="th3" style="--p:${p};--s:${s}">${img(name,'wm')}
-  <div class="row1">${img(name,'em')}<div><h1>${esc(t.name)}</h1><div class="sub">${t.lg==='khl'?'КХЛ':'НХЛ'} · ${esc(t.conf||'')} · ${t.place}-е место</div></div></div>
+ const head=`<div class="th3" style="--p:${p};--s:${s}">${art(t,acc)}${img(name,'wm')}
+  <div class="row1">${img(name,'em')}<div><h1>${esc(t.name)}</h1><div class="sub">${t.lg==='khl'?'КХЛ':'НХЛ'} · ${esc(t.conf||'')} · ${t.place}-е место${t.coach?' · тренер '+esc(t.coach.split(' ').slice(0,2).join(' ')):''}</div></div></div>
   <div class="pills"><span><b>${t.pts}</b> очков</span><span><b>${t.w}–${t.l}</b> В–П</span>${frm?`<span>${frm}</span>`:''}</div></div>
- <div class="tabs" style="--tab:${acc};background:rgba(0,0,0,.25)"><button class="${tab!=='players'?'on':''}" data-go="team/${encodeURIComponent(name)}">Сила команды</button><button class="${tab==='players'?'on':''}" data-go="team/${encodeURIComponent(name)}/players">Игроки</button></div>`;
+ <div class="tabs" style="--tab:${acc};background:rgba(0,0,0,.25)"><button class="${!tab?'on':''}" data-go="team/${enc}">Сила команды</button>${wide?'':`<button class="${tab==='players'?'on':''}" data-go="team/${enc}/players">Игроки</button>`}<button class="${tab==='vs'||tab==='pick'?'on':''}" data-go="team/${enc}/pick">Сравнить</button></div>`;
  const pl=t.players||[],gk=t.goalies||[];
- const body=tab==='players'
-  ?(pl.length?`<div class="card"><div class="gh">Бомбардиры сезона</div><div class="pl h"><span>Игрок</span><span>И</span><span>Г+П</span><span>О</span></div>
+ const players=(pl.length?`<div class="card"><div class="gh">Бомбардиры сезона</div><div class="pl h"><span>Игрок</span><span>И</span><span>Г+П</span><span>О</span></div>
     ${pl.map(x=>`<div class="pl"><span><b>${esc(x.n)}</b><small>${esc(x.pos||'')}${x.pm!=null?` · ${x.pm>0?'+':''}${x.pm}`:''}</small></span><span>${x.gp??''}</span><span>${x.g??0}+${x.a??0}</span><span><b>${x.pts??0}</b></span></div>`).join('')}</div>`:'')
-   +(gk.length?`<div class="card grow"><div class="gh">Вратари</div><div class="pl h"><span>Игрок</span><span>И</span><span>%ОБ</span><span>КН</span></div>
+   +(gk.length?`<div class="card${wide?'':' grow'}"><div class="gh">Вратари</div><div class="pl h"><span>Игрок</span><span>И</span><span>%ОБ</span><span>КН</span></div>
     ${gk.map(x=>`<div class="pl"><span><b>${esc(x.n)}</b><small>побед ${x.w??0}${x.so?' · на ноль '+x.so:''}</small></span><span>${x.gp??''}</span><span>${x.sv!=null?(+x.sv).toFixed(1).replace('.',','):'—'}</span><span>${x.gaa!=null?(+x.gaa).toFixed(2).replace('.',','):'—'}</span></div>`).join('')}</div>`:'')
-   +(!pl.length&&!gk.length?`<div class="card grow"><div class="empty"><b>Статистики игроков пока нет</b></div></div>`:'')
-  :`<div class="card grow" style="background:rgba(255,255,255,.04);--tab:${acc}"><div class="gh" style="border-color:rgba(255,255,255,.06)">Сила команды<small>место в лиге, 0–100</small></div>
-    <div class="rad">${radar(t.axes||[],acc,ax)}</div><div class="legend"><span><i></i>${esc(t.name)}</span><span><i class="d"></i>середина лиги</span></div>
-    <div class="note">${t.lg==='khl'?'Большинство и меньшинство — голы в большинстве и пропущенные в меньшинстве за игру.':'Большинство и меньшинство — реализация и нейтрализация по данным НХЛ.'} Форма — очки за последние 10 игр.</div></div>`;
- return {html:head+`<div class="main" style="padding-top:12px">${body}${note()}</div>`,head:p,acc};
+   +(!pl.length&&!gk.length?`<div class="card grow"><div class="empty"><b>Статистики игроков пока нет</b></div></div>`:'');
+ const power=`<div class="card${wide?'':' grow'}" style="background:rgba(255,255,255,.04);--tab:${acc}"><div class="gh" style="border-color:rgba(255,255,255,.06)">Сила команды<small>место в лиге, 0–100</small></div>
+    <div class="rad">${radar([{v:t.axes||[],c:acc,name:t.name}],ax)}</div><div class="legend"><span><i></i>${esc(t.name)}</span><span><i class="d"></i>середина лиги</span></div>
+    <button class="btn sec vsbtn" data-go="team/${enc}/pick">Сравнить с другой командой</button>
+    <div class="note">Балл — место команды в своей лиге по этому показателю: 100 — лучшая, 10 — худшая. ${t.lg==='khl'?'Большинство и меньшинство — голы в большинстве и пропущенные в меньшинстве за игру.':'Большинство и меньшинство — реализация и нейтрализация по данным НХЛ.'} Форма — очки за последние 10 игр.</div></div>`;
+ let body;
+ if(tab==='pick'){ // выбор соперника — команды той же лиги по местам
+  const rows=((DB.leagues||{})[t.lg]||[]).filter(r=>r.name!==name).sort((x,y)=>(x.conf||'').localeCompare(y.conf||'')||x.place-y.place);
+  body=`<div class="card"><div class="gh">С кем сравнить ${esc(t.name)}?<small>${t.lg==='khl'?'КХЛ':'НХЛ'}</small></div>${rows.map(r=>`<a class="pick-t" href="#team/${enc}/vs/${encodeURIComponent(r.name)}"><span class="n">${r.place}</span>${img(r.name)}<span class="t">${esc(r.name)}<br><small>${esc(r.conf||'')} · ${r.pts} очков</small></span><span class="badge" style="background:rgba(255,255,255,.06);color:var(--fg)">Сравнить</span></a>`).join('')}</div>`;
+ }else if(tab==='vs'&&T(other)){
+  const o=T(other),cb=bright((o.colors||[])[2]),ca=acc===cb?'#ffffff':acc;
+  body=`<div class="${wide?'teamgrid':''}" style="${wide?'':'display:contents'}"><div class="card" style="background:rgba(255,255,255,.04)"><div class="gh" style="border-color:rgba(255,255,255,.06)">${esc(t.name)} и ${esc(o.name)}<small>место в лиге, 0–100</small></div>
+    <div class="rad">${radar([{v:t.axes||[],c:ca,name:t.name},{v:o.axes||[],c:cb,name:o.name}],ax)}</div>
+    <div class="legend"><span><i style="border-color:${ca}"></i>${esc(t.name)}</span><span><i style="border-color:${cb};border-top-style:dashed"></i>${esc(o.name)}</span></div></div>
+   <div class="card">${cmpTable(t,o,ca,cb)}<div class="gh" style="border-top:1px solid var(--line);border-bottom:0"><a href="${href(o.name)}" style="color:var(--acc)">Страница ${esc(o.name)}</a><small><a href="#team/${enc}/pick" style="color:var(--acc)">Другая команда</a></small></div></div></div>`;
+ }else if(tab==='players'&&!wide)body=players;
+ else body=wide?`<div class="teamgrid"><section>${power}</section><section style="display:flex;flex-direction:column;gap:12px">${players}</section></div>`:power;
+ return {html:head+`<div class="main" style="padding-top:12px">${body}${note()}</div>`,head:p,acc,bg:art(t,acc)};
 }
 
 // ── переходы: #matches[/лига], #match/<хозяева|гости>, #results, #table[/лига], #video, #team/<клуб>[/players]
@@ -281,19 +356,21 @@ function render(){
  const parts=(location.hash.slice(1)||'matches').split('/').map(decodeURIComponent),[r,a,b]=parts;
  document.body.style.background='';
  if((r==='matches'||r==='table')&&(a==='khl'||a==='nhl'))LG=a;
- let html,tab=r,head='#0e1116',acc=null;
+ let html,tab=r,head='#0e1116',acc=null,pbg='';
  if(r==='match'){html=match(a);tab='matches'}
- else if(r==='team'){const t=team(a,b);html=t.html;tab='table';head=t.head||head;acc=t.acc}
+ else if(r==='team'){const t=team(a,b,parts[3]);html=t.html;tab='table';head=t.head||head;acc=t.acc;pbg=t.bg}
  else if(r==='table')html=table(LG);
  else if(r==='results')html=results();
  else if(r==='video')html=video();
  else{html=matches(LG);tab='matches'}
  scr.innerHTML=html;scr.scrollTop=0;nav(tab,acc);
+ $('#pagebg').innerHTML=WIDE()?pbg:'';
  const inner=r==='match'||r==='team';
  $('#back').hidden=!inner;
  if(tg){inner?tg.BackButton.show():tg.BackButton.hide();try{tg.setHeaderColor(r==='team'?head:'#0e1116')}catch(e){}}
 }
 addEventListener('hashchange',()=>{haptic();render()});
+matchMedia('(min-width:900px)').addEventListener('change',()=>DB&&render());   // телефон ↔ компьютер — другая раскладка
 document.addEventListener('click',e=>{
  const go=e.target.closest('[data-go]');if(go){location.hash=go.dataset.go;return}
  const ln=e.target.closest('[data-link]');if(ln){openLink(ln.dataset.link);return}
