@@ -254,8 +254,8 @@ def match_page(P, m, logos, base, siblings):
     lg = LG[P['league']]
     d = dt_of(m)
     title = '%s — %s: прогноз на матч %d %s %d | %s' % (m['h'], m['a'], d.day, MONTHS[d.month - 1], d.year, lg)
-    desc = '%s — %s, %s, %s МСК. Прогноз модели: %s, кэф %s. Форма команд, вероятность и 10 000 розыгрышей матча.' % (
-        m['h'], m['a'], nice_day(d.date()), m['d'][11:16], lower1(m['pick']), kef_s(m['odds']))
+    desc = '%s — %s, %s, %s МСК. Прогноз JARVIS: %s%s. Форма команд и линия на матч.' % (
+        m['h'], m['a'], nice_day(d.date()), m['d'][11:16], lower1(m['pick']), (', кэф ' + kef_s(m['odds'])) if m.get('odds') else '')
     url = base + 'prognozy/' + page_name(m)
     ld = [{
         '@context': 'https://schema.org', '@type': 'SportsEvent', 'name': '%s — %s' % (m['h'], m['a']), 'sport': 'Ice hockey',
@@ -296,21 +296,21 @@ def match_page(P, m, logos, base, siblings):
 <p class="when">%s · %s · %s МСК%s</p>
 <div class="vs"><div>%s<b>%s</b></div><span>—</span><div>%s<b>%s</b></div></div>
 %s
-<section class="pick"><small>Прогноз</small><h2>%s</h2><div class="k">%s</div>
-<div class="prob"><span>Вероятность по модели</span><b>%s</b></div><div class="meter"><i style="width:%s"></i></div></section>
+<section class="pick"><small>Прогноз</small><h2>%s</h2><div class="k">%s</div>%s</section>
 %s
-<section><h2>Форма команд</h2><div class="teams">%s%s</div></section>
-<section><h2>Что говорит модель</h2>
-<p>Модель считает вероятность событий по форме команд и сравнивает её с линией. Выбираем самое вероятное событие с кэфом от 1,6 до 2,3.</p>
-%s%s</section>
+%s
+%s
 %s
 </main>
 ''' % (rel, rel, esc('%s — %s' % (m['h'], m['a'])), esc(m['h']), esc(m['a']), d.day, MONTHS[d.month - 1], d.year,
        lg, nice_day(d.date()), m['d'][11:16], (' · ' + esc(m['arena'])) if m.get('arena') else '',
-       emb(m['h']), esc(m['h']), emb(m['a']), esc(m['a']), res, esc(m['pick']), kef_s(m['odds']), pct(m['p']), pct(m['p']),
+       emb(m['h']), esc(m['h']), emb(m['a']), esc(m['a']), res, esc(m['pick']), kef_s(m['odds']) if m.get('odds') else '',
+       ('<div class="prob"><span>Вероятность по модели</span><b>%s</b></div><div class="meter"><i style="width:%s"></i></div>' % (pct(m['p']), pct(m['p']))) if m.get('p') else '',
        ('<section><h2>Линия на основное время</h2>%s</section>' % line) if line else '',
-       form_html(m['h'], (m.get('form') or {}).get(m['h']), logos.get(m['h']), rel),
-       form_html(m['a'], (m.get('form') or {}).get(m['a']), logos.get(m['a']), rel), sim, fact,
+       (lambda fh, fa: ('<section><h2>Форма команд</h2><div class="teams">%s%s</div></section>' % (fh, fa)) if (fh or fa) else '')(
+           form_html(m['h'], (m.get('form') or {}).get(m['h']), logos.get(m['h']), rel),
+           form_html(m['a'], (m.get('form') or {}).get(m['a']), logos.get(m['a']), rel)),
+       ('<section><h2>Что говорит модель</h2>%s%s</section>' % (sim, fact)) if (sim or fact) else '',
        ('<section><h2>Другие матчи дня</h2><div class="sib">%s</div></section>' % sib) if sib else '')
     return head(title, desc, url, '../', extra) + body + FOOT
 
@@ -330,7 +330,7 @@ def list_page(D, base, logos=None):
     for (dy, lg), ms in days_.items():
         d = date.fromisoformat(dy)
         rows = ''.join('''<a class="row" href="%s"><time>%s</time><span class="m">%s<span>%s — %s</span>%s</span><span class="p">%s · %s</span>%s</a>''' % (
-            page_name(m), m['d'][11:16], icon(m['h']), esc(m['h']), esc(m['a']), icon(m['a']), esc(m['pick']), kef_s(m['odds']),
+            page_name(m), m['d'][11:16], icon(m['h']), esc(m['h']), esc(m['a']), icon(m['a']), esc(m['pick']), kef_s(m['odds']) if m.get('odds') else '—',
             '<b class="mk %s">%s %s</b>' % (m['res'], {'win': '✓', 'loss': '✕'}.get(m['res'], '↩'), esc(m.get('score') or ''))
             if m.get('res') else '<b class="mk soon">ждём</b>') for m in sorted(ms, key=lambda m: m['d']))
         blocks.append('<section><h2>%s · %s</h2><div class="rows">%s</div></section>' % (
@@ -340,7 +340,7 @@ def list_page(D, base, logos=None):
     tally = ('<p class="tally">За 30 дней: зашло <b>%d из %d</b> прогнозов. Показываем все, без удалений.</p>' % (w, len(done))) if done else ''
     body = '''<main class="wrap page"><nav class="crumbs"><a href="%s">Главная</a> › Прогнозы</nav>
 <h1>Прогнозы на хоккей: КХЛ и НХЛ</h1>
-<p class="when">Прогноз на каждый матч: самое вероятное событие по модели с кэфом 1,6–2,3. После матча — счёт и итог.</p>
+<p class="when">Прогнозы, выложенные в Telegram-канале @jarvibet. После матча — счёт и итог.</p>
 %s%s</main>
 ''' % ('../', tally, ''.join(blocks))
     return head(title, desc, base + 'prognozy/', '../') + body + FOOT
@@ -368,13 +368,13 @@ def app_data(D, site, logos):
     soon = sorted([(P, m) for P in D for m in P['matches'] if m['d'][:10] >= td and not m.get('res')], key=lambda pm: pm[1]['d'])
     games = []
     for P, m in soon:
-        games.append(dict(lg=P['league'], d=m['d'], h=m['h'], a=m['a'], pick=m['pick'], k=kef_s(m['odds']), x=m.get('x1x2'), p=round(m['p'], 3),
+        games.append(dict(lg=P['league'], d=m['d'], h=m['h'], a=m['a'], pick=m['pick'], k=kef_s(m['odds']) if m.get('odds') else '—', x=m.get('x1x2'), p=round(m['p'] or 0, 3),
                           u='../prognozy/' + page_name(m)))
     sched = []
     for P in D:
         if P['day'] == td:
             sched += [dict(lg=P['league'], d=x['d'], h=x['h'], a=x['a']) for x in P.get('all') or []]
-    res = [dict(lg=P['league'], d=m['d'], h=m['h'], a=m['a'], pick=m['pick'], k=kef_s(m['odds']), sc=m.get('score'), r=m['res'])
+    res = [dict(lg=P['league'], d=m['d'], h=m['h'], a=m['a'], pick=m['pick'], k=kef_s(m['odds']) if m.get('odds') else '—', sc=m.get('score'), r=m['res'])
            for P in D for m in P['matches'] if m.get('res') in ('win', 'loss', 'push')]
     res.sort(key=lambda r: r['d'], reverse=True)
     out = dict(teams_, built=datetime.now(MSK).strftime('%Y-%m-%d %H:%M'), games=games, schedule=sorted(sched, key=lambda x: x['d']),
@@ -408,9 +408,10 @@ def landing(D, logos, base, site=None):
         d = dt_of(m).date()
         when = 'Сегодня' if d.isoformat() == td else 'Ночь на %d %s' % (d.day, MONTHS[d.month - 1]) if P['league'] == 'nhl' and d.isoformat() > td else '%d %s' % (d.day, MONTHS[d.month - 1])
         f = m.get('fact') or {}
-        tod[P['league']].append(dict(w='%s · %s МСК' % (when, m['d'][11:16]), a=m['h'], b=m['a'], p=m['pick'], k=kef_s(m['odds']),
-                                     y=('У %s такое было в %d из %d игр' % (gen(f['team']), f['k'], f['n'])) if f.get('n') else 'Вероятность по модели %s' % pct(m['p']),
-                                     u='prognozy/' + page_name(m), x=m.get('x1x2'), pr=round(m['p'], 3)))
+        tod[P['league']].append(dict(w='%s · %s МСК' % (when, m['d'][11:16]), a=m['h'], b=m['a'], p=m['pick'], k=kef_s(m['odds']) if m.get('odds') else '—',
+                                     y=('У %s такое было в %d из %d игр' % (gen(f['team']), f['k'], f['n'])) if f.get('n') else
+                                     ('Вероятность по модели %s' % pct(m['p'])) if m.get('p') else 'Прогноз из канала @jarvibet',
+                                     u='prognozy/' + page_name(m), x=m.get('x1x2'), pr=round(m['p'] or 0, 3)))
     tod = {k: v[:6] for k, v in tod.items() if v}
     res = [dict(t='%s — %s' % (m['h'], m['a']), b=m['pick'], ok=m['res'] == 'win')
            for P in D for m in P['matches'] if m.get('res') in ('win', 'loss')][-14:]
@@ -484,6 +485,51 @@ def write(site, rel, text, changed):
         changed.append(rel)
 
 
+def _norm(t):
+    t = str(t or '').lower().replace('ё', 'е').replace('в осн. время', 'в основное время')
+    return re.sub(r'[^0-9a-zа-я+,.]+', ' ', t).strip()
+
+
+def channel_view(site, D):
+    """Владелец 25.10: на сайте и в приложении — только прогнозы, выложенные в канал @jarvibet (site/stats/published.json —
+    team/site/months.py). Ставка и кэф — из поста; итог — по посту (months), у ещё не сыгранных — без итога. Совпала ставка с
+    моделью — оставляем вероятность и розыгрыши модели, нет — убираем (они о другой ставке). Матча нет в прогнозах модели,
+    но он есть в расписании дня — показываем по посту, без данных модели. Нет файла — прогнозов на сайте нет."""
+    pub = load(os.path.join(site, 'stats', 'published.json')) or []
+    key = lambda lg, h, a, d: (lg, _norm(h), _norm(a), d[:10])  # noqa: E731
+    posts = {key(x['lg'], x['h'], x['a'], x['d']): x for x in pub}
+    out, used = [], set()
+    for P in D:
+        ms = []
+        for m in P['matches']:
+            k = key(P['league'], m['h'], m['a'], m['d'])
+            x = posts.get(k)
+            if not x:
+                continue
+            used.add(k)
+            same = _norm(x['bet']) == _norm(m['pick'])
+            m2 = dict(m, pick=x['bet'], odds=x.get('kef') or (m['odds'] if same else None), post=x['id'])
+            if not same:
+                m2.update(p=None, sim=None, fact=None)
+            if x.get('r'):
+                m2.update(res=x['r'], score=x.get('sc'))
+            elif not same:
+                m2.pop('res', None), m2.pop('score', None)
+            ms.append(m2)
+        for y in P.get('all') or []:                    # пост есть, у модели прогноза на матч не было
+            k = key(P['league'], y['h'], y['a'], y['d'])
+            x = posts.get(k)
+            if x and k not in used:
+                used.add(k)
+                m2 = dict(h=y['h'], a=y['a'], d=y['d'], pick=x['bet'], odds=x.get('kef'), p=None, post=x['id'], form={})
+                if x.get('r'):
+                    m2.update(res=x['r'], score=x.get('sc'))
+                ms.append(m2)
+        out.append(dict(P, matches=sorted(ms, key=lambda m: m['d'])))
+    print('SITE прогнозы из канала: постов %d, на сайте %d' % (len(pub), sum(len(P['matches']) for P in out)), flush=True)
+    return out
+
+
 def build(site, plans, do_settle=True):
     base = (os.environ.get('SITE_URL') or 'https://example.github.io/jarvis').rstrip('/') + '/'
     store(site, plans)
@@ -493,6 +539,7 @@ def build(site, plans, do_settle=True):
             settle_all(D)
         except Exception as e:  # noqa: BLE001 — без счёта страницы всё равно собираем
             print('SITEERR итоги не посчитаны: %r' % e, flush=True)
+    D = channel_view(site, D)                      # дальше — только то, что выложено в канал
     app_teams = app_team_names()
     logos = emblem_files(site, sorted({t for P in D for m in P['matches'] + P.get('all', []) + P.get('yday', [])
                                        for t in (m['h'], m['a'])} | app_teams))
@@ -506,6 +553,12 @@ def build(site, plans, do_settle=True):
         ms = sorted(P['matches'], key=lambda m: m['d'])
         for m in ms:
             write(site, 'prognozy/' + page_name(m), match_page(P, m, logos, base, ms), changed)
+    keep_pages = {page_name(m) for P in D for m in P['matches']}
+    gone = [p for p in glob.glob(os.path.join(site, 'prognozy', '20*.html')) if os.path.basename(p) not in keep_pages]
+    for p in gone:                                 # прогноз не выкладывался в канал — страницы на сайте нет
+        os.remove(p)
+    if gone:
+        print('SITE убрано страниц без поста в канале: %d' % len(gone), flush=True)
     write(site, 'prognozy/index.html', list_page(D, base, logos), changed)
     write(site, 'index.html', landing(D, logos, base, site), changed)
     # sitemap — по всем страницам матчей, что лежат на сайте (и старше KEEP_DAYS)
