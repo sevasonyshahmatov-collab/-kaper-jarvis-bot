@@ -15,6 +15,13 @@ nav a{text-decoration:none;color:var(--mute)}
 nav a:hover{color:var(--fg)}
 nav .tg,.btn{background:linear-gradient(135deg,#2aa8ff,var(--cyan));color:#041022;font-family:var(--display);font-weight:800;border-radius:999px;text-decoration:none}
 nav .tg{padding:8px 16px;font-size:13px;color:#041022}
+.soc{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);color:var(--fg);text-decoration:none;transition:transform .2s,background .2s,border-color .2s}
+.soc svg{width:16px;height:16px}
+.soc:hover{transform:translateY(-1px)}
+.soc.yt{background:#ff0033;border-color:#ff0033;color:#fff;box-shadow:0 6px 22px -8px #ff0033}   /* владелец 25.10: красная — для контраста */
+.soc.yt:hover{background:#ff2a52;border-color:#ff2a52}
+.soc.ig{background:linear-gradient(45deg,#f9a825,#e1306c 50%,#833ab4);border-color:#e1306c;color:#fff;box-shadow:0 6px 22px -8px #e1306c}   /* обе в цвете площадки */
+.soc.ig:hover{filter:brightness(1.12)}
 .btn{display:inline-block;padding:15px 26px;font-size:15px}
 .page{padding-block:28px 60px;display:grid;gap:26px}
 .crumbs{font-size:13px;color:var(--mute)}
@@ -82,4 +89,4 @@ section h2{font-size:20px;margin-bottom:12px}
 footer{border-top:1px solid var(--line);padding-block:24px;color:var(--mute);font-size:13px}
 footer .wrap{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between}
 a:focus-visible,.btn:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
-@media (max-width:700px){.teams{grid-template-columns:1fr}.row{grid-template-columns:44px 1fr auto}.row .p{display:none}.top nav a:not(.tg){display:none}}
+@media (max-width:700px){.teams{grid-template-columns:1fr}.row{grid-template-columns:44px 1fr auto}.row .p{display:none}.top nav a:not(.tg):not(.soc){display:none}}
