@@ -1,6 +1,6 @@
 {
  "akbars": {
-  "scene": "a snow leopard prowling on a rocky ledge at night, the white towers of the Kazan Kremlin glowing in the distant mist",
+  "scene": "a white snow leopard leaping over the boards onto the ice of a hockey arena, green and red light beams, a hockey puck sliding under its paws, the white towers of the Kazan Kremlin visible through the arena mist",
   "colors": [
    "#007a48",
    "#e30613"
@@ -21,7 +21,7 @@
   ]
  },
  "cska": {
-  "scene": "a herd of strong horses galloping through fresh snow at night, red stars glowing in a dark winter sky",
+  "scene": "a strong dark horse galloping across the ice of a hockey arena, a red and blue horse blanket with a big red star, stadium spotlights, ice spray from hooves, a hockey goal and crossed sticks in the background",
   "colors": [
    "#e30613",
    "#1b3a8c"
@@ -49,7 +49,7 @@
   ]
  },
  "lokomotiv": {
-  "scene": "a powerful modern locomotive pulling a train across a long steel bridge over the Volga river at night, headlights cutting through the mist",
+  "scene": "a powerful modern locomotive painted in red, white and blue club livery with a bold stylized star-and-wheel emblem on its nose, bursting out of the dark onto the ice of a hockey arena under stadium lights, ice shavings flying, hockey sticks and a puck in the foreground",
   "colors": [
    "#e30613",
    "#1b4da1"
@@ -63,7 +63,7 @@
   ]
  },
  "metallurg": {
-  "scene": "a huge steel mill interior with a ladle pouring glowing molten metal, showers of orange sparks, dramatic industrial atmosphere",
+  "scene": "a giant ladle pouring glowing molten steel that forms a burning hockey puck on the ice of a rink, showers of orange sparks over the ice, a steel mill with blast furnaces behind the arena glass",
   "colors": [
    "#f5a623",
    "#1b2a5a"
@@ -161,7 +161,7 @@
   ]
  },
  "nhl_bos": {
-  "scene": "a huge brown bear standing on the rocks of Boston harbor at night, the city skyline and old ships behind",
+  "scene": "a huge brown bear standing on its hind legs on the ice of a hockey rink, holding a hockey stick, gold and black arena lights, the Boston skyline glowing behind the arena glass",
   "colors": [
    "#ffb81c",
    "#111111"
@@ -245,7 +245,7 @@
   ]
  },
  "nhl_col": {
-  "scene": "a dramatic avalanche thundering down the snowy peaks of the Rocky Mountains at night under moonlight",
+  "scene": "a huge snow avalanche pouring down the Rocky Mountains straight onto an outdoor hockey rink at night, hockey sticks and a puck on the ice in the foreground, the avalanche rushing toward an empty hockey goal",
   "colors": [
    "#822d48",
    "#236192"

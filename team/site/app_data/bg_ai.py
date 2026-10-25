@@ -23,11 +23,12 @@ OUT = os.path.join(os.path.dirname(HERE), 'app', 'bg')
 MODEL = os.environ.get('GEMINI_IMAGE_MODEL') or 'gemini-2.5-flash-image'
 API = 'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent' % MODEL
 
-STYLE = ('Cinematic wide digital painting used as a background for a sports app, landscape 16:9. Scene: {scene}. '
-         'Mood: dramatic night or dusk, volumetric light, atmospheric haze, rich depth, premium illustration. '
+STYLE = ('Cinematic wide digital painting used as a background for an ice hockey app, landscape 16:9. Scene: {scene}. '
+         'Ice hockey atmosphere: rink ice, arena lights, sticks, puck. Club symbolics only through club colors and simple stylized shapes. '
+         'Mood: dramatic night, volumetric light, atmospheric haze, rich depth, premium illustration. '
          'Color palette dominated by {c1} and {c2} with deep dark shadows. Composition: the main subject on the right two thirds, '
-         'the scene continues naturally across the whole frame, no dark bands or panels. No text, no letters, no numbers, no logos, no emblems, no watermarks, '
-         'no recognizable people, no hockey players.')
+         'the scene continues naturally across the whole frame, no dark bands or panels. No text, no letters, no numbers, no real logos, no watermarks, '
+         'no recognizable faces.')
 
 
 def generate(key, slug, spec):
