@@ -676,7 +676,8 @@ const pinTop=()=>parseFloat(getComputedStyle(pin).top)||0,span=()=>tour.offsetHe
 const start=()=>tour.getBoundingClientRect().top+scrollY-pinTop(),posOf=i=>start()+span()*(i+.5)/N;
 const snaps=steps.map(()=>{const d=document.createElement('div');d.className='snap';tour.appendChild(d);return d});
 function place(){snaps.forEach((d,i)=>d.style.top=(span()*(i+.5)/N)+'px')}
-function show(i){if(i===cur)return;cur=i;[steps,tcs,tvs,tabs].forEach(a=>a.forEach((e,j)=>e.classList.toggle('on',j===i)));tour.style.setProperty('--tone',TONE[i])}
+function show(i){if(i===cur)return;cur=i;[steps,tcs,tvs,tabs].forEach(a=>a.forEach((e,j)=>e.classList.toggle('on',j===i)));tour.style.setProperty('--tone',TONE[i]);
+ const wl=tour.querySelector('.win-bar span');if(wl)wl.textContent=tvs[i]&&tvs[i].dataset.real||'Пример данных'}   // настоящее расписание — без «Пример данных»
 function upd(){const p=Math.min(1,Math.max(0,(scrollY-start())/span()));bar.style.width=(p*100)+'%';show(Math.min(N-1,Math.floor(p*N)))}
 function pinned(){const y=scrollY-start();return y>=-2&&y<=span()+2}
 function jump(y){window.scrollTo({top:y,behavior:'instant'});upd()}
@@ -798,11 +799,19 @@ if(window.__SITE){
  if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){fill();io.disconnect()}});io.observe(box)}else fill();
 })();
 
-// slide «Расписание»: «Сегодня» и «Вчера» — настоящие даты по Москве, меняются сами каждый день (владелец 25.10)
+// slide «Расписание» (владелец 25.10): на сайте — настоящее расписание из window.__CAL (build.calendar: матчи дня и вчерашние
+// со счётом), даты — по Москве; без расписания (превью) — пример без дат, чтобы не выдавать его за сегодняшние матчи
 (()=>{const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
- const msk=new Date(Date.now()+(180+new Date().getTimezoneOffset())*6e4);
- document.querySelectorAll('.day[data-day]').forEach(el=>{const d=new Date(msk);d.setDate(d.getDate()+ +el.dataset.day);
-  el.textContent=(+el.dataset.day?'Вчера':'Сегодня')+', '+d.getDate()+' '+MON[d.getMonth()]})})();
+ const C=window.__CAL,cal=document.querySelector('.cal');if(!cal)return;
+ const lab=(iso,word)=>{const d=new Date(iso+'T12:00:00');return word+', '+d.getDate()+' '+MON[d.getMonth()]};
+ if(!C||!C.today||!C.today.length){cal.querySelectorAll('.day[data-day]').forEach(el=>el.textContent=+el.dataset.day?'Вчера':'Сегодня');return}
+ const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+ const row=(t,h,a,done)=>`<div class="gm${done?' done':''}"><time>${esc(t)}</time><img src="${logo(h)}" alt=""><span>${esc(h)} — ${esc(a)}</span><img src="${logo(a)}" alt=""></div>`;
+ const y=new Date(C.day+'T12:00:00');y.setDate(y.getDate()-1);const yi=y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');
+ cal.closest('.tv').dataset.real='Расписание по данным лиги';
+ cal.innerHTML=`<div class="day">${lab(C.day,'Сегодня')} · ${C.lg==='KHL'?'КХЛ':'НХЛ'}</div>`+C.today.map(m=>row(m.t,m.h,m.a)).join('')+
+  (C.yday&&C.yday.length?`<div class="day">${lab(yi,'Вчера')}</div>`+C.yday.map(m=>row(m.sc,m.h,m.a,1)).join(''):'');
+})();
 
 // reveal on scroll: only blocks that start below the first screen; everything stays visible without JS or with reduced motion
 if('IntersectionObserver' in window&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
