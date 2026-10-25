@@ -599,11 +599,11 @@ html{scroll-padding-top:65px}
             </div>
             <div class="tv">
               <div class="cal">
-                <div class="day">Сегодня, 22 октября</div>
+                <div class="day" data-day="0">Сегодня, 22 октября</div>
                 <div class="gm"><time>17:00</time><img data-logo="ska" alt=""><span>СКА — ЦСКА</span><img data-logo="cska" alt=""></div>
                 <div class="gm"><time>19:30</time><img data-logo="akbars" alt=""><span>Ак Барс — Локомотив</span><img data-logo="lokomotiv" alt=""></div>
                 <div class="gm"><time>19:30</time><img data-logo="sibir" alt=""><span>Сибирь — Трактор</span><img data-logo="traktor" alt=""></div>
-                <div class="day">Вчера, 21 октября</div>
+                <div class="day" data-day="-1">Вчера, 21 октября</div>
                 <div class="gm done"><time>2:1 ОТ</time><img data-logo="lokomotiv" alt=""><span>Локомотив — Сибирь</span><img data-logo="sibir" alt=""></div>
                 <div class="gm done"><time>3:4</time><img data-logo="traktor" alt=""><span>Трактор — СКА</span><img data-logo="ska" alt=""></div>
               </div>
@@ -797,6 +797,12 @@ if(window.__SITE){
   ['w','l','p'].forEach(k=>b.querySelector('.'+k).style.width=(100*b.dataset[k]/t)+'%')});
  if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){fill();io.disconnect()}});io.observe(box)}else fill();
 })();
+
+// slide «Расписание»: «Сегодня» и «Вчера» — настоящие даты по Москве, меняются сами каждый день (владелец 25.10)
+(()=>{const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+ const msk=new Date(Date.now()+(180+new Date().getTimezoneOffset())*6e4);
+ document.querySelectorAll('.day[data-day]').forEach(el=>{const d=new Date(msk);d.setDate(d.getDate()+ +el.dataset.day);
+  el.textContent=(+el.dataset.day?'Вчера':'Сегодня')+', '+d.getDate()+' '+MON[d.getMonth()]})})();
 
 // reveal on scroll: only blocks that start below the first screen; everything stays visible without JS or with reduced motion
 if('IntersectionObserver' in window&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
