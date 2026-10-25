@@ -146,6 +146,26 @@ def _row(r):
                 end=g.get('end') or '', r={'win': 'w', 'loss': 'l'}.get(r['res'], 'p'), id=r['msg_id'])
 
 
+def published(picks, rows):
+    """Все посты-прогнозы канала (владелец 25.10: на сайте и в приложении — только то, что выложено в канал) → список
+    {lg, h, a, d (МСК), bet, kef, id[, r, sc]}: ставка и кэф — из поста; у сыгранных — итог и счёт (как в months.json)."""
+    done = {r['msg_id']: r for r in rows}
+    out = []
+    for p in picks:
+        r = done.get(p['msg_id'])
+        try:
+            bet = ask.phrase(p['legs'], p['home'], p['away'])
+        except Exception:  # noqa: BLE001
+            bet = p.get('bet') or ''
+        x = dict(lg='khl' if p['league'] == 'KHL' else 'nhl', h=p['home'], a=p['away'], d=p['start'].astimezone(MSK).strftime('%Y-%m-%d %H:%M'),
+                 bet=bet[:1].upper() + bet[1:], kef=p.get('kef'), id=p['msg_id'])
+        if r:
+            g = r['g']
+            x.update(r=r['res'], sc='%s:%s%s' % (g.get('hg'), g.get('ag'), (' ' + g['end']) if g.get('end') else ''))
+        out.append(x)
+    return out
+
+
 def month_stats(rows, now=None):
     """Рассчитанные прогнозы → [{m: 'ГГГГ-ММ', name, n, w, l, p, kef (средний), units (плюс/минус при ставке 1 на каждый),
     live (месяц идёт), upto (по какое число), rows (список для сайта)}]."""
@@ -206,6 +226,8 @@ def main():
             pickle.dump(dict(pages=pages, found=found), f)
     stats = month_stats(rows)
     os.makedirs(out, exist_ok=True)
+    with open(os.path.join(out, 'published.json'), 'w', encoding='utf-8') as f:     # сайт и приложение — только эти матчи
+        json.dump(published(picks, rows), f, ensure_ascii=False)
     with open(os.path.join(out, 'months.json'), 'w', encoding='utf-8') as f:
         json.dump(stats, f, ensure_ascii=False)
     res = {'win': 'зашёл', 'loss': 'не зашёл', 'push': 'возврат'}

@@ -9,6 +9,9 @@ on:
   schedule:
     - cron: '23 0 * * *'          # 03:23 МСК — после конвейера шортсов: прогнозы КХЛ дня и НХЛ ближайшей ночи + итоги вчера
     - cron: '23 7 * * *'          # 10:23 МСК — ночь НХЛ доиграна: итоги
+    # владелец 25.10: на сайте — только прогнозы из канала; посты выходят за 1,5 ч до матча — днём лёгкие обновления
+    # (посты и итоги, без прогнозов дня и без данных команд для приложения): 12:23, 15:23, 18:23, 21:23 МСК
+    - cron: '23 9,12,15,18 * * *'
   workflow_dispatch:
     inputs:
       day:
@@ -47,7 +50,8 @@ jobs:
           d="${DAY_IN:-$(TZ=Europe/Moscow date +%F)}"
           [[ "$d" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "плохой день: $d"; exit 1; }
           p="${PLANS_IN:-yes}"; [ "$CRON" = '23 7 * * *' ] && p=no
-          echo "day=$d" >> "$GITHUB_OUTPUT"; echo "plans=$p" >> "$GITHUB_OUTPUT"
+          light=no; [ "$CRON" = '23 9,12,15,18 * * *' ] && { p=no; light=yes; }
+          echo "day=$d" >> "$GITHUB_OUTPUT"; echo "plans=$p" >> "$GITHUB_OUTPUT"; echo "light=$light" >> "$GITHUB_OUTPUT"
           url="${{ vars.SITE_URL }}"
           if [ -z "$url" ] && [ -n "$SITE_REPO" ]; then url="https://${SITE_REPO%%/*}.github.io/${SITE_REPO#*/}/"; fi
           echo "url=${url:-https://example.github.io/jarvis/}" >> "$GITHUB_OUTPUT"
@@ -73,6 +77,9 @@ jobs:
           mkdir -p site/stats
           python - <<'PY'
           import json, os, shutil
+          if os.path.exists('out/months/published.json'):      # посты канала: сайт и приложение показывают только их
+              shutil.copy('out/months/published.json', 'site/stats/published.json')
+              print('SITE постов-прогнозов в канале: %d' % len(json.load(open('site/stats/published.json', encoding='utf-8'))))
           new = json.load(open('out/months/months.json', encoding='utf-8'))
           old_p = 'site/stats/months.json'
           old = json.load(open(old_p, encoding='utf-8')) if os.path.exists(old_p) else []
@@ -85,7 +92,8 @@ jobs:
           PY
       - name: Данные мини-приложения
         # team/site/app_data/build.py: команды КХЛ и НХЛ — места, очки, форма, шестиугольник силы, игроки и вратари
-        # (владелец 25.10). Не собрались — в приложении остаются прежние данные (сайт их не стирает).
+        # (владелец 25.10). Не собрались — в приложении остаются прежние данные (сайт их не стирает). Днём не собираем.
+        if: steps.day.outputs.light != 'yes'
         continue-on-error: true
         timeout-minutes: 8
         run: python team/site/app_data/build.py "${{ steps.day.outputs.day }}" out/app_data 2>&1 | grep -E "^APP|KHL сыграно|Traceback|Error" | tail -30
