@@ -35,6 +35,10 @@
   соперника `#team/<клуб>/pick`, в разборе матча — оба соперника); на компьютере (≥900 px) — меню слева, матчи КХЛ и НХЛ
   рядом, страница команды в две колонки; фоны-рисунки команд `app/bg/<эмблема>.svg` (`team/site/app_data/bg_art.py`, пока 6:
   Колорадо, Сибирь, Адмирал, Металлург, Локомотив, ЦСКА) — маска в цвете клуба. В шапке сайта — «Команды» → `app/#table`.
+- **Фоны команд через Gemini (владелец 25.10):** `team/site/app_data/bg_ai.py` + `bg_prompts.json` (сцены всех 54 команд) →
+  `team/site/app/bg/<эмблема>.webp` и `bg/photos.json`; задание `app-bg.yml` (запуск — `team/site/app_data/BG_RUN` в ветке
+  claude/** или Run workflow), ключ — секрет `GEMINI_API_KEY`, модель — переменная `GEMINI_IMAGE_MODEL`
+  (по умолчанию gemini-2.5-flash-image). Нет картинки — приложение берёт нарисованную маску (bg_art.py).
 - **Шапка:** рядом с кнопкой Telegram — значки YouTube (`youtube.com/@jarvibet`) и Instagram (`instagram.com/jarvisbet_`),
   на главной (`landing.html`) и на всех страницах (`build.head`, адреса — `YT`/`IG` в `build.py`; владелец 25.10).
 - **Слайд «Расписание»** (владелец 25.10): настоящее расписание — матчи дня КХЛ (нет — НХЛ) из `plan.json` `all` и вчерашние

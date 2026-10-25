@@ -1,0 +1,380 @@
+{
+ "akbars": {
+  "scene": "a snow leopard prowling on a rocky ledge at night, the white towers of the Kazan Kremlin glowing in the distant mist",
+  "colors": [
+   "#007a48",
+   "#e30613"
+  ]
+ },
+ "avangard": {
+  "scene": "a red-tailed hawk soaring with spread wings over the endless Siberian steppe at dusk, Omsk city lights far on the horizon",
+  "colors": [
+   "#c8102e",
+   "#282828"
+  ]
+ },
+ "amur": {
+  "scene": "a powerful Amur tiger walking through deep snow in the Far East taiga beside the frozen Amur river",
+  "colors": [
+   "#f26522",
+   "#1b2a4a"
+  ]
+ },
+ "cska": {
+  "scene": "a herd of strong horses galloping through fresh snow at night, red stars glowing in a dark winter sky",
+  "colors": [
+   "#e30613",
+   "#1b3a8c"
+  ]
+ },
+ "spartak": {
+  "scene": "a gladiator helmet and shield resting on the sand of an ancient arena lit by torches, red and white banners",
+  "colors": [
+   "#d7141a",
+   "#f0f0f0"
+  ]
+ },
+ "torpedo": {
+  "scene": "the old Kremlin of Nizhny Novgorod on a high hill above the confluence of two great rivers at night",
+  "colors": [
+   "#1e3a93",
+   "#e30613"
+  ]
+ },
+ "sibir": {
+  "scene": "a snowy Siberian taiga forest at night, tall fir trees covered in snow, huge glowing snowflakes falling, the Novosibirsk bridge lights far away",
+  "colors": [
+   "#1b325a",
+   "#b4c8e6"
+  ]
+ },
+ "lokomotiv": {
+  "scene": "a powerful modern locomotive pulling a train across a long steel bridge over the Volga river at night, headlights cutting through the mist",
+  "colors": [
+   "#e30613",
+   "#1b4da1"
+  ]
+ },
+ "traktor": {
+  "scene": "a giant polar bear walking through a snowy industrial city at night, tractor factory chimneys and warm windows in the background",
+  "colors": [
+   "#aaaaaa",
+   "#1e1e1e"
+  ]
+ },
+ "metallurg": {
+  "scene": "a huge steel mill interior with a ladle pouring glowing molten metal, showers of orange sparks, dramatic industrial atmosphere",
+  "colors": [
+   "#f5a623",
+   "#1b2a5a"
+  ]
+ },
+ "salavat": {
+  "scene": "a Bashkir horseman on a rearing horse standing on a cliff above a wide river at sunset, Ural hills beyond",
+  "colors": [
+   "#d4af37",
+   "#2e3192"
+  ]
+ },
+ "neftekhimik": {
+  "scene": "a lone wolf howling on a snowy hill above a vast illuminated petrochemical plant at night",
+  "colors": [
+   "#1c3f6e",
+   "#c82832"
+  ]
+ },
+ "dinamo_minsk": {
+  "scene": "a mighty European bison standing in an ancient misty forest at dawn, shafts of light between old oaks",
+  "colors": [
+   "#4db2ec",
+   "#0f141e"
+  ]
+ },
+ "dinamo_msk": {
+  "scene": "the Moscow skyline at night seen across the river, illuminated towers and bridges, light snowfall",
+  "colors": [
+   "#003da5",
+   "#78a0ff"
+  ]
+ },
+ "severstal": {
+  "scene": "a northern steel city by a dark river under green northern lights, cranes and glowing furnaces",
+  "colors": [
+   "#ffcc00",
+   "#3c3c3c"
+  ]
+ },
+ "ska": {
+  "scene": "Saint Petersburg at night, raised drawbridges over the Neva river, the golden spire of the fortress lit up",
+  "colors": [
+   "#e31e24",
+   "#1f4e9e"
+  ]
+ },
+ "barys": {
+  "scene": "a snow leopard on a snowy rock overlooking the futuristic skyline of Astana in the steppe at night",
+  "colors": [
+   "#2aa7b8",
+   "#142d50"
+  ]
+ },
+ "avtomobilist": {
+  "scene": "a sleek vintage race car speeding along a winter road through the Ural mountains, motion blur and headlight trails",
+  "colors": [
+   "#e30613",
+   "#141414"
+  ]
+ },
+ "admiral": {
+  "scene": "a tall sailing frigate on a stormy Pacific sea at night, the giant cable-stayed bridge of Vladivostok in the distance",
+  "colors": [
+   "#c8a96a",
+   "#141828"
+  ]
+ },
+ "lada": {
+  "scene": "a sailboat with full sails on the wide Volga river at sunset, gentle hills on the shore",
+  "colors": [
+   "#0f4c81",
+   "#c8d2e1"
+  ]
+ },
+ "sochi": {
+  "scene": "the Black Sea coast at night with palm trees and the snow-capped Caucasus mountains rising behind, a leopard silhouette on the rocks",
+  "colors": [
+   "#f5b400",
+   "#142850"
+  ]
+ },
+ "shanghai": {
+  "scene": "a majestic Chinese dragon coiling through clouds above the illuminated Shanghai skyline at night",
+  "colors": [
+   "#ff5a00",
+   "#ffaa00"
+  ]
+ },
+ "nhl_car": {
+  "scene": "a massive hurricane over the Atlantic coast, swirling storm clouds and lightning, a lighthouse holding strong",
+  "colors": [
+   "#cc0000",
+   "#191919"
+  ]
+ },
+ "nhl_bos": {
+  "scene": "a huge brown bear standing on the rocks of Boston harbor at night, the city skyline and old ships behind",
+  "colors": [
+   "#ffb81c",
+   "#111111"
+  ]
+ },
+ "nhl_edm": {
+  "scene": "oil derricks and pumpjacks on the snowy Alberta prairie at night under dancing northern lights",
+  "colors": [
+   "#ff4c00",
+   "#041e42"
+  ]
+ },
+ "nhl_vgk": {
+  "scene": "a golden medieval knight in shining armor standing before the neon lights of the Las Vegas Strip at night",
+  "colors": [
+   "#b4975a",
+   "#333f42"
+  ]
+ },
+ "nhl_uta": {
+  "scene": "a woolly mammoth walking through the red rock canyons and snowy peaks of Utah under a starry sky",
+  "colors": [
+   "#71afe5",
+   "#141416"
+  ]
+ },
+ "minnesota": {
+  "scene": "a wild northern forest by a frozen lake at dusk, pine trees, a lone wolf track in the snow",
+  "colors": [
+   "#1e6444",
+   "#a6192e"
+  ]
+ },
+ "nhl_ott": {
+  "scene": "the Gothic Parliament buildings of Ottawa on a hill above a frozen river at night, Roman senator laurel motif in the sky",
+  "colors": [
+   "#c8102e",
+   "#c2912c"
+  ]
+ },
+ "nhl_tor": {
+  "scene": "giant maple leaves falling over the Toronto skyline and the CN Tower at night",
+  "colors": [
+   "#103c8c",
+   "#ebebeb"
+  ]
+ },
+ "nhl_tbl": {
+  "scene": "bright lightning strikes over a calm tropical bay at night, palm trees silhouetted on the shore",
+  "colors": [
+   "#123e8c",
+   "#ebebeb"
+  ]
+ },
+ "nhl_sea": {
+  "scene": "a giant kraken rising from the dark waters of Puget Sound, the Seattle skyline and the Space Needle in the mist",
+  "colors": [
+   "#006080",
+   "#99d9d9"
+  ]
+ },
+ "nhl_nyr": {
+  "scene": "the Manhattan skyline at night from the river, bright city lights, light snowfall",
+  "colors": [
+   "#0038a8",
+   "#ce1126"
+  ]
+ },
+ "nhl_njd": {
+  "scene": "a dark misty pine forest at night with glowing red eyes of a mythical winged creature between the trees",
+  "colors": [
+   "#ce1126",
+   "#191919"
+  ]
+ },
+ "dallas": {
+  "scene": "a vast Texas plain under a brilliant star-filled night sky, shooting stars, the Dallas skyline far away",
+  "colors": [
+   "#00845a",
+   "#191919"
+  ]
+ },
+ "nhl_col": {
+  "scene": "a dramatic avalanche thundering down the snowy peaks of the Rocky Mountains at night under moonlight",
+  "colors": [
+   "#822d48",
+   "#236192"
+  ]
+ },
+ "nhl_sjs": {
+  "scene": "a great white shark swimming in deep teal Pacific waters, sun rays from the surface",
+  "colors": [
+   "#006d75",
+   "#ea7200"
+  ]
+ },
+ "nhl_wsh": {
+  "scene": "the Capitol dome in Washington at night, a bald eagle flying across the illuminated sky",
+  "colors": [
+   "#c8102e",
+   "#041e42"
+  ]
+ },
+ "nhl_nyi": {
+  "scene": "a rugged Long Island shoreline at night, a fishing boat and lighthouse, rolling waves",
+  "colors": [
+   "#00539b",
+   "#f47d30"
+  ]
+ },
+ "nhl_mtl": {
+  "scene": "old Montreal in winter at night, snowy cobblestone streets and the basilica lit up",
+  "colors": [
+   "#af1e2d",
+   "#192168"
+  ]
+ },
+ "nhl_fla": {
+  "scene": "a black panther moving through the Florida Everglades at night, mangroves and moonlit water",
+  "colors": [
+   "#c8102e",
+   "#041e42"
+  ]
+ },
+ "nhl_wpg": {
+  "scene": "fighter jets flying low over the snowy Manitoba prairie at sunset, contrails in the sky",
+  "colors": [
+   "#16386e",
+   "#8c96a5"
+  ]
+ },
+ "nhl_stl": {
+  "scene": "the Gateway Arch in St. Louis glowing above the Mississippi river at night, a jazz club warm light nearby",
+  "colors": [
+   "#002f87",
+   "#fcb514"
+  ]
+ },
+ "nhl_det": {
+  "scene": "classic American cars on a Detroit avenue at night, the Renaissance Center towers glowing, a winged wheel motif in the clouds",
+  "colors": [
+   "#ce1126",
+   "#ebebeb"
+  ]
+ },
+ "nhl_buf": {
+  "scene": "a herd of American bison on a snowy plain with the roaring Niagara Falls mist in the distance",
+  "colors": [
+   "#003087",
+   "#ffb81c"
+  ]
+ },
+ "nhl_pit": {
+  "scene": "a group of penguins on ice in front of the illuminated bridges and three rivers of Pittsburgh at night",
+  "colors": [
+   "#fcb514",
+   "#191919"
+  ]
+ },
+ "nhl_nsh": {
+  "scene": "a prehistoric saber-toothed cat on a rock above Nashville at night, glowing neon music signs below",
+  "colors": [
+   "#ffb81c",
+   "#041e42"
+  ]
+ },
+ "nhl_ana": {
+  "scene": "wild ducks taking off over a golden California lake at sunset, palm trees and hills",
+  "colors": [
+   "#f47a38",
+   "#b9975b"
+  ]
+ },
+ "nhl_phi": {
+  "scene": "the Liberty Bell and old Philadelphia streets at night, bright orange street lights, an energetic atmosphere",
+  "colors": [
+   "#f74902",
+   "#191919"
+  ]
+ },
+ "nhl_cbj": {
+  "scene": "a historic cannon on a misty field at dawn, star-spangled flags waving, Columbus skyline beyond",
+  "colors": [
+   "#143c82",
+   "#ce1126"
+  ]
+ },
+ "nhl_cgy": {
+  "scene": "roaring flames and embers rising before the snowy Rocky Mountains near Calgary at night",
+  "colors": [
+   "#d2001c",
+   "#faaf19"
+  ]
+ },
+ "nhl_lak": {
+  "scene": "a royal golden crown resting on velvet with the Hollywood hills and Los Angeles lights behind at night",
+  "colors": [
+   "#828c91",
+   "#191919"
+  ]
+ },
+ "nhl_chi": {
+  "scene": "a hawk flying over the Chicago skyline and lake Michigan at night, wind and snow",
+  "colors": [
+   "#cf0a2c",
+   "#191919"
+  ]
+ },
+ "nhl_van": {
+  "scene": "an orca whale breaching in the waters off Vancouver, snowy mountains and the city skyline at dusk",
+  "colors": [
+   "#003e82",
+   "#00843d"
+  ]
+ }
+}
