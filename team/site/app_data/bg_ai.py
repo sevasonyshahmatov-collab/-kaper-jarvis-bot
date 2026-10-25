@@ -26,7 +26,7 @@ API = 'https://generativelanguage.googleapis.com/v1beta/models/%s:generateConten
 STYLE = ('Cinematic wide digital painting used as a background for a sports app, landscape 16:9. Scene: {scene}. '
          'Mood: dramatic night or dusk, volumetric light, atmospheric haze, rich depth, premium illustration. '
          'Color palette dominated by {c1} and {c2} with deep dark shadows. Composition: the main subject on the right two thirds, '
-         'a calmer darker area on the left for text overlay. No text, no letters, no numbers, no logos, no emblems, no watermarks, '
+         'the scene continues naturally across the whole frame, no dark bands or panels. No text, no letters, no numbers, no logos, no emblems, no watermarks, '
          'no recognizable people, no hockey players.')
 
 
