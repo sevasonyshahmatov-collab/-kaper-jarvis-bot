@@ -42,6 +42,19 @@ def msk(ts):
     return datetime.fromtimestamp(v / 1000 if v > 1e11 else v, MSK).strftime('%Y-%m-%d %H:%M')
 
 
+def ppg(d, team_a):
+    """Голы в большинстве [хозяева, гости] по протоколу матча (goals[].status «В большинстве», автор — team_id) — для
+    мини-приложения (team/site/app_data/build.py). Нет протокола — None."""
+    if not d or not isinstance(d.get('goals'), list):
+        return None
+    ha = (team_a or {}).get('id')
+    out = [0, 0]
+    for g in d['goals']:
+        if 'большинств' in str(g.get('status') or '').lower():
+            out[0 if (g.get('author') or {}).get('team_id') == ha else 1] += 1
+    return out
+
+
 def detail(e):
     for k in range(3):
         try:
@@ -89,7 +102,8 @@ def fetch(day):
         end = 'Б' if s.get('bullitt') else 'ОТ' if s.get('overtime') else ''
         games.append({'d': msk(src.get('start_at') or e.get('start_at')), 'id': e.get('id'), 'h': team(src.get('team_a') or e.get('team_a')),
                       'a': team(src.get('team_b') or e.get('team_b')), 'hg': int(sc[0]), 'ag': int(sc[1]), 'e': end,
-                      'p': [s.get(k) or '' for k in ('first_period', 'second_period', 'third_period', 'overtime')]})
+                      'p': [s.get(k) or '' for k in ('first_period', 'second_period', 'third_period', 'overtime')],
+                      'ppg': ppg(d, src.get('team_a') or e.get('team_a'))})
     print('KHL сыграно матчей: %d (всего событий %d)' % (len(games), len(events)), flush=True)
     nxt = []
     for e in events:
