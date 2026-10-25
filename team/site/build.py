@@ -89,7 +89,8 @@ def keep(P):
             x['fact'] = {k: m['fact'][k] for k in ('team', 'k', 'n')}
         x['form'] = {t: P['stats'].get(t) for t in (m['h'], m['a'])}
         out.append(x)
-    return dict(day=P['day'], league=P['league'], skipped=P.get('skipped', 0), matches=out)
+    return dict(day=P['day'], league=P['league'], skipped=P.get('skipped', 0), matches=out, all=P.get('all') or [],
+                yday=P.get('yday') or [])
 
 
 def store(site, plans):
@@ -107,6 +108,9 @@ def store(site, plans):
             have = {(m['h'], m['a']) for m in P['matches']}
             P['matches'] += [m for m in old['matches'] if (m['h'], m['a']) not in have]   # ночной запуск без начавшихся
             P['matches'].sort(key=lambda m: m['d'])
+            for k in ('all', 'yday'):              # ночной запуск видит меньше матчей дня — полный список не теряем
+                if len(old.get(k) or []) > len(P[k]):
+                    P[k] = old[k]
         save(dst, P)
 
 
@@ -342,6 +346,17 @@ def list_page(D, base, logos=None):
     return head(title, desc, base + 'prognozy/', '../') + body + FOOT
 
 
+def calendar(D, td):
+    """Слайд «Расписание» (владелец 25.10: настоящее расписание вместо примера): матчи дня КХЛ (нет — НХЛ) и вчерашние
+    со счётом. Нет расписания на сегодня — None, на слайде остаётся пример."""
+    for lg in ('khl', 'nhl'):
+        P = next((P for P in D if P['league'] == lg and P['day'] == td and P.get('all')), None)
+        if P:
+            return dict(day=td, lg=lg.upper(), today=[dict(t=x['d'][11:16], h=x['h'], a=x['a']) for x in P['all']][:4],
+                        yday=[dict(sc=x['sc'], h=x['h'], a=x['a']) for x in P.get('yday') or []][-3:])
+    return None
+
+
 def landing(D, logos, base, site=None):
     """Главная: лендинг с сегодняшними матчами вместо примеров (window.__TODAY, __TL, __RES — их читает скрипт лендинга);
     __MONTHS — статистика постов канала по месяцам из stats/months.json (team/site/months.py), нет файла — блока нет."""
@@ -363,6 +378,7 @@ def landing(D, logos, base, site=None):
     lim = (today() - timedelta(days=30)).isoformat()
     done = [m for P in D if P['day'] >= lim for m in P['matches'] if m.get('res') in ('win', 'loss')]
     tally = dict(w=sum(m['res'] == 'win' for m in done), l=sum(m['res'] == 'loss' for m in done), n=len(done))
+    cal = calendar(D, td)
     months = None
     mp = os.path.join(site, 'stats', 'months.json') if site else ''
     if mp and os.path.exists(mp):
@@ -371,9 +387,10 @@ def landing(D, logos, base, site=None):
                 months = json.load(f) or None
         except ValueError as e:
             print('SITEERR months.json не прочитан: %r' % e, flush=True)
-    inject = '<script>window.__SITE=1;window.__TODAY=%s;window.__TL=%s;window.__RES=%s;window.__TALLY=%s;window.__MONTHS=%s;</script>\n' % (
+    inject = '<script>window.__SITE=1;window.__TODAY=%s;window.__TL=%s;window.__RES=%s;window.__TALLY=%s;window.__MONTHS=%s;window.__CAL=%s;</script>\n' % (
         json.dumps(tod or None, ensure_ascii=False), json.dumps(logos, ensure_ascii=False), json.dumps(res or None, ensure_ascii=False),
-        json.dumps(tally), json.dumps(months, ensure_ascii=False).replace('</', '<\\/'))
+        json.dumps(tally), json.dumps(months, ensure_ascii=False).replace('</', '<\\/'),
+        json.dumps(cal, ensure_ascii=False))
     title = 'JARVIS — прогнозы на хоккей КХЛ и НХЛ по модели'
     desc = 'Прогноз на каждый матч КХЛ и НХЛ от собственной модели: форма команд, вероятность и кэф. Честные итоги каждое утро в Telegram.'
     m = re.search(r'<title>.*?</title>', src)
@@ -437,7 +454,8 @@ def build(site, plans, do_settle=True):
             settle_all(D)
         except Exception as e:  # noqa: BLE001 — без счёта страницы всё равно собираем
             print('SITEERR итоги не посчитаны: %r' % e, flush=True)
-    logos = emblem_files(site, sorted({t for P in D for m in P['matches'] for t in (m['h'], m['a'])}))
+    logos = emblem_files(site, sorted({t for P in D for m in P['matches'] + P.get('all', []) + P.get('yday', [])
+                                       for t in (m['h'], m['a'])}))
     os.makedirs(os.path.join(site, 'assets'), exist_ok=True)
     shutil.copy(os.path.join(HERE, 'site.css'), os.path.join(site, 'assets', 'site.css'))
     changed = []

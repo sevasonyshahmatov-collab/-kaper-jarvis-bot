@@ -204,8 +204,11 @@ def plan(league, day, top, per):
     names = sorted({t for m in ms for t in (m['h'], m['a'])})
     stats = (form.khl if league == 'khl' else form.nhl)(games, day, names)
     parts = [list(range(i, min(i + per, len(ms)))) for i in range(0, len(ms), per)]
+    yd = (date.fromisoformat(day) - timedelta(days=1)).isoformat()     # вчера со счётом — слайд «Расписание» на сайте
     P = dict(day=day, league=league, matches=ms, stats=stats, parts=parts, skipped=len(nxt) - len(ms),
-             all=[dict(d=x['d'], h=x['h'], a=x['a']) for x in sorted(nxt, key=lambda x: x['d'])])
+             all=[dict(d=x['d'], h=x['h'], a=x['a']) for x in sorted(nxt, key=lambda x: x['d'])],
+             yday=[dict(d=g['d'], h=g['h'], a=g['a'], sc='%d:%d%s' % (g['hg'], g['ag'], ' ' + g['e'] if g.get('e') else ''))
+                   for g in sorted(games, key=lambda g: g['d']) if str(g.get('d', ''))[:10] == yd])
     os.makedirs(out_dir(league, day), exist_ok=True)
     with open(os.path.join(out_dir(league, day), 'plan.json'), 'w', encoding='utf-8') as f:
         json.dump(P, f, ensure_ascii=False, indent=1)
