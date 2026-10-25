@@ -1,0 +1,32 @@
+# Разведка данных для мини-приложения (team/site/app_data/probe.py, владелец 25.10): какие сведения о командах и игроках
+# отдают API КХЛ и НХЛ. Запуск из ветки claude/**: изменить team/site/app_data/PROBE и запушить; отчёт — коммитом в ту же
+# ветку (team/site/app_data/probe_out/), чтобы облачная сессия прочитала его без логов. Ничего не публикует.
+name: Мини-приложение — разведка данных
+
+on:
+  push:
+    branches: ['claude/**']
+    paths: ['team/site/app_data/PROBE']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -q requests
+      - name: Разведка
+        run: python team/site/app_data/probe.py out/app_probe
+      - name: Сохранить в ветку
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p team/site/app_data/probe_out && cp out/app_probe/* team/site/app_data/probe_out/
+          git config user.name "jarvis-bot"; git config user.email "jarvis-bot@users.noreply.github.com"
+          git add team/site/app_data/probe_out && git commit -qm "Мини-приложение: результат разведки данных" && git push origin "HEAD:${GITHUB_REF_NAME}"
