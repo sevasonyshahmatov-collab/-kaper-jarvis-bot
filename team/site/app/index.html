@@ -127,6 +127,9 @@ span.lg{display:inline-block}
 .th3 .art{opacity:.42}
 .pagebg{position:fixed;inset:0;z-index:-1;pointer-events:none}
 .pagebg .art{opacity:.16}
+.photo{position:absolute;inset:0;background:linear-gradient(90deg,var(--pc) 0%,var(--pc) 22%,transparent 72%),var(--ph) center/cover no-repeat;pointer-events:none}
+.th3 .photo~.wm{display:none}
+.pagebg .photo{opacity:.22;filter:blur(2px)}
 /* сравнение */
 .vsbtn{margin:0 14px 12px;width:calc(100% - 28px)}
 .cmpt{display:grid;grid-template-columns:minmax(0,1fr) 64px 64px;gap:8px;align-items:center;padding:8px 14px;border-top:1px solid rgba(255,255,255,.06);font:500 13px Inter,sans-serif}
@@ -189,8 +192,11 @@ const SAMPLE={sample:1,axes:['Атака','Защита','Вратари','Бо�
  schedule:[{lg:'khl',d:'2026-10-25 19:30',h:'Ак Барс',a:'Нефтехимик'}],
  results:[{lg:'khl',d:'2026-10-24 19:30',h:'Ак Барс',a:'Нефтехимик',pick:'Победа Ак Барса',k:'1,85',sc:'3:1',r:'win'}],
  logos:{'Ак Барс':'app/emb/akbars.webp','Нефтехимик':'app/emb/neftekhimik.webp'}};
-const BG=new Set(['nhl_col','sibir','admiral','metallurg','lokomotiv','cska']);   // фоны-рисунки — пробные 6 команд
-const art=(t,col)=>t&&t.slug&&BG.has(t.slug)?`<div class="art" style="--art:url('bg/${t.slug}.svg');--artc:${col}"></div>`:'';
+const BG=new Set(['nhl_col','sibir','admiral','metallurg','lokomotiv','cska']);   // фоны-рисунки (маска) — bg_art.py
+let PHOTO=new Set();                                     // фоны-картинки от Gemini — bg/photos.json (bg_ai.py)
+const art=(t,col,page)=>{if(!t||!t.slug)return '';
+ if(PHOTO.has(t.slug))return `<div class="photo${page?' pg':''}" style="--ph:url('bg/${t.slug}.webp');--pc:${hexA((t.colors||[])[0],page?.55:.82)}"></div>`;
+ return BG.has(t.slug)?`<div class="art" style="--art:url('bg/${t.slug}.svg');--artc:${col}"></div>`:''};
 const WIDE=()=>!tg&&matchMedia('(min-width:900px)').matches;
 const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const WD=['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
@@ -348,7 +354,7 @@ function team(name,tab,other){
    <div class="card">${cmpTable(t,o,ca,cb)}<div class="gh" style="border-top:1px solid var(--line);border-bottom:0"><a href="${href(o.name)}" style="color:var(--acc)">Страница ${esc(o.name)}</a><small><a href="#team/${enc}/pick" style="color:var(--acc)">Другая команда</a></small></div></div></div>`;
  }else if(tab==='players'&&!wide)body=players;
  else body=wide?`<div class="teamgrid"><section>${power}</section><section style="display:flex;flex-direction:column;gap:12px">${players}</section></div>`:power;
- return {html:head+`<div class="main" style="padding-top:12px">${body}${note()}</div>`,head:p,acc,bg:art(t,acc)};
+ return {html:head+`<div class="main" style="padding-top:12px">${body}${note()}</div>`,head:p,acc,bg:art(t,acc,1)};
 }
 
 // ── переходы: #matches[/лига], #match/<хозяева|гости>, #results, #table[/лига], #video, #team/<клуб>[/players]
@@ -380,6 +386,7 @@ document.addEventListener('click',e=>{
 const back=()=>history.length>1?history.back():(location.hash='matches');
 $('#back').onclick=back;
 if(tg){document.documentElement.classList.add('in-tg');tg.ready();tg.expand();try{tg.setBackgroundColor('#0e1116');tg.setHeaderColor('#0e1116')}catch(e){}tg.BackButton.onClick(back)}
+fetch('bg/photos.json',{cache:'no-cache'}).then(r=>r.ok?r.json():[]).then(j=>{PHOTO=new Set(j);DB&&render()}).catch(()=>{});
 fetch('data.json',{cache:'no-cache'}).then(r=>r.ok?r.json():Promise.reject()).then(j=>{DB=j}).catch(()=>{DB=SAMPLE}).finally(()=>{
  if(!(DB.games||[]).some(g=>g.lg===LG)&&(DB.games||[]).some(g=>g.lg==='nhl'))LG='nhl';render()});
 </script>

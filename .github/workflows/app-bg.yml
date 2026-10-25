@@ -1,0 +1,44 @@
+# Фоны команд для мини-приложения через Gemini (team/site/app_data/bg_ai.py, владелец 25.10). Ключ — секрет GEMINI_API_KEY
+# (Google AI Studio), генерация платная. Запуск из ветки claude/**: записать в team/site/app_data/BG_RUN список эмблем
+# («nhl_col lokomotiv» или «all», «--force» — перерисовать) и запушить; картинки — коммитом в ту же ветку (team/site/app/bg/),
+# в main — через PR. Вручную — Actions → «Мини-приложение — фоны команд» → Run workflow.
+name: Мини-приложение — фоны команд
+
+on:
+  push:
+    branches: ['claude/**']
+    paths: ['team/site/app_data/BG_RUN']
+  workflow_dispatch:
+    inputs:
+      teams:
+        description: 'Эмблемы через пробел или all (--force — перерисовать)'
+        required: false
+        default: 'all'
+
+permissions:
+  contents: write
+
+jobs:
+  bg:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -q requests "pillow>=11"
+      - name: Нарисовать
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_IMAGE_MODEL: ${{ vars.GEMINI_IMAGE_MODEL }}
+          TEAMS_IN: ${{ github.event.inputs.teams }}
+        run: |
+          t="${TEAMS_IN:-$(head -1 team/site/app_data/BG_RUN 2>/dev/null)}"
+          python team/site/app_data/bg_ai.py ${t:-all} | tee out_bg.log
+      - name: Сохранить в ветку
+        run: |
+          git config user.name "jarvis-bot"; git config user.email "jarvis-bot@users.noreply.github.com"
+          git add team/site/app/bg
+          git diff --cached --quiet && { echo "новых картинок нет"; exit 0; }
+          git commit -qm "Мини-приложение: фоны команд (Gemini)" && git push origin "HEAD:${GITHUB_REF_NAME}"
