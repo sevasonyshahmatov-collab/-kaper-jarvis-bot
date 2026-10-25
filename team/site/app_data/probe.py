@@ -66,6 +66,26 @@ def main(out):
         d = probe('khl_event_detail', KHL + 'event_v2.json?id=%s' % e['id']) or {}
         d = d.get('event') or d
         REPORT.append('КХЛ матч %s: ключи: %s' % (e['id'], ', '.join(sorted(d.keys()))[:900]))
+    # 2-й заход: сыгранный матч (статистика команд в матче), игроки одной команды, вратари, страницы
+    asc = probe('khl_events_asc', KHL + 'events_v2.json?order_direction=asc&page=1&stage_id=%s' % stage) or []
+    fin = [w.get('event') or w for w in asc if (w.get('event') or w).get('game_state_key') == 'finished'] if isinstance(asc, list) else []
+    if fin:
+        d = probe('khl_event_finished', KHL + 'event_v2.json?id=%s' % fin[0]['id']) or {}
+        d = d.get('event') or d
+        REPORT.append('КХЛ сыгранный матч %s: ключи: %s' % (fin[0]['id'], ', '.join(sorted(d.keys()))[:1500]))
+        for k in ('stats', 'team_a_stats', 'team_b_stats', 'statistics', 'protocol', 'goals', 'teams_stats'):
+            if k in d:
+                REPORT.append('  %s: %s' % (k, json.dumps(d[k], ensure_ascii=False)[:1500]))
+    for tag, path in [('khl_pl_q', 'players_v2.json?stage_id=%s&q[team_id_eq]=30' % stage), ('khl_pl_team', 'players_v2.json?stage_id=%s&team_id=30' % stage),
+                      ('khl_pl_p2', 'players_v2.json?stage_id=%s&page=2' % stage), ('khl_pl_tm', 'players_v2.json?stage_id=%s&team=30' % stage)]:
+        j = probe(tag, KHL + path)
+        if isinstance(j, list):
+            pl = [x.get('player') or x for x in j]
+            REPORT.append('  %s: %d игроков, команды: %s, амплуа: %s' % (tag, len(pl), sorted({(x.get('team') or {}).get('name') for x in pl}),
+                                                                       sorted({x.get('role_key') for x in pl})))
+            g = next((x for x in pl if 'goal' in str(x.get('role_key'))), None)
+            if g:
+                REPORT.append('  вратарь: %s' % json.dumps(g.get('stats'), ensure_ascii=False)[:1200])
     for tag, path in [('khl_teams', 'teams_v2.json?stage_id=%s' % stage), ('khl_teams_plain', 'teams.json'),
                       ('khl_team', 'team_v2.json?id=%s' % team_id), ('khl_players', 'players_v2.json?q[team_id_eq]=%s' % team_id),
                       ('khl_players_stage', 'players_v2.json?stage_id=%s&team_id=%s' % (stage, team_id)),
