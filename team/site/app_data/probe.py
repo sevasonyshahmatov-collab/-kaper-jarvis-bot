@@ -51,8 +51,7 @@ def probe(tag, url):
     return j
 
 
-def main(out):
-    os.makedirs(out, exist_ok=True)
+def run():
     # ── КХЛ: стартовый файл (стадии, сезон), события, один сыгранный матч целиком, кандидаты на команды и игроков
     boot = probe('khl_boot', KHL + 'data.json') or {}
     stage = boot.get('current_stage_id')
@@ -81,8 +80,8 @@ def main(out):
         j = probe(tag, KHL + path)
         if isinstance(j, list):
             pl = [x.get('player') or x for x in j]
-            REPORT.append('  %s: %d игроков, команды: %s, амплуа: %s' % (tag, len(pl), sorted({(x.get('team') or {}).get('name') for x in pl}),
-                                                                       sorted({x.get('role_key') for x in pl})))
+            REPORT.append('  %s: %d игроков, команды: %s, амплуа: %s' % (tag, len(pl), sorted({str((x.get('team') or {}).get('name')) for x in pl}),
+                                                                       sorted({str(x.get('role_key')) for x in pl})))
             g = next((x for x in pl if 'goal' in str(x.get('role_key'))), None)
             if g:
                 REPORT.append('  вратарь: %s' % json.dumps(g.get('stats'), ensure_ascii=False)[:1200])
@@ -98,6 +97,15 @@ def main(out):
     probe('nhl_club_stats', NHL + 'club-stats/BOS/now')
     probe('nhl_roster', NHL + 'roster/BOS/current')
     probe('nhl_team_summary', NHLSTATS + 'team/summary?cayenneExp=seasonId=20262027%20and%20gameTypeId=2')
+
+
+def main(out):
+    import traceback
+    os.makedirs(out, exist_ok=True)
+    try:
+        run()
+    except Exception:  # noqa: BLE001 — отчёт о разведке нужен и при ошибке
+        REPORT.append('ОШИБКА: ' + traceback.format_exc()[-1500:].replace('\n', ' | '))
     with open(os.path.join(out, 'probe.md'), 'w', encoding='utf-8') as f:
         f.write('# Разведка данных для мини-приложения\n\n' + '\n'.join('- ' + x for x in REPORT) + '\n')
     with open(os.path.join(out, 'probe.json'), 'w', encoding='utf-8') as f:
