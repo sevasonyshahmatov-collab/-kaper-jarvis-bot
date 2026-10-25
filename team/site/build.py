@@ -458,6 +458,8 @@ def build(site, plans, do_settle=True):
                                        for t in (m['h'], m['a'])}))
     os.makedirs(os.path.join(site, 'assets'), exist_ok=True)
     shutil.copy(os.path.join(HERE, 'site.css'), os.path.join(site, 'assets', 'site.css'))
+    # мини-приложение Telegram (прототип, владелец 25.10): team/site/app → <сайт>/app/
+    shutil.copytree(os.path.join(HERE, 'app'), os.path.join(site, 'app'), dirs_exist_ok=True)
     changed = []
     for P in D:
         ms = sorted(P['matches'], key=lambda m: m['d'])
