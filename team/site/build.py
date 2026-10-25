@@ -346,6 +346,45 @@ def list_page(D, base, logos=None):
     return head(title, desc, base + 'prognozy/', '../') + body + FOOT
 
 
+APP_TEAMS = os.path.join(ROOT, 'out', 'app_data', 'teams.json')
+
+
+def app_team_names():
+    try:
+        with open(APP_TEAMS, encoding='utf-8') as f:
+            T = json.load(f)
+        return {r['name'] for rows in T['leagues'].values() for r in rows}
+    except (OSError, ValueError, KeyError):
+        return set()
+
+
+def app_data(D, site, logos):
+    """<сайт>/app/data.json для мини-приложения: команды (out/app_data/teams.json, team/site/app_data/build.py), матчи дня
+    с прогнозами и итоги прогнозов с сайта. Нет свежих данных о командах — берём прежние из data.json (не стираем)."""
+    dst = os.path.join(site, 'app', 'data.json')
+    old = load(dst) or {}
+    teams_ = load(APP_TEAMS) or {k: old.get(k) for k in ('leagues', 'axes', 'updated') if old.get(k)}
+    td = today().isoformat()
+    soon = sorted([(P, m) for P in D for m in P['matches'] if m['d'][:10] >= td and not m.get('res')], key=lambda pm: pm[1]['d'])
+    games = []
+    for P, m in soon:
+        games.append(dict(lg=P['league'], d=m['d'], h=m['h'], a=m['a'], pick=m['pick'], k=kef_s(m['odds']), x=m.get('x1x2'), p=round(m['p'], 3),
+                          u='../prognozy/' + page_name(m)))
+    sched = []
+    for P in D:
+        if P['day'] == td:
+            sched += [dict(lg=P['league'], d=x['d'], h=x['h'], a=x['a']) for x in P.get('all') or []]
+    res = [dict(lg=P['league'], d=m['d'], h=m['h'], a=m['a'], pick=m['pick'], k=kef_s(m['odds']), sc=m.get('score'), r=m['res'])
+           for P in D for m in P['matches'] if m.get('res') in ('win', 'loss', 'push')]
+    res.sort(key=lambda r: r['d'], reverse=True)
+    out = dict(teams_, built=datetime.now(MSK).strftime('%Y-%m-%d %H:%M'), games=games, schedule=sorted(sched, key=lambda x: x['d']),
+               results=res[:40], logos=logos)
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    save(dst, out)
+    print('SITE приложение: команд %d, матчей с прогнозом %d, итогов %d' % (
+        sum(len(v) for v in (out.get('leagues') or {}).values()), len(games), len(out['results'])), flush=True)
+
+
 def calendar(D, td):
     """Слайд «Расписание» (владелец 25.10: настоящее расписание вместо примера): матчи дня КХЛ (нет — НХЛ) и вчерашние
     со счётом. Нет расписания на сегодня — None, на слайде остаётся пример."""
@@ -454,12 +493,14 @@ def build(site, plans, do_settle=True):
             settle_all(D)
         except Exception as e:  # noqa: BLE001 — без счёта страницы всё равно собираем
             print('SITEERR итоги не посчитаны: %r' % e, flush=True)
+    app_teams = app_team_names()
     logos = emblem_files(site, sorted({t for P in D for m in P['matches'] + P.get('all', []) + P.get('yday', [])
-                                       for t in (m['h'], m['a'])}))
+                                       for t in (m['h'], m['a'])} | app_teams))
     os.makedirs(os.path.join(site, 'assets'), exist_ok=True)
     shutil.copy(os.path.join(HERE, 'site.css'), os.path.join(site, 'assets', 'site.css'))
-    # мини-приложение Telegram (прототип, владелец 25.10): team/site/app → <сайт>/app/
+    # мини-приложение Telegram (прототип, владелец 25.10): team/site/app → <сайт>/app/, данные → <сайт>/app/data.json
     shutil.copytree(os.path.join(HERE, 'app'), os.path.join(site, 'app'), dirs_exist_ok=True)
+    app_data(D, site, logos)
     changed = []
     for P in D:
         ms = sorted(P['matches'], key=lambda m: m['d'])

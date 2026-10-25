@@ -37,7 +37,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install "pillow>=11" numpy requests
+      - run: pip install "pillow>=11" numpy requests cairosvg
       - id: day
         env:
           DAY_IN: ${{ github.event.inputs.day }}
@@ -83,6 +83,12 @@ jobs:
           else:
               print('SITEERR статистика канала: %d прогнозов против прежних %d — оставляю прежнюю' % (n_new, n_old))
           PY
+      - name: Данные мини-приложения
+        # team/site/app_data/build.py: команды КХЛ и НХЛ — места, очки, форма, шестиугольник силы, игроки и вратари
+        # (владелец 25.10). Не собрались — в приложении остаются прежние данные (сайт их не стирает).
+        continue-on-error: true
+        timeout-minutes: 8
+        run: python team/site/app_data/build.py "${{ steps.day.outputs.day }}" out/app_data 2>&1 | grep -E "^APP|KHL сыграно|Traceback|Error" | tail -30
       - name: Собрать страницы
         env:
           SITE_URL: ${{ steps.day.outputs.url }}

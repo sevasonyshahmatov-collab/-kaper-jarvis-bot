@@ -49,17 +49,32 @@ def scale(vals, lower=False):
     return out
 
 
+def plain(s):
+    """«Montréal Canadiens» → «montreal canadiens»: названия в двух API НХЛ пишутся по-разному."""
+    import unicodedata
+    return ''.join(c for c in unicodedata.normalize('NFKD', str(s or '')) if not unicodedata.combining(c)).lower().strip()
+
+
+def short_conf(c):
+    """«Конференция «Восток»» → «Восток»."""
+    c = str(c or '')
+    for w in ('Восток', 'Запад'):
+        if w in c:
+            return w
+    return c or None
+
+
 def colors(name):
     """Цвета клуба как у баннеров канала (render/poster.py): основной, второй, акцент; слаг эмблемы."""
     try:
         import nhl
         import poster
         nhl.register()
-        t = poster.TEAMS.get(name)
+        t = poster.TEAMS.get({'Рейнджерс': 'Нью-Йорк Рейнджерс', 'Айлендерс': 'Нью-Йорк Айлендерс'}.get(name, name))   # так их зовёт nhl_data
         if not t:
             return None, None
         hx = lambda c: '#%02x%02x%02x' % tuple(c)  # noqa: E731
-        return t[0], [hx(t[1]), hx(t[2]), hx(poster.BANNER.get(name, t[1]))]
+        return t[0], [hx(t[1]), hx(t[2]), hx(poster.BANNER.get(name, poster.BANNER.get(t[0], t[1])))]
     except Exception as e:  # noqa: BLE001
         print('APPERR цвета %s: %r' % (name, e), flush=True)
         return None, None
@@ -104,7 +119,7 @@ def khl(day):
             ppa += g['ppg'][1 if h else 0]
         f5, l10, _ = form_from_games(games, name)
         players, goalies, sv, ga = khl_players(stage, tid)
-        rows.append(dict(name=name, conf=conf.get(tid) or t.get('conference'), gp=int(gp), pts=int(num(t.get('pts')) or 0),
+        rows.append(dict(name=name, conf=short_conf(conf.get(tid) or t.get('conference')), gp=int(gp), pts=int(num(t.get('pts')) or 0),
                          w=int((num(t.get('w')) or 0) + (num(t.get('otw')) or 0) + (num(t.get('sow')) or 0)),
                          l=int((num(t.get('l')) or 0) + (num(t.get('otl')) or 0) + (num(t.get('sol')) or 0)),
                          gf=int(num(t.get('gf')) or 0), ga=int(num(t.get('ga')) or 0), form=f5, l10=l10,
@@ -160,14 +175,14 @@ def nhl(day):
     get = lambda u: S.get(u, timeout=30).json()  # noqa: E731
     y = int(day[:4]) if int(day[5:7]) >= 9 else int(day[:4]) - 1
     st = get(web + 'standings/now').get('standings') or []
-    summ = {x.get('teamFullName'): x for x in get('https://api.nhle.com/stats/rest/en/team/summary?cayenneExp=seasonId=%d%d%%20and%%20gameTypeId=2' % (y, y + 1)).get('data') or []}
+    summ = {plain(x.get('teamFullName')): x for x in get('https://api.nhle.com/stats/rest/en/team/summary?cayenneExp=seasonId=%d%d%%20and%%20gameTypeId=2' % (y, y + 1)).get('data') or []}
     rows = []
     for s in st:
         ab = (s.get('teamAbbrev') or {}).get('default')
         if ab not in teams.NHL:
             continue
         name, full = teams.NHL[ab][0], teams.NHL[ab][1]
-        m = summ.get(full) or {}
+        m = summ.get(plain(full)) or {}
         gp = s.get('gamesPlayed') or 0
         sapg = num(m.get('shotsAgainstPerGame'))
         shots = sapg * gp if sapg and gp else None
