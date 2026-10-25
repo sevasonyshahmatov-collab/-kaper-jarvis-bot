@@ -21,9 +21,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install -q requests
+      - run: pip install -q requests "pillow>=11" numpy cairosvg
       - name: Разведка
         run: python team/site/app_data/probe.py out/app_probe
+      - name: Данные команд (проба сборщика)
+        continue-on-error: true
+        run: |
+          python team/site/app_data/build.py "$(TZ=Europe/Moscow date +%F)" out/app_data 2>&1 | grep -E "APP|KHL сыграно|Traceback|Error" | tail -40 > out/app_probe/build_log.txt || true
+          cp out/app_data/teams.json out/app_probe/ 2>/dev/null || true
       - name: Сохранить в ветку
         if: github.event_name == 'push'
         run: |
