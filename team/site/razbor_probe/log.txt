@@ -1,34 +1,11 @@
-RAZBOR сыграно за 30 ч: 20 (КХЛ 6, НХЛ 14)
+RAZBOR сыграно за 36 ч: 22 (КХЛ 6, НХЛ 16)
 POSTMATCH Gemini: модели по ключу — gemini-2.5-flash, gemini-flash-latest, gemini-3.5-flash, gemini-3.6-flash, gemini-3.7-flash, gemini-3.8-flash
-RAZBORERR Gemini gemini-flash-latest: лимит — жду минуту
-RAZBORERR Gemini gemini-flash-latest: лимит — жду минуту
-RAZBORERR Gemini gemini-flash-latest: 429 {
-RAZBORERR Gemini gemini-3.8-flash: лимит — жду минуту
-RAZBORERR Gemini gemini-3.8-flash: лимит — жду минуту
-RAZBORERR Gemini gemini-3.8-flash: 429 {
-RAZBORERR Gemini gemini-3.7-flash: лимит — жду минуту
-RAZBORERR Gemini gemini-3.7-flash: лимит — жду минуту
-RAZBORERR Gemini gemini-3.7-flash: 429 {
-RAZBORERR Gemini gemini-3.6-flash: лимит — жду минуту
-RAZBORERR Gemini gemini-3.6-flash: лимит — жду минуту
-RAZBORERR Gemini gemini-3.6-flash: 429 {
-RAZBORERR Gemini gemini-3.5-flash: лимит — жду минуту
-RAZBORERR Gemini gemini-3.5-flash: лимит — жду минуту
-RAZBORERR Gemini gemini-3.5-flash: 429 {
-RAZBORERR Gemini gemini-2.5-flash: 404 {
-RAZBOR Бостон — Сан-Хосе 6:4: сводка по цифрам
-RAZBORERR Gemini gemini-flash-latest: лимит — жду минуту
-RAZBORERR Gemini gemini-flash-latest: лимит — жду минуту
-RAZBORERR Gemini gemini-flash-latest: 429 {
-RAZBORERR Gemini gemini-3.8-flash: лимит — жду минуту
-RAZBORERR Gemini gemini-3.8-flash: лимит — жду минуту
-RAZBORERR Gemini gemini-3.8-flash: 429 {
-RAZBORERR Gemini gemini-3.7-flash: лимит — жду минуту
-RAZBORERR Gemini gemini-3.7-flash: лимит — жду минуту
-RAZBORERR Gemini gemini-3.7-flash: 429 {
-RAZBORERR Gemini gemini-3.6-flash: лимит — жду минуту
-RAZBOR Оттава — Рейнджерс 7:4: нейросеть (gemini-3.6-flash): Хет-трик Батерсона помог Оттаве переиграть Рейнджерс в сверхрезультативном матче
-RAZBORERR Gemini gemini-flash-latest: лимит — жду минуту
-RAZBORERR Gemini gemini-flash-latest: лимит — жду минуту
-RAZBORERR Gemini gemini-flash-latest: 429 {
-RAZBORERR Gemini gemini-3.8-flash: лимит — жду минуту
+RAZBORERR Gemini gemini-flash-latest: лимит на день (GenerateRequestsPerDayPerProjectPerModel-FreeTier)
+RAZBORERR Gemini gemini-3.8-flash: лимит на день (GenerateRequestsPerDayPerProjectPerModel-FreeTier)
+RAZBORERR Gemini gemini-3.7-flash: лимит на день (GenerateRequestsPerDayPerProjectPerModel-FreeTier)
+RAZBORERR Gemini gemini-3.6-flash: лимит на день (GenerateRequestsPerDayPerProjectPerModel-FreeTier)
+RAZBORERR Gemini gemini-3.5-flash: лимит на день (GenerateRequestsPerDayPerProjectPerModel-FreeTier)
+RAZBORERR Gemini gemini-2.5-flash: 404 {   "error": {     "code": 404,     "message": "This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use models/gemini-3.8-flash for the latest features a
+RAZBOR Филадельфия — Анахайм 4:5: сводка по цифрам
+RAZBOR у всех моделей кончился дневной лимит — остальные разборы в следующий запуск
+RAZBOR итого: новых разборов 1, из них нейросетью 0
