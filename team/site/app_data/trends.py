@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Тренды команды по сыгранным матчам сезона (владелец 26.10: «давай сделаем тренды») — для страницы /trendy/ сайта и
-приложения. Считаем сами по счёту матчей, без нейросети. Тотал и «обе забьют» — по итоговому счёту (с овертаймом и
+приложения. Считаем сами по счёту матчей, без нейросети. Тотал — по итоговому счёту (с овертаймом и
 буллитами: буллит — один гол победителю, как в протоколе).
 
 Матч на входе: {d: 'ГГГГ-ММ-ДД ЧЧ:ММ', h, a, hg, ag, ot: True — дошёл до овертайма или буллитов}.
@@ -28,7 +28,7 @@ def calc(name, games):
         return None
     n = len(gs)
     over = {str(x): 0 for x in LINES}
-    tot = btts = ot = cs = zero = one = regw = 0
+    tot = ot = cs = zero = one = regw = 0
     home, away, res = [0, 0], [0, 0], []
     for g in gs:
         h = g['h'] == name
@@ -37,7 +37,6 @@ def calc(name, games):
         tot += t
         for x in LINES:
             over[str(x)] += t > x
-        btts += f > 0 and a > 0
         ot += bool(g.get('ot'))
         cs += a == 0
         zero += f == 0
@@ -49,6 +48,6 @@ def calc(name, games):
     last = res[-1]
     k = len(res) - len(''.join('1' if x else '0' for x in res).rstrip('1' if last else '0'))
     l10 = gs[-10:]
-    return dict(n=n, tot=round(tot / n, 2), o=over, btts=btts, ot=ot, cs=cs, zero=zero, one=one, regw=regw,
+    return dict(n=n, tot=round(tot / n, 2), o=over, ot=ot, cs=cs, zero=zero, one=one, regw=regw,
                 sn=k if last else -k, home=home, away=away,
                 o10=[sum(g['hg'] + g['ag'] > MAIN for g in l10), len(l10)])
