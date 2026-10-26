@@ -807,21 +807,42 @@ def _frame_bytes(i):
     return fr.convert('RGB').tobytes()
 
 
-def _audio(path, dur, track=None, start=0.0):
+def _audio(path, dur, track=None, start=0.0, fx=None):
+    """Дорожка ролика в wav: отрезок трека с loudnorm или тишина. fx — эффекты (sfx.track, пик музыки = 1):
+    кладутся поверх трека до loudnorm в масштабе пика этого отрезка трека; без трека — как будто музыка уже
+    нормирована (пик ≈ −1,5 дБ), без loudnorm (иначе он вытянет одни эффекты)."""
     if track:
         # музыка играет до последнего кадра без затухания (владелец 14.10); 30 мс в самом конце — только от щелчка
         af = 'afade=t=in:st=0:d=0.02,afade=t=out:st=%.3f:d=0.03,loudnorm=I=-14:TP=-1.5:LRA=11,aresample=44100' % (dur - 0.03)
-        cmd = ['ffmpeg', '-y', '-loglevel', 'error', '-ss', '%.3f' % start, '-t', '%.3f' % dur, '-i', track, '-af', af,
-               '-ac', '2', '-ar', '44100', path]
+        if fx is None:
+            cmd = ['ffmpeg', '-y', '-loglevel', 'error', '-ss', '%.3f' % start, '-t', '%.3f' % dur, '-i', track, '-af', af,
+                   '-ac', '2', '-ar', '44100', path]
+            subprocess.run(cmd, check=True)
+            return
+        raw = subprocess.run(['ffmpeg', '-loglevel', 'error', '-ss', '%.3f' % start, '-t', '%.3f' % dur, '-i', track, '-f',
+                              'f32le', '-ac', '2', '-ar', '44100', '-'], check=True, capture_output=True).stdout
+        mus = np.zeros_like(fx)
+        a = np.frombuffer(raw, np.float32).reshape(-1, 2)[:len(fx)]
+        mus[:len(a)] = a
+        ref = float(np.abs(mus).max())
+        mix = mus + fx * (ref if ref > 1e-3 else 10 ** (-1.5 / 20))
+    elif fx is not None:
+        mix, af = fx * 10 ** (-1.5 / 20), 'aresample=44100'
     else:
         cmd = ['ffmpeg', '-y', '-loglevel', 'error', '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=stereo', '-t', '%.3f' % dur, path]
-    subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True)
+        return
+    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'f32le', '-ar', '44100', '-ac', '2', '-i', '-', '-af', af,
+                    '-ac', '2', '-ar', '44100', path], check=True, input=mix.astype(np.float32).tobytes())
 
 
-def render(reel, path, track=None, start=0.0, crf=20, workers=None, frames=None, extra_out=None):
+def render(reel, path, track=None, start=0.0, crf=20, workers=None, frames=None, extra_out=None, sfx=None):
     """Собрать ролик. path — mp4. track/start — трек и секунда трека, с которой он играет на t=0 ролика.
     extra_out — ещё путь, куда положить тот же видеоряд с другой звуковой дорожкой (без музыки):
-    кадры считаются один раз. frames — список номеров кадров (для быстрой проверки) — тогда только jpg."""
+    кадры считаются один раз. frames — список номеров кадров (для быстрой проверки) — тогда только jpg.
+    sfx — звуковые эффекты (reels/sfx.py: вжухи на сменах картинки, удар на дропе); None — по REELS_SFX=1, по
+    умолчанию выключены. Эффекты кладутся в обе версии: чистая — для площадок со своей музыкой, вжухи и удар
+    привязаны к картинке, а не к треку."""
     global _R
     _R = reel
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
@@ -837,22 +858,34 @@ def render(reel, path, track=None, start=0.0, crf=20, workers=None, frames=None,
     cmd = ['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '%dx%d' % (W, H), '-r', str(FPS),
            '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', str(crf), '-maxrate', '9M', '-bufsize', '18M', '-pix_fmt',
            'yuv420p', '-profile:v', 'high', '-g', '60', '-movflags', '+faststart', tmpv]
+    if sfx is None:
+        sfx = os.environ.get('REELS_SFX') == '1'
+    if sfx:
+        from reels import sfx as S
+        cuts = S.Cuts((W, H))
     pr = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     ctx = multiprocessing.get_context('fork')
     try:
         with ctx.Pool(workers or os.cpu_count() or 2) as pool:
             for b in pool.imap(_frame_bytes, range(n), chunksize=3):
                 pr.stdin.write(b)
+                if sfx:
+                    cuts.feed(b)
     finally:
         pr.stdin.close()
         code = pr.wait()
     if code != 0:
         raise RuntimeError('ffmpeg не собрал видеоряд: %s' % path)
+    fx = None
+    if sfx:
+        ev = S.events(reel, cuts.times(FPS, reel.dur))
+        fx = S.track(ev, reel.dur)
+        print('SFX %s: %s' % (os.path.basename(path), ' '.join('%s@%.2f' % e for e in ev) or '—'), flush=True)
     # чистая версия — без музыки; у озвученного ролика (team/reels_daily/voice.py) в ней остаётся голос
     outs = [(path, track)] + ([(extra_out, getattr(reel, 'voice_only', None))] if extra_out else [])
     for p, tr in outs:
         wav = tempfile.NamedTemporaryFile(suffix='.wav', delete=False).name
-        _audio(wav, reel.dur, tr, start if tr == track else 0.0)
+        _audio(wav, reel.dur, tr, start if tr == track else 0.0, fx)
         subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', tmpv, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy',
                         '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', p], check=True)
         os.unlink(wav)
