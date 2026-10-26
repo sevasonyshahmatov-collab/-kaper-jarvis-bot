@@ -412,7 +412,13 @@ def landing(D, logos, base, site=None):
                                      y=('У %s такое было в %d из %d игр' % (gen(f['team']), f['k'], f['n'])) if f.get('n') else
                                      ('Вероятность по модели %s' % pct(m['p'])) if m.get('p') else 'Прогноз из канала @jarvibet',
                                      u='prognozy/' + page_name(m), x=m.get('x1x2'), pr=round(m['p'] or 0, 3)))
-    tod = {k: v[:6] for k, v in tod.items() if v}
+    for lg in ('khl', 'nhl'):                               # постов на сегодня ещё нет (выходят за 1,5 ч до матча) — матчи дня
+        P = next((P for P in D if P['league'] == lg and P['day'] == td and P.get('all')), None)  # без прогноза, а не пример
+        if not tod[lg] and P:
+            tod[lg] = [dict(w='Сегодня · %s МСК' % x['d'][11:16], a=x['h'], b=x['a'], p='Прогноз выйдет в канале за 1,5 часа до матча',
+                            k='—', y='Подпишись на @jarvibet, чтобы не пропустить', u='https://t.me/jarvibet', x=None, pr=0)
+                       for x in P['all'] if x['d'][:10] >= td]
+    tod = {k: v[:6] for k, v in tod.items()}
     res = [dict(t='%s — %s' % (m['h'], m['a']), b=m['pick'], ok=m['res'] == 'win')
            for P in D for m in P['matches'] if m.get('res') in ('win', 'loss')][-14:]
     lim = (today() - timedelta(days=30)).isoformat()
@@ -428,7 +434,7 @@ def landing(D, logos, base, site=None):
         except ValueError as e:
             print('SITEERR months.json не прочитан: %r' % e, flush=True)
     inject = '<script>window.__SITE=1;window.__TODAY=%s;window.__TL=%s;window.__RES=%s;window.__TALLY=%s;window.__MONTHS=%s;window.__CAL=%s;</script>\n' % (
-        json.dumps(tod or None, ensure_ascii=False), json.dumps(logos, ensure_ascii=False), json.dumps(res or None, ensure_ascii=False),
+        json.dumps(tod, ensure_ascii=False), json.dumps(logos, ensure_ascii=False), json.dumps(res or None, ensure_ascii=False),
         json.dumps(tally), json.dumps(months, ensure_ascii=False).replace('</', '<\\/'),
         json.dumps(cal, ensure_ascii=False))
     title = 'JARVIS — прогнозы на хоккей КХЛ и НХЛ по модели'
@@ -451,9 +457,20 @@ def landing(D, logos, base, site=None):
 %s</head>
 <body>
 %s
-</body>
+%s</body>
 </html>
-''' % (esc(title), esc(desc), esc(base), esc(title), esc(desc), esc(base), verify(), inject, src)
+''' % (esc(title), esc(desc), esc(base), esc(title), esc(desc), esc(base), verify(), inject, src, BOARD_WAIT)
+
+
+# Табло «Прогноз дня», пока постов на сегодня нет (в __TODAY только матчи дня с pr=0): скрипт лендинга уже поставил
+# команды первого матча — меняем подпись на «Матч дня», убираем вероятность и пишем, когда выйдет прогноз; матчей нет — прячем.
+BOARD_WAIT = '''<script>(function(){var T=window.__TODAY,b=document.querySelector('.board');if(!window.__SITE||!T||!b)return;
+var all=[].concat(T.khl||[],T.nhl||[]);if(all.some(function(m){return m.pr>0}))return;
+if(!all.length){b.hidden=true;return}
+b.setAttribute('aria-label','Матч дня');var l=b.querySelector('.board-top .live');if(l)l.textContent='Матч дня';
+var p=b.querySelector('.prob');if(p)p.hidden=true;
+var s=b.querySelector('.sample');if(s)s.innerHTML='Прогноз дня выйдет в <a href="https://t.me/jarvibet">@jarvibet</a> за 1,5 часа до матча';})();</script>
+'''
 
 
 def verify():
