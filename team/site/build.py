@@ -412,7 +412,13 @@ def landing(D, logos, base, site=None):
                                      y=('У %s такое было в %d из %d игр' % (gen(f['team']), f['k'], f['n'])) if f.get('n') else
                                      ('Вероятность по модели %s' % pct(m['p'])) if m.get('p') else 'Прогноз из канала @jarvibet',
                                      u='prognozy/' + page_name(m), x=m.get('x1x2'), pr=round(m['p'] or 0, 3)))
-    tod = {k: v[:6] for k, v in tod.items() if v}
+    for lg in ('khl', 'nhl'):                               # постов на сегодня ещё нет (выходят за 1,5 ч до матча) — матчи дня
+        P = next((P for P in D if P['league'] == lg and P['day'] == td and P.get('all')), None)  # без прогноза, а не пример
+        if not tod[lg] and P:
+            tod[lg] = [dict(w='Сегодня · %s МСК' % x['d'][11:16], a=x['h'], b=x['a'], p='Прогноз выйдет в канале за 1,5 часа до матча',
+                            k='—', y='Подпишись на @jarvibet, чтобы не пропустить', u='https://t.me/jarvibet', x=None, pr=0)
+                       for x in P['all'] if x['d'][:10] >= td]
+    tod = {k: v[:6] for k, v in tod.items()}
     res = [dict(t='%s — %s' % (m['h'], m['a']), b=m['pick'], ok=m['res'] == 'win')
            for P in D for m in P['matches'] if m.get('res') in ('win', 'loss')][-14:]
     lim = (today() - timedelta(days=30)).isoformat()
@@ -428,7 +434,7 @@ def landing(D, logos, base, site=None):
         except ValueError as e:
             print('SITEERR months.json не прочитан: %r' % e, flush=True)
     inject = '<script>window.__SITE=1;window.__TODAY=%s;window.__TL=%s;window.__RES=%s;window.__TALLY=%s;window.__MONTHS=%s;window.__CAL=%s;</script>\n' % (
-        json.dumps(tod or None, ensure_ascii=False), json.dumps(logos, ensure_ascii=False), json.dumps(res or None, ensure_ascii=False),
+        json.dumps(tod, ensure_ascii=False), json.dumps(logos, ensure_ascii=False), json.dumps(res or None, ensure_ascii=False),
         json.dumps(tally), json.dumps(months, ensure_ascii=False).replace('</', '<\\/'),
         json.dumps(cal, ensure_ascii=False))
     title = 'JARVIS — прогнозы на хоккей КХЛ и НХЛ по модели'

@@ -713,13 +713,22 @@ const logo=n=>(window.__TL&&window.__TL[n])||LOGO[LG[n]]||'';
 const TODAY=window.__TODAY||null;
 // hero board: the most confident match of the day, or the example
 let PV=58;
-const T0=TODAY&&[...(TODAY.khl||[]),...(TODAY.nhl||[])].sort((a,b)=>b.pr-a.pr)[0];
+const T0=TODAY&&[...(TODAY.khl||[]),...(TODAY.nhl||[])].filter(m=>m.pr>0).sort((a,b)=>b.pr-a.pr)[0];
 if(T0){const b=document.querySelector('.board');b.setAttribute('aria-label','Прогноз дня');
  b.querySelector('.board-top span:last-child').textContent=T0.w.split('· ').pop();
  b.querySelectorAll('.tm').forEach((t,i)=>{const n=i?T0.b:T0.a;t.lastChild.textContent=n;t.querySelector('img').src=logo(n)});
  b.querySelectorAll('.odd').forEach((o,i)=>{o.classList.remove('pick');o.querySelector('strong').textContent=T0.x&&T0.x[i]?(+T0.x[i]).toFixed(2):'—'});
  b.querySelector('.sample').innerHTML=`Прогноз: <b>${T0.p}</b>, кэф ${T0.k} · <a href="${T0.u}">разбор матча</a>`;
  PV=Math.round(T0.pr*100)}
+else if(window.__SITE){const b=document.querySelector('.board'),S0=TODAY&&[...(TODAY.khl||[]),...(TODAY.nhl||[])][0];
+ if(S0){b.setAttribute('aria-label','Матч дня');b.querySelector('.board-top .live').textContent='Матч дня';                       // постов на сегодня ещё нет — матч дня без прогноза
+  b.querySelector('.board-top span:last-child').textContent=S0.w.split('· ').pop();
+  b.querySelectorAll('.tm').forEach((t,i)=>{const n=i?S0.b:S0.a;t.lastChild.textContent=n;t.querySelector('img').src=logo(n)});
+  b.querySelectorAll('.odd').forEach(o=>{o.classList.remove('pick');o.querySelector('strong').textContent='—'});
+  b.querySelector('.sample').innerHTML='Прогноз дня выйдет в <a href="https://t.me/jarvibet">@jarvibet</a> за 1,5 часа до матча';
+  b.querySelector('.prob').hidden=true}
+ else b.hidden=true;
+ PV=0}
 setTimeout(()=>{document.getElementById('pm').style.width=PV+'%';let v=0;const t=setInterval(()=>{v+=2;document.getElementById('pv').textContent=Math.min(v,PV)+'%';if(v>=PV)clearInterval(t)},20)},400);
 
 // matches: today's on the site, examples in the preview
