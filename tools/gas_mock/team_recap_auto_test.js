@@ -1,6 +1,6 @@
 /* Проверка утренних запусков без опроса (apps-script/project/Код.js: recapAutoTick_, recapDispatch_, recapAskCallback_)
- * на макете Apps Script: 06:00 МСК — «Начало игрового дня» (morning_greet), 08:30 — итоги из канала (recap_auto), каждое — раз
- * в день; GitHub не принял (403) — одно сообщение владельцу за день; старые кнопки опроса — «Опрос больше не используется».
+ * на макете Apps Script: 06:00 МСК — «Начало игрового дня» (morning_greet), 08:30 — сверка ставок владельцу (сами итоги —
+ * после его ответа, см. team_recap_check_test.js), каждое — раз в день; GitHub не принял (403) — одно сообщение владельцу за день; старые кнопки опроса — «Опрос больше не используется».
  * Telegram и GitHub (запуск itogi.yml) подменены записью.
  *   node tools/gas_mock/team_recap_auto_test.js        → «ok», иначе первая ошибка */
 const assert = require('assert');
@@ -65,12 +65,13 @@ w = at('08:25', props);                                              // 08:25 �
 assert.strictEqual(w.tick(), '');
 assert.strictEqual(w.gh.length, 0);
 
-// 3. 08:30 — один запуск итогов из канала
+// 3. 08:30 — одна сверка владельцу (итоги без его ответа не запускаем)
 w = at('08:30', props);
 assert.strictEqual(w.tick(), 'запуск: recap');
-assert.deepStrictEqual(w.payloads(), [{ kind: 'team', job: 'team/out/2026-10-16/recap_auto.json', day: DAY }]);
-assert.strictEqual(w.calls.length, 0);
+assert.strictEqual(w.gh.length, 0);
+assert.ok(w.calls.length === 1 && /^Сверка перед итогами за 15 октября\n/.test(w.calls[0].payload.text));
 assert.strictEqual(w.tick(), '');
+assert.strictEqual(w.calls.length, 0);
 assert.deepStrictEqual([w.state().greet, w.state().recap], ['06:00', '08:30']);
 props = Object.assign({}, w.env.props);
 w = at('10:40', props);                                              // позже в тот же день — ничего
@@ -80,10 +81,11 @@ w = boot('2026-10-17T03:00:00Z', props);                             // наза
 assert.strictEqual(w.tick(), 'запуск: greet');
 assert.deepStrictEqual(w.payloads(), [{ kind: 'team', job: 'team/out/2026-10-17/morning_greet.json', day: '2026-10-17' }]);
 
-// 4. таблица «проснулась» в 09:10 — оба запуска по порядку, каждый по разу
+// 4. таблица «проснулась» в 09:10 — оба по порядку, каждый по разу
 w = at('09:10');
 assert.strictEqual(w.tick(), 'запуск: greet, recap');
-assert.deepStrictEqual(w.payloads().map(p => p.job), ['team/out/2026-10-16/morning_greet.json', 'team/out/2026-10-16/recap_auto.json']);
+assert.deepStrictEqual(w.payloads().map(p => p.job), ['team/out/2026-10-16/morning_greet.json']);
+assert.strictEqual(w.of('sendMessage').length, 1);
 assert.strictEqual(w.tick(), '');
 // после полудня пропущенное не догоняем
 w = at('12:00');
@@ -96,19 +98,19 @@ assert.strictEqual(w.tick(), 'ошибка');
 let sm = w.of('sendMessage');
 assert.strictEqual(sm.length, 1);
 assert.strictEqual(sm[0].payload.chat_id, String(CHAT));
-assert.ok(/^⚠️ Утренние посты не запустились \(«Начало игрового дня», итоги вчерашних ставок\): GitHub ответил 403 — у токена GITHUB_TOKEN нет права Actions: Read and write/.test(sm[0].payload.text), sm[0].payload.text);
+assert.ok(/^⚠️ Утренние посты не запустились \(«Начало игрового дня», сверка ставок перед итогами\): GitHub ответил 403 — у токена GITHUB_TOKEN нет права Actions: Read and write/.test(sm[0].payload.text), sm[0].payload.text);
 assert.ok(/до 12:00 МСК\. Это сообщение — одно за день\.$/.test(sm[0].payload.text), sm[0].payload.text);
 assert.ok(!w.state().greet && w.state().errSent === '06:00');
 assert.strictEqual(w.tick(), 'ошибка');                              // тот же запуск таблицы — повтор без сообщения
 assert.strictEqual(w.of('sendMessage').length, 0);
 props = Object.assign({}, w.env.props);
-w = at('08:30', props, 403);                                         // и в 08:30 — два запуска не приняты, сообщения нет
-assert.strictEqual(w.tick(), 'ошибка');
-assert.strictEqual(w.gh.length, 2);
-assert.strictEqual(w.calls.length, 0);
+w = at('08:30', props, 403);                                         // в 08:30 утро снова не принято, сообщения об ошибке нет,
+assert.strictEqual(w.tick(), 'запуск: recap');                       //   а сверка (без GitHub) ушла
+assert.strictEqual(w.gh.length, 1);
+assert.ok(w.calls.length === 1 && /^Сверка перед итогами/.test(w.calls[0].payload.text));
 props = Object.assign({}, w.env.props);
-w = at('08:35', props, 204);                                         // владелец дал токену право Actions — оба ушли
-assert.strictEqual(w.tick(), 'запуск: greet, recap');
+w = at('08:35', props, 204);                                         // владелец дал токену право Actions — утро ушло
+assert.strictEqual(w.tick(), 'запуск: greet');
 assert.strictEqual(w.calls.length, 0);
 assert.strictEqual(w.tick(), '');
 w = at('06:00', {}, 500);                                            // другой ответ GitHub — текст ошибки в сообщении
@@ -129,7 +131,7 @@ assert.strictEqual(w.calls.length + w.gh.length, 0);
 const oldMsg = { message_id: 950, chat: { id: CHAT, type: 'private' }, from: BOT, text: 'Доброе утро! На какие прогнозы вчера ставили?' };
 for (const data of ['tm|rat|1510-1|2026-10-16', 'tm|rad||2026-10-16', 'tm|ran||2026-10-16', 'tm|rat|1410-1|2026-10-15']) {
   w.press(data, oldMsg);
-  assert.ok(w.toast().show_alert && /^Опрос больше не используется: итоги бот собирает сам из постов канала и присылает около 8:30 МСК$/.test(w.toast().text), data + ' ' + w.toast().text);
+  assert.ok(w.toast().show_alert && /^Опрос больше не используется: около 8:30 МСК бот присылает сверку ставок из канала, а после неё — итоги$/.test(w.toast().text), data + ' ' + w.toast().text);
   const ed = w.of('editMessageReplyMarkup');
   assert.ok(ed.length === 1 && ed[0].payload.reply_markup.inline_keyboard[0][0].text === 'Опрос больше не используется', data);
 }

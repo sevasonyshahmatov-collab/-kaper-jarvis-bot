@@ -15453,13 +15453,15 @@ function teamBotMessage_(msg, cmd) {
   var isLog = cmd === '/отчёт' || cmd === '/отчет' || cmd === '/report';
   var isFix = !!(rep && String(rep.text || '').indexOf(TEAM_FIX_ASK) === 0);
   var free = !isTask && !isList && !isLog && !/^\//.test(text);
-  var editing = free && !isFix ? teamEditPending_(chat, rep, msg.text) : null;   // «Редактировать»: новый текст поста целиком
-  var repBot = !!(rep && rep.from && rep.from.is_bot && !isFix && !editing);   // ответ прямо на сообщение бота (пост, фото альбома)
+  var recapSt = free && rep && !isFix ? recapCheckOf_(chat, rep.message_id) : null;   // ответ на сверку ставок перед итогами
+  var editing = free && !isFix && !recapSt ? teamEditPending_(chat, rep, msg.text) : null;   // «Редактировать»: новый текст поста целиком
+  var repBot = !!(rep && rep.from && rep.from.is_bot && !isFix && !editing && !recapSt);   // ответ прямо на сообщение бота (пост, фото альбома)
   var repTeam = repBot && teamKbPid_(rep.reply_markup) !== null;           // … и это пост команды с кнопками
   var quick = free && repBot ? teamEditParse_(msg.text) : null;           // «заменить прогноз на: …» ответом на пост
-  if (!isTask && !isList && !isLog && !isFix && !editing && !quick && !repTeam) return false;
+  if (!isTask && !isList && !isLog && !isFix && !editing && !quick && !repTeam && !recapSt) return false;
   if (!tgIsChannelAdmin_(msg.from.id)) { tgAdminDenied_(chat, msg.from.id); return true; }
   var send = function (t) { tg_('sendMessage', { chat_id: chat, parse_mode: 'HTML', text: t, disable_web_page_preview: true }); };
+  if (recapSt) { recapFixTake_(msg, recapSt, send); return true; }
   if (editing) { teamEditTake_(msg, editing, send); return true; }
   if (quick) { teamEditRun_(msg, quick, teamEditTargetOf_(rep), send); return true; }
   if (!PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN')) {
@@ -15505,6 +15507,7 @@ function teamCallback_(q, parts) {
     if (pp.getProperty('TEAM_OWNER_CHAT') !== String(m.chat.id)) pp.setProperty('TEAM_OWNER_CHAT', String(m.chat.id));
   }
   if (act === 'rat' || act === 'rad' || act === 'ran') { recapAskCallback_(q, parts, answer); return; }   // старые кнопки отменённого опроса
+  if (act === 'rck' || act === 'rfx' || act === 'rsk') { recapCheckCallback_(q, parts, answer); return; }   // сверка ставок перед итогами
   var title = '«' + (String(m.caption || m.text || '').split('\n')[0].trim().slice(0, 80) || 'без подписи') + '»';
   var mark = function (label) {
     tg_('editMessageReplyMarkup', { chat_id: m.chat.id, message_id: m.message_id,
@@ -15676,17 +15679,28 @@ function teamSchedTick_() {
   });
 }
 
-/* ── ⏰ Утренние посты — бот запускает сам, без опроса и без людей (решение владельца 16.10) ──
- *  Проверка из liveUpdateAuto_ раз в 5 минут (отдельный триггер ставить не нужно), время — МСК, каждое задание — один раз в день:
+/* ── ⏰ Утренние посты — бот запускает сам, без опроса и без людей (решение владельца 16.10; сверка ставок — 26.10) ──
+ *  Проверка из liveUpdateAuto_ раз в 5 минут (отдельный триггер ставить не нужно), время — МСК, каждое — один раз в день:
  *   • с DAILY_GREET_HOUR:DAILY_GREET_MIN (06:00) — «Начало игрового дня»: itogi.yml на ветке команды (workflow_dispatch)
  *     с payload {kind: 'team', job: 'team/out/<D>/morning_greet.json', day: D};
- *   • с DAILY_RECAP_HOUR:DAILY_RECAP_MIN (08:30), когда ночь НХЛ доиграна, — «Итоги вчерашних ставок» с баннером:
- *     {kind: 'team', job: 'team/out/<D>/recap_auto.json', day: D}. Прогнозы скрипт берёт сам из постов, которые владелец
- *     вчера опубликовал в канале (публичная лента t.me/s/jarvibet, team/daily/channel.py); лента недоступна — записи бота
- *     (INBOX «опубликовано владельцем» + SENT.md); какой источник взят — в служебной строке владельцу.
+ *   • с DAILY_RECAP_HOUR:DAILY_RECAP_MIN (08:30), когда ночь НХЛ доиграна, — сверка перед итогами (владелец 26.10: ставку
+ *     правят в боте или в канале, а итоги из ленты канала иногда брали не ту — 23.10 Чикаго — Монреаль «больше» вместо
+ *     «меньше»). Бот присылает владельцу «Сверка перед итогами за <вчера>»: ставки из записей PMW_ (прогнозы, вышедшие через
+ *     «Опубликовать», с правками в боте; см. блок послематчевых постов) с началом матча с 08:00 вчера до 08:00 сегодня МСК,
+ *     по времени. Кнопки (tm|<действие>||<D>, recapCheckCallback_):
+ *       «✅ Всё верно — собрать итоги» (rck) — itogi.yml с заданием recap_ask: {kind: 'team', job: 'team/out/<D>/recap_ask.json',
+ *         day: D, pids: [], free: ['Прогноз: Хозяева — Гости: ставка, кэф 1,85', …], at: 'ГГГГ-ММ-ДД ЧЧ:ММ'} → team/daily/morning.py
+ *         --ask (строки разбирает team/daily/ask.py parse_free); кнопки → «⏳ Итоги собираются…», второй раз не запускает;
+ *       «✏️ Поправить» (rfx) — список строкой «Матч: ставка, кэф» для копирования + force_reply; ответ владельца (на это
+ *         сообщение или на саму сверку) — полный исправленный список, по ставке в строке → то же задание с его строками
+ *         (recapFixTake_) и короткое «Подтверждаю: …»;
+ *       записей нет — «Вчера прогнозов в канале не нашёл»: «✏️ Прислать свои ставки» (rfx) и «Без итогов» (rsk — ничего не запускаем).
+ *     Владелец не ответил до DAILY_LAST_HOUR — одно напоминание (сами итоги без сверки не собираем).
  *  Задания не коммитятся: render/team_job.py создаёт team/out/<D>/<имя>.json из заготовки team/daily/jobs/<имя>.json.
  *  Посты приходят владельцу в личку с кнопками «Опубликовать» / «Редактировать» / «Не надо» — сам бот ничего не публикует.
- *  Состояние дня — свойство скрипта RECAP_AUTO_<yyyy-MM-dd> ({greet: 'ЧЧ:ММ', recap: 'ЧЧ:ММ', errSent, errWhy}), хранится неделю.
+ *  Состояние дня — свойство скрипта RECAP_AUTO_<yyyy-MM-dd> ({greet: 'ЧЧ:ММ', recap: 'ЧЧ:ММ' — сверка отправлена,
+ *  check: 'sent' | 'ok' | 'fixed' | 'skip', items — показанный список, mid/asks — сообщения сверки, run, remind, errSent, errWhy}),
+ *  хранится неделю. Итоги из ленты канала без сверки (recap_auto.json, --source channel) — только вручную.
  *  GitHub не принял запуск (403 — у токена нет права Actions, и т. п.) — повтор через 5 минут, до DAILY_LAST_HOUR;
  *  владельцу — одно сообщение в день с причиной. Позже DAILY_LAST_HOUR пропущенное не догоняем.
  *  Нужно: GITHUB_TOKEN с правами Contents: Read and write (уже есть) и Actions: Read and write (для запуска workflow).
@@ -15695,15 +15709,17 @@ function teamSchedTick_() {
  */
 var DAILY_GREET_HOUR = 6;               // МСК: «Начало игрового дня» — час…
 var DAILY_GREET_MIN = 0;                //   …и минута
-var DAILY_RECAP_HOUR = 8;               // МСК: итоги вчерашних ставок из канала — час… (последние матчи НХЛ начинаются
-var DAILY_RECAP_MIN = 30;               //   …и минута       в 05:00–05:30 МСК и к 08:30 доиграны; скрипт ещё подождёт до 35 мин)
+var DAILY_RECAP_HOUR = 8;               // МСК: сверка ставок перед итогами — час… (последние матчи НХЛ начинаются
+var DAILY_RECAP_MIN = 30;               //   …и минута       в 05:00–05:30 МСК и к 08:30 доиграны)
 var DAILY_LAST_HOUR = 12;               // МСК: позже — пропущенный запуск дня не догоняем (таблица не работала утром)
 var RECAP_AUTO_PROP = 'RECAP_AUTO_';    // + yyyy-MM-dd: что уже запущено в этот день
 var RECAP_ASK_PROP = 'RECAP_ASK_';      // + yyyy-MM-dd: состояние прежнего опроса (только чистим старое)
 var RECAP_WORKFLOW = 'itogi.yml';
+var RECAP_WINDOW_HOUR = 8;              // МСК: окно итогов — матчи с началом с 08:00 вчера до 08:00 сегодня (как team/daily/ask.py)
+var RECAP_REMIND_MS = 30 * 60000;       // напоминание о сверке — не раньше чем через полчаса после неё
 var DAILY_AUTO_JOBS = [                 // порядок = порядок запуска, если таблица «проснулась» поздно и пора обоим
   { key: 'greet', hour: DAILY_GREET_HOUR, min: DAILY_GREET_MIN, job: 'morning_greet', title: '«Начало игрового дня»' },
-  { key: 'recap', hour: DAILY_RECAP_HOUR, min: DAILY_RECAP_MIN, job: 'recap_auto', title: 'итоги вчерашних ставок' }
+  { key: 'recap', hour: DAILY_RECAP_HOUR, min: DAILY_RECAP_MIN, check: true, title: 'сверка ставок перед итогами' }
 ];
 
 function recapAutoGet_(day) {
@@ -15729,11 +15745,18 @@ function recapAutoTick_() {
   p.getKeys().forEach(function (k) {
     [RECAP_AUTO_PROP, RECAP_ASK_PROP].forEach(function (pre) { if (k.indexOf(pre) === 0 && k.slice(pre.length) < old) p.deleteProperty(k); });
   });
-  if (mins >= DAILY_LAST_HOUR * 60) return '';
   var st = recapAutoGet_(day) || { day: day }, done = [], why = '';
+  if (mins >= DAILY_LAST_HOUR * 60) {                         // сверка без ответа — одно напоминание, итоги сами не собираем
+    if (st.check !== 'sent' || st.remind || Date.now() - (st.at || 0) < RECAP_REMIND_MS) return '';
+    st.remind = mskNow_('HH:mm');
+    recapAutoPut_(st);
+    tgRaw_('sendMessage', { chat_id: st.chat, reply_parameters: { message_id: st.mid, allow_sending_without_reply: true },
+      text: '⏰ Итоги за ' + recapDayLabel_(st.day) + ' ещё не собраны: сверка ждёт ответа — нажмите кнопку под ней. Это напоминание — одно.' });
+    return 'напоминание';
+  }
   DAILY_AUTO_JOBS.forEach(function (j) {
     if (mins < j.hour * 60 + j.min || st[j.key]) return;
-    var r = recapDispatch_({ kind: 'team', job: 'team/out/' + day + '/' + j.job + '.json', day: day });
+    var r = j.check ? recapCheckSend_(st) : recapDispatch_({ kind: 'team', job: 'team/out/' + day + '/' + j.job + '.json', day: day });
     if (r.ok) { st[j.key] = mskNow_('HH:mm'); done.push(j.key); return; }
     why = why || r.why;
     st.errWhy = r.why;
@@ -15753,14 +15776,134 @@ function recapAutoTick_() {
   return done.length ? 'запуск: ' + done.join(', ') : why ? 'ошибка' : '';
 }
 
+/** «25 октября» — вчерашний день для утра day (yyyy-MM-dd). */
+function recapDayLabel_(day) {
+  var p = addDaysKey_(day, -1).split('-');
+  return Number(p[2]) + ' ' + RU_MONTHS_GEN[Number(p[1]) - 1];
+}
+
+/** Ставки для сверки утра day: записи PMW_ с началом матча в окне (08:00 вчера – 08:00 сегодня МСК), по времени.
+ *  → [{t: 'Хозяева — Гости', pick, kef: '1,85'}] (не больше 30 — столько берёт render/team_job.py). */
+function recapCheckItems_(day) {
+  var t1 = new Date(day + 'T' + ('0' + RECAP_WINDOW_HOUR).slice(-2) + ':00:00+03:00').getTime(), t0 = t1 - 86400000, ws = [];
+  PropertiesService.getScriptProperties().getKeys().forEach(function (k) {
+    if (k.indexOf(PM_PROP) !== 0) return;
+    var w = pmGet_(k.slice(PM_PROP.length));
+    if (w && w.start >= t0 && w.start < t1 && w.home && w.pick) ws.push(w);
+  });
+  ws.sort(function (a, b) { return a.start - b.start || (String(a.pid) < String(b.pid) ? -1 : 1); });
+  return ws.slice(0, 30).map(function (w) {
+    return { t: w.home + ' — ' + w.away, pick: String(w.pick).trim(), kef: String(w.kef || '').replace('.', ',') };
+  });
+}
+
+/** Строка ставки: sep ' · ' — в сверке, ', ' — для копирования и для задания («Матч: ставка, кэф 1,85»). */
+function recapCheckLine_(it, sep) { return it.t + ': ' + it.pick + (it.kef ? sep + 'кэф ' + it.kef : ''); }
+
+/** 08:30 — сверка владельцу (st — состояние дня, дополняется). → {ok} | {ok:false, why}. */
+function recapCheckSend_(st) {
+  var chat = recapOwnerChat_();
+  if (!chat) return { ok: false, why: 'не знаю чат владельца (нажмите любую кнопку команды в боте).' };
+  var items = recapCheckItems_(st.day), d = st.day, label = recapDayLabel_(d);
+  var text = 'Сверка перед итогами за ' + label + '\n', kb;
+  if (items.length) {
+    text += 'Ставки из постов канала (с правками в боте):\n' + items.map(function (it, i) { return (i + 1) + '. ' + recapCheckLine_(it, ' · '); }).join('\n') +
+      '\n\nВсё так — соберу итоги по этому списку. Ставку меняли прямо в канале или чего-то нет — «Поправить».';
+    kb = [[{ text: '✅ Всё верно — собрать итоги', callback_data: 'tm|rck||' + d }], [{ text: '✏️ Поправить', callback_data: 'tm|rfx||' + d }]];
+  } else {
+    text += 'Вчера прогнозов в канале не нашёл (вижу только вышедшие через «Опубликовать» в боте). Ставили — пришлите список, соберу итоги.';
+    kb = [[{ text: '✏️ Прислать свои ставки', callback_data: 'tm|rfx||' + d }], [{ text: 'Без итогов', callback_data: 'tm|rsk||' + d }]];
+  }
+  var r;
+  try { r = tgRaw_('sendMessage', { chat_id: chat, text: text, reply_markup: { inline_keyboard: kb } }); }
+  catch (e) { r = { ok: false, description: e.message }; }                 // не терять отметку «утро запущено» того же тика
+  if (!r || !r.ok) return { ok: false, why: 'Telegram не принял сверку: ' + ((r && r.description) || 'нет ответа') };
+  st.chat = String(chat); st.mid = r.result.message_id; st.items = items; st.check = 'sent'; st.at = Date.now();
+  return { ok: true };
+}
+
+/** Итоги по списку lines («Матч: ставка, кэф …»): itogi.yml с заданием recap_ask; удалось — st.check = how. → {ok} | {ok:false, why}. */
+function recapCheckRun_(st, lines, how) {
+  var free = lines.map(function (l) { return /^\s*прогноз\s*:/i.test(l) ? l : 'Прогноз: ' + l; });
+  var r = recapDispatch_({ kind: 'team', job: 'team/out/' + st.day + '/recap_ask.json', day: st.day, pids: [], free: free,
+    at: mskNow_('yyyy-MM-dd HH:mm') });
+  if (!r.ok) return r;
+  st.check = how; st.run = mskNow_('HH:mm'); st.free = free;
+  recapAutoPut_(st);
+  if (st.chat && st.mid) tgRaw_('editMessageReplyMarkup', { chat_id: st.chat, message_id: st.mid,
+    reply_markup: { inline_keyboard: [[{ text: '⏳ Итоги собираются…', callback_data: 'tm|done' }]] } });
+  return r;
+}
+
+/** Кнопки сверки: tm|rck||<день> «Всё верно», tm|rfx||<день> «Поправить» / «Прислать свои ставки», tm|rsk||<день> «Без итогов». */
+function recapCheckCallback_(q, parts, answer) {
+  var m = q.message, act = parts[1], day = String(parts[3] || '');
+  var st = /^\d{4}-\d\d-\d\d$/.test(day) ? recapAutoGet_(day) : null;
+  if (!st || !st.check) { answer('Сверка устарела — пришлите ставки команде через /задача', true); return; }
+  var label = recapDayLabel_(day);
+  if (act === 'rfx') {
+    var lines = (st.items || []).map(function (it) { return recapCheckLine_(it, ', '); });
+    answer('Пришлите исправленный список ответом');
+    var r = tgRaw_('sendMessage', { chat_id: m.chat.id, reply_to_message_id: m.message_id, parse_mode: 'HTML',
+      text: '✏️ Ставки за ' + label + ': пришлите полный список ответом на это сообщение, по одной ставке в строке — ' +
+        '«Хозяева — Гости: ставка, кэф 1,85». Чего нет в списке, в итоги не попадёт.\n' +
+        (lines.length ? 'Сейчас так (нажмите на список — скопируется):\n<pre>' + escHtml_(lines.join('\n')) + '</pre>' :
+          'Например:\n<pre>Спартак — Шанхайские Драконы: индивидуальный тотал Спартака больше 2,5, кэф 1,85</pre>'),
+      reply_markup: { force_reply: true, input_field_placeholder: 'по одной ставке в строке' } });
+    if (r && r.ok) { st.asks = (st.asks || []).concat([r.result.message_id]).slice(-5); recapAutoPut_(st); }
+    return;
+  }
+  if (st.check !== 'sent') {
+    answer(st.check === 'skip' ? 'Уже отмечено: без итогов за ' + label : 'Итоги за ' + label + ' уже собираются');
+    return;
+  }
+  if (act === 'rsk') {
+    st.check = 'skip'; st.run = mskNow_('HH:mm');
+    recapAutoPut_(st);
+    tg_('editMessageReplyMarkup', { chat_id: m.chat.id, message_id: m.message_id,
+      reply_markup: { inline_keyboard: [[{ text: 'Без итогов за ' + label, callback_data: 'tm|done' }]] } });
+    answer('Ок, итогов за ' + label + ' не будет');
+    return;
+  }
+  if (act !== 'rck' || !(st.items || []).length) { answer(); return; }
+  var res = recapCheckRun_(st, st.items.map(function (it) { return recapCheckLine_(it, ', '); }), 'ok');
+  if (!res.ok) { answer('Итоги не запустились: ' + String(res.why).slice(0, 170), true); return; }
+  answer('Собираю итоги — пришлю сюда');
+}
+
+/** Ответ владельца на сверку или на «✏️ Ставки за …» (чат chat, сообщение mid) → состояние дня или null. */
+function recapCheckOf_(chat, mid) {
+  var p = PropertiesService.getScriptProperties(), out = null;
+  p.getKeys().forEach(function (k) {
+    if (out || k.indexOf(RECAP_AUTO_PROP) !== 0) return;
+    var st = recapAutoGet_(k.slice(RECAP_AUTO_PROP.length));
+    if (st && st.chat === String(chat) && (st.mid === mid || (st.asks || []).indexOf(mid) >= 0)) out = st;
+  });
+  return out;
+}
+
+/** Исправленный список владельца: строка — ставка (номер «1.», «·» перед кэфом из сверки убираем) → итоги по нему. */
+function recapFixTake_(msg, st, send) {
+  var lines = String(msg.text || '').split('\n').map(function (l) {
+    return l.replace(/^\s*(?:\d{1,2}[.)]|[•*\-–—])\s+/, '').replace(/\s*·\s*(?=к[эо]ф)/i, ', ').trim();
+  }).filter(String);
+  var label = recapDayLabel_(st.day);
+  if (!lines.length) { send('Список пустой — пришлите ставки, по одной в строке.'); return; }
+  if (lines.length > 30) { send('⚠️ Больше 30 строк — столько итоги не берут. Пришлите не больше 30 ставок.'); return; }
+  var r = recapCheckRun_(st, lines, 'fixed');
+  if (!r.ok) { send('⚠️ Итоги не запустились: ' + escHtml_(r.why) + ' Ответьте на сверку ещё раз чуть позже.'); return; }
+  send('✅ Подтверждаю: итоги за ' + label + ' по вашему списку — пришлю сюда.\n' +
+    lines.map(function (l, i) { return (i + 1) + '. ' + escHtml_(l.replace(/^\s*прогноз\s*:\s*/i, '')); }).join('\n'));
+}
+
 /** Прежний опрос (05:00) выключен 16.10: ничего не отправляет (старые состояния RECAP_ASK_ чистит recapAutoTick_). */
 function recapAskTick_() { return ''; }
 
 /** Старые кнопки опроса: tm|rat|<номер>|<день>, tm|rad||<день>, tm|ran||<день> — опрос больше не используется. */
 function recapAskCallback_(q, parts, answer) {
   var m = q.message;
-  answer('Опрос больше не используется: итоги бот собирает сам из постов канала и присылает около ' +
-    DAILY_RECAP_HOUR + ':' + ('0' + DAILY_RECAP_MIN).slice(-2) + ' МСК', true);
+  answer('Опрос больше не используется: около ' + DAILY_RECAP_HOUR + ':' + ('0' + DAILY_RECAP_MIN).slice(-2) +
+    ' МСК бот присылает сверку ставок из канала, а после неё — итоги', true);
   if (m && m.chat) {
     tg_('editMessageReplyMarkup', { chat_id: m.chat.id, message_id: m.message_id,
       reply_markup: { inline_keyboard: [[{ text: 'Опрос больше не используется', callback_data: 'tm|done' }]] } });
