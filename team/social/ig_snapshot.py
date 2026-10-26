@@ -14,6 +14,7 @@ import sys
 import requests
 
 API = 'https://graph.facebook.com/v21.0/'
+SAID = []
 METRICS = ('views', 'reach', 'saved', 'shares', 'total_interactions')
 
 
@@ -24,7 +25,8 @@ def get(path, **params):
         # текст ошибки без токена: в ответе Graph API его нет
         err = '%s: %s' % (path.split('/')[-1] or path, str(r['error'].get('message', r['error']))[:200])
         print('IGSNAP_ERR ' + err)
-        if '/insights' not in path:
+        if '/insights' not in path or not SAID:  # ошибку статистики — один раз, а не на каждый пост
+            SAID.append(1)
             print('::notice title=IGSNAP_ERR::' + err.replace('\n', ' '), flush=True)
     return r
 
