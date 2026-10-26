@@ -29,10 +29,12 @@ jobs:
         run: |
           mkdir -p out/rz/stats && python team/site/months.py 2026-09-01 out/months > out/months.log 2>&1 && cp out/months/published.json out/rz/stats/ || tail -3 out/months.log
       - name: Разборы
+        # прошлый пробный запуск — продолжаем его (готовые разборы не пишем заново)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          python team/site/razbor.py out/rz --hours "$(cat team/site/RAZBOR_RUN | head -1 | tr -dc 0-9 || echo 30)" --limit 6 2>&1 | tee out/rz/log.txt | grep -E "^RAZBOR|POSTMATCH Gemini|Traceback|Error" | tail -40
+          cp -r team/site/razbor_probe/razbor out/rz/ 2>/dev/null || true
+          python team/site/razbor.py out/rz --hours "$(cat team/site/RAZBOR_RUN | head -1 | tr -dc 0-9 || echo 30)" --limit 8 --minutes 15 2>&1 | tee out/rz/log.txt | grep -E "^RAZBOR|POSTMATCH Gemini|Traceback|Error" | tail -40
       - name: Сохранить в ветку
         if: always() && github.event_name == 'push'
         run: |

@@ -12,7 +12,7 @@
     team/postmatch/writer.py). Не ответил — короткая сводка по цифрам (ai: false), при следующем запуске пробуем снова.
 Результат — <сайт>/razbor/data/<день МСК>.json: {ключ: разбор}. Страницы собирает team/site/razbor_pages.py.
 
-    python team/site/razbor.py <папка сайта> [--hours 40] [--limit 30]
+    python team/site/razbor.py <папка сайта> [--hours 40] [--limit 30] [--minutes 10]
 """
 import json
 import os
@@ -36,7 +36,7 @@ import writer  # noqa: E402  модели Gemini по ключу — writer._gem
 
 MSK = data.MSK
 LINE = 5.5                 # тотал для трендов: самая частая линия и в КХЛ, и в НХЛ
-GAP = 7                    # секунд между запросами к Gemini: бесплатный тариф — около 10 запросов в минуту
+GAP = 13                   # секунд между запросами к Gemini: бесплатный тариф — около 5 запросов в минуту
 
 SYSTEM = """Ты — хоккейный аналитик сайта прогнозов JARVIS (КХЛ и НХЛ). Пишешь разбор сыгранного матча для болельщиков \
 и тех, кто ставит на хоккей.
@@ -218,10 +218,34 @@ def check(txt):
     return dict(title=t.rstrip('.'), story=paras, bets=re.sub(r'\s+', ' ', b)), ''
 
 
+def quota(r):
+    """Ответ 429 → (дневной ли лимит, сколько секунд ждать по совету Google, название лимита)."""
+    try:
+        det = (r.json().get('error') or {}).get('details') or []
+    except ValueError:
+        det = []
+    ids, wait = [], 60
+    for d in det:
+        for v in d.get('violations') or []:
+            ids.append(str(v.get('quotaId') or v.get('quotaMetric') or ''))
+        m = re.match(r'(\d+)', str(d.get('retryDelay') or ''))
+        if m:
+            wait = int(m.group(1)) + 2
+    return any('PerDay' in q for q in ids), wait, ','.join(ids)[:160]
+
+
+_dead = set()                  # модели, у которых на сегодня кончился дневной лимит
+DEADLINE = [0.0]
+
+
 def gemini(key, models, user):
     for model in models:
+        if model in _dead:
+            continue
         msgs = list(user)
         for attempt in range(3):
+            if time.time() > DEADLINE[0]:
+                return None
             time.sleep(GAP)
             try:
                 r = requests.post(writer.GEMINI_URL % model, headers={'x-goog-api-key': key}, timeout=90, json={
@@ -231,15 +255,23 @@ def gemini(key, models, user):
             except requests.RequestException as e:
                 print('RAZBORERR Gemini %s связь: %r' % (model, e), flush=True)
                 break
-            if r.status_code == 429 and attempt < 2:
-                print('RAZBORERR Gemini %s: лимит — жду минуту' % model, flush=True)
-                time.sleep(60)
-                continue
+            if r.status_code == 429:
+                day, wait, ids = quota(r)
+                print('RAZBORERR Gemini %s: лимит %s (%s)' % (model, 'на день' if day else 'в минуту, жду %d с' % wait, ids), flush=True)
+                if day:
+                    _dead.add(model)
+                    break
+                if attempt < 2 and wait <= 90:
+                    time.sleep(wait)
+                    continue
+                break
             if r.status_code >= 500 and attempt < 2:
                 time.sleep(20)
                 continue
             if r.status_code != 200:
-                print('RAZBORERR Gemini %s: %s %s' % (model, r.status_code, r.text[:200]), flush=True)
+                if r.status_code == 404:
+                    _dead.add(model)
+                print('RAZBORERR Gemini %s: %s %s' % (model, r.status_code, r.text[:200].replace('\n', ' ')), flush=True)
                 break
             cand = (r.json().get('candidates') or [{}])[0]
             txt = ''.join(x.get('text', '') for x in (cand.get('content') or {}).get('parts') or [] if not x.get('thought'))
@@ -315,7 +347,7 @@ def published(site):
     return {('%s-%s-%s-%s' % (x['lg'], x['d'][:10], norm(x['h']), norm(x['a']))): x for x in pub}
 
 
-def make(site, hours=40, limit=30):
+def make(site, hours=40, limit=30, budget=10 * 60):
     now = data.now_msk()
     games, season = finals(now, hours)
     pub = published(site)
@@ -326,11 +358,20 @@ def make(site, hours=40, limit=30):
     if not key:
         print('RAZBORERR нет GEMINI_API_KEY — только сводки по цифрам', flush=True)
     done = ai = 0
+    DEADLINE[0] = time.time() + budget
     for g in games:
+        if models and all(m in _dead for m in models):
+            print('RAZBOR у всех моделей кончился дневной лимит — остальные разборы в следующий запуск', flush=True)
+            break
+        if time.time() > DEADLINE[0]:
+            print('RAZBOR вышло время — остальные разборы в следующий запуск', flush=True)
+            break
         k = key_of(g)
         path = os.path.join(site, 'razbor', 'data', g['start'].strftime('%Y-%m-%d') + '.json')
         day = load(path) or {}
         if day.get(k, {}).get('ai') or (day.get(k) and not models):
+            continue
+        if day.get(k) and all(m in _dead for m in models):
             continue
         if done >= limit:
             break
@@ -365,7 +406,7 @@ def make(site, hours=40, limit=30):
 def main():
     a = sys.argv[1:]
     opt = lambda n, d: int(a[a.index(n) + 1]) if n in a else d  # noqa: E731
-    make(a[0], opt('--hours', 40), opt('--limit', 30))
+    make(a[0], opt('--hours', 40), opt('--limit', 30), opt('--minutes', 10) * 60)
 
 
 if __name__ == '__main__':

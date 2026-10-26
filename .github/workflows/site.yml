@@ -106,7 +106,7 @@ jobs:
         timeout-minutes: 14
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python team/site/razbor.py site --hours 40 --limit 20 2>&1 | grep -E "^RAZBOR|Traceback|Error" | tail -40
+        run: python team/site/razbor.py site --hours 40 --limit 20 --minutes 11 2>&1 | grep -E "^RAZBOR|Traceback|Error" | tail -40
       - name: Собрать страницы
         env:
           SITE_URL: ${{ steps.day.outputs.url }}
