@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """Очередь роликов в Instagram (владелец 26.10: не пачкой ночью, а по одному днём).
 
-Ночной конвейер (make.py → instagram.queue) загружает ролик в контейнер и кладёт задание <ролик>.igq в артефакт
-videos-* запуска «Шортсы — конвейер». Тик соцсетей (social-tick.yml) запускает этот скрипт: берёт артефакты запусков
+Ночной конвейер (make.py → instagram.queue) загружает ролик в контейнер и кладёт задание <ролик>.igq в маленький
+артефакт igq-<лига>-<день>-<часть> запуска «Шортсы — конвейер» (сами ролики — в videos-…, их качаем, только если
+контейнер не вышел и ролик надо загрузить заново). Тик соцсетей (social-tick.yml) запускает этот скрипт: берёт артефакты запусков
 за последние 30 ч, выкладывает задания, у которых подошло время (at), пока матч не начался (за 30 мин до начала —
 уже нет). Несколько заданий за тик — с паузой GAP, не дольше MAX_TICK; остальное — следующему тику.
 Уже выложенное (та же первая строка подписи в Instagram) не повторяется. Контейнер истёк или не создался —
@@ -14,6 +15,8 @@ import glob
 import io
 import json
 import os
+import shutil
+import subprocess
 import sys
 import tempfile
 import time
@@ -28,6 +31,7 @@ import instagram  # noqa: E402
 MSK = timezone(timedelta(hours=3))
 GAP, MAX_TICK, LATE = 25 * 60, 95 * 60, timedelta(minutes=30)
 WINDOW = timedelta(hours=30)                     # артефакты живут 2 дня, контейнеры — 24 ч
+ROOT, FETCHED = tempfile.mkdtemp(), set()
 
 
 def gh(path, **params):
@@ -39,16 +43,25 @@ def gh(path, **params):
 
 
 def fetch(root):
-    """Скачать артефакты videos-* свежих запусков конвейера в root/<артефакт>/."""
-    since = datetime.now(timezone.utc) - WINDOW
+    """Скачать задания igq-* свежих запусков конвейера в root/<запуск>-<артефакт>/; → {каталог: id артефакта роликов}."""
+    since, videos = datetime.now(timezone.utc) - WINDOW, {}
     for run in gh('workflows/reels-daily.yml/runs', per_page=10).json()['workflow_runs']:
         if datetime.fromisoformat(run['created_at'].replace('Z', '+00:00')) < since:
             continue
-        for a in gh('runs/%d/artifacts' % run['id']).json()['artifacts']:
-            if not a['name'].startswith('videos-') or a['expired']:
+        arts = {a['name']: a for a in gh('runs/%d/artifacts' % run['id']).json()['artifacts'] if not a['expired']}
+        for name, a in arts.items():
+            if not name.startswith('igq-'):
                 continue
-            z = gh('artifacts/%d/zip' % a['id'])
-            zipfile.ZipFile(io.BytesIO(z.content)).extractall(os.path.join(root, '%d-%s' % (run['id'], a['name'])))
+            d = os.path.join(root, '%d-%s' % (run['id'], name))
+            unzip(a['id'], d)
+            v = arts.get('videos-' + name[4:])
+            if v:
+                videos[d] = v['id']
+    return videos
+
+
+def unzip(aid, d):
+    zipfile.ZipFile(io.BytesIO(gh('artifacts/%d/zip' % aid).content)).extractall(d)
 
 
 def jobs(root):
@@ -76,13 +89,21 @@ def due(items, now):
     return sorted(out, key=lambda q: (q['start'], q['at']))
 
 
-def put(q):
-    """Выложить: готовый контейнер (живёт 24 ч), иначе — загрузить заново из артефакта."""
+def put(q, videos):
+    """Выложить: готовый контейнер (живёт 24 ч), иначе — загрузить заново из артефакта роликов."""
     if q.get('cid') and time.time() - q['created'] < 23 * 3600:
         try:
             return instagram.publish(q['cid'])
         except Exception as e:  # noqa: BLE001
             print('IGQ контейнер не вышел (%s) — загружаю заново' % str(e)[:150], flush=True)
+    top = os.path.relpath(q['dir'], ROOT).split(os.sep)[0]
+    if top not in FETCHED and os.path.join(ROOT, top) in videos:      # ролики этой части — один раз
+        unzip(videos[os.path.join(ROOT, top)], os.path.join(ROOT, top))
+        FETCHED.add(top)
+    if not shutil.which('ffmpeg'):                                     # zoomed() — копия для Instagram
+        subprocess.run('timeout 300 sudo apt-get install -y -qq ffmpeg >/dev/null 2>&1 || '
+                       '{ timeout 600 sudo apt-get update -qq && timeout 300 sudo apt-get install -y -qq ffmpeg >/dev/null; }',
+                       shell=True)
     cover = os.path.join(q['dir'], q['cover']) if q.get('cover') else None
     return instagram.upload(os.path.join(q['dir'], q['video']), q['text'], cover)
 
@@ -91,9 +112,8 @@ def main(dry=False):
     if not instagram.enabled():
         print('IGQ нет IG_TOKEN / IG_USER_ID')
         return
-    root = tempfile.mkdtemp()
-    fetch(root)
-    items = jobs(root)
+    videos = fetch(ROOT)
+    items = jobs(ROOT)
     now = datetime.now(timezone.utc)
     todo = due(items, now)
     print('IGQ заданий %d, подошло %d' % (len(items), len(todo)), flush=True)
@@ -111,7 +131,7 @@ def main(dry=False):
                 print('IGQ остальное — следующему тику', flush=True)
                 break
             time.sleep(GAP)
-        url, note = put(q)
+        url, note = put(q, videos)
         print('IGQ %s: %s %s' % (first[:80], note, url or ''), flush=True)
         if url:
             done += 1

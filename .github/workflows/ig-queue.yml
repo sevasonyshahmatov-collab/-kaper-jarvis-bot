@@ -29,9 +29,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: |
-          timeout 300 sudo apt-get install -y -qq ffmpeg >/dev/null 2>&1 || { timeout 600 sudo apt-get update -qq && timeout 300 sudo apt-get install -y -qq ffmpeg >/dev/null; }
-          pip install -q requests
+      - run: pip install -q requests            # ffmpeg ставит сам скрипт — только если ролик надо загружать заново
       - name: Выложить, чему подошло время
         env:
           IG_TOKEN: ${{ secrets.IG_TOKEN }}
