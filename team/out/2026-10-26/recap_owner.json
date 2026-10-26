@@ -1,0 +1,5 @@
+{
+ "day": "2026-10-26",
+ "make": ["team/daily/morning.py 2026-10-26 --ask --recap-only --job-file team/out/2026-10-26/recap_owner.json"],
+ "messages": []
+}
