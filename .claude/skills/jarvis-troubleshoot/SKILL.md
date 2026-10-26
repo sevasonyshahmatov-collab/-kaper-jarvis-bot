@@ -26,6 +26,8 @@ effort: medium
 | Инструменты `mcp__github__*` → «invalid session» | Сессия MCP GitHub протухла, git при этом работает | Читать запуски через `gh run list` / `gh run view`; PR вливать git'ом. Запуск workflow через `gh workflow run` в облаке не проверен — пробовать один раз |
 | Push отклонён с HTTP 413 | Пуш из устаревшей неглубокой копии | `git fetch origin <ветка>`, rebase, пуш снова |
 | Удаление ветки отклонено | Прокси сессии не даёт удалять ветки | Попросить владельца удалить в GitHub |
+| Логи Actions не скачиваются: Forbidden с `blob.core.windows.net` | Хранилище логов закрыто сетью облачной сессии (26.10) | Скрипт печатает нужное пометками `::notice title=МЕТКА::…`, читать `gh api repos/<repo>/check-runs/<job_id>/annotations` (пример — `team/social/ig_snapshot.py`). Запуск `gh workflow run` из облака работает |
+| Instagram: «(#10) Application does not have permission for this action» на `/insights` | У ключа `IG_TOKEN` нет права на статистику (26.10) | Владельцу: выпустить ключ с правом `instagram_manage_insights` и заменить секрет `IG_TOKEN` |
 
 ## 2. По видам работы
 **Итоги дня (08:30, `team/daily/morning.py`)**
