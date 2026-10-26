@@ -80,11 +80,11 @@ def main(n=40):
         m['caption'] = (m.get('caption') or '')[:300]
         print('IGSNAP_MEDIA ' + json.dumps(m, ensure_ascii=False))
     print('IGSNAP_DONE %d' % len(media))
-    # пометок не больше 10 на шаг — профиль и посты пачками по 8
+    # пометка обрезается после ~4000 знаков — посты пачками по 5, подпись 80 знаков (пометок до 50 на задание)
     notice('IGSNAP_PROFILE', prof)
-    short = [{k: (v[:150] if k == 'caption' else v) for k, v in m.items() if k not in ('id', 'media_type')} for m in media]
-    for i in range(0, len(short), 8):
-        notice('IGSNAP_MEDIA_%d' % (i // 8), short[i:i + 8])
+    short = [{k: (v[:80] if k == 'caption' else v) for k, v in m.items() if k not in ('id', 'media_type')} for m in media]
+    for i in range(0, len(short), 5):
+        notice('IGSNAP_MEDIA_%d' % (i // 5), short[i:i + 5])
 
 
 if __name__ == '__main__':
