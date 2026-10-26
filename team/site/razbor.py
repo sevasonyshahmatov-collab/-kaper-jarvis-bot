@@ -33,6 +33,7 @@ import requests  # noqa: E402
 import chronicle  # noqa: E402
 import data  # noqa: E402
 import writer  # noqa: E402  модели Gemini по ключу — writer._gemini_models
+from settle import gen  # noqa: E402
 
 MSK = data.MSK
 LINE = 5.5                 # тотал для трендов: самая частая линия и в КХЛ, и в НХЛ
@@ -289,11 +290,11 @@ def plain_text(g, tr):
     h, a = g['home'], g['away']
     win, los = (h, a) if g['hg'] > g['ag'] else (a, h)
     end = {'ОТ': ' в овертайме', 'Б': ' по буллитам'}.get(g.get('end') or '', '')
-    s = ['%s обыграл %s со счётом %d:%d%s.' % (win, los, max(g['hg'], g['ag']), min(g['hg'], g['ag']), end)]
+    s = ['%s — %s: победа %s со счётом %d:%d%s.' % (h, a, gen(win), max(g['hg'], g['ag']), min(g['hg'], g['ag']), end)]
     for t in (h, a):
         x = tr.get(t)
         if x:
-            s.append('У %s %s, в последних %d играх тотал больше 5,5 — %s.' % (t, x['streak'], x['n10'], x['over']))
+            s.append('У %s %s, в последних %d играх тотал больше 5,5 — %s.' % (gen(t), x['streak'], x['n10'], x['over']))
     return dict(title='%s — %s: %d:%d%s' % (h, a, g['hg'], g['ag'], end), story=[' '.join(s)], bets='')
 
 
@@ -354,7 +355,9 @@ def make(site, hours=40, limit=30, budget=10 * 60):
     print('RAZBOR сыграно за %d ч: %d (КХЛ %d, НХЛ %d)' % (hours, len(games), sum(g['league'] == 'KHL' for g in games),
                                                           sum(g['league'] == 'NHL' for g in games)), flush=True)
     key = os.environ.get('GEMINI_API_KEY', '').strip()
-    models = writer._gemini_models(key) if key else []
+    # постам канала (team/postmatch/writer.py) нужнее всего первые модели списка — разборы начинают с конца списка,
+    # чтобы не съедать их дневной лимит бесплатного ключа
+    models = [m for m in writer._gemini_models(key)[::-1] if m != 'gemini-2.5-flash'] if key else []
     if not key:
         print('RAZBORERR нет GEMINI_API_KEY — только сводки по цифрам', flush=True)
     done = ai = 0
