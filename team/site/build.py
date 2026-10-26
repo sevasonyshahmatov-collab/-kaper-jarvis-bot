@@ -457,9 +457,20 @@ def landing(D, logos, base, site=None):
 %s</head>
 <body>
 %s
-</body>
+%s</body>
 </html>
-''' % (esc(title), esc(desc), esc(base), esc(title), esc(desc), esc(base), verify(), inject, src)
+''' % (esc(title), esc(desc), esc(base), esc(title), esc(desc), esc(base), verify(), inject, src, BOARD_WAIT)
+
+
+# Табло «Прогноз дня», пока постов на сегодня нет (в __TODAY только матчи дня с pr=0): скрипт лендинга уже поставил
+# команды первого матча — меняем подпись на «Матч дня», убираем вероятность и пишем, когда выйдет прогноз; матчей нет — прячем.
+BOARD_WAIT = '''<script>(function(){var T=window.__TODAY,b=document.querySelector('.board');if(!window.__SITE||!T||!b)return;
+var all=[].concat(T.khl||[],T.nhl||[]);if(all.some(function(m){return m.pr>0}))return;
+if(!all.length){b.hidden=true;return}
+b.setAttribute('aria-label','Матч дня');var l=b.querySelector('.board-top .live');if(l)l.textContent='Матч дня';
+var p=b.querySelector('.prob');if(p)p.hidden=true;
+var s=b.querySelector('.sample');if(s)s.innerHTML='Прогноз дня выйдет в <a href="https://t.me/jarvibet">@jarvibet</a> за 1,5 часа до матча';})();</script>
+'''
 
 
 def verify():
