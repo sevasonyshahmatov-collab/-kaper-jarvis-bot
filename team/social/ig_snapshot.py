@@ -16,6 +16,7 @@ import requests
 API = 'https://graph.facebook.com/v21.0/'
 SAID = []
 METRICS = ('views', 'reach', 'saved', 'shares', 'total_interactions', 'ig_reels_avg_watch_time')  # время — мс, только Reels
+# tpl: шаблон из метки YouTube; 'yt' — ролик есть на YouTube, шаблон неизвестен; None — на YouTube не найден
 
 
 def get(path, **params):
@@ -53,7 +54,10 @@ def yt_templates():
     try:
         sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'reels_daily'))
         import report
-        return [(v['title'], v['tpl']) for v in report.yt_videos(14) if v.get('tpl')]
+        try:
+            return [(v['title'], v['tpl'] or 'yt') for v in report.yt_videos(14)]
+        except Exception:  # noqa: BLE001 — токен только для загрузки: открытая лента (15 роликов), шаблона нет — пометка 'yt'
+            return [(v['title'], 'yt') for v in report.yt_feed(14)]
     except Exception as e:  # noqa: BLE001
         print('::notice title=IGSNAP_ERR::YouTube: %s' % str(e)[:200].replace('\n', ' '), flush=True)
         return []
