@@ -31,3 +31,11 @@
 - `jarvis-troubleshoot` — «не пришло / сломалось»: памятка найденных причин и что делать.
 - Модели (поле `model` в скилле): скиллы в своём окне (postmatch, recap, troubleshoot) — Sonnet, прогнозы — Opus.
   `jarvis-send` работает в основном чате — модель ему не задавать: смена модели сбрасывает кэш чата.
+
+## Продвижение — какой скилл брать (владелец 26.10: «пользуемся всеми»)
+- Instagram — `ig-*` (голос — `.claude/instagram/voice.md`). Любой текст перед показом — через `ig-human`.
+  Данные профиля и постов — `team/social/ig_snapshot.py` через `itogi.yml` (метки IGSNAP_*), затем `ig-profile`, `ig-audit`.
+- Сайт — плагины `searchfit-seo` (seo-audit, on-page-seo, schema-markup) и `copywriting-kit` (copy-diagnose, copy-edit).
+- Посты, кампании, проверка тона — плагин `marketing` (content-creation, campaign-plan, brand-review по voice.md).
+- YouTube — плагин `tubealfred-youtube` (нужна сеть к его серверу; из облака может быть закрыта). Картинки — `image-generation`.
+- Правила канала важнее советов скиллов: без БК, промокодов, гарантий, выдуманных цифр (`team/RULES.md`, voice.md).
