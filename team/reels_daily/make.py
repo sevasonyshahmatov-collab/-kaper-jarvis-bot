@@ -324,7 +324,10 @@ def one(P, i, league, day, code, lg, frames):
         url, note = None, 'загрузите вручную (автозагрузка — только приоритетным матчам)' if youtube.enabled() else ''
     yt_url, yt_note = url, note
     head = ('YouTube: %s\n%s\n\n' % (url, note)) if url else ('YouTube: %s\n\n' % note) if note else ''
-    ig, ignote = instagram.upload(base + '.mp4', instagram.caption(m, y), cover)
+    if instagram.deferred():       # владелец 26.10: в Instagram — по одному днём, по расписанию YouTube (team/reels_daily/ig_queue.py)
+        ig, ignote = instagram.queue(base, instagram.caption(m, y), cover, publish_time(P, i), m['d'][:16])
+    else:
+        ig, ignote = instagram.upload(base + '.mp4', instagram.caption(m, y), cover)
     head += ('Instagram: %s\n\n' % ig) if ig else ('Instagram: %s\n\n' % ignote) if ignote else ''
     with open(base + '.json', 'w', encoding='utf-8') as f:          # для пакета владельцу (pack.py)
         json.dump(dict(i=i, d=m['d'], h=m['h'], a=m['a'], lg=lg, video=os.path.basename(base) + '.mp4', yt=yt_url,

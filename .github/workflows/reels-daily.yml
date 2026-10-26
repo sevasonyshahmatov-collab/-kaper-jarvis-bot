@@ -112,6 +112,7 @@ jobs:
           IG_TOKEN: ${{ secrets.IG_TOKEN }}                   # Instagram Reels (team/reels_daily/instagram.py)
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           YANDEX_TTS_KEY: ${{ secrets.YANDEX_TTS_KEY }}         # озвучка шортсов, Yandex SpeechKit (владелец 20.10)
+          IG_QUEUE: ${{ vars.IG_QUEUE }}                      # 0 — в Instagram сразу, без очереди (ig-queue.yml)
         run: PYTHONPATH=render python team/reels_daily/make.py render "${{ needs.plan.outputs.league }}" "${{ needs.plan.outputs.day }}" --part ${{ matrix.part }}
       - name: Сохранить ролики (2 дня)
         if: always()
@@ -122,6 +123,7 @@ jobs:
             out/reels_daily/**/*.mp4
             out/reels_daily/**/*_cover.jpg
             out/reels_daily/**/[0-9]*.json
+            out/reels_daily/**/*.igq
           if-no-files-found: ignore
           retention-days: 2
 

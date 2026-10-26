@@ -6,6 +6,7 @@
 Лимит Instagram — 50 публикаций через API за сутки."""
 import os
 import time
+from datetime import timedelta, timezone
 
 import requests
 
@@ -94,45 +95,85 @@ def _upload(path, text, cover=None):
         return None, ''
     if _state['stop']:
         return None, _state['stop']
-    tok, uid = _env()
     try:
-        video, thumb = zoomed(path, cover)
-        meta = dict(media_type='REELS', upload_type='resumable', caption=text, share_to_feed='true', access_token=tok)
-        if thumb is not None:
-            meta['thumb_offset'] = str(thumb)
-        r = requests.post(API + uid + '/media', timeout=60, data=meta).json()
-        if 'id' not in r:
-            raise RuntimeError('контейнер: %s' % (r.get('error') or r))
-        cid, uri = r['id'], r['uri']
-        with open(video, 'rb') as f:
-            data = f.read()
-        u = requests.post(uri, data=data, timeout=600, headers={
-            'Authorization': 'OAuth ' + tok, 'offset': '0', 'file_size': str(len(data))}).json()
-        if not u.get('success'):
-            raise RuntimeError('файл: %s' % u)
-        for _ in range(60):                                              # обработка видео — обычно 20–60 с
-            st = requests.get(API + cid, params=dict(fields='status_code,status', access_token=tok), timeout=30).json()
-            if st.get('status_code') == 'FINISHED':
-                break
-            if st.get('status_code') in ('ERROR', 'EXPIRED'):
-                raise RuntimeError('обработка: %s' % st.get('status'))
-            time.sleep(5)
-        else:
-            raise RuntimeError('Instagram не обработал видео за 5 минут')
-        for _ in range(6):            # FINISHED бывает раньше, чем медиа готово к публикации (код 9007 / 2207027) — ждём
-            p = requests.post(API + uid + '/media_publish', data=dict(creation_id=cid, access_token=tok), timeout=60).json()
-            if 'id' in p or (p.get('error') or {}).get('code') != 9007:
-                break
-            time.sleep(15)
-        if 'id' not in p:
-            raise RuntimeError('публикация: %s' % (p.get('error') or p))
-        link = requests.get(API + p['id'], params=dict(fields='permalink', access_token=tok), timeout=30).json()
-        url = link.get('permalink') or 'https://www.instagram.com/'
-        print('INSTAGRAM опубликован %s %s' % (p['id'], url), flush=True)
-        return url, 'опубликован'
+        return publish(prepare(path, text, cover))
     except Exception as e:  # noqa: BLE001 — ролик всё равно уходит в Telegram и на YouTube
-        msg = str(e)[:300]
-        if 'limit' in msg.lower():
-            _state['stop'] = 'не загружен: дневной лимит Instagram — загрузите вручную'
-        print('INSTAGRAMERR %s' % msg, flush=True)
-        return None, _state['stop'] or 'не загружен (%s) — загрузите вручную' % msg[:150]
+        return _fail(e)
+
+
+def _fail(e):
+    msg = str(e)[:300]
+    if 'limit' in msg.lower():
+        _state['stop'] = 'не загружен: дневной лимит Instagram — загрузите вручную'
+    print('INSTAGRAMERR %s' % msg, flush=True)
+    return None, _state['stop'] or 'не загружен (%s) — загрузите вручную' % msg[:150]
+
+
+def prepare(path, text, cover=None):
+    """Контейнер REELS с загруженным и обработанным видео, без публикации → id контейнера (живёт 24 ч)."""
+    tok, uid = _env()
+    video, thumb = zoomed(path, cover)
+    meta = dict(media_type='REELS', upload_type='resumable', caption=text, share_to_feed='true', access_token=tok)
+    if thumb is not None:
+        meta['thumb_offset'] = str(thumb)
+    r = requests.post(API + uid + '/media', timeout=60, data=meta).json()
+    if 'id' not in r:
+        raise RuntimeError('контейнер: %s' % (r.get('error') or r))
+    cid, uri = r['id'], r['uri']
+    with open(video, 'rb') as f:
+        data = f.read()
+    u = requests.post(uri, data=data, timeout=600, headers={
+        'Authorization': 'OAuth ' + tok, 'offset': '0', 'file_size': str(len(data))}).json()
+    if not u.get('success'):
+        raise RuntimeError('файл: %s' % u)
+    for _ in range(60):                                              # обработка видео — обычно 20–60 с
+        st = requests.get(API + cid, params=dict(fields='status_code,status', access_token=tok), timeout=30).json()
+        if st.get('status_code') == 'FINISHED':
+            return cid
+        if st.get('status_code') in ('ERROR', 'EXPIRED'):
+            raise RuntimeError('обработка: %s' % st.get('status'))
+        time.sleep(5)
+    raise RuntimeError('Instagram не обработал видео за 5 минут')
+
+
+def publish(cid):
+    """Опубликовать готовый контейнер → (ссылка, 'опубликован'); ошибка — исключение."""
+    tok, uid = _env()
+    for _ in range(6):            # FINISHED бывает раньше, чем медиа готово к публикации (код 9007 / 2207027) — ждём
+        p = requests.post(API + uid + '/media_publish', data=dict(creation_id=cid, access_token=tok), timeout=60).json()
+        if 'id' in p or (p.get('error') or {}).get('code') != 9007:
+            break
+        time.sleep(15)
+    if 'id' not in p:
+        raise RuntimeError('публикация: %s' % (p.get('error') or p))
+    link = requests.get(API + p['id'], params=dict(fields='permalink', access_token=tok), timeout=30).json()
+    url = link.get('permalink') or 'https://www.instagram.com/'
+    print('INSTAGRAM опубликован %s %s' % (p['id'], url), flush=True)
+    return url, 'опубликован'
+
+
+def deferred():
+    """Владелец 26.10: ролики — не пачкой ночью, а по одному днём. В Actions ролик ставится в очередь (queue), выкладывает
+    тик соцсетей (team/reels_daily/ig_queue.py). Выключить: IG_QUEUE=0 — сразу, как раньше."""
+    return enabled() and os.environ.get('IG_QUEUE', '1') != '0' and os.environ.get('GITHUB_ACTIONS') == 'true'
+
+
+def queue(base, text, cover, at, start):
+    """Загрузить ролик в контейнер и записать задание <base>.igq (JSON) для ig_queue.py: at — время выхода (UTC, как
+    у YouTube, make.publish_time), start — начало матча (МСК, 'ГГГГ-ММ-ДД ЧЧ:ММ'). Время уже прошло — публикуем сразу.
+    Контейнер не создался — задание без cid: тик загрузит ролик заново из артефакта."""
+    if at is None:
+        return upload(base + '.mp4', text, cover)
+    cid = None
+    try:
+        cid = prepare(base + '.mp4', text, cover)
+    except Exception as e:  # noqa: BLE001
+        print('INSTAGRAMERR контейнер для очереди: %s' % str(e)[:200], flush=True)
+    import json
+    with open(base + '.igq', 'w', encoding='utf-8') as f:
+        json.dump(dict(cid=cid, created=time.time(), at=at.isoformat(), start=start, text=text,
+                       video=os.path.basename(base) + '.mp4', cover=os.path.basename(cover) if cover else None),
+                  f, ensure_ascii=False)
+    hm = at.astimezone(timezone(timedelta(hours=3))).strftime('%H:%M')
+    print('INSTAGRAM в очереди на %s МСК (%s)' % (hm, 'контейнер готов' if cid else 'загрузка при выкладке'), flush=True)
+    return None, 'в очереди на %s МСК' % hm
