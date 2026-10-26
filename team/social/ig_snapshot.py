@@ -2,7 +2,8 @@
 """Снимок Instagram для скиллов /ig-profile и /ig-audit (владелец 26.10: «начинаем пользоваться скиллами»).
 
 Только чтение, ничего не публикует. Graph API (IG_TOKEN, IG_USER_ID — секреты itogi.yml): профиль и последние посты
-со статистикой. Печатает строки IGSNAP_PROFILE {...} и IGSNAP_MEDIA {...} в лог — сессия читает их по метке.
+со статистикой. Печатает строки IGSNAP_PROFILE {...} и IGSNAP_MEDIA {...} в лог и те же данные пометками запуска
+(::notice:: — облачная сессия читает их через api.github.com check-runs annotations: хранилище логов из облака закрыто).
 
     python team/social/ig_snapshot.py [постов=40]
 """
@@ -21,7 +22,10 @@ def get(path, **params):
     r = requests.get(API + path, params=params, timeout=30).json()
     if 'error' in r:
         # текст ошибки без токена: в ответе Graph API его нет
-        print('IGSNAP_ERR %s: %s' % (path.split('/')[-1] or path, str(r['error'].get('message', r['error']))[:200]))
+        err = '%s: %s' % (path.split('/')[-1] or path, str(r['error'].get('message', r['error']))[:200])
+        print('IGSNAP_ERR ' + err)
+        if '/insights' not in path:
+            print('::notice title=IGSNAP_ERR::' + err.replace('\n', ' '), flush=True)
     return r
 
 
@@ -34,6 +38,12 @@ def insights(mid):
         v = d['values'][0]['value'] if d.get('values') else d.get('total_value', {}).get('value')
         out[d['name']] = v
     return out
+
+
+def notice(title, obj):
+    msg = json.dumps(obj, ensure_ascii=False, separators=(',', ':'))
+    msg = msg.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+    print('::notice title=%s::%s' % (title, msg), flush=True)
 
 
 def main(n=40):
@@ -50,6 +60,11 @@ def main(n=40):
         m['caption'] = (m.get('caption') or '')[:300]
         print('IGSNAP_MEDIA ' + json.dumps(m, ensure_ascii=False))
     print('IGSNAP_DONE %d' % len(media))
+    # пометок не больше 10 на шаг — профиль и посты пачками по 8
+    notice('IGSNAP_PROFILE', prof)
+    short = [{k: (v[:150] if k == 'caption' else v) for k, v in m.items() if k not in ('id', 'media_type')} for m in media]
+    for i in range(0, len(short), 8):
+        notice('IGSNAP_MEDIA_%d' % (i // 8), short[i:i + 8])
 
 
 if __name__ == '__main__':
