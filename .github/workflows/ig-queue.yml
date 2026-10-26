@@ -1,0 +1,40 @@
+# Очередь роликов в Instagram (владелец 26.10: не пачкой ночью, а по одному днём): ночной конвейер кладёт задания
+# <ролик>.igq в артефакт, здесь выкладывается то, чему подошло время (team/reels_daily/ig_queue.py).
+# Запускается вместе с каждым тиком соцсетей (внешний будильник → «Соцсети — тик»), своим потоком — чтобы паузы между
+# роликами (25 мин) не задерживали истории и карусель. Выключить очередь: переменная репозитория IG_QUEUE=0 (ролики сразу).
+name: Instagram — очередь роликов
+
+on:
+  workflow_run:
+    workflows: ['Соцсети — тик']
+    types: [requested]
+  schedule:                       # на случай, если тиков не было
+    - cron: '35 7,10,13,16,19 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read                   # скачать артефакты конвейера
+
+concurrency:
+  group: ig-queue
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: |
+          timeout 300 sudo apt-get install -y -qq ffmpeg >/dev/null 2>&1 || { timeout 600 sudo apt-get update -qq && timeout 300 sudo apt-get install -y -qq ffmpeg >/dev/null; }
+          pip install -q requests
+      - name: Выложить, чему подошло время
+        env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python team/reels_daily/ig_queue.py
