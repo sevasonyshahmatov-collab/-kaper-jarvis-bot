@@ -15,7 +15,7 @@ import requests
 
 API = 'https://graph.facebook.com/v21.0/'
 SAID = []
-METRICS = ('views', 'reach', 'saved', 'shares', 'total_interactions')
+METRICS = ('views', 'reach', 'saved', 'shares', 'total_interactions', 'ig_reels_avg_watch_time')  # время — мс, только Reels
 
 
 def get(path, **params):
@@ -48,6 +48,22 @@ def notice(title, obj):
     print('::notice title=%s::%s' % (title, msg), flush=True)
 
 
+def yt_templates():
+    """Шаблон ролика по паре команд — из скрытой метки tpl_ на YouTube (team/reels_daily/report.py). Нет доступа — пусто."""
+    try:
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'reels_daily'))
+        import report
+        return [(v['title'], v['tpl']) for v in report.yt_videos(14) if v.get('tpl')]
+    except Exception as e:  # noqa: BLE001
+        print('::notice title=IGSNAP_ERR::YouTube: %s' % str(e)[:200].replace('\n', ' '), flush=True)
+        return []
+
+
+def tpl_for(caption, yt):
+    pair = caption.replace('Прогноз на матч ', '').split(',')[0].split(' · ')[0].strip()
+    return next((t for title, t in yt if pair and pair in title), None)
+
+
 def main(n=40):
     if not os.environ.get('IG_TOKEN') or not os.environ.get('IG_USER_ID'):
         print('IGSNAP_ERR нет IG_TOKEN / IG_USER_ID')
@@ -57,8 +73,10 @@ def main(n=40):
     print('IGSNAP_PROFILE ' + json.dumps(prof, ensure_ascii=False))
     media = get('%s/media' % uid, limit=n, fields='id,caption,media_type,media_product_type,timestamp,permalink,'
                                                  'like_count,comments_count').get('data', [])
+    yt = yt_templates()
     for m in media:
         m.update(insights(m['id']))
+        m['tpl'] = tpl_for(m.get('caption') or '', yt)
         m['caption'] = (m.get('caption') or '')[:300]
         print('IGSNAP_MEDIA ' + json.dumps(m, ensure_ascii=False))
     print('IGSNAP_DONE %d' % len(media))
