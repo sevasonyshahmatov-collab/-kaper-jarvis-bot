@@ -1,0 +1,42 @@
+# Пробный запуск разборов матчей (team/site/razbor.py, владелец 26.10): разборы матчей за последние сутки — в отдельную
+# папку, без публикации. Запуск из ветки claude/**: изменить team/site/RAZBOR_RUN и запушить; результат — коммитом в ту же
+# ветку (team/site/razbor_probe/), чтобы облачная сессия прочитала его без логов.
+name: Разборы — пробный запуск
+
+on:
+  push:
+    branches: ['claude/**']
+    paths: ['team/site/RAZBOR_RUN']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SITE_REPO: ${{ vars.SITE_REPO }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -q requests "pillow>=11" numpy cairosvg
+      - name: Посты канала (для «был наш прогноз»)
+        continue-on-error: true
+        run: |
+          mkdir -p out/rz/stats && python team/site/months.py 2026-09-01 out/months > out/months.log 2>&1 && cp out/months/published.json out/rz/stats/ || tail -3 out/months.log
+      - name: Разборы
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python team/site/razbor.py out/rz --hours "$(cat team/site/RAZBOR_RUN | head -1 | tr -dc 0-9 || echo 30)" --limit 6 2>&1 | tee out/rz/log.txt | grep -E "^RAZBOR|POSTMATCH Gemini|Traceback|Error" | tail -40
+      - name: Сохранить в ветку
+        if: always() && github.event_name == 'push'
+        run: |
+          mkdir -p team/site/razbor_probe && cp -r out/rz/razbor team/site/razbor_probe/ 2>/dev/null || true
+          grep -E "^RAZBOR|POSTMATCH|Traceback|Error|File " out/rz/log.txt | tail -60 > team/site/razbor_probe/log.txt || true
+          git config user.name "jarvis-bot"; git config user.email "jarvis-bot@users.noreply.github.com"
+          git add team/site/razbor_probe && git commit -qm "Разборы: результат пробного запуска" && git push origin "HEAD:${GITHUB_REF_NAME}"

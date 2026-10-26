@@ -32,7 +32,7 @@ concurrency:
 jobs:
   site:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     env:
       SITE_REPO: ${{ vars.SITE_REPO }}
     steps:
@@ -97,6 +97,16 @@ jobs:
         continue-on-error: true
         timeout-minutes: 8
         run: python team/site/app_data/build.py "${{ steps.day.outputs.day }}" out/app_data 2>&1 | grep -E "^APP|KHL сыграно|Traceback|Error" | tail -30
+      - name: Разборы матчей
+        # team/site/razbor.py (владелец 26.10): разбор каждого сыгранного матча КХЛ и НХЛ за последние 40 ч — текст пишет
+        # Gemini (бесплатный ключ GEMINI_API_KEY), не ответил — сводка по цифрам, при следующем запуске пробуем снова.
+        # Данные — site/razbor/data/<день>.json (копятся в репозитории сайта), страницы — razbor_pages.py при сборке.
+        if: env.SITE_REPO != ''
+        continue-on-error: true
+        timeout-minutes: 14
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python team/site/razbor.py site --hours 40 --limit 20 2>&1 | grep -E "^RAZBOR|Traceback|Error" | tail -40
       - name: Собрать страницы
         env:
           SITE_URL: ${{ steps.day.outputs.url }}
