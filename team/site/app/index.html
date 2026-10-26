@@ -39,7 +39,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .lg{flex:none;width:30px;height:30px;object-fit:contain}
 .btn{display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:12px;font:700 15px Inter,sans-serif;width:100%}
 .btn.tg{background:var(--tg);color:#fff}.btn.gold{background:var(--gold);color:#1d1500}.btn.sec{background:var(--card2)}
-.nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(10px + env(safe-area-inset-bottom))}
+.nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(10px + env(safe-area-inset-bottom))}
 .nav button{min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--mute);font:600 11px Inter,sans-serif}
 .nav svg{width:24px;height:24px}.nav button.on{color:var(--nav,var(--acc))}
 .ex{font:500 12px Inter,sans-serif;color:var(--mute);text-align:center}
@@ -168,6 +168,13 @@ span.lg{display:inline-block}
 }
 
 .note{font-size:12px;color:var(--mute);padding:0 14px 12px}
+/* тренды команд (team/site/app_data/trends.py, владелец 26.10) */
+.tb{display:grid;grid-template-columns:18px 26px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);width:100%;text-align:left;font:600 14px Inter,sans-serif}
+.tb:last-child{border-bottom:0}.tb .n{color:var(--mute);font-size:12px}.tb b{font-weight:800;white-space:nowrap}.tb:first-of-type b{color:var(--gold)}
+.tseg{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:0 0 10px}.tseg .chip{flex:none}
+.trg{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 14px}
+.trg div{background:var(--card2);border-radius:10px;padding:9px 11px}.trg small{display:block;color:var(--mute);font-size:11px}.trg b{font:800 17px Inter,sans-serif}.trg b span{font:500 12px Inter,sans-serif;color:var(--mute);margin-left:4px}
+
 </style>
 </head>
 <body>
@@ -222,8 +229,9 @@ const ICON={
  matches:['<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>','<path d="M8 2.5a1 1 0 0 1 1 1V5h6V3.5a1 1 0 1 1 2 0V5h.5A3.5 3.5 0 0 1 21 8.5V9H3v-.5A3.5 3.5 0 0 1 6.5 5H7V3.5a1 1 0 0 1 1-1zM3 11h18v6.5A3.5 3.5 0 0 1 17.5 21h-11A3.5 3.5 0 0 1 3 17.5z"/>'],
  results:['<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.5 9"/>','<path d="M12 2.5a9.5 9.5 0 1 1 0 19 9.5 9.5 0 0 1 0-19zm4.2 6a1 1 0 0 0-1.4 0l-4.1 4.2-1.7-1.7a1 1 0 1 0-1.4 1.4l2.4 2.4a1 1 0 0 0 1.4 0l4.8-4.9a1 1 0 0 0 0-1.4z"/>'],
  table:['<rect x="3.5" y="12" width="5" height="8" rx="1.5"/><rect x="9.5" y="5" width="5" height="15" rx="1.5"/><rect x="15.5" y="9" width="5" height="11" rx="1.5"/>','<rect x="3" y="12" width="5.5" height="9" rx="1.6"/><rect x="9.25" y="4" width="5.5" height="17" rx="1.6"/><rect x="15.5" y="8.5" width="5.5" height="12.5" rx="1.6"/>'],
+ trends:['<path d="M3.5 17.5l5.5-5.5 4 4 7.5-8"/><path d="M15.5 8h5v5"/>','<path d="M15.5 6.5h5a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0V9.9l-6.3 6.3a1 1 0 0 1-1.4 0L9 13.4l-4.8 4.8a1 1 0 1 1-1.4-1.4l5.5-5.5a1 1 0 0 1 1.4 0l2.8 2.8 5.6-5.6h-2.6a1 1 0 1 1 0-2z"/>'],
  video:['<rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M10.2 9.4v5.2l4.4-2.6z" fill="currentColor"/>','<path d="M6.5 4.5h11A3.5 3.5 0 0 1 21 8v8a3.5 3.5 0 0 1-3.5 3.5h-11A3.5 3.5 0 0 1 3 16V8a3.5 3.5 0 0 1 3.5-3.5zm3.7 4.9v5.2c0 .5.5.8.9.5l4.3-2.6a.6.6 0 0 0 0-1l-4.3-2.6c-.4-.3-.9 0-.9.5z"/>']};
-const TABS=[['matches','Матчи'],['results','Итоги'],['table','Таблица'],['video','Ролики']];
+const TABS=[['matches','Матчи'],['results','Итоги'],['trends','Тренды'],['table','Таблица'],['video','Ролики']];
 function nav(on,color){
  $('#nav').style.setProperty('--nav',color||'var(--acc)');
  $('#nav').innerHTML='<a class="sidelogo" href="../">JAR<i>V</i>IS</a>'+TABS.map(([k,n])=>`<button data-go="${k}" class="${k===on?'on':''}"${k===on?' aria-current="page"':''}>${k===on
@@ -268,10 +276,11 @@ function match(key){
  const frm=t=>t.form?[...t.form].map(c=>`<i class="${c==='П'?'l':''}">${c}</i>`).join(''):(t.l10s?`<span class="l10">${esc(t.l10s)} за 10</span>`:'');
  const head=`<div class="mh" style="--h1:${hexA((th.colors||[])[0],.35)}">
   <div class="vs" style="padding:8px 0 14px;margin:0"><a class="t" href="${href(g.h)}">${img(g.h,'')}${esc(g.h)}</a><div class="c"><b>${g.d.slice(11,16)}</b><small>${dayLabel(g.d.slice(0,10))}, МСК</small></div><a class="t" href="${href(g.a)}">${img(g.a,'')}${esc(g.a)}</a></div></div>`;
+ const trs=trCard(th,'Тренды: '+esc(g.h))+trCard(ta,'Тренды: '+esc(g.a));
  const left=`<div class="card pc"><div class="l">Прогноз JARVIS</div><div class="r"><b>${esc(g.pick)}</b><span class="k">${esc(g.k)}</span></div>${odds}</div>
  <div class="card"><div class="gh">Форма${th.form?', последние 5':''}</div>${[[g.h,th],[g.a,ta]].map(([n,t])=>`<a class="fr" href="${href(n)}">${img(n)}<span>${esc(n)}</span><div class="wl">${frm(t)}</div></a>`).join('')}</div>
  <div class="acts"><button class="btn sec" data-link="${esc(g.u)}">Полный разбор на сайте</button><button class="btn tg" data-link="${CHANNEL}">Канал @jarvibet</button></div>`;
- return `${head}<div class="main" style="padding-top:12px">${WIDE()?`<div class="cols"><section>${left}</section><section>${cmp}</section></div>`:left.replace('<div class="acts">',cmp+'<div class="acts">')}${note()}</div>`;
+ return `${head}<div class="main" style="padding-top:12px">${WIDE()?`<div class="cols"><section>${left}${trs}</section><section>${cmp}</section></div>`:left.replace('<div class="acts">',cmp+trs+'<div class="acts">')}${note()}</div>`;
 }
 
 // ── Итоги прогнозов по дням (все, и зашедшие, и нет)
@@ -295,6 +304,36 @@ function table(lg){
  if(!confs.length)h+=`<div class="card grow"><div class="empty"><b>Таблица появится после сборки</b></div></div>`;
  return h+`<div class="card promo"><b>Таблица JARVIS</b><span>Рейтинг Эло, что чаще всего заходит у каждой команды и история прогнозов — для подписчиков.</span><button class="btn gold" data-act="buy">Узнать про доступ</button></div>${note()}</div>`;
 }
+// ── Тренды команд: доска лидеров по выбранному тренду (поле tr у команд — team/site/app_data/trends.py)
+const pc=(k,n)=>n?Math.round(100*k/n)+'%':'—';
+const plr=(n,a,b,c)=>{n=Math.abs(n);const m=n%10,h=n%100;return n+' '+(m===1&&h!==11?a:m>=2&&m<=4&&(h<12||h>14)?b:c)};
+const TR=[
+ ['o55','Тотал больше 5,5',t=>t.o['5.5']/t.n,t=>`${t.o['5.5']} из ${t.n}`],
+ ['u55','Тотал меньше 5,5',t=>1-t.o['5.5']/t.n,t=>`${t.n-t.o['5.5']} из ${t.n}`],
+ ['o45','Тотал больше 4,5',t=>t.o['4.5']/t.n,t=>`${t.o['4.5']} из ${t.n}`],
+ ['o65','Тотал больше 6,5',t=>t.o['6.5']/t.n,t=>`${t.o['6.5']} из ${t.n}`],
+ ['btts','Обе забьют',t=>t.btts/t.n,t=>`${t.btts} из ${t.n}`],
+ ['ot','Овертаймы',t=>t.ot/t.n,t=>`${t.ot} из ${t.n}`],
+ ['ws','Серия побед',t=>t.sn,t=>plr(t.sn,'победа','победы','побед')],
+ ['ls','Серия поражений',t=>-t.sn,t=>plr(t.sn,'поражение','поражения','поражений')],
+ ['home','Дома',t=>t.home[0]/Math.max(1,t.home[0]+t.home[1]),t=>`${t.home[0]}–${t.home[1]}`],
+ ['away','В гостях',t=>t.away[0]/Math.max(1,t.away[0]+t.away[1]),t=>`${t.away[0]}–${t.away[1]}`]];
+function trends(lg,k){
+ const tr=TR.find(x=>x[0]===k)||TR[0];
+ const rows=((DB.leagues||{})[lg]||[]).filter(r=>r.tr&&r.tr.n>=3).sort((a,b)=>tr[2](b.tr)-tr[2](a.tr));
+ const seg=`<div class="tseg">${TR.map(x=>`<button class="chip${x[0]===tr[0]?' on':''}" data-go="trends/${lg}/${x[0]}">${x[1]}</button>`).join('')}</div>`;
+ const list=rows.length?`<div class="card grow"><div class="gh">${tr[1]}<small>${lg==='khl'?'КХЛ':'НХЛ'} · сезон</small></div>${rows.map((r,i)=>`<a class="tb" href="${href(r.name)}"><span class="n">${i+1}</span>${img(r.name)}<span>${esc(r.name)}</span><b>${tr[3](r.tr)}</b></a>`).join('')}</div>`
+  :`<div class="card grow"><div class="empty"><b>Тренды появятся после обновления данных</b></div></div>`;
+ return `<div class="main" style="padding-top:8px">${lgChips(lg,'trends')}${seg}${list}<button class="btn sec" data-link="../trendy/">Все тренды таблицей на сайте</button>${note()}</div>`;
+}
+// карточка трендов команды — на её странице и в разборе матча
+const trCard=(t,title)=>{const x=t&&t.tr;if(!x)return '';
+ const c=(l,v,s)=>`<div><small>${l}</small><b>${v}${s?`<span>${s}</span>`:''}</b></div>`;
+ return `<div class="card"><div class="gh">${title||'Тренды сезона'}<small>${plr(x.n,'матч','матча','матчей')}</small></div><div class="trg">
+  ${c('Тотал больше 5,5',pc(x.o['5.5'],x.n),x.o['5.5']+' из '+x.n)}${c('Средний тотал',String(x.tot.toFixed(1)).replace('.',','))}
+  ${c('Обе забьют',pc(x.btts,x.n),x.btts+' из '+x.n)}${c('Овертаймы',pc(x.ot,x.n),x.ot+' из '+x.n)}
+  ${c('Серия',x.sn>0?plr(x.sn,'победа','победы','побед'):plr(x.sn,'поражение','поражения','поражений'))}${c('Последние 10: ТБ 5,5',x.o10[0]+' из '+x.o10[1])}
+  ${c('Дома',x.home[0]+'–'+x.home[1])}${c('В гостях',x.away[0]+'–'+x.away[1])}</div></div>`};
 function video(){
  return `<div class="main" style="padding-top:8px"><div class="card grow"><div class="empty"><b>Ролики появятся здесь</b><span>Короткие прогнозы на матчи дня — те же, что на YouTube и в Instagram.</span></div></div>
   <button class="btn tg" data-link="${CHANNEL}">Смотреть в канале @jarvibet</button></div>`;
@@ -353,20 +392,21 @@ function team(name,tab,other){
     <div class="legend"><span><i style="border-color:${ca}"></i>${esc(t.name)}</span><span><i style="border-color:${cb};border-top-style:dashed"></i>${esc(o.name)}</span></div></div>
    <div class="card">${cmpTable(t,o,ca,cb)}<div class="gh" style="border-top:1px solid var(--line);border-bottom:0"><a href="${href(o.name)}" style="color:var(--acc)">Страница ${esc(o.name)}</a><small><a href="#team/${enc}/pick" style="color:var(--acc)">Другая команда</a></small></div></div></div>`;
  }else if(tab==='players'&&!wide)body=players;
- else body=wide?`<div class="teamgrid"><section>${power}</section><section style="display:flex;flex-direction:column;gap:12px">${players}</section></div>`:power;
+ else body=wide?`<div class="teamgrid"><section>${power}</section><section style="display:flex;flex-direction:column;gap:12px">${trCard(t)}${players}</section></div>`:power+trCard(t);
  return {html:head+`<div class="main" style="padding-top:12px">${body}${note()}</div>`,head:p,acc,bg:art(t,acc,1)};
 }
 
-// ── переходы: #matches[/лига], #match/<хозяева|гости>, #results, #table[/лига], #video, #team/<клуб>[/players]
+// ── переходы: #matches[/лига], #match/<хозяева|гости>, #results, #trends[/лига[/тренд]], #table[/лига], #video, #team/<клуб>[/players]
 function render(){
  const parts=(location.hash.slice(1)||'matches').split('/').map(decodeURIComponent),[r,a,b]=parts;
  document.body.style.background='';
- if((r==='matches'||r==='table')&&(a==='khl'||a==='nhl'))LG=a;
+ if((r==='matches'||r==='table'||r==='trends')&&(a==='khl'||a==='nhl'))LG=a;
  let html,tab=r,head='#0e1116',acc=null,pbg='';
  if(r==='match'){html=match(a);tab='matches'}
  else if(r==='team'){const t=team(a,b,parts[3]);html=t.html;tab='table';head=t.head||head;acc=t.acc;pbg=t.bg}
  else if(r==='table')html=table(LG);
  else if(r==='results')html=results();
+ else if(r==='trends')html=trends(LG,b);
  else if(r==='video')html=video();
  else{html=matches(LG);tab='matches'}
  scr.innerHTML=html;scr.scrollTop=0;nav(tab,acc);

@@ -24,6 +24,7 @@ for p in (os.path.join(ROOT, 'team', 'picks'), os.path.join(ROOT, 'render')):
 import requests  # noqa: E402
 
 import teams  # noqa: E402
+import trends  # noqa: E402  тренды команд: тоталы, серии, овертаймы (владелец 26.10)
 
 AXES = ['Атака', 'Защита', 'Вратари', 'Большинство', 'Меньшинство', 'Форма']
 LOWER_BETTER = {1, 4}           # защита (КХЛ и НХЛ — пропущенные), меньшинство в КХЛ — пропущенные в меньшинстве
@@ -118,12 +119,13 @@ def khl(day):
             ppf += g['ppg'][0 if h else 1]
             ppa += g['ppg'][1 if h else 0]
         f5, l10, _ = form_from_games(games, name)
+        tr = trends.calc(name, [dict(g, ot=trends.khl_ot(g)) for g in my])
         players, goalies, sv, ga = khl_players(stage, tid)
         rows.append(dict(name=name, conf=short_conf(conf.get(tid) or t.get('conference')), gp=int(gp), pts=int(num(t.get('pts')) or 0),
                          w=int((num(t.get('w')) or 0) + (num(t.get('otw')) or 0) + (num(t.get('sow')) or 0)),
                          l=int((num(t.get('l')) or 0) + (num(t.get('otl')) or 0) + (num(t.get('sol')) or 0)),
                          gf=int(num(t.get('gf')) or 0), ga=int(num(t.get('ga')) or 0), form=f5, l10=l10,
-                         coach=(t.get('head_coach') or {}).get('name'), players=players, goalies=goalies,
+                         coach=(t.get('head_coach') or {}).get('name'), players=players, goalies=goalies, tr=tr,
                          raw=[(num(t.get('gf')) or 0) / gp if gp else None, (num(t.get('ga')) or 0) / gp if gp else None,
                               sv / (sv + ga) if sv + ga else None, ppf / pp_known if pp_known else None,
                               ppa / pp_known if pp_known else None, l10]))
@@ -168,6 +170,19 @@ def khl_players(stage, tid):
 
 # ───────────────────────────── НХЛ
 
+def nhl_games(j):
+    """Сыгранные матчи регулярки клуба из club-schedule-season → формат trends.calc."""
+    out = []
+    for g in j.get('games') or []:
+        if g.get('gameType') != 2 or g.get('gameState') not in ('OFF', 'FINAL'):
+            continue
+        h, a = g['homeTeam'], g['awayTeam']
+        out.append(dict(d=str(g.get('startTimeUTC') or g.get('gameDate')), h=teams.NHL_RU.get(h['abbrev'], h['abbrev']),
+                        a=teams.NHL_RU.get(a['abbrev'], a['abbrev']), hg=h.get('score'), ag=a.get('score'),
+                        ot=(g.get('gameOutcome') or {}).get('lastPeriodType') in ('OT', 'SO')))
+    return out
+
+
 def nhl(day):
     web = 'https://api-web.nhle.com/v1/'
     S = requests.Session()
@@ -198,12 +213,17 @@ def nhl(day):
                                     gaa=round(x.get('goalsAgainstAverage') or 0, 2), so=x.get('shutouts')))
         except Exception as e:  # noqa: BLE001
             print('APPERR игроки НХЛ %s: %r' % (ab, e), flush=True)
+        tr = None
+        try:
+            tr = trends.calc(name, nhl_games(get(web + 'club-schedule-season/%s/now' % ab)))
+        except Exception as e:  # noqa: BLE001
+            print('APPERR матчи НХЛ %s: %r' % (ab, e), flush=True)
         ga = s.get('goalAgainst') or 0
         rows.append(dict(name=name, conf={'E': 'Восток', 'W': 'Запад'}.get(s.get('conferenceAbbrev'), s.get('conferenceName')),
                          place=s.get('conferenceSequence'), gp=gp, pts=s.get('points'), w=s.get('wins'),
                          l=(s.get('losses') or 0) + (s.get('otLosses') or 0), gf=s.get('goalFor'), ga=ga, form=None,
                          l10=s.get('l10Points'), l10s='%s–%s–%s' % (s.get('l10Wins'), s.get('l10Losses'), s.get('l10OtLosses')),
-                         players=players, goalies=goalies,
+                         players=players, goalies=goalies, tr=tr,
                          raw=[(s.get('goalFor') or 0) / gp if gp else None, ga / gp if gp else None,
                               (shots - ga) / shots if shots else None, num(m.get('powerPlayPct')), num(m.get('penaltyKillPct')), s.get('l10Points')]))
     return finish(rows, lower={1})
