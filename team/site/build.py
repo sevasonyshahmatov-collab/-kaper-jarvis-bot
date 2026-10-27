@@ -198,7 +198,12 @@ def emblem_files(site, teams):
     return out
 
 
-def head(title, desc, url, base, extra=''):
+def site_url():
+    """Полный адрес сайта (как в build): ссылки для превью и разметки должны быть абсолютными."""
+    return (os.environ.get('SITE_URL') or 'https://example.github.io/jarvis').rstrip('/') + '/'
+
+
+def head(title, desc, url, base, extra='', kind='website'):
     return '''<!doctype html>
 <html lang="ru">
 <head>
@@ -209,8 +214,14 @@ def head(title, desc, url, base, extra=''):
 <link rel="canonical" href="%s">
 <meta property="og:title" content="%s">
 <meta property="og:description" content="%s">
-<meta property="og:type" content="website">
+<meta property="og:type" content="%s">
 <meta property="og:url" content="%s">
+<meta property="og:site_name" content="JARVIS">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:image" content="%sassets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#071225">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap">
@@ -219,7 +230,7 @@ def head(title, desc, url, base, extra=''):
 <body>
 <header class="top"><div class="wrap bar"><a class="logo" href="%s">JAR<b>V</b>IS</a>
 <nav><a class="navlink" href="%strendy/">Тренды</a><a class="navlink" href="%sapp/#table">Команды</a><a class="soc yt" href="%s" target="_blank" rel="noopener" aria-label="YouTube" title="YouTube"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg></a><a class="soc ig" href="%s" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.2c3.2 0 3.6 0 4.8.1 3.3.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 3.2-1.7 4.8-4.9 4.9-1.3.1-1.6.1-4.8.1s-3.6 0-4.8-.1c-3.3-.1-4.8-1.7-4.9-4.9C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.8C2.4 3.9 3.9 2.4 7.2 2.3 8.4 2.2 8.8 2.2 12 2.2zM12 0C8.7 0 8.3 0 7.1.1 2.7.3.3 2.7.1 7.1 0 8.3 0 8.7 0 12s0 3.7.1 4.9c.2 4.4 2.6 6.8 7 7 1.2.1 1.6.1 4.9.1s3.7 0 4.9-.1c4.4-.2 6.8-2.6 7-7 .1-1.2.1-1.6.1-4.9s0-3.7-.1-4.9c-.2-4.4-2.6-6.8-7-7C15.7 0 15.3 0 12 0zm0 5.8a6.2 6.2 0 1 0 0 12.4 6.2 6.2 0 0 0 0-12.4zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-11.8a1.4 1.4 0 1 0 0 2.9 1.4 1.4 0 0 0 0-2.9z"/></svg></a><a class="tg" href="%s" target="_blank" rel="noopener">Telegram</a></nav></div></header>
-''' % (esc(title), esc(desc), esc(url), esc(title), esc(desc), esc(url), base, extra, base, base, base, YT, IG, TG)
+''' % (esc(title), esc(desc), esc(url), esc(title), esc(desc), kind, esc(url), site_url(), base, extra, base, base, base, YT, IG, TG)
 
 
 FOOT = '''<section class="cta"><div class="wrap"><h2>Прогнозы на каждый матч — в Telegram</h2>
@@ -312,7 +323,7 @@ def match_page(P, m, logos, base, siblings):
            form_html(m['a'], (m.get('form') or {}).get(m['a']), logos.get(m['a']), rel)),
        ('<section><h2>Что говорит модель</h2>%s%s</section>' % (sim, fact)) if (sim or fact) else '',
        ('<section><h2>Другие матчи дня</h2><div class="sib">%s</div></section>' % sib) if sib else '')
-    return head(title, desc, url, '../', extra) + body + FOOT
+    return head(title, desc, url, '../', extra, 'article') + body + FOOT
 
 
 def list_page(D, base, logos=None):
@@ -437,8 +448,14 @@ def landing(D, logos, base, site=None):
         json.dumps(tod, ensure_ascii=False), json.dumps(logos, ensure_ascii=False), json.dumps(res or None, ensure_ascii=False),
         json.dumps(tally), json.dumps(months, ensure_ascii=False).replace('</', '<\\/'),
         json.dumps(cal, ensure_ascii=False))
-    title = 'JARVIS — прогнозы на хоккей КХЛ и НХЛ по модели'
-    desc = 'Прогноз на каждый матч КХЛ и НХЛ от собственной модели: форма команд, вероятность и кэф. Честные итоги каждое утро в Telegram.'
+    title = 'Прогнозы на хоккей КХЛ и НХЛ сегодня — JARVIS'          # SEO 27.10 (searchfit-seo): ключевые слова в начале
+    desc = ('Прогноз на каждый матч КХЛ и НХЛ: форма команд, вероятность по модели, итоги всех прогнозов. '
+            'Новые прогнозы — в Telegram @jarvibet.')
+    ld = [{'@context': 'https://schema.org', '@type': 'WebSite', 'name': 'JARVIS', 'url': base, 'inLanguage': 'ru',
+           'description': desc},
+          {'@context': 'https://schema.org', '@type': 'Organization', 'name': 'JARVIS', 'url': base,
+           'logo': base + 'assets/og.jpg', 'sameAs': [TG, YT, IG]}]
+    src = src.replace('Хоккей <span class="c">в цифрах</span>', 'Прогнозы на хоккей <span class="c">в цифрах</span>')
     m = re.search(r'<title>.*?</title>', src)
     src = src.replace(m.group(0), '') if m else src
     return '''<!doctype html>
@@ -451,15 +468,24 @@ def landing(D, logos, base, site=None):
 <link rel="canonical" href="%s">
 <meta property="og:title" content="%s">
 <meta property="og:description" content="%s">
+<meta property="og:type" content="website">
 <meta property="og:url" content="%s">
+<meta property="og:site_name" content="JARVIS">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:image" content="%sassets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#071225">
+<script type="application/ld+json">%s</script>
 %s<style>body{margin:0}</style>
 %s</head>
 <body>
 %s
 %s</body>
 </html>
-''' % (esc(title), esc(desc), esc(base), esc(title), esc(desc), esc(base), verify(), inject, src, BOARD_WAIT)
+''' % (esc(title), esc(desc), esc(base), esc(title), esc(desc), esc(base), base,
+       json.dumps(ld, ensure_ascii=False).replace('</', '<\\/'), verify(), inject, src, BOARD_WAIT)
 
 
 # Табло «Прогноз дня», пока постов на сегодня нет (в __TODAY только матчи дня с pr=0): скрипт лендинга уже поставил
@@ -547,8 +573,20 @@ def channel_view(site, D):
     return out
 
 
+def not_found(base):
+    """Своя 404 (SEO 27.10): страницы прогнозов без поста в канале удаляются — посетитель не уходит в тупик GitHub."""
+    return head('Страница не найдена — JARVIS', 'Такой страницы нет. Все прогнозы на КХЛ и НХЛ — на сайте и в Telegram @jarvibet.',
+                base + '404.html', base, '<meta name="robots" content="noindex">\n') + '''<main class="wrap" style="padding-top:64px;padding-bottom:32px">
+<h1>Такой страницы нет</h1>
+<p>Возможно, прогноз на этот матч не выходил в канале или страница устарела.</p>
+<p><a class="btn" style="display:inline-block;padding:12px 22px;margin:8px 8px 0 0" href="%sprognozy/">Все прогнозы</a>
+<a class="btn" style="display:inline-block;padding:12px 22px;margin-top:8px" href="%s" target="_blank" rel="noopener">Telegram @jarvibet</a></p>
+</main>
+''' % (base, TG) + FOOT
+
+
 def build(site, plans, do_settle=True):
-    base = (os.environ.get('SITE_URL') or 'https://example.github.io/jarvis').rstrip('/') + '/'
+    base = site_url()
     store(site, plans)
     D = days(site)
     if do_settle:
@@ -562,6 +600,7 @@ def build(site, plans, do_settle=True):
                                        for t in (m['h'], m['a'])} | app_teams))
     os.makedirs(os.path.join(site, 'assets'), exist_ok=True)
     shutil.copy(os.path.join(HERE, 'site.css'), os.path.join(site, 'assets', 'site.css'))
+    shutil.copy(os.path.join(HERE, 'og.jpg'), os.path.join(site, 'assets', 'og.jpg'))   # превью ссылки (Telegram, VK)
     # мини-приложение Telegram (прототип, владелец 25.10): team/site/app → <сайт>/app/, данные → <сайт>/app/data.json
     shutil.copytree(os.path.join(HERE, 'app'), os.path.join(site, 'app'), dirs_exist_ok=True)
     app_data(D, site, logos)
@@ -588,6 +627,7 @@ def build(site, plans, do_settle=True):
     for path in sorted(glob.glob(os.path.join(site, 'prognozy', '20*.html'))):
         pages.append(('prognozy/' + os.path.basename(path), datetime.fromtimestamp(os.path.getmtime(path)).date().isoformat()))
     write(site, 'sitemap.xml', sitemap(base, pages), [])
+    write(site, '404.html', not_found(base), [])
     write(site, 'robots.txt', 'User-agent: *\nAllow: /\nSitemap: %ssitemap.xml\n' % base, [])
     key = os.environ.get('INDEXNOW_KEY') or hashlib.sha1(base.encode()).hexdigest()[:32]
     write(site, key + '.txt', key, [])
