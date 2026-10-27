@@ -316,7 +316,7 @@ def match_page(P, m, logos, base, siblings):
 ''' % (rel, rel, esc('%s — %s' % (m['h'], m['a'])), esc(m['h']), esc(m['a']), d.day, MONTHS[d.month - 1], d.year,
        lg, nice_day(d.date()), m['d'][11:16], (' · ' + esc(m['arena'])) if m.get('arena') else '',
        emb(m['h']), esc(m['h']), emb(m['a']), esc(m['a']), res, esc(m['pick']), kef_s(m['odds']) if m.get('odds') else '',
-       ('<div class="prob"><span>Вероятность по модели</span><b>%s</b></div><div class="meter"><i style="width:%s"></i></div>' % (pct(m['p']), pct(m['p']))) if m.get('p') else '',
+       '',   # владелец 27.10: у прогноза — ставка, без «вероятности» и «шансов»
        ('<section><h2>Линия на основное время</h2>%s</section>' % line) if line else '',
        (lambda fh, fa: ('<section><h2>Форма команд</h2><div class="teams">%s%s</div></section>' % (fh, fa)) if (fh or fa) else '')(
            form_html(m['h'], (m.get('form') or {}).get(m['h']), logos.get(m['h']), rel),
@@ -421,7 +421,7 @@ def landing(D, logos, base, site=None):
         f = m.get('fact') or {}
         tod[P['league']].append(dict(w='%s · %s МСК' % (when, m['d'][11:16]), a=m['h'], b=m['a'], p=m['pick'], k=kef_s(m['odds']) if m.get('odds') else '—',
                                      y=('У %s такое было в %d из %d игр' % (gen(f['team']), f['k'], f['n'])) if f.get('n') else
-                                     ('Вероятность по модели %s' % pct(m['p'])) if m.get('p') else 'Прогноз из канала @jarvibet',
+                                     'Прогноз из канала @jarvibet',
                                      u='prognozy/' + page_name(m), x=m.get('x1x2'), pr=round(m['p'] or 0, 3)))
     for lg in ('khl', 'nhl'):                               # постов на сегодня ещё нет (выходят за 1,5 ч до матча) — матчи дня
         P = next((P for P in D if P['league'] == lg and P['day'] == td and P.get('all')), None)  # без прогноза, а не пример
@@ -494,9 +494,10 @@ BOARD_WAIT = '''<script>(function(){var T=window.__TODAY,b=document.querySelecto
 var all=[].concat(T.khl||[],T.nhl||[]);if(all.some(function(m){return m.pr>0}))return;
 if(!all.length){b.hidden=true;return}
 b.setAttribute('aria-label','Матч дня');var l=b.querySelector('.board-top .live');if(l)l.textContent='Матч дня';
-var p=b.querySelector('.prob');if(p)p.hidden=true;var m=all[0],pc=m&&m.pc&&m.x;
-b.querySelectorAll('.odd').forEach(function(o,i){var t=o.querySelector('strong');if(pc&&t)t.textContent=Math.round(m.x[i]*100)+'%'});
-var s=b.querySelector('.sample');if(s)s.innerHTML=(pc?'Шансы модели в основное время. ':'')+'Прогноз дня выйдет в <a href="https://t.me/jarvibet">@jarvibet</a> за 1,5 часа до матча';})();</script>
+var p=b.querySelector('.prob');if(p)p.hidden=true;var o=b.querySelector('.odds');if(o)o.style.display='none';
+var t=/(\\d\\d):(\\d\\d)/.exec(all[0].w||''),at='за 1,5 часа до матча';
+if(t){var x=(+t[1]*60+(+t[2])-90+1440)%1440;at='в '+('0'+Math.floor(x/60)).slice(-2)+':'+('0'+x%60).slice(-2)+' МСК'}
+var s=b.querySelector('.sample');if(s)s.innerHTML='<b style="font-size:15px">Прогноз выйдет '+at+'</b><br>в канале <a href="https://t.me/jarvibet">@jarvibet</a>';})();</script>
 '''
 
 
