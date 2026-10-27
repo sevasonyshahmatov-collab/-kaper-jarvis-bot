@@ -75,6 +75,8 @@ h1{font:400 92px/1 Dela;letter-spacing:-1px;margin-top:26px;
 .bar i{display:block;height:100%%;border-radius:15px}
 .gold{background:linear-gradient(90deg,#ffb81c,#ffe27a);box-shadow:0 0 24px rgba(255,201,40,.7)}
 .blue{background:linear-gradient(90deg,#3a6dff,#8fb2ff);box-shadow:0 0 24px rgba(80,130,255,.7)}
+.big .name{font-size:42px}.big .cell{width:124px;height:76px;font-size:38px}.big .emb{transform:scale(1.2)}
+.big .ok,.big .no{width:110px;height:64px;font-size:30px}.big .big{font-size:46px}
 """ % {'f': FONTS}
 
 
@@ -114,7 +116,7 @@ def s1():
     b = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:22px">' + ''.join(
         '<div class="row" style="height:165px;flex-direction:column;align-items:flex-start;justify-content:center;gap:6px">'
         '<div style="font:600 46px Osw;color:#fff"><span style="font-size:44px">%s</span>&nbsp; %s</div>'
-        '<div style="font:500 30px Onest;color:#d0cce0">%s</div></div>' % t for t in tiles) + '</div>'
+        '<div style="font:500 34px Onest;color:#d0cce0">%s</div></div>' % t for t in tiles) + '</div>'
     return page('24 листа · КХЛ и НХЛ', 'АНАЛИТИЧЕСКАЯ<br>ТАБЛИЦА', 'JARVIS · для прогнозов на хоккей',
                 '<div class="card">%s</div>' % b, '').replace('top:230px', 'top:210px') \
         .replace('<div class="stage" style="', '<div class="stage" style="top:600px;').replace('92px/1 Dela', '74px/1 Dela')
@@ -194,7 +196,7 @@ def s6():
         b += ('<div class="row" style="height:auto;padding:16px 22px;flex-direction:column;align-items:stretch;gap:8px">'
               '<div style="display:flex;align-items:center;gap:14px">%s%s<div class="name">%s — %s</div></div>') % (emb(h, 56), emb(a, 56), h, a)
         for v, cl in ((t, 'gold'), (k, 'blue')):
-            b += ('<div style="display:flex;align-items:center;gap:16px"><div class="bar" style="flex:1;height:22px">'
+            b += ('<div style="display:flex;align-items:center;gap:16px"><div class="bar" style="flex:1;height:32px">'
                   '<i class="%s" style="width:%d%%"></i></div><div style="width:90px;text-align:right;font:700 32px Osw">%d%%</div></div>') % (cl, v, v)
         b += '</div>'
     b += ('<div style="display:flex;justify-content:center;gap:50px;margin-top:18px;font:600 26px Onest">'
