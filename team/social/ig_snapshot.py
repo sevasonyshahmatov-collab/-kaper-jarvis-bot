@@ -68,6 +68,13 @@ def tpl_for(caption, yt):
     return next((t for title, t in yt if pair and pair in title), None)
 
 
+def ab_of(m):
+    """Вариант заставки (сравнение с 27.10, make.ab): у Б в подписи свой призыв (instagram.CTA_B)."""
+    if m.get('media_product_type') != 'REELS' or m.get('timestamp', '') < '2026-10-27':
+        return None
+    return 'B' if 'Разбор и итог матча' in (m.get('caption') or '') else 'A'
+
+
 def main(n=40):
     if not os.environ.get('IG_TOKEN') or not os.environ.get('IG_USER_ID'):
         print('IGSNAP_ERR нет IG_TOKEN / IG_USER_ID')
@@ -81,6 +88,7 @@ def main(n=40):
     for m in media:
         m.update(insights(m['id']))
         m['tpl'] = tpl_for(m.get('caption') or '', yt)
+        m['ab'] = ab_of(m)
         m['caption'] = (m.get('caption') or '')[:300]
         print('IGSNAP_MEDIA ' + json.dumps(m, ensure_ascii=False))
     print('IGSNAP_DONE %d' % len(media))
