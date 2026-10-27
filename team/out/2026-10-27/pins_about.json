@@ -10,12 +10,12 @@
    "to": "owner",
    "type": "photo",
    "files": [
-    "team/out/2026-10-27/pins/about_1.jpg",
-    "team/out/2026-10-27/pins/about_2.jpg",
-    "team/out/2026-10-27/pins/about_3.jpg",
-    "team/out/2026-10-27/pins/about_4.jpg",
-    "team/out/2026-10-27/pins/about_5.jpg",
-    "team/out/2026-10-27/pins/about_6.jpg"
+    "docs/channel/pins/about_1.jpg",
+    "docs/channel/pins/about_2.jpg",
+    "docs/channel/pins/about_3.jpg",
+    "docs/channel/pins/about_4.jpg",
+    "docs/channel/pins/about_5.jpg",
+    "docs/channel/pins/about_6.jpg"
    ],
    "text": "<b>О канале</b>\n\nПрогнозы на КХЛ и НХЛ каждый игровой день, бесплатно. Листайте: итог всех прогнозов, график, последние прогнозы и как я выбираю.\n\nВсе прогнозы со счётом — на сайте: https://sevasonyshahmatov-collab.github.io/",
    "html": true
