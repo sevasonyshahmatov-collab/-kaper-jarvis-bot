@@ -105,13 +105,17 @@ NHL_FILE = {'DAL': 'dallas', 'MIN': 'minnesota'}             # две эмбле
 
 
 def emb(img, team, lg, cx, cy, size):
-    """Эмблема клуба: КХЛ — как на баннерах (matchday_vs), НХЛ — render/emblems/nhl_<аббревиатура>.png."""
+    """Эмблема клуба без белой обводки «наклейки» (владелец 27.10): файл render/emblems — КХЛ по ключу poster.TEAMS,
+    НХЛ — nhl_<аббревиатура>.png; файла нет — кружок с аббревиатурой (matchday_vs)."""
     nhl = lg in ('НХЛ', 'NHL')
     ru, col, _, ab = mv._club(team, 'NHL' if nhl else 'KHL')
-    f = os.path.join(EMB, (NHL_FILE.get(ab) or 'nhl_' + ab.lower()) + '.png') if nhl else ''
+    slug = (NHL_FILE.get(ab) or 'nhl_' + ab.lower()) if nhl else mv.poster.TEAMS.get(ru, (None,))[0]
+    f = os.path.join(EMB, slug + '.png') if slug else ''
     if f and os.path.exists(f):
         from PIL import Image
         em = Image.open(f).convert('RGBA')
+        bb = em.getbbox()
+        em = em.crop(bb) if bb else em
         em.thumbnail((int(size), int(size)), Image.LANCZOS)
         img.alpha_composite(em, (int(cx - em.width / 2), int(cy - em.height / 2)))
     else:
