@@ -378,6 +378,15 @@ html{scroll-padding-top:65px}
   *{animation:none!important;transition:none!important}
   .rv{opacity:1;transform:none}
 }
+/* Огни на льду (владелец 27.10): тонкие линии разметки по краям экрана загораются и гаснут по очереди. Поверх фона,
+   под шапкой, клики не ловят; при «меньше движения» — не показываются. */
+#glow{position:fixed;inset:0;z-index:15;pointer-events:none;overflow:hidden;mix-blend-mode:screen}
+#glow i{position:absolute;display:block;border-radius:2px;opacity:0;animation:glow var(--d,7s) ease-in-out var(--w,0s) infinite;
+ background:linear-gradient(var(--a,90deg),transparent,var(--c,#ffc928) 45%,#fff6d8 50%,var(--c,#ffc928) 55%,transparent);
+ box-shadow:0 0 18px 2px var(--c,#ffc928),0 0 60px 6px color-mix(in srgb,var(--c,#ffc928) 35%,transparent)}
+#glow i.o{background:none;border:2px solid var(--c,#ffc928);border-radius:50%;box-shadow:0 0 22px 2px var(--c,#ffc928),inset 0 0 22px 2px var(--c,#ffc928)}
+@keyframes glow{0%,100%{opacity:0;transform:scale(.96)}18%{opacity:var(--o,.5)}50%{opacity:calc(var(--o,.5)*.35)}72%{opacity:var(--o,.5);transform:none}}
+@media (prefers-reduced-motion:reduce){#glow{display:none}}
 </style>
 
 <div class="arena" id="arena" aria-hidden="true"><i data-c="cyan"></i><i data-c="red"></i><i data-c="gold"></i></div>
@@ -1137,3 +1146,12 @@ draw();if(!still)requestAnimationFrame(frame);
 window.__rink={PL,puck,TEAM,cam,get si(){return si},get forced(){return forced},sim(sec){const log=[];let prev=si;for(let t=0;t<sec;t+=1/60){tick(1/60);if(si!==prev){log.push([+T.toFixed(1),prev,S[prev].do]);prev=si}}return log}};
 })();
 </script>
+<div id="glow" aria-hidden="true"></div>
+<script>(function(){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;var g=document.getElementById('glow');if(!g)return;
+var C=['#ffc928','#ffc928','#ffb81c','#ffe9a6','#ff3b5c'],n=innerWidth<700?7:12,r=function(a,b){return a+Math.random()*(b-a)};
+for(var k=0;k<n;k++){var e=document.createElement('i'),side=k%4,c=C[k%C.length],ring=k%6===5;
+ if(ring){var d=r(90,180);e.className='o';e.style.cssText='width:'+d+'px;height:'+d+'px;left:'+r(-4,90)+'%;top:'+r(10,85)+'%'}
+ else if(side<2){e.style.cssText='width:2px;height:'+r(18,42)+'vh;top:'+r(5,60)+'%;'+(side?'right:':'left:')+r(1,9)+'%;--a:180deg'}
+ else{e.style.cssText='height:2px;width:'+r(14,34)+'vw;left:'+r(0,70)+'%;top:'+(side==2?r(14,30):r(70,92))+'%'}
+ e.style.setProperty('--c',c);e.style.setProperty('--d',r(6,11).toFixed(1)+'s');e.style.setProperty('--w',(-r(0,10)).toFixed(1)+'s');
+ e.style.setProperty('--o',(ring?r(.18,.3):r(.35,.6)).toFixed(2));g.appendChild(e)}})();</script>
