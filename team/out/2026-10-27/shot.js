@@ -1,5 +1,5 @@
 const {chromium}=require('playwright');(async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:1080,height:1920}});
-for(let i=1;i<=8;i++){await p.goto('file://'+process.argv[2]+'/table_'+i+'.html');await p.waitForTimeout(400);
+for(let i=1;i<=7;i++){await p.goto('file://'+process.argv[2]+'/table_'+i+'.html');await p.waitForTimeout(400);
 await p.evaluate(()=>{const st=document.querySelector('.stage');const cap=document.querySelector('.cap');const card=st.querySelector('.card');
  const hasCap=cap&&cap.textContent.trim();const top=document.querySelector('.t').getBoundingClientRect().bottom+45;const bottom=hasCap?1760:1850;
  st.style.top=top+'px';

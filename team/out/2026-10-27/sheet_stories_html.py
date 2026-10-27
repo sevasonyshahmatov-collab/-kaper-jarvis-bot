@@ -158,48 +158,69 @@ def s2():
 COL2 = {'Авангард': '#ff5a6e', 'Сочи': '#ffc23a'}
 
 
+def anyemb(t, size):
+    """Эмблема КХЛ (по названию) или НХЛ (по аббревиатуре)."""
+    if t in SLUG:
+        return emb(t, size)
+    f = {'dal': 'dallas', 'min': 'minnesota'}.get(t, 'nhl_' + t)
+    return '<img class="emb" style="width:%dpx;height:%dpx" src="file://%s/%s.png">' % (size, size, EMB, f)
+
+
+NHL = {'bos': 'Бостон', 'uta': 'Юта', 'col': 'Колорадо', 'edm': 'Эдмонтон', 'vgk': 'Вегас', 'tor': 'Торонто',
+       'njd': 'Нью-Джерси', 'nsh': 'Нэшвилл', 'cgy': 'Калгари', 'det': 'Детройт', 'stl': 'Сент-Луис', 'wsh': 'Вашингтон',
+       'buf': 'Баффало'}
+
+
+def lg_tag(t):
+    n = t not in SLUG
+    return ('<span style="font:700 20px Osw;letter-spacing:1px;padding:3px 9px;border-radius:8px;margin-left:10px;vertical-align:middle;'
+            'background:%s;color:#fff">%s</span>') % ('#1f5fd6' if n else '#c8102e', 'НХЛ' if n else 'КХЛ')
+
+
 def s3():
-    data = [('Металлург', 60, 85, 90, 55), ('Локомотив', 63, 74, 84, 42), ('Амур', 56, 61, 72, 22),
-            ('Нефтехимик', 53, 68, 84, 58), ('Северсталь', 50, 65, 75, 55), ('Барыс', 42, 58, 63, 84),
-            ('Динамо Москва', 9, 50, 73, 45), ('Лада', 11, 37, 58, 58)]
+    # сайт, app/data.json на 27.10 (tr: n, regw, o, ot) — доля матчей сезона
+    data = [('bos', 66, 91, 58, 16), ('Металлург', 60, 70, 45, 25), ('uta', 58, 100, 83, 8), ('Локомотив', 63, 42, 26, 10),
+            ('col', 50, 100, 66, 8), ('Барыс', 42, 84, 52, 15), ('edm', 50, 83, 75, 33), ('Амур', 55, 22, 16, 5)]
     b = ('<div class="hd"><div style="width:72px"></div><div style="flex:1"></div>' + ''.join(
-        '<div style="width:118px;text-align:center">%s</div>' % c for c in ('ПОБЕДА', 'НЕ ПРОИГР.', 'Ф +1,5', 'ТБ 4,5')) + '</div>')
+        '<div style="width:118px;text-align:center">%s</div>' % c for c in ('ПОБЕДА', 'ТБ 4,5', 'ТБ 5,5', 'ОВЕРТАЙМ')) + '</div>')
     for r in data:
-        b += '<div class="row">%s<div class="name">%s</div>%s</div>' % (
-            emb(r[0], 66), r[0], ''.join('<div class="cell" style="%s">%d%%</div>' % (heat(v), v) for v in r[1:]))
-    return page('лист «Что заходит»', 'ЧТО ЗАХОДИТ<br>У КОМАНД', 'КХЛ · доля матчей сезона',
-                '<div class="card" style="padding:26px 22px">%s</div>' % b,
-                'Что чаще всего заходит у каждой команды.')
+        nm = NHL.get(r[0], r[0])
+        b += '<div class="row">%s<div class="name">%s%s</div>%s</div>' % (
+            anyemb(r[0], 66), nm, lg_tag(r[0]), ''.join('<div class="cell" style="%s">%d%%</div>' % (heat(v), v) for v in r[1:]))
+    return page('лист «Что заходит»', 'ЧТО ЗАХОДИТ<br>У КОМАНД', 'КХЛ и НХЛ · доля матчей сезона',
+                '<div class="card" style="padding:26px 22px">%s</div>' % b, 'Победа — в основное время. Что чаще заходит у каждой команды.')
 
 
 def s4():
-    rows = [('Амур', 'Адмирал', 'Победа Амура', '3:0', 1), ('Лада', 'Сочи', 'Победа Лады', '3:4', 0),
-            ('Салават Юлаев', 'Ак Барс', 'Победа Салавата', '1:2', 0), ('Локомотив', 'Северсталь', 'Победа Локомотива', '1:0', 1),
-            ('СКА', 'ЦСКА', 'Победа ЦСКА', '1:3', 1), ('Автомобилист', 'Барыс', 'Победа Автомобилиста', '4:1', 1),
-            ('Трактор', 'Сибирь', 'Победа Трактора', '2:1', 1), ('Динамо Москва', 'Авангард', 'Победа Авангарда', '2:3', 1)]
+    rows = [('edm', 'tor', 'Фора Торонто +1,5', '2:7', 1), ('Автомобилист', 'Барыс', 'Тотал больше 4,5', '4:1', 1),
+            ('njd', 'col', 'Инд. тотал Колорадо больше 2,5', '4:3', 1), ('Трактор', 'Сибирь', 'Тотал меньше 5,5', '2:1', 1),
+            ('bos', 'nsh', 'Победа Бостона', '6:0', 1), ('cgy', 'det', 'Тотал больше 5,5', '4:1', 0),
+            ('СКА', 'ЦСКА', 'Тотал больше 4,5', '1:3', 1), ('stl', 'vgk', 'Инд. тотал Вегаса больше 2,5', '6:2', 0)]
     b = ''
     for h, a, bet, sc, ok in rows:
-        b += ('<div class="row" style="gap:14px">%s%s<div class="name" style="font-size:36px;padding-left:8px">%s</div>'
+        b += ('<div class="row" style="gap:14px">%s%s<div class="name" style="font-size:32px;padding-left:8px;white-space:normal;line-height:1.05">%s</div>'
               '<div class="big" style="width:120px;text-align:right">%s</div><div class="%s">%s</div></div>') % (
-            emb(h, 84), emb(a, 84), bet, sc, 'ok' if ok else 'no', 'ДА' if ok else 'НЕТ')
-    return page('лист «Прогнозы — кратко»', 'ВСЕ<br>ПРОГНОЗЫ', 'КХЛ · каждый день',
-                '<div class="card" style="padding:24px">%s</div>' % b, 'После игры — счёт и зашёл ли. Ничего не удаляется.')
+            anyemb(h, 80), anyemb(a, 80), bet, sc, 'ok' if ok else 'no', 'ДА' if ok else 'НЕТ')
+    return page('прогнозы канала', 'ВСЕ<br>ПРОГНОЗЫ', 'КХЛ и НХЛ · каждый день',
+                '<div class="card" style="padding:24px">%s</div>' % b, 'Исходы, форы, тоталы. После игры — счёт и зашёл ли.')
 
 
 def s5():
-    rows = [('Шанхайские Драконы', 'Сочи', 77.1), ('Металлург', 'Авангард', 75.6), ('Динамо Минск', 'Лада', 72.1)]
+    rows = [('tor', 'Эдмонтон — Торонто', 'Фора Торонто +1,5', '2:7'), ('buf', 'Вашингтон — Баффало', 'Инд. тотал Баффало больше 2,5', '4:3 ОТ'),
+            ('Локомотив', 'Локомотив — Северсталь', 'Тотал меньше 5,5', '1:0')]
     b = ''
-    for pk, op, p in rows:
-        b += ('<div class="row" style="height:150px;background:linear-gradient(90deg,%s55,rgba(255,255,255,.03) 60%%)">%s'
-              '<div style="flex:1"><div style="font:500 24px Onest;color:#bdb8cf">против: %s</div>'
-              '<div style="font:600 36px Osw">%s</div></div><div class="big" style="color:#ffd24a">%s</div>'
-              '<div class="ok" style="width:66px">✓</div></div>') % (COL[pk], emb(pk, 100), op, pk, ('%.1f%%' % p).replace('.', ','))
+    for t, m, bet, sc in rows:
+        b += ('<div class="row" style="height:150px;background:linear-gradient(90deg,%s,rgba(255,255,255,.03) 60%%)">%s'
+              '<div style="flex:1"><div style="font:500 26px Onest;color:#d0cce0">%s%s</div>'
+              '<div style="font:600 42px/1.05 Osw">%s</div></div><div class="big" style="color:#ffd24a;white-space:nowrap">%s</div>'
+              '<div class="ok" style="width:66px">✓</div></div>') % (
+            '#1f5fd655' if t not in SLUG else '#c8102e55', anyemb(t, 100), m, lg_tag(t), bet, sc)
     b += ('<div style="margin-top:26px;padding:30px;border-radius:26px;display:flex;justify-content:space-between;align-items:center;'
           'background:linear-gradient(90deg,rgba(62,224,138,.25),rgba(62,224,138,.05));border:2px solid rgba(62,224,138,.6);'
-          'box-shadow:0 0 40px rgba(62,224,138,.3)"><div style="font:600 34px Osw">КУПОН ИЗ 3 · ЗАШЛИ 3 ИЗ 3</div>'
+          'box-shadow:0 0 40px rgba(62,224,138,.3)"><div style="font:600 36px Osw">КУПОН ИЗ 3 · ЗАШЛИ 3 ИЗ 3</div>'
           '<div class="big" style="color:#5ff0a0">ЗАШЁЛ</div></div>')
-    return page('лист «Купон дня»', 'КУПОН ДНЯ', 'самые уверенные прогнозы · 28.09', '<div class="card">%s</div>' % b,
-                'Таблица сама собирает купон из самых уверенных исходов.')
+    return page('прогнозы одного дня', 'КУПОН ДНЯ', 'КХЛ и НХЛ · 25 октября', '<div class="card">%s</div>' % b,
+                'Два матча НХЛ и один КХЛ в одном купоне.')
 
 
 def s6():
