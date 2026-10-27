@@ -79,6 +79,14 @@ h1{font:400 92px/1 Dela;letter-spacing:-1px;margin-top:26px;
 
 
 TILT = ['rotateX(8deg) rotateY(-9deg)']
+FOOT = ['']
+
+
+def dots(i, n=7):
+    d = ''.join('<i style="display:inline-block;width:%dpx;height:14px;border-radius:7px;margin:0 6px;background:%s"></i>' % (
+        44 if k == i else 14, '#ffc928' if k == i else 'rgba(255,255,255,.25)') for k in range(n))
+    return ('<div style="position:absolute;top:1640px;width:100%%;text-align:center">%s<div style="margin-top:28px;'
+            'font:700 32px Osw;letter-spacing:5px;color:#ffc928">ЛИСТАЙ ДАЛЬШЕ →</div></div>') % d
 
 
 def page(tag, title, sub, body, cap='', lbl='как получить доступ', url='t.me/jarvibet'):
@@ -86,8 +94,8 @@ def page(tag, title, sub, body, cap='', lbl='как получить досту�
             '<div class="brand">JARVIS &nbsp;|&nbsp; <b>КХЛ · НХЛ</b></div>'
             '<div class="t"><span class="tag">%s</span><h1>%s</h1><div class="sub">%s</div></div>'
             '<div class="stage" style="--tilt:%s">%s</div><div class="cap">%s</div>'
-            '<div class="lbl">%s</div><div class="link">%s</div></div></body></html>') % (
-        CSS, tag, title, sub, TILT[0], body, cap, lbl.upper(), url)
+            '%s</div></body></html>') % (
+        CSS, tag, title, sub, TILT[0], body, cap, FOOT[0])
 
 
 def heat(v):
@@ -107,9 +115,9 @@ def s1():
         '<div class="row" style="height:165px;flex-direction:column;align-items:flex-start;justify-content:center;gap:6px">'
         '<div style="font:600 46px Osw;color:#fff"><span style="font-size:44px">%s</span>&nbsp; %s</div>'
         '<div style="font:500 30px Onest;color:#d0cce0">%s</div></div>' % t for t in tiles) + '</div>'
-    return page('24 листа · КХЛ и НХЛ', 'ТАБЛИЦА<br>JARVIS', 'вся аналитика в одном месте',
+    return page('24 листа · КХЛ и НХЛ', 'АНАЛИТИЧЕСКАЯ<br>ТАБЛИЦА', 'JARVIS · для прогнозов на хоккей',
                 '<div class="card">%s</div>' % b, '').replace('top:230px', 'top:210px') \
-        .replace('<div class="stage" style="', '<div class="stage" style="top:600px;').replace('92px/1 Dela', '120px/1 Dela')
+        .replace('<div class="stage" style="', '<div class="stage" style="top:600px;').replace('92px/1 Dela', '74px/1 Dela')
 
 
 def s2():
@@ -159,7 +167,7 @@ def s4():
         b += ('<div class="row">%s%s<div class="name" style="font-size:32px">%s <span style="color:#ffc928">%d%%</span></div>'
               '<div class="big" style="width:120px;text-align:right">%s</div><div class="%s">%s</div></div>') % (
             emb(h, 60), emb(a, 60), pk, p, sc, 'ok' if ok else 'no', 'ДА' if ok else 'НЕТ')
-    return page('лист «Прогнозы — кратко»', 'ВСЕ<br>ПРОГНОЗЫ', 'КХЛ · 25–26 октября',
+    return page('лист «Прогнозы — кратко»', 'ВСЕ<br>ПРОГНОЗЫ', 'КХЛ · каждый день',
                 '<div class="card" style="padding:24px">%s</div>' % b, 'После игры — счёт и зашёл ли. Ничего не удаляется.')
 
 
@@ -195,6 +203,19 @@ def s6():
     return page('лист «Модель vs рынок»', 'ТАБЛИЦА<br>И БУКМЕКЕР', 'шанс победы хозяев · 27 октября',
                 '<div class="card" style="padding:24px">%s</div>' % b, '')
 
+
+def s7():
+    b = ('<div class="card" style="text-align:center;padding:70px 40px">'
+         '<div style="width:220px;height:220px;margin:0 auto;border-radius:60px;display:flex;align-items:center;justify-content:center;'
+         'background:linear-gradient(135deg,#feda75,#fa7e1e 30%,#d62976 60%,#962fbf 85%,#4f5bd5);box-shadow:0 30px 80px rgba(214,41,118,.5)">'
+         '<svg width="130" height="130" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round">'
+         '<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></div>'
+         '<div style="font:400 64px/1.15 Dela;margin-top:60px;color:#fff">НАПИШИТЕ<br>В ДИРЕКТ</div>'
+         '<div style="font:500 36px/1.4 Onest;color:#d8d4e6;margin-top:36px">чтобы получить<br>аналитическую таблицу</div>'
+         '<div style="display:inline-block;margin-top:50px;padding:26px 60px;border-radius:50px;font:700 40px Osw;letter-spacing:3px;'
+         'color:#1a1206;background:linear-gradient(180deg,#ffe27a,#ffb81c);box-shadow:0 0 40px rgba(255,201,40,.55)">'
+         '«ТАБЛИЦА»</div><div style="font:500 30px Onest;color:#a9a4bb;margin-top:22px">одно слово — и пришлём доступ</div></div>')
+    return page('доступ', 'КАК ПОЛУЧИТЬ<br>ТАБЛИЦУ', 'КХЛ и НХЛ · все листы', b, '').replace('92px/1 Dela', '84px/1 Dela')
 
 if __name__ == '__main__':
     from playwright.sync_api import sync_playwright
