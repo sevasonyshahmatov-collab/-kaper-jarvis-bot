@@ -101,11 +101,19 @@ def page(tag, title, sub, body, cap='', lbl='как получить досту�
 
 
 def heat(v):
-    t = v / 100
-    a, b = (214, 58, 70), (40, 190, 110)
-    c1 = tuple(int(a[k] + (b[k] - a[k]) * t) for k in range(3))
-    c2 = tuple(min(255, x + 45) for x in c1)
-    return 'background:linear-gradient(180deg,rgb%s,rgb%s)' % (c2, c1)
+    """Ячейка «Что заходит»: красный → янтарный → зелёный, насыщенно; цифра белая с тенью."""
+    stops = [(0, (225, 35, 60)), (50, (235, 150, 20)), (100, (15, 185, 95))]
+    for (v0, c0), (v1, c1) in zip(stops, stops[1:]):
+        if v <= v1:
+            t = (v - v0) / (v1 - v0)
+            c = tuple(int(c0[k] + (c1[k] - c0[k]) * t) for k in range(3))
+            break
+    hi = tuple(min(255, x + 40) for x in c)
+    return ('background:linear-gradient(180deg,rgb%s,rgb%s);box-shadow:0 0 22px rgba%s,0 1px 0 rgba(255,255,255,.4) inset;'
+            'text-shadow:0 2px 3px rgba(0,0,0,.65)') % (hi, c, c + (0.45,))
+
+
+ICO = ['#ffb81c', '#ff5a3c', '#3a8dff', '#ff3d8b', '#2fd27a', '#9b6bff', '#22c3e6', '#ff8a1c']
 
 
 def s1():
@@ -114,9 +122,14 @@ def s1():
              ('🎯', 'Точность', 'как часто угадывает'), ('🏒', 'Команда', 'всё о клубе'),
              ('📈', 'Статистика', 'броски, большинство'), ('🎥', 'Эксперты', 'разборы с видео')]
     b = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:22px">' + ''.join(
-        '<div class="row" style="height:165px;flex-direction:column;align-items:flex-start;justify-content:center;gap:6px">'
-        '<div style="font:600 46px Osw;color:#fff"><span style="font-size:44px">%s</span>&nbsp; %s</div>'
-        '<div style="font:500 34px Onest;color:#d0cce0">%s</div></div>' % t for t in tiles) + '</div>'
+        ('<div class="row" style="height:165px;flex-direction:column;align-items:flex-start;justify-content:center;gap:14px;'
+         'padding:0 28px;background:radial-gradient(260px 160px at 0%% 0%%,%s40,transparent 70%%),linear-gradient(160deg,#2c2a44,#1c1a2c);'
+         'border:1px solid %s55">'
+         '<div style="width:86px;height:86px;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:50px;'
+         'background:linear-gradient(145deg,%s,%s99);box-shadow:0 10px 24px %s66">%s</div>'
+         '<div style="font:600 50px/1 Osw;color:#fff">%s</div>'
+         '<div style="font:500 32px/1.1 Onest;color:#e0dcf0">%s</div></div>') % (c, c, c, c, c, t[0], t[1], t[2])
+        for c, t in zip(ICO, tiles)) + '</div>'
     return page('24 листа · КХЛ и НХЛ', 'АНАЛИТИЧЕСКАЯ<br>ТАБЛИЦА', 'JARVIS · для прогнозов на хоккей',
                 '<div class="card">%s</div>' % b, '').replace('top:230px', 'top:210px') \
         .replace('<div class="stage" style="', '<div class="stage" style="top:600px;').replace('92px/1 Dela', '74px/1 Dela')
@@ -160,15 +173,15 @@ def s3():
 
 
 def s4():
-    rows = [('Амур', 'Адмирал', 'Амур', 62, '3:0', 1), ('Лада', 'Сочи', 'Лада', 51, '3:4', 0),
-            ('Салават Юлаев', 'Ак Барс', 'Салават', 55, '1:2', 0), ('Локомотив', 'Северсталь', 'Локомотив', 63, '1:0', 1),
-            ('СКА', 'ЦСКА', 'ЦСКА', 62, '1:3', 1), ('Автомобилист', 'Барыс', 'Автомобилист', 58, '4:1', 1),
-            ('Трактор', 'Сибирь', 'Трактор', 63, '2:1', 1), ('Динамо Москва', 'Авангард', 'Авангард', 57, '2:3', 1)]
+    rows = [('Амур', 'Адмирал', 'Победа Амура', '3:0', 1), ('Лада', 'Сочи', 'Победа Лады', '3:4', 0),
+            ('Салават Юлаев', 'Ак Барс', 'Победа Салавата', '1:2', 0), ('Локомотив', 'Северсталь', 'Победа Локомотива', '1:0', 1),
+            ('СКА', 'ЦСКА', 'Победа ЦСКА', '1:3', 1), ('Автомобилист', 'Барыс', 'Победа Автомобилиста', '4:1', 1),
+            ('Трактор', 'Сибирь', 'Победа Трактора', '2:1', 1), ('Динамо Москва', 'Авангард', 'Победа Авангарда', '2:3', 1)]
     b = ''
-    for h, a, pk, p, sc, ok in rows:
-        b += ('<div class="row">%s%s<div class="name" style="font-size:32px">%s <span style="color:#ffc928">%d%%</span></div>'
+    for h, a, bet, sc, ok in rows:
+        b += ('<div class="row" style="gap:14px">%s%s<div class="name" style="font-size:36px;padding-left:8px">%s</div>'
               '<div class="big" style="width:120px;text-align:right">%s</div><div class="%s">%s</div></div>') % (
-            emb(h, 60), emb(a, 60), pk, p, sc, 'ok' if ok else 'no', 'ДА' if ok else 'НЕТ')
+            emb(h, 84), emb(a, 84), bet, sc, 'ok' if ok else 'no', 'ДА' if ok else 'НЕТ')
     return page('лист «Прогнозы — кратко»', 'ВСЕ<br>ПРОГНОЗЫ', 'КХЛ · каждый день',
                 '<div class="card" style="padding:24px">%s</div>' % b, 'После игры — счёт и зашёл ли. Ничего не удаляется.')
 
@@ -204,6 +217,29 @@ def s6():
           '<span><i class="blue" style="display:inline-block;width:28px;height:14px;border-radius:7px"></i> букмекер</span></div>')
     return page('лист «Модель vs рынок»', 'ТАБЛИЦА<br>И БУКМЕКЕР', 'шанс победы хозяев · 27 октября',
                 '<div class="card" style="padding:24px">%s</div>' % b, '')
+
+
+def nemb(ab, size=80):
+    return '<img class="emb" style="width:%dpx;height:%dpx" src="file://%s/nhl_%s.png">' % (size, size, EMB, ab)
+
+
+def s_nhl():
+    """НХЛ одним кадром: те же листы, что у КХЛ, — без цифр (данные таблицы НХЛ пока не выгружены)."""
+    items = [('📊', 'Прогнозы', 'на каждый матч ночи', ['edm', 'tor']), ('⚖️', 'Модель vs рынок', 'таблица против линии', ['bos', 'nyr']),
+             ('🔥', 'Что заходит', 'победы, форы, тоталы', ['col', 'fla']), ('🎟️', 'Купон дня', 'самые уверенные исходы', ['vgk', 'tbl']),
+             ('🧮', 'Расчёт матча', 'шансы и ожидаемые голы', ['pit', 'mtl']), ('🎯', 'Точность', 'честный счёт сезона', ['dal', 'wpg'])]
+    b = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:22px">'
+    for k, (ic, h, sub, tm) in enumerate(items):
+        c = ICO[k]
+        b += ('<div class="row" style="height:auto;flex-direction:column;align-items:flex-start;justify-content:center;gap:12px;padding:26px;'
+              'background:radial-gradient(260px 160px at 0%% 0%%,%s40,transparent 70%%),linear-gradient(160deg,#2c2a44,#1c1a2c);border:1px solid %s55">'
+              '<div style="display:flex;align-items:center;gap:14px;width:100%%"><div style="width:76px;height:76px;border-radius:22px;display:flex;'
+              'align-items:center;justify-content:center;font-size:44px;background:linear-gradient(145deg,%s,%s99)">%s</div>'
+              '<div style="margin-left:auto;display:flex;gap:6px">%s</div></div>'
+              '<div style="font:600 46px/1 Osw;color:#fff">%s</div><div style="font:500 28px/1.15 Onest;color:#e0dcf0">%s</div></div>') % (
+            c, c, c, c, ic, ''.join(nemb(t, 70) if t != 'dal' else '<img class="emb" style="width:70px;height:70px" src="file://%s/dallas.png">' % EMB for t in tm), h, sub)
+    b += '</div>'
+    return page('отдельная таблица', 'ТАБЛИЦА<br>ДЛЯ НХЛ', 'всё то же самое — для НХЛ', '<div class="card">%s</div>' % b, '')
 
 
 def s7():
