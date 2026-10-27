@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
-:root{--bg:#0e1116;--card:#181c24;--card2:#20252f;--line:#2a303c;--fg:#f2f4f8;--mute:#9aa3b2;--acc:#3ee0ff;--gold:#ffc93c;--win:#2fbf71;--loss:#e5484d;--tg:#2aa8ff;
+:root{--bg:#0e0c13;--card:#1a1722;--card2:#231f2d;--line:#2f2a3b;--fg:#f2f4f8;--mute:#9aa3b2;--acc:#ffc928;--gold:#ff9f1c;--win:#2fbf71;--loss:#e5484d;--tg:#2aa8ff;
   --vh:var(--tg-viewport-stable-height,100dvh)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
@@ -32,19 +32,19 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .card{background:var(--card);border-radius:14px;overflow:hidden}
 .chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
 .chip{flex:none;min-height:36px;padding:0 14px;border-radius:18px;display:flex;align-items:center;background:var(--card);color:var(--mute);font:600 14px Inter,sans-serif}
-.chip.on{background:var(--fg);color:#0e1116}
+.chip.on{background:var(--fg);color:#0e0c13}
 .gh{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);font:700 14px Inter,sans-serif}
 .gh small{margin-left:auto;font:500 13px Inter,sans-serif;color:var(--mute)}
 .badge{display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:8px;font:700 13px Inter,sans-serif;white-space:nowrap;background:rgba(255,201,60,.14);color:var(--gold)}
 .lg{flex:none;width:30px;height:30px;object-fit:contain}
 .btn{display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:12px;font:700 15px Inter,sans-serif;width:100%}
-.btn.tg{background:var(--tg);color:#fff}.btn.gold{background:var(--gold);color:#1d1500}.btn.sec{background:var(--card2)}
+.btn.tg{background:linear-gradient(135deg,#ffe27a,var(--acc));color:#1d1500}.btn.gold{background:var(--gold);color:#1d1500}.btn.sec{background:var(--card2)}
 .nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(10px + env(safe-area-inset-bottom))}
 .nav button{min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--mute);font:600 11px Inter,sans-serif}
 .nav svg{width:24px;height:24px}.nav button.on{color:var(--nav,var(--acc))}
 .ex{font:500 12px Inter,sans-serif;color:var(--mute);text-align:center}
 /* матчи */
-.feat{display:block;padding:14px;background:linear-gradient(135deg,var(--h1) 0%,#181c24 45%,#181c24 55%,var(--h2) 100%)}
+.feat{display:block;padding:14px;background:linear-gradient(135deg,var(--h1) 0%,#1a1722 45%,#1a1722 55%,var(--h2) 100%)}
 .feat .hd{display:flex;justify-content:space-between;align-items:center;font:600 13px Inter,sans-serif;color:var(--mute)}
 .vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin:8px 0 10px}
 .vs .t{display:flex;flex-direction:column;align-items:center;gap:8px;font:700 15px Inter,sans-serif;text-align:center}
@@ -57,7 +57,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .tt{display:flex;flex-direction:column;gap:4px}.tt span{display:flex;align-items:center;gap:10px;font:600 15px Inter,sans-serif}
 .mr time{font:600 14px Inter,sans-serif;color:var(--mute);text-align:right}
 /* матч */
-.mh{padding:4px 16px 0;background:linear-gradient(180deg,var(--h1) 0%,#0e1116 100%)}
+.mh{padding:4px 16px 0;background:linear-gradient(180deg,var(--h1) 0%,#0e0c13 100%)}
 .mh .vs .t img{width:76px;height:76px}
 .mh .vs .c b{font-size:30px}
 .tabs{display:flex;gap:22px;border-bottom:1px solid var(--line);padding:0 16px;overflow-x:auto;scrollbar-width:none}
@@ -217,7 +217,7 @@ const img=(name,cls)=>{const s=logo(name);return s?`<img class="${cls||'lg'}" sr
 const href=name=>'#team/'+encodeURIComponent(name);
 const hexA=(h,a)=>{const n=parseInt(String(h||'#333333').slice(1),16);return `rgba(${n>>16},${n>>8&255},${n&255},${a})`};
 function bright(h){ // тёмный фирменный цвет на тёмном фоне не виден — осветляем акцент
- const n=parseInt(String(h||'#3ee0ff').slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;const l=(.2126*r+.7152*g+.0722*b)/255;
+ const n=parseInt(String(h||'#ffc928').slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;const l=(.2126*r+.7152*g+.0722*b)/255;
  if(l<.42){const k=(.42-l)/.42*.8+.2;r=Math.round(r+(255-r)*k);g=Math.round(g+(255-g)*k);b=Math.round(b+(255-b)*k)}return `rgb(${r},${g},${b})`}
 const dayLabel=iso=>{const d=new Date(iso+'T12:00:00');return d.getDate()+' '+MON[d.getMonth()]};
 const kef=v=>v==null?'—':(+v).toFixed(2).replace('.',',');
@@ -347,7 +347,7 @@ function radar(series,ax){ // series: [{v:[6], c:цвет, name}] — перва
  for(let i=0;i<6;i++){const [x,y]=pt(i,100);o+=`<line x1="${c}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,.1)"/>`}
  if(one)o+=`<polygon points="${poly(Array(6).fill(55))}" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5" stroke-dasharray="4 5"/>`;
  series.slice().reverse().forEach((s,k)=>{o+=`<polygon points="${poly(s.v)}" fill="${s.c}" fill-opacity="${one?.28:.18}" stroke="${s.c}" stroke-width="3" stroke-linejoin="round"${k===0&&!one?' stroke-dasharray="7 4"':''}/>`;
-  s.v.forEach((x,i)=>{if(x!=null){const [px,py]=pt(i,x);o+=`<circle cx="${px}" cy="${py}" r="${one?5:4}" fill="${s.c}" stroke="#0e1116" stroke-width="2"/>`}})});
+  s.v.forEach((x,i)=>{if(x!=null){const [px,py]=pt(i,x);o+=`<circle cx="${px}" cy="${py}" r="${one?5:4}" fill="${s.c}" stroke="#0e0c13" stroke-width="2"/>`}})});
  ax.forEach((a,i)=>{const [lx,vy]=pt(i,100),ty=[0,1,5].includes(i)?vy-26:vy+22;
   o+=`<text x="${lx}" y="${ty}" text-anchor="middle" fill="#dfe5ee" font-size="13" font-weight="600">${a}</text><text x="${lx}" y="${ty+17}" text-anchor="middle" font-size="16" font-weight="800">${
    series.map((s,k)=>`${k?'<tspan fill="#6b7383"> · </tspan>':''}<tspan fill="${s.c}">${s.v[i]??'—'}</tspan>`).join('')}</text>`});
@@ -364,8 +364,8 @@ function cmpTable(a,b,ca,cb){const ax=DB.axes||[];
 // ── Страница команды в цветах клуба: шестиугольник силы, игроки, сравнение с другой командой своей лиги
 function team(name,tab,other){
  const t=T(name);if(!t)return {html:table(LG)};
- const [p,s,a]=t.colors||['#1b2a44','#2a3a5a','#3ee0ff'],acc=bright(a),ax=DB.axes||[],wide=WIDE(),enc=encodeURIComponent(name);
- document.body.style.background=`color-mix(in srgb, ${p} 10%, #0e1116)`;
+ const [p,s,a]=t.colors||['#2a2533','#3a3446','#ffc928'],acc=bright(a),ax=DB.axes||[],wide=WIDE(),enc=encodeURIComponent(name);
+ document.body.style.background=`color-mix(in srgb, ${p} 10%, #0e0c13)`;
  const frm=t.form?`форма <b>${esc(t.form)}</b>`:(t.l10s?`10 игр <b>${esc(t.l10s)}</b>`:'');
  const head=`<div class="th3" style="--p:${p};--s:${s}">${art(t,acc)}${img(name,'wm')}
   <div class="row1">${img(name,'em')}<div><h1>${esc(t.name)}</h1><div class="sub">${t.lg==='khl'?'КХЛ':'НХЛ'} · ${esc(t.conf||'')} · ${t.place}-е место${t.coach?' · тренер '+esc(t.coach.split(' ').slice(0,2).join(' ')):''}</div></div></div>
@@ -401,7 +401,7 @@ function render(){
  const parts=(location.hash.slice(1)||'matches').split('/').map(decodeURIComponent),[r,a,b]=parts;
  document.body.style.background='';
  if((r==='matches'||r==='table'||r==='trends')&&(a==='khl'||a==='nhl'))LG=a;
- let html,tab=r,head='#0e1116',acc=null,pbg='';
+ let html,tab=r,head='#0e0c13',acc=null,pbg='';
  if(r==='match'){html=match(a);tab='matches'}
  else if(r==='team'){const t=team(a,b,parts[3]);html=t.html;tab='table';head=t.head||head;acc=t.acc;pbg=t.bg}
  else if(r==='table')html=table(LG);
@@ -413,7 +413,7 @@ function render(){
  $('#pagebg').innerHTML=WIDE()?pbg:'';
  const inner=r==='match'||r==='team';
  $('#back').hidden=!inner;
- if(tg){inner?tg.BackButton.show():tg.BackButton.hide();try{tg.setHeaderColor(r==='team'?head:'#0e1116')}catch(e){}}
+ if(tg){inner?tg.BackButton.show():tg.BackButton.hide();try{tg.setHeaderColor(r==='team'?head:'#0e0c13')}catch(e){}}
 }
 addEventListener('hashchange',()=>{haptic();render()});
 matchMedia('(min-width:900px)').addEventListener('change',()=>DB&&render());   // телефон ↔ компьютер — другая раскладка
@@ -425,7 +425,7 @@ document.addEventListener('click',e=>{
 });
 const back=()=>history.length>1?history.back():(location.hash='matches');
 $('#back').onclick=back;
-if(tg){document.documentElement.classList.add('in-tg');tg.ready();tg.expand();try{tg.setBackgroundColor('#0e1116');tg.setHeaderColor('#0e1116')}catch(e){}tg.BackButton.onClick(back)}
+if(tg){document.documentElement.classList.add('in-tg');tg.ready();tg.expand();try{tg.setBackgroundColor('#0e0c13');tg.setHeaderColor('#0e0c13')}catch(e){}tg.BackButton.onClick(back)}
 fetch('bg/photos.json',{cache:'no-cache'}).then(r=>r.ok?r.json():[]).then(j=>{PHOTO=new Set(j);DB&&render()}).catch(()=>{});
 fetch('data.json',{cache:'no-cache'}).then(r=>r.ok?r.json():Promise.reject()).then(j=>{DB=j}).catch(()=>{DB=SAMPLE}).finally(()=>{
  if(!(DB.games||[]).some(g=>g.lg===LG)&&(DB.games||[]).some(g=>g.lg==='nhl'))LG='nhl';render()});
