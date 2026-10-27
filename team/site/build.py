@@ -82,7 +82,7 @@ def keep(P):
     """Из plan.json — только то, что нужно странице (без кривых симуляции и истории игр)."""
     out = []
     for m in P['matches']:
-        x = {k: m.get(k) for k in ('h', 'a', 'd', 'arena', 'x1x2', 'pick', 'odds', 'p')}
+        x = {k: m.get(k) for k in ('h', 'a', 'd', 'arena', 'x1x2', 'pick', 'odds', 'p', 'p3')}
         if m.get('sim'):
             x['sim'] = dict(n=m['sim']['n'], hits=m['sim']['hits'], top=m['sim']['top'])
         if m.get('fact'):
@@ -222,7 +222,7 @@ def head(title, desc, url, base, extra='', kind='website'):
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#071225">
+<meta name="theme-color" content="#0c0a12">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="%sassets/site.css">
@@ -427,7 +427,7 @@ def landing(D, logos, base, site=None):
         P = next((P for P in D if P['league'] == lg and P['day'] == td and P.get('all')), None)  # без прогноза, а не пример
         if not tod[lg] and P:
             tod[lg] = [dict(w='Сегодня · %s МСК' % x['d'][11:16], a=x['h'], b=x['a'], p='Прогноз выйдет в канале за 1,5 часа до матча',
-                            k='—', y='Подпишись на @jarvibet, чтобы не пропустить', u='https://t.me/jarvibet', x=None, pr=0)
+                            k='—', y='Подпишись на @jarvibet, чтобы не пропустить', u='https://t.me/jarvibet', x=x.get('p3'), pc=1 if x.get('p3') else 0, pr=0)
                        for x in P['all'] if x['d'][:10] >= td]
     tod = {k: v[:6] for k, v in tod.items()}
     res = [dict(t='%s — %s' % (m['h'], m['a']), b=m['pick'], ok=m['res'] == 'win')
@@ -476,7 +476,7 @@ def landing(D, logos, base, site=None):
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#071225">
+<meta name="theme-color" content="#0c0a12">
 <script type="application/ld+json">%s</script>
 %s<style>body{margin:0}</style>
 %s</head>
@@ -494,8 +494,9 @@ BOARD_WAIT = '''<script>(function(){var T=window.__TODAY,b=document.querySelecto
 var all=[].concat(T.khl||[],T.nhl||[]);if(all.some(function(m){return m.pr>0}))return;
 if(!all.length){b.hidden=true;return}
 b.setAttribute('aria-label','Матч дня');var l=b.querySelector('.board-top .live');if(l)l.textContent='Матч дня';
-var p=b.querySelector('.prob');if(p)p.hidden=true;
-var s=b.querySelector('.sample');if(s)s.innerHTML='Прогноз дня выйдет в <a href="https://t.me/jarvibet">@jarvibet</a> за 1,5 часа до матча';})();</script>
+var p=b.querySelector('.prob');if(p)p.hidden=true;var m=all[0],pc=m&&m.pc&&m.x;
+b.querySelectorAll('.odd').forEach(function(o,i){var t=o.querySelector('strong');if(pc&&t)t.textContent=Math.round(m.x[i]*100)+'%'});
+var s=b.querySelector('.sample');if(s)s.innerHTML=(pc?'Шансы модели в основное время. ':'')+'Прогноз дня выйдет в <a href="https://t.me/jarvibet">@jarvibet</a> за 1,5 часа до матча';})();</script>
 '''
 
 
@@ -568,7 +569,9 @@ def channel_view(site, D):
                 if x.get('r'):
                     m2.update(res=x['r'], score=x.get('sc'))
                 ms.append(m2)
-        out.append(dict(P, matches=sorted(ms, key=lambda m: m['d'])))
+        p3 = {key(P['league'], m['h'], m['a'], m['d']): m.get('p3') for m in P['matches']}   # шансы модели — и до поста
+        allx = [dict(y, p3=p3.get(key(P['league'], y['h'], y['a'], y['d']))) for y in P.get('all') or []]
+        out.append(dict(P, matches=sorted(ms, key=lambda m: m['d']), all=allx))
     print('SITE прогнозы из канала: постов %d, на сайте %d' % (len(pub), sum(len(P['matches']) for P in out)), flush=True)
     return out
 

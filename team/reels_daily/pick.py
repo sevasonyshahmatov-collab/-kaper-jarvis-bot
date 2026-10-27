@@ -102,7 +102,7 @@ def day_picks(games, nxt, pins, fon, league='khl', backup=()):
         kinds.append(c['g'])
         mk = next((k for k in calc.markets(H, A) if k['t'] == c['t']), None)
         out.append(dict(h=H, a=A, d=x['d'], arena=x.get('arena') or '', x1x2=x1x2, t=c['t'], g=c['g'], p=c['p'],
-                        odds=round(c['odds'], 2), sim=simulate(r, M, mk, H + A), fact=fact(T, H, A, mk),
+                        odds=round(c['odds'], 2), sim=simulate(r, M, mk, H + A), fact=fact(T, H, A, mk), p3=p3(r, M),
                         pick=human(c['t'], H, A, ot=league == 'nhl' and not str(c.get('src')).startswith('с ОТ ='))))
         out[-1]['line_src'] = 'DraftKings (ESPN)' if (H, A) in backup else 'Pinnacle'
         print('PICK %s — %s | %s | %.1f%% | кэф %.2f | линия %s' % (H, A, out[-1]['pick'], 100 * c['p'], c['odds'],
@@ -112,6 +112,14 @@ def day_picks(games, nxt, pins, fon, league='khl', backup=()):
 
 
 N_SIM = 10000
+
+
+def p3(r, M):
+    """Шансы модели на исход основного времени [П1, Х, П2] (сайт, «Матч дня» до поста — владелец 27.10)."""
+    P = calc.scores(r['lam'][0], r['lam'][1], M['rho'])
+    n = range(calc.MAXG + 1)
+    return [round(sum(P[i][j] for i in n for j in n if c(i, j)), 3)
+            for c in (lambda i, j: i > j, lambda i, j: i == j, lambda i, j: i < j)]
 
 
 def simulate(r, M, mk, key):
