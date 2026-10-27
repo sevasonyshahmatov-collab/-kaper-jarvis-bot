@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 """Очередь роликов в Instagram (владелец 26.10: не пачкой ночью, а по одному днём).
 
+Запуски (владелец 27.10: внешний будильник утром не сработал — очередь не должна от него зависеть): ночной конвейер
+в конце запускает ig-queue.yml; запуск сам ждёт время следующего ролика (не дольше RUN_FOR) и, если задания остались,
+запускает себя снова (workflow_dispatch с GITHUB_TOKEN — разрешённое исключение). Тики соцсетей — запасной путь.
+
 Ночной конвейер (make.py → instagram.queue) загружает ролик в контейнер и кладёт задание <ролик>.igq в маленький
 артефакт igq-<лига>-<день>-<часть> запуска «Шортсы — конвейер» (сами ролики — в videos-…, их качаем, только если
 контейнер не вышел и ролик надо загрузить заново). Тик соцсетей (social-tick.yml) запускает этот скрипт: берёт артефакты запусков
@@ -29,7 +33,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import instagram  # noqa: E402
 
 MSK = timezone(timedelta(hours=3))
-GAP, MAX_TICK, LATE = 25 * 60, 95 * 60, timedelta(minutes=30)
+GAP, RUN_FOR, LATE = 25 * 60, 5 * 3600, timedelta(minutes=30)     # запуск — до 5 ч (предел задания GitHub — 6 ч)
 WINDOW = timedelta(hours=30)                     # артефакты живут 2 дня, контейнеры — 24 ч
 ROOT, FETCHED = tempfile.mkdtemp(), set()
 
@@ -76,17 +80,31 @@ def jobs(root):
     return out
 
 
-def due(items, now):
-    """Подошло время и матч ещё не начался; сначала те, чей матч раньше. Один матч — одно задание (последнее)."""
+def live(items, now):
+    """Задания, которые ещё можно выложить (матч не начался), — по одному на матч (последнее); по времени выхода."""
     seen, out = set(), []
     for q in sorted(items, key=lambda q: -q['created']):
         first = q['text'].split('\n')[0]
         if first in seen:
             continue
         seen.add(first)
-        if q['at'] <= now < q['start'] - LATE:
+        if now < q['start'] - LATE:
             out.append(q)
-    return sorted(out, key=lambda q: (q['start'], q['at']))
+    return sorted(out, key=lambda q: (q['at'], q['start']))
+
+
+def due(items, now):
+    """Подошло время и матч ещё не начался; сначала те, чей матч раньше."""
+    return sorted((q for q in live(items, now) if q['at'] <= now), key=lambda q: (q['start'], q['at']))
+
+
+def again():
+    """Запустить себя снова (остались задания на потом)."""
+    r = requests.post('https://api.github.com/repos/%s/actions/workflows/ig-queue.yml/dispatches' % os.environ['GITHUB_REPOSITORY'],
+                      json={'ref': os.environ.get('GITHUB_REF_NAME') or 'main'}, timeout=60,
+                      headers={'Authorization': 'Bearer ' + os.environ['GITHUB_TOKEN'], 'Accept': 'application/vnd.github+json'})
+    print('IGQ следующий запуск: %s' % ('запрошен' if r.status_code == 204 else 'ошибка %s %s' % (r.status_code, r.text[:200])),
+          flush=True)
 
 
 def put(q, videos):
@@ -114,28 +132,42 @@ def main(dry=False):
         return
     videos = fetch(ROOT)
     items = jobs(ROOT)
-    now = datetime.now(timezone.utc)
-    todo = due(items, now)
-    print('IGQ заданий %d, подошло %d' % (len(items), len(todo)), flush=True)
-    t0, done = time.time(), 0
-    for q in todo:
-        first = q['text'].split('\n')[0]
-        if instagram.posted(first):
-            print('IGQ уже выложен: %s' % first[:80], flush=True)
+    t0, last = time.time(), None
+    rest = [q for q in live(items, datetime.now(timezone.utc)) if not instagram.posted(q['text'].split('\n')[0])]
+    print('IGQ заданий %d, ждут выкладки %d' % (len(items), len(rest)), flush=True)
+    while rest:
+        now = datetime.now(timezone.utc)
+        rest = live(rest, now)
+        todo = due(rest, now)
+        if not todo:
+            if not rest:
+                break
+            wait = (min(q['at'] for q in rest) - now).total_seconds()
+            if dry or time.time() - t0 + wait > RUN_FOR:
+                break
+            print('IGQ жду %d мин до следующего ролика' % (wait // 60 + 1), flush=True)
+            time.sleep(wait + 5)
             continue
+        q = todo[0]
+        first = q['text'].split('\n')[0]
         if dry:
             print('IGQ выложил бы: %s (по плану %s МСК)' % (first[:80], q['at'].astimezone(MSK).strftime('%H:%M')))
+            rest.remove(q)
             continue
-        if done:
-            if time.time() - t0 + GAP > MAX_TICK:
-                print('IGQ остальное — следующему тику', flush=True)
+        if last and time.time() - last < GAP:                      # между роликами — не меньше 25 мин
+            if time.time() - t0 + GAP > RUN_FOR:
                 break
-            time.sleep(GAP)
+            time.sleep(GAP - (time.time() - last))
         url, note = put(q, videos)
         print('IGQ %s: %s %s' % (first[:80], note, url or ''), flush=True)
+        print('::notice title=IGQ::%s — %s' % (first[:80], note[:120]), flush=True)   # видно из облака (api.github.com)
+        rest.remove(q)
         if url:
-            done += 1
+            last = time.time()
             instagram._state.setdefault('captions', []).insert(0, q['text'])   # posted() видит только что выложенное
+    rest = live(rest, datetime.now(timezone.utc))
+    if rest and not dry:
+        again()
 
 
 if __name__ == '__main__':
