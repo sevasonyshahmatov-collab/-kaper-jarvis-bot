@@ -1,0 +1,62 @@
+{
+ "day": "2026-10-27",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Хайлайты Instagram — 4 штуки. Ниже файлы (без сжатия): сначала обложки, потом кадры каждого хайлайта.\n\nКак выложить кадр со ссылкой (телефон):\n1. Instagram → «+» → История → выбрать кадр из галереи.\n2. Значок стикера (квадратная улыбка) → «Ссылка» → вставить адрес, который написан в рамке внизу кадра → «Готово».\n3. Поставить стикер на пунктирную рамку → «Ваша история».\n4. Открыть историю → «Выделить» (сердечко внизу) → «Новое» → название: Результаты / Таблица / Telegram / YouTube.\n5. Обложка: профиль → удерживать хайлайт → «Редактировать» → «Изменить обложку» → выбрать файл cover_….\n\nАдреса: сайт — sevasonyshahmatov-collab.github.io, Telegram — t.me/jarvibet, YouTube — youtube.com/@jarvibet.\n«Таблица» пока без скриншотов — добавлю кадры, когда пришлёте."
+  },
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "docs/channel/pins/stories/cover_results.jpg",
+    "docs/channel/pins/stories/cover_table.jpg",
+    "docs/channel/pins/stories/cover_tg.jpg",
+    "docs/channel/pins/stories/cover_yt.jpg"
+   ],
+   "text": "Обложки хайлайтов"
+  },
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "docs/channel/pins/stories/results_1.jpg",
+    "docs/channel/pins/stories/results_2.jpg",
+    "docs/channel/pins/stories/results_3.jpg",
+    "docs/channel/pins/stories/results_4.jpg",
+    "docs/channel/pins/stories/results_5.jpg"
+   ],
+   "text": "Хайлайт «Результаты» (ссылка — сайт)"
+  },
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "docs/channel/pins/stories/table_1.jpg",
+    "docs/channel/pins/stories/table_2.jpg",
+    "docs/channel/pins/stories/table_3.jpg",
+    "docs/channel/pins/stories/table_4.jpg",
+    "docs/channel/pins/stories/table_5.jpg"
+   ],
+   "text": "Хайлайт «Таблица» (ссылка — t.me/jarvibet, поменяем на контакт)"
+  },
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "docs/channel/pins/stories/tg_1.jpg",
+    "docs/channel/pins/stories/tg_2.jpg"
+   ],
+   "text": "Хайлайт «Telegram» (ссылка — t.me/jarvibet)"
+  },
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "docs/channel/pins/stories/yt_1.jpg"
+   ],
+   "text": "Хайлайт «YouTube» (ссылка — youtube.com/@jarvibet)"
+  }
+ ]
+}
