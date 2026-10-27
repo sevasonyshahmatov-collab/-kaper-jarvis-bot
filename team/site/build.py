@@ -495,8 +495,8 @@ var all=[].concat(T.khl||[],T.nhl||[]);if(all.some(function(m){return m.pr>0}))r
 if(!all.length){b.hidden=true;return}
 b.setAttribute('aria-label','Матч дня');var l=b.querySelector('.board-top .live');if(l)l.textContent='Матч дня';
 var p=b.querySelector('.prob');if(p)p.hidden=true;var m=all[0],pc=m&&m.pc&&m.x;
-b.querySelectorAll('.odd').forEach(function(o,i){var t=o.querySelector('strong');if(pc&&t)t.textContent=Math.round(m.x[i]*100)+'%'});
-var s=b.querySelector('.sample');if(s)s.innerHTML=(pc?'Шансы модели в основное время. ':'')+'Прогноз дня выйдет в <a href="https://t.me/jarvibet">@jarvibet</a> за 1,5 часа до матча';})();</script>
+b.querySelectorAll('.odd').forEach(function(o,i){var t=o.querySelector('strong');if(pc&&t&&m.x[i])t.textContent=(1/m.x[i]).toFixed(2)});
+var s=b.querySelector('.sample');if(s)s.innerHTML=(pc?'Котировки модели JARVIS на основное время. ':'')+'Прогноз дня выйдет в <a href="https://t.me/jarvibet">@jarvibet</a> за 1,5 часа до матча';})();</script>
 '''
 
 
