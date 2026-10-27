@@ -69,8 +69,8 @@ def tpl_for(caption, yt):
 
 
 def ab_of(m):
-    """Вариант заставки (сравнение с 27.10, make.ab): у Б в подписи свой призыв (instagram.CTA_B)."""
-    if m.get('media_product_type') != 'REELS' or m.get('timestamp', '') < '2026-10-27':
+    """Вариант заставки (сравнение с ночи на 28.10, make.ab): у Б в подписи свой призыв (instagram.CTA_B)."""
+    if m.get('media_product_type') != 'REELS' or m.get('timestamp', '') < '2026-10-27T23':   # первая ночь с А/Б — 28.10
         return None
     return 'B' if 'Разбор и итог матча' in (m.get('caption') or '') else 'A'
 
