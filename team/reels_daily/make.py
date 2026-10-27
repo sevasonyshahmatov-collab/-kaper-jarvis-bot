@@ -298,7 +298,7 @@ def one(P, i, league, day, code, lg, frames):
     r.ticker_tag, r.ticker = ticker(P, lg)
     base = os.path.join(out_dir(league, day), '%02d_%s' % (i + 1, m['tpl']))
     if frames:
-        r = intro.wrap(r, m['h'], m['a'], code)
+        r = intro.wrap(r, m['h'], m['a'], code, *ab_lines(m, i))
         print(C.render(r, base + '.mp4', frames=[int(round(float(x) * C.FPS)) for x in frames.split(',')]))
         return
     track = owner_tracks.wav(key)
@@ -308,11 +308,12 @@ def one(P, i, league, day, code, lg, frames):
         if mix:
             track, start = mix, 0.0
     # владелец 24.10: перед каждым роликом на 1 с — «ПРОГНОЗ НА МАТЧ» и команды; трек — на столько же раньше, дроп на месте
-    r = intro.wrap(r, m['h'], m['a'], code)
+    # владелец 27.10: сравнение заставок — чётные ролики дня А (прогноз и кэф), нечётные Б (вопрос, ответ на дропе)
+    r = intro.wrap(r, m['h'], m['a'], code, *ab_lines(m, i))
     start -= getattr(r, 'intro', 0.0)
     C.render(r, base + '.mp4', track=track, start=start, extra_out=base + '_clean.mp4')
-    print('REEL %s — %s | %s | трек %s с %.2f с, дроп на %.2f с | %.1f с ролика за %.0f с'
-          % (m['h'], m['a'], m['tpl'], key, start, r.drop, r.dur, time.time() - t0), flush=True)
+    print('REEL %s — %s | %s | заставка %s | трек %s с %.2f с, дроп на %.2f с | %.1f с ролика за %.0f с'
+          % (m['h'], m['a'], m['tpl'], ab(i) or '-', key, start, r.drop, r.dur, time.time() - t0), flush=True)
     y = yt_texts.youtube(m, lg)
     cover = cover_for(m, code, base)
     if m.get('yt', True):
@@ -325,15 +326,52 @@ def one(P, i, league, day, code, lg, frames):
     yt_url, yt_note = url, note
     head = ('YouTube: %s\n%s\n\n' % (url, note)) if url else ('YouTube: %s\n\n' % note) if note else ''
     if instagram.deferred():       # владелец 26.10: в Instagram — по одному днём, по расписанию YouTube (team/reels_daily/ig_queue.py)
-        ig, ignote = instagram.queue(base, instagram.caption(m, y), cover, publish_time(P, i), m['d'][:16])
+        ig, ignote = instagram.queue(base, instagram.caption(m, y, ab(i)), cover, publish_time(P, i), m['d'][:16])
     else:
-        ig, ignote = instagram.upload(base + '.mp4', instagram.caption(m, y), cover)
+        ig, ignote = instagram.upload(base + '.mp4', instagram.caption(m, y, ab(i)), cover)
     head += ('Instagram: %s\n\n' % ig) if ig else ('Instagram: %s\n\n' % ignote) if ignote else ''
     with open(base + '.json', 'w', encoding='utf-8') as f:          # для пакета владельцу (pack.py)
-        json.dump(dict(i=i, d=m['d'], h=m['h'], a=m['a'], lg=lg, video=os.path.basename(base) + '.mp4', yt=yt_url,
+        json.dump(dict(i=i, ab=ab(i), d=m['d'], h=m['h'], a=m['a'], lg=lg, video=os.path.basename(base) + '.mp4', yt=yt_url,
                        yt_note=yt_note, ig=ig, title=y['title'], description=y['description']), f, ensure_ascii=False)
     if os.environ.get('REELS_TG_EACH') == '1':                       # прежний режим: каждый ролик отдельно
         tg_reel(base + '.mp4', base + '_clean.mp4', head + yt_texts.block(m, lg), y['title'], cover)
+
+
+AB_DUR = 1.5                         # заставка сравнения: строк больше — 1,5 с вместо 1 с (у обоих вариантов одинаково)
+
+
+def ab(i):
+    """Вариант заставки ролика i дня (владелец 27.10): 'A' — прогноз и кэф сразу, 'B' — вопрос, ответ на дропе.
+    REELS_AB=0 — прежняя заставка «ПРОГНОЗ НА МАТЧ» (None)."""
+    if os.environ.get('REELS_AB', '1') == '0':
+        return None
+    return 'A' if i % 2 == 0 else 'B'
+
+
+def ask(m):
+    """Вопрос без ответа по виду прогноза: тотал матча / тотал команды / исход."""
+    from settle import gen
+    p = m['pick'].lower()
+    if p.startswith('тотал матча'):
+        return 'Сколько шайб будет в матче?'
+    if p.startswith('тотал'):
+        t = next((x for x in (m['h'], m['a']) if gen(x).lower() in p), None)
+        if t:
+            return 'Сколько шайб у %s?' % gen(t)
+    if any(w in p for w in ('победа', 'фора', 'не проиграет', 'ничья')):
+        return 'Кто заберёт матч?'
+    return 'Какой прогноз на матч?'
+
+
+def ab_lines(m, i):
+    """→ (строки заставки, длительность) для intro.wrap; без сравнения — (None, None)."""
+    v = ab(i)
+    teams = '%s — %s' % (m['h'], m['a'])
+    if v == 'A':
+        return [m['pick'], teams, 'кэф ' + ('%.2f' % m['odds']).replace('.', ',')], AB_DUR
+    if v == 'B':
+        return [ask(m), teams, 'Ответ — в конце'], AB_DUR
+    return None, None
 
 
 SPREAD_FROM, SPREAD_STEP, SPREAD_LEAD = 9, 90, 120     # МСК: с 09:00, шаг 90 мин, не позже чем за 2 ч до матча
