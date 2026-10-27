@@ -3,6 +3,8 @@ import os, sys, time, requests
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 sys.path[:0] = [os.path.join(ROOT, 'team', 'mirror'), os.path.join(ROOT, 'team', 'reels_daily')]
 import ig_mirror, instagram  # noqa: E402
+RAW = ('https://raw.githubusercontent.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/'
+       'claude/project-migration-old-account-6e31vz/docs/channel/pins/carousel_table/car_%d.jpg')
 API = 'https://graph.facebook.com/v21.0/'
 CAP = """Как устроена моя аналитическая таблица по КХЛ и НХЛ 👇
 
@@ -17,7 +19,7 @@ tok, uid = instagram._env()
 kids = []
 for i in range(1, 8):
     p = os.path.join(ROOT, 'docs/channel/pins/carousel_table/car_%d.jpg' % i)
-    r = requests.post(API + uid + '/media', timeout=60, data=dict(image_url=ig_mirror.host(p), is_carousel_item='true', access_token=tok)).json()
+    r = requests.post(API + uid + '/media', timeout=60, data=dict(image_url=RAW % i, is_carousel_item='true', access_token=tok)).json()
     if 'id' not in r:
         sys.exit('::error::слайд %d: %s' % (i, r.get('error') or r))
     kids.append(r['id'])
