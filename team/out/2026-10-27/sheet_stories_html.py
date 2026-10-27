@@ -50,14 +50,14 @@ h1{font:400 92px/1 Dela;letter-spacing:-1px;margin-top:26px;
  background:linear-gradient(180deg,#fff 0%%,#ffe7a0 55%%,#ffb81c 100%%);-webkit-background-clip:text;color:transparent;
  filter:drop-shadow(0 6px 0 rgba(120,70,0,.55)) drop-shadow(0 0 18px rgba(255,190,40,.22))}
 .sub{margin-top:18px;font:500 30px Onest;color:#bdb8cf}
-.stage{position:absolute;left:50px;right:50px;top:575px;perspective:1600px}
+.stage{position:absolute;left:28px;right:28px;top:575px;perspective:1600px}
 .card{border-radius:36px;padding:34px;transform:var(--tilt);transform-origin:50%% 0;
  background:linear-gradient(145deg,rgba(30,28,44,.92),rgba(16,15,26,.94));
  border:1.5px solid rgba(255,255,255,.18);backdrop-filter:blur(18px);
  box-shadow:0 60px 120px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.3) inset,0 1px 0 rgba(255,255,255,.35) inset,
  -30px 30px 90px rgba(60,110,255,.14),30px -20px 90px rgba(255,190,40,.08)}
 .row{display:flex;align-items:center;gap:20px;height:88px;padding:0 22px;margin:8px 0;border-radius:22px;
- background:linear-gradient(90deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.07)}
+ background:linear-gradient(90deg,#2a2840,#1e1c2e);border:1px solid rgba(255,255,255,.10)}
 .emb{object-fit:contain;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))}
 .name{font:600 36px Osw;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8);flex:1;white-space:nowrap;overflow:hidden}
 .cell{width:118px;height:66px;border-radius:16px;display:flex;align-items:center;justify-content:center;
@@ -101,30 +101,38 @@ def heat(v):
 def s1():
     tiles = [('📊', 'Прогнозы', 'все матчи дня'), ('🔥', 'Что заходит', 'по каждой команде'),
              ('⚖️', 'Модель vs рынок', 'чья логика точнее'), ('🎟️', 'Купон дня', 'самые уверенные'),
-             ('🎯', 'Точность', 'как часто угадывает'), ('🏒', 'Карточка команды', 'всё о клубе'),
+             ('🎯', 'Точность', 'как часто угадывает'), ('🏒', 'Команда', 'всё о клубе'),
              ('📈', 'Статистика', 'броски, большинство'), ('🎥', 'Эксперты', 'разборы с видео')]
     b = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:22px">' + ''.join(
-        '<div class="row" style="height:150px;flex-direction:column;align-items:flex-start;justify-content:center;gap:6px">'
-        '<div style="font:600 34px Osw"><span style="font-size:36px">%s</span>&nbsp; %s</div>'
-        '<div style="font:500 24px Onest;color:#a9a4bb">%s</div></div>' % t for t in tiles) + '</div>'
+        '<div class="row" style="height:165px;flex-direction:column;align-items:flex-start;justify-content:center;gap:6px">'
+        '<div style="font:600 46px Osw;color:#fff"><span style="font-size:44px">%s</span>&nbsp; %s</div>'
+        '<div style="font:500 30px Onest;color:#d0cce0">%s</div></div>' % t for t in tiles) + '</div>'
     return page('24 листа · КХЛ и НХЛ', 'ТАБЛИЦА<br>JARVIS', 'вся аналитика в одном месте',
-                '<div class="card">%s</div>' % b, 'листай вправо →').replace('top:230px', 'top:210px') \
-        .replace('<div class="stage" style="', '<div class="stage" style="top:640px;').replace('92px/1 Dela', '120px/1 Dela')
+                '<div class="card">%s</div>' % b, '').replace('top:230px', 'top:210px') \
+        .replace('<div class="stage" style="', '<div class="stage" style="top:600px;').replace('92px/1 Dela', '120px/1 Dela')
 
 
 def s2():
-    rows = [('Победитель матча', 84, 77, 140), ('Исход осн. времени', 66, 62, 140), ('Фаворит проиграл — угадали', 13, 6, 19)]
-    b = ''
-    for lbl, a, k, n in rows:
-        b += '<div style="margin:18px 0 34px"><div style="font:600 34px Osw;margin-bottom:16px">%s</div>' % lbl.upper()
-        for v, cl, who in ((a, 'gold', 'таблица'), (k, 'blue', 'букмекер')):
-            b += ('<div style="display:flex;align-items:center;gap:18px;margin:12px 0"><div style="width:150px;font:500 26px Onest;'
-                  'color:#a9a4bb">%s</div><div class="bar" style="flex:1"><i class="%s" style="width:%d%%"></i></div>'
-                  '<div style="width:170px;text-align:right;font:700 38px Osw">%d<span style="font-size:24px;color:#8d88a3">'
-                  ' / %d</span></div></div>') % (who, cl, 100 * v // n, v, n)
-        b += '</div>'
-    return page('лист «Модель vs рынок»', 'МОДЕЛЬ<br>ПРОТИВ РЫНКА', 'КХЛ · 140 матчей сезона', '<div class="card">%s</div>' % b,
-                'Расчёт таблицы против линии букмекера, по каждому матчу.')
+    def side(t, p, g):
+        return ('<div style="flex:1;text-align:center">%s<div style="font:600 44px Osw;margin-top:14px">%s</div>'
+                '<div style="font:400 110px/1.1 Dela;color:%s;text-shadow:0 0 30px %s88">%d%%</div>'
+                '<div style="font:500 28px Onest;color:#c9c5d8">ожид. голы <b style="color:#fff;font:700 34px Osw">%s</b></div></div>') % (
+            emb(t, 200), t, COL2[t], COL2[t], p, g)
+    b = ('<div style="display:flex;align-items:flex-start;gap:10px;padding:20px 0">%s'
+         '<div style="font:400 60px Dela;color:#6f6a86;margin-top:80px">VS</div>%s</div>') % (
+        side('Авангард', 87, '2,98'), side('Сочи', 13, '1,54'))
+    b += ('<div class="bar" style="height:40px;border-radius:20px;margin:24px 10px"><i style="width:87%;border-radius:20px;'
+          'background:linear-gradient(90deg,#c41e30,#ff6070);box-shadow:0 0 30px rgba(255,80,100,.6)"></i></div>')
+    b += ('<div style="display:flex;gap:20px;margin-top:30px">'
+          '<div class="row" style="flex:1;height:130px;flex-direction:column;justify-content:center;gap:4px">'
+          '<div style="font:500 28px Onest;color:#c9c5d8">ожидаемый тотал</div><div style="font:400 50px Dela">4,52</div></div>'
+          '<div class="row" style="flex:1;height:130px;flex-direction:column;justify-content:center;gap:4px">'
+          '<div style="font:500 28px Onest;color:#c9c5d8">прогноз</div><div style="font:400 50px Dela;color:#5ff0a0">ЗАШЁЛ</div></div></div>')
+    return page('лист «прогнозы»', 'РАСЧЁТ<br>МАТЧА', 'КХЛ · 10 сентября', '<div class="card">%s</div>' % b,
+                'Шансы, голы и тотал для каждого матча считает модель.')
+
+
+COL2 = {'Авангард': '#ff5a6e', 'Сочи': '#ffc23a'}
 
 
 def s3():
