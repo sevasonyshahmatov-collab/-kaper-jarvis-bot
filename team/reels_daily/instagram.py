@@ -41,13 +41,15 @@ def posted(first_line):
 
 
 CTA = 'Полный разбор и итоги — в Telegram @jarvibet (ссылка в шапке профиля)'   # владелец 22.10: цель — переход в канал
+CTA_B = 'Разбор и итог матча — в Telegram @jarvibet (ссылка в шапке профиля)'      # вариант Б сравнения заставок (27.10)
 
 
-def caption(m, y):
+def caption(m, y, ab=None):
     """Подпись: описание для YouTube (матч, прогноз, Telegram) + хэштеги; ≤ 2200 знаков, хэштегов ≤ 30.
-    Сразу после первой строки — призыв в Telegram (первая строка не меняется: по ней posted() ищет повторы)."""
+    Сразу после первой строки — призыв в Telegram (первая строка не меняется: по ней posted() ищет повторы).
+    ab='B' — другой призыв: по нему снимок Instagram (team/social/ig_snapshot.py) отличает вариант заставки."""
     first, _, rest = y['description'].partition('\n')
-    return (first + '\n' + CTA + '\n' + rest)[:2100]
+    return (first + '\n' + (CTA_B if ab == 'B' else CTA) + '\n' + rest)[:2100]
 
 
 def zoomed(path, cover=None):

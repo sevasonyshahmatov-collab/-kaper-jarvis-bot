@@ -4,6 +4,9 @@
 эмблемы клубов. Музыка начинается на 1 с раньше, дроп остаётся на прогнозе (make.one: start -= DUR).
 
     r = intro.wrap(r, 'Сибирь', 'Трактор', 'KHL')      # REELS_INTRO=0 — без заставки
+
+Сравнение заставок (владелец 27.10): lines — свои строки вместо «ПРОГНОЗ НА МАТЧ / команды»: первая — цветом акцента,
+крупно (длинная — в две строки), остальные — белым, мельче (make.ab_lines: А — прогноз и кэф, Б — вопрос без ответа).
 """
 import os
 
@@ -31,9 +34,9 @@ def accent(fr):
 class Intro:
     """Ролик шаблона с заставкой в начале. Остальные атрибуты (ticker, voice_only…) — от ролика шаблона."""
 
-    def __init__(self, base, home, away, league='KHL', dur=DUR):
+    def __init__(self, base, home, away, league='KHL', dur=DUR, lines=None):
         d = self.__dict__
-        d['base'], d['intro'], d['_lay'] = base, float(dur), None
+        d['base'], d['intro'], d['_lay'], d['lines'] = base, float(dur), None, lines
         d['teams'] = C.match(home, away, league)
 
     def __getattr__(self, k):
@@ -71,13 +74,39 @@ class Intro:
             bg = Image.eval(bg.resize((C.W, C.H), Image.BILINEAR), lambda v: int(v * 0.38)).convert('RGBA')
             glow = C.radial(C.W, C.H, col, a0=90, power=2.4)
             bg.alpha_composite(glow)
-            # однотипные надписи — один кегль (team/RULES.md): заголовок и команды подгоняются под самую длинную строку
-            lines = ['ПРОГНОЗ НА МАТЧ', '%s — %s' % (h.up, a.up)]
-            size = 92
-            while size > 40 and max(C.text(s, 'mont', size, wght=900).width for s in lines) > C.W - 150:
-                size -= 2
-            head = C.text(lines[0], 'mont', size, col, 900, track=0.03)
-            vs = C.text(lines[1], 'mont', size, (255, 255, 255), 900)
+            if self.lines:                                    # сравнение заставок: акцент — первая строка, крупно
+                main, rest = self.lines[0], list(self.lines[1:])
+                parts = [main]
+                if C.text(main, 'mont', 84, wght=900).width > C.W - 150 and ' ' in main:   # длинная — в две строки
+                    w = main.split(' ')
+                    k = min(range(1, len(w)), key=lambda i: abs(len(' '.join(w[:i])) - len(' '.join(w[i:]))))
+                    parts = [' '.join(w[:k]), ' '.join(w[k:])]
+                size = 84
+                while size > 40 and max(C.text(x, 'mont', size, wght=900).width for x in parts) > C.W - 150:
+                    size -= 2
+                heads = [C.text(x, 'mont', size, col, 900) for x in parts]
+                head = Image.new('RGBA', (max(x.width for x in heads), sum(x.height for x in heads) + 12 * (len(heads) - 1)))
+                y = 0
+                for x in heads:
+                    head.alpha_composite(x, ((head.width - x.width) // 2, y))
+                    y += x.height + 12
+                small = 60
+                while small > 30 and max(C.text(x, 'mont', small, wght=800).width for x in rest) > C.W - 150:
+                    small -= 2
+                subs = [C.text(x, 'mont', small, (255, 255, 255), 800) for x in rest]
+                vs = Image.new('RGBA', (max(x.width for x in subs), sum(x.height for x in subs) + 22 * (len(subs) - 1)))
+                y = 0
+                for x in subs:
+                    vs.alpha_composite(x, ((vs.width - x.width) // 2, y))
+                    y += x.height + 22
+            else:
+                # однотипные надписи — один кегль (team/RULES.md): заголовок и команды подгоняются под самую длинную строку
+                lines = ['ПРОГНОЗ НА МАТЧ', '%s — %s' % (h.up, a.up)]
+                size = 92
+                while size > 40 and max(C.text(s, 'mont', size, wght=900).width for s in lines) > C.W - 150:
+                    size -= 2
+                head = C.text(lines[0], 'mont', size, col, 900, track=0.03)
+                vs = C.text(lines[1], 'mont', size, (255, 255, 255), 900)
             bar = C.rrect(min(C.W - 300, head.width), 10, 5, fill=col)
             e = 300
             halo = C.radial(int(e * 1.7), int(e * 1.7), (255, 255, 255), a0=70, power=1.8)   # тёмные эмблемы не тонут в фоне
@@ -110,5 +139,7 @@ class Intro:
         return fr
 
 
-def wrap(r, home, away, league='KHL'):
-    return Intro(r, home, away, league) if DUR > 0 else r
+def wrap(r, home, away, league='KHL', lines=None, dur=None):
+    if DUR <= 0:
+        return r
+    return Intro(r, home, away, league, dur=dur or DUR, lines=lines)
