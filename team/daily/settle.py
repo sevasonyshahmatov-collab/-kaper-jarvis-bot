@@ -90,9 +90,9 @@ def _scope(text, default='reg'):
 
 
 def _ou(text):
-    if re.search(r'больше|\bтб\b|\bитб|over', text):
+    if re.search(r'больше|\bтб\b|\bитб|\bит\s?[12]\s?б\b|over', text):
         return 'over'
-    if re.search(r'меньше|\bтм\b|\bитм|under', text):
+    if re.search(r'меньше|\bтм\b|\bитм|\bит\s?[12]\s?м\b|under', text):
         return 'under'
     return None
 
@@ -103,11 +103,12 @@ def parse_leg(text, home, away):
     side = _find_side(t, home, away)
     scope = _scope(t)
     # индивидуальный тотал
-    m = re.search(r'индивидуальн\w* тотал|\bит[бм]\b|\bит[бм]\s?[12](?![\d.])', t)
+    # «ИТБ1», «ИТБ 2» и «ИТ1Б», «ИТ2М» (номер команды до «Б/М» — так пишет владелец, 27.10)
+    m = re.search(r'индивидуальн\w* тотал|\bит[бм]\b|\bит[бм]\s?[12](?![\d.])|\bит\s?[12]\s?[бм]\b', t)
     if m:
-        code = re.search(r'\bит[бм]\s?([12])(?![\d.])', t)
-        s = side or ({'1': 'h', '2': 'a'}.get(code.group(1)) if code else None)
-        ou, line = _ou(t), _num(re.sub(r'\bит[бм]\s?[12](?![\d.])', ' ', t))
+        code = re.search(r'\bит[бм]\s?([12])(?![\d.])|\bит\s?([12])\s?[бм]\b', t)
+        s = side or ({'1': 'h', '2': 'a'}.get(code.group(1) or code.group(2)) if code else None)
+        ou, line = _ou(t), _num(re.sub(r'\bит[бм]\s?[12](?![\d.])|\bит\s?[12]\s?[бм]\b', ' ', t))
         if not s or not ou or line is None:
             raise ValueError('индивидуальный тотал: не понял команду/линию')
         return dict(kind='it', side=s, ou=ou, line=line, scope=scope)
