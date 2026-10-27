@@ -28,10 +28,25 @@ if not rows:   # без права чтения: открытая страниц
     rows = list(walk(data)); src = 'page'
     print('::notice title=YTPAGE::len %d, shorts %d, subs %s' % (len(h), len(rows),
           (re.search(r'"subscriberCountText":\{[^}]*?"content":"([^"]+)"', h) or re.search(r'(\d[\d\s,.]*\s*(?:тыс\.\s*)?подписчик\w*)', h) or [None, '?'])[1]))
+ret = {}
+if src == 'api':
+    ret, why = report.yt_retention(rows, 30)
+    ret = {k: ('%.0f%%/%.0fс' % (a, b), 0) for k, (a, b) in ret.items()}
+    if why:
+        print('::notice title=YTRET::' + why)
+    from datetime import datetime, timedelta
+    end = datetime.now(report.MSK).date()
+    for dim in ('day', 'insightTrafficSourceType'):
+        try:
+            j = report._get(report.YTA, ids='channel==MINE', startDate=str(end - timedelta(days=30)), endDate=str(end),
+                            metrics='views,averageViewDuration,averageViewPercentage,subscribersGained', dimensions=dim, sort=dim if dim == 'day' else '-views')
+            print('::notice title=YTA_%s::%s' % (dim, '%0A'.join('|'.join(str(c) for c in r) for r in j.get('rows', []))))
+        except Exception as e:  # noqa: BLE001
+            print('::notice title=YTAERR::%s %r' % (dim, str(e)[:200]))
 lines = []
 for v in rows:
     at = v.get('at').strftime('%m-%d %H') if v.get('at') else ''
-    lines.append('%s|%s|%s|%s|%s' % (at, v.get('views'), v.get('likes', ''), v.get('tpl') or '', (v.get('title') or '')[:60]))
+    lines.append('%s|%s|%s|%s|%s|%s' % (at, v.get('views'), v.get('likes', ''), v.get('tpl') or '', ret.get(v['id'], ('', ''))[0] if v.get('id') in ret else '', (v.get('title') or '')[:50]))
 print('::notice title=YTSRC::%s %d' % (src, len(lines)))
 for k in range(0, min(len(lines), 360), 40):
     print('::notice title=YT%d::%s' % (k // 40, '%0A'.join(lines[k:k + 40]).replace('%', '%25').replace('%250A', '%0A')))
