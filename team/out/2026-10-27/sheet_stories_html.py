@@ -29,9 +29,9 @@ CSS = """
 @font-face{font-family:Osw;src:url(file://%(f)s/Oswald[wght].ttf);font-weight:200 700}
 *{margin:0;padding:0;box-sizing:border-box}
 body{width:1080px;height:1920px;overflow:hidden;font-family:Onest;color:#f4f2f7;
- background:radial-gradient(900px 700px at 85%% 8%%,rgba(255,196,40,.28),transparent 60%%),
- radial-gradient(900px 800px at 0%% 62%%,rgba(60,110,255,.30),transparent 60%%),
- radial-gradient(700px 600px at 100%% 100%%,rgba(255,120,30,.20),transparent 60%%),
+ background:radial-gradient(900px 700px at 85%% 8%%,rgba(255,196,40,.14),transparent 60%%),
+ radial-gradient(900px 800px at 0%% 62%%,rgba(60,110,255,.18),transparent 60%%),
+ radial-gradient(700px 600px at 100%% 100%%,rgba(255,120,30,.10),transparent 60%%),
  linear-gradient(160deg,#0d0b16 0%%,#121027 50%%,#07060c 100%%);position:relative}
 body:before{content:"";position:absolute;inset:0;opacity:.35;mix-blend-mode:overlay;
  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%%' height='100%%' filter='url(%%23n)'/></svg>")}
@@ -48,18 +48,18 @@ body:after{content:"";position:absolute;inset:0;background:
 .t{position:absolute;top:230px;width:100%%;text-align:center}
 h1{font:400 92px/1 Dela;letter-spacing:-1px;margin-top:26px;
  background:linear-gradient(180deg,#fff 0%%,#ffe7a0 55%%,#ffb81c 100%%);-webkit-background-clip:text;color:transparent;
- filter:drop-shadow(0 6px 0 rgba(120,70,0,.55)) drop-shadow(0 0 40px rgba(255,190,40,.45))}
+ filter:drop-shadow(0 6px 0 rgba(120,70,0,.55)) drop-shadow(0 0 18px rgba(255,190,40,.22))}
 .sub{margin-top:18px;font:500 30px Onest;color:#bdb8cf}
 .stage{position:absolute;left:50px;right:50px;top:575px;perspective:1600px}
-.card{border-radius:36px;padding:34px;transform:rotateX(9deg) rotateY(-7deg) rotateZ(1deg);transform-origin:50%% 0;
- background:linear-gradient(145deg,rgba(255,255,255,.13),rgba(255,255,255,.03));
+.card{border-radius:36px;padding:34px;transform:var(--tilt);transform-origin:50%% 0;
+ background:linear-gradient(145deg,rgba(30,28,44,.92),rgba(16,15,26,.94));
  border:1.5px solid rgba(255,255,255,.18);backdrop-filter:blur(18px);
  box-shadow:0 60px 120px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.3) inset,0 1px 0 rgba(255,255,255,.35) inset,
- -30px 30px 90px rgba(60,110,255,.25),30px -20px 90px rgba(255,190,40,.18)}
+ -30px 30px 90px rgba(60,110,255,.14),30px -20px 90px rgba(255,190,40,.08)}
 .row{display:flex;align-items:center;gap:20px;height:88px;padding:0 22px;margin:8px 0;border-radius:22px;
  background:linear-gradient(90deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.07)}
 .emb{object-fit:contain;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))}
-.name{font:600 34px Osw;flex:1;white-space:nowrap;overflow:hidden}
+.name{font:600 36px Osw;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8);flex:1;white-space:nowrap;overflow:hidden}
 .cell{width:118px;height:66px;border-radius:16px;display:flex;align-items:center;justify-content:center;
  font:700 34px Osw;text-shadow:0 2px 4px rgba(0,0,0,.4);box-shadow:0 8px 18px rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.35) inset}
 .hd{display:flex;gap:20px;padding:0 22px;font:600 22px Onest;color:#9d98b3;letter-spacing:1px}
@@ -78,13 +78,16 @@ h1{font:400 92px/1 Dela;letter-spacing:-1px;margin-top:26px;
 """ % {'f': FONTS}
 
 
+TILT = ['rotateX(8deg) rotateY(-9deg)']
+
+
 def page(tag, title, sub, body, cap='', lbl='как получить доступ', url='t.me/jarvibet'):
     return ('<html><head><meta charset="utf-8"><style>%s</style></head><body><div class="wrap">'
             '<div class="brand">JARVIS &nbsp;|&nbsp; <b>КХЛ · НХЛ</b></div>'
             '<div class="t"><span class="tag">%s</span><h1>%s</h1><div class="sub">%s</div></div>'
-            '<div class="stage">%s</div><div class="cap">%s</div>'
+            '<div class="stage" style="--tilt:%s">%s</div><div class="cap">%s</div>'
             '<div class="lbl">%s</div><div class="link">%s</div></div></body></html>') % (
-        CSS, tag, title, sub, body, cap, lbl.upper(), url)
+        CSS, tag, title, sub, TILT[0], body, cap, lbl.upper(), url)
 
 
 def heat(v):
@@ -106,7 +109,7 @@ def s1():
         '<div style="font:500 24px Onest;color:#a9a4bb">%s</div></div>' % t for t in tiles) + '</div>'
     return page('24 листа · КХЛ и НХЛ', 'ТАБЛИЦА<br>JARVIS', 'вся аналитика в одном месте',
                 '<div class="card">%s</div>' % b, 'листай вправо →').replace('top:230px', 'top:210px') \
-        .replace('<div class="stage">', '<div class="stage" style="top:640px">').replace('92px/1 Dela', '120px/1 Dela')
+        .replace('<div class="stage" style="', '<div class="stage" style="top:640px;').replace('92px/1 Dela', '120px/1 Dela')
 
 
 def s2():
@@ -162,7 +165,7 @@ def s5():
               '<div class="ok" style="width:66px">✓</div></div>') % (COL[pk], emb(pk, 100), op, pk, ('%.1f%%' % p).replace('.', ','))
     b += ('<div style="margin-top:26px;padding:30px;border-radius:26px;display:flex;justify-content:space-between;align-items:center;'
           'background:linear-gradient(90deg,rgba(62,224,138,.25),rgba(62,224,138,.05));border:2px solid rgba(62,224,138,.6);'
-          'box-shadow:0 0 40px rgba(62,224,138,.3)"><div style="font:600 34px Osw">КУПОН ИЗ 3 · ШАНС 42%</div>'
+          'box-shadow:0 0 40px rgba(62,224,138,.3)"><div style="font:600 34px Osw">КУПОН ИЗ 3 · ЗАШЛИ 3 ИЗ 3</div>'
           '<div class="big" style="color:#5ff0a0">ЗАШЁЛ</div></div>')
     return page('лист «Купон дня»', 'КУПОН ДНЯ', 'самые уверенные прогнозы · 28.09', '<div class="card">%s</div>' % b,
                 'Таблица сама собирает купон из самых уверенных исходов.')
