@@ -1,0 +1,31 @@
+# Будильник тика соцсетей без внешнего сервиса (27.10): ждёт ближайший слот, запускает «Соцсети — тик» и себя снова
+# (team/social/tick_chain.py). Один будильник: новый запуск отменяет ждущий (cancel-in-progress) — расписание ниже лишь
+# поднимает цепочку, если она оборвалась. Минуты Actions бесплатны (репозиторий публичный).
+name: Соцсети — будильник
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 3,15 * * *'
+
+permissions:
+  contents: read
+  actions: write                  # запустить тик и себя
+
+concurrency:
+  group: social-chain
+  cancel-in-progress: true
+
+jobs:
+  wait:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -q requests
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python team/social/tick_chain.py
