@@ -40,4 +40,7 @@
 - Сайт — плагины `searchfit-seo` (seo-audit, on-page-seo, schema-markup) и `copywriting-kit` (copy-diagnose, copy-edit).
 - Посты, кампании, проверка тона — плагин `marketing` (content-creation, campaign-plan, brand-review по voice.md).
 - YouTube — плагин `tubealfred-youtube` (нужна сеть к его серверу; из облака может быть закрыта). Картинки — `image-generation`.
+- Дизайн картинок, слайдов, сайта (владелец 27.10) — скиллы `impeccable` (типографика, отступы, палитра; команды audit,
+  critique, polish, bolder) и `emil-design-eng` (мелочи и полировка интерфейса). Вёрстка HTML → снимок Playwright
+  (`require('playwright')`, пример — `team/out/2026-10-27/sheet_stories_html.py` + `shot.js`), результат смотреть глазами.
 - Правила канала важнее советов скиллов: без БК, промокодов, гарантий, выдуманных цифр (`team/RULES.md`, voice.md).
