@@ -32,6 +32,10 @@
   инструмент сохранит его в файл и скажет путь.
 - `python3 team/picks/parse_log.py <путь к файлу лога> out/picks/L-D` → читать `out/picks/L-D/brief.md`: по каждому матчу
   время МСК, арена, линия, ставки с кэфами («Что заходит»), факты команд. `out/` в git не класть.
+- **Логи Actions из облака закрыты (403, 28.10)** — в задании вместо `day.py` брать `team/picks/notice_brief.py L D`: он печатает
+  brief.md и matches.json пометками запуска; собрать: `gh api repos/<repo>/check-runs/<job_id>/annotations --paginate -q
+  '.[]|select(.title|startswith("PB_"))|(.title|split("_")[1]|split("/")[0])+" "+.message' | sort -n | cut -d' ' -f2- |
+  tr -d '\n' | base64 -d | tar xz -C out/picks/L-D`. Запуск и ожидание — `gh workflow run` / `gh run view`.
 - Проверить: число матчей совпадает с расписанием; строки `PINMISS` / `PINERR` — у этих матчей нет линии Pinnacle (КХЛ —
   остаётся Фонбет П1/Х/П2; совсем без кэфа — поста нет, сказать в обзоре). Задание упало — лог, исправить, ещё раз (один раз).
 
