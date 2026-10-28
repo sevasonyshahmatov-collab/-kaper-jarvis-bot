@@ -222,7 +222,7 @@ def head(title, desc, url, base, extra='', kind='website'):
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#0c0a12">
+<meta name="theme-color" content="#071225">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="%sassets/site.css">
@@ -476,7 +476,7 @@ def landing(D, logos, base, site=None):
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#0c0a12">
+<meta name="theme-color" content="#071225">
 <script type="application/ld+json">%s</script>
 %s<style>body{margin:0}</style>
 %s</head>
