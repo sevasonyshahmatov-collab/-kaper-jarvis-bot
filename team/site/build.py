@@ -222,7 +222,7 @@ def head(title, desc, url, base, extra='', kind='website'):
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#0c0a12">
+<meta name="theme-color" content="#071225">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="%sassets/site.css">
@@ -407,6 +407,11 @@ def calendar(D, td):
     return None
 
 
+def post_at(d):
+    """Время выхода поста-прогноза: за 1,5 часа до матча (d — «ГГГГ-ММ-ДД ЧЧ:ММ» по Москве)."""
+    return (datetime.strptime(d[:16], '%Y-%m-%d %H:%M') - timedelta(minutes=90)).strftime('%H:%M')
+
+
 def landing(D, logos, base, site=None):
     """Главная: лендинг с сегодняшними матчами вместо примеров (window.__TODAY, __TL, __RES — их читает скрипт лендинга);
     __MONTHS — статистика постов канала по месяцам из stats/months.json (team/site/months.py), нет файла — блока нет."""
@@ -422,12 +427,13 @@ def landing(D, logos, base, site=None):
         tod[P['league']].append(dict(w='%s · %s МСК' % (when, m['d'][11:16]), a=m['h'], b=m['a'], p=m['pick'], k=kef_s(m['odds']) if m.get('odds') else '—',
                                      y=('У %s такое было в %d из %d игр' % (gen(f['team']), f['k'], f['n'])) if f.get('n') else
                                      ('Вероятность по модели %s' % pct(m['p'])) if m.get('p') else 'Прогноз из канала @jarvibet',
-                                     u='prognozy/' + page_name(m), x=m.get('x1x2'), pr=round(m['p'] or 0, 3)))
+                                     u='prognozy/' + page_name(m), x=m.get('x1x2'), pr=round(m['p'] or 0, 3), t=m['d']))
     for lg in ('khl', 'nhl'):                               # постов на сегодня ещё нет (выходят за 1,5 ч до матча) — матчи дня
         P = next((P for P in D if P['league'] == lg and P['day'] == td and P.get('all')), None)  # без прогноза, а не пример
         if not tod[lg] and P:
-            tod[lg] = [dict(w='Сегодня · %s МСК' % x['d'][11:16], a=x['h'], b=x['a'], p='Прогноз выйдет в канале за 1,5 часа до матча',
-                            k='—', y='Подпишись на @jarvibet, чтобы не пропустить', u='https://t.me/jarvibet', x=x.get('p3'), pc=1 if x.get('p3') else 0, pr=0)
+            tod[lg] = [dict(w='Сегодня · %s МСК' % x['d'][11:16], a=x['h'], b=x['a'], p='Прогноз выйдет в %s МСК' % post_at(x['d']),
+                            k='—', y='Пост выходит в @jarvibet за 1,5 часа до матча — подпишись, чтобы не пропустить', u='https://t.me/jarvibet',
+                            x=x.get('p3'), pc=1 if x.get('p3') else 0, pr=0, t=x['d'])
                        for x in P['all'] if x['d'][:10] >= td]
     tod = {k: v[:6] for k, v in tod.items()}
     res = [dict(t='%s — %s' % (m['h'], m['a']), b=m['pick'], ok=m['res'] == 'win')
@@ -476,7 +482,7 @@ def landing(D, logos, base, site=None):
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#0c0a12">
+<meta name="theme-color" content="#071225">
 <script type="application/ld+json">%s</script>
 %s<style>body{margin:0}</style>
 %s</head>

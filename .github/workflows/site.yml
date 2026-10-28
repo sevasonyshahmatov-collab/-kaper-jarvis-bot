@@ -12,6 +12,12 @@ on:
     # владелец 25.10: на сайте — только прогнозы из канала; посты выходят за 1,5 ч до матча — днём лёгкие обновления
     # (посты и итоги, без прогнозов дня и без данных команд для приложения): 12:23, 15:23, 18:23, 21:23 МСК
     - cron: '23 9,12,15,18 * * *'
+    # 28.10: GitHub задерживает и пропускает запуск 03:23 (полночь UTC — час пик) — запасная полная сборка 06:41 МСК
+    - cron: '41 3 * * *'
+  # 28.10: прогнозы ушли владельцу (itogi.yml, коммит «picks …») — сразу пересобрать сайт: матчи дня и «Матч дня» на главной
+  workflow_run:
+    workflows: ['Постеры «Итоги дня» и «Матчи дня»']
+    types: [completed]
   workflow_dispatch:
     inputs:
       day:
@@ -31,6 +37,7 @@ concurrency:
 
 jobs:
   site:
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_commit.message, 'picks '))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -55,11 +62,6 @@ jobs:
           url="${{ vars.SITE_URL }}"
           if [ -z "$url" ] && [ -n "$SITE_REPO" ]; then url="https://${SITE_REPO%%/*}.github.io/${SITE_REPO#*/}/"; fi
           echo "url=${url:-https://example.github.io/jarvis/}" >> "$GITHUB_OUTPUT"
-      - name: Прогнозы дня
-        if: steps.day.outputs.plans == 'yes'
-        # без TG_BOT_TOKEN: список матчей владелец уже получает от конвейера шортсов
-        run: |
-          for lg in khl nhl; do python team/reels_daily/make.py plan "$lg" "${{ steps.day.outputs.day }}" --max 0 --per 3 || echo "SITEERR план $lg не собран"; done
       - name: Взять сайт
         if: env.SITE_REPO != ''
         uses: actions/checkout@v4
@@ -67,6 +69,17 @@ jobs:
           repository: ${{ vars.SITE_REPO }}
           token: ${{ secrets.SITE_TOKEN || github.token }}
           path: site
+      - name: Прогнозы дня
+        # без TG_BOT_TOKEN: список матчей владелец уже получает от конвейера шортсов.
+        # 28.10: лёгкий запуск после полуночи (GitHub задержал его на 4 ч) начал новый день без матчей — на главной
+        # «матчей с прогнозом нет». Нет на сайте данных лиги за сегодня — собираем план в любом запуске.
+        run: |
+          d="${{ steps.day.outputs.day }}"
+          for lg in khl nhl; do
+            if [ "${{ steps.day.outputs.plans }}" = yes ] || [ ! -f "site/data/$lg-$d.json" ]; then
+              python team/reels_daily/make.py plan "$lg" "$d" --max 0 --per 3 || echo "SITEERR план $lg не собран"
+            fi
+          done
       - name: Статистика канала по месяцам
         # team/site/months.py: посты @jarvibet с 1 сентября, итог по счёту → site/stats/months.json (карточки «Честных итогов»).
         # Лента или счёт не загрузились — на сайте остаётся прежняя статистика (новая заменяет, только если прогнозов не меньше).
