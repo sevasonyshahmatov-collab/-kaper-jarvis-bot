@@ -89,7 +89,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .prob-head b{color:var(--fg);font-family:var(--mono)}
 .meter{height:10px;border-radius:99px;background:var(--ice2);margin-top:8px;overflow:hidden}
 .meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--gold));border-radius:99px;transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
-.sample{margin-top:14px;font-size:11px;color:var(--mute);font-family:var(--mono)}
+.sample{margin-top:14px;font-size:12px;line-height:1.5;color:var(--mute);font-family:var(--mono)}
 
 /* page background «night arena»: skate-scratched ice (texture drawn once in JS) under the whole page and a coloured
    spotlight per section — cyan for matches, red for the model, gold for results — crossfading as you scroll */
@@ -388,6 +388,35 @@ html{scroll-padding-top:65px}
 #glow i.o{background:none;border:1.5px solid var(--c,#3ee0ff);border-radius:50%;box-shadow:0 0 14px 1px var(--c,#3ee0ff)}
 @keyframes glow{0%,100%{opacity:0}20%{opacity:var(--o,.3)}50%{opacity:calc(var(--o,.3)*.3)}75%{opacity:var(--o,.3)}}
 @media (prefers-reduced-motion:reduce){#glow{display:none}}
+/* Живое табло (владелец 28.10: «сайт живой и анимированный»; frontend-design → impeccable → taste-skill → emil-design-eng).
+   Одна главная сцена — табло «Матч дня» включается: по нему проходит свет, цифры котировок прокручиваются, как на табло
+   арены, и идёт настоящий отсчёт до вбрасывания. Остальное движение — только в ответ на действие: карточки выезжают
+   при открытии списка и переворачиваются с лёгкой пружиной, у кнопки Telegram блик при наведении. */
+.board{position:relative;overflow:hidden}
+.board::after{content:"";position:absolute;inset:-40% auto -40% -60%;width:45%;pointer-events:none;
+ background:linear-gradient(100deg,transparent,rgba(62,224,255,.16) 45%,rgba(255,255,255,.22) 50%,rgba(62,224,255,.16) 55%,transparent);
+ transform:translateX(0) skewX(-12deg);animation:sweep 1.6s cubic-bezier(.23,1,.32,1) .5s both}
+@keyframes sweep{to{transform:translateX(420%) skewX(-12deg)}}
+.dg{display:inline-block;height:1.15em;line-height:1.15em;overflow:hidden;vertical-align:bottom}
+.dg>span{display:block;transform:translateY(0);transition:transform 1.1s cubic-bezier(.23,1,.32,1)}
+.dg>span>i{display:block;font-style:normal;height:1.15em}
+.clock{display:flex;justify-content:center;align-items:baseline;gap:10px;margin:-2px 0 14px;font-size:13px;color:var(--mute)}
+.clock b{font-family:var(--mono);font-size:20px;color:var(--cyan);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.clock.on b{color:var(--red)}
+.cd{color:var(--cyan)}
+.matches.go .card{animation:cardIn .55s cubic-bezier(.23,1,.32,1) both;animation-delay:calc(var(--i,0) * 70ms)}
+@keyframes cardIn{from{opacity:0;transform:translateY(22px) scale(.97);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+.inner{transition:transform .7s cubic-bezier(.34,1.32,.64,1)}
+.card.open .back{animation:pickGlow 1.2s ease-out .25s}
+@keyframes pickGlow{0%{box-shadow:0 0 0 0 rgba(255,201,60,.4)}100%{box-shadow:0 0 0 10px rgba(255,201,60,0)}}
+.s-head p{max-width:62ch}
+.btn-tg{position:relative;overflow:hidden;isolation:isolate}
+.btn-tg::after{content:"";position:absolute;top:0;bottom:0;left:-70%;width:50%;z-index:-1;pointer-events:none;
+ background:linear-gradient(110deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-20deg)}
+@media (hover:hover) and (pointer:fine){.btn-tg:hover::after{left:130%;transition:left .7s cubic-bezier(.23,1,.32,1)}}
+@media (prefers-reduced-motion:reduce){.board::after{display:none}.dg>span{transition:none}
+ .matches.go .card{animation:fadeOnly .3s ease both}.inner{transition:transform .01s}.card.open .back{animation:none}}
+@keyframes fadeOnly{from{opacity:0}to{opacity:1}}
 </style>
 
 <div class="arena" id="arena" aria-hidden="true"><i data-c="cyan"></i><i data-c="red"></i><i data-c="gold"></i></div>
@@ -425,6 +454,7 @@ html{scroll-padding-top:65px}
     <div class="board" aria-label="Пример карточки прогноза">
       <div class="board-top"><span class="live">Прогноз дня</span><span>19:30 МСК</span></div>
       <div class="teams"><div class="tm"><img class="em-lg" data-logo="akbars" alt="">Ак Барс</div><div class="vs">vs</div><div class="tm"><img class="em-lg" data-logo="lokomotiv" alt="">Локомотив</div></div>
+      <div class="clock" id="clock" hidden><span>До вбрасывания</span><b id="cd">—</b></div>
       <div class="odds">
         <div class="odd"><small>П1</small><strong>2.10</strong></div>
         <div class="odd"><small>Х</small><strong>4.20</strong></div>
@@ -746,13 +776,16 @@ const M=TODAY?{khl:TODAY.khl||[],nhl:TODAY.nhl||[]}:{
 const list=document.getElementById('mlist');
 function render(l){
   if(!M[l].length){list.innerHTML='<p class="empty">Сегодня в этой лиге матчей с прогнозом нет. Загляни завтра или в Telegram.</p>';return}
-  list.innerHTML=M[l].map(m=>`<button class="card" type="button" aria-label="${m.a} — ${m.b}, показать прогноз">
+  list.innerHTML=M[l].map((m,i)=>`<button class="card" type="button" style="--i:${i}" aria-label="${m.a} — ${m.b}, показать прогноз">
    <div class="inner">
-    <div class="face front"><div class="bgl" aria-hidden="true"><img src="${logo(m.a)}" alt=""><img src="${logo(m.b)}" alt=""></div><div class="when">${m.w}</div><div class="pair"><div class="tm-row"><img class="em" src="${logo(m.a)}" alt="">${m.a}</div><div class="tm-row"><img class="em" src="${logo(m.b)}" alt="">${m.b}</div></div><div class="tap">Показать прогноз ↻</div></div>
-    <div class="face back"><div class="pk-label">Прогноз${TODAY?'':' · пример'}</div><div class="pk">${m.p}</div><div class="pk-k">${m.k}</div><div class="why">${m.y}</div></div>
+    <div class="face front"><div class="bgl" aria-hidden="true"><img src="${logo(m.a)}" alt=""><img src="${logo(m.b)}" alt=""></div><div class="when">${m.w}${m.t?` · <span class="cd" data-t="${m.t}"></span>`:''}</div><div class="pair"><div class="tm-row"><img class="em" src="${logo(m.a)}" alt="">${m.a}</div><div class="tm-row"><img class="em" src="${logo(m.b)}" alt="">${m.b}</div></div><div class="tap">Показать прогноз ↻</div></div>
+    <div class="face back"><div class="pk-label">${m.pr===0&&m.k==='—'?'Скоро в канале':'Прогноз'}${TODAY?'':' · пример'}</div><div class="pk">${m.p}</div>${m.k==='—'?'':`<div class="pk-k">${m.k}</div>`}<div class="why">${m.y}</div></div>
    </div></button>`).join('');
   list.querySelectorAll('.card').forEach(c=>c.onclick=()=>c.classList.toggle('open'));
+  window.__tick&&window.__tick();
 }
+// cards slide in once the list reaches the screen, then again on every league switch (render() rebuilds them)
+if('IntersectionObserver' in window){const lo=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){list.classList.add('go');lo.disconnect()}},{rootMargin:'0px 0px -15% 0px'});lo.observe(list)}else list.classList.add('go');
 render(M.khl.length||!M.nhl.length?'khl':'nhl');
 if(TODAY){document.querySelector('#matches .s-head p').textContent='Прогнозы на сегодня по модели: событие, кэф и короткое объяснение.';
  document.getElementById('mlist').insertAdjacentHTML('afterend','<a class="all" href="prognozy/">Все прогнозы и разборы матчей →</a>');
@@ -1161,3 +1194,29 @@ function lay(){var H=document.documentElement.scrollHeight,W=innerWidth,wrap=112
   e.style.setProperty('--c',c);e.style.setProperty('--d',(7+q[3]*5).toFixed(1)+'s');e.style.setProperty('--w',(-q[0]*10).toFixed(1)+'s');
   e.style.setProperty('--o',(e.className?(.14+q[3]*.1):(.28+q[3]*.16)).toFixed(2));g.appendChild(e)}}
 lay();addEventListener('load',lay);var t;addEventListener('resize',function(){clearTimeout(t);t=setTimeout(lay,300)})})();</script>
+
+<script>
+// Живое табло и отсчёт до матчей (владелец 28.10). Запускается после всех скриптов страницы (в т.ч. BOARD_WAIT из build.py),
+// когда в табло уже стоят настоящие котировки. Время матчей — московское (поле t: «ГГГГ-ММ-ДД ЧЧ:ММ»).
+addEventListener('DOMContentLoaded',()=>{
+ const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const at=t=>Date.parse(t.replace(' ','T')+':00+03:00');
+ // котировки прокручиваются цифра за цифрой, как на табло арены
+ if(!still)document.querySelectorAll('.board .odd strong').forEach((el,k)=>{const v=el.textContent;if(!/\d/.test(v))return;
+  el.setAttribute('aria-label',v);
+  el.innerHTML=[...v].map(ch=>/\d/.test(ch)?`<span class="dg" aria-hidden="true"><span>${'0123456789'.split('').map(d=>`<i>${d}</i>`).join('')}</span></span>`:`<span aria-hidden="true">${ch}</span>`).join('');
+  const st=[...el.querySelectorAll('.dg>span')],ds=[...v].filter(ch=>/\d/.test(ch));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>st.forEach((s,j)=>{s.style.transitionDelay=(500+k*140+j*90)+'ms';s.style.transform=`translateY(${-ds[j]*10}%)`})))});
+ const T=window.__TODAY,first=T&&[...(T.khl||[]),...(T.nhl||[])].sort((a,b)=>b.pr-a.pr)[0];
+ const clock=document.getElementById('clock'),cd=document.getElementById('cd'),two=n=>String(n).padStart(2,'0');
+ const left=t=>{const s=Math.round((at(t)-Date.now())/1000);return s};
+ function tick(){
+  if(first&&first.t&&clock&&!document.querySelector('.board').hidden){const s=left(first.t);
+   if(s>0&&s<36*3600){clock.hidden=false;clock.classList.remove('on');cd.textContent=`${two(Math.floor(s/3600))}:${two(Math.floor(s%3600/60))}:${two(s%60)}`}
+   else if(s<=0&&s>-3*3600){clock.hidden=false;clock.classList.add('on');clock.firstChild.textContent='Матч';cd.textContent='идёт'}
+   else clock.hidden=true}
+  document.querySelectorAll('.card .cd').forEach(e=>{const s=left(e.dataset.t),m=Math.floor(s/60);
+   e.textContent=s<=0?(s>-3*3600?'идёт':''):m<60?`через ${m} мин`:`через ${Math.floor(m/60)} ч ${m%60} мин`})}
+ window.__tick=tick;tick();setInterval(tick,1000);
+});
+</script>
