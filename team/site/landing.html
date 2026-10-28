@@ -916,7 +916,7 @@ const hsl=(h,s,l)=>`hsl(${h.toFixed(0)} ${(s*100).toFixed(0)}% ${(l*100).toFixed
 const ROLE={LW:[-1,'F'],C:[0,'F'],RW:[1,'F'],LD:[-1,'D'],RD:[1,'D']};
 const clamp=(v,a,b)=>v<a?a:v>b?b:v,hyp=Math.hypot,rnd=(a,b)=>a+Math.random()*(b-a);
 let W,H,DPR,VS,VP;
-const RQ=.75,RB=8,RS=4;   // разрешение сцены, размытие (px экрана), уменьшение для размытия
+const RQ=.75;   // разрешение сцены (доля CSS-пикселя)
 function size(){DPR=RQ;W=cv.clientWidth;H=cv.clientHeight;buf.width=Math.round(W*DPR);buf.height=Math.round(H*DPR);
  cv.width=buf.width;cv.height=buf.height;   // экран того же размера, растягивает видеокарта (бесплатно)
  VP=H>W*1.15;VS=(VP?Math.min(W/112,H/214):Math.min(W/214,H/112))*.97;}
@@ -1183,13 +1183,16 @@ function draw(){
 }
 // размытие без фильтров (они на слабых видеокартах считаются процессором): сцена выводится 4 раза со сдвигом на RB px
 // и усредняется — мягкий фон за 4 копирования картинки
-// владелец 28.10: «больше размытости, чтобы хоккеисты не мешали тексту». Сцена уменьшается в RS раз (уменьшение и
-// обратное растяжение уже размывают) и выводится 4 раза со сдвигом на RB px — сильное мягкое размытие за 5 копирований
-const small=document.createElement('canvas'),sg=small.getContext('2d');
-function blur4(){const w=cv.width,h=cv.height,o=RB*RQ;
- if(small.width!==Math.round(w/RS)){small.width=Math.round(w/RS);small.height=Math.round(h/RS)}
- sg.drawImage(buf,0,0,small.width,small.height);out.imageSmoothingEnabled=true;out.globalAlpha=1;out.drawImage(small,0,0,w,h);
- [[o,o,1/2],[-o,o,1/3],[o*.3,-o,1/4]].forEach(([dx,dy,a])=>{out.globalAlpha=a;out.drawImage(small,dx,dy,w,h)});out.globalAlpha=1}
+// Размытие (владелец 28.10: игроки не должны мешать тексту, но без ряби и двоения). Уменьшение пополам несколько раз
+// подряд (каждый шаг усредняет 2×2 пикселя) и обратное растяжение тоже по шагам — гладкое размытие без фильтров
+// (CSS- и canvas-blur на слабой видеокарте считает процессор) и без «двойных» контуров от сдвинутых копий.
+const LV=[1,2].map(()=>{const c=document.createElement('canvas');return [c,c.getContext('2d')]});
+function blur4(){const w=cv.width,h=cv.height;let src=buf;
+ LV.forEach(([c,x],i)=>{const k=2**(i+1),cw=Math.max(1,Math.round(w/k)),ch=Math.max(1,Math.round(h/k));
+  if(c.width!==cw){c.width=cw;c.height=ch}x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.globalAlpha=1;
+  x.clearRect(0,0,cw,ch);x.drawImage(src,0,0,cw,ch);src=c});
+ const [c1,x1]=LV[0];x1.drawImage(LV[1][0],0,0,c1.width,c1.height);   // вверх по шагам: ¼ → ½ → экран
+ out.imageSmoothingEnabled=true;out.imageSmoothingQuality='high';out.globalAlpha=1;out.drawImage(c1,0,0,w,h)}
 size();addEventListener('resize',()=>{size();draw()});
 let last=0;
 // матч рисуется, только пока первый экран виден: ниже по странице кадры не тратятся (и не мешают прокрутке)
