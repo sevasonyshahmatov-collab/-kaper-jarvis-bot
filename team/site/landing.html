@@ -962,7 +962,8 @@ function netPush(o){const ax=Math.abs(o.x),ay=Math.abs(o.y);if(ax>87.4&&ax<94&&a
  const a=ax-87.4,b=94-ax,c=4.6-ay,m=Math.min(a,b,c);
  if(m===a)o.x=Math.sign(o.x)*87.4;else if(m===b)o.x=Math.sign(o.x)*94;else o.y=(Math.sign(o.y)||1)*4.6;}}
 function steer(p,tx,ty,max,dt){const dx=tx-p.x,dy=ty-p.y,d=hyp(dx,dy)||1e-6,sp=Math.min(max,d*.9);
- let ax=dx/d*sp-p.vx,ay=dy/d*sp-p.vy;const al=hyp(ax,ay),lim=9*dt;if(al>lim){ax*=lim/al;ay*=lim/al}p.vx+=ax;p.vy+=ay;}
+ const e=Math.min(1,dt*4);let ax=(dx/d*sp-p.vx)*e,ay=(dy/d*sp-p.vy)*e;const al=hyp(ax,ay),lim=9*dt;   // скорость меняется плавно, без рывков
+if(al>lim){ax*=lim/al;ay*=lim/al}p.vx+=ax;p.vy+=ay;}
 function startEnter(m,o){const dr=TEAM[m.t].door+o;m.state='entering';m.path=[[dr,45],[dr,38.5]];}
 
 function upPlayers(dt){
@@ -976,14 +977,16 @@ function upPlayers(dt){
     if(p.state==='leaving'&&!p.trig){p.trig=1;startEnter(p.mate,p.off)}
     if(!p.path.length){if(p.state==='leaving'){p.state='bench';p.seat=p.newSeat}else p.state='ice';return}
     tg=p.path[0];}
-  }else{tg=p.ov||form(p);if(p===puck.carrier)max=6.5}
+  }else if(p.ov){tg=p.ov;p.ft=null;if(p===puck.carrier)max=6.5}
+  else{tg=form(p);if(p===puck.carrier)max=6.5;     // место в построении сглажено: при смене владения игроки плавно
+   if(!p.ft)p.ft=[tg[0],tg[1]];const k=Math.min(1,dt*1.8);p.ft[0]+=(tg[0]-p.ft[0])*k;p.ft[1]+=(tg[1]-p.ft[1])*k;tg=p.ft}  // перестраиваются
   steer(p,tg[0],tg[1],max,dt);
   if(p.state==='ice')live.forEach(o=>{if(o===p||o.state!=='ice')return;const dx=p.x-o.x,dy=p.y-o.y,d=hyp(dx,dy);if(d<3.3&&d>0){p.vx+=dx/d*(3.3-d)*2*dt;p.vy+=dy/d*(3.3-d)*2*dt}});
   p.x+=p.vx*dt;p.y+=p.vy*dt;
   if(p.state==='ice'){inRink(p,1.6);netPush(p)}
   const s=hyp(p.vx,p.vy);p.acc=(p.acc||0)+((s-(p.ls||0))/Math.max(dt,1e-3)-(p.acc||0))*Math.min(1,dt*3);p.ls=s;
   if(s>1.2)p.gait=(p.gait||0)+dt*2.4;p.pa=(p.pa||0)+((s>1.5?(p.acc>.35?1:.4)*Math.min(1,s/7):0)-(p.pa||0))*Math.min(1,dt*2);
-  if(s>.4){const k=Math.min(1,dt*4);p.hx+=(p.vx/s-p.hx)*k;p.hy+=(p.vy/s-p.hy)*k;const n=hyp(p.hx,p.hy)||1;p.hx/=n;p.hy/=n}
+  if(s>.4){const k=Math.min(1,dt*3);p.hx+=(p.vx/s-p.hx)*k;p.hy+=(p.vy/s-p.hy)*k;const n=hyp(p.hx,p.hy)||1;p.hx/=n;p.hy/=n}
  });}
 function stickEnd(c){const a=Math.atan2(c.hy,c.hx)+c.stick*.5;return [c.x+Math.cos(a)*3.4,c.y+Math.sin(a)*3.4]}
 function upPuck(dt){
@@ -1179,7 +1182,8 @@ size();addEventListener('resize',()=>{size();draw()});
 let last=0;
 // матч рисуется, только пока первый экран виден: ниже по странице кадры не тратятся (и не мешают прокрутке)
 let run=false;const go=()=>{if(!run&&!still){run=true;last=0;requestAnimationFrame(frame)}};
-function frame(ts){if(!vis){run=false;return}const dt=last?Math.min(.05,(ts-last)/1000):.016;last=ts;tick(dt);draw();requestAnimationFrame(frame)}
+const PACE=1.2;   // владелец 28.10: матч на фоне чуть быстрее
+function frame(ts){if(!vis){run=false;return}const dt=last?Math.min(.05,(ts-last)/1000):.016;last=ts;tick(dt*PACE);draw();requestAnimationFrame(frame)}
 let vis=true;if('IntersectionObserver' in window)new IntersectionObserver(es=>{vis=es[0].isIntersecting;if(vis)go()}).observe(cv);
 draw();go();
 window.__rink={PL,puck,TEAM,cam,get si(){return si},get forced(){return forced},sim(sec){const log=[];let prev=si;for(let t=0;t<sec;t+=1/60){tick(1/60);if(si!==prev){log.push([+T.toFixed(1),prev,S[prev].do]);prev=si}}return log}};
