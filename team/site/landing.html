@@ -59,7 +59,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 /* hero */
 .hero{position:relative;overflow:hidden;padding-block:56px 64px}
 .veil{position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(90deg,rgba(7,18,37,.88) 0%,rgba(7,18,37,.6) 38%,rgba(7,18,37,0) 62%)}
-#rink{position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:.85}
+#rink{position:absolute;inset:0;width:100%;height:100%;z-index:0;filter:blur(3px);opacity:.85}
 .hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center}
 .hero h1{font-size:clamp(40px,7vw,84px);font-weight:900;letter-spacing:-.01em}
 .hero h1 .c{color:var(--cyan)} .hero h1 .r{color:var(--red)}
@@ -895,8 +895,7 @@ document.getElementById('buy').onclick=()=>{document.getElementById('buymsg').in
 
 // rink canvas: scripted background match, top-down view in feet (rink 200x85, benches below, penalty boxes above).
 (()=>{
-// 28.10: сцена рисуется в буфер, на экран выводится с лёгким размытием средствами самого холста (дешевле CSS-фильтра)
-const cv=document.getElementById('rink'),out=cv.getContext('2d'),buf=document.createElement('canvas'),g=buf.getContext('2d');
+const cv=document.getElementById('rink'),g=cv.getContext('2d');
 const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ICE='#0b1a33',OUT='#071225',BOX='rgba(234,243,255,.05)',BOXL='rgba(234,243,255,.14)',BOARD='rgba(234,243,255,.24)',RED='rgba(255,59,92,.4)',BLUE='rgba(62,224,255,.32)';
 const TEAM={A:{c:'#3ee0ff',dk:'#0d6e91',d:1,door:-13,b0:-31},B:{c:'#ff3b5c',dk:'#a3203a',d:-1,door:13,b0:17}};
@@ -916,9 +915,9 @@ const hsl=(h,s,l)=>`hsl(${h.toFixed(0)} ${(s*100).toFixed(0)}% ${(l*100).toFixed
 const ROLE={LW:[-1,'F'],C:[0,'F'],RW:[1,'F'],LD:[-1,'D'],RD:[1,'D']};
 const clamp=(v,a,b)=>v<a?a:v>b?b:v,hyp=Math.hypot,rnd=(a,b)=>a+Math.random()*(b-a);
 let W,H,DPR,VS,VP;
-const RQ=.85,NL=3,TA=.55;   // разрешение сцены (в низком — рябь клюшек и линий); NL — шагов уменьшения пополам; TA — доля нового кадра
-function size(){DPR=RQ;W=cv.clientWidth;H=cv.clientHeight;buf.width=Math.round(W*DPR);buf.height=Math.round(H*DPR);
- cv.width=buf.width;cv.height=buf.height;   // экран того же размера, растягивает видеокарта (бесплатно)
+// владелец 28.10: разрешение и размытие — как до переделок (полное разрешение экрана, CSS-размытие 3 px);
+// оставлены остальные правки: игроки скользят, темп ×1,2, шапка без размытия, фон не рисуется вне экрана
+function size(){DPR=devicePixelRatio||1;W=cv.clientWidth;H=cv.clientHeight;cv.width=W*DPR;cv.height=H*DPR;
  VP=H>W*1.15;VS=(VP?Math.min(W/112,H/214):Math.min(W/214,H/112))*.97;}
 
 // players: two units per team, unit 2 starts on the bench
@@ -1179,22 +1178,9 @@ function draw(){
  g.globalAlpha=.88;PL.filter(p=>p.state==='bench').forEach(skater);PL.filter(p=>p.state!=='bench').forEach(skater);
  ['A','B'].forEach(goalie);g.globalAlpha=1;
  if(puck.mode!=='hidden'){dot(puck.x+.12,puck.y+.15,.45,'rgba(0,0,0,.45)');dot(puck.x,puck.y,.38,'#eaf3ff')}
- blur4();
 }
 // размытие без фильтров (они на слабых видеокартах считаются процессором): сцена выводится 4 раза со сдвигом на RB px
 // и усредняется — мягкий фон за 4 копирования картинки
-// Размытие (владелец 28.10: игроки не должны мешать тексту, но без ряби и двоения). Сцена в высоком разрешении, уменьшение
-// в 8 раз по шагам, а каждый новый кадр смешивается с прошлым (TA) — мерцание мелких деталей гасится, движение мягче. Уменьшение пополам несколько раз
-// подряд (каждый шаг усредняет 2×2 пикселя) и обратное растяжение тоже по шагам — гладкое размытие без фильтров
-// (CSS- и canvas-blur на слабой видеокарте считает процессор) и без «двойных» контуров от сдвинутых копий.
-const LV=Array.from({length:NL},()=>{const c=document.createElement('canvas');return [c,c.getContext('2d')]});
-function blur4(){const w=cv.width,h=cv.height;let src=buf;
- LV.forEach(([c,x],i)=>{const k=2**(i+1),cw=Math.max(1,Math.round(w/k)),ch=Math.max(1,Math.round(h/k));
-  if(c.width!==cw){c.width=cw;c.height=ch}x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.globalAlpha=1;
-  x.clearRect(0,0,cw,ch);x.drawImage(src,0,0,cw,ch);src=c});
- for(let i=LV.length-1;i>0;i--){const [c,x]=LV[i-1];x.drawImage(LV[i][0],0,0,c.width,c.height)}   // вверх по шагам до ½
- const [c1]=LV[0];
- out.imageSmoothingEnabled=true;out.imageSmoothingQuality='high';out.globalAlpha=TA;out.drawImage(c1,0,0,w,h);out.globalAlpha=1}
 size();addEventListener('resize',()=>{size();draw()});
 let last=0;
 // матч рисуется, только пока первый экран виден: ниже по странице кадры не тратятся (и не мешают прокрутке)
