@@ -59,7 +59,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 /* hero */
 .hero{position:relative;overflow:hidden;padding-block:56px 64px}
 .veil{position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(90deg,rgba(7,18,37,.88) 0%,rgba(7,18,37,.6) 38%,rgba(7,18,37,0) 62%)}
-#rink{position:absolute;inset:0;width:100%;height:100%;z-index:0;filter:blur(3px);opacity:.85}
+#rink{position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:.85}
 .hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center}
 .hero h1{font-size:clamp(40px,7vw,84px);font-weight:900;letter-spacing:-.01em}
 .hero h1 .c{color:var(--cyan)} .hero h1 .r{color:var(--red)}
@@ -381,7 +381,7 @@ html{scroll-padding-top:65px}
 /* Огни на льду (владелец 27.10): тонкие линии разметки загораются и гаснут; закреплены на своих местах по всей длине
    страницы (листаются вместе с ней), только на полях по бокам — не поверх текста; тусклые; клики не ловят;
    при «меньше движения» не показываются. */
-#glow{position:absolute;left:0;top:0;width:100%;height:0;z-index:15;pointer-events:none;overflow:hidden;mix-blend-mode:screen}
+#glow{position:absolute;left:0;top:0;width:100%;height:0;z-index:15;pointer-events:none;overflow:hidden}
 #glow i{position:absolute;display:block;border-radius:2px;opacity:0;animation:glow var(--d,8s) ease-in-out var(--w,0s) infinite;
  background:linear-gradient(var(--a,180deg),transparent,var(--c,#3ee0ff) 45%,#e6fbff 50%,var(--c,#3ee0ff) 55%,transparent);
  box-shadow:0 0 12px 1px var(--c,#3ee0ff)}
@@ -915,7 +915,9 @@ const hsl=(h,s,l)=>`hsl(${h.toFixed(0)} ${(s*100).toFixed(0)}% ${(l*100).toFixed
 const ROLE={LW:[-1,'F'],C:[0,'F'],RW:[1,'F'],LD:[-1,'D'],RD:[1,'D']};
 const clamp=(v,a,b)=>v<a?a:v>b?b:v,hyp=Math.hypot,rnd=(a,b)=>a+Math.random()*(b-a);
 let W,H,DPR,VS,VP;
-function size(){DPR=devicePixelRatio||1;W=cv.clientWidth;H=cv.clientHeight;cv.width=W*DPR;cv.height=H*DPR;
+// 28.10: матч на фоне размыт — рисуем его в половинном разрешении, а растягивает браузер (мягко, как размытие).
+// Раньше: полное разрешение экрана + CSS-размытие (filter: blur) каждого кадра — на слабой видеокарте (рабочий ПК) кадры терялись, фон дёргался.
+function size(){DPR=.4;W=cv.clientWidth;H=cv.clientHeight;cv.width=W*DPR;cv.height=H*DPR;
  VP=H>W*1.15;VS=(VP?Math.min(W/112,H/214):Math.min(W/214,H/112))*.97;}
 
 // players: two units per team, unit 2 starts on the bench
@@ -960,7 +962,8 @@ function netPush(o){const ax=Math.abs(o.x),ay=Math.abs(o.y);if(ax>87.4&&ax<94&&a
  const a=ax-87.4,b=94-ax,c=4.6-ay,m=Math.min(a,b,c);
  if(m===a)o.x=Math.sign(o.x)*87.4;else if(m===b)o.x=Math.sign(o.x)*94;else o.y=(Math.sign(o.y)||1)*4.6;}}
 function steer(p,tx,ty,max,dt){const dx=tx-p.x,dy=ty-p.y,d=hyp(dx,dy)||1e-6,sp=Math.min(max,d*.9);
- let ax=dx/d*sp-p.vx,ay=dy/d*sp-p.vy;const al=hyp(ax,ay),lim=9*dt;if(al>lim){ax*=lim/al;ay*=lim/al}p.vx+=ax;p.vy+=ay;}
+ const e=Math.min(1,dt*4);let ax=(dx/d*sp-p.vx)*e,ay=(dy/d*sp-p.vy)*e;const al=hyp(ax,ay),lim=9*dt;   // скорость меняется плавно, без рывков
+if(al>lim){ax*=lim/al;ay*=lim/al}p.vx+=ax;p.vy+=ay;}
 function startEnter(m,o){const dr=TEAM[m.t].door+o;m.state='entering';m.path=[[dr,45],[dr,38.5]];}
 
 function upPlayers(dt){
@@ -974,14 +977,16 @@ function upPlayers(dt){
     if(p.state==='leaving'&&!p.trig){p.trig=1;startEnter(p.mate,p.off)}
     if(!p.path.length){if(p.state==='leaving'){p.state='bench';p.seat=p.newSeat}else p.state='ice';return}
     tg=p.path[0];}
-  }else{tg=p.ov||form(p);if(p===puck.carrier)max=6.5}
+  }else if(p.ov){tg=p.ov;p.ft=null;if(p===puck.carrier)max=6.5}
+  else{tg=form(p);if(p===puck.carrier)max=6.5;     // место в построении сглажено: при смене владения игроки плавно
+   if(!p.ft)p.ft=[tg[0],tg[1]];const k=Math.min(1,dt*1.8);p.ft[0]+=(tg[0]-p.ft[0])*k;p.ft[1]+=(tg[1]-p.ft[1])*k;tg=p.ft}  // перестраиваются
   steer(p,tg[0],tg[1],max,dt);
   if(p.state==='ice')live.forEach(o=>{if(o===p||o.state!=='ice')return;const dx=p.x-o.x,dy=p.y-o.y,d=hyp(dx,dy);if(d<3.3&&d>0){p.vx+=dx/d*(3.3-d)*2*dt;p.vy+=dy/d*(3.3-d)*2*dt}});
   p.x+=p.vx*dt;p.y+=p.vy*dt;
   if(p.state==='ice'){inRink(p,1.6);netPush(p)}
   const s=hyp(p.vx,p.vy);p.acc=(p.acc||0)+((s-(p.ls||0))/Math.max(dt,1e-3)-(p.acc||0))*Math.min(1,dt*3);p.ls=s;
   if(s>1.2)p.gait=(p.gait||0)+dt*2.4;p.pa=(p.pa||0)+((s>1.5?(p.acc>.35?1:.4)*Math.min(1,s/7):0)-(p.pa||0))*Math.min(1,dt*2);
-  if(s>.4){const k=Math.min(1,dt*4);p.hx+=(p.vx/s-p.hx)*k;p.hy+=(p.vy/s-p.hy)*k;const n=hyp(p.hx,p.hy)||1;p.hx/=n;p.hy/=n}
+  if(s>.4){const k=Math.min(1,dt*3);p.hx+=(p.vx/s-p.hx)*k;p.hy+=(p.vy/s-p.hy)*k;const n=hyp(p.hx,p.hy)||1;p.hx/=n;p.hy/=n}
  });}
 function stickEnd(c){const a=Math.atan2(c.hy,c.hx)+c.stick*.5;return [c.x+Math.cos(a)*3.4,c.y+Math.sin(a)*3.4]}
 function upPuck(dt){
@@ -1175,8 +1180,12 @@ function draw(){
 }
 size();addEventListener('resize',()=>{size();draw()});
 let last=0;
-function frame(ts){const dt=last?Math.min(.05,(ts-last)/1000):.016;last=ts;tick(dt);draw();requestAnimationFrame(frame)}
-draw();if(!still)requestAnimationFrame(frame);
+// матч рисуется, только пока первый экран виден: ниже по странице кадры не тратятся (и не мешают прокрутке)
+let run=false;const go=()=>{if(!run&&!still){run=true;last=0;requestAnimationFrame(frame)}};
+const PACE=1.2;   // владелец 28.10: матч на фоне чуть быстрее
+function frame(ts){if(!vis){run=false;return}const dt=last?Math.min(.05,(ts-last)/1000):.016;last=ts;tick(dt*PACE);draw();requestAnimationFrame(frame)}
+let vis=true;if('IntersectionObserver' in window)new IntersectionObserver(es=>{vis=es[0].isIntersecting;if(vis)go()}).observe(cv);
+draw();go();
 window.__rink={PL,puck,TEAM,cam,get si(){return si},get forced(){return forced},sim(sec){const log=[];let prev=si;for(let t=0;t<sec;t+=1/60){tick(1/60);if(si!==prev){log.push([+T.toFixed(1),prev,S[prev].do]);prev=si}}return log}};
 })();
 </script>
