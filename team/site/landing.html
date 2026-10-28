@@ -36,7 +36,7 @@ a{color:inherit}
 .btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
 
 /* top bar */
-header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(7,18,37,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(7,18,37,.95);border-bottom:1px solid var(--line)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--ice)}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:12px}
 .logo{font-family:var(--display);font-weight:900;font-size:20px;letter-spacing:.06em}
@@ -895,7 +895,8 @@ document.getElementById('buy').onclick=()=>{document.getElementById('buymsg').in
 
 // rink canvas: scripted background match, top-down view in feet (rink 200x85, benches below, penalty boxes above).
 (()=>{
-const cv=document.getElementById('rink'),g=cv.getContext('2d');
+// 28.10: сцена рисуется в буфер, на экран выводится с лёгким размытием средствами самого холста (дешевле CSS-фильтра)
+const cv=document.getElementById('rink'),out=cv.getContext('2d'),buf=document.createElement('canvas'),g=buf.getContext('2d');
 const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ICE='#0b1a33',OUT='#071225',BOX='rgba(234,243,255,.05)',BOXL='rgba(234,243,255,.14)',BOARD='rgba(234,243,255,.24)',RED='rgba(255,59,92,.4)',BLUE='rgba(62,224,255,.32)';
 const TEAM={A:{c:'#3ee0ff',dk:'#0d6e91',d:1,door:-13,b0:-31},B:{c:'#ff3b5c',dk:'#a3203a',d:-1,door:13,b0:17}};
@@ -915,9 +916,9 @@ const hsl=(h,s,l)=>`hsl(${h.toFixed(0)} ${(s*100).toFixed(0)}% ${(l*100).toFixed
 const ROLE={LW:[-1,'F'],C:[0,'F'],RW:[1,'F'],LD:[-1,'D'],RD:[1,'D']};
 const clamp=(v,a,b)=>v<a?a:v>b?b:v,hyp=Math.hypot,rnd=(a,b)=>a+Math.random()*(b-a);
 let W,H,DPR,VS,VP;
-// 28.10: матч на фоне размыт — рисуем его в половинном разрешении, а растягивает браузер (мягко, как размытие).
-// Раньше: полное разрешение экрана + CSS-размытие (filter: blur) каждого кадра — на слабой видеокарте (рабочий ПК) кадры терялись, фон дёргался.
-function size(){DPR=.4;W=cv.clientWidth;H=cv.clientHeight;cv.width=W*DPR;cv.height=H*DPR;
+const RQ=.75,RB=3;   // разрешение сцены (доля CSS-пикселя) и размытие, px экрана
+function size(){DPR=RQ;W=cv.clientWidth;H=cv.clientHeight;buf.width=Math.round(W*DPR);buf.height=Math.round(H*DPR);
+ cv.width=buf.width;cv.height=buf.height;   // экран того же размера, растягивает видеокарта (бесплатно)
  VP=H>W*1.15;VS=(VP?Math.min(W/112,H/214):Math.min(W/214,H/112))*.97;}
 
 // players: two units per team, unit 2 starts on the bench
@@ -961,7 +962,7 @@ function inRink(o,m){o.x=clamp(o.x,-100+m,100-m);o.y=clamp(o.y,-42.5+m,42.5-m);
 function netPush(o){const ax=Math.abs(o.x),ay=Math.abs(o.y);if(ax>87.4&&ax<94&&ay<4.6){
  const a=ax-87.4,b=94-ax,c=4.6-ay,m=Math.min(a,b,c);
  if(m===a)o.x=Math.sign(o.x)*87.4;else if(m===b)o.x=Math.sign(o.x)*94;else o.y=(Math.sign(o.y)||1)*4.6;}}
-function steer(p,tx,ty,max,dt){const dx=tx-p.x,dy=ty-p.y,d=hyp(dx,dy)||1e-6,sp=Math.min(max,d*.9);
+function steer(p,tx,ty,max,dt){const dx=tx-p.x,dy=ty-p.y,d=hyp(dx,dy)||1e-6,sp=d<1.5?d:Math.min(max,1.5+(d-1.5)*1.1);   // у цели не ползут, а докатываются
  const e=Math.min(1,dt*4);let ax=(dx/d*sp-p.vx)*e,ay=(dy/d*sp-p.vy)*e;const al=hyp(ax,ay),lim=9*dt;   // скорость меняется плавно, без рывков
 if(al>lim){ax*=lim/al;ay*=lim/al}p.vx+=ax;p.vy+=ay;}
 function startEnter(m,o){const dr=TEAM[m.t].door+o;m.state='entering';m.path=[[dr,45],[dr,38.5]];}
@@ -985,7 +986,8 @@ function upPlayers(dt){
   p.x+=p.vx*dt;p.y+=p.vy*dt;
   if(p.state==='ice'){inRink(p,1.6);netPush(p)}
   const s=hyp(p.vx,p.vy);p.acc=(p.acc||0)+((s-(p.ls||0))/Math.max(dt,1e-3)-(p.acc||0))*Math.min(1,dt*3);p.ls=s;
-  if(s>1.2)p.gait=(p.gait||0)+dt*2.4;p.pa=(p.pa||0)+((s>1.5?(p.acc>.35?1:.4)*Math.min(1,s/7):0)-(p.pa||0))*Math.min(1,dt*2);
+  if(s>1.2)p.gait=(p.gait||0)+dt*(1.3+s*.16);   // коньки: толчок ногой — при разгоне, на ходу редкий слабый, на малой скорости — накат
+  p.pa=(p.pa||0)+((s>1.5?(p.acc>.3?Math.min(1,s/6):s>4?.22:0):0)-(p.pa||0))*Math.min(1,dt*2.5);
   if(s>.4){const k=Math.min(1,dt*3);p.hx+=(p.vx/s-p.hx)*k;p.hy+=(p.vy/s-p.hy)*k;const n=hyp(p.hx,p.hy)||1;p.hx/=n;p.hy/=n}
  });}
 function stickEnd(c){const a=Math.atan2(c.hy,c.hx)+c.stick*.5;return [c.x+Math.cos(a)*3.4,c.y+Math.sin(a)*3.4]}
@@ -1177,7 +1179,12 @@ function draw(){
  g.globalAlpha=.88;PL.filter(p=>p.state==='bench').forEach(skater);PL.filter(p=>p.state!=='bench').forEach(skater);
  ['A','B'].forEach(goalie);g.globalAlpha=1;
  if(puck.mode!=='hidden'){dot(puck.x+.12,puck.y+.15,.45,'rgba(0,0,0,.45)');dot(puck.x,puck.y,.38,'#eaf3ff')}
+ blur4();
 }
+// размытие без фильтров (они на слабых видеокартах считаются процессором): сцена выводится 4 раза со сдвигом на RB px
+// и усредняется — мягкий фон за 4 копирования картинки
+function blur4(){const w=cv.width,h=cv.height,o=RB*RQ;out.globalAlpha=1;out.drawImage(buf,0,0,w,h);if(!o)return;
+ [[o,o,1/2],[-o,o,1/3],[o*.3,-o,1/4]].forEach(([dx,dy,a])=>{out.globalAlpha=a;out.drawImage(buf,dx,dy,w,h)});out.globalAlpha=1}
 size();addEventListener('resize',()=>{size();draw()});
 let last=0;
 // матч рисуется, только пока первый экран виден: ниже по странице кадры не тратятся (и не мешают прокрутке)
