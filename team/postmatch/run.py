@@ -478,7 +478,8 @@ def main():
     if not a.pm:
         print('POSTMATCHERR нет данных прогноза (POSTMATCH)')
         return 0
-    p = load_pick(json.loads(a.pm))
+    raw = json.loads(a.pm)
+    p = load_pick(raw)
     print('прогноз:', p['pid'], p['home'], '—', p['away'], p['start'], p['pick'], p['kef'], flush=True)
     g = final_game(p)
     if not g:
@@ -494,7 +495,16 @@ def main():
     word = {settle.WIN: 'зашла', settle.LOSS: 'не зашла', settle.PUSH: 'возврат'}[res]
     mine = [t for t in sent_texts() if t not in recent]
     print('POSTMATCH сверка с недавними: в канале %d, отправлено владельцу %d' % (len(recent), len(mine)), flush=True)
-    body = writer.write(p, g, word, chronicle.facts(p, g), pick_why, (mine[::-1] + list(recent))[:6])
+    facts = chronicle.facts(p, g)
+    # нейросети не отвечают (лимит Gemini, нет денег на Claude API) — текст пишет чат команды: сначала хроника
+    # («facts_only»: только печать в лог, владельцу ничего), затем готовые «story» и «outro» в pm
+    if raw.get('facts_only'):
+        print('POSTMATCH обоснование прогноза:\n%s\nPOSTMATCH хроника:\n%s' % (pick_why, facts), flush=True)
+        return 0
+    if raw.get('story') and raw.get('outro'):
+        body = (str(raw['story']).strip(), str(raw['outro']).strip())
+    else:
+        body = writer.write(p, g, word, facts, pick_why, (mine[::-1] + list(recent))[:6])
     if body:
         remember(p, body)
         text = post_text(p, g, goals, res, why, legs, body)
