@@ -134,6 +134,8 @@ def build(year, boot, sts, upto, known=None):
         inf = info(src)
         sog = inf.get('Броски в створ')
         ta, tb = src.get('team_a') or e.get('team_a') or {}, src.get('team_b') or e.get('team_b') or {}
+        if 'stars' in (str(K.team(ta)) + str(K.team(tb))).lower():      # матч звёзд — не матч чемпионата
+            continue
         g = {'id': e.get('id'), 's': year, 'd': K.msk(src.get('start_at') or e.get('start_at')), 'h': K.team(ta), 'a': K.team(tb),
              'hg': hg, 'ag': ag, 'e': end, 'p': per, 'r': r}
         if sog:
@@ -177,7 +179,7 @@ def load(seasons=None, today=None, refresh_current=True):
         if os.path.exists(p) and not (s == cur and refresh_current):
             try:
                 with gzip.open(p, 'rt', encoding='utf-8') as f:
-                    games = json.load(f)
+                    games = [g for g in json.load(f) if 'stars' not in (g['h'] + g['a']).lower()]
                 out('KHLHIST', 'сезон %d/%02d: из кэша, матчей %d' % (s, (s + 1) % 100, len(games)))
             except (OSError, ValueError):
                 games = None
