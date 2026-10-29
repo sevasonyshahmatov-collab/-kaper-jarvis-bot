@@ -225,6 +225,9 @@ def main():
 
     # сетка параметров рейтинга
     grid = dict(hl=[8.0, 16.0], kp=[4.0, 8.0], reg=[0.33, 0.6], alpha=[0.5, 0.8], beta=[0.8])
+    for a in sys.argv[1:]:
+        if a.startswith('{'):
+            grid = {k: [float(x) for x in v] for k, v in json.loads(a).items()}
     if QUICK:
         grid = dict(hl=[10.0], kp=[6.0], reg=[0.33], alpha=[0.6], beta=[0.8])
     variants = [dict(MO.P0, **dict(zip(grid, vals))) for vals in itertools.product(*grid.values())]
@@ -260,8 +263,8 @@ def main():
                 scored.append((tune, P, li, wn, ll))
     scored.sort(key=lambda x: x[0])
     for tune, P, li, wn, ll in scored[:8]:
-        out('BT2VAR', 'новый hl=%g kp=%g reg=%g α=%g | %s | модель %.1f | подбор %.4f | %s' % (
-            P['hl'], P['kp'], P['reg'], P['alpha'], LAMV[li], wn, tune, ' · '.join('%d: %.4f' % (s, ll[s]) for s in EVAL)))
+        out('BT2VAR', 'новый %s | %s | модель %.1f | подбор %.4f | %s' % (
+            ' '.join('%s=%g' % (k, P[k]) for k in grid), LAMV[li], wn, tune, ' · '.join('%d: %.4f' % (s, ll[s]) for s in EVAL)))
     # вклад вратаря и усталости при лучших параметрах рейтинга
     bestP = scored[0][1]
     for tune, P, li, wn, ll in scored:
@@ -332,6 +335,30 @@ def main():
     for k, v in byk.items():
         if len(v) >= 200:
             calib[k] = BT.fit(v)
+    # рейтинг команд сейчас (лучшие параметры) — для таблицы и для сверки владельцем
+    final = {}
+    for s in sorted(SEAS):
+        prior = MO.shrink_prior(final[s - 1], P) if s - 1 in final else None
+        final[s] = MO.ratings(SEAS[s], P, prior, final[s - 1]['mu'] if s - 1 in final else None)
+    cur = max(SEAS)
+    R = final[cur]
+    r100 = MO.rating100(R)
+    out('BT2RATE', ' · '.join('%s %d (атака %.2f, оборона %.2f, игр %d)' % (t, r100[t], R['A'][t], R['D'][t], R['n'].get(t, 0))
+                             for t in sorted(r100, key=lambda t: -r100[t])))
+    GT = MO.goalie_table(SEAS[cur], SEAS.get(cur - 1), P)
+    names = {}
+    for g in SEAS[cur]:
+        for side, gid in zip((g['h'], g['a']), g.get('g') or []):
+            names.setdefault(gid, side)
+    top = sorted(((MO.gsax(GT, k), k) for k in names if MO.gsax(GT, k) is not None), reverse=True)
+    for _, k in top[:6] + top[-6:]:
+        try:
+            pl = HI.N.get('player/%s/landing' % k)
+            names[k] = '%s %s, %s' % (HI.N.dflt(pl.get('firstName')), HI.N.dflt(pl.get('lastName')), names[k])
+        except Exception:  # noqa: BLE001
+            pass
+    out('BT2GK', 'лучшие: ' + ', '.join('%s (%s) %+.1f' % (k, names[k], v) for v, k in top[:6]) + ' | худшие: '
+        + ', '.join('%s (%s) %+.1f' % (k, names[k], v) for v, k in top[-6:]))
     out('BT2BEST', json.dumps(dict(P={k: P[k] for k in P}, lam=LAMV[li], wn=wn), ensure_ascii=False))
     out('BT2CALIB', json.dumps(calib, ensure_ascii=False, separators=(',', ':')))
 
