@@ -31,6 +31,7 @@ MIN_GP = 3
 EVAL = (2024, 2025, 2026)
 TUNE = (2024, 2025)
 QUICK = '--quick' in sys.argv
+KHL = '--league' in sys.argv and sys.argv[sys.argv.index('--league') + 1].lower() == 'khl'   # КХЛ: khl_hist.py
 
 
 def out(tag, text):
@@ -207,7 +208,12 @@ def pick_line(tag, lst):
 
 def main():
     global SEAS, OLD
-    allg = HI.load()
+    if KHL:
+        import khl_hist
+        allg = khl_hist.load(seasons=[2023, 2024, 2025, 2026])
+    else:
+        allg = HI.load()
+    out('BT2DATA', 'лига %s' % ('КХЛ' if KHL else 'НХЛ'))
     for g in allg:
         SEAS.setdefault(g['s'], []).append(g)
     for s in SEAS:
@@ -356,7 +362,7 @@ def main():
         for side, gid in zip((g['h'], g['a']), g.get('g') or []):
             names.setdefault(gid, side)
     top = sorted(((MO.gsax(GT, k), k) for k in names if MO.gsax(GT, k) is not None), reverse=True)
-    for _, k in top[:6] + top[-6:]:
+    for _, k in ([] if KHL else top[:6] + top[-6:]):
         try:
             pl = HI.N.get('player/%s/landing' % k)
             names[k] = '%s %s, %s' % (HI.N.dflt(pl.get('firstName')), HI.N.dflt(pl.get('lastName')), names[k])
