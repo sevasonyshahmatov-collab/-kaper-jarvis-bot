@@ -200,6 +200,12 @@ def postmatch_env(payload):
     out = {k: str(pm.get(k) or '').replace('\n', ' ')[:200] for k in ('pid', 'league', 'home', 'away', 'start', 'pick', 'kef')}
     if str(pm.get('ch') or '').isdigit():
         out['ch'] = int(pm['ch'])
+    # текст из чата команды, когда нейросети недоступны (team/postmatch/README.md, 29.10)
+    if pm.get('facts_only'):
+        out['facts_only'] = 1
+    for k, n in (('story', 900), ('outro', 300)):
+        if pm.get(k):
+            out[k] = str(pm[k]).replace('\n', ' ')[:n]
     return {'POSTMATCH': json.dumps(out, ensure_ascii=False)}
 
 
