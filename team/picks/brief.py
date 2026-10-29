@@ -10,7 +10,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 lg, day, flt = sys.argv[1], sys.argv[2], sys.argv[3:]
 r = subprocess.run([sys.executable, os.path.join(ROOT, 'team', 'picks', 'day.py'), lg, day], cwd=ROOT, capture_output=True,
                    text=True)
-TAGS = ('BRIEF', 'TEAM', 'PER', 'LAST', 'H2H', 'PAIR', 'KHLPAIR', 'NHLSTAND', 'NHLCLUB', 'NHLH2HPREV', 'PINMISS')
+TAGS = ('BRIEF', 'TEAM', 'PER', 'LAST', 'H2H', 'PAIR', 'KHLPAIR', 'NHLSTAND', 'NHLCLUB', 'NHLH2HPREV', 'NHLRATE', 'NHLGK', 'PINMISS')
 for line in r.stdout.splitlines():
     tag = line.split(' ', 1)[0]
     if tag in TAGS and (not flt or any(t in line for t in flt)):

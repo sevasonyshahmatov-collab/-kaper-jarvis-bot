@@ -33,6 +33,11 @@ W_MKT, MARGIN_EST = 0.5, 1.04
 # Поправка вероятности модели по виду ставки и лиге (team/picks/backtest.py: 2025/26 + этот сезон, ~7000 ставок на лигу):
 # logit(p') = a + b·logit(p). LEAGUE ставят day.py и шортсы ('KHL' | 'NHL'); нет — без поправки.
 LEAGUE = None
+# Новый рейтинг НХЛ (владелец 29.10; team/picks/nhl_live.py ставит из day.py): {(хозяева, гости): {lh, la, s, info}} —
+# ожидаемые голы с формой по xG, вратарём-стартером и усталостью; вес модели против частоты NHL_WN, поправка — calib.json «NHL2».
+# Пусто (не посчиталось) — всё по-старому.
+NHL_NEW = {}
+NHL_WN = 0.8
 try:
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'calib.json'), encoding='utf-8') as _f:
         CALIB = json.load(_f)
@@ -55,7 +60,8 @@ def key_of(k):
 
 
 def calibrate(k, p):
-    ab = (CALIB.get(str(LEAGUE or '').upper()) or {}).get(key_of(k))
+    lg = str(LEAGUE or '').upper()
+    ab = (CALIB.get(lg + '2' if lg == 'NHL' and NHL_NEW else lg) or {}).get(key_of(k))
     if not ab:
         return p
     x = math.log(max(1e-6, min(1 - 1e-6, p)) / (1 - max(1e-6, min(1 - 1e-6, p))))
@@ -180,10 +186,12 @@ def freq(lst, home, f, lg):
     return (s + K * lg) / (w + K) if w else None
 
 
-def match(T, M, H, A):
-    lh, la = lam(M, H, A)
+def match(T, M, H, A, new=None):
+    """new — {lh, la, s} нового рейтинга НХЛ (NHL_NEW): ожидаемые голы и доля ОТ оттуда, вес модели NHL_WN."""
+    lh, la = (new['lh'], new['la']) if new else lam(M, H, A)
+    w = NHL_WN if new else W
     P = scores(lh, la, M['rho'])
-    s = max(0.3, min(0.7, (M['ot'].get(H, 0.5) + 1 - M['ot'].get(A, 0.5)) / 2))
+    s = new['s'] if new else max(0.3, min(0.7, (M['ot'].get(H, 0.5) + 1 - M['ot'].get(A, 0.5)) / 2))
     home_recs = [view(x, True) for t in T for x in T[t] if x['home']]
     rows = []
     for mk in markets(H, A):
@@ -200,7 +208,7 @@ def match(T, M, H, A):
                     pm += P[i][j]
         eh, ea = freq(T.get(H), True, mk['f'], lg), freq(T.get(A), False, mk['f'], lg)
         pe = ea if eh is None else eh if ea is None else (eh + ea) / 2
-        rows.append(dict(g=mk['g'], t=mk['t'], k=mk['k'], p=W * pm + (1 - W) * pe, pm=pm, pe=pe, lg=lg))
+        rows.append(dict(g=mk['g'], t=mk['t'], k=mk['k'], p=w * pm + (1 - w) * pe, pm=pm, pe=pe, lg=lg))
     bi = max(((i, j) for i in range(MAXG + 1) for j in range(MAXG + 1)), key=lambda ij: P[ij[0]][ij[1]])
     return dict(lam=(lh, la), s=s, rows=rows, score=(bi[0], bi[1], P[bi[0]][bi[1]]))
 
@@ -401,11 +409,13 @@ def run(raw_games, pairs, pins=None, fonbet=None, meta=None):
         if H not in T or A not in T:
             out('PAIR', '%s — %s | у одной из команд нет матчей в сезоне — расчёта нет' % (H, A))
             continue
-        r = match(T, M, H, A)
+        new = NHL_NEW.get((H, A)) if LEAGUE == 'NHL' else None
+        r = match(T, M, H, A, new)
         mks = (pins or {}).get((H, A))
         fon = (fonbet or {}).get((H, A))
-        out('PAIR', '%s — %s | λ %.2f : %.2f | самый вероятный счёт осн. времени %d:%d (%.1f%%) | доля ОТ хозяев s=%.2f | линия Pinnacle: %s'
-            % (H, A, r['lam'][0], r['lam'][1], r['score'][0], r['score'][1], 100 * r['score'][2], r['s'], 'есть' if mks else 'НЕТ'))
+        out('PAIR', '%s — %s | λ %.2f : %.2f | самый вероятный счёт осн. времени %d:%d (%.1f%%) | доля ОТ хозяев s=%.2f | линия Pinnacle: %s%s'
+            % (H, A, r['lam'][0], r['lam'][1], r['score'][0], r['score'][1], 100 * r['score'][2], r['s'], 'есть' if mks else 'НЕТ',
+               ' | новый рейтинг НХЛ' if new else ''))
         for x in sorted(r['rows'], key=lambda x: -x['p']):
             out('CALC', '%s—%s | %-40s %5.1f%% | честный %5.2f | модель %5.1f%% | частота %5.1f%% | лига %5.1f%%'
                 % (H, A, x['t'], 100 * x['p'], 1 / x['p'], 100 * x['pm'], 100 * x['pe'], 100 * x['lg']))
@@ -430,6 +440,8 @@ def run(raw_games, pairs, pins=None, fonbet=None, meta=None):
         x1x2 = [odds_for(('ml', 6, s), mks)[0] or fonbet_for(('ml', 6, s), fon) for s in ('home', 'draw', 'away')]
         fin = [odds_for(('ml', 0, s), mks)[0] for s in ('home', 'away')]
         info = dict((meta or {}).get((H, A)) or {})
+        if new:
+            info['rate'] = new.get('info')
         info.update(h=H, a=A, x1x2=x1x2, fin=fin, pick=pick,
                     top=[{k: x[k] for k in ('t', 'p', 'odds', 'src', 'mark') if k in x} for x in rows if x['odds']][:12])
         out('PICKJSON', json.dumps(info, ensure_ascii=False, separators=(',', ':')))

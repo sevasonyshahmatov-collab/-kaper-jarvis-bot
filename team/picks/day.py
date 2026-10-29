@@ -22,6 +22,12 @@ else:
     import nhl_data
     games, nxt = nhl_data.fetch(DAY)
     fon = {}
+    try:                                         # новый рейтинг НХЛ (владелец 29.10): xG, вратарь-стартер, два дня подряд
+        import nhl_live
+        calc.NHL_NEW, calc.NHL_WN = nhl_live.prepare(DAY, nxt), nhl_live.WN
+    except Exception as e:  # noqa: BLE001 — не посчитался: прогнозы по старому расчёту
+        print('NHLLIVEERR новый рейтинг не посчитан, считаю по-старому: %r' % e, flush=True)
+        calc.NHL_NEW = {}
 pairs = [(x['h'], x['a']) for x in nxt]
 try:
     pins, starts = pin.fetch(LEAGUE, DAY, pairs)

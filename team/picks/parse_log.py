@@ -8,7 +8,7 @@ import os
 import re
 import sys
 
-TAGS = ('DAYJOB', 'KHLSTAGE', 'KHLNEXT', 'KHLPAIR', 'KHLERR', 'NHLNEXT', 'NHLSTAND', 'NHLCLUB', 'NHLH2HPREV', 'NHLERR', 'NHL ', 'KHL ',
+TAGS = ('DAYJOB', 'KHLSTAGE', 'KHLNEXT', 'KHLPAIR', 'KHLERR', 'NHLNEXT', 'NHLSTAND', 'NHLCLUB', 'NHLH2HPREV', 'NHLERR', 'NHLRATE', 'NHLGK', 'NHLLIVEERR', 'NHL ', 'KHL ',
         'PINERR', 'PINMISS', 'LEAGUE', 'TABLE', 'PAIR', 'CALC', 'BRIEF', 'TEAM', 'PER', 'LAST', 'H2H', 'PICKJSON')
 
 
@@ -56,7 +56,7 @@ def main(path, folder):
     by = lambda tag: [ln[len(tag) + 1:] for ln in ls if ln.startswith(tag + ' ')]  # noqa: E731
     md = ['# Сводка к прогнозам: ' + ' '.join(by('DAYJOB')), '']
     md += [ln for ln in ls if ln.startswith(('NHL ', 'KHL '))]
-    for tag in ('KHLSTAGE', 'LEAGUE', 'TABLE', 'PINMISS', 'PINERR', 'KHLERR', 'NHLERR'):
+    for tag in ('KHLSTAGE', 'LEAGUE', 'TABLE', 'PINMISS', 'PINERR', 'KHLERR', 'NHLERR', 'NHLLIVEERR'):
         md += ['%s: %s' % (tag, x) for x in by(tag)]
     md.append('')
     for i, m in enumerate(picks, 1):
@@ -78,8 +78,9 @@ def main(path, folder):
         md.append('Самые вероятные ставки (с кэфом и без):')
         md += ['- ' + x for x in top]
         md += [x for x in by('PAIR') if x.startswith(h + ' — ' + a + ' |')]
+        md += ['NHLRATE ' + x for x in by('NHLRATE') if x.startswith(h + ' — ' + a + ' |')]   # новый рейтинг: сила, вратари
         for t in (h, a):
-            md += ['%s %s' % (tag, x) for tag in ('TEAM', 'PER', 'LAST', 'NHLSTAND', 'NHLCLUB') for x in by(tag) if x.startswith(t + ' |')]
+            md += ['%s %s' % (tag, x) for tag in ('TEAM', 'PER', 'LAST', 'NHLSTAND', 'NHLCLUB', 'NHLGK') for x in by(tag) if x.startswith(t + ' |')]
         md += ['H2H ' + x for x in by('H2H') if x.startswith(h + ' — ' + a + ' |')]
         md += ['NHLH2HPREV ' + x for x in by('NHLH2HPREV') if x.startswith(pair + ' |')]
         md += ['KHLPAIR ' + x[:1500] for x in by('KHLPAIR') if x.startswith(pair + ' ')]

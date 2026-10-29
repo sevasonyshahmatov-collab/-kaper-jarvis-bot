@@ -97,7 +97,8 @@ def prepare(day, nxt):
                 cand = [r for r in roster if r['last'] and r['last'].lower() in nm.lower()]
                 if cand:
                     gid = cand[0]['id']
-                    how = {'Confirmed': 'подтверждён', 'Likely': 'вероятно', 'Expected': 'вероятно'}.get(st, st.lower() or 'DailyFaceoff')
+                    how = {'Confirmed': 'подтверждён', 'Likely': 'вероятно', 'Expected': 'вероятно',
+                           'Unconfirmed': 'не подтверждён'}.get(st, 'DailyFaceoff: %s' % (st or 'без статуса'))
             if not gid and last:
                 gid, how = last, 'по ротации'
                 if tired and len(starts) > 1:
