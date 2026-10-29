@@ -89,8 +89,12 @@ def ratings(games, P, prior=None, mu_prior=None):
 
 
 def shrink_prior(R, P):
-    """Сила конца прошлого сезона → старт нового: сжать к средней (reg)."""
-    return {t: (1 + P['reg'] * (R['A'][t] - 1), 1 + P['reg'] * (R['D'][t] - 1)) for t in R['A']}
+    """Сила конца прошлого сезона → старт нового: сжать к средней (reg). Аризона (ARI) → Юта (клуб переехал в 2024)."""
+    res = {t: (1 + P['reg'] * (R['A'][t] - 1), 1 + P['reg'] * (R['D'][t] - 1)) for t in R['A'] if R['n'].get(t)}
+    if 'ARI' in res:
+        res.setdefault('Юта', res['ARI'])
+        del res['ARI']
+    return res
 
 
 # ---------------------------------------------------------------- вратари

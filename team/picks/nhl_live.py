@@ -22,9 +22,9 @@ import nhl_hist as HI  # noqa: E402
 import nhl_model as MO  # noqa: E402
 
 N = HI.N
-# Лучшие по проверке на истории (nhl_bt.py, run 40899141263: сезоны 2024/25–2025/26 подбор, 2026/27 — проверка)
-BEST = dict(MO.P0, hl=16.0, kp=8.0, reg=0.6, alpha=0.8, beta=0.8)
-USE_GOALIE, USE_TIRED, WN = False, True, 0.8
+# Лучшие по проверке на истории (nhl_bt.py, run 40900633882: подбор по 2024/25–2025/26, 2026/27 — проверка вслепую)
+BEST = dict(MO.P0, hl=16.0, kp=14.0, reg=0.8, alpha=0.8, beta=0.8, gamma=0.5, cg=120.0, b2b_o=0.08, b2b_d=0.06)
+USE_GOALIE, USE_TIRED, WN = True, True, 0.8
 DFO = 'https://www.dailyfaceoff.com/starting-goalies/%s'
 
 
