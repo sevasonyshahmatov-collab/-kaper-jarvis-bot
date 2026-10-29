@@ -2,21 +2,32 @@
 """Пересборка рейтинга НХЛ (владелец 29.10), шаг 1: какие источники открыты из Actions. В лог — строки SRC."""
 import json
 import re
+import signal
 import requests
+
+
+def _alarm(*a):
+    raise TimeoutError('hard 30s')
+
+
+signal.signal(signal.SIGALRM, _alarm)
 
 H = {'User-Agent': 'Mozilla/5.0 (jarvibet research)'}
 D = '2026-10-29'
 
 
 def probe(name, url, show=None):
+    signal.alarm(30)
     try:
-        r = requests.get(url, headers=H, timeout=40)
+        r = requests.get(url, headers=H, timeout=15)
         t = r.text
         extra = show(r) if (show and r.ok) else t[:160].replace('\n', ' ')
         print(f'SRC {name} {r.status_code} {len(t)}b {extra}', flush=True)
         return r
     except Exception as e:
         print(f'SRC {name} ERR {e}', flush=True)
+    finally:
+        signal.alarm(0)
 
 
 def csvhead(r):
@@ -69,3 +80,15 @@ def dfo(r):
 probe('dfo_today', f'https://www.dailyfaceoff.com/starting-goalies/{D}', dfo)
 probe('dfo_past', 'https://www.dailyfaceoff.com/starting-goalies/2026-10-20', dfo)
 probe('nst', 'https://www.naturalstattrick.com/teamtable.php?fromseason=20262027&thruseason=20262027&stype=2&sit=5v5', lambda r: r.text[:120])
+
+
+def espn(r):
+    ev = r.json().get('events') or []
+    if not ev:
+        return 'no events'
+    c = ev[0]['competitions'][0]
+    return f'n={len(ev)} odds={json.dumps(c.get("odds"), ensure_ascii=False)[:900]}'
+
+
+probe('espn_past_2026-03-10', 'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard?dates=20260310', espn)
+probe('espn_past_2026-10-20', 'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard?dates=20261020', espn)
