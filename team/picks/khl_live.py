@@ -16,9 +16,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import khl_hist as KH  # noqa: E402
 import nhl_model as MO  # noqa: E402
 
-ENABLED = False                 # включается после проверки на истории (nhl_bt.py --league khl)
-BEST = dict(MO.P0)
-USE_GOALIE, USE_TIRED, WN = True, True, 0.8
+# Проверка на истории (nhl_bt.py --league khl, run 40935025616): Брайер 2025/26 0,211 → 0,206, 2026/27 (вслепую)
+# 0,212 → 0,211, logloss 0,615 → 0,612. Поправка вероятностей с прошлого сезона этому сезону вредит (в 2026/27 забивают
+# меньше — тоталы «больше» завышаются), поэтому «KHL2» в calib.json пустая: вероятности модели без поправки.
+ENABLED = True
+BEST = dict(MO.P0, hl=24.0, kp=24.0, reg=1.0, alpha=0.5, beta=0.8, cg=60.0, gamma=1.0)
+USE_GOALIE, USE_TIRED, WN = True, True, 1.0
 
 
 def out(tag, text):
