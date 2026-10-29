@@ -87,11 +87,19 @@ def main():
         seen.add(key)
         bot.append(dict(row, p=prom.get(pid)))
     # «как в канале»: опубликованные, с правками владельца
+    fact = {}                                   # фактические ставки владельца из PICKS.md: «… (ММДД-N …)»
+    with open(os.path.join(ROOT, 'team', 'PICKS.md'), encoding='utf-8') as f:
+        for line in f:
+            m = re.match(r'- \S+ \| \S+ \| .+? \| (.+?) \| (.+?) \|.*\((%s)\b' % ledger.PID, line.strip())
+            if m:
+                fact[m.group(3)] = (ledger._clean_bet(m.group(1)), ledger._kef(m.group(2)))
     chan = []
     for pid, ts in led.pub.items():
         row = led.sent.get(pid)
         if row:
             bet, kef, ch = ledger.channel_version(row, ts, led.edits)
+            if pid in fact and fact[pid][0].lower() != bet.lower():
+                bet, kef, ch = fact[pid][0], fact[pid][1] or kef, True
             chan.append(dict(row, bet=bet, kef=kef, edited=ch, p=prom.get(pid) if not ch else None))
 
     picks = [p for p in bot + chan if p['start'] < NOW - timedelta(hours=3)]
