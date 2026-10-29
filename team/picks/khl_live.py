@@ -16,6 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import khl_hist as KH  # noqa: E402
 import nhl_model as MO  # noqa: E402
 
+ENABLED = False                 # включается после проверки на истории (nhl_bt.py --league khl)
 BEST = dict(MO.P0)
 USE_GOALIE, USE_TIRED, WN = True, True, 0.8
 

@@ -18,6 +18,13 @@ if LEAGUE == 'khl':
     import khl_data
     games, nxt = khl_data.fetch(DAY)
     fon = {(x['h'], x['a']): x.get('bets') for x in nxt}
+    try:                                         # новый рейтинг КХЛ (владелец 29.10) — когда включён в khl_live.ENABLED
+        import khl_live
+        if khl_live.ENABLED:
+            calc.NHL_NEW, calc.NHL_WN = khl_live.prepare(DAY, nxt), khl_live.WN
+    except Exception as e:  # noqa: BLE001 — не посчитался: прогнозы по старому расчёту
+        print('NHLLIVEERR КХЛ: новый рейтинг не посчитан, считаю по-старому: %r' % e, flush=True)
+        calc.NHL_NEW = {}
 else:
     import nhl_data
     games, nxt = nhl_data.fetch(DAY)
