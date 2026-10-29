@@ -115,18 +115,18 @@ def build(year, boot, sts, upto, known=None):
     shown = False
     for e, d in zip(done, det):
         src = d or e
-        sc = str(src.get('score') or e.get('score') or '').split(':')
-        if len(sc) != 2:
+        sc = str(src.get('score') or e.get('score') or '').replace(' ', '').split(':')
+        if len(sc) != 2 or not (sc[0].isdigit() and sc[1].isdigit()):   # технический результат («+ : −») — не матч
             continue
         s = src.get('scores') or {}
         end = 'Б' if s.get('bullitt') else 'ОТ' if s.get('overtime') else ''
         per = [s.get(k) or '' for k in ('first_period', 'second_period', 'third_period', 'overtime')]
         r = [0, 0]
         for p in per[:3]:
-            if ':' in str(p):
-                a, b = str(p).split(':')[:2]
-                r[0] += int(a or 0)
-                r[1] += int(b or 0)
+            a, _, b = str(p).replace(' ', '').partition(':')
+            if a.isdigit() and b.isdigit():
+                r[0] += int(a)
+                r[1] += int(b)
         hg, ag = int(sc[0]), int(sc[1])
         if not any(per[:3]):                      # периодов нет — осн. время из итогового счёта
             m = min(hg, ag)
