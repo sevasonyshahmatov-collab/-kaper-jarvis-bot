@@ -201,11 +201,15 @@ def _path(season):
     return os.path.join(CACHE, 'season_%d.json.gz' % season)
 
 
-def build(season, today):
+def build(season, today, with_odds=True):
     games = nhl_games(season, today)
-    sh = shots(season)
+    try:
+        sh = shots(season)
+    except Exception as e:  # noqa: BLE001 — без xG рейтинг считается по голам
+        out('HISTERR', 'броски MoneyPuck %d: %r' % (season, e))
+        sh = {}
     odds = {}
-    if season >= ODDS_FROM:
+    if with_odds and season >= ODDS_FROM:
         byday = defaultdict(list)
         for g in games:
             byday[g['nd']].append(g)
@@ -231,7 +235,7 @@ def build(season, today):
     return games
 
 
-def load(seasons=None, today=None, refresh_current=True):
+def load(seasons=None, today=None, refresh_current=True, with_odds=True):
     """Матчи сезонов (по умолчанию все из SEASONS) — из кэша или собранные заново."""
     today = today or datetime.now(timezone(timedelta(hours=-5))).date().isoformat()   # игровой день НХЛ (Нью-Йорк)
     cur = season_of(today)
@@ -250,9 +254,11 @@ def load(seasons=None, today=None, refresh_current=True):
             except (OSError, ValueError):
                 games = None
         if games is None:
-            games = build(s, (date.fromisoformat(today) - timedelta(1)).isoformat() if s == cur else today)
-            with gzip.open(p, 'wt', encoding='utf-8') as f:
-                json.dump(games, f, ensure_ascii=False, separators=(',', ':'))
+            games = build(s, (date.fromisoformat(today) - timedelta(1)).isoformat() if s == cur else today,
+                          with_odds or s != cur)
+            if with_odds or s != cur:          # без кэфов текущий сезон в кэш не кладём — его перепишет проверка
+                with gzip.open(p, 'wt', encoding='utf-8') as f:
+                    json.dump(games, f, ensure_ascii=False, separators=(',', ':'))
         res += games
     res.sort(key=lambda g: g['d'])
     return res
