@@ -253,6 +253,11 @@ def main():
     ll_old = {s: logloss([(p, y) for _, p, y in old_recs[s]]) for s in EVAL}
     out('BT2VAR', 'старый расчёт | logloss ' + ' · '.join('%d: %.4f' % (s, ll_old[s]) for s in EVAL))
 
+    def tune_ll(nv, li, wn):
+        rr = new_recs(nv, li, wn)
+        return sum(logloss([(p, y) for _, p, y in rr[s]]) * len(rr[s]) for s in TUNE) / max(1, sum(len(rr[s]) for s in TUNE))
+    if len(runs) > 12:                 # грубый отбор: усталость + вратарь, модель 0,8 — потом полный перебор лучших 12
+        runs = sorted(runs, key=lambda r: min(tune_ll(r[1], li, 0.8) for li in (2, 3)))[:12]
     scored = []
     for P, nv in runs:
         for li in range(4):
