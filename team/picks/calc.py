@@ -61,7 +61,7 @@ def key_of(k):
 
 def calibrate(k, p):
     lg = str(LEAGUE or '').upper()
-    ab = (CALIB.get(lg + '2' if lg == 'NHL' and NHL_NEW else lg) or {}).get(key_of(k))
+    ab = (CALIB.get(lg + '2' if NHL_NEW else lg) or {}).get(key_of(k))      # новый рейтинг — своя поправка (NHL2 / KHL2)
     if not ab:
         return p
     x = math.log(max(1e-6, min(1 - 1e-6, p)) / (1 - max(1e-6, min(1 - 1e-6, p))))
@@ -409,13 +409,13 @@ def run(raw_games, pairs, pins=None, fonbet=None, meta=None):
         if H not in T or A not in T:
             out('PAIR', '%s — %s | у одной из команд нет матчей в сезоне — расчёта нет' % (H, A))
             continue
-        new = NHL_NEW.get((H, A)) if LEAGUE == 'NHL' else None
+        new = NHL_NEW.get((H, A))
         r = match(T, M, H, A, new)
         mks = (pins or {}).get((H, A))
         fon = (fonbet or {}).get((H, A))
         out('PAIR', '%s — %s | λ %.2f : %.2f | самый вероятный счёт осн. времени %d:%d (%.1f%%) | доля ОТ хозяев s=%.2f | линия Pinnacle: %s%s'
             % (H, A, r['lam'][0], r['lam'][1], r['score'][0], r['score'][1], 100 * r['score'][2], r['s'], 'есть' if mks else 'НЕТ',
-               ' | новый рейтинг НХЛ' if new else ''))
+               ' | новый рейтинг' if new else ''))
         for x in sorted(r['rows'], key=lambda x: -x['p']):
             out('CALC', '%s—%s | %-40s %5.1f%% | честный %5.2f | модель %5.1f%% | частота %5.1f%% | лига %5.1f%%'
                 % (H, A, x['t'], 100 * x['p'], 1 / x['p'], 100 * x['pm'], 100 * x['pe'], 100 * x['lg']))

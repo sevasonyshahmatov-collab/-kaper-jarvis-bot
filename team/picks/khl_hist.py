@@ -88,7 +88,9 @@ def goalie(t):
     return best[0] if best else None
 
 
-def build(year, boot, sts, upto):
+def build(year, boot, sts, upto, known=None):
+    """known — {id: матч} из кэша: протоколы уже сыгранных матчей не качаем заново."""
+    known = known or {}
     st = stage_for(year, boot, sts)
     if not st:
         out('KHLHISTERR', 'этап сезона %d не найден' % year)
@@ -106,9 +108,11 @@ def build(year, boot, sts, upto):
         if len(arr) < 16:
             break
     done = [e for e in events if e.get('game_state_key') == 'finished']
+    games = [known[e.get('id')] for e in done if e.get('id') in known]
+    done = [e for e in done if e.get('id') not in known]
     with ThreadPoolExecutor(8) as ex:
         det = list(ex.map(K.detail, done))
-    games, shown = [], False
+    shown = False
     for e, d in zip(done, det):
         src = d or e
         sc = str(src.get('score') or e.get('score') or '').split(':')
@@ -178,7 +182,14 @@ def load(seasons=None, today=None, refresh_current=True):
             except (OSError, ValueError):
                 games = None
         if games is None:
-            games = build(s, boot, sts, today)
+            known = {}
+            if os.path.exists(p):                 # текущий сезон: из кэша берём уже сыгранные, качаем только новые
+                try:
+                    with gzip.open(p, 'rt', encoding='utf-8') as f:
+                        known = {g['id']: g for g in json.load(f)}
+                except (OSError, ValueError):
+                    known = {}
+            games = build(s, boot, sts, today, known)
             if games:
                 with gzip.open(p, 'wt', encoding='utf-8') as f:
                     json.dump(games, f, ensure_ascii=False, separators=(',', ':'))
