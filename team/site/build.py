@@ -338,22 +338,38 @@ def list_page(D, base, logos=None):
     logos = logos or {}
     icon = lambda t: ('<img src="../%s" alt="" width="26" height="26">' % logos[t]) if t in logos else '<i></i>'  # noqa: E731
     blocks = []
+    # 30.10 (владелец: попробовать ui-ux-pro-max на одной странице): на телефоне строка в два ряда — команды целиком,
+    # под ними ставка и итог (раньше ставка на телефоне пряталась, названия обрезались); фильтры лиги и итога; итог дня
     for (dy, lg), ms in days_.items():
         d = date.fromisoformat(dy)
-        rows = ''.join('''<a class="row" href="%s"><time>%s</time><span class="m">%s<span>%s — %s</span>%s</span><span class="p">%s · %s</span>%s</a>''' % (
-            page_name(m), m['d'][11:16], icon(m['h']), esc(m['h']), esc(m['a']), icon(m['a']), esc(m['pick']), kef_s(m['odds']) if m.get('odds') else '—',
+        rows = ''.join('''<a class="row" href="%s" data-lg="%s" data-r="%s"><time>%s</time><span class="m">%s<span>%s</span><span class="dash">—</span><span>%s</span>%s</span><span class="p">%s <em>%s</em></span>%s</a>''' % (
+            page_name(m), lg, m.get('res') or 'soon', m['d'][11:16], icon(m['h']), esc(m['h']), esc(m['a']), icon(m['a']), esc(m['pick']),
+            kef_s(m['odds']) if m.get('odds') else '—',
             '<b class="mk %s">%s %s</b>' % (m['res'], {'win': '✓', 'loss': '✕'}.get(m['res'], '↩'), esc(m.get('score') or ''))
             if m.get('res') else '<b class="mk soon">ждём</b>') for m in sorted(ms, key=lambda m: m['d']))
-        blocks.append('<section><h2>%s · %s</h2><div class="rows">%s</div></section>' % (
-            LG[lg], ('ночь на %d %s' % (d.day, MONTHS[d.month - 1])) if lg == 'nhl' else nice_day(d), rows))
+        dw, dn = sum(m.get('res') == 'win' for m in ms), sum(m.get('res') in ('win', 'loss') for m in ms)
+        dsum = ('<span class="dsum">зашло %d из %d</span>' % (dw, dn)) if dn else ''
+        blocks.append('<section class="day"><h2>%s · %s%s</h2><div class="rows">%s</div></section>' % (
+            LG[lg], ('ночь на %d %s' % (d.day, MONTHS[d.month - 1])) if lg == 'nhl' else nice_day(d), dsum, rows))
     title = 'Прогнозы на хоккей сегодня: КХЛ и НХЛ — все матчи с итогами'
     desc = 'Прогнозы на каждый матч КХЛ и НХЛ от собственной модели: форма команд, вероятность, кэф. Итоги всех прогнозов, и зашедших, и нет.'
-    tally = ('<p class="tally">За 30 дней: зашло <b>%d из %d</b> прогнозов. Показываем все, без удалений.</p>' % (w, len(done))) if done else ''
+    pc = round(100 * w / len(done)) if done else 0
+    tally = ('''<div class="tally"><p>За 30 дней: зашло <b>%d из %d</b> прогнозов (%d%%). Показываем все, без удалений.</p>
+<div class="tbar" role="img" aria-label="Зашло %d, не зашло %d"><i style="width:%d%%"></i></div></div>''' % (w, len(done), pc, w, len(done) - w, pc)) if done else ''
+    filt = '''<div class="filt" hidden><div role="group" aria-label="Лига"><span class="fl" aria-hidden="true">Лига</span><button type="button" data-k="lg" data-v="" aria-pressed="true">Все</button><button type="button" data-k="lg" data-v="khl" aria-pressed="false">КХЛ</button><button type="button" data-k="lg" data-v="nhl" aria-pressed="false">НХЛ</button></div>
+<div role="group" aria-label="Итог"><span class="fl" aria-hidden="true">Итог</span><button type="button" data-k="r" data-v="" aria-pressed="true">Все</button><button type="button" data-k="r" data-v="win" aria-pressed="false">Зашли</button><button type="button" data-k="r" data-v="loss" aria-pressed="false">Не зашли</button><button type="button" data-k="r" data-v="soon" aria-pressed="false">Ждём</button></div>
+<p class="fcount" aria-live="polite"></p></div>
+<script>(function(){var F=document.querySelector('.filt');if(!F)return;F.hidden=false;var st={lg:'',r:''};
+function run(){var n=0;document.querySelectorAll('.day').forEach(function(s){var k=0;s.querySelectorAll('.row').forEach(function(r){
+ var ok=(!st.lg||r.dataset.lg===st.lg)&&(!st.r||r.dataset.r===st.r);r.hidden=!ok;if(ok)k++});s.hidden=!k;n+=k});
+ F.querySelector('.fcount').textContent=st.lg||st.r?'Показано: '+n:''}
+F.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;st[b.dataset.k]=b.dataset.v;
+ F.querySelectorAll('[data-k="'+b.dataset.k+'"]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});run()})})();</script>'''
     body = '''<main class="wrap page"><nav class="crumbs"><a href="%s">Главная</a> › Прогнозы</nav>
 <h1>Прогнозы на хоккей: КХЛ и НХЛ</h1>
 <p class="when">Прогнозы, выложенные в Telegram-канале @jarvibet. После матча — счёт и итог.</p>
-%s%s</main>
-''' % ('../', tally, ''.join(blocks))
+%s%s%s</main>
+''' % ('../', tally, filt if blocks else '', ''.join(blocks))
     return head(title, desc, base + 'prognozy/', '../') + body + FOOT
 
 

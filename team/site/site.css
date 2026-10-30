@@ -73,16 +73,29 @@ section h2{font-size:20px;margin-bottom:12px}
 .sib a{display:flex;justify-content:space-between;gap:8px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--ice2);text-decoration:none;font-weight:600}
 .sib small{font-family:var(--mono);color:var(--mute)}
 .tally{padding:14px 18px;border-radius:14px;border:1px solid var(--line);background:var(--ice2);margin:0}
-.tally b{color:var(--gold)}
+.tally p{margin:0}.tally b{color:var(--gold)}
+.tbar{height:8px;border-radius:99px;background:rgba(255,59,92,.55);margin-top:10px;overflow:hidden}.tbar i{display:block;height:100%;background:var(--cyan);border-radius:99px}
+/* список прогнозов (30.10, правила ui-ux-pro-max: плотные данные, фильтры, фокус, цели от 44 px) */
+.filt{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:18px 0 4px}
+.filt [role=group]{display:flex;flex-wrap:wrap;gap:6px}
+.filt .fl{align-self:center;font:12px var(--mono);color:var(--mute);margin-right:2px}
+.filt button{font:700 13px var(--body);min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--mute);cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.filt button:hover{border-color:var(--cyan);color:var(--fg)}
+.filt button[aria-pressed=true]{background:var(--fg);border-color:var(--fg);color:var(--ice)}
+.row[hidden],.day[hidden],.filt[hidden]{display:none}
+.filt .fcount{margin:0;font:12px var(--mono);color:var(--mute)}
+.day h2{position:sticky;top:60px;z-index:2;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:10px 0;margin-bottom:4px;background:rgba(7,18,37,.92);backdrop-filter:blur(8px)}
+.dsum{font:500 12px var(--mono);color:var(--mute);letter-spacing:0}
 .rows{display:grid;gap:6px}
-.row{display:grid;grid-template-columns:52px 1fr auto auto;gap:12px;align-items:center;padding:11px 14px;border-radius:12px;background:var(--ice2);border:1px solid var(--line);text-decoration:none;font-size:14px}
-.row:hover{border-color:var(--cyan)}
+.row{display:grid;grid-template-columns:52px minmax(0,1.15fr) minmax(0,1fr) 84px;gap:6px 14px;align-items:center;min-height:52px;padding:10px 14px;border-radius:12px;background:var(--ice2);border:1px solid var(--line);text-decoration:none;font-size:14px;transition:border-color .15s,background .15s}
+.row:hover{border-color:var(--cyan);background:#10234a}
+.row:focus-visible,.filt button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .row time{font-family:var(--mono);color:var(--gold)}
-.row .m{font-weight:700;min-width:0;display:flex;align-items:center;gap:10px}
-.row .m span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .m{font-weight:700;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;line-height:1.25}
+.row .m .dash{color:var(--mute);font-weight:400}
 .row .m img,.row .m i{width:26px;height:26px;object-fit:contain;flex:none}
-.row .p{color:var(--mute);font-size:13px}
-.mk{font-family:var(--mono);font-size:12px;padding:3px 8px;border-radius:8px;white-space:nowrap}
+.row .p{color:var(--mute);font-size:13px;line-height:1.35}.row .p em{font-style:normal;font-family:var(--mono);color:var(--fg);white-space:nowrap}
+.mk{font-family:var(--mono);font-size:12px;padding:4px 9px;border-radius:8px;white-space:nowrap;justify-self:end}
 .mk.win{background:rgba(62,224,255,.15);color:var(--cyan)} .mk.loss{background:rgba(255,59,92,.13);color:var(--red)} .mk.push,.mk.soon{background:#0a1730;color:var(--mute)}
 .cta{text-align:center;padding-block:60px;border-top:1px solid var(--line);background:radial-gradient(60% 80% at 50% 100%,rgba(62,224,255,.15),transparent 70%)}
 .cta h2{font-size:clamp(24px,4vw,36px)}
@@ -90,7 +103,7 @@ section h2{font-size:20px;margin-bottom:12px}
 footer{border-top:1px solid var(--line);padding-block:24px;color:var(--mute);font-size:13px}
 footer .wrap{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between}
 a:focus-visible,.btn:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
-@media (max-width:700px){.teams{grid-template-columns:1fr}.row{grid-template-columns:44px 1fr auto}.row .p{display:none}.top nav a:not(.tg):not(.soc):not(.navlink){display:none}}
+@media (max-width:700px){.teams{grid-template-columns:1fr}.row{grid-template-columns:44px minmax(0,1fr) auto;grid-template-areas:"t m m" "t p k";align-items:start}.row time{grid-area:t;padding-top:3px}.row .m{grid-area:m}.row .p{grid-area:p}.row .mk{grid-area:k;align-self:end}.top nav a:not(.tg):not(.soc):not(.navlink){display:none}}
 
 /* тренды команд (team/site/trendy_page.py) */
 .lead2{color:var(--mute);max-width:760px;margin:0}
