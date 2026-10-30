@@ -43,10 +43,18 @@
   v.preload='auto';v.loop=!!loop;v.disablePictureInPicture=true;v.setAttribute('aria-hidden','true');
   v.addEventListener('loadeddata',()=>onok(v),{once:true});
   // запасной адрес: если просмотрщик (raw.githack) не отдал ролик — берём его прямо с GitHub
-  let alt=null;const m=location.href.match(/^https:\/\/raw\.githack\.com\/(.+)$/);
-  if(m)alt=new URL(src,location.href).href.replace('https://raw.githack.com/','https://raw.githubusercontent.com/');
-  v.addEventListener('error',()=>{if(alt&&v.src!==alt){v.src=alt;v.load()}else v.remove()});
-  v.src=src;return v;
+  let alt=null;if(/^https:\/\/raw\.githack\.com\//.test(location.href))
+   alt=new URL(src,location.href).href.replace('https://raw.githack.com/','https://raw.githubusercontent.com/');
+  if(loop){
+   v.addEventListener('error',()=>{if(alt&&v.src!==alt){v.src=alt;v.load()}else v.remove()});
+   v.src=src;return v;
+  }
+  // ролик прокрутки грузим целиком в память: перемотка (currentTime) работает и там, где сервер не отдаёт файл
+  // кусками (Range) — иначе браузер не может прыгать по кадрам и стоит первый кадр (так было на raw.githack)
+  const get=u=>fetch(u).then(r=>{if(!r.ok)throw new Error(r.status);return r.blob()});
+  get(src).catch(e=>{if(alt)return get(alt);throw e})
+   .then(bl=>{v.src=URL.createObjectURL(bl)}).catch(()=>v.remove());
+  return v;
  }
  // ролики грузим только для текущего отрезка и соседей
  function want(s){

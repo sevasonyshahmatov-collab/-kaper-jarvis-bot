@@ -86,6 +86,7 @@ p{margin:0}
 .no-js .scene:first-child{opacity:1}
 .rig{position:absolute;inset:-6%;will-change:transform;transform:scale(1.04)}
 .pic{position:absolute;inset:0;background:var(--night) center/cover no-repeat;transition:opacity .26s var(--out)}
+.pic{filter:blur(4px)}                             /* фон чуть замылен, чтобы не спорил с текстом (владелец 31.10) */
 .pic video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s var(--out)}
 .pic.vid video{opacity:1}
 .pic.back{opacity:0}
