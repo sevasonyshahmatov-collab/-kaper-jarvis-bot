@@ -232,15 +232,24 @@ def pick_table(rows, floor, kinds=None):
             best[gid] = (k, p, y, od)
     v = list(best.values())
     if not v:
-        return 0, 0, 0, 0
+        return 0, 0, 0, 0, None
     n = len(v)
-    return n, sum(x[1] for x in v) / n, sum(x[2] for x in v) / n, sum((x[3] - 1) if x[2] else -1 for x in v) / n
+    # дробный Келли (¼, метод BettorEdge value finder — руководитель 30.10): доля = (p·кэф − 1)/(кэф − 1); ставки без
+    # перевеса (доля ≤ 0) не делаются; ROI — прибыль на поставленное
+    ks = [(KELLY * (x[1] * x[3] - 1) / (x[3] - 1), x) for x in v]
+    ks = [(f, x) for f, x in ks if f > 0]
+    kroi = (sum(f * ((x[3] - 1) if x[2] else -1) for f, x in ks) / sum(f for f, _ in ks), len(ks)) if ks else None
+    return n, sum(x[1] for x in v) / n, sum(x[2] for x in v) / n, sum((x[3] - 1) if x[2] else -1 for x in v) / n, kroi
 
 
-def fmt(n, prom, hit, roi):
+KELLY = 0.25
+
+
+def fmt(n, prom, hit, roi, kroi=None):
     if not n:
         return 'ставок 0'
-    return 'ставок %d · обещано %.1f%% · зашло %.1f%% · ROI %+.1f%%' % (n, 100 * prom, 100 * hit, 100 * roi)
+    return 'ставок %d · обещано %.1f%% · зашло %.1f%% · ROI %+.1f%%%s' % (
+        n, 100 * prom, 100 * hit, 100 * roi, ' · Келли¼: %d ставок, ROI %+.1f%%' % (kroi[1], 100 * kroi[0]) if kroi else '')
 
 
 # ---------- еврокубки: общая шкала ----------
