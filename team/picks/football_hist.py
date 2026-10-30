@@ -7,7 +7,7 @@
 Турция, Шотландия, Греция — с ударами; Австрия, Швейцария, Дания, Норвегия, Швеция, Польша, Чехия — только счёт).
 Еврокубки — ESPN scoreboard по месяцам (ЛЧ, ЛЕ, ЛК): счёт за 90 минут (без овертайма), команды ESPN → клуб football-data.
 Матч лиги: {s, d, lg, h, a, hg, ag, sh: [удары х, г], st: [в створ х, г], pc: [П1 Х П2 закрытие Pinnacle],
-            po: [открытие Pinnacle], ac: [средняя закрытие], o25: [ТБ ТМ 2,5 закрытие Pinnacle], a25: [средняя]}
+            po: [открытие Pinnacle], ac: [средняя закрытие], o25: [ТБ ТМ 2,5 закрытие Pinnacle], oo25: [открытие], a25: [средняя]}
 Матч кубка: {s, d, lg: 'UCL'|'UEL'|'UECL', h, a (клуб football-data или 'espn:<id>'), hl, al (лига клуба), hg, ag, e: FT, n: нейтральное поле,
              bo: [П1 Х П2 букмекера ESPN], bt: [тотал, больше, меньше]}; xG — Understat (топ-5, без Португалии): xg: [х, г]
 Кэш — .lines/football_hist/ (переносится itogi.yml). Отдельно: python team/picks/football_hist.py"""
@@ -111,7 +111,7 @@ def league_csv(code, s):
             v = trio(row, *keys)
             if v:
                 g[k] = v
-        for k, keys in (('o25', ('PC>2.5', 'PC<2.5')), ('a25', ('AvgC>2.5', 'AvgC<2.5'))):
+        for k, keys in (('o25', ('PC>2.5', 'PC<2.5')), ('a25', ('AvgC>2.5', 'AvgC<2.5')), ('oo25', ('P>2.5', 'P<2.5'))):
             v = [fnum(row.get(x)) for x in keys]
             if all(v):
                 g[k] = v

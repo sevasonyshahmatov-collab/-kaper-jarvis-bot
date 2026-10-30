@@ -125,8 +125,11 @@ _ML = {}
 
 def market_probs(g, rho, which):
     """Вероятности рынка без маржи и кэфы по всем рынкам. which: 'pin' (закрытие Pinnacle) или 'avg' (средняя)."""
-    o12 = (g.get('pc') or g.get('ac')) if which == 'pin' else g.get('ac')
-    o25 = (g.get('o25') or g.get('a25')) if which == 'pin' else g.get('a25')
+    if which == 'open':                 # открытие Pinnacle — линия, по которой публикуем утром
+        o12, o25 = g.get('po'), g.get('oo25')
+    else:
+        o12 = (g.get('pc') or g.get('ac')) if which == 'pin' else g.get('ac')
+        o25 = (g.get('o25') or g.get('a25')) if which == 'pin' else g.get('a25')
     if not o12:
         return None, None
     p1, px, p2 = nv(o12)
@@ -421,7 +424,7 @@ def norm3(v):
 
 
 def main():
-    data = FH.load()
+    data = FH.load(rebuild='--rebuild' in sys.argv)
     dom = {lg: sorted(data['dom'][lg], key=lambda g: g['d']) for lg in data['dom']}
     coef = {lg: shot_coef(dom[lg], set(TUNE) | {2021}) for lg in dom}
     out('FBTXG', json.dumps({lg: [round(coef[lg][0], 4), round(coef[lg][1], 4)] for lg in LEAGUES}))
@@ -445,6 +448,9 @@ def main():
             ('new_a', [0.8, 0.9]), ('new_d', [1.1, 1.2]), ('rho', [-0.16, -0.12, -0.03])]
     if QUICK:
         grid = grid[:1]
+    if '--fixed' in sys.argv:      # константы уже подобраны (run 586): hl 300, alpha 0,5, k 4, новички 0,8/1,2, rho −0,12
+        P.update(hl=300.0, new_a=0.8, new_d=1.2, rho=-0.12)
+        grid = []
     for name, vals in grid:
         for v in vals:
             Q = dict(P, **{name: v})
@@ -452,7 +458,7 @@ def main():
             if sc < best - 1e-5:
                 best, P = sc, Q
         out('FBTTUNE', '%s → %s (%.4f)' % (name, P[name], best))
-    for s_ in ('shots', 'none'):
+    for s_ in (() if '--fixed' in sys.argv else ('shots', 'none')):
         for lg in dom:
             prep(dom[lg], coef[lg], s_)
         sc = tune_score(P)
@@ -469,35 +475,41 @@ def main():
         recs, snaps = predict_league(dom[lg], P, {2021} | set(TUNE) | set(TEST))
         allrecs[lg] = [r for r in recs if r[0]['s'] != 2021]
         snaps_all[lg] = dict(days=sorted(snaps), snap=snaps)
-    crow, srow = [], []
+    crow, srow, orow = [], [], []
     for lg in LEAGUES:
         for g, lh, la in allrecs[lg]:
             if g['s'] in TUNE:
                 m = FM.markets(lh, la, P['rho'])
                 mm, _ = market_probs(g, P['rho'], 'pin')
+                mo, _ = market_probs(g, P['rho'], 'open')
                 for k in KINDS:
                     y = outcome(k, g['hg'], g['ag'])
                     crow.append((k, m[k], y))
                     if mm:
                         srow.append((k, m[k], mm[k], y))
+                    if mo:
+                        orow.append((k, m[k], mo[k], y))
     C = fit_calib(crow)
     S = fit_stack(srow)
     out('FBTCALIB', json.dumps(C, ensure_ascii=False, separators=(',', ':')))
     out('FBTSTACK', json.dumps(S, ensure_ascii=False, separators=(',', ':')))
+    SO = fit_stack(orow)
+    out('FBTSTACKO', json.dumps(SO, ensure_ascii=False, separators=(',', ':')))
 
     # ---- метрики и ставки по сезонам проверки ----
     for s in TEST:
         which = 'pin' if s < 2026 else 'avg'
         tag = '%d/%02d' % (s, (s + 1) % 100)
         agg = defaultdict(lambda: defaultdict(float))
-        allrows = {'модель': [], 'смесь': []}
+        allrows = {'модель': [], 'смесь': [], 'утро': [], 'утро@утро': []}
         for lg in LEAGUES:
-            rows = {'модель': [], 'смесь': []}
+            rows = {'модель': [], 'смесь': [], 'утро': [], 'утро@утро': []}
             for g, lh, la in allrecs[lg]:
                 if g['s'] != s:
                     continue
                 m = FM.markets(lh, la, P['rho'])
                 mm, odds = market_probs(g, P['rho'], which)
+                mo, oo = market_probs(g, P['rho'], 'open')
                 gid = '%s|%s|%s' % (g['d'], g['h'], g['a'])
                 y = 0 if g['hg'] > g['ag'] else (1 if g['hg'] == g['ag'] else 2)
                 pm = norm3([cal(C, k, m[k]) for k in ('П1', 'Х', 'П2')])
@@ -514,15 +526,26 @@ def main():
                         a['tb' + who] += (qo[who] - ov) ** 2
                         a['tl' + who] += -math.log(qo[who] if ov else 1 - qo[who])
                     agg[lg]['n'] += 1
+                if mo:
+                    po3 = norm3([stack(SO, C, k, m[k], mo[k]) for k in ('П1', 'Х', 'П2')])
+                    agg[lg]['lутро'] += ll3(po3, y)
+                    agg[lg]['lоткр'] += ll3([mo['П1'], mo['Х'], mo['П2']], y)
+                    agg[lg]['lмод_о'] += ll3(pm, y)
+                    agg[lg]['no'] += 1
                 for k in KINDS:
                     yk = outcome(k, g['hg'], g['ag'])
                     od = odds[k] if odds else None
                     rows['модель'].append((gid, k, cal(C, k, m[k]), yk, od))
                     rows['смесь'].append((gid, k, stack(S, C, k, m[k], mm[k] if mm else None), yk, od))
+                    if mo:     # смесь модели с открытием: ставка по кэфу закрытия и по кэфу открытия
+                        po_ = stack(SO, C, k, m[k], mo[k])
+                        rows['утро'].append((gid, k, po_, yk, od))
+                        rows['утро@утро'].append((gid, k, po_, yk, oo[k]))
             for who in rows:
                 allrows[who] += rows[who]
             for fl in (0.58, 0.60, 0.62, 0.65):
                 out('FBTPICK', '%s | %s | смесь | все рынки | от %d%% | %s' % (tag, FH.OURS[lg], fl * 100, fmt(*pick_table(rows['смесь'], fl))))
+                out('FBTPICKO', '%s | %s | утро | все рынки | от %d%% | %s' % (tag, FH.OURS[lg], fl * 100, fmt(*pick_table(rows['утро'], fl))))
             for grp in ('1Х2', 'не проиграет', 'тотал 1,5', 'тотал 2,5', 'тотал 3,5', 'обе забьют'):
                 ks = [k for k in KINDS if GROUP[k] == grp]
                 out('FBTPICK', '%s | %s | смесь | %s | от 60%% | %s' % (tag, FH.OURS[lg], grp, fmt(*pick_table(rows['смесь'], 0.60, ks))))
@@ -534,13 +557,19 @@ def main():
                     tag, FH.OURS[lg], a['n'], a['lмодель'] / n, a['lсмесь'] / n, a['lрынок'] / n,
                     a['bмодель'] / n, a['bсмесь'] / n, a['bрынок'] / n,
                     a['tlмодель'] / n, a['tlсмесь'] / n, a['tlрынок'] / n))
-        for who in ('модель', 'смесь'):
+        for lg in LEAGUES:
+            a = agg[lg]
+            if a['no']:
+                out('FBTMETO', '%s | %s | матчей с открытием %d | 1Х2 logloss модель %.4f · смесь с открытием %.4f · открытие %.4f'
+                    % (tag, FH.OURS[lg], a['no'], a['lмод_о'] / a['no'], a['lутро'] / a['no'], a['lоткр'] / a['no']))
+        for who in ('модель', 'смесь', 'утро', 'утро@утро'):
             for fl in FLOORS:
                 out('FBTALL', '%s | %s | все лиги | все рынки | от %d%% | %s' % (tag, who, fl * 100, fmt(*pick_table(allrows[who], fl))))
         for grp in ('1Х2', 'не проиграет', 'тотал 1,5', 'тотал 2,5', 'тотал 3,5', 'обе забьют'):
             ks = [k for k in KINDS if GROUP[k] == grp]
             for fl in (0.55, 0.60, 0.65):
                 out('FBTMKT', '%s | смесь | %s | от %d%% | %s' % (tag, grp, fl * 100, fmt(*pick_table(allrows['смесь'], fl, ks))))
+                out('FBTMKTO', '%s | утро | %s | от %d%% | %s' % (tag, grp, fl * 100, fmt(*pick_table(allrows['утро'], fl, ks))))
         bins = defaultdict(lambda: [0, 0.0, 0])
         for gid, k, p, y, od in allrows['смесь']:
             if p >= 0.5:
