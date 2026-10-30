@@ -33,7 +33,8 @@
   const poster=el.dataset.poster;if(poster){f.style.backgroundImage=b.style.backgroundImage=`url("${poster}")`}
   rig.append(f,b);el.append(rig);
   return {el,i,id:el.dataset.seg,rig,f,b,loop:el.hasAttribute('data-loop'),rate:+el.dataset.rate||1,move:el.dataset.move||'push',
-   v:null,vb:null,tried:false,sp:0,t:0,tb:0};
+   v:null,vb:null,tried:false,sp:0,t:0,tb:0,
+   journey:el.hasAttribute('data-journey'),table:el.dataset.table?JSON.parse(el.dataset.table):null};
  });
  const byId=Object.fromEntries(S.map(s=>[s.id,s]));
 
@@ -60,6 +61,14 @@
  function want(s){
   if(!s||s.tried||MODE==='still')return;s.tried=true;
   const base=s.el.dataset.video;if(!base)return;
+  if(s.journey){
+   // весь путь — один ролик: сначала лёгкий (быстро стартует), потом полное качество 1080p подменяет его без скачка
+   s.f.append(mkVideo(base+'_lo.mp4',false,v=>{if(s.v)return;s.v=v;v.pause();s.f.classList.add('vid');
+    const hi=mkVideo(base+'.mp4',false,h=>{h.pause();h.currentTime=v.currentTime;
+     h.addEventListener('seeked',()=>{s.f.append(h);s.v=h;h.style.opacity=1;setTimeout(()=>v.remove(),500)},{once:true})});
+    hi.style.opacity=0}));
+   return;
+  }
   if(MODE==='lite'){
    if(!s.loop)return;
    s.f.append(mkVideo(base+'_m.mp4',true,v=>{s.v=v;s.f.classList.add('vid');v.playbackRate=s.rate;sync()}));
@@ -71,7 +80,7 @@
  }
 
  // направление прокрутки — со сглаживанием и порогом, чтобы мелкие рывки не дёргали камеру
- let lastY=scrollY,vel=0,back=false,cur=null,veilV=-1,hidden=false;
+ let lastY=scrollY,vel=0,back=false,cur=null,curSec=null,veilV=-1,hidden=false;
  function sync(){S.forEach(s=>{if(!s.v||!s.loop)return;if(s===cur&&!hidden){s.v.playbackRate=s.rate;s.v.play().catch(()=>{})}else s.v.pause()})}
  document.addEventListener('visibilitychange',()=>{hidden=document.hidden;sync()});
 
@@ -79,7 +88,10 @@
   const mid=innerHeight*.5;let best=null;
   for(const sec of secs){const r=sec.getBoundingClientRect();if(r.top<=mid&&r.bottom>mid){best=[sec,r];break}}
   if(!best){const sec=scrollY<10?secs[0]:secs[secs.length-1];if(!sec)return null;best=[sec,sec.getBoundingClientRect()]}
-  const [sec,r]=best;return {sec,id:sec.dataset.seg,p:clamp((mid-r.top)/r.height,0,1),veil:sec.dataset.veil};
+  const [sec,r]=best;const p=clamp((mid-r.top)/r.height,0,1);
+  // разделы F1–F5 — части одного ролика: data-j="начало,конец" в долях пути
+  const j=sec.dataset.j?sec.dataset.j.split(',').map(Number):null;
+  return {sec,id:sec.dataset.seg,scene:sec.dataset.scene||sec.dataset.seg,p:j?j[0]+p*(j[1]-j[0]):p,veil:sec.dataset.veil};
  }
 
  // наезд/панорама постера: прогресс 0…1 → transform камеры; на обратном пути — зеркально
@@ -100,13 +112,14 @@
   vel=vel*.86+dy*.14;
   if(vel<-1.2)back=true;else if(vel>1.2)back=false;
   const a=activeSection();if(!a)return;
-  const s=byId[a.id];if(!s)return;
+  const s=byId[a.scene];if(!s)return;
+  if(a.id!==curSec){const prevSec=curSec;curSec=a.id;
+   document.dispatchEvent(new CustomEvent('cam:seg',{detail:{id:a.id,prev:prevSec}}));}
   if(s!==cur){
    const prev=cur;cur=s;s.sp=a.p;
    S.forEach(x=>x.el.classList.toggle('on',x===s));
    want(s);want(S[s.i+1]);want(S[s.i-1]);sync();
    if(cap)cap.textContent=s.id+(s.v?'':' · постер-заглушка');
-   document.dispatchEvent(new CustomEvent('cam:seg',{detail:{id:s.id,prev:prev&&prev.id}}));
   }
   const v=a.veil!=null?+a.veil:.25;if(v!==veilV){veilV=v;veil&&veil.style.setProperty('--veil',v)}
   if(MODE==='still'){s.rig.style.transform='scale(1.04)';return}
@@ -117,7 +130,9 @@
   s.el.classList.toggle('rev',useBack);
   if(s.v&&!s.loop&&MODE==='scrub'){
    const vv=useBack&&s.vb?s.vb:s.v,d=vv.duration||0;
-   if(d){const target=(useBack&&s.vb?1-p:p)*(d-.05);if(!vv.seeking&&Math.abs(vv.currentTime-target)>1/48)vv.currentTime=target}
+   if(d){let target=(useBack&&s.vb?1-p:p)*(d-.05);
+    // путь по таблице «доля пути → секунда»: камера движется ровно, без замедлений на стыках роликов
+    if(s.table){const n=s.table.length-1,x=clamp(p,0,1)*n,i=Math.min(n-1,x|0);target=Math.min(d-.05,s.table[i]+(s.table[i+1]-s.table[i])*(x-i))}if(!vv.seeking&&Math.abs(vv.currentTime-target)>1/48)vv.currentTime=target}
    s.rig.style.transform='scale(1.04)';
   }else{
    const m=MOVES[s.move]||MOVES.push,amp=MODE==='lite'?.5:1;
@@ -125,7 +140,10 @@
    if(useBack){tx=-tx;rot=-rot}
    s.rig.style.transform=`translate3d(${(tx*amp).toFixed(2)}%,${(ty*amp).toFixed(2)}%,0) scale(${(1+(sc-1)*amp).toFixed(4)}) rotate(${(rot*amp).toFixed(2)}deg)`;
   }
-  window.__cam={mode:MODE,seg:s.id,p:+p.toFixed(3),back:useBack,video:!!s.v};
+  // ролик пути, когда камера выше или ниже его: держим на крайнем кадре, чтобы наплыв на стадион/угол был без скачка
+  S.forEach(x=>{if(x===s||!x.journey||!x.v)return;const vv=x.v,d=vv.duration||0;if(!d)return;
+   const end=x.i<s.i?d-.05:0;x.sp=x.i<s.i?1:0;if(!vv.seeking&&Math.abs(vv.currentTime-end)>1/48)vv.currentTime=end});
+  window.__cam={mode:MODE,seg:a.id,p:+p.toFixed(3),back:useBack,video:!!s.v};
  }
  requestAnimationFrame(frame);
 })();

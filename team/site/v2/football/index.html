@@ -288,12 +288,7 @@
      F1_back.mp4 … F5_back.mp4 (обратный путь), F0_m.mp4 и F6_m.mp4 (телефон, петли 720p). Код менять не нужно. -->
 <div id="stage" aria-hidden="true">
   <div class="scene on" data-seg="F0" data-loop data-rate="1" data-move="orbit" data-poster="../assets/football/F0.webp"></div>
-  <div class="scene" data-seg="F1" data-move="descend" data-video="../assets/football/F1" data-poster="../assets/football/F1.webp"></div>
-  <div class="scene" data-seg="F2" data-move="dolly" data-video="../assets/football/F2" data-poster="../assets/football/F2.webp"></div>
-  <div class="scene" data-seg="F2b" data-move="pan" data-video="../assets/football/F2b" data-poster="../assets/football/F2b.webp"></div>
-  <div class="scene" data-seg="F3" data-move="push" data-video="../assets/football/F3" data-poster="../assets/football/F3.webp"></div>
-  <div class="scene" data-seg="F4" data-move="dolly" data-video="../assets/football/F4" data-poster="../assets/football/F4.webp"></div>
-  <div class="scene" data-seg="F5" data-move="rise" data-video="../assets/football/F5" data-poster="../assets/football/F5.webp"></div>
+  <div class="scene" data-seg="J" data-journey data-video="../assets/football/journey" data-poster="../assets/football/J.webp" data-table="[0.0,1.072,1.666,2.091,2.459,2.785,3.042,3.23,3.42,3.623,3.822,4.018,4.215,4.44,4.804,5.182,5.46,5.658,5.83,5.991,6.133,6.26,6.38,6.494,6.598,6.7,6.801,6.892,6.976,7.061,7.146,7.23,7.309,7.387,7.464,7.538,7.608,7.674,7.737,7.797,7.854,7.908,7.96,8.009,8.056,8.102,8.148,8.195,8.244,8.293,8.345,8.399,8.453,8.508,8.568,8.639,8.728,8.865,9.205,9.794,10.337,10.665,10.917,11.173,11.374,11.584,11.774,11.949,12.137,12.322,12.514,12.693,12.873,13.06,13.258,13.444,13.614,13.793,13.962,14.117,14.271,14.425,14.577,14.727,14.88,15.039,15.227,15.423,15.605,15.758,15.904,16.045,16.188,16.329,16.478,16.649,16.858,17.077,17.26,17.411,17.581,17.801,18.045,18.317,18.631,18.907,19.148,19.407,19.904,20.274,20.555,20.749,20.909,21.053,21.185,21.302,21.407,21.508,21.606,21.705,21.808,21.913,22.025,22.156,22.31,22.462,22.601,22.753,22.904,23.042,23.187,23.414,23.737,24.186,24.759,25.163,25.399,25.592,25.761,25.911,26.051,26.188,26.326,26.461,26.606,26.753,26.888,27.029,27.154,27.266,27.369,27.465,27.56,27.662,27.794,27.939,28.084,28.259,28.533,29.034,29.638,30.059,30.38,30.686,31.002,31.289,31.583,31.888,32.192,32.51,32.856,33.337,33.949,34.766,35.22,35.46,35.628,35.744,35.839,35.933,36.033,36.139,36.24,36.319,36.384,36.452,36.539,36.641,36.744,36.851,36.955,37.057,37.158,37.255,37.356,37.477,37.634,37.879,38.106,38.345,38.59,38.806,39.005,39.208,39.389,39.59,39.762,39.942,40.115,40.28,40.457,40.619,40.801,40.978,41.17,41.376,41.596,41.874,42.231,42.643,43.191,43.721,44.117,44.445,44.7,44.962,45.207,45.436,45.778,46.421,47.564,48.993,49.913,50.903,51.954,53.314,54.306,55.148,55.903,56.593,57.229]"></div>
   <div class="scene" data-seg="F6" data-loop data-rate="1" data-move="sway" data-poster="../assets/football/F6.webp"></div>
   <div class="grade"></div>
   <div class="veil"></div>
@@ -352,7 +347,7 @@
 </section>
 
 <!-- F1 Вход -->
-<section class="stop" id="matches" data-seg="F1" data-veil=".38">
+<section class="stop" id="matches" data-seg="F1" data-scene="J" data-j="0.0,0.2437" data-veil=".38">
   <div class="wrap">
     <div class="head rv shade"><h2>Сегодня в эфире</h2><p class="lead">Матчи дня — пропусками. Нажми на билет: на обороте форма команд, личные встречи и прогноз, если он уже вышел в канале. <span class="sample-tag">Пример данных.</span></p></div>
     <div class="ltabs" role="tablist" id="ltabs" aria-label="Фильтр по турнирам"></div>
@@ -362,7 +357,7 @@
 </section>
 
 <!-- F2 Лобби -->
-<section class="stop" id="leagues" data-seg="F2" data-veil=".3">
+<section class="stop" id="leagues" data-seg="F2" data-scene="J" data-j="0.2437,0.4454" data-veil=".3">
   <div class="wrap">
     <div class="head rv shade"><h2>Лиги и клубы</h2><p class="lead">Семь турниров под одной моделью. Наведи на герб — клуб выйдет вперёд; нажми — откроется его лига.</p></div>
     <ul class="flags" id="flags"></ul>
@@ -372,7 +367,7 @@
 </section>
 
 <!-- F2b Зал клубов -->
-<section class="stop" id="clubs" data-seg="F2b" data-veil=".28">
+<section class="stop" id="clubs" data-seg="F2b" data-scene="J" data-j="0.4454,0.555" data-veil=".28">
   <div class="wrap">
     <div class="head rv shade"><h2>Сила команд</h2><p class="lead">Экран по кругу зала: сила лиг Европы к АПЛ и порядок команд. Номер на футболке — место команды по модели.</p></div>
     <div class="led" id="led" aria-hidden="true"></div>
@@ -384,7 +379,7 @@
 </section>
 
 <!-- F3 Аналитика -->
-<section class="stop" id="model" data-seg="F3" data-veil=".45">
+<section class="stop" id="model" data-seg="F3" data-scene="J" data-j="0.555,0.7177" data-veil=".45">
   <div class="wrap">
     <div class="head rv shade"><h2>Как думает модель</h2><p class="lead">Три экрана — три шага до ставки. Пример на матче дня.</p></div>
     <div class="room">
@@ -427,7 +422,7 @@
 </section>
 
 <!-- F4 Тоннель -->
-<section class="stop" id="honest" data-seg="F4" data-veil=".34">
+<section class="stop" id="honest" data-seg="F4" data-scene="J" data-j="0.7177,0.9142" data-veil=".34">
   <div class="wrap">
     <div class="head rv shade"><h2>Честные итоги</h2><p class="lead">До запуска модель прошла проверку вслепую на всём сезоне 2025/26. Цифры предварительные: выборки по лигам маленькие.</p></div>
     <div class="tunnel" id="tunnel">
@@ -452,7 +447,7 @@
 </section>
 
 <!-- F5 Поле -->
-<section class="stop sky" id="subscribe" data-seg="F5" data-veil=".18">
+<section class="stop sky" id="subscribe" data-seg="F5" data-scene="J" data-j="0.9142,1.0" data-veil=".18">
   <div class="wrap">
     <h2 class="rv shade">Прогнозы — в Telegram до матча</h2>
     <ul class="gets">
