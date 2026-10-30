@@ -1,0 +1,185 @@
+/* JARVIS v2 — общее для разделов «Футбол» и «Хоккей»: токены, шапка, кнопки, сцена-камера, объёмные плашки, вихрь.
+   Палитра и шрифты — SITE_V2_BRIEF.md п. 5. Свет — только в кадре; никакого свечения за курсором. */
+:root{
+  --night:#071225; --night2:#0d1d3a; --line:#1e3460;
+  --fg:#eaf3ff; --mute:#8fa6cc;
+  --gold:#ffc93c; --cyan:#3ee0ff; --red:#ff3b5c;
+  --pitch:#2ee59d; --pitch-deep:#0b2a22; --tg:#2aa8ff;
+  --sport:var(--cyan);
+  --display:"Unbounded","Manrope",system-ui,sans-serif;
+  --body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --out:cubic-bezier(.22,1,.36,1); --spring:cubic-bezier(.34,1.56,.64,1); --inout:cubic-bezier(.77,0,.175,1);
+  --hdr:64px;
+  /* мягкая многослойная тень плашки: --lift 0…1 — высота «полёта» */
+  --lift:0;
+  color-scheme:dark;
+}
+html[data-sport="football"]{--sport:var(--pitch)}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px;-webkit-text-size-adjust:100%;scrollbar-color:#1e3460 #071225;caret-color:var(--gold)}
+body{margin:0;background:var(--night);color:var(--fg);font:400 16px/1.5 var(--body);overflow-x:hidden}
+::selection{background:var(--gold);color:#071225}
+a{color:inherit}
+img{max-width:100%}
+h1,h2,h3{font-family:var(--display);font-weight:800;margin:0;line-height:1.04;letter-spacing:-.02em;text-wrap:balance}
+p{margin:0}
+.wrap{width:100%;max-width:1296px;margin:0 auto;padding-inline:max(20px,env(safe-area-inset-left,0px))}
+@media (min-width:600px){.wrap{padding-inline:32px}}
+@media (min-width:1100px){.wrap{padding-inline:48px}}
+.num{font-family:var(--mono);font-weight:500;font-variant-numeric:tabular-nums}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px;border-radius:8px}
+.sample-tag{display:inline-block;font-size:13px;color:var(--mute)}
+.skip{position:absolute;left:12px;top:-60px;z-index:60;background:var(--gold);color:#071225;padding:10px 14px;border-radius:10px;font-weight:800}
+.skip:focus{top:12px}
+
+/* кнопки */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 24px;border-radius:999px;border:0;cursor:pointer;
+ font:800 15px/1 var(--display);letter-spacing:-.01em;text-decoration:none;color:var(--fg);background:none;
+ transition:transform .16s var(--out),background-color .2s,color .2s,translate .5s var(--spring)}
+.btn:active{transform:scale(.97)}
+.btn-tg{background:var(--tg);color:#04101f}
+@media (hover:hover){.btn-tg:hover{background:#4db8ff}}
+.btn-line{box-shadow:inset 0 0 0 2px var(--line);background:rgba(7,18,37,.55)}
+@media (hover:hover){.btn-line:hover{box-shadow:inset 0 0 0 2px var(--sport);color:var(--sport)}}
+.btn svg{width:18px;height:18px;flex:none}
+
+/* шапка */
+.hd{position:fixed;inset:0 0 auto;z-index:40;padding-top:env(safe-area-inset-top,0px);transition:background-color .3s var(--out)}
+.hd .wrap{height:var(--hdr);display:flex;align-items:center;gap:20px;transition:height .28s var(--out)}
+.hd.scrolled{background:rgba(7,18,37,.82)}
+.hd.scrolled .wrap{height:52px}
+.logo{font:800 20px/1 var(--display);letter-spacing:.04em;text-decoration:none;flex:none;min-height:44px;display:inline-flex;align-items:center}
+.logo b{color:var(--sport)}
+.seg{position:relative;display:inline-flex;padding:4px;border-radius:999px;background:rgba(13,29,58,.86);box-shadow:inset 0 0 0 1px var(--line)}
+.seg a{position:relative;z-index:1;min-height:44px;display:inline-flex;align-items:center;padding:0 18px;color:var(--mute);font:800 14px/1 var(--display);text-decoration:none;border-radius:999px;transition:color .2s}
+.seg a[aria-current="page"]{color:#04101f;background:var(--sport)}
+@media (hover:hover){.seg a:not([aria-current]):hover{color:var(--fg)}}
+.nav{display:flex;align-items:center;gap:4px;margin-left:auto}
+.nav>a{min-height:44px;display:inline-flex;align-items:center;padding:0 12px;border-radius:999px;color:var(--fg);text-decoration:none;font:600 15px var(--body)}
+@media (hover:hover){.nav>a:hover{color:var(--sport)}}
+.hd .btn-tg{min-height:44px;padding:0 18px;font-size:14px}
+@media (max-width:980px){.nav>a{display:none}}
+@media (max-width:640px){.hd .seg{display:none}.hd .wrap{justify-content:space-between}}
+
+/* нижняя панель и липкая кнопка Telegram на телефоне */
+.tabbar,.tgbar{display:none}
+@media (max-width:640px){
+ .tabbar{position:fixed;z-index:40;inset:auto 0 0;display:grid;grid-template-columns:repeat(4,1fr);padding-bottom:env(safe-area-inset-bottom,0px);background:rgba(7,18,37,.94);box-shadow:inset 0 1px 0 var(--line)}
+ .tabbar>*{min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;background:none;color:var(--mute);font:600 12px var(--body);text-decoration:none;cursor:pointer}
+ .tabbar svg{width:22px;height:22px}
+ .tabbar [aria-current="page"]{color:var(--sport)}
+ .tgbar{position:fixed;z-index:39;left:12px;right:12px;bottom:calc(68px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:52px;padding:0 8px 0 16px;border-radius:16px;background:var(--tg);color:#04101f;font:800 14px/1.2 var(--display);text-decoration:none;
+  box-shadow:0 18px 30px -16px rgba(0,0,0,.8);transform:translateY(140%);opacity:0;visibility:hidden;transition:transform .35s var(--out),opacity .2s,visibility .35s}
+ .tgbar.on{transform:none;opacity:1;visibility:visible}
+ .tgbar span:last-child{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#04101f;color:var(--tg)}
+ body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px))}
+}
+
+/* ── СЦЕНА-КАМЕРА ─────────────────────────────────────────
+   #stage fixed; .scene = отрезок пути камеры. Внутри движок строит .rig > .pic.fwd + .pic.back (обратный путь).
+   Нет ролика — постер, который «летит» transform-ом; ролик есть — кадр привязан к прокрутке. */
+#stage{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--night);pointer-events:none}
+.scene{position:absolute;inset:0;opacity:0;transition:opacity .6s var(--out)}
+.scene.on{opacity:1}
+.no-js .scene:first-child{opacity:1}
+.rig{position:absolute;inset:-6%;will-change:transform;transform:scale(1.04)}
+.pic{position:absolute;inset:0;background:var(--night) center/cover no-repeat;transition:opacity .26s var(--out)}
+.pic video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s var(--out)}
+.pic.vid video{opacity:1}
+.pic.back{opacity:0}
+.pic.back.mirror{transform:scaleX(-1)}           /* заглушка обратного пути: камера развёрнута */
+.scene.rev .pic.back{opacity:1}
+.scene.rev .pic.fwd{opacity:0}
+#stage .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,18,37,.55),rgba(7,18,37,0) 22%,rgba(7,18,37,0) 70%,rgba(7,18,37,.7)),var(--night);
+ background-blend-mode:normal;opacity:var(--veil,.25);transition:opacity .6s var(--out)}
+#stage .grade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,18,37,.5),transparent 24%,transparent 64%,rgba(7,18,37,.85))}
+.cam-cap{position:fixed;right:16px;bottom:12px;z-index:3;font:500 12px var(--mono);color:rgba(234,243,255,.5);pointer-events:none}
+@media (max-width:640px){.cam-cap{display:none}}
+
+main{position:relative;z-index:2}
+.stop{position:relative;min-height:100svh;padding-block:clamp(88px,9vw,128px);display:flex;align-items:center;overflow-x:clip}
+.stop>.wrap{width:100%}
+.stop h2{font-size:clamp(30px,4.6vw,56px)}
+.lead{font-size:clamp(17px,1.6vw,19px);max-width:52ch;margin-top:18px;color:#d5e3f7}
+.head{max-width:760px;margin-bottom:40px}
+.shade{text-shadow:0 2px 24px rgba(4,10,22,.7)}
+
+/* линия маршрута справа */
+.route{position:fixed;z-index:30;right:max(12px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);display:grid;gap:0;padding:6px 0}
+.route::before{content:"";position:absolute;right:21px;top:22px;bottom:22px;width:2px;border-radius:2px;background:rgba(234,243,255,.16)}
+.route i{position:absolute;right:21px;top:22px;width:2px;border-radius:2px;background:var(--sport);height:calc((100% - 44px) * var(--rp,0));transition:height .3s var(--out)}
+.route a{position:relative;display:flex;align-items:center;justify-content:flex-end;gap:12px;min-height:44px;padding:0 0 0 12px;text-decoration:none;color:var(--mute);font:600 13px var(--body)}
+.route a span{opacity:0;transform:translateX(6px);transition:opacity .2s var(--out),transform .2s var(--out);background:rgba(7,18,37,.82);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.route a b{flex:none;width:44px;height:44px;display:grid;place-items:center}
+.route a b::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--night);box-shadow:inset 0 0 0 2px rgba(234,243,255,.5);transition:transform .2s var(--out),background-color .2s,box-shadow .2s}
+.route a.on{color:var(--fg)}
+.route a.on b::after{background:var(--sport);box-shadow:none;transform:scale(1.3)}
+.route a.on span,.route:hover a span,.route a:focus-visible span{opacity:1;transform:none}
+@media (max-width:900px){.route{display:none}}
+
+/* ── ОБЪЁМНЫЕ ПЛАШКИ ──────────────────────────────────────
+   .dp — плашка с глубиной: наклон к курсору/пальцу с пружиной (v2.js), слои [data-z] выезжают вперёд, тень растёт с высотой. */
+.dp{position:relative;transform-style:preserve-3d;border-radius:22px;isolation:auto;
+ box-shadow:0 1px 0 rgba(255,255,255,.06) inset,
+  0 calc(2px + 6px*var(--lift)) calc(4px + 8px*var(--lift)) rgba(2,6,14,.35),
+  0 calc(12px + 18px*var(--lift)) calc(24px + 30px*var(--lift)) -8px rgba(2,6,14,.55),
+  0 calc(40px + 40px*var(--lift)) calc(60px + 50px*var(--lift)) -30px rgba(2,6,14,.85)}
+.dp::before{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;background:linear-gradient(160deg,rgba(22,40,74,.82),rgba(8,18,38,.9) 60%);
+ box-shadow:inset 0 0 0 1px rgba(150,190,255,.14)}
+@media (min-width:900px){.dp.glass::before{background:linear-gradient(160deg,rgba(22,40,74,.62),rgba(8,18,38,.78) 60%);-webkit-backdrop-filter:blur(10px) saturate(1.2);backdrop-filter:blur(10px) saturate(1.2)}}
+.dp [data-z]{transform:translateZ(calc(var(--z,0) * 1px))}
+.dp [data-z="1"]{--z:24}.dp [data-z="2"]{--z:48}.dp [data-z="3"]{--z:80}
+@media (prefers-reduced-motion:reduce){.dp [data-z]{transform:none}}
+
+/* ── ВИХРЬ 360° между спортами ───────────────────────────── */
+.whirl{position:fixed;inset:0;z-index:80;pointer-events:none;overflow:hidden;opacity:0}
+.whirl::before{content:"";position:absolute;inset:-60%;
+ background:repeating-conic-gradient(from 0deg,rgba(234,243,255,.0) 0deg 7deg,rgba(234,243,255,.10) 8deg 9deg,rgba(234,243,255,0) 10deg 14deg),
+  radial-gradient(closest-side,rgba(7,18,37,0) 0 18%,rgba(7,18,37,.92) 70%)}
+html.v-out .whirl,html.v-in .whirl{opacity:1}
+.fade{position:fixed;inset:0;z-index:81;pointer-events:none;background:var(--night);opacity:0}
+html.v-out #stage{animation:vOut .95s var(--inout) forwards}
+html.v-out main,html.v-out .route,html.v-out .hd{animation:vFade .4s var(--out) forwards}
+html.v-out .whirl::before{animation:vWhirl .95s var(--inout) forwards}
+html.v-out .fade{animation:vDark .95s linear forwards}
+@keyframes vOut{0%{transform:none;filter:none}100%{transform:rotate(360deg) scale(1.5);filter:blur(14px) brightness(1.4)}}
+@keyframes vFade{to{opacity:0;transform:scale(.96)}}
+@keyframes vWhirl{0%{opacity:0;transform:rotate(0)}40%{opacity:1}100%{opacity:1;transform:rotate(540deg)}}
+@keyframes vDark{0%,70%{opacity:0}100%{opacity:1}}
+html.v-in #stage{animation:vIn 1.05s var(--out) both}
+html.v-in .whirl::before{animation:vWhirlIn 1.05s var(--out) both}
+html.v-in main,html.v-in .hd{animation:vRise .7s var(--out) .35s both}
+@keyframes vIn{0%{transform:rotate(-200deg) scale(1.6);filter:blur(14px) brightness(1.5)}100%{transform:none;filter:none}}
+@keyframes vWhirlIn{0%{opacity:1;transform:rotate(-360deg)}100%{opacity:0;transform:rotate(0)}}
+@keyframes vRise{from{opacity:0;transform:scale(1.03)}to{opacity:1;transform:none}}
+
+/* крупная кнопка перехода между спортами */
+.swap{position:relative;display:inline-flex;align-items:center;gap:18px;min-height:72px;padding:0 14px 0 32px;border-radius:999px;text-decoration:none;
+ font:800 clamp(17px,2vw,24px)/1 var(--display);letter-spacing:.01em;color:#04101f;background:var(--to,var(--cyan));transition:transform .16s var(--out)}
+.swap:active{transform:scale(.97)}
+.swap .ic{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#04101f;color:var(--to,var(--cyan));transition:transform .5s var(--out)}
+.swap .ic svg{width:24px;height:24px}
+@media (hover:hover){.swap:hover .ic{transform:rotate(360deg)}}
+.swap{white-space:nowrap}
+@media (max-width:420px){.swap{font-size:15px;gap:12px;min-height:64px;padding:0 10px 0 22px}.swap .ic{width:44px;height:44px}}
+
+/* FAQ, подвал */
+.faq details{border-radius:16px;background:rgba(9,21,42,.9);margin-bottom:10px}
+.faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:60px;padding:0 20px;font:800 17px var(--display)}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"";flex:none;width:10px;height:10px;border-right:2px solid var(--sport);border-bottom:2px solid var(--sport);transform:rotate(45deg) translateY(-3px);transition:transform .2s var(--out)}
+.faq details[open] summary::after{transform:rotate(225deg)}
+.faq details p{padding:0 20px 20px;color:#c9d7ee;max-width:60ch}
+footer{position:relative;z-index:2;background:var(--night);padding-block:48px 40px}
+.fcols{display:flex;flex-wrap:wrap;justify-content:space-between;gap:20px 40px;color:var(--mute);font-size:14px}
+.fcols nav{display:flex;flex-wrap:wrap;gap:4px 20px}
+.fcols nav a{text-decoration:none;color:var(--fg);min-height:44px;min-width:44px;justify-content:center;display:inline-flex;align-items:center}
+
+/* появление (один раз) */
+@media (prefers-reduced-motion:no-preference){
+ .js .rv{opacity:0;transform:translateY(24px)}
+ .js .rv.in{opacity:1;transform:none;transition:opacity .6s var(--out),transform .6s var(--out);transition-delay:var(--d,0ms)}}
+html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!important}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01ms!important}}

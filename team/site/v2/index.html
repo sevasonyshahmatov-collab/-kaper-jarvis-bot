@@ -37,7 +37,7 @@
 }
 html[data-sport="football"]{--sport:var(--pitch);--sport-deep:var(--pitch-deep)}
 *{box-sizing:border-box}
-html{scroll-padding-top:72px;-webkit-text-size-adjust:100%}
+html{scroll-padding-top:72px;-webkit-text-size-adjust:100%;scrollbar-color:#1e3460 #071225;caret-color:var(--gold)}
 body{margin:0;background:var(--night);color:var(--fg);font:400 16px/1.5 var(--body);overflow-x:hidden}
 ::selection{background:var(--gold);color:#071225}
 a{color:inherit}
@@ -69,10 +69,10 @@ p{margin:0}
 .hd .wrap{height:var(--hdr);display:flex;align-items:center;gap:20px;transition:height .28s var(--out)}
 .hd.scrolled{background:rgba(7,18,37,.82)}
 .hd.scrolled .wrap{height:52px}
-.logo{font:800 20px/1 var(--display);letter-spacing:.04em;text-decoration:none;flex:none}
+.logo{font:800 20px/1 var(--display);letter-spacing:.04em;text-decoration:none;flex:none;min-height:44px;display:inline-flex;align-items:center}
 .logo b{color:var(--sport);transition:color .28s}
 .seg{position:relative;display:inline-flex;padding:4px;border-radius:999px;background:rgba(13,29,58,.86);box-shadow:inset 0 0 0 1px var(--line)}
-.seg button{position:relative;z-index:1;min-height:40px;padding:0 18px;border:0;background:none;color:var(--mute);font:800 14px/1 var(--display);cursor:pointer;border-radius:999px;transition:color .28s}
+.seg button{position:relative;z-index:1;min-height:44px;padding:0 18px;border:0;background:none;color:var(--mute);font:800 14px/1 var(--display);cursor:pointer;border-radius:999px;transition:color .28s}
 .seg button[aria-pressed="true"]{color:#04101f}
 .seg i{position:absolute;z-index:0;top:4px;bottom:4px;left:0;border-radius:999px;background:var(--sport);transition:transform .28s var(--out),width .28s var(--out),background-color .28s}
 .nav{display:flex;align-items:center;gap:4px;margin-left:auto}
@@ -91,7 +91,7 @@ p{margin:0}
 .soc{width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;color:#fff}
 .soc svg{width:18px;height:18px}
 .soc.yt{background:#ff0033}.soc.ig{background:#d62976}
-.hd .btn-tg{min-height:42px;padding:0 18px;font-size:14px}
+.hd .btn-tg{min-height:44px;padding:0 18px;font-size:14px}
 @media (max-width:1180px){.nav .soc{display:none}}
 @media (max-width:980px){.nav>a,.lgwrap{display:none}}
 @media (max-width:640px){.hd .seg{display:none}.hd .wrap{justify-content:space-between}}
@@ -112,41 +112,19 @@ p{margin:0}
 }
 @media (min-width:641px){.tgbar{display:none}}
 
-/* ── сцена: фиксированный фон-«видео» из 5 сцен ─────────── */
+/* ── фон: постер выбранного спорта под вуалью (видео-сцены — в разделах football/ и hockey/) ── */
 #stage{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--night);pointer-events:none}
-.scene{position:absolute;inset:0;opacity:0;transition:opacity .6s var(--out);background:var(--night) center/cover no-repeat}
-.scene.on{opacity:1}
-.no-js .scene[data-scene="1"]{opacity:1}
-.cam{position:absolute;inset:0;transform-origin:50% 50%;will-change:transform}
-.scene canvas,.scene .lay{position:absolute;inset:0;width:100%;height:100%;display:block}
-#stage .veil{position:absolute;inset:0;background:var(--night);opacity:var(--veil,.2);transition:opacity .6s var(--out)}
-/* S1 тоннель: лёд (canvas #rink из landing.html) и газон за выходом, стены тоннеля — canvas поверх */
-.s1-ice,.s1-pitch{position:absolute;inset:0;transition:opacity .6s var(--out)}
-#rink{filter:blur(2px) brightness(1.7) saturate(1.15)}
-.s1-pitch{opacity:0;background:url(assets/pitch.svg) center/cover}
-html[data-sport="football"] .s1-ice{opacity:0}
-html[data-sport="football"] .s1-pitch{opacity:1}
-.s1-light{position:absolute;inset:0;mix-blend-mode:screen;background:radial-gradient(30% 40% at var(--px,58%) 46%,rgba(170,215,255,.22),transparent 70%),radial-gradient(14% 22% at calc(var(--px,58%) - 14%) 14%,rgba(255,220,150,.32),transparent 70%),radial-gradient(14% 22% at calc(var(--px,58%) + 14%) 14%,rgba(255,220,150,.32),transparent 70%)}
-#tunnel{transform-origin:var(--ox,58%) var(--oy,46%)}
-/* S2 прожекторы */
-.s2-floor{position:absolute;inset:0;background:url(assets/ice.svg) center 130%/150% auto no-repeat;opacity:.16}
-html[data-sport="football"] .s2-floor{background-image:url(assets/pitch.svg)}
-.cone{position:absolute;top:-4%;left:var(--x);width:46vmax;height:130vh;margin-left:-23vmax;transform-origin:50% 0;transform:rotate(var(--r));
- background:linear-gradient(180deg,rgba(255,222,140,.55),rgba(255,201,60,.14) 50%,transparent 88%);clip-path:polygon(48.5% 0,51.5% 0,86% 100%,14% 100%);mix-blend-mode:screen;opacity:0;transition:opacity .7s var(--out)}
-.cone.lit{opacity:1}
-.cone::before{content:"";position:absolute;left:50%;top:0;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:#fff3cf}
-@media (prefers-reduced-motion:no-preference){.cone.lit{animation:sway 9s ease-in-out infinite alternate;animation-delay:calc(var(--i) * -1.7s)}}
-@keyframes sway{from{transform:rotate(calc(var(--r) - 3deg))}to{transform:rotate(calc(var(--r) + 3deg))}}
-/* S3 лёд | газон: газон обрезан по диагонали, линия раздела уезжает за прокруткой */
-.s3-ice{background:url(assets/ice.svg) center/cover}
-.s3-pitch{background:url(assets/pitch.svg) center/cover;clip-path:polygon(var(--a,58%) 0,100% 0,100% 100%,var(--b,42%) 100%)}
-.s3-cut{position:absolute;inset:0}
-.s3-cut line{stroke:#eaf3ff;stroke-width:3;vector-effect:non-scaling-stroke}
-/* S4, S5 — canvas */
-.s5-pan{position:absolute;inset:0 -12%}
-@media (prefers-reduced-motion:no-preference){.s5-pan{animation:pan 40s ease-in-out infinite alternate}}
-@keyframes pan{from{transform:translateX(-4%)}to{transform:translateX(4%)}}
-
+.bgp{position:absolute;inset:-4%;background:var(--night) center/cover no-repeat;opacity:0;transition:opacity .6s var(--out);filter:saturate(.9)}
+html[data-sport="hockey"] .bgp.h,html[data-sport="football"] .bgp.f{opacity:1}
+#stage .veil{position:absolute;inset:0;background:var(--night);opacity:.42;transition:opacity .2s linear}
+/* объёмные плашки: слои глубины, наклон к курсору/пальцу с пружиной (assets/v2.js), тень по высоте «полёта» */
+.dp{--lift:0;transform-style:preserve-3d;
+ box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 calc(2px + 6px*var(--lift)) calc(4px + 8px*var(--lift)) rgba(2,6,14,.35),
+  0 calc(12px + 18px*var(--lift)) calc(24px + 30px*var(--lift)) -8px rgba(2,6,14,.55),0 calc(40px + 40px*var(--lift)) calc(60px + 50px*var(--lift)) -30px rgba(2,6,14,.85)}
+.dp [data-z]{transform:translateZ(calc(var(--z,0) * 1px))}
+.dp [data-z="1"]{--z:24}.dp [data-z="2"]{--z:48}.dp [data-z="3"]{--z:80}
+.whirl,.fade{display:none}
+@media (prefers-reduced-motion:reduce){.dp [data-z]{transform:none}}
 /* ── контент поверх сцены ───────────────────────────────── */
 main{position:relative;z-index:2}
 .sec{position:relative;padding-block:clamp(96px,14vw,184px)}
@@ -155,26 +133,50 @@ main{position:relative;z-index:2}
 .head{display:grid;gap:0;margin-bottom:40px;max-width:760px}
 .plate{background:rgba(7,18,37,.78);border-radius:20px}
 
-/* 1. Тоннель — первый экран */
-.hero{min-height:100svh;display:flex;align-items:center;padding-block:calc(var(--hdr) + 40px) 56px}
-.hero .wrap{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:56px;align-items:center}
-.hero h1{font-size:clamp(38px,5.2vw,78px);line-height:.98;letter-spacing:-.035em;max-width:13ch}
-@media (max-width:860px){.hero .wrap{grid-template-columns:1fr;gap:36px}.hero{align-items:flex-start;padding-top:calc(var(--hdr) + 30vh)}.chips{display:none}}
-.hero .lead{max-width:40ch;color:#d5e3f7}
-.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:36px;padding:0;list-style:none}
+/* 1. Развилка — первый экран: два портала */
+.fork{min-height:100svh;display:flex;align-items:center;padding-block:calc(var(--hdr) + 28px) 48px}
+.fork-head{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:24px 48px;align-items:end;margin-bottom:28px}
+.fork h1{font-size:clamp(34px,4.2vw,64px);line-height:.98;letter-spacing:-.035em;max-width:14ch}
+.fork .lead{margin:0;color:#d5e3f7;max-width:38ch}
+@media (max-width:860px){.fork-head{grid-template-columns:1fr}.fork{align-items:flex-start}}
+.gates{display:grid;grid-template-columns:1fr 1fr;gap:20px;perspective:1600px}
+.gate{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:min(58vh,560px);padding:32px;border-radius:24px;text-decoration:none;color:var(--fg);
+ transition:transform .16s var(--out)}
+.gate-media{position:absolute;inset:0;border-radius:inherit;overflow:hidden;background:#050c19}
+.gate-media img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.04);transition:transform 1.2s var(--out)}
+.gate-media::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,18,37,.05) 30%,rgba(7,18,37,.88) 86%)}
+@media (hover:hover){.gate:hover .gate-media img{transform:scale(1.1)}}
+.gate .tag{position:absolute;top:24px;left:28px;display:inline-flex;gap:8px;align-items:center;font:600 14px var(--body);color:#d5e3f7}
+.gate .tag i{width:10px;height:10px;border-radius:50%;background:var(--c)}
+.gate h2{font-size:clamp(40px,5vw,76px);letter-spacing:-.03em}
+.gate p{margin-top:8px;color:#d5e3f7;font-size:17px;max-width:34ch}
+.gate .facts{display:flex;flex-wrap:wrap;gap:8px 28px;margin:22px 0 24px;padding:0;list-style:none}
+.gate .facts b{display:block;font:800 28px/1 var(--display);color:var(--c)}
+.gate .facts span{font-size:14px;color:#c9d7ee}
+.gate .go{align-self:flex-start;display:inline-flex;align-items:center;gap:10px;min-height:52px;padding:0 24px;border-radius:999px;background:var(--c);color:#04101f;font:800 16px var(--display)}
+.gate .go svg{width:18px;height:18px;transition:transform .2s var(--out)}
+@media (hover:hover){.gate:hover .go svg{transform:translateX(4px)}}
+.gate.h{--c:var(--cyan)}.gate.f{--c:var(--pitch)}
+html[data-sport="hockey"] .gate.h .gate-media,html[data-sport="football"] .gate.f .gate-media{box-shadow:inset 0 0 0 2px var(--c)}
+@media (max-width:760px){.gates{grid-template-columns:1fr;gap:14px}.gate{min-height:360px;padding:22px}.gate .tag{top:18px;left:22px}.gate .facts b{font-size:22px}}
+.gate-open{position:fixed;z-index:90;background:#050c19 center/cover no-repeat;pointer-events:none}
+html.gating .hd,html.gating main{transition:opacity .4s var(--out);opacity:.0}
+@media (prefers-reduced-motion:no-preference){.js .fork-head>*{animation:rise .7s var(--out) backwards}.js .fork-head>:nth-child(2){animation-delay:.08s}
+ .js .gate{animation:rise .8s var(--out) backwards}.js .gate.f{animation-delay:.1s}}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+/* 1б. Прогноз дня — табло рядом с текстом */
+.today .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:center}
+@media (max-width:860px){.today .wrap{grid-template-columns:1fr;gap:28px}}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px;padding:0;list-style:none}
 .chips li{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 12px 0 6px;border-radius:999px;background:rgba(7,18,37,.7);font-size:14px;font-weight:600}
 .chips img{width:24px;height:24px}
-@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:no-preference){
- .js .hero-text>*{animation:rise .7s var(--out) both}
- .js .hero-text>:nth-child(2){animation-delay:.08s}.js .hero-text>:nth-child(3){animation-delay:.16s}.js .hero-text>:nth-child(4){animation-delay:.24s}
- .js .hero .board{animation:rise .8s var(--out) .3s both}}
-
 /* табло «Прогноз дня» */
-.board{position:relative;border-radius:24px;padding:20px;background:rgba(6,14,29,.9);box-shadow:0 40px 80px -40px #000,inset 0 0 0 1px var(--line);min-width:0}
+.board{position:relative;border-radius:24px;padding:22px;background:linear-gradient(160deg,rgba(22,40,74,.9),rgba(6,14,29,.94) 60%);min-width:0}
+.board::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(150,190,255,.14);pointer-events:none}
+.em-lg{filter:drop-shadow(0 14px 14px rgba(0,0,0,.55))}
 .btabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:var(--night2);position:relative}
-.btabs button{position:relative;z-index:1;min-height:40px;border:0;background:none;color:var(--mute);font:800 13px var(--display);cursor:pointer;border-radius:10px;transition:color .28s}
+.btabs button{position:relative;z-index:1;min-height:44px;border:0;background:none;color:var(--mute);font:800 13px var(--display);cursor:pointer;border-radius:10px;transition:color .28s}
 .btabs button[aria-selected="true"]{color:#04101f}
 .btabs i{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 6px);border-radius:10px;background:var(--sport);transition:transform .28s var(--out),background-color .28s}
 html[data-sport="football"] .btabs i{transform:translateX(calc(100% + 4px))}
@@ -244,28 +246,6 @@ html[data-sport="football"] .btabs i{transform:translateX(calc(100% + 4px))}
 @media (max-width:860px){.matches{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;margin-inline:-20px;padding-inline:20px;scrollbar-width:none;scroll-padding-inline:20px}
  .matches::-webkit-scrollbar{display:none}.card{flex:0 0 84%;scroll-snap-align:start}}
 
-/* 3. Выбери поле — два портала */
-.sec-portals{min-height:120vh;display:flex;align-items:center}
-.portals{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.portal{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:440px;padding:32px;border-radius:24px;overflow:hidden;text-decoration:none;color:var(--fg);isolation:isolate;
- transition:transform .16s var(--out)}
-.portal:active{transform:scale(.985)}
-.portal::before{content:"";position:absolute;inset:0;z-index:-2;background:var(--bg) center/cover;transition:transform 1.2s var(--out)}
-.portal::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(7,18,37,.1),rgba(7,18,37,.92) 78%)}
-@media (hover:hover){.portal:hover::before{transform:scale(1.06)}}
-.portal.h{--bg:url(assets/ice.svg)}.portal.f{--bg:url(assets/pitch.svg)}
-.portal h3{font-size:clamp(34px,4vw,56px)}
-.portal p{margin-top:10px;color:#d5e3f7;font-size:17px}
-.facts{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:8px 28px;margin:24px 0 28px;padding:0;list-style:none}
-.facts b{display:block;font:800 30px/1 var(--display);color:var(--c)}
-.facts span{font-size:14px;color:#c9d7ee}
-.portal.h{--c:var(--cyan)}.portal.f{--c:var(--pitch)}
-.portal .go{align-self:flex-start;display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 22px;border-radius:999px;background:var(--c);color:#04101f;font:800 15px var(--display)}
-.portal .go svg{width:18px;height:18px;transition:transform .2s var(--out)}
-@media (hover:hover){.portal:hover .go svg{transform:translateX(4px)}}
-html[data-sport="hockey"] .portal.h,html[data-sport="football"] .portal.f{box-shadow:inset 0 0 0 2px var(--c)}
-@media (max-width:760px){.portals{grid-template-columns:1fr}.portal{min-height:360px;padding:24px}.facts b{font-size:24px}}
-
 /* 4. Модель */
 .model{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:48px;align-items:start}
 .steps{list-style:none;margin:32px 0 0;padding:0;display:grid;gap:4px;counter-reset:s}
@@ -334,8 +314,8 @@ html[data-sport="football"] #k::-moz-range-thumb{background:#fff;border-color:va
 .foot-trial{padding:28px;border-radius:20px;background:var(--pitch-deep);box-shadow:inset 0 0 0 1px rgba(46,229,157,.25)}
 .foot-trial h3{font-size:22px}
 .foot-trial p{margin-top:10px;color:#cfeee0}
-.bt{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;margin:22px 0 8px}
-.bt div b{display:block;font:800 40px/1 var(--display);font-variant-numeric:tabular-nums}
+.bt{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;margin:22px 0 8px}
+.bt div b{display:block;font:800 clamp(26px,7vw,40px)/1 var(--display);font-variant-numeric:tabular-nums}
 .bt div span{font-size:14px;color:#a9d8c4}
 .bt svg{width:28px;height:28px;color:var(--pitch)}
 .bt .got b{color:var(--pitch)}
@@ -343,7 +323,7 @@ html[data-sport="football"] #k::-moz-range-thumb{background:#fff;border-color:va
 .honest-tg{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;margin-top:20px;padding:22px 24px;border-radius:20px;background:rgba(42,168,255,.14)}
 .honest-tg b{display:block;font:800 20px var(--display)}
 .honest-tg span{color:#c9d7ee;font-size:14px}
-@media (max-width:900px){.honest-grid{grid-template-columns:1fr}}
+@media (max-width:900px){.honest-grid{grid-template-columns:minmax(0,1fr)}}
 
 /* 6. Лиги — бенто */
 .bento{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
@@ -381,7 +361,7 @@ html[data-sport="football"] #k::-moz-range-thumb{background:#fff;border-color:va
 .tour-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:48px;align-items:center;width:100%}
 .tour-text{min-width:0;display:grid;gap:22px}
 .tour-steps{display:flex;gap:6px;flex-wrap:wrap}
-.tstep{font-family:var(--mono);font-size:12px;letter-spacing:0;padding:7px 10px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--mute);cursor:pointer;transition:background .3s,color .3s,border-color .3s}
+.tstep{font-family:var(--mono);font-size:12px;letter-spacing:0;min-height:44px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--mute);cursor:pointer;transition:background .3s,color .3s,border-color .3s}
 .tstep.on{background:var(--tone);border-color:var(--tone);color:#041022}
 .tstep:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .stack{display:grid}
@@ -483,7 +463,7 @@ html[data-sport="football"] #k::-moz-range-thumb{background:#fff;border-color:va
 }
 @media (max-width:860px) and (max-height:700px){ .hist .hr:nth-of-type(n+3){display:none} .tc p{display:none} }
 .tour{background:rgba(10,26,54,.9)}
-@media (max-width:640px){.chips{display:none}}
+
 .tour .eyebrow{font-size:14px;color:var(--mute);font-weight:600}
 .table-cta{display:flex;flex-wrap:wrap;align-items:center;gap:16px 24px;margin-top:8px}
 .table-cta p{color:var(--mute);font-size:14px}
@@ -525,7 +505,7 @@ footer .big{font:800 clamp(64px,16vw,220px)/.85 var(--display);letter-spacing:-.
 footer .big b{color:var(--sport);opacity:.55}
 .fcols{display:flex;flex-wrap:wrap;justify-content:space-between;gap:20px 40px;color:var(--mute);font-size:14px}
 .fcols nav{display:flex;flex-wrap:wrap;gap:4px 20px}
-.fcols nav a{text-decoration:none;color:var(--fg);min-height:44px;display:inline-flex;align-items:center}
+.fcols nav a{text-decoration:none;color:var(--fg);min-height:44px;min-width:44px;justify-content:center;display:inline-flex;align-items:center}
 @media (max-width:860px){.faq{grid-template-columns:1fr;gap:24px}}
 
 /* появление частей секций (один раз, стаггер) */
@@ -543,29 +523,10 @@ html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!
 <script>document.body.classList.replace('no-js','js')</script>
 <a class="skip" href="#main">К содержанию</a>
 
-<!-- ФОН-«ВИДЕО»: 5 сцен. Замена на видео: внутри .scene — <video poster="assets/sN.webp" muted playsinline loop preload="none" src="assets/sN.mp4"> -->
+<!-- ФОН: постер раздела выбранного спорта (живые сцены-камеры — в football/ и hockey/) -->
 <div id="stage" aria-hidden="true">
-  <div class="scene on" data-scene="1" data-video="assets/s1" data-poster="assets/s1.svg" style="background-image:url(assets/s1.svg)">
-    <div class="cam" id="cam1">
-      <div class="s1-ice"><canvas id="rink"></canvas></div>
-      <div class="s1-pitch"></div>
-      <div class="s1-light"></div>
-    </div>
-    <canvas class="lay" id="tunnel"></canvas>
-  </div>
-  <div class="scene" data-scene="2" data-video="assets/s2" data-poster="assets/s2.svg">
-    <div class="cam"><div class="s2-floor"></div><div id="cones"></div></div>
-  </div>
-  <div class="scene" data-scene="3" data-video="assets/s3" data-poster="assets/s3.svg">
-    <div class="cam"><div class="lay s3-ice"></div><div class="lay s3-pitch"></div>
-      <svg class="s3-cut" viewBox="0 0 100 100" preserveAspectRatio="none"><line id="cut" x1="58" y1="0" x2="42" y2="100"/></svg></div>
-  </div>
-  <div class="scene" data-scene="4" data-video="assets/s4" data-poster="assets/s4.svg">
-    <div class="cam"><canvas id="led"></canvas></div>
-  </div>
-  <div class="scene" data-scene="5" data-video="assets/s5" data-poster="assets/s5.svg">
-    <div class="cam"><div class="s5-pan"><canvas id="stands"></canvas></div></div>
-  </div>
+  <div class="bgp h" style="background-image:url(assets/hockey/H0.webp)"></div>
+  <div class="bgp f" style="background-image:url(assets/football/F6.webp)"></div>
   <div class="veil"></div>
 </div>
 
@@ -594,20 +555,44 @@ html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!
 </header>
 
 <main id="main">
-<!-- 1. Тоннель -->
-<section class="hero" data-scene="1" data-veil=".05" id="top">
+<!-- 1. Развилка: два портала -->
+<section class="fork" id="top">
   <div class="wrap">
-    <div class="hero-text">
+    <div class="fork-head">
       <h1>Хоккей и футбол в цифрах, а не на эмоциях</h1>
-      <p class="lead">Прогноз на каждый матч от собственной модели. Итоги — все, и минусы.</p>
-      <div class="cta">
-        <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть @jarvibet <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-        <a class="btn btn-line" href="#portals">Выбрать спорт <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v13M6 13l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-      </div>
+      <p class="lead">Прогноз на каждый матч от собственной модели. Итоги — все, и минусы. Выбери поле.</p>
+    </div>
+    <div class="gates">
+      <a class="gate h dp" href="hockey/" data-go="hockey" data-tilt=".6">
+        <span class="gate-media"><img src="assets/hockey/H0.webp" alt="" width="888" height="500"></span>
+        <span class="tag" data-z="1"><i></i>КХЛ · НХЛ</span>
+        <h2 data-z="2">Хоккей</h2>
+        <p data-z="1">КХЛ днём, НХЛ ночью по Москве. Пост на каждый матч.</p>
+        <ul class="facts" data-z="1"><li><b class="num" data-count="khlnhl">6</b><span>матчей сегодня</span></li><li><b>72%</b><span>зашло в октябре</span></li></ul>
+        <span class="go" data-z="3">В хоккей <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>
+      </a>
+      <a class="gate f dp" href="football/" data-go="football" data-tilt=".6">
+        <span class="gate-media"><img src="assets/football/F6.webp" alt="" width="1024" height="682"></span>
+        <span class="tag" data-z="1"><i></i>7 турниров Европы</span>
+        <h2 data-z="2">Футбол</h2>
+        <p data-z="1">Топ-лиги и Лига чемпионов. Проба с 30 октября.</p>
+        <ul class="facts" data-z="1"><li><b class="num" data-count="foot">6</b><span>матчей сегодня</span></li><li><b>284</b><span>ставки в проверке</span></li></ul>
+        <span class="go" data-z="3">В футбол <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- 1б. Прогноз дня по обоим спортам -->
+<section class="sec today" id="today">
+  <div class="wrap">
+    <div class="rv">
+      <h2>Прогноз дня</h2>
+      <p class="lead">Самый уверенный прогноз модели на сегодня — по хоккею и по футболу. Отсчёт идёт до начала матча.</p>
+      <div class="cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть @jarvibet</a><a class="btn btn-line" href="#matches">Все матчи дня</a></div>
       <ul class="chips" id="chips" aria-label="Лиги"></ul>
     </div>
-
-    <div class="board" aria-label="Прогноз дня">
+    <div class="board dp" aria-label="Прогноз дня">
       <div class="btabs" role="tablist" aria-label="Прогноз дня: вид спорта">
         <i aria-hidden="true"></i>
         <button type="button" role="tab" aria-selected="true" data-sport="hockey" id="bt-h">Хоккей</button>
@@ -615,17 +600,17 @@ html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!
       </div>
       <div class="bpane" data-pane="hockey">
         <div class="btop"><span class="live">Прогноз дня</span><span class="bwhen">19:30 МСК</span></div>
-        <div class="teams"><div class="tm"><img class="em-lg" data-logo="akbars" alt="">Ак Барс</div><div class="vs">против</div><div class="tm"><img class="em-lg" data-logo="lokomotiv" alt="">Локомотив</div></div>
+        <div class="teams" data-z="2"><div class="tm"><img class="em-lg" data-logo="akbars" alt="">Ак Барс</div><div class="vs">против</div><div class="tm"><img class="em-lg" data-logo="lokomotiv" alt="">Локомотив</div></div>
         <div class="clock" id="clock" hidden><span>До вбрасывания</span><b id="cd">—</b></div>
-        <div class="odds"><div class="odd"><small>П1</small><strong class="num">2.10</strong></div><div class="odd"><small>Х</small><strong class="num">4.20</strong></div><div class="odd pick"><small>П2</small><strong class="num">1.85</strong></div></div>
+        <div class="odds" data-z="1"><div class="odd"><small>П1</small><strong class="num">2.10</strong></div><div class="odd"><small>Х</small><strong class="num">4.20</strong></div><div class="odd pick"><small>П2</small><strong class="num">1.85</strong></div></div>
         <div class="prob"><div class="prob-head"><span>Вероятность по модели</span><b id="pv">58%</b></div><div class="meter"><i id="pm"></i></div></div>
         <p class="sample">Пример данных. Прогноз выйдет в канале до 08:00 МСК.</p>
       </div>
       <div class="bpane" data-pane="football" hidden>
         <div class="btop"><span class="live">Прогноз дня</span><span class="bwhen">21:00 МСК</span></div>
-        <div class="teams"><div class="tm"><img class="em-lg" data-crest="Реал Сосьедад" alt="">Реал Сосьедад</div><div class="vs">против</div><div class="tm"><img class="em-lg" data-crest="Бетис" alt="">Бетис</div></div>
+        <div class="teams" data-z="2"><div class="tm"><img class="em-lg" data-crest="Реал Сосьедад" alt="">Реал Сосьедад</div><div class="vs">против</div><div class="tm"><img class="em-lg" data-crest="Бетис" alt="">Бетис</div></div>
         <div class="clock" id="fclock" hidden><span>До стартового свистка</span><b id="fcd">—</b></div>
-        <div class="odds"><div class="odd"><small>П1</small><strong class="num">2.45</strong></div><div class="odd pick"><small>ТБ 2,5</small><strong class="num">1.75</strong></div><div class="odd"><small>П2</small><strong class="num">2.95</strong></div></div>
+        <div class="odds" data-z="1"><div class="odd"><small>П1</small><strong class="num">2.45</strong></div><div class="odd pick"><small>ТБ 2,5</small><strong class="num">1.75</strong></div><div class="odd"><small>П2</small><strong class="num">2.95</strong></div></div>
         <div class="prob"><div class="prob-head"><span>Вероятность по модели</span><b id="fpv">62%</b></div><div class="meter"><i id="fpm"></i></div></div>
         <p class="sample">Пример данных. Футбол — проба с 30.10, прогнозы пока черновиками.</p>
       </div>
@@ -634,7 +619,7 @@ html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!
 </section>
 
 <!-- 2. Сегодня в эфире -->
-<section class="sec" id="matches" data-scene="2" data-veil=".25">
+<section class="sec" id="matches">
   <div class="wrap">
     <div class="head rv">
       <h2>Сегодня в эфире</h2>
@@ -646,27 +631,8 @@ html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!
   </div>
 </section>
 
-<!-- 3. Выбери поле -->
-<section class="sec sec-portals" id="portals" data-scene="3" data-veil=".35">
-  <div class="wrap">
-    <div class="head rv"><h2>Выбери поле</h2><p class="lead">Две модели, один подход: вероятность, линия, ставка только в рабочем коридоре кэфов.</p></div>
-    <div class="portals">
-      <a class="portal h rv" href="#matches" data-go="hockey">
-        <h3>Хоккей</h3><p>КХЛ днём, НХЛ ночью по Москве. Пост на каждый матч.</p>
-        <ul class="facts"><li><b class="num" data-count="khlnhl">6</b><span>матчей сегодня</span></li><li><b>2</b><span>лиги</span></li><li><b>72%</b><span>зашло в октябре</span></li></ul>
-        <span class="go">В хоккей <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>
-      </a>
-      <a class="portal f rv" href="#leagues" data-go="football" style="--d:90ms">
-        <h3>Футбол</h3><p>Топ-лиги Европы и Лига чемпионов. Проба с 30 октября.</p>
-        <ul class="facts"><li><b class="num" data-count="foot">6</b><span>матчей сегодня</span></li><li><b>7</b><span>турниров</span></li><li><b>284</b><span>ставки в проверке</span></li></ul>
-        <span class="go">В футбол <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>
-      </a>
-    </div>
-  </div>
-</section>
-
 <!-- 4. Как думает модель -->
-<section class="sec" id="model" data-scene="4" data-veil=".45">
+<section class="sec" id="model">
   <div class="wrap model">
     <div>
       <div class="head rv" style="margin:0"><h2>Как думает модель</h2><p class="lead">До матча модель разыгрывает его тысячи раз. Ставка — только там, где расчёт и линия сходятся.</p></div>
@@ -676,7 +642,7 @@ html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!
         <li class="rv" style="--d:160ms"><div><h3>Выбор</h3><p>Самое вероятное событие в коридоре кэфов 1,6–2,3.</p></div></li>
       </ol>
     </div>
-    <div class="lab plate rv">
+    <div class="lab plate dp">
       <div>
         <h3>Почему 1,6–2,3</h3>
         <div class="scale"><div class="track"><i></i></div>
@@ -695,7 +661,7 @@ html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!
 </section>
 
 <!-- 5. Честные итоги -->
-<section class="sec" id="honest" data-scene="5" data-veil=".3">
+<section class="sec" id="honest">
   <div class="wrap"><div class="head rv"><h2>Честные итоги</h2><p class="lead">Каждое утро в канале — итоги вчерашних матчей, и зашедшие, и нет. У каждого прогноза номер поста: любой можно проверить.</p></div></div>
   <div class="ticker" aria-label="Последние итоги"><div class="ticker-row" id="tick"></div></div>
   <div class="wrap">
@@ -705,19 +671,19 @@ html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!
         <div class="mlist" id="monthlist" hidden></div>
         <p class="months-note" id="months-note"></p>
       </div>
-      <div class="foot-trial rv">
+      <div class="foot-trial dp">
         <h3>Футбол: проба с 30.10</h3>
         <p>Реальные итоги покажем после двух недель пробы. Пока — как модель прошла проверку вслепую на прошлом сезоне.</p>
         <div class="bt" id="bt"></div>
         <p class="bt-note" id="btnote"></p>
       </div>
     </div>
-    <div class="honest-tg rv"><div><b>Итоги каждое утро — в Telegram</b><span>Зашедшие и нет, с номером поста</span></div><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть @jarvibet</a></div>
+    <div class="honest-tg dp"><div><b>Итоги каждое утро — в Telegram</b><span>Зашедшие и нет, с номером поста</span></div><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть @jarvibet</a></div>
   </div>
 </section>
 
 <!-- 6. Лиги -->
-<section class="sec" id="leagues" data-scene="5" data-veil=".55">
+<section class="sec" id="leagues">
   <div class="wrap">
     <div class="head rv"><h2>Девять турниров, одна модель</h2><p class="lead">Нажми на лигу — матчи, прогнозы из канала и проверка модели по этой лиге.</p></div>
     <div class="bento" id="bento"></div>
@@ -725,7 +691,7 @@ html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!
 </section>
 
 <!-- 7. Внутри таблицы -->
-<div id="table" data-scene="5" data-veil=".7">
+<div id="table">
 <section class="tour" id="tour" aria-label="Что внутри таблицы">
   <div class="tour-pin">
     <div class="wrap tour-grid">
@@ -864,7 +830,7 @@ html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!
 </div>
 
 <!-- 8. Мини-приложение и тренды -->
-<section class="sec" id="app" data-scene="5" data-veil=".6">
+<section class="sec" id="app">
   <div class="wrap app">
     <div class="phone rv" aria-hidden="true"><div>
       <h4>Матчи дня</h4>
@@ -889,7 +855,7 @@ html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!
 </section>
 
 <!-- 9. Финал -->
-<section class="sec final" id="final" data-scene="1" data-veil=".35">
+<section class="sec final" id="final" data-tg-hide>
   <svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" pathLength="1"/><circle cx="50" cy="50" r="1.2" pathLength="1" style="stroke-width:3"/></svg>
   <div class="wrap" style="position:relative">
     <h2 class="rv">Все прогнозы — в Telegram</h2>
@@ -899,7 +865,7 @@ html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!
 </section>
 
 <!-- 10. FAQ -->
-<section class="sec" id="faq" data-scene="0" data-veil=".9" style="background:var(--night)">
+<section class="sec" id="faq" style="background:var(--night)">
   <div class="wrap faq">
     <h2>Вопросы</h2>
     <div>
@@ -1000,9 +966,11 @@ const CLUB={'Реал Сосьедад':['#1d5fbf','#fff','РС'],'Бетис':[
  'Марсель':['#2faee0','#fff','ОМ'],'Ланс':['#f5c400','#d0111b','ЛАН'],'Бенфика':['#e3171e','#fff','БЕН'],'Брага':['#d71920','#fff','БРА']};
 const crest=n=>{const [a,b,t]=CLUB[n]||['#2ee59d','#071225',n.slice(0,3).toUpperCase()];
  return 'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 56"><path d="M24 2 44 8v18c0 14-9 23-20 28C13 49 4 40 4 26V8z" fill="${a}" stroke="${b}" stroke-width="3"/><path d="M24 2 44 8v18c0 14-9 23-20 28z" fill="#000" opacity=".14"/><text x="24" y="33" text-anchor="middle" font-family="Unbounded,Arial,sans-serif" font-weight="800" font-size="${t.length>2?12:15}" fill="${b}">${t}</text></svg>`)};
-const logo=n=>LG[n]?`assets/em/${LOGO[LG[n]]}.webp`:crest(n);
+// эмблемы футбола — render/emblems/football (assets/fc); нет файла — щит с буквами
+const FC={'Реал Сосьедад':'sociedad','Бетис':'betis','Арсенал':'arsenal','Брентфорд':'brentford','Интер':'inter','Фиорентина':'fiorentina','Байер':'leverkusen','Майнц':'mainz','Марсель':'marseille','Ланс':'lens','Бенфика':'benfica','Брага':'braga'};
+const logo=n=>LG[n]?`assets/em/${LOGO[LG[n]]}.webp`:FC[n]?`assets/fc/${FC[n]}.webp`:crest(n);
 document.querySelectorAll('img[data-logo]').forEach(i=>{i.src=`assets/em/${LOGO[i.dataset.logo]}.webp`;i.loading='lazy';i.decoding='async'});
-document.querySelectorAll('img[data-crest]').forEach(i=>i.src=crest(i.dataset.crest));
+document.querySelectorAll('img[data-crest]').forEach(i=>i.src=logo(i.dataset.crest));
 document.querySelectorAll('.board .em-lg').forEach(i=>i.loading='eager');
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 const plural=(n,a,b,c)=>{const k=n%100,j=n%10;return k>10&&k<20?c:j===1?a:j>1&&j<5?b:c};
@@ -1075,7 +1043,7 @@ function render(l){curL=l;const s=document.documentElement.dataset.sport;
  ltabs.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.l===l||(l==='hockey'||l==='football')&&false));
  const sel=l==='all'?ALLM:l==='hockey'?ALLM.filter(m=>m.lg==='khl'||m.lg==='nhl'):l==='football'?ALLM.filter(m=>!['khl','nhl'].includes(m.lg)):ALLM.filter(m=>m.lg===l);
  if(!sel.length){const L=LEAGUES.find(x=>x.id===l);list.innerHTML=`<div class="empty"><b>Сегодня матчей нет</b>${L&&L.next?L.next+'. ':''}Новые прогнозы — в Telegram @jarvibet.</div>`;return}
- list.innerHTML=sel.map((m,i)=>{const L=LEAGUES.find(x=>x.id===m.lg);return `<button class="card rv in" type="button" style="--d:${i*60}ms" aria-label="${esc(m.a)} — ${esc(m.b)}, показать прогноз">
+ list.innerHTML=sel.map((m,i)=>{const L=LEAGUES.find(x=>x.id===m.lg);return `<button class="card dp" type="button" style="--d:${i*60}ms" aria-label="${esc(m.a)} — ${esc(m.b)}, показать прогноз">
    <div class="inner">
     <div class="face front"><div class="when"><img src="${LGI(m.lg)}" alt="${L.name}">${m.w}${m.t?` · <span class="cd" data-t="${m.t}"></span>`:''}</div>
      <div class="pair"><div class="tm-row"><img class="em" src="${logo(m.a)}" alt="">${esc(m.a)}</div><div class="tm-row"><img class="em" src="${logo(m.b)}" alt="">${esc(m.b)}</div></div>
@@ -1088,89 +1056,6 @@ ltabs.addEventListener('click',e=>{const t=e.target.closest('.tab');if(!t)return
 function pickLeague(l){const L=LEAGUES.find(x=>x.id===l);if(L&&L.sport!==document.documentElement.dataset.sport)setSport(L.sport,'league');render(l);
  ltabs.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.l===l))}
 onSport.push((s,from)=>{if(from!=='league'){render(s);ltabs.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected','false'))}});
-</script>
-<script>
-/* ── СЦЕНА: активная сцена — по секции в центре экрана; внутри — наезд камеры за прокруткой (только transform) ── */
-(()=>{
- const stage=document.getElementById('stage'),scenes=[...stage.querySelectorAll('.scene')],veil=stage.querySelector('.veil');
- const secs=[...document.querySelectorAll('[data-scene]')].filter(e=>!e.classList.contains('scene'));
- const hero=document.querySelector('.hero'),hd=document.getElementById('hd'),tgbar=document.getElementById('tgbar');
- const tunnel=document.getElementById('tunnel'),cam1=document.getElementById('cam1');
- const ACT={};let cur=0,vh=innerHeight;
- // S1 стены тоннеля: рёбра арок сходятся к выходу; выход — прозрачный, за ним каток / газон
- let P={x:.58,y:.46,w:.42,h:.5};
- function drawTunnel(){const W=tunnel.clientWidth,H=tunnel.clientHeight,d=Math.min(2,devicePixelRatio||1);tunnel.width=W*d;tunnel.height=H*d;const g=tunnel.getContext('2d');g.setTransform(d,0,0,d,0,0);
-  const narrow=W<760;P=narrow?{x:.5,y:.25,w:.8,h:.3}:{x:.6,y:.46,w:.44,h:.56};
-  const cx=W*P.x,cy=H*P.y,pw=W*P.w,ph=H*P.h;
-  tunnel.style.setProperty('--ox',cx+'px');tunnel.style.setProperty('--oy',cy+'px');document.documentElement.style.setProperty('--px',(P.x*100)+'%');
-  const arch=(x,y,w,h)=>{const r=Math.min(w/2,h*.55);g.beginPath();g.moveTo(x-w/2,y+h/2);g.lineTo(x-w/2,y-h/2+r);g.quadraticCurveTo(x-w/2,y-h/2,x-w/2+r,y-h/2);g.lineTo(x+w/2-r,y-h/2);g.quadraticCurveTo(x+w/2,y-h/2,x+w/2,y-h/2+r);g.lineTo(x+w/2,y+h/2);g.closePath()};
-  g.fillStyle='#02060e';g.fillRect(0,0,W,H);
-  // пол — светлее у выхода
-  const fl=g.createLinearGradient(0,cy+ph/2,0,H);fl.addColorStop(0,'rgba(120,150,200,.22)');fl.addColorStop(1,'rgba(10,20,40,0)');
-  g.fillStyle=fl;g.beginPath();g.moveTo(cx-pw/2,cy+ph/2);g.lineTo(cx+pw/2,cy+ph/2);g.lineTo(W*1.2,H);g.lineTo(-W*.2,H);g.closePath();g.fill();
-  // рёбра и лампы
-  const N=11;for(let i=0;i<N;i++){const k=i/(N-1),e=Math.pow(k,1.6),w=pw+(W*1.9-pw)*(1-e),h=ph+(H*1.9-ph)*(1-e),x=cx+(W/2-cx)*(1-e)*.6,y=cy+(H*.55-cy)*(1-e)*.6;
-   g.strokeStyle=`rgba(143,166,204,${(.05+k*.16).toFixed(3)})`;g.lineWidth=2+(1-k)*10;arch(x,y,w,h);g.stroke();
-   if(i<N-1){g.fillStyle=`rgba(255,214,140,${(.18+k*.5).toFixed(2)})`;const lw=Math.max(6,w*.08);g.fillRect(x-lw/2,y-h/2+2,lw,Math.max(2,4*(1-k)+1))}}
-  // свет из выхода на стенах
-  const sp=g.createRadialGradient(cx,cy,Math.min(pw,ph)*.4,cx,cy,Math.max(W,H)*.7);sp.addColorStop(0,'rgba(220,240,255,.22)');sp.addColorStop(1,'rgba(220,240,255,0)');
-  g.fillStyle=sp;g.fillRect(0,0,W,H);
-  // выход прозрачный, край мягкий
-  g.globalCompositeOperation='destination-out';
-  for(let j=0;j<6;j++){g.globalAlpha=.25+j*.15;arch(cx,cy,pw-j*3,ph-j*3);g.fill()}
-  g.globalAlpha=1;g.globalCompositeOperation='source-over';
-  // стена слева — для читаемости заголовка
-  if(!narrow){const sh=g.createLinearGradient(0,0,W*.55,0);sh.addColorStop(0,'rgba(2,6,14,.75)');sh.addColorStop(1,'rgba(2,6,14,0)');g.fillStyle=sh;g.fillRect(0,0,W*.55,H)}
-  else{const sh=g.createLinearGradient(0,H*.42,0,H);sh.addColorStop(0,'rgba(2,6,14,0)');sh.addColorStop(.35,'rgba(2,6,14,.7)');sh.addColorStop(1,'rgba(2,6,14,.9)');g.fillStyle=sh;g.fillRect(0,H*.42,W,H)}}
- // S2 прожекторы
- const cones=document.getElementById('cones'),CN=6;
- cones.innerHTML=Array.from({length:CN},(_,i)=>`<i class="cone" style="--x:${8+i*16.8}%;--r:${(i-(CN-1)/2)*-7}deg;--i:${i}"></i>`).join('');
- const coneEls=[...cones.children];
- // S4 светодиодное табло изнутри: бегущие цифры точками
- const led=document.getElementById('led'),lg=led.getContext('2d');let ledT=0;
- const FONT={'0':'111101101101111','1':'010110010010111','2':'111001111100111','3':'111001111001111','4':'101101111001001','5':'111100111001111','6':'111100111101111','7':'111001010010010','8':'111101111101111','9':'111101111001111','.':'000000000000010','%':'101001010100101',' ':'000000000000000','-':'000000111000000'};
- const LINES=['2.10 4.20 1.85 58%','10000 - 5800 2600 1600','1.75 62% 2.45 2.95','0-0 1-1 2-1 3-2'];
- function drawLed(dt){const d=1,W=led.clientWidth,H=led.clientHeight;if(led.width!==W){led.width=W;led.height=H}ledT+=dt;
-  lg.fillStyle='#030710';lg.fillRect(0,0,W,H);const S=W<700?7:10,R=S*.32,rows=Math.floor(H/S),cols=Math.floor(W/S)+2;
-  const amber=document.documentElement.dataset.sport==='football'?'46,229,157':'255,201,60';
-  for(let L=0;L<LINES.length;L++){const y0=Math.floor(rows*(.12+L*.22)),txt=LINES[L]+'   '+LINES[L]+'   ',off=Math.floor(ledT*(4+L*1.3))%(txt.length*4);
-   for(let c=0;c<cols;c++){const gc=c+off,ch=txt[Math.floor(gc/4)%txt.length],cx=gc%4;const f=FONT[ch]||FONT[' '];
-    for(let r=0;r<5;r++){const on=cx<3&&f[r*3+cx]==='1';lg.fillStyle=on?`rgba(${amber},${L===0?.9:.5})`:'rgba(255,255,255,.035)';lg.beginPath();lg.arc(c*S+S/2,(y0+r)*S+S/2,R,0,7);lg.fill()}}}}
- // S5 ночная трибуна: огни мерцают
- const st=document.getElementById('stands'),sg=st.getContext('2d');let SL=[];
- function layStands(){const W=st.clientWidth,H=st.clientHeight;st.width=W;st.height=H;SL=[];for(let r=0;r<22;r++){const y=H*(.18+r*.035)+r*r*.6,n=40+r*6;for(let j=0;j<n;j++)SL.push([(j+Math.random())*W/n,y+Math.random()*6,.6+r*.07,Math.random()*6.3,.2+Math.random()*.8])}}
- function drawStands(t){const W=st.width,H=st.height;sg.fillStyle='#050b18';sg.fillRect(0,0,W,H);
-  const g=sg.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(255,201,60,.08)');g.addColorStop(.5,'rgba(7,18,37,0)');sg.fillStyle=g;sg.fillRect(0,0,W,H);
-  for(const [x,y,r,ph,sp] of SL){const a=.12+.3*(.5+.5*Math.sin(t*sp*1.6+ph));sg.fillStyle=`rgba(234,243,255,${a.toFixed(2)})`;sg.fillRect(x,y,r,r)}}
- // активная сцена
- function setScene(n,v){if(n!==cur){scenes.forEach(s=>s.classList.toggle('on',+s.dataset.scene===n));cur=n;window.__rinkVis&&window.__rinkVis(n===1)}veil.style.setProperty('--veil',v)}
- const clamp=(v,a,b)=>v<a?a:v>b?b:v;
- let lastY=-1,lastT=0,coneN=-1;
- function frame(ts){requestAnimationFrame(frame);const dt=lastT?Math.min(.05,(ts-lastT)/1000):.016;lastT=ts;
-  if(cur===4&&!RM&&(!frame.k||(frame.k=(frame.k+1)%2)===0))drawLed(dt*2);if(cur===4)frame.k=(frame.k||0)+1;
-  if(cur===5&&!RM&&Math.floor(ts/66)!==frame.s){frame.s=Math.floor(ts/66);drawStands(ts/1000)}
-  const y=scrollY;if(y===lastY)return;lastY=y;
-  hd.classList.toggle('scrolled',y>40);
-  const c=y+vh/2;let act=secs[0];for(const s of secs){const t=s.offsetTop;if(t<=c)act=s;else break}
-  // секции идут подряд; offsetTop у main-детей — от начала документа (main без position-offset)
-  const r=act.getBoundingClientRect(),p=clamp((vh/2-r.top)/r.height,0,1),n=+act.dataset.scene;
-  setScene(n,act.dataset.veil||.3);
-  if(tgbar){const hr=document.getElementById('final').getBoundingClientRect();tgbar.classList.toggle('on',y>vh*1.6&&!(hr.top<vh*.8&&hr.bottom>0))}
-  if(RM)return;
-  const sc=scenes[n-1];if(!sc)return;const camEl=sc.querySelector('.cam');
-  if(n===1){const k=act===hero?clamp(y/(hero.offsetHeight*.5),0,1):1-p;   // тоннель: камера идёт к выходу; в финале — обратно в тоннель
-   tunnel.style.transform=`scale(${(1+k*k*2.4).toFixed(4)})`;tunnel.style.opacity=(1-clamp((k-.75)*4,0,1)).toFixed(3);
-   cam1.style.transform=`scale(${(1.06-k*.06+k*.08).toFixed(4)}) translateY(${(-k*3).toFixed(2)}%)`}
-  else camEl.style.transform=`scale(${(1+p*.08).toFixed(4)}) translateY(${(-p*4).toFixed(2)}%)`;
-  if(n===2){const on=Math.min(CN,Math.ceil(p*CN*1.4+.5));if(on!==coneN){coneN=on;coneEls.forEach((e,i)=>e.classList.toggle('lit',i<on))}}
-  if(n===3){const dir=document.documentElement.dataset.sport==='football'?-1:1,sh=clamp((p-.2)*1.4,0,1)*34*dir;   // линия уезжает, открывая выбранную сторону
-   const a=58+sh,b=42+sh;sc.querySelector('.s3-pitch').style.clipPath=`polygon(${a}% 0,100% 0,100% 100%,${b}% 100%)`;const L=document.getElementById('cut');L.setAttribute('x1',a);L.setAttribute('x2',b)}}
- function resize(){vh=innerHeight;drawTunnel();layStands();drawStands(0);drawLed(0);lastY=-1}
- addEventListener('resize',()=>{clearTimeout(resize.t);resize.t=setTimeout(resize,150)});
- resize();if(RM)coneEls.forEach(e=>e.classList.add('lit'));requestAnimationFrame(frame);
- onSport.push(()=>{lastY=-1;drawLed(0)});
- document.addEventListener('visibilitychange',()=>window.__rinkVis&&window.__rinkVis(!document.hidden&&cur===1));
-})();
 </script>
 <script>
 /* ── модель: ползунок кэфа и «10 000 розыгрышей» ───────────── */
@@ -1214,7 +1099,7 @@ onSport.push((s,from)=>{if(from!=='league'){render(s);ltabs.querySelectorAll('.t
  const M=window.__MONTHS||[],box=document.getElementById('months'),list=document.getElementById('monthlist'),f=(v,d)=>v.toFixed(d).replace('.',',');
  const STAKE=10000,rub=u=>(Math.round(Math.abs(u)*STAKE/100)*100).toLocaleString('ru-RU').replace(/ |,/g,' ');   // ставка 10 000 ₽ — решение 23.10
  box.innerHTML=M.map((m,i)=>{const dec=m.w+m.l,pct=dec?Math.round(100*m.w/dec):0;
-  return `<div class="month rv" style="--d:${i*80}ms"><div class="month-top"><b>${m.name} ${m.m.slice(0,4)}</b>${m.live?'<i>идёт</i>':''}</div>
+  return `<div class="month dp" style="--d:${i*80}ms"><div class="month-top"><b>${m.name} ${m.m.slice(0,4)}</b>${m.live?'<i>идёт</i>':''}</div>
   <div class="month-pct"><strong data-to="${pct}">${pct}%</strong><span>зашло из ${m.n} ${plural(m.n,'прогноза','прогнозов','прогнозов')}</span></div>
   <div class="wl"><i class="w" style="width:${100*m.w/m.n}%"></i><i class="l" style="width:${100*m.l/m.n}%"></i><i class="p" style="width:${100*m.p/m.n}%"></i></div>
   <div class="month-row"><span>✓ <b>${m.w}</b></span><span>✕ <b>${m.l}</b></span>${m.p?`<span>↩ <b>${m.p}</b></span>`:''}<span>ср. кэф <b>${f(m.kef,2)}</b></span></div>
@@ -1240,10 +1125,10 @@ onSport.push((s,from)=>{if(from!=='league'){render(s);ltabs.querySelectorAll('.t
 /* ── лиги: бенто ─────────────────────────────────────────── */
 (()=>{const B=window.__FOOTBT,f=(v,d)=>v.toFixed(d).replace('.',',');
  const tile=l=>{const n=cnt(l.id),nx=ALLM.filter(m=>m.lg===l.id).sort((a,b)=>a.t<b.t?-1:1)[0],bt=B.lg[l.id];
-  return `<a class="lgt ${l.sport==='football'?'fb':''} rv" href="#matches" data-lg="${l.id}">${l.note?`<span class="flag">${l.note}</span>`:''}<img src="${LGI(l.id)}" alt=""><h3>${l.name}</h3>
+  return `<a class="lgt ${l.sport==='football'?'fb':''} dp" href="#matches" data-lg="${l.id}">${l.note?`<span class="flag">${l.note}</span>`:''}<img src="${LGI(l.id)}" alt=""><h3>${l.name}</h3>
    <p class="meta"><b>${n?n+' '+plural(n,'матч','матча','матчей')+' сегодня':'сегодня матчей нет'}</b><br>${nx?`${esc(nx.a)} — ${esc(nx.b)}, ${nx.t.slice(11)}`:l.next||'Расписание — в канале'}${bt?`<br>проверка: ${f(bt[1],1)} → ${f(bt[2],1)} %`:''}</p></a>`};
  const pw=Object.entries(B.power),mn=-1.2,name=id=>LEAGUES.find(l=>l.id===id).name;
- const power=`<div class="lgt big fb rv"><h3>Сила лиг Европы к АПЛ</h3><p class="meta" style="margin-top:0">По матчам еврокубков прошлых лет: разница «атака − оборона», АПЛ — ноль.</p>
+ const power=`<div class="lgt big fb dp"><h3>Сила лиг Европы к АПЛ</h3><p class="meta" style="margin-top:0">По матчам еврокубков прошлых лет: разница «атака − оборона», АПЛ — ноль.</p>
   <div class="power">${pw.map(([id,v])=>`<div><span>${name(id)}</span><em><i style="--w:${(1-v/mn).toFixed(3)}"></i></em><span class="num">${v?f(v,2):'0'}</span></div>`).join('')}</div>
   <p class="src">Источник: проверка модели 30.10, предварительно.</p></div>`;
  const H=LEAGUES.filter(l=>l.sport==='hockey'),F=LEAGUES.filter(l=>l.sport==='football');
@@ -1301,349 +1186,37 @@ steps.forEach((b,i)=>b.addEventListener('click',()=>window.scrollTo({top:posOf(i
 })();
 </script>
 <script>
-/* ── появление, наклон плашек, магнит, финал, шапка ───────── */
-(()=>{
- if(!RM&&'IntersectionObserver' in window){const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -10% 0px'});
-  document.querySelectorAll('.rv:not(.in)').forEach(el=>io.observe(el));new MutationObserver(()=>document.querySelectorAll('.rv:not(.in)').forEach(el=>io.observe(el))).observe(document.getElementById('bento'),{childList:true})}
- else document.querySelectorAll('.rv').forEach(e=>e.classList.add('in'));
- // финал: круг центра поля / вбрасывания рисуется линией за прокруткой
- const fin=document.getElementById('final'),ring=fin.querySelector('.ring');
+/* финал: круг центра поля рисуется линией за прокруткой; появление, наклон плашек, шапка — assets/v2.js */
+(()=>{const fin=document.getElementById('final'),ring=fin.querySelector('.ring');
  const upd=()=>{const r=fin.getBoundingClientRect(),p=Math.min(1,Math.max(0,(innerHeight-r.top)/(innerHeight*.9)));ring.style.setProperty('--draw',RM?0:(1-p).toFixed(3))};
- addEventListener('scroll',upd,{passive:true});upd();
- if(RM)return;
- const SEL='.card,.board,.month,.lgt,.portal,.honest-tg',MAX=8;
- const pt=(el,e)=>{const r=el.getBoundingClientRect();return[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height]};let cur=null;
- const tilt=(el,x,y)=>{const dx=x-.5,dy=y-.5,a=Math.min(1,Math.hypot(dx,dy)*2)*MAX;el.style.animation='none';el.classList.add('press','down');
-  el.style.transform=`perspective(800px) rotate3d(${-dy},${dx},0,${a.toFixed(1)}deg) scale(.97)`};
- const release=()=>{const el=cur;cur=null;if(!el)return;el.classList.remove('down');el.style.transform=''};
- addEventListener('pointerdown',e=>{const el=e.target.closest&&e.target.closest(SEL);if(!el||e.button>0||e.target.closest('button.tab,.btabs,input'))return;cur=el;const[x,y]=pt(el,e);tilt(el,x,y)},{passive:true});
- addEventListener('pointermove',e=>{if(cur){const[x,y]=pt(cur,e);tilt(cur,x,y)}},{passive:true});
- ['pointerup','pointercancel','blur'].forEach(t=>addEventListener(t,release));
- if(FINE)document.querySelectorAll('.btn-tg').forEach(b=>{b.addEventListener('pointermove',e=>{const[x,y]=pt(b,e);b.style.translate=`${((x-.5)*10).toFixed(1)}px ${((y-.5)*8).toFixed(1)}px`});b.addEventListener('pointerleave',()=>b.style.translate='')});
-})();
+ addEventListener('scroll',upd,{passive:true});upd()})();
 setSport('hockey','init');render('hockey');
+/* фон: постер выбранного спорта под тёмной вуалью; глубже по странице — темнее */
+(()=>{const v=document.querySelector('#stage .veil');const upd=()=>{const k=Math.min(1,scrollY/innerHeight);v.style.opacity=(.42+k*.4).toFixed(3)};addEventListener('scroll',upd,{passive:true});upd()})();
+/* развилка: нажатие раскрывает портал на весь экран и ведёт в раздел */
+(()=>{const gates=document.querySelectorAll('.gate');
+ gates.forEach(g=>g.addEventListener('click',e=>{if(e.metaKey||e.ctrlKey||e.shiftKey||e.button)return;if(RM)return;e.preventDefault();
+  const r=g.getBoundingClientRect(),bg=getComputedStyle(g.querySelector('.gate-media img')),src=g.querySelector('.gate-media img').currentSrc;
+  const o=document.createElement('div');o.className='gate-open';o.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;background-image:url("${src}")`;
+  document.body.appendChild(o);document.documentElement.classList.add('gating');
+  const a=o.animate([{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px',borderRadius:'24px'},{left:'0px',top:'0px',width:innerWidth+'px',height:innerHeight+'px',borderRadius:'0px'}],{duration:620,easing:'cubic-bezier(.77,0,.175,1)',fill:'forwards'});
+  o.firstChild;a.onfinish=()=>{location.href=g.href}}));
+ addEventListener('pageshow',e=>{if(e.persisted){document.querySelectorAll('.gate-open').forEach(x=>x.remove());document.documentElement.classList.remove('gating')}})})();
 </script>
 <script>
-/* ── каток #rink из landing.html (перенесён как есть; рисуется, только пока активна сцена 1) ── */
-(()=>{
-const cv=document.getElementById('rink'),g=cv.getContext('2d');
-const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const ICE='#0b1a33',OUT='#071225',BOX='rgba(234,243,255,.05)',BOXL='rgba(234,243,255,.14)',BOARD='rgba(234,243,255,.24)',RED='rgba(255,59,92,.4)',BLUE='rgba(62,224,255,.32)';
-const TEAM={A:{c:'#3ee0ff',dk:'#0d6e91',d:1,door:-13,b0:-31},B:{c:'#ff3b5c',dk:'#a3203a',d:-1,door:13,b0:17}};
-// team colours from the hero board emblems (match of the day): the most saturated hue of each, brightened for the dark ice;
-// close hues or a colourless emblem — the away side goes white
-function tint(img){try{const n=32,c=document.createElement('canvas');c.width=c.height=n;const x=c.getContext('2d');x.drawImage(img,0,0,n,n);
- const d=x.getImageData(0,0,n,n).data,bin=Array.from({length:12},()=>[0,0,0,0]);
- for(let i=0;i<d.length;i+=4){if(d[i+3]<200)continue;const r=d[i]/255,gg=d[i+1]/255,b=d[i+2]/255,mx=Math.max(r,gg,b),mn=Math.min(r,gg,b),l=(mx+mn)/2,ch=mx-mn;
-  if(ch<.12||l<.08||l>.9)continue;let h=mx===r?((gg-b)/ch+6)%6:mx===gg?(b-r)/ch+2:(r-gg)/ch+4;const k=Math.floor(h*2)%12,w=1;
-  bin[k][0]+=h*60*w;bin[k][1]+=w;bin[k][2]+=ch/(1-Math.abs(2*l-1)||1)*w;bin[k][3]++}
- const top=bin.reduce((a,b)=>b[1]>a[1]?b:a);if(top[3]<20)return null;return{h:top[0]/top[1],s:Math.min(1,top[2]/top[1])}}catch(e){return null}}
-const hsl=(h,s,l)=>`hsl(${h.toFixed(0)} ${(s*100).toFixed(0)}% ${(l*100).toFixed(0)}%)`;
-(async()=>{const im=[...document.querySelectorAll('.board .tm img')];if(im.length<2)return;
- await Promise.all(im.map(i=>i.decode().catch(()=>{})));const [a,b]=im.map(tint);if(!a&&!b)return;
- const set=(t,v)=>{if(v){TEAM[t].c=hsl(v.h,Math.max(.6,v.s),.62);TEAM[t].dk=hsl(v.h,Math.max(.5,v.s*.8),.3)}else{TEAM[t].c='#dfe8f5';TEAM[t].dk='#5a6a85'}};
- set('A',a);const dh=a&&b?Math.min(Math.abs(a.h-b.h),360-Math.abs(a.h-b.h)):0;set('B',a&&b&&dh<35?null:b);draw()})();
-const ROLE={LW:[-1,'F'],C:[0,'F'],RW:[1,'F'],LD:[-1,'D'],RD:[1,'D']};
-const clamp=(v,a,b)=>v<a?a:v>b?b:v,hyp=Math.hypot,rnd=(a,b)=>a+Math.random()*(b-a);
-let W,H,DPR,VS,VP;
-// владелец 28.10: разрешение и размытие — как до переделок (полное разрешение экрана, CSS-размытие 3 px);
-// оставлены остальные правки: игроки скользят, темп ×1,2, шапка без размытия, фон не рисуется вне экрана
-function size(){DPR=devicePixelRatio||1;W=cv.clientWidth;H=cv.clientHeight;cv.width=W*DPR;cv.height=H*DPR;
- VP=H>W*1.15;VS=(VP?Math.min(W/112,H/214):Math.min(W/214,H/112))*.97;}
-
-// players: two units per team, unit 2 starts on the bench
-const PL=[];
-['A','B'].forEach(t=>[1,2].forEach(u=>Object.keys(ROLE).forEach((r,i)=>PL.push({t,role:r,state:u===1?'ice':'bench',seat:i,
- x:0,y:0,vx:0,vy:0,hx:TEAM[t].d,hy:0,ov:null,path:null,ph:rnd(0,6.3),stick:Math.random()<.6?1:-1,max:rnd(7,8)}))));
-const seatPos=(t,s)=>[TEAM[t].b0+s*3.5,47.3];
-const GK={A:{x:-87.4,y:0,b:0},B:{x:87.4,y:0,b:0}};
-const puck={x:0,y:0,vx:0,vy:0,mode:'hidden',path:null,sp:0,carrier:null,last:'A',onEnd:null};
-const glow={L:0,R:0};
-// camera: eases in on the attacking end and closer still on a goal, then back out to the whole rink
-const cam={z:1,x:0};
-let T=0,shooter=null;
-
-function fpos(p,fx,fy){const d=TEAM[p.t].d,[sv,kind]=ROLE[p.role],sy=sv*d;
- if(p.role==='C')return [fx-d*2.2,fy];
- if(kind==='F')return [fx-d*(sv>0?3:4.5),clamp(fy+sy*15,-38,38)];
- return [clamp(fx-d*24,-84,84),clamp(fy*.4+sy*13,-36,36)];}
-PL.forEach(p=>{[p.x,p.y]=p.state==='ice'?fpos(p,0,0):seatPos(p.t,p.seat)});
-
-function role(spec){const [t,r]=spec.split('.');
- return PL.find(p=>p.t===t&&p.role===r&&(p.state==='ice'||p.state==='entering'))||
-  PL.filter(p=>p.t===t&&p.state==='ice').sort((a,b)=>hyp(a.x-puck.x,a.y-puck.y)-hyp(b.x-puck.x,b.y-puck.y))[0];}
-
-// where a skater without a scripted job wants to be: team-relative depth u and lateral v
-function form(p){const d=TEAM[p.t].d,[sv,kind]=ROLE[p.role],pu=puck.x*d,pv=puck.y*d;
- const has=(puck.carrier?puck.carrier.t:puck.last)===p.t;let u,v;
- if(has){
-  if(pu>30){if(p.role==='C'){u=79;v=pv*.25}else if(kind==='D'){u=32;v=sv*19+pv*.15}else{u=64;v=sv*21+pv*.2}}
-  else{if(kind==='D'){u=clamp(pu-32,-80,26);v=sv*16}else if(p.role==='C'){u=pu-6;v=pv*.45}else{u=pu+8;v=sv*26}}
- }else{
-  if(pu<-30){if(kind==='D'){u=-80;v=sv*9+pv*.3}else if(p.role==='C'){u=-68;v=pv*.35}else{u=-50;v=sv*22}}
-  else{if(kind==='D'){u=clamp(pu-24,-78,12);v=sv*14+pv*.2}else if(p.role==='C'){u=Math.max(-70,pu-12);v=pv*.5}else{u=Math.max(-62,pu-14);v=sv*22+pv*.15}}
- }
- u+=Math.sin(T*.33+p.ph)*2.5;v+=Math.cos(T*.27+p.ph*1.7)*2.5;
- return [clamp(u,-85,85)*d,clamp(v,-37,37)*d];}
-
-function inRink(o,m){o.x=clamp(o.x,-100+m,100-m);o.y=clamp(o.y,-42.5+m,42.5-m);
- const ax=Math.abs(o.x),ay=Math.abs(o.y),R=28-m;
- if(ax>72&&ay>14.5){const dx=ax-72,dy=ay-14.5,dd=hyp(dx,dy);if(dd>R){o.x=Math.sign(o.x)*(72+dx/dd*R);o.y=Math.sign(o.y)*(14.5+dy/dd*R)}}}
-function netPush(o){const ax=Math.abs(o.x),ay=Math.abs(o.y);if(ax>87.4&&ax<94&&ay<4.6){
- const a=ax-87.4,b=94-ax,c=4.6-ay,m=Math.min(a,b,c);
- if(m===a)o.x=Math.sign(o.x)*87.4;else if(m===b)o.x=Math.sign(o.x)*94;else o.y=(Math.sign(o.y)||1)*4.6;}}
-function steer(p,tx,ty,max,dt){const dx=tx-p.x,dy=ty-p.y,d=hyp(dx,dy)||1e-6,sp=d<1.5?d:Math.min(max,1.5+(d-1.5)*1.1);   // у цели не ползут, а докатываются
- const e=Math.min(1,dt*4);let ax=(dx/d*sp-p.vx)*e,ay=(dy/d*sp-p.vy)*e;const al=hyp(ax,ay),lim=9*dt;   // скорость меняется плавно, без рывков
-if(al>lim){ax*=lim/al;ay*=lim/al}p.vx+=ax;p.vy+=ay;}
-function startEnter(m,o){const dr=TEAM[m.t].door+o;m.state='entering';m.path=[[dr,45],[dr,38.5]];}
-
-function upPlayers(dt){
- const live=PL.filter(p=>p.state!=='bench');
- PL.forEach(p=>{
-  if(p.state==='bench'){const [sx,sy]=seatPos(p.t,p.seat),k=Math.min(1,dt*3);p.x+=(sx-p.x)*k;p.y+=(sy-p.y)*k;p.vx=p.vy=0;return}
-  let tg,max=p.max;
-  if(p.state==='leaving'||p.state==='entering'){
-   tg=p.path[0];max=p.y>40?4:p.max+.6;
-   if(hyp(tg[0]-p.x,tg[1]-p.y)<2){p.path.shift();
-    if(p.state==='leaving'&&!p.trig){p.trig=1;startEnter(p.mate,p.off)}
-    if(!p.path.length){if(p.state==='leaving'){p.state='bench';p.seat=p.newSeat}else p.state='ice';return}
-    tg=p.path[0];}
-  }else if(p.ov){tg=p.ov;p.ft=null;if(p===puck.carrier)max=6.5}
-  else{tg=form(p);if(p===puck.carrier)max=6.5;     // место в построении сглажено: при смене владения игроки плавно
-   if(!p.ft)p.ft=[tg[0],tg[1]];const k=Math.min(1,dt*1.8);p.ft[0]+=(tg[0]-p.ft[0])*k;p.ft[1]+=(tg[1]-p.ft[1])*k;tg=p.ft}  // перестраиваются
-  steer(p,tg[0],tg[1],max,dt);
-  if(p.state==='ice')live.forEach(o=>{if(o===p||o.state!=='ice')return;const dx=p.x-o.x,dy=p.y-o.y,d=hyp(dx,dy);if(d<3.3&&d>0){p.vx+=dx/d*(3.3-d)*2*dt;p.vy+=dy/d*(3.3-d)*2*dt}});
-  p.x+=p.vx*dt;p.y+=p.vy*dt;
-  if(p.state==='ice'){inRink(p,1.6);netPush(p)}
-  const s=hyp(p.vx,p.vy);p.acc=(p.acc||0)+((s-(p.ls||0))/Math.max(dt,1e-3)-(p.acc||0))*Math.min(1,dt*3);p.ls=s;
-  if(s>1.2)p.gait=(p.gait||0)+dt*(1.3+s*.16);   // коньки: толчок ногой — при разгоне, на ходу редкий слабый, на малой скорости — накат
-  p.pa=(p.pa||0)+((s>1.5?(p.acc>.3?Math.min(1,s/6):s>4?.22:0):0)-(p.pa||0))*Math.min(1,dt*2.5);
-  if(s>.4){const k=Math.min(1,dt*3);p.hx+=(p.vx/s-p.hx)*k;p.hy+=(p.vy/s-p.hy)*k;const n=hyp(p.hx,p.hy)||1;p.hx/=n;p.hy/=n}
- });}
-function stickEnd(c){const a=Math.atan2(c.hy,c.hx)+c.stick*.5;return [c.x+Math.cos(a)*3.4,c.y+Math.sin(a)*3.4]}
-function upPuck(dt){
- if(puck.carrier){const [x,y]=stickEnd(puck.carrier),k=Math.min(1,dt*12);puck.x+=(x-puck.x)*k;puck.y+=(y-puck.y)*k;puck.last=puck.carrier.t;return}
- if(puck.mode==='fly'){const tg=puck.path[0],dx=tg[0]-puck.x,dy=tg[1]-puck.y,d=hyp(dx,dy),st=puck.sp*dt;
-  if(d<=st){puck.x=tg[0];puck.y=tg[1];puck.path.shift();
-   if(!puck.path.length){puck.mode='loose';puck.vx=dx/(d||1)*puck.sp*.2;puck.vy=dy/(d||1)*puck.sp*.2;const f=puck.onEnd;puck.onEnd=null;f&&f()}}
-  else{puck.x+=dx/d*st;puck.y+=dy/d*st}}
- else if(puck.mode==='loose'){puck.x+=puck.vx*dt;puck.y+=puck.vy*dt;const k=Math.exp(-1.6*dt);puck.vx*=k;puck.vy*=k;inRink(puck,.6)}}
-function upGK(dt){['A','B'].forEach(t=>{const d=TEAM[t].d,gk=GK[t];let ty=0;
- if(puck.mode!=='hidden'&&puck.x*d<0)ty=Math.abs(puck.x)>89?Math.sign(puck.y)*2.6:clamp(puck.y*.16,-3,3);
- gk.y+=(ty-gk.y)*Math.min(1,dt*3);
- const e=puck.mode==='fly'&&puck.path.length&&puck.path[puck.path.length-1][0]*d<-86;gk.b+=((e?1:0)-gk.b)*Math.min(1,dt*(e?7:1.5));});}
-
-function take(p){puck.carrier=p;p.ov=null;puck.mode='held';puck.last=p.t}
-function flyTo(path,sp,onEnd){if(puck.carrier)puck.carrier.ov=null;puck.carrier=null;puck.mode='fly';puck.path=path.map(a=>a.slice());puck.sp=sp;puck.onEnd=onEnd||null}
-const near=(p,r)=>hyp(p.x-puck.x,p.y-puck.y)<r;
-
-// the script: one passage of play after another, about two minutes, then it loops
-const S=[
- {do:'faceoff',at:[0,0],win:'A',to:'LD'},
- {do:'pass',to:'A.RD',at:[-34,8]},
- {do:'carry',who:'A.RD',path:[[-26,14],[-12,20]]},
- {do:'pass',to:'A.RW',at:[8,30]},
- {do:'carry',who:'A.RW',path:[[26,31],[44,31]]},
- {do:'dump',path:[[78,37],[93,28],[97,12]]},
- {do:'pickup',who:'A.C'},
- {do:'carry',who:'A.C',path:[[97,2],[95,-9],[90,-15],[85,-13]]},
- {do:'pass',to:'A.LW',at:[76,-6]},
- {do:'shoot',res:'save',reb:[79,17]},
- {do:'pickup',who:'B.LD'},
- {do:'carry',who:'B.LD',path:[[92,12],[96,0],[92,-11]]},
- {do:'pass',to:'B.RW',at:[60,-34]},
- {do:'carry',who:'B.RW',path:[[38,-33],[14,-29],[-8,-22]]},
- {do:'pass',to:'B.C',at:[-30,-6]},
- {do:'carry',who:'B.C',path:[[-46,0],[-56,9],[-52,17]]},
- {do:'shoot',res:'hold'},
- {do:'change',team:'A',what:'F'},
- {do:'change',team:'B',what:'F',block:1},
- {do:'faceoff',at:[-69,22],win:'A',to:'LD'},
- {do:'carry',who:'A.LD',path:[[-92,6],[-95,-3],[-90,-13]]},
- {do:'pass',to:'A.LW',at:[-62,-34]},
- {do:'pass',to:'A.C',at:[-28,-10]},
- {do:'carry',who:'A.C',path:[[-6,-8],[18,-5]]},
- {do:'pass',to:'A.RW',at:[36,20]},
- {do:'carry',who:'A.RW',path:[[54,24],[66,15]]},
- {do:'pass',to:'A.LD',at:[33,-14]},
- {do:'shoot',res:'goal'},
- {do:'celebrate',team:'A',t:4},
- {do:'change',team:'A',what:'F'},
- {do:'change',team:'B',what:'D',block:1},
- {do:'faceoff',at:[0,0],win:'B',to:'RD'},
- {do:'carry',who:'B.RD',path:[[32,-12],[22,-18]]},
- {do:'pass',to:'B.LW',at:[4,30]},
- {do:'carry',who:'B.LW',path:[[-16,32],[-36,30]]},
- {do:'pass',to:'B.C',at:[-91,10]},
- {do:'carry',who:'B.C',path:[[-96,0],[-92,-9],[-86,-7]]},
- {do:'shoot',res:'save',reb:[-74,-20]},
- {do:'pickup',who:'A.LW'},
- {do:'carry',who:'A.LW',path:[[-55,-31],[-32,-33]]},
- {do:'change',team:'B',what:'F'},
- {do:'pass',to:'A.C',at:[-6,-6]},
- {do:'carry',who:'A.C',path:[[14,0],[30,3]]},
- {do:'dump',path:[[80,-37],[94,-26]]},
- {do:'change',team:'A',what:'F'},
- {do:'pickup',who:'B.RD'},
- {do:'carry',who:'B.RD',path:[[95,-10],[92,8]]},
- {do:'pass',to:'B.LD',at:[82,15]},
- {do:'pass',to:'B.LW',at:[56,35]},
- {do:'carry',who:'B.LW',path:[[30,35],[8,30]]},
- {do:'pass',to:'B.C',at:[-12,-2]},
- {do:'carry',who:'B.C',path:[[-34,-4],[-52,-6]]},
- {do:'shoot',res:'goal'},
- {do:'celebrate',team:'B',t:4},
- {do:'change',team:'A',what:'D'},
- {do:'change',team:'B',what:'F',block:1},
-];
-const busy=()=>PL.some(p=>p.state==='leaving'||p.state==='entering');
-const RUN={
- faceoff(s,st,dt){
-  if(!st.i){st.i=1;puck.carrier=null;puck.mode='hidden';}
-  const ice=PL.filter(p=>p.state==='ice');
-  if(!st.drop){ice.forEach(p=>p.ov=fpos(p,s.at[0],s.at[1]));
-   if(ice.every(p=>hyp(p.ov[0]-p.x,p.ov[1]-p.y)<2.5)||st.t>8){st.w=(st.w||0)+dt;
-    if(st.w>1.3){st.drop=1;ice.forEach(p=>p.ov=null);puck.x=s.at[0];puck.y=s.at[1];puck.last=s.win;st.p=role(s.win+'.'+s.to);flyTo([[st.p.x,st.p.y]],14)}}
-   return false}
-  st.p.ov=[puck.x,puck.y];if(near(st.p,2.8)){take(st.p);return true}return false},
- carry(s,st){
-  if(!st.i){st.i=1;st.p=role(s.who);st.k=0;if(puck.carrier!==st.p)take(st.p)}
-  const tg=s.path[st.k];st.p.ov=tg;
-  if(hyp(tg[0]-st.p.x,tg[1]-st.p.y)<4&&++st.k>=s.path.length){st.p.ov=null;return true}return false},
- pass(s,st){
-  if(!st.i){st.i=1;st.f=puck.carrier;st.p=role(s.to);st.L=s.at||[st.p.x,st.p.y];if(st.f===st.p)return true}
-  if(!st.go){st.p.ov=st.L;if(st.f)st.f.ov=[st.f.x+st.f.vx*.8,st.f.y+st.f.vy*.8];
-   const eta=hyp(st.L[0]-st.p.x,st.L[1]-st.p.y)/7.5,pt=hyp(st.L[0]-puck.x,st.L[1]-puck.y)/28;
-   if(eta<=pt+.5||st.t>3.5){st.go=1;flyTo([st.L],28)}return false}
-  st.p.ov=puck.mode==='fly'?st.L:[puck.x,puck.y];if(near(st.p,puck.mode==='fly'?2.2:2.8)){take(st.p);return true}return false},
- shoot(s,st){
-  if(!st.i){st.i=1;st.p=puck.carrier;shooter=st.p}
-  if(!st.go){if(st.p)st.p.ov=[st.p.x+st.p.vx*.5,st.p.y+st.p.vy*.5];
-   if(st.t>.45){st.go=1;const d=TEAM[st.p?st.p.t:puck.last].d,ty=rnd(-1.8,1.8);
-    if(s.res==='goal')flyTo([[d*90.6,ty]],40,()=>{puck.mode='net';glow[d>0?'R':'L']=1;st.done=1});
-    else flyTo([[d*87.6,ty]],40,()=>{if(s.res==='hold'){puck.mode='hidden';st.held=st.t}else{flyTo([s.reb],16);st.done=1}})}
-   return false}
-  if(st.held)return st.t-st.held>1.6;return !!st.done},
- dump(s,st){if(!st.i){st.i=1;flyTo(s.path,30,()=>st.done=1)}return !!st.done},
- pickup(s,st){if(!st.i){st.i=1;st.p=role(s.who)}st.p.ov=[puck.x,puck.y];
-  if(near(st.p,puck.mode==='fly'?2.2:2.8)){take(st.p);return true}return false},
- change(s,st){
-  if(!st.i){st.i=1;PL.filter(p=>p.t===s.team&&p.state==='ice'&&ROLE[p.role][1]===s.what&&p!==puck.carrier).forEach((p,i)=>{
-   const m=PL.find(q=>q.t===p.t&&q.role===p.role&&q.state==='bench');if(!m)return;
-   const off=(i-1)*2.4,dr=TEAM[p.t].door+off,[sx,sy]=seatPos(m.t,m.seat);
-   p.state='leaving';p.mate=m;p.off=-off;p.newSeat=m.seat;p.trig=0;p.ov=null;p.path=[[dr,39.5],[dr,45],[sx,sy]]})}
-  return !s.block||!busy()},
- celebrate(s,st){
-  if(!st.i){st.i=1;st.p=shooter&&shooter.state==='ice'?shooter:role(s.team+'.C');const d=TEAM[s.team].d;st.c=[d*74,st.p.y>0?31:-31]}
-  st.p.ov=st.c;PL.filter(p=>p.t===s.team&&p.state==='ice'&&p!==st.p).forEach((p,i)=>{const a=i*1.5+.6;p.ov=[st.p.x+Math.cos(a)*3.4,st.p.y+Math.sin(a)*3.4]});
-  if(st.t>s.t){PL.forEach(p=>{if(p.t===s.team)p.ov=null});return true}return false},
-};
-let si=0,st=null,forced=0;
-function script(dt){const s=S[si];if(!st)st={t:0};st.t+=dt;
- let done=RUN[s.do](s,st,dt);
- if(!done&&st.t>(s.do==='change'?30:16)){forced++;if(st.p&&st.p.state!=='bench'&&s.do!=='carry'&&s.do!=='celebrate')take(st.p);PL.forEach(p=>p.ov=null);done=true}
- if(done){si=(si+1)%S.length;st=null}}
-function tick(dt){T+=dt;script(dt);upPlayers(dt);upPuck(dt);upGK(dt);glow.L=Math.max(0,glow.L-dt*.35);glow.R=Math.max(0,glow.R-dt*.35);
- let z=1,e=0;if(Math.max(glow.L,glow.R)>.05){z=1.5;e=glow.R>glow.L?1:-1}else if(puck.mode!=='hidden'&&Math.abs(puck.x)>64){z=1.18;e=Math.sign(puck.x)}
- const k=1-Math.exp(-dt*1.3);cam.z+=(z-cam.z)*k;cam.x+=(e*92*(1-1/z)-cam.x)*k}
-
-// drawing
-function rr(x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
-function line(x1,y1,x2,y2,c,w){g.strokeStyle=c;g.lineWidth=w;g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke()}
-function ring(x,y,r,c,w){g.strokeStyle=c;g.lineWidth=w;g.beginPath();g.arc(x,y,r,0,7);g.stroke()}
-function dot(x,y,r,c){g.fillStyle=c;g.beginPath();g.arc(x,y,r,0,7);g.fill()}
-// top-down skater: legs and skates with a stride, stick in both hands, sleeves, shoulder pads, helmet with visor
-function ell(x,y,rx,ry,a,fill){g.fillStyle=fill;g.beginPath();g.ellipse(x,y,rx,ry,a,0,7);g.fill()}
-const Z=1.25;
-function skater(p){const c=TEAM[p.t],sp=hyp(p.vx,p.vy),seat=p.state==='bench',s=p.stick;
- const a=seat?-Math.PI/2:Math.atan2(p.hy,p.hx)+(puck.carrier===p?s*.18:0),fx=Math.cos(a),fy=Math.sin(a),rx=-fy,ry=fx;
- const E=[0,1].map(i=>{const w=Math.sin((p.gait||0)+i*Math.PI);return seat||w<=0?0:Math.pow(w,1.4)*(p.pa||0)}),sw=(E[0]-E[1])*.14;
- const P=(f,r)=>[p.x+(fx*f+rx*(r+sw))*Z,p.y+(fy*f+ry*(r+sw))*Z];
- ell(p.x+.25,p.y+.35,1.25*Z,1.05*Z,a,'rgba(0,0,0,.28)');
- g.lineCap='round';
- if(!seat){
-  [-1,1].forEach((side,i)=>{const e=E[i],[hx,hy]=P(-.05,side*.34),[kx,ky]=P(side*.12-e*.6,side*(.4+e*.7)),ka=a+side*e*.75;
-   const dx=Math.cos(ka)*Z,dy=Math.sin(ka)*Z;
-   line(hx,hy,kx,ky,c.dk,.5*Z);line(kx-dx*.42,ky-dy*.42,kx+dx*.5,ky+dy*.5,'#46536d',.36*Z);line(kx-dx*.48,ky-dy*.48,kx+dx*.56,ky+dy*.56,'rgba(225,234,245,.8)',.08)});
-  const sa=a+s*.5,[ex,ey]=puck.carrier===p?[puck.x,puck.y]:[p.x+Math.cos(sa)*3.4,p.y+Math.sin(sa)*3.4],ba=sa+s*1.25;
-  const [tx,ty]=P(.45,s*.25),bx=tx+(ex-tx)*.34,by=ty+(ey-ty)*.34;
-  line(tx-(ex-tx)*.08,ty-(ey-ty)*.08,ex,ey,'rgba(205,215,230,.85)',.2);line(ex,ey,ex+Math.cos(ba)*.95,ey+Math.sin(ba)*.95,'#eaf3ff',.3);
-  ell(...P(-.05,0),.6*Z,1*Z,a,c.c);dot(...P(0,-.92),.38*Z,c.c);dot(...P(0,.92),.38*Z,c.c);
-  line(...P(-.32,-.85),...P(-.32,.85),'rgba(255,255,255,.55)',.16*Z);
-  line(...P(.05,-s*.92),tx,ty,c.c,.4*Z);line(...P(.05,s*.92),bx,by,c.c,.4*Z);
-  line(...P(.05,-s*.92),tx,ty,'rgba(0,0,0,.18)',.12*Z);
-  dot(tx,ty,.25*Z,'#141a28');dot(bx,by,.25*Z,'#141a28');
- }else{ell(...P(-.05,0),.58*Z,.95*Z,a,c.c);dot(...P(0,-.88),.36*Z,c.c);dot(...P(0,.88),.36*Z,c.c);line(...P(-.3,-.8),...P(-.3,.8),'rgba(255,255,255,.5)',.15*Z)}
- const [hx,hy]=P(.14,0);dot(hx,hy,.46*Z,c.dk);
- g.strokeStyle='rgba(234,243,255,.75)';g.lineWidth=.12*Z;g.beginPath();g.arc(hx,hy,.42*Z,a-.85,a+.85);g.stroke();}
-// goalie: white pads that drop into a butterfly on shots, blocker, glove, paddle stick, mask
-function goalie(t){const c=TEAM[t],k=GK[t],d=c.d,a=d>0?0:Math.PI,b=k.b;
- const P=(f,r)=>[k.x+d*f*Z,k.y+d*r*Z];
- ell(k.x+.25,k.y+.35,1.5*Z,1.7*Z,a,'rgba(0,0,0,.28)');
- [-1,1].forEach(side=>{const [px,py]=P(.3+.3*b,side*(.5+.62*b)),w=.66*Z,h=(.6+1.15*b)*Z;
-  g.fillStyle='#e6eef8';g.strokeStyle=c.c;g.lineWidth=.12;g.fillRect(px-w/2,py-h/2,w,h);g.strokeRect(px-w/2,py-h/2,w,h)});
- g.lineCap='round';const [sx,sy]=P(1.65,-.55),[s2x,s2y]=P(1.65,.45);line(...P(.5,-1.15),sx,sy,'rgba(205,215,230,.85)',.22);line(sx,sy,s2x,s2y,'#eaf3ff',.34);
- ell(k.x,k.y,.7*Z,1.12*Z,a,c.c);dot(...P(0,-1),.42*Z,c.c);dot(...P(0,1),.42*Z,c.c);line(...P(-.3,-.95),...P(-.3,.95),'rgba(255,255,255,.55)',.16*Z);
- const [bx,by]=P(.4,-1.4);g.fillStyle='#e6eef8';g.fillRect(bx-.32*Z,by-.45*Z,.64*Z,.9*Z);
- const [gx,gy]=P(.45,1.45);dot(gx,gy,.56*Z,'#e6eef8');dot(gx,gy,.3*Z,c.dk);
- const [mx,my]=P(.12,0);dot(mx,my,.52*Z,'#e6eef8');g.strokeStyle=c.dk;g.lineWidth=.14;g.beginPath();g.arc(mx,my,.46*Z,a-.9,a+.9);g.stroke();}
-function draw(){
- g.setTransform(DPR,0,0,DPR,0,0);g.fillStyle=OUT;g.fillRect(0,0,W,H);
- g.translate(W/2,H/2);if(VP)g.rotate(Math.PI/2);g.scale(VS*cam.z,VS*cam.z);g.translate(-cam.x,0);
- g.fillStyle=BOX;g.strokeStyle=BOXL;g.lineWidth=.3;
- [[-34,43.2,23,7.6],[11,43.2,23,7.6],[-17,-50.5,12,7.3],[5,-50.5,12,7.3],[-3.5,-49.5,7,6]].forEach(b=>{g.fillRect(...b);g.strokeRect(...b)});
- rr(-100,-42.5,200,85,28);g.fillStyle=ICE;g.fill();
- g.save();rr(-100,-42.5,200,85,28);g.clip();
- g.save();g.scale(1/VS,1/VS);g.font=`900 ${9*VS}px Unbounded,"Arial Black",sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillStyle='rgba(234,243,255,.05)';g.fillText('JARVIS',0,0);g.restore();
- line(0,-43,0,43,RED,1);[-25,25].forEach(x=>line(x,-43,x,43,BLUE,1));[-89,89].forEach(x=>line(x,-43,x,43,RED,.35));
- ring(0,0,15,BLUE,.3);dot(0,0,.6,BLUE);
- [[-69,-22],[-69,22],[69,-22],[69,22]].forEach(([x,y])=>{ring(x,y,15,RED,.3);dot(x,y,1,RED)});
- [[-20,-22],[-20,22],[20,-22],[20,22]].forEach(([x,y])=>dot(x,y,1,RED));
- [-1,1].forEach(s=>{line(s*89,-11,s*100,-14,RED,.2);line(s*89,11,s*100,14,RED,.2);
-  g.fillStyle='rgba(62,224,255,.08)';g.strokeStyle=RED;g.lineWidth=.2;g.beginPath();g.moveTo(s*89,-6);g.arc(s*89,0,6,s>0?Math.PI*1.5:-Math.PI/2,s>0?Math.PI/2:Math.PI/2,s>0);g.closePath();g.fill();g.stroke();
-  const gl=glow[s>0?'R':'L'];if(gl>0){g.fillStyle=`rgba(255,201,60,${gl*.45})`;g.beginPath();g.arc(s*90.5,0,9,0,7);g.fill()}
-  g.fillStyle='rgba(234,243,255,.08)';g.strokeStyle='rgba(255,59,92,.75)';g.lineWidth=.4;g.fillRect(s>0?89:-92.3,-3,3.3,6);g.strokeRect(s>0?89:-92.3,-3,3.3,6)});
- g.restore();
- rr(-100,-42.5,200,85,28);g.strokeStyle=BOARD;g.lineWidth=1;g.stroke();
- ['A','B'].forEach(t=>line(TEAM[t].door-3.6,42.5,TEAM[t].door+3.6,42.5,OUT,1.2));
- g.globalAlpha=.88;PL.filter(p=>p.state==='bench').forEach(skater);PL.filter(p=>p.state!=='bench').forEach(skater);
- ['A','B'].forEach(goalie);g.globalAlpha=1;
- if(puck.mode!=='hidden'){dot(puck.x+.12,puck.y+.15,.45,'rgba(0,0,0,.45)');dot(puck.x,puck.y,.38,'#eaf3ff')}
-}
-// размытие без фильтров (они на слабых видеокартах считаются процессором): сцена выводится 4 раза со сдвигом на RB px
-// и усредняется — мягкий фон за 4 копирования картинки
-size();addEventListener('resize',()=>{size();draw()});
-let last=0;
-// матч рисуется, только пока первый экран виден: ниже по странице кадры не тратятся (и не мешают прокрутке)
-let run=false;const go=()=>{if(!run&&!still){run=true;last=0;requestAnimationFrame(frame)}};
-const PACE=1.2;   // владелец 28.10: матч на фоне чуть быстрее
-const LOW=innerWidth<768;   // v2: телефон — 30 к/с
-function frame(ts){if(!vis){run=false;return}if(LOW&&last&&ts-last<30){requestAnimationFrame(frame);return}const dt=last?Math.min(.05,(ts-last)/1000):.016;last=ts;tick(dt*PACE);draw();requestAnimationFrame(frame)}
-let vis=true;window.__rinkVis=v=>{vis=v;if(v)go()};   // v2: рисуется, пока активна сцена 1
-draw();go();
-window.__rink={PL,puck,TEAM,cam,get si(){return si},get forced(){return forced},sim(sec){const log=[];let prev=si;for(let t=0;t<sec;t+=1/60){tick(1/60);if(si!==prev){log.push([+T.toFixed(1),prev,S[prev].do]);prev=si}}return log}};
-})();
-</script>
-<script>
-// Lenis 1.1.20 + GSAP 3.12.5 (только компьютер с мышью, без «уменьшить движение»; грузим после load; CDN недоступен — всё работает без них)
+// GSAP 3.12.5 + ScrollTrigger (только компьютер с мышью; CDN недоступен — без них): заголовки секций плывут чуть медленнее текста. Lenis — assets/v2.js
 (()=>{if(!matchMedia('(pointer:fine) and (min-width:900px)').matches||RM)return;
- const LIB=['https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js','https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js','https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js'];
+ const LIB=['https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js','https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js'];
  const add=src=>new Promise((ok,no)=>{const e=document.createElement('script');e.src=src;e.async=false;e.onload=ok;e.onerror=no;document.head.appendChild(e)});
  const start=()=>Promise.all(LIB.map(add)).then(run).catch(()=>{});
  const go=()=>'requestIdleCallback' in window?requestIdleCallback(start,{timeout:1200}):setTimeout(start,300);
  document.readyState==='complete'?go():addEventListener('load',go);
  function run(){gsap.registerPlugin(ScrollTrigger);
-  const lenis=new Lenis({lerp:.1});window.__lenis=lenis;lenis.on('scroll',ScrollTrigger.update);gsap.ticker.add(t=>lenis.raf(t*1000));gsap.ticker.lagSmoothing(0);
-  document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(!t)return;e.preventDefault();lenis.scrollTo(t,{offset:-64,duration:1.2})}));
-  // табло наклоняется за мышью и уходит при прокрутке медленнее текста
-  const b=document.querySelector('.hero .board');b.style.animation='none';gsap.set(b,{transformPerspective:1000});
-  const rx=gsap.quickTo(b,'rotationX',{duration:.7,ease:'power3'}),ry=gsap.quickTo(b,'rotationY',{duration:.7,ease:'power3'});
-  b.addEventListener('pointermove',e=>{const r=b.getBoundingClientRect();ry(((e.clientX-r.left)/r.width-.5)*7);rx(-((e.clientY-r.top)/r.height-.5)*7)});
-  b.addEventListener('pointerleave',()=>{rx(0);ry(0)});
-  gsap.to(b,{y:-90,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:.6}});
-  gsap.to('.hero-text',{y:-40,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:.6}});
+  const tick=()=>{ScrollTrigger.update();requestAnimationFrame(tick)};requestAnimationFrame(tick);
+  gsap.to('.fork-head',{y:-50,ease:'none',scrollTrigger:{trigger:'.fork',start:'top top',end:'bottom top',scrub:.6}});
   gsap.utils.toArray('.sec h2').forEach(h=>gsap.fromTo(h,{y:20},{y:-10,ease:'none',scrollTrigger:{trigger:h,start:'top bottom',end:'bottom top',scrub:.6}}))}
 })();
 </script>
+<script src="assets/v2.js"></script>
 </body>
 </html>

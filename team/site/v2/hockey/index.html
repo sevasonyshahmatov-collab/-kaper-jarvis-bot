@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ru" data-sport="hockey">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Хоккей — прогнозы JARVIS (макет v2)</title>
+<meta name="description" content="Прогнозы на КХЛ и НХЛ по собственной модели. Заглушка раздела «Хоккей» макета v2.">
+<link rel="canonical" href="https://jarvis.local/hockey/">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#071225">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="../assets/v2.css">
+<style>
+.hero .wrap{display:grid;gap:28px}
+.hero h1{font-size:clamp(40px,6vw,88px);line-height:.98;letter-spacing:-.035em;max-width:11ch}
+.cta{display:flex;flex-wrap:wrap;gap:12px}
+.plan{list-style:none;margin:0;padding:22px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 24px;max-width:860px}
+.plan li{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start;font-size:14px;color:#c9d7ee}
+.plan b{font:500 13px var(--mono);color:var(--cyan);display:grid;place-items:center;height:28px;border-radius:8px;background:rgba(62,224,255,.1)}
+.plan strong{display:block;color:var(--fg);font:800 15px var(--display)}
+@media (max-width:860px){.plan{grid-template-columns:1fr}}
+.back-to{display:grid;justify-items:start;gap:14px}
+.back-to p{color:#d5e3f7;max-width:40ch}
+@media (prefers-reduced-motion:no-preference){.js .hero .wrap>*{animation:rise .8s var(--out) backwards}.js .hero .wrap>:nth-child(2){animation-delay:.08s}.js .hero .wrap>:nth-child(3){animation-delay:.16s}.js .hero .wrap>:nth-child(4){animation-delay:.24s}}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body class="no-js">
+<script>document.body.classList.replace('no-js','js')</script>
+<a class="skip" href="#main">К содержанию</a>
+
+<!-- КАМЕРА: H0.mp4 (петля арены, компьютер), H0_m.mp4 (телефон). Отрезки H1–H6 — по SITE_V2_CAMERA.md п. 3. -->
+<div id="stage" aria-hidden="true">
+  <div class="scene on" data-seg="H0" data-loop data-rate="0.3" data-move="orbit" data-video="../assets/hockey/H0" data-poster="../assets/hockey/H0.webp"></div>
+  <div class="grade"></div>
+  <div class="veil"></div>
+</div>
+
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="../" aria-label="JARVIS, на главную">JAR<b>V</b>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="./" aria-current="page">Хоккей</a>
+      <a href="../football/" data-vortex>Футбол</a>
+    </nav>
+    <nav class="nav" aria-label="Разделы"><a href="../prognozy/">Прогнозы</a><a href="../#honest">Итоги</a><a href="../#model">Модель</a></nav>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a>
+  </div>
+</header>
+
+<main id="main">
+<section class="stop hero" data-seg="H0" data-veil=".2">
+  <div class="wrap shade">
+    <h1>Хоккей: КХЛ и НХЛ</h1>
+    <p class="lead">Прогноз на каждый матч от собственной модели. КХЛ днём, НХЛ ночью по Москве. Итоги — все, и минусы.</p>
+    <div class="cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть @jarvibet</a><a class="btn btn-line" href="../prognozy/">Прогнозы дня</a></div>
+    <ol class="plan dp glass" aria-label="Маршрут камеры раздела — в работе">
+      <li><b>H1</b><span><strong>Вдоль льда</strong>матчи дня КХЛ и НХЛ</span></li>
+      <li><b>H2</b><span><strong>Тоннель</strong>лиги и сила команд</span></li>
+      <li><b>H3</b><span><strong>Раздевалка</strong>как думает модель</span></li>
+      <li><b>H4</b><span><strong>Видеокомната</strong>честные итоги по месяцам</span></li>
+      <li><b>H5</b><span><strong>Куб-табло</strong>подписка</span></li>
+      <li><b>H6</b><span><strong>Под крышей</strong>финал и футбол</span></li>
+    </ol>
+  </div>
+</section>
+<section class="stop" data-seg="H0" data-veil=".45" data-tg-hide style="min-height:70svh">
+  <div class="wrap back-to shade">
+    <h2>Раздел собирается</h2>
+    <p>Пока главное по хоккею — на главной и в канале. Футбол уже в новом виде.</p>
+    <a class="swap" href="../football/" data-vortex style="--to:var(--pitch)">ПРОГНОЗЫ ПО ФУТБОЛУ <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4.5h-4.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+    <p class="sample-tag">18+. Аналитика, а не призыв делать ставки. Выигрыш не гарантирован.</p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap fcols">
+    <nav aria-label="Подвал"><a href="../">Главная</a><a href="../football/" data-vortex>Футбол</a><a href="../prognozy/">Прогнозы</a><a href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a></nav>
+    <p>Макет v2 · © JARVIS, @jarvibet</p>
+  </div>
+</footer>
+
+<a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Прогнозы дня — в Telegram</span><span aria-hidden="true">→</span></a>
+<nav class="tabbar" aria-label="Быстрые разделы">
+  <a href="./" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="9" rx="8" ry="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 9v5c0 1.9 3.6 3.5 8 3.5s8-1.6 8-3.5V9" fill="none" stroke="currentColor" stroke-width="2"/></svg>Хоккей</a>
+  <a href="../football/" data-vortex><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7l4 3-1.5 4.5h-5L8 10z" fill="currentColor"/></svg>Футбол</a>
+  <a href="../prognozy/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="2"/></svg>Прогнозы</a>
+  <a href="../#honest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Итоги</a>
+</nav>
+<script src="../assets/cam.js"></script>
+<script src="../assets/v2.js"></script>
+</body>
+</html>
