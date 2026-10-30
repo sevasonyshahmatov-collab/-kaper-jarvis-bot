@@ -10,7 +10,7 @@ import re
 import sys
 
 MONTHS = 'января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря'
-# футбол — проба этапа 2 (владелец 30.10, docs/handoff/FOOTBALL_BRIEF.md): шапка с турниром, свой хэштег, пока без баннера
+# футбол — проба этапа 2 (владелец 30.10, docs/handoff/FOOTBALL_BRIEF.md): шапка с турниром, свой хэштег; баннер — анимированный Versus, как в хоккее (31.10)
 FOOT_TAG = {'АПЛ': 'апл', 'Ла Лига': 'лалига', 'Серия А': 'серияа', 'Бундеслига': 'бундеслига', 'Лига 1': 'лига1',
             'Лига чемпионов': 'лигачемпионов', 'Лига Европы': 'лигаевропы'}
 HEAD = re.compile(r'^(КХЛ|НХЛ|%s) · \d{1,2} (%s) · \d\d:\d\d МСК$' % ('|'.join(FOOT_TAG), MONTHS))
@@ -113,10 +113,7 @@ def main(path):
             errs.append('%s: номер уже занят' % where)
         pids.append(pid)
         foot = text.split(' · ')[0] in FOOT_TAG
-        if foot:
-            if m.get('type') != 'text':
-                errs.append('%s: футбол на пробе — текстовый пост ("type": "text"), баннеров клубов пока нет' % where)
-        elif m.get('type') != 'animation' or not str((m.get('files') or [''])[0]).endswith('.mp4'):
+        if m.get('type') != 'animation' or not str((m.get('files') or [''])[0]).endswith('.mp4'):
             errs.append('%s: пост — анимированный баннер: "type": "animation", файл .mp4 (владелец 15.10)' % where)
         if not m.get('html'):
             errs.append('%s: нужен "html": true' % where)
@@ -154,6 +151,8 @@ def main(path):
             errs.append('%s: эмодзи в подписи — в канале без эмодзи' % where)
         if not m.get('vs'):
             warns.append('%s: нет поля "vs" — баннер не нарисуется banners.py' % where)
+        elif foot and m['vs'].get('league') != lines[0].split(' · ')[0]:
+            warns.append('%s: vs.league футбола — турнир из шапки («%s»), сейчас «%s»' % (where, lines[0].split(' · ')[0], m['vs'].get('league')))
         q = re.search(r'<blockquote>(.*?)</blockquote>', text, re.S)
         c = re.search(r'^<i>(.+)</i>$', text, re.M)
         posts.append(dict(pid=pid or str(i), q=plain(q.group(1)) if q else '', c=plain(c.group(1)) if c else ''))

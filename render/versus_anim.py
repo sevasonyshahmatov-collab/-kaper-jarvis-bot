@@ -26,6 +26,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 import brand_kit
+import football
 import nhl
 import poster
 import versus
@@ -445,8 +446,10 @@ def _club(team, league):
     """→ (ru-название, slug для имени файла)."""
     if league == 'NHL':
         nhl.register()
+    elif football.is_foot(league):
+        football.register()
     ru = versus._team(team, league)[0]
-    return ru, poster.TEAMS[ru][0]
+    return ru, poster.TEAMS[ru][0].replace('/', '_') if ru in poster.TEAMS else ru
 
 
 def plate_path(team, side, league, color, out_dir, geom=None):

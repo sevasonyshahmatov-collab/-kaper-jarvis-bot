@@ -5,7 +5,8 @@
 
     import versus
     versus.render('Северсталь', 'СКА', 'out/vs.jpg', date='13 октября', time='19:00', odds=(2.60, 4.20, 2.35))
-    # НХЛ: league='NHL' (nhl.register() вызывается сам); odds=None — без плашек линии
+    # НХЛ: league='NHL' (nhl.register() вызывается сам); футбол: league='АПЛ' | 'Ла Лига' | … | 'FOOT' (render/football.py);
+    # odds=None — без плашек линии
 Размер: 1080×1080 × quality.S (4К — 3240×3240).
 """
 import os
@@ -14,6 +15,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 import brand_kit
+import football
 import nhl
 import poster
 import quality
@@ -40,6 +42,8 @@ KHL_CITY = {
 
 def _team(name, league):
     """→ (ru-название, цвет панели, второй цвет клуба, аббревиатура, подпись сбоку)."""
+    if football.is_foot(league):
+        return football.team(name)
     if league == 'NHL':
         ru = nhl.resolve(name)
         c1, c2, abbr, en = nhl.TEAMS[ru][1], nhl.TEAMS[ru][2], nhl.TEAMS[ru][3], nhl.TEAMS[ru][4]
@@ -174,10 +178,12 @@ def _teams(home, away, league):
     """→ (хозяева, гости, акцент); хозяева/гости — (ru, цвет, аббр., подпись сбоку)."""
     if league == 'NHL':
         nhl.register()
+    elif football.is_foot(league):
+        football.register()
     hn, hc, _, ha, hs = _team(home, league)
     an, ac, ac2, aa, as_ = _team(away, league)
     ac = _distinct(hc, ac, ac2)
-    acc = poster.ACC if league == 'KHL' else nhl.ICE
+    acc = football.ACC if football.is_foot(league) else poster.ACC if league == 'KHL' else nhl.ICE
     return (hn, hc, ha, hs), (an, ac, aa, as_), acc
 
 
@@ -272,7 +278,7 @@ def _draw_foreground(img, hc, ha, hs, ac, aa, as_, acc, date, time, odds, league
 
     # марка канала
     fm = brand_kit.font('Oswald[wght].ttf', 24 * S, 700)
-    tag = 'KXL' if league == 'KHL' else 'NHL'
+    tag = football.label(league) if football.is_foot(league) else 'KXL' if league == 'KHL' else 'NHL'
     wj = fm.getlength('JARVIS')
     wt = fm.getlength(tag)
     gx, bar = 14 * S, 3 * S
