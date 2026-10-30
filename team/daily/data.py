@@ -173,6 +173,7 @@ def khl_regulation(g, s):
     ot, so = _pair_goals(s.get('overtime')), _pair_goals(s.get('bullitt'))
     if all(per) and g.get('hg') is not None:
         rh, ra = sum(x[0] for x in per), sum(x[1] for x in per)
+        g['per'] = per                                   # счёт по периодам (team/reels_weekly — «третий период»)
         if (rh, ra) == (g['hg'], g['ag']):
             g['end'], g['reg'], g['how'] = '', (rh, ra), 'периоды'
         else:

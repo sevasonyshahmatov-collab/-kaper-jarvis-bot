@@ -26,7 +26,7 @@ TRACKS = [('too_fast', 1.061946, 33.576), ('militant', 0.952381, 29.733), ('kilo
 # очередь на каждый день (владелец 30.10: «по 1 такому ролику в день в Instagram, для YouTube — мне в Telegram»):
 # день недели (МСК) → (тема, лига); вс — оборона, лига через неделю
 DAILY = {0: ('week', 'KHL'), 1: ('week', 'NHL'), 2: ('under', 'KHL'), 3: ('under', 'NHL'), 4: ('over', 'KHL'), 5: ('over', 'NHL')}
-WHAT = {'week': 'Топ недели', 'under': 'Антирейтинг для тотала больше', 'over': 'Чаще всех тотал больше', 'defense': 'Лучшая оборона'}
+WHAT = {'week': 'Топ недели', 'under': 'Антирейтинг для тотала больше', 'over': 'Чаще всех тотал больше', 'defense': 'Лучшая оборона', 'comeback': 'JARVIS отвечает'}
 LG = {'KHL': 'КХЛ', 'NHL': 'НХЛ'}
 
 
@@ -78,6 +78,21 @@ def spec_season(r, kind):
                 src=src, question=['КАКАЯ КОМАНДА', 'ДОЛЖНА БЫТЬ', 'ШЕСТОЙ?'])
 
 
+def spec_comeback(r):
+    """«JARVIS отвечает» (владелец 30.10): вопрос подписчика на экране — крючок, ответ (№1) — на дроп трека."""
+    lg = LG[r['league']]
+    items = []
+    for x in reversed(r['top']):
+        items.append(dict(team=x['team'], n=x['back'], big='%d %s' % (x['back'], plural(x['back'], 'РАЗ', 'РАЗА', 'РАЗ')),
+                          sub='ИЗ %d %s, ГДЕ ПРОИГРЫВАЛИ' % (x['behind'], plural(x['behind'], 'МАТЧА', 'МАТЧЕЙ', 'МАТЧЕЙ')),
+                          share=x['share'], chip='ИЗ НИХ ВЫИГРАЛИ %d' % x['won']))
+    return dict(league=r['league'], hook=['КАКАЯ КОМАНДА %s' % lg, 'ЧАЩЕ ВСЕХ', 'ОТЫГРЫВАЕТСЯ', 'В ТРЕТЬЕМ ПЕРИОДЕ?',
+                                          'ОТВЕТ В КОНЦЕ'],
+                tag='JARVIS ОТВЕЧАЕТ · %s %s' % (lg, season(r['upto'])), items=items, ours=None,
+                src='счёт после 2 периодов и после 3-го · %s · на %s' % (r['src'], asof(r)),
+                question=['ЗАДАЙ', 'СВОЙ ВОПРОС', 'ПО ХОККЕЮ'], question_sub='В КОММЕНТАРИЯХ, ОТВЕЧУ ПО ЦИФРАМ')
+
+
 def spec_week(r):
     lg = LG[r['league']]
     items = []
@@ -118,6 +133,18 @@ def seo(kind, r):
                    {'KHL': 15, 'NHL': 20}[r['league']])) + TAIL % low
         search = 'тотал %s %s, статистика тоталов %s, тотал 5,5 %s' % (word, low, low, low)
         pin = 'Какая команда должна быть шестой в этом списке?'
+    elif kind == 'comeback':
+        title = 'Какая команда %s чаще всех отыгрывается в третьем периоде' % lg
+        lines = ['%d. %s: %d из %d матчей, где проигрывали после двух периодов, выиграли из них %d'
+                 % (i + 1, x['team'], x['back'], x['behind'], x['won']) for i, x in enumerate(t)]
+        desc = ('Вопрос: какая команда %s чаще всех отыгрывается в третьем периоде? Ответ: %s, %d %s из %d.\n\n%s\n\n'
+                'Считаем матчи сезона %s, где команда уступала после двух периодов, и сколько раз к концу третьего она сравняла '
+                'или вышла вперёд. Данные: %s, на %s.\n\nЗадай свой вопрос по хоккею в комментариях, отвечу роликом по '
+                'цифрам.\nПрогнозы на каждый матч дня в Telegram @jarvibet, ссылка в шапке профиля.\n\n#%s #хоккей #статистика'
+                % (lg, t[0]['team'], t[0]['back'], plural(t[0]['back'], 'раз', 'раза', 'раз'), t[0]['behind'],
+                   '\n'.join(lines), season(r['upto']), r['src'], asof(r), low))
+        search = 'камбэк %s, третий период %s, отыгрываются %s' % (low, low, low)
+        pin = 'Какой вопрос разобрать следующим?'
     elif kind == 'defense':
         title = '5 самых надёжных оборон %s' % lg
         lines = ['%d. %s: %s за игру, %d за %d %s' % (i + 1, x['team'], dec(x['avg']), x['ga'], x['gp'],
@@ -172,7 +199,7 @@ def main():
         raise SystemExit('мало команд для рейтинга: %d' % len(r['top']))
     from reels import core as C
     from reels.countdown import Countdown
-    sp = spec_week(r) if kind == 'week' else spec_season(r, kind)
+    sp = spec_week(r) if kind == 'week' else spec_comeback(r) if kind == 'comeback' else spec_season(r, kind)
     key, u, tdrop = track
     reel = Countdown(sp, u=u, drop=14 * u + 1.6)
     name = '%s_%s_%s' % (kind, lg.lower(), ref)

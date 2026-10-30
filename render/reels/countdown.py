@@ -203,7 +203,7 @@ class Countdown(C.Reel):
             im, _ = reveal(tx, C.seg(t, t0 + 0.1 * j, t0 + 0.45 + 0.1 * j))
             C.put(fr, im, 70, y, anchor='tl')
             y += tx.height + 24
-        C.put(fr, C.text('ПИШИ В КОММЕНТАРИЯХ', 'mont', 48, GOLD, 800, track=0.1), 74, y + 40, C.seg(t, t0 + 0.4, t0 + 0.8),
+        C.put(fr, C.text(self.s.get('question_sub', 'ПИШИ В КОММЕНТАРИЯХ'), 'mont', 48, GOLD, 800, track=0.1, max_w=940), 74, y + 40, C.seg(t, t0 + 0.4, t0 + 0.8),
               anchor='tl')
         # весь рейтинг в одну строку — 5 эмблем, №1 крупнее
         x0, ew = 110, 190

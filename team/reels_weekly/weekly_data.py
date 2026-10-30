@@ -112,6 +112,38 @@ def best_defense(gs, league='KHL', n=5):
     return rows[:n], len(rows), len(t)
 
 
+def comebacks(gs, n=5, min_behind=3):
+    """«Кто чаще всех отыгрывается в третьем периоде»: матчи, где команда проигрывала после двух периодов, и сколько из них
+    она к концу третьего сравняла или вышла вперёд (основное время). Нужен счёт по периодам (g['per'], КХЛ)."""
+    t = defaultdict(lambda: dict(behind=0, back=0, won=0))
+    used = 0
+    for g in gs:
+        per = g.get('per')
+        if not per:
+            continue
+        used += 1
+        h2, a2 = per[0][0] + per[1][0], per[0][1] + per[1][1]
+        h3, a3 = g['reg']
+        for me, m2, o2, m3, o3, fin in ((g['home'], h2, a2, h3, a3, g['hg'] > g['ag']),
+                                        (g['away'], a2, h2, a3, h3, g['ag'] > g['hg'])):
+            if m2 < o2:
+                t[me]['behind'] += 1
+                if m3 >= o3:
+                    t[me]['back'] += 1
+                    t[me]['won'] += fin
+    rows = [dict(team=k, share=round(v['back'] / v['behind'], 4), **v) for k, v in t.items() if v['behind'] >= min_behind]
+    rows.sort(key=lambda r: (-r['back'], -r['share'], r['team']))
+    return rows[:n], len(rows), used
+
+
+def comeback(league, day):
+    gs = season_games(league, day)
+    top, nteams, used = comebacks(gs)
+    return dict(kind='comeback', league=league, upto=day, games=used, teams=nteams, top=top,
+                last=max(g['start'] for g in gs).date().isoformat() if gs else None,
+                src='приложение КХЛ' if league == 'KHL' else 'api-web.nhle.com')
+
+
 def our_week(league, t0, t1):
     """Наши прогнозы на матчи недели: (зашло, не зашло, возврат, не рассчитано) — по опубликованным ставкам владельца."""
     import ledger                                          # team/daily — подтягиваем только здесь (тяжёлые тексты не нужны)
@@ -174,6 +206,8 @@ def build(kind, league, day):
         return week(league, day)
     if kind == 'defense':
         return defense(league, day)
+    if kind == 'comeback':
+        return comeback(league, day)
     return under(league, day, over=kind == 'over')
 
 
