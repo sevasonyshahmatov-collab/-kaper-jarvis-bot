@@ -1,0 +1,58 @@
+# Ролик-рейтинг дня (владелец 30.10: «по 1 такому ролику в день в Instagram помимо прогнозов, для YouTube — мне в Telegram»).
+# Тема и лига — по очереди team/reels_weekly/make.py DAILY (пн — топ недели КХЛ, вт — НХЛ, ср/чт — антирейтинг ТБ, пт/сб —
+# «чаще всех больше 5,5», вс — лучшая оборона); шаблон render/reels/countdown.py. Код берётся из ветки команды: cron
+# GitHub срабатывает только из main, а main и ветка команды разошлись — этот файл в обеих, работает ветка команды.
+# Секреты: TG_BOT_TOKEN, TRACKS_KEY (треки владельца), IG_TOKEN + IG_USER_ID (Instagram, как у «Шортсы — конвейер»).
+name: Ролик-рейтинг дня
+
+on:
+  schedule:
+    - cron: '23 9 * * *'          # 12:23 МСК — днём, отдельно от роликов дня (02:00–02:30 МСК)
+  workflow_dispatch:
+    inputs:
+      day:
+        description: 'День ГГГГ-ММ-ДД (пусто — сегодня по Москве)'
+        required: false
+      ig:
+        description: 'Выложить в Instagram (1 — да, 0 — только владельцу)'
+        required: false
+        default: '1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: reels-rating-${{ github.event.inputs.day || 'today' }}
+  cancel-in-progress: false
+
+jobs:
+  reel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/project-migration-old-account-6e31vz
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install "pillow>=11" numpy requests cairosvg rlottie-python
+      - name: Собрать, выложить в Instagram, владельцу в Telegram
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TRACKS_KEY: ${{ secrets.TRACKS_KEY }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          PYTHONPATH: render
+          DAY: ${{ github.event.inputs.day }}
+          IG: ${{ github.event.inputs.ig || '1' }}
+        run: |
+          flag=""; [ "$IG" = "1" ] && flag="--ig"
+          python team/reels_weekly/make.py daily $DAY $flag
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reel
+          path: out/reels_weekly/*
+          if-no-files-found: ignore
+          retention-days: 7
