@@ -1,0 +1,2024 @@
+{
+"101": {
+"abbr": "RAY",
+"alt": "cd0000",
+"color": "ffffff",
+"leagues": [
+"esp.1"
+],
+"location": "Rayo Vallecano",
+"name": "Rayo Vallecano",
+"short": "Rayo"
+},
+"1010": {
+"abbr": "OFI",
+"alt": "000000",
+"color": "FFFFFF",
+"leagues": [
+"uefa.europa"
+],
+"location": "OFI Crete",
+"name": "OFI Crete",
+"short": "OFI Crete"
+},
+"102": {
+"abbr": "VIL",
+"alt": "6cace4",
+"color": "ffff00",
+"leagues": [
+"esp.1",
+"uefa.champions"
+],
+"location": "Villarreal",
+"name": "Villarreal",
+"short": "Villarreal"
+},
+"103": {
+"abbr": "MIL",
+"alt": "ffffff",
+"color": "e4002b",
+"leagues": [
+"ita.1",
+"uefa.europa"
+],
+"location": "AC Milan",
+"name": "AC Milan",
+"short": "Milan"
+},
+"10388": {
+"abbr": "ELV",
+"alt": "FFFFFF",
+"color": "000000",
+"leagues": [
+"ger.1"
+],
+"location": "SV Elversberg",
+"name": "SV Elversberg",
+"short": "Elversberg"
+},
+"104": {
+"abbr": "ROMA",
+"alt": "F5F3E5",
+"color": "990a2c",
+"leagues": [
+"ita.1",
+"uefa.champions"
+],
+"location": "AS Roma",
+"name": "AS Roma",
+"short": "AS Roma"
+},
+"105": {
+"abbr": "ATA",
+"alt": "ffffff",
+"color": "1157bf",
+"leagues": [
+"ita.1",
+"uefa.europa.conf"
+],
+"location": "Atalanta",
+"name": "Atalanta",
+"short": "Atalanta"
+},
+"1068": {
+"abbr": "ATM",
+"alt": "000000",
+"color": "ca3624",
+"leagues": [
+"esp.1",
+"uefa.champions"
+],
+"location": "Atlético Madrid",
+"name": "Atlético Madrid",
+"short": "Atlético"
+},
+"107": {
+"abbr": "BOL",
+"alt": "ffffff",
+"color": "04043d",
+"leagues": [
+"ita.1"
+],
+"location": "Bologna",
+"name": "Bologna",
+"short": "Bologna"
+},
+"10834": {
+"abbr": "CSKA",
+"alt": "ffffff",
+"color": "C60000",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "CSKA Sofia",
+"name": "CSKA Sofia",
+"short": "CSKA Sofia"
+},
+"109": {
+"abbr": "FIO",
+"alt": "ffffff",
+"color": "4c1d84",
+"leagues": [
+"ita.1"
+],
+"location": "Fiorentina",
+"name": "Fiorentina",
+"short": "Fiorentina"
+},
+"110": {
+"abbr": "INT",
+"alt": "ffffff",
+"color": "00239c",
+"leagues": [
+"ita.1",
+"uefa.champions"
+],
+"location": "Internazionale",
+"name": "Internazionale",
+"short": "Inter Milan"
+},
+"111": {
+"abbr": "JUV",
+"alt": "E8A2B0",
+"color": "000000",
+"leagues": [
+"ita.1",
+"uefa.europa"
+],
+"location": "Juventus",
+"name": "Juventus",
+"short": "Juventus"
+},
+"112": {
+"abbr": "LAZ",
+"alt": "FFFFFF",
+"color": "74bde7",
+"leagues": [
+"ita.1"
+],
+"location": "Lazio",
+"name": "Lazio",
+"short": "Lazio"
+},
+"113": {
+"abbr": "LEC",
+"alt": "08305d",
+"color": "FCED0B",
+"leagues": [
+"ita.1"
+],
+"location": "Lecce",
+"name": "Lecce",
+"short": "Lecce"
+},
+"114": {
+"abbr": "NAP",
+"alt": "ffffff",
+"color": "0677d2",
+"leagues": [
+"ita.1",
+"uefa.champions"
+],
+"location": "Napoli",
+"name": "Napoli",
+"short": "Napoli"
+},
+"11420": {
+"abbr": "RBL",
+"alt": "740c14",
+"color": "ffffff",
+"leagues": [
+"ger.1",
+"uefa.champions"
+],
+"location": "RB Leipzig",
+"name": "RB Leipzig",
+"short": "RB Leipzig"
+},
+"115": {
+"abbr": "PAR",
+"alt": "ffdd30",
+"color": "19161D",
+"leagues": [
+"ita.1"
+],
+"location": "Parma",
+"name": "Parma",
+"short": "Parma"
+},
+"11505": {
+"abbr": "JAG",
+"alt": "D81921",
+"color": "FFED00",
+"leagues": [
+"uefa.europa"
+],
+"location": "Jagiellonia Bialystok",
+"name": "Jagiellonia Bialystok",
+"short": "Jagiellonia "
+},
+"11706": {
+"abbr": "PLZ",
+"alt": "000000",
+"color": "0000dd",
+"leagues": [
+"uefa.europa"
+],
+"location": "Viktoria Plzen",
+"name": "Viktoria Plzen",
+"short": "Viktoria Plzen"
+},
+"118": {
+"abbr": "UDI",
+"alt": "0F1C3F",
+"color": "19161D",
+"leagues": [
+"ita.1"
+],
+"location": "Udinese",
+"name": "Udinese",
+"short": "Udinese"
+},
+"122": {
+"abbr": "KOE",
+"alt": "DA0308",
+"color": "ffffff",
+"leagues": [
+"ger.1"
+],
+"location": "FC Cologne",
+"name": "FC Cologne",
+"short": "Cologne"
+},
+"12215": {
+"abbr": "CDSC",
+"alt": "ddbf64",
+"color": "C60000",
+"leagues": [
+"por.1"
+],
+"location": "Santa Clara",
+"name": "Santa Clara",
+"short": "Santa Clara"
+},
+"12216": {
+"abbr": "EPF",
+"alt": "293dc2",
+"color": "ffea01",
+"leagues": [
+"por.1"
+],
+"location": "Estoril",
+"name": "Estoril",
+"short": "Estoril"
+},
+"124": {
+"abbr": "DOR",
+"alt": "272726",
+"color": "ffee00",
+"leagues": [
+"ger.1",
+"uefa.champions"
+],
+"location": "Borussia Dortmund",
+"name": "Borussia Dortmund",
+"short": "Dortmund"
+},
+"125": {
+"abbr": "SGE",
+"alt": "272726",
+"color": "ffffff",
+"leagues": [
+"ger.1"
+],
+"location": "Eintracht Frankfurt",
+"name": "Eintracht Frankfurt",
+"short": "Frankfurt"
+},
+"126": {
+"abbr": "SCF",
+"alt": "ffffff",
+"color": "DA0308",
+"leagues": [
+"ger.1",
+"uefa.europa.conf"
+],
+"location": "SC Freiburg",
+"name": "SC Freiburg",
+"short": "Freiburg"
+},
+"12698": {
+"abbr": "FCF",
+"alt": "183760",
+"color": "FFFFFF",
+"leagues": [
+"por.1"
+],
+"location": "FC Famalicao",
+"name": "FC Famalicao",
+"short": "FC Famalicao"
+},
+"127": {
+"abbr": "HSV",
+"alt": "1a1a1a",
+"color": "1a26af",
+"leagues": [
+"ger.1"
+],
+"location": "Hamburg SV",
+"name": "Hamburg SV",
+"short": "Hamburg"
+},
+"13083": {
+"abbr": "HBE",
+"alt": "C60000",
+"color": "fd0000",
+"leagues": [
+"uefa.europa"
+],
+"location": "Hapoel Be'er",
+"name": "Hapoel Be'er",
+"short": "Hapoel Be'er"
+},
+"131": {
+"abbr": "B04",
+"alt": "f9fbfc",
+"color": "DA0308",
+"leagues": [
+"ger.1",
+"uefa.europa"
+],
+"location": "Bayer Leverkusen",
+"name": "Bayer Leverkusen",
+"short": "Leverkusen"
+},
+"132": {
+"abbr": "MUN",
+"alt": "1a1a1a",
+"color": "dc052d",
+"leagues": [
+"ger.1",
+"uefa.champions"
+],
+"location": "Bayern Munich",
+"name": "Bayern Munich",
+"short": "Bayern"
+},
+"133": {
+"abbr": "S04",
+"alt": "ffffff",
+"color": "0000dd",
+"leagues": [
+"ger.1"
+],
+"location": "Schalke 04",
+"name": "Schalke 04",
+"short": "Schalke"
+},
+"134": {
+"abbr": "VFB",
+"alt": "DA0308",
+"color": "ffffff",
+"leagues": [
+"ger.1",
+"uefa.champions"
+],
+"location": "VfB Stuttgart",
+"name": "VfB Stuttgart",
+"short": "Stuttgart"
+},
+"137": {
+"abbr": "SVW",
+"alt": "ffffff",
+"color": "03915c",
+"leagues": [
+"ger.1"
+],
+"location": "Werder Bremen",
+"name": "Werder Bremen",
+"short": "Bremen"
+},
+"139": {
+"abbr": "AJA",
+"alt": "4d6286",
+"color": "DF1B27",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Ajax Amsterdam",
+"name": "Ajax Amsterdam",
+"short": "Ajax"
+},
+"140": {
+"abbr": "AZ",
+"alt": "ffffff",
+"color": "ef2f24",
+"leagues": [
+"uefa.europa"
+],
+"location": "AZ Alkmaar",
+"name": "AZ Alkmaar",
+"short": "AZ Alkmaar"
+},
+"142": {
+"abbr": "FEY",
+"alt": "000000",
+"color": "ef2f24",
+"leagues": [
+"uefa.champions"
+],
+"location": "Feyenoord Rotterdam",
+"name": "Feyenoord Rotterdam",
+"short": "Feyenoord"
+},
+"147": {
+"abbr": "NEC",
+"alt": "84aee7",
+"color": "ef2f24",
+"leagues": [
+"uefa.europa"
+],
+"location": "NEC Nijmegen",
+"name": "NEC Nijmegen",
+"short": "NEC"
+},
+"148": {
+"abbr": "PSV",
+"alt": "000000",
+"color": "ef2f24",
+"leagues": [
+"uefa.champions"
+],
+"location": "PSV Eindhoven",
+"name": "PSV Eindhoven",
+"short": "PSV"
+},
+"152": {
+"abbr": "TWE",
+"alt": "9df9f7",
+"color": "F31522",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "FC Twente",
+"name": "FC Twente",
+"short": "FC Twente"
+},
+"1538": {
+"abbr": "LEV",
+"alt": "000000",
+"color": "C8142F",
+"leagues": [
+"esp.1"
+],
+"location": "Levante",
+"name": "Levante",
+"short": "Levante"
+},
+"15784": {
+"abbr": "FCA",
+"alt": "293dc2",
+"color": "ffea01",
+"leagues": [
+"por.1"
+],
+"location": "Arouca",
+"name": "Arouca",
+"short": "Arouca"
+},
+"160": {
+"abbr": "PSG",
+"alt": "ffffff",
+"color": "011F68",
+"leagues": [
+"fra.1",
+"uefa.champions"
+],
+"location": "Paris Saint-Germain",
+"name": "Paris Saint-Germain",
+"short": "PSG"
+},
+"166": {
+"abbr": "LILL",
+"alt": "e2d3d7",
+"color": "c2051b",
+"leagues": [
+"fra.1",
+"uefa.champions"
+],
+"location": "Lille",
+"name": "Lille",
+"short": "Lille"
+},
+"167": {
+"abbr": "LYON",
+"alt": "1a1a1a",
+"color": "ffffff",
+"leagues": [
+"fra.1",
+"uefa.europa"
+],
+"location": "Lyon",
+"name": "Lyon",
+"short": "Lyon"
+},
+"169": {
+"abbr": "REN",
+"alt": "ffffff",
+"color": "ef2f24",
+"leagues": [
+"fra.1",
+"uefa.europa"
+],
+"location": "Stade Rennais",
+"name": "Stade Rennais",
+"short": "Rennes"
+},
+"170": {
+"abbr": "TRY",
+"alt": "fafafc",
+"color": "0000bf",
+"leagues": [
+"fra.1"
+],
+"location": "Troyes",
+"name": "Troyes",
+"short": "Troyes"
+},
+"172": {
+"abbr": "AUX",
+"alt": "1a1a1a",
+"color": "ffffff",
+"leagues": [
+"fra.1"
+],
+"location": "AJ Auxerre",
+"name": "AJ Auxerre",
+"short": "Auxerre"
+},
+"174": {
+"abbr": "MON",
+"alt": "004c37",
+"color": "E91514",
+"leagues": [
+"fra.1",
+"uefa.europa.conf"
+],
+"location": "AS Monaco",
+"name": "AS Monaco",
+"short": "Monaco"
+},
+"175": {
+"abbr": "RCL",
+"alt": "004c37",
+"color": "E91514",
+"leagues": [
+"fra.1",
+"uefa.champions"
+],
+"location": "Lens",
+"name": "Lens",
+"short": "Lens"
+},
+"17530": {
+"abbr": "VEN",
+"alt": "ffffff",
+"color": "000000",
+"leagues": [
+"ita.1"
+],
+"location": "Venezia",
+"name": "Venezia",
+"short": "Venezia"
+},
+"176": {
+"abbr": "OLM",
+"alt": "011F68",
+"color": "ffffff",
+"leagues": [
+"fra.1",
+"uefa.europa"
+],
+"location": "Marseille",
+"name": "Marseille",
+"short": "Marseille"
+},
+"17856": {
+"abbr": "LRI",
+"alt": "ffffff",
+"color": "C60000",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Lincoln Red Imps",
+"name": "Lincoln Red Imps",
+"short": "Red Imps"
+},
+"179": {
+"abbr": "TOU",
+"alt": "ffff00",
+"color": "560080",
+"leagues": [
+"fra.1"
+],
+"location": "Toulouse",
+"name": "Toulouse",
+"short": "Toulouse"
+},
+"180": {
+"abbr": "STR",
+"alt": "ffffff",
+"color": "0000bf",
+"leagues": [
+"fra.1"
+],
+"location": "Strasbourg",
+"name": "Strasbourg",
+"short": "Strasbourg"
+},
+"1895": {
+"abbr": "BES",
+"alt": "1a1a1a",
+"color": "ffffff",
+"leagues": [
+"uefa.europa"
+],
+"location": "Besiktas",
+"name": "Besiktas",
+"short": "Besiktas"
+},
+"19246": {
+"abbr": "RIG",
+"alt": "000000",
+"color": "00aae4",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Riga FC",
+"name": "Riga FC",
+"short": "Riga FC"
+},
+"1929": {
+"abbr": "SLB",
+"alt": "1a1a1a",
+"color": "ca281d",
+"leagues": [
+"por.1",
+"uefa.europa"
+],
+"location": "Benfica",
+"name": "Benfica",
+"short": "Benfica"
+},
+"20024": {
+"abbr": "ARA",
+"alt": "C60000",
+"color": "000000",
+"leagues": [
+"uefa.europa"
+],
+"location": "Ararat-Armenia",
+"name": "Ararat-Armenia",
+"short": "Ararat-Armenia"
+},
+"20025": {
+"abbr": "IBE",
+"alt": "C60000",
+"color": "000000",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Iberia 1999",
+"name": "Iberia 1999",
+"short": "Iberia 1999"
+},
+"20028": {
+"abbr": "ZAL",
+"alt": "C60000",
+"color": "000000",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Kauno Zalgiris",
+"name": "Kauno Zalgiris",
+"short": "Kauno Zalgiris"
+},
+"20301": {
+"abbr": "MJA",
+"alt": "ffd400",
+"color": "231f20",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Mjällby AIF",
+"name": "Mjällby AIF",
+"short": "Mjällby"
+},
+"20703": {
+"abbr": "IDE",
+"alt": "C60000",
+"color": "000000",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Inter D'Escaldes",
+"name": "Inter D'Escaldes",
+"short": "Inter D'Escaldes"
+},
+"20710": {
+"abbr": "BBL",
+"alt": "ffffff",
+"color": "C60000",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Borac Banja Luka",
+"name": "Borac Banja Luka",
+"short": "Borac"
+},
+"21581": {
+"abbr": "CPAC",
+"alt": "C60000",
+"color": "000000",
+"leagues": [
+"por.1"
+],
+"location": "Casa Pia",
+"name": "Casa Pia",
+"short": "Casa Pia"
+},
+"21607": {
+"abbr": "ACV",
+"alt": "C60000",
+"color": "000000",
+"leagues": [
+"por.1"
+],
+"location": "Académico de Viseu",
+"name": "Académico de Viseu",
+"short": "Académico"
+},
+"21610": {
+"abbr": "EST",
+"alt": "DE0A26",
+"color": "3B8132",
+"leagues": [
+"por.1"
+],
+"location": "Estrela",
+"name": "Estrela",
+"short": "Estrela"
+},
+"21613": {
+"abbr": "ALV",
+"alt": "C60000",
+"color": "0047AB",
+"leagues": [
+"por.1"
+],
+"location": "Alverca",
+"name": "Alverca",
+"short": "Alverca"
+},
+"21615": {
+"abbr": "TOR",
+"alt": "293D87",
+"color": "950025",
+"leagues": [
+"uefa.europa"
+],
+"location": "Torreense",
+"name": "Torreense",
+"short": "Torreense"
+},
+"21922": {
+"abbr": "SAB",
+"alt": "FF1493",
+"color": "000000",
+"leagues": [
+"uefa.champions"
+],
+"location": "Sabah FK",
+"name": "Sabah FK",
+"short": "Sabah"
+},
+"21943": {
+"abbr": "EGN",
+"alt": "C60000",
+"color": "000000",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Egnatia",
+"name": "Egnatia",
+"short": "Egnatia"
+},
+"22281": {
+"abbr": "PAF",
+"alt": "003399",
+"color": "82c0fe",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Pafos",
+"name": "Pafos",
+"short": "Pafos"
+},
+"2250": {
+"abbr": "SCP",
+"alt": "ffffff",
+"color": "008127",
+"leagues": [
+"por.1",
+"uefa.champions"
+],
+"location": "Sporting CP",
+"name": "Sporting CP",
+"short": "Sporting"
+},
+"2290": {
+"abbr": "RSB",
+"alt": "0000dd",
+"color": "FF0000",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Red Star Belgrade",
+"name": "Red Star Belgrade",
+"short": "Red Star"
+},
+"239": {
+"abbr": "TOR",
+"alt": "ffffff",
+"color": "9f0000",
+"leagues": [
+"ita.1"
+],
+"location": "Torino",
+"name": "Torino",
+"short": "Torino"
+},
+"243": {
+"abbr": "SEV",
+"alt": "d81022",
+"color": "ffffff",
+"leagues": [
+"esp.1"
+],
+"location": "Sevilla",
+"name": "Sevilla",
+"short": "Sevilla"
+},
+"244": {
+"abbr": "BET",
+"alt": "0A422D",
+"color": "288A00",
+"leagues": [
+"esp.1",
+"uefa.champions"
+],
+"location": "Real Betis",
+"name": "Real Betis",
+"short": "Betis"
+},
+"2502": {
+"abbr": "NICE",
+"alt": "e2d3d7",
+"color": "ef2f24",
+"leagues": [
+"fra.1"
+],
+"location": "Nice",
+"name": "Nice",
+"short": "Nice"
+},
+"2528": {
+"abbr": "KAI",
+"alt": "81c0ff",
+"color": "FCEE33",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Kairat Almaty",
+"name": "Kairat Almaty",
+"short": "Kairat Almaty"
+},
+"256": {
+"abbr": "CEL",
+"alt": "f9e900",
+"color": "009921",
+"leagues": [
+"uefa.europa"
+],
+"location": "Celtic",
+"name": "Celtic",
+"short": "Celtic"
+},
+"2572": {
+"abbr": "COMO",
+"alt": "FFFFFF",
+"color": "4169E1",
+"leagues": [
+"ita.1",
+"uefa.champions"
+],
+"location": "Como",
+"name": "Como",
+"short": "Como"
+},
+"262": {
+"abbr": "HOM",
+"alt": "ead6b7",
+"color": "8E003B",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Heart of Midlothian",
+"name": "Heart of Midlothian",
+"short": "Hearts"
+},
+"268": {
+"abbr": "BMG",
+"alt": "03915c",
+"color": "ffffff",
+"leagues": [
+"ger.1"
+],
+"location": "Borussia Mönchengladbach",
+"name": "Borussia Mönchengladbach",
+"short": "Gladbach"
+},
+"2697": {
+"abbr": "MNS",
+"alt": "d62b11",
+"color": "d62b11",
+"leagues": [
+"fra.1"
+],
+"location": "Le Mans",
+"name": "Le Mans",
+"short": "Le Mans"
+},
+"273": {
+"abbr": "LOR",
+"alt": "1a1a1a",
+"color": "f46100",
+"leagues": [
+"fra.1"
+],
+"location": "Lorient",
+"name": "Lorient",
+"short": "Lorient"
+},
+"2790": {
+"abbr": "SLZ",
+"alt": "052a87",
+"color": "d82c3a",
+"leagues": [
+"uefa.europa"
+],
+"location": "RB Salzburg",
+"name": "RB Salzburg",
+"short": "RB Salzburg"
+},
+"2922": {
+"abbr": "GET",
+"alt": "7F1734",
+"color": "0000ff",
+"leagues": [
+"esp.1",
+"uefa.europa.conf"
+],
+"location": "Getafe",
+"name": "Getafe",
+"short": "Getafe"
+},
+"2925": {
+"abbr": "CAG",
+"alt": "ffffff",
+"color": "282846",
+"leagues": [
+"ita.1"
+],
+"location": "Cagliari",
+"name": "Cagliari",
+"short": "Cagliari"
+},
+"2950": {
+"abbr": "M05",
+"alt": "000055",
+"color": "DA0308",
+"leagues": [
+"ger.1"
+],
+"location": "Mainz",
+"name": "Mainz",
+"short": "Mainz"
+},
+"2980": {
+"abbr": "BODO",
+"alt": "ffffff",
+"color": "FCEE33",
+"leagues": [
+"uefa.champions"
+],
+"location": "Bodo/Glimt",
+"name": "Bodo/Glimt",
+"short": "Bodo/Glimt"
+},
+"2990": {
+"abbr": "LECH",
+"alt": "ffffff",
+"color": "004B92",
+"leagues": [
+"uefa.europa"
+],
+"location": "Lech Poznan",
+"name": "Lech Poznan",
+"short": "Lech Poznan"
+},
+"2994": {
+"abbr": "SCB",
+"alt": "2b6a36",
+"color": "de1f26",
+"leagues": [
+"por.1",
+"uefa.europa.conf"
+],
+"location": "Braga",
+"name": "Braga",
+"short": "Braga"
+},
+"3024": {
+"abbr": "THUN",
+"alt": "FCD116",
+"color": "ff0900",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "FC Thun",
+"name": "FC Thun",
+"short": "FC Thun"
+},
+"306": {
+"abbr": "HUL",
+"alt": "ffffff",
+"color": "f28800",
+"leagues": [
+"eng.1"
+],
+"location": "Hull City",
+"name": "Hull City",
+"short": "Hull"
+},
+"3101": {
+"abbr": "FCN",
+"alt": "0093EC",
+"color": "CF010E",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "FC Nordsjælland",
+"name": "FC Nordsjælland",
+"short": "Nordsjælland"
+},
+"3236": {
+"abbr": "HAC",
+"alt": "ededed",
+"color": "011F68",
+"leagues": [
+"fra.1"
+],
+"location": "Le Havre AC",
+"name": "Le Havre AC",
+"short": "Le Havre AC"
+},
+"3263": {
+"abbr": "GEN",
+"alt": "ffffff",
+"color": "08305d",
+"leagues": [
+"ita.1"
+],
+"location": "Genoa",
+"name": "Genoa",
+"short": "Genoa"
+},
+"3307": {
+"abbr": "SCP",
+"alt": "ffffff",
+"color": "0000dd",
+"leagues": [
+"ger.1"
+],
+"location": "SC Paderborn 07",
+"name": "SC Paderborn 07",
+"short": "Paderborn"
+},
+"331": {
+"abbr": "BHA",
+"alt": "005F60",
+"color": "0606fa",
+"leagues": [
+"eng.1",
+"uefa.europa.conf"
+],
+"location": "Brighton & Hove Albion",
+"name": "Brighton & Hove Albion",
+"short": "Brighton"
+},
+"3362": {
+"abbr": "NKC",
+"alt": "ff6600",
+"color": "000099",
+"leagues": [
+"uefa.europa"
+],
+"location": "NK Celje",
+"name": "NK Celje",
+"short": "NK Celje"
+},
+"337": {
+"abbr": "BRE",
+"alt": "0f1c3f",
+"color": "f42727",
+"leagues": [
+"eng.1"
+],
+"location": "Brentford",
+"name": "Brentford",
+"short": "Brentford"
+},
+"3472": {
+"abbr": "CDN",
+"alt": "000099",
+"color": "000000",
+"leagues": [
+"por.1"
+],
+"location": "C.D. Nacional",
+"name": "C.D. Nacional",
+"short": "Nacional"
+},
+"349": {
+"abbr": "BOU",
+"alt": "B57EDC",
+"color": "f42727",
+"leagues": [
+"eng.1",
+"uefa.europa"
+],
+"location": "AFC Bournemouth",
+"name": "AFC Bournemouth",
+"short": "Bournemouth"
+},
+"357": {
+"abbr": "LEE",
+"alt": "FFCD00",
+"color": "ffffff",
+"leagues": [
+"eng.1"
+],
+"location": "Leeds United",
+"name": "Leeds United",
+"short": "Leeds"
+},
+"359": {
+"abbr": "ARS",
+"alt": "003399",
+"color": "e20520",
+"leagues": [
+"eng.1",
+"uefa.champions"
+],
+"location": "Arsenal",
+"name": "Arsenal",
+"short": "Arsenal"
+},
+"360": {
+"abbr": "MAN",
+"alt": "4169E1",
+"color": "da020e",
+"leagues": [
+"eng.1",
+"uefa.champions"
+],
+"location": "Manchester United",
+"name": "Manchester United",
+"short": "Man Utd"
+},
+"361": {
+"abbr": "NEW",
+"alt": "0B1B3D",
+"color": "000000",
+"leagues": [
+"eng.1"
+],
+"location": "Newcastle United",
+"name": "Newcastle United",
+"short": "Newcastle"
+},
+"3611": {
+"abbr": "GENT",
+"alt": "ffffff",
+"color": "0000ff",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "KAA Gent",
+"name": "KAA Gent",
+"short": "KAA Gent"
+},
+"362": {
+"abbr": "AVL",
+"alt": "000000",
+"color": "660e36",
+"leagues": [
+"eng.1",
+"uefa.champions"
+],
+"location": "Aston Villa",
+"name": "Aston Villa",
+"short": "Aston Villa"
+},
+"363": {
+"abbr": "CHE",
+"alt": "FFFFFF",
+"color": "144992",
+"leagues": [
+"eng.1"
+],
+"location": "Chelsea",
+"name": "Chelsea",
+"short": "Chelsea"
+},
+"364": {
+"abbr": "LIV",
+"alt": "FFFFFF",
+"color": "d11317",
+"leagues": [
+"eng.1",
+"uefa.champions"
+],
+"location": "Liverpool",
+"name": "Liverpool",
+"short": "Liverpool"
+},
+"366": {
+"abbr": "SUN",
+"alt": "FFB6C1",
+"color": "EB172B",
+"leagues": [
+"eng.1",
+"uefa.europa"
+],
+"location": "Sunderland",
+"name": "Sunderland",
+"short": "Sunderland"
+},
+"367": {
+"abbr": "TOT",
+"alt": "0B1426",
+"color": "ffffff",
+"leagues": [
+"eng.1"
+],
+"location": "Tottenham Hotspur",
+"name": "Tottenham Hotspur",
+"short": "Spurs"
+},
+"368": {
+"abbr": "EVE",
+"alt": "ffffff",
+"color": "0606fa",
+"leagues": [
+"eng.1"
+],
+"location": "Everton",
+"name": "Everton",
+"short": "Everton"
+},
+"3696": {
+"abbr": "MFC",
+"alt": "000000",
+"color": "288A00",
+"leagues": [
+"por.1"
+],
+"location": "Moreirense",
+"name": "Moreirense",
+"short": "Moreirense"
+},
+"3699": {
+"abbr": "GVFC",
+"alt": "FFFFFF",
+"color": "de1f26",
+"leagues": [
+"por.1"
+],
+"location": "Gil Vicente",
+"name": "Gil Vicente",
+"short": "Gil Vicente"
+},
+"370": {
+"abbr": "FUL",
+"alt": "CC0000",
+"color": "ffffff",
+"leagues": [
+"eng.1"
+],
+"location": "Fulham",
+"name": "Fulham",
+"short": "Fulham"
+},
+"373": {
+"abbr": "IPS",
+"alt": "F5F2DC",
+"color": "0000fa",
+"leagues": [
+"eng.1"
+],
+"location": "Ipswich Town",
+"name": "Ipswich Town",
+"short": "Ipswich"
+},
+"3746": {
+"abbr": "STG",
+"alt": "000000",
+"color": "ffffff",
+"leagues": [
+"uefa.europa"
+],
+"location": "SK Sturm Graz",
+"name": "SK Sturm Graz",
+"short": "Sturm Graz"
+},
+"3751": {
+"abbr": "ELC",
+"alt": "4B2B67",
+"color": "288A00",
+"leagues": [
+"esp.1"
+],
+"location": "Elche",
+"name": "Elche",
+"short": "Elche"
+},
+"382": {
+"abbr": "MNC",
+"alt": "000000",
+"color": "99c5ea",
+"leagues": [
+"eng.1",
+"uefa.champions"
+],
+"location": "Manchester City",
+"name": "Manchester City",
+"short": "Man City"
+},
+"3822": {
+"abbr": "RAFC",
+"alt": "FF621A",
+"color": "3b8649",
+"leagues": [
+"por.1"
+],
+"location": "Rio Ave",
+"name": "Rio Ave",
+"short": "Rio Ave"
+},
+"384": {
+"abbr": "CRY",
+"alt": "000000",
+"color": "0202fb",
+"leagues": [
+"eng.1",
+"uefa.europa"
+],
+"location": "Crystal Palace",
+"name": "Crystal Palace",
+"short": "C Palace"
+},
+"3841": {
+"abbr": "FCA",
+"alt": "03915c",
+"color": "ffffff",
+"leagues": [
+"ger.1"
+],
+"location": "FC Augsburg",
+"name": "FC Augsburg",
+"short": "Augsburg"
+},
+"388": {
+"abbr": "COV",
+"alt": "ffffff",
+"color": "87cced",
+"leagues": [
+"eng.1"
+],
+"location": "Coventry City",
+"name": "Coventry City",
+"short": "Coventry"
+},
+"393": {
+"abbr": "NFO",
+"alt": "1B3624",
+"color": "c8102e",
+"leagues": [
+"eng.1"
+],
+"location": "Nottingham Forest",
+"name": "Nottingham Forest",
+"short": "Nottm Forest"
+},
+"3997": {
+"abbr": "SAS",
+"alt": "ADAEB0",
+"color": "0fa653",
+"leagues": [
+"ita.1"
+],
+"location": "Sassuolo",
+"name": "Sassuolo",
+"short": "Sassuolo"
+},
+"4007": {
+"abbr": "MON",
+"alt": "ffffff",
+"color": "C8142F",
+"leagues": [
+"ita.1"
+],
+"location": "Monza",
+"name": "Monza",
+"short": "Monza"
+},
+"4057": {
+"abbr": "FRO",
+"alt": "ffffff",
+"color": "FACF08",
+"leagues": [
+"ita.1"
+],
+"location": "Frosinone",
+"name": "Frosinone",
+"short": "Frosinone"
+},
+"432": {
+"abbr": "GAL",
+"alt": "ffffff",
+"color": "aa0031",
+"leagues": [
+"uefa.champions"
+],
+"location": "Galatasaray",
+"name": "Galatasaray",
+"short": "Galatasaray"
+},
+"433": {
+"abbr": "SPP",
+"alt": "ffffff",
+"color": "791b29",
+"leagues": [
+"uefa.europa"
+],
+"location": "Sparta Prague",
+"name": "Sparta Prague",
+"short": "Sparta"
+},
+"435": {
+"abbr": "OLY",
+"alt": "0202fb",
+"color": "d01729",
+"leagues": [
+"uefa.europa"
+],
+"location": "Olympiacos",
+"name": "Olympiacos",
+"short": "Olympiacos"
+},
+"436": {
+"abbr": "FEN",
+"alt": "ffffff",
+"color": "ffff00",
+"leagues": [
+"uefa.champions"
+],
+"location": "Fenerbahce",
+"name": "Fenerbahce",
+"short": "Fenerbahce"
+},
+"437": {
+"abbr": "FCP",
+"alt": "ffa000",
+"color": "0000dd",
+"leagues": [
+"por.1",
+"uefa.champions"
+],
+"location": "FC Porto",
+"name": "FC Porto",
+"short": "FC Porto"
+},
+"441": {
+"abbr": "AND",
+"alt": "fafafc",
+"color": "695196",
+"leagues": [
+"uefa.europa"
+],
+"location": "Anderlecht",
+"name": "Anderlecht",
+"short": "Anderlecht"
+},
+"4411": {
+"abbr": "LAS",
+"alt": "000000",
+"color": "ffffff",
+"leagues": [
+"uefa.champions"
+],
+"location": "LASK Linz",
+"name": "LASK Linz",
+"short": "LASK Linz"
+},
+"443": {
+"abbr": "PAO",
+"alt": "ffffff",
+"color": "2b6a36",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Panathinaikos",
+"name": "Panathinaikos",
+"short": "Panathinaikos"
+},
+"489": {
+"abbr": "HAJ",
+"alt": "000000",
+"color": "000000",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Hajduk Split",
+"name": "Hajduk Split",
+"short": "Hajduk Split"
+},
+"490": {
+"abbr": "LEV",
+"alt": "fcfcfc",
+"color": "6182cf",
+"leagues": [
+"uefa.europa"
+],
+"location": "Levski Sofia",
+"name": "Levski Sofia",
+"short": "Levski Sofia"
+},
+"493": {
+"abbr": "SHK",
+"alt": "1a1a1a",
+"color": "ff5900",
+"leagues": [
+"uefa.champions"
+],
+"location": "Shakhtar Donetsk",
+"name": "Shakhtar Donetsk",
+"short": "Shakhtar"
+},
+"494": {
+"abbr": "SLP",
+"alt": "81c0ff",
+"color": "dc1f26",
+"leagues": [
+"uefa.champions"
+],
+"location": "Slavia Prague",
+"name": "Slavia Prague",
+"short": "Slavia Prague"
+},
+"510": {
+"abbr": "VFK",
+"alt": "ffffff",
+"color": "000080",
+"leagues": [
+"uefa.champions"
+],
+"location": "Viking FK",
+"name": "Viking FK",
+"short": "Viking FK"
+},
+"521": {
+"abbr": "SLB",
+"alt": "1a1a1a",
+"color": "81c0ff",
+"leagues": [
+"uefa.champions"
+],
+"location": "Slovan Bratislava",
+"name": "Slovan Bratislava",
+"short": "S Bratislava"
+},
+"5309": {
+"abbr": "VSC",
+"alt": "000000",
+"color": "ffffff",
+"leagues": [
+"por.1"
+],
+"location": "Vitória de Guimaraes",
+"name": "Vitória de Guimaraes",
+"short": "Vitória "
+},
+"552": {
+"abbr": "MAR",
+"alt": "01e5db",
+"color": "008222",
+"leagues": [
+"por.1"
+],
+"location": "Maritimo",
+"name": "Maritimo",
+"short": "Maritimo"
+},
+"570": {
+"abbr": "BRU",
+"alt": "ffffff",
+"color": "0081ff",
+"leagues": [
+"uefa.champions"
+],
+"location": "Club Brugge",
+"name": "Club Brugge",
+"short": "Club Brugge"
+},
+"572": {
+"abbr": "MID",
+"alt": "ff0900",
+"color": "000000",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "FC Midtjylland",
+"name": "FC Midtjylland",
+"short": "Midtjylland"
+},
+"5807": {
+"abbr": "USG",
+"alt": "ffffff",
+"color": "FCEE33",
+"leagues": [
+"uefa.europa"
+],
+"location": "Union St.-Gilloise",
+"name": "Union St.-Gilloise",
+"short": "Union SG"
+},
+"597": {
+"abbr": "DZG",
+"alt": "ccff00",
+"color": "0000bb",
+"leagues": [
+"uefa.europa"
+],
+"location": "Dinamo Zagreb",
+"name": "Dinamo Zagreb",
+"short": "Dinamo Zagreb"
+},
+"598": {
+"abbr": "FCU",
+"alt": "d4d4d4",
+"color": "DA0308",
+"leagues": [
+"ger.1"
+],
+"location": "1. FC Union Berlin",
+"name": "1. FC Union Berlin",
+"short": "Union Berlin"
+},
+"617": {
+"abbr": "OMON",
+"alt": "ffffff",
+"color": "025719",
+"leagues": [
+"uefa.europa"
+],
+"location": "Omonia Nicosia",
+"name": "Omonia Nicosia",
+"short": "Omonia"
+},
+"620": {
+"abbr": "SKBR",
+"alt": "32CD32",
+"color": "FF0000",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "SK Brann",
+"name": "SK Brann",
+"short": "SK Brann"
+},
+"622": {
+"abbr": "FER",
+"alt": "000000",
+"color": "239B56",
+"leagues": [
+"uefa.europa"
+],
+"location": "Ferencvaros",
+"name": "Ferencvaros",
+"short": "Ferencvaros"
+},
+"6851": {
+"abbr": "PAR",
+"alt": "000000",
+"color": "000000",
+"leagues": [
+"fra.1"
+],
+"location": "Paris FC",
+"name": "Paris FC",
+"short": "Paris FC"
+},
+"6997": {
+"abbr": "BRE",
+"alt": "ffffff",
+"color": "ef2f24",
+"leagues": [
+"fra.1"
+],
+"location": "Brest",
+"name": "Brest",
+"short": "Brest"
+},
+"7672": {
+"abbr": "LUG",
+"alt": "ffffff",
+"color": "000000",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "FC Lugano",
+"name": "FC Lugano",
+"short": "FC Lugano"
+},
+"7853": {
+"abbr": "AGF",
+"alt": "000000",
+"color": "000000",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "AGF",
+"name": "AGF",
+"short": "AGF"
+},
+"7868": {
+"abbr": "ANG",
+"alt": "ffffff",
+"color": "1a1a1a",
+"leagues": [
+"fra.1"
+],
+"location": "Angers",
+"name": "Angers",
+"short": "Angers"
+},
+"7911": {
+"abbr": "TSG",
+"alt": "000055",
+"color": "003399",
+"leagues": [
+"ger.1",
+"uefa.europa"
+],
+"location": "TSG Hoffenheim",
+"name": "TSG Hoffenheim",
+"short": "Hoffenheim"
+},
+"7922": {
+"abbr": "JABL",
+"alt": "000000",
+"color": "025719",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Jablonec",
+"name": "Jablonec",
+"short": "Jablonec"
+},
+"8089": {
+"abbr": "UCRA",
+"alt": "C60000",
+"color": "000000",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "CSU Craiova",
+"name": "CSU Craiova",
+"short": "CSU Craiova"
+},
+"8169": {
+"abbr": "KUPS",
+"alt": "000000",
+"color": "000000",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "KuPS Kuopio",
+"name": "KuPS Kuopio",
+"short": "KuPS Kuopio"
+},
+"83": {
+"abbr": "BAR",
+"alt": "FCE38A",
+"color": "990000",
+"leagues": [
+"esp.1",
+"uefa.champions"
+],
+"location": "Barcelona",
+"name": "Barcelona",
+"short": "Barcelona"
+},
+"85": {
+"abbr": "CEL",
+"alt": "004996",
+"color": "6cace4",
+"leagues": [
+"esp.1",
+"uefa.europa"
+],
+"location": "Celta Vigo",
+"name": "Celta Vigo",
+"short": "Celta Vigo"
+},
+"86": {
+"abbr": "RMA",
+"alt": "1B4D3E",
+"color": "ffffff",
+"leagues": [
+"esp.1",
+"uefa.champions"
+],
+"location": "Real Madrid",
+"name": "Real Madrid",
+"short": "Real Madrid"
+},
+"87": {
+"abbr": "RAC",
+"alt": "3B6C1A",
+"color": "ffffff",
+"leagues": [
+"esp.1"
+],
+"location": "Racing Santander",
+"name": "Racing Santander",
+"short": "Racing"
+},
+"88": {
+"abbr": "ESP",
+"alt": "C8142F",
+"color": "3366CC",
+"leagues": [
+"esp.1"
+],
+"location": "Espanyol",
+"name": "Espanyol",
+"short": "Espanyol"
+},
+"887": {
+"abbr": "AEK",
+"alt": "000000",
+"color": "ffff00",
+"leagues": [
+"uefa.champions"
+],
+"location": "AEK Athens",
+"name": "AEK Athens",
+"short": "AEK Athens"
+},
+"89": {
+"abbr": "RSO",
+"alt": "000000",
+"color": "3366CC",
+"leagues": [
+"esp.1",
+"uefa.europa"
+],
+"location": "Real Sociedad",
+"name": "Real Sociedad",
+"short": "Real Sociedad"
+},
+"90": {
+"abbr": "DEP",
+"alt": "000000",
+"color": "3366CC",
+"leagues": [
+"esp.1"
+],
+"location": "Deportivo",
+"name": "Deportivo",
+"short": "Deportivo"
+},
+"909": {
+"abbr": "KBH",
+"alt": "1a1a1a",
+"color": "ffffff",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "F.C. København",
+"name": "F.C. København",
+"short": "København"
+},
+"93": {
+"abbr": "ATH",
+"alt": "000000",
+"color": "C8142F",
+"leagues": [
+"esp.1"
+],
+"location": "Athletic Club",
+"name": "Athletic Club",
+"short": "Athletic"
+},
+"936": {
+"abbr": "STVV",
+"alt": "000000",
+"color": "f8ea2c",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Sint-Truidense",
+"name": "Sint-Truidense",
+"short": "Sint-Truidense"
+},
+"94": {
+"abbr": "VAL",
+"alt": "FF6F00",
+"color": "ffffff",
+"leagues": [
+"esp.1"
+],
+"location": "Valencia",
+"name": "Valencia",
+"short": "Valencia"
+},
+"96": {
+"abbr": "ALA",
+"alt": "FFC0CB",
+"color": "0000ff",
+"leagues": [
+"esp.1"
+],
+"location": "Alavés",
+"name": "Alavés",
+"short": "Alavés"
+},
+"97": {
+"abbr": "OSA",
+"alt": "ffffff",
+"color": "cd0000",
+"leagues": [
+"esp.1"
+],
+"location": "Osasuna",
+"name": "Osasuna",
+"short": "Osasuna"
+},
+"987": {
+"abbr": "LSK",
+"alt": "FF0000",
+"color": "e8e337",
+"leagues": [
+"uefa.europa"
+],
+"location": "Lillestrom",
+"name": "Lillestrom",
+"short": "Lillestrom"
+},
+"99": {
+"abbr": "MCF",
+"alt": "D19CA4",
+"color": "b9e8f0",
+"leagues": [
+"esp.1"
+],
+"location": "Málaga",
+"name": "Málaga",
+"short": "Málaga"
+},
+"997": {
+"abbr": "TRAB",
+"alt": "8E003B",
+"color": "5699eb",
+"leagues": [
+"uefa.europa.conf"
+],
+"location": "Trabzonspor",
+"name": "Trabzonspor",
+"short": "Trabzonspor"
+}
+}
