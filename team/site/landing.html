@@ -418,13 +418,10 @@ html{scroll-padding-top:65px}
  .matches.go .card{animation:fadeOnly .3s ease both}.inner{transition:transform .01s}.card.open .back{animation:none}}
 .matches.gs.go .card{animation:none}
 html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!important}
-/* живые плашки (владелец 30.10): нажатие наклоняет плашку к точке касания и отпускает пружиной; блик идёт за мышью/пальцем */
+/* живые плашки (владелец 30.10): нажатие наклоняет плашку к точке касания и отпускает пружиной (блика нет — владелец 30.10) */
 .press{transition:transform .6s cubic-bezier(.34,1.56,.64,1)}
 .press.down{transition:transform .14s cubic-bezier(.23,1,.32,1)}
-.front::before,.month::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:1;opacity:0;
- background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%),rgba(130,235,255,.16),transparent 60%);transition:opacity .35s ease}
 .month{position:relative;overflow:hidden}
-.glare-on::before,.glare-on .front::before{opacity:1}
 @media (hover:hover) and (pointer:fine){.btn-tg{transition:transform .2s var(--out),box-shadow .25s var(--out),translate .5s cubic-bezier(.34,1.56,.64,1)}}
 /* ещё 10 оживлений (владелец 30.10, «всё, что предложил»); при «уменьшить движение» — выключены (ниже) */
 .rip{position:absolute;border-radius:50%;pointer-events:none;background:currentColor;opacity:.28;transform:scale(0);animation:rip .6s cubic-bezier(.23,1,.32,1) forwards}
@@ -1316,24 +1313,21 @@ addEventListener('DOMContentLoaded',()=>{
 </script>
 <script>
 // Живые плашки (владелец 30.10), без библиотек, и на телефоне: нажал на край плашки — она наклоняется туда и
-// возвращается пружиной; блик идёт за мышью или пальцем (кроме табло «Матч дня» — владелец 30.10); кнопка Telegram на компьютере тянется к мыши.
+// возвращается пружиной (блика нет — владелец 30.10); кнопка Telegram на компьютере тянется к мыши.
 // «Уменьшить движение» в системе — ничего этого нет. Переворот карточки и прокрутка пальцем работают как раньше.
 (()=>{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  const SEL='.card,.board,.month,.step,.honest-tg',MAX=9;   // .range нет: там ползунок кэфа
  const pt=(el,e)=>{const r=el.getBoundingClientRect();return[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height]};
- const glare=(el,x,y)=>{if(el.matches('.board'))return;const t=el.matches('.card')?el.querySelector('.front'):el;if(!t)return;t.style.setProperty('--mx',x*100+'%');t.style.setProperty('--my',y*100+'%')};
- let cur=null;
+  let cur=null;
  const tilt=(el,x,y)=>{const dx=x-.5,dy=y-.5,a=Math.min(1,Math.hypot(dx,dy)*2)*MAX;
   if(el.matches('.board')&&window.gsap){gsap.to(el,{rotationX:-dy*2*MAX,rotationY:dx*2*MAX,scale:.97,transformPerspective:900,duration:.14,overwrite:'auto'});return}
   if(getComputedStyle(el).animationName!=='none')el.style.animation='none';   // анимация появления держит transform
   el.classList.add('press','down');el.style.transform=`perspective(800px) rotate3d(${-dy},${dx},0,${a.toFixed(1)}deg) scale(.97)`};
- const release=()=>{const el=cur;cur=null;if(!el)return;el.classList.remove('glare-on');
+ const release=()=>{const el=cur;cur=null;if(!el)return;
   if(el.matches('.board')&&window.gsap){gsap.to(el,{rotationX:0,rotationY:0,scale:1,duration:.8,ease:'back.out(3)',overwrite:'auto'});return}
   el.classList.remove('down');el.style.transform=''};
- addEventListener('pointerdown',e=>{const el=e.target.closest(SEL);if(!el||e.button>0)return;cur=el;const[x,y]=pt(el,e);glare(el,x,y);el.matches('.board')||el.classList.add('glare-on');tilt(el,x,y)},{passive:true});
- addEventListener('pointermove',e=>{if(cur){const[x,y]=pt(cur,e);glare(cur,x,y);tilt(cur,x,y);return}
-  if(e.pointerType!=='mouse')return;const el=e.target.closest(SEL);document.querySelectorAll('.glare-on').forEach(o=>o!==el&&o.classList.remove('glare-on'));
-  if(el&&!el.matches('.board')){const[x,y]=pt(el,e);glare(el,x,y);el.classList.add('glare-on')}},{passive:true});
+ addEventListener('pointerdown',e=>{const el=e.target.closest(SEL);if(!el||e.button>0)return;cur=el;const[x,y]=pt(el,e);tilt(el,x,y)},{passive:true});
+ addEventListener('pointermove',e=>{if(cur){const[x,y]=pt(cur,e);tilt(cur,x,y)}},{passive:true});
  ['pointerup','pointercancel','blur'].forEach(t=>addEventListener(t,release));
  document.addEventListener('pointerleave',release);
  // кнопка Telegram «магнитится» к мыши (только компьютер)
