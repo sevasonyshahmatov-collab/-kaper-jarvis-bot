@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ru" data-sport="hockey">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Хоккей — прогнозы JARVIS (вариант B)</title>
+<meta name="description" content="Прогнозы на КХЛ и НХЛ по собственной модели: пост на каждый матч, честные итоги по месяцам. Макет, пример данных.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0c1727">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Sofia+Sans+Extra+Condensed:wght@800&family=Sofia+Sans:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="../assets/board.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Это платно?","acceptedAnswer":{"@type":"Answer","text":"Нет. Прогнозы, итоги и ролики в Telegram-канале @jarvibet бесплатные."}},
+{"@type":"Question","name":"Где посмотреть итоги?","acceptedAnswer":{"@type":"Answer","text":"Каждое утро в канале и на сайте в разделе «Итоги»: все прогнозы подряд, с номером поста и счётом."}},
+{"@type":"Question","name":"Что такое «ВЫБОР»?","acceptedAnswer":{"@type":"Answer","text":"Ставка, у которой модель даёт от 60 % при кэфе от 1,6. Остальные матчи — разбор без выбора."}},
+{"@type":"Question","name":"Почему кэф 1,6–2,3?","acceptedAnswer":{"@type":"Answer","text":"Ниже — мало смысла рисковать, выше — больше случайности, чем расчёта."}}]}</script>
+</head>
+<body class="no-js">
+<script>document.body.classList.replace('no-js','js')</script>
+<a class="skip" href="#main">К содержанию</a>
+<canvas id="board" aria-hidden="true"></canvas>
+<p class="cap" id="cap" aria-hidden="true">Схема: выход из зоны</p>
+
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="../index.html" aria-label="JARVIS, на главную">JAR<b>V</b>IS</a>
+    <nav class="sport" aria-label="Вид спорта">
+      <a href="index.html" aria-current="page">Хоккей</a>
+      <a href="../football/index.html">Футбол</a>
+    </nav>
+    <nav class="nav" aria-label="Разделы">
+      <a href="#matches">Матчи</a><a href="#leagues">Лиги</a><a href="#model">Модель</a><a href="#honest">Итоги</a>
+    </nav>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero" id="top" data-play="breakout">
+  <div class="wrap">
+    <div>
+      <h1 class="rv">Хоккей: КХЛ и НХЛ</h1>
+      <p class="lead rv" style="--d:90ms">Прогноз на каждый матч от собственной модели. КХЛ днём, НХЛ ночью по Москве. Итоги — все, и минусы.</p>
+      <ul class="facts rv" style="--d:180ms" aria-label="Коротко">
+        <li><b id="nToday">6</b><span>матчей сегодня</span></li>
+        <li><b>72 %</b><span>зашло в октябре</span></li>
+        <li><b>153</b><span>прогноза в октябре</span></li>
+      </ul>
+      <div class="cta rv" style="--d:260ms">
+        <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть @jarvibet</a>
+        <a class="btn btn-line" href="#matches">Матчи дня</a>
+      </div>
+    </div>
+    <div class="today panel rv" style="--d:200ms" id="today" aria-label="Прогноз дня"></div>
+  </div>
+</section>
+
+<section class="sec" id="matches" data-play="cycle">
+  <div class="wrap">
+    <div class="head rv"><h2>Сегодня в эфире</h2><p class="lead">Матчи дня КХЛ и НХЛ. Пост с прогнозом выходит в канале до 08:00 МСК для КХЛ и до 14:00 МСК для НХЛ.</p><p class="sample">Пример данных.</p></div>
+    <div class="tabs" role="tablist" id="ltabs" aria-label="Фильтр по лигам"></div>
+    <ul class="mlist" id="mlist"></ul>
+  </div>
+</section>
+
+<section class="sec" id="leagues" data-play="forecheck">
+  <div class="wrap">
+    <div class="head rv"><h2>Лиги и клубы</h2><p class="lead">Две лиги под одной моделью. Время матчей — московское; у НХЛ — официальное.</p></div>
+    <div class="leagues">
+      <ul class="lg-list rv" id="lglist"></ul>
+      <div class="rv" style="--d:120ms"><ul class="crests" id="crests"></ul><p class="crests-note">Эмблемы — собственность клубов, показаны для навигации.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="clubs" data-play="umbrella">
+  <div class="wrap">
+    <div class="head rv"><h2>Сила команд</h2><p class="lead">Рейтинг Эло: сила каждой команды одним числом. Пересчитывается после каждого матча: победа над сильным соперником стоит больше.</p></div>
+    <div class="power">
+      <div class="rv"><ol class="order" id="order"></ol><p class="src">Пример данных: КХЛ, шесть команд.</p></div>
+      <div class="panel chalkbars" id="power"></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="model" data-play="shots">
+  <div class="wrap">
+    <div class="head rv"><h2>Как думает модель</h2><p class="lead">До матча модель разыгрывает его тысячи раз. Ставка — только там, где расчёт и линия сходятся.</p></div>
+    <ol class="steps">
+      <li><h3>Форма</h3><p>Последние игры, сила атаки и обороны, место в таблице лиги.</p></li>
+      <li style="--d:90ms"><h3>Линия</h3><p>Кэфы рынка сравниваются с вероятностью модели.</p></li>
+      <li style="--d:180ms"><h3>Выбор</h3><p>Самое вероятное событие в коридоре кэфов 1,6–2,3.</p></li>
+    </ol>
+    <div class="lab">
+      <div class="panel rv">
+        <h3>Почему 1,6–2,3</h3>
+        <div class="range kr"><div class="zone" aria-hidden="true"><span class="z" style="--a:20%;--w:35%"></span></div><input id="k" type="range" min="1.2" max="3.2" step="0.05" value="1.85" aria-label="Коэффициент">
+          <div class="ticks abs" aria-hidden="true"><span style="left:0">1,2</span><span style="left:20%">1,6</span><span style="left:55%">2,3</span><span style="left:100%">3,2</span></div></div>
+        <p class="kout" id="kout" aria-live="polite"></p>
+      </div>
+      <div class="panel rv" style="--d:120ms">
+        <h3>10 000 розыгрышей: Ак Барс — Локомотив</h3>
+        <div class="rows" id="sim" style="margin-top:18px"></div>
+        <div class="cta" style="margin-top:18px"><button class="btn btn-line" type="button" id="again">Разыграть ещё раз</button></div>
+        <p class="src">Пример расчёта для матча-примера.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="honest" data-play="rush">
+  <div class="wrap">
+    <div class="head rv"><h2>Честные итоги</h2><p class="lead">Каждое утро в канале — итоги вчерашних матчей, и зашедшие, и нет. У каждого прогноза номер поста: любой можно проверить.</p></div>
+    <div class="months" id="months"></div>
+    <div class="ticker rv" aria-label="Последние итоги"><div class="ticker-row" id="tick"></div></div>
+    <div class="tgrow rv"><div><b>Итоги каждое утро — в Telegram</b><span>Зашедшие и нет, с номером поста</span></div><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть @jarvibet</a></div>
+  </div>
+</section>
+
+<section class="sec" id="subscribe" data-play="faceoff">
+  <div class="wrap sub">
+    <div class="rv"><h2>Все прогнозы — в Telegram</h2><p class="lead">Посты на каждый матч, ролики и итоги дня. Подписка бесплатная.</p>
+      <div class="cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Подписаться на @jarvibet</a><a class="btn btn-line" href="../football/index.html">Футбол</a></div></div>
+    <ul class="gets rv" style="--d:120ms">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b>КХЛ — до 08:00 МСК</b><span>Пост на каждый матч дня с кэфом и вероятностью.</span></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><b>НХЛ — до 14:00 МСК</b><span>Ночные матчи собраны в один игровой день.</span></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12.5 10 17l9-10"/></svg><b>Итоги утром</b><span>Все прогнозы подряд, с номером поста и счётом.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="sec" id="faq" data-play="breakout">
+  <div class="wrap faq">
+    <div class="rv"><h2>Вопросы</h2>
+      <a class="swap" href="../football/index.html"><b>Прогнозы на футбол <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></b><span>Топ-лиги Европы и Лига чемпионов. Проба с 30 октября.</span></a></div>
+    <div class="rv" style="--d:100ms">
+      <details><summary>Это платно?</summary><p>Нет. Прогнозы, итоги и ролики в Telegram-канале @jarvibet бесплатные.</p></details>
+      <details><summary>Где посмотреть итоги?</summary><p>Каждое утро в канале и здесь, в разделе «Итоги»: все прогнозы подряд, с номером поста и счётом матча.</p></details>
+      <details><summary>Какие лиги?</summary><p>Хоккей: КХЛ и НХЛ. Футбол: АПЛ, Ла Лига, Серия А, Бундеслига, Лига 1, Португалия и Лига чемпионов.</p></details>
+      <details><summary>Что такое «ВЫБОР»?</summary><p>Ставка, у которой модель даёт от 60 % при кэфе от 1,6. Остальные матчи — разбор без выбора.</p></details>
+      <details><summary>Почему кэф 1,6–2,3?</summary><p>Ниже — мало смысла рисковать, выше — больше случайности, чем расчёта.</p></details>
+      <p class="law">18+. Аналитика, а не призыв делать ставки. Выигрыш не гарантирован.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="big" aria-hidden="true">JAR<b>V</b>IS</p>
+    <div class="fcols">
+      <nav aria-label="Подвал"><a href="../index.html">Главная</a><a href="../football/index.html">Футбол</a><a href="#matches">Матчи</a><a href="#honest">Итоги</a><a href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a></nav>
+      <p>Вариант B «Тактическая доска» · пример данных · © JARVIS, @jarvibet</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/board.js"></script>
+<script src="../assets/hockey.js"></script>
+</body>
+</html>
