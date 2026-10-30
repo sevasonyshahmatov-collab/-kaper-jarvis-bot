@@ -2,22 +2,40 @@
 """Проверка бота на живом ESPN (docs/handoff/FOOTBALL_BOT.md): табло 9 турниров за прошлые дни → код бота (Код.js через
 tools/gas_mock) находит каждый матч по времени и названию (АПЛ — по-русски из apps-script/epl/10_teams.js), считает счёт за 90 минут.
 В лог — строки FB*."""
-import json, os, subprocess, sys, tempfile, urllib.request
+import json, os, subprocess, sys, tempfile, urllib.error, urllib.request
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 CODES = ['eng.1', 'esp.1', 'ita.1', 'ger.1', 'fra.1', 'uefa.champions', 'uefa.europa', 'uefa.europa.conf', 'por.1']
-RANGE = sys.argv[1] if len(sys.argv) > 1 else '20261020-20261029'
+DAYS = (sys.argv[1] if len(sys.argv) > 1 else '20261021,20261022,20261023,20261024,20261025,20261026').split(',')
 tmp = tempfile.mkdtemp()
-for c in CODES:
-    u = 'https://site.api.espn.com/apis/site/v2/sports/soccer/%s/scoreboard?dates=%s' % (c, RANGE)
+E = 'https://site.api.espn.com/apis/site/v2/sports/soccer/'
+
+
+def get(u):
     try:
-        d = json.load(urllib.request.urlopen(urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0'}), timeout=30))
+        return json.load(urllib.request.urlopen(urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0'}), timeout=30)), 200
+    except urllib.error.HTTPError as e:
+        return None, e.code
     except Exception as e:
-        print('FBERR', c, e, flush=True); d = {'events': []}
-    json.dump(d, open(os.path.join(tmp, c + '.json'), 'w'))
-    ev = d.get('events') or []
+        return None, str(e)
+
+
+for form in ('20261024', '20261024-20261026', '20261017-20261029', '202610', '202610&limit=400'):
+    d, code = get(E + 'eng.1/scoreboard?dates=' + form)
+    print('FBFORM dates=%s → %s, событий %s' % (form, code, len((d or {}).get('events') or [])), flush=True)
+for c in CODES:
+    evs = {}
+    for day in DAYS:
+        d, code = get(E + c + '/scoreboard?dates=' + day)
+        if d is None:
+            print('FBERR', c, day, code, flush=True)
+        for e in (d or {}).get('events') or []:
+            evs[e['id']] = e
+    ev = list(evs.values())
+    json.dump({'events': ev}, open(os.path.join(tmp, c + '.json'), 'w'))
     names = sorted({((e.get('competitions') or [{}])[0].get('status') or e.get('status') or {}).get('type', {}).get('name', '?') for e in ev})
-    print('FBRAW %s | событий %d | статусы %s' % (c, len(ev), ', '.join(names)), flush=True)
+    ls = sum(1 for e in ev if any(t.get('linescores') for t in (e.get('competitions') or [{}])[0].get('competitors', [])))
+    print('FBRAW %s | событий %d | с таймами %d | статусы %s' % (c, len(ev), ls, ', '.join(names)), flush=True)
 js = r'''
 const path = require('path'), fs = require('fs');
 const gm = require(path.join(process.argv[2], 'tools/gas_mock/gas_mock.js'));
