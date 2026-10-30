@@ -236,6 +236,15 @@ def wide(dom, home, away, lh, la, od, full, P, rating, stat_rating, day, s):
         if mkey in M and o:
             rows.append((M[mkey] * o - 1, mkey, M[mkey], o))
     out('FDWIDECNT', 'рынков с кэфом Pinnacle: %d, рассчитано моделью: %d' % (len(rows), len(M)))
+    try:        # журнал линии и расчёта — для проверки угловых/карточек/таймов на живых кэфах (в истории их кэфов нет)
+        import json
+        path = os.path.join(FH.ROOT, '.lines', 'football_wide', day + '.jsonl')
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(dict(d=day, h=h, a=a, lg=lgh, odds=full, p={k: round(M[k], 4) for k in full if k in M}),
+                               ensure_ascii=False) + '\n')
+    except OSError:
+        pass
     for edge, k, p, o in sorted(rows, reverse=True)[:12]:
         if p >= 0.4 and o >= 1.5:
             out('FDWIDE', '%s | p %.1f%% · кэф %.2f · перевес %+.1f%%' % (k, 100 * p, o, 100 * edge))
