@@ -16282,12 +16282,16 @@ function footSim_(a, b) {
   return 2 * hit / (pa.length + pb.length + hit);
 }
 
-/** Матчи ESPN турнира вокруг времени start: [{start, home, away, hg, ag, done, state, name}]. */
+/** Матчи ESPN турнира в день матча start (счёт ESPN — за 90 минут; после ОТ — по таймам, если они есть, иначе «?»): [{start, home, away, hg, ag, done, state, name}]. */
 function footEspnGames_(code, start) {
-  var f = function (ms) { return Utilities.formatDate(new Date(ms), 'UTC', 'yyyyMMdd'); };
-  var r = UrlFetchApp.fetch(FOOT_ESPN + code + '/scoreboard?dates=' + f(start - 86400000) + '-' + f(start + 86400000), { muteHttpExceptions: true });
-  if (r.getResponseCode() !== 200) throw new Error('ESPN ответил ' + r.getResponseCode());
-  return (JSON.parse(r.getContentText()).events || []).map(function (e) {
+  // ESPN принимает только один день (диапазон «A-B» — ответ 400, проверка Actions 30.10): день по UTC и по Нью-Йорку
+  var days = [Utilities.formatDate(new Date(start), 'UTC', 'yyyyMMdd'), Utilities.formatDate(new Date(start), 'America/New_York', 'yyyyMMdd')], evs = {};
+  days.filter(function (d, i) { return days.indexOf(d) === i; }).forEach(function (d) {
+    var r = UrlFetchApp.fetch(FOOT_ESPN + code + '/scoreboard?dates=' + d, { muteHttpExceptions: true });
+    if (r.getResponseCode() !== 200) throw new Error('ESPN ответил ' + r.getResponseCode());
+    (JSON.parse(r.getContentText()).events || []).forEach(function (e, i) { evs[e.id || d + '#' + i] = e; });
+  });
+  return Object.keys(evs).map(function (k) { return evs[k]; }).map(function (e) {
     var c = (e.competitions || [])[0] || {}, st = (c.status || e.status || {}).type || {}, side = {};
     (c.competitors || []).forEach(function (t) { side[t.homeAway] = t; });
     var g = { start: new Date(e.date).getTime(), state: st.state || '', name: st.name || '', done: !!st.completed };

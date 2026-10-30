@@ -43,8 +43,11 @@ const env = gm.makeEnv({ now: new Date().toISOString() });
 gm.load(env, [path.join(process.argv[2], 'apps-script/project/Код.js'), path.join(process.argv[2], 'apps-script/epl/10_teams.js')]);
 const ctx = env.ctx, dir = process.argv[3];
 ctx.propJson_ = (k, d) => d;
-ctx.UrlFetchApp = { fetch: u => { const c = String(u).match(/soccer\/([^/]+)\//)[1];
-  return { getResponseCode: () => 200, getContentText: () => fs.readFileSync(path.join(dir, c + '.json'), 'utf8') }; } };
+const cache = {}, cp = require('child_process');
+ctx.UrlFetchApp = { fetch: u => {                                 // настоящий запрос бота — curl, с кэшем на одинаковые адреса
+  if (!cache[u]) { const out = cp.execSync('curl -s -A Mozilla/5.0 -w "\\n%{http_code}" "' + u + '"', { maxBuffer: 50e6 }).toString();
+    const k = out.lastIndexOf('\n'); cache[u] = { body: out.slice(0, k), code: Number(out.slice(k + 1)) }; console.log('FBURL ' + cache[u].code + ' ' + u); }
+  return { getResponseCode: () => cache[u].code, getContentText: () => cache[u].body }; } };
 let ok = 0, bad = 0;
 for (const [tour, code] of ctx.FOOT_TOURS) {
   const all = JSON.parse(fs.readFileSync(path.join(dir, code + '.json'), 'utf8')).events || [];

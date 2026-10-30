@@ -97,6 +97,7 @@ delete env.props['PMW_3110-1'];
 // 6. тик после матчей: счёт ESPN, итог по фактической ставке, без послематчевого задания
 ctx.pmTick_();
 assert.strictEqual(disp.length, 0, 'для футбола не должно быть postmatch_auto');
+assert.ok(fetched.length && fetched.every(u => /scoreboard\?dates=\d{8}$/.test(u)), 'ESPN — только один день в запросе: ' + fetched[0]);
 const st = pid => JSON.parse(env.props['PMW_' + pid]);
 assert.deepStrictEqual([st('3110-2').score, st('3110-2').mark], ['2:1', '❌'], 'ТМ 2,5 при 2:1');   // по правке владельца, не по черновику (ТБ — был бы ✅)
 assert.deepStrictEqual([st('3110-3').score, st('3110-3').mark], ['1:1', '❌']);
