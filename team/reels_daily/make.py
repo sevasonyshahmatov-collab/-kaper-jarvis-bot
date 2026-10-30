@@ -214,9 +214,14 @@ def plan(league, day, top, per):
         json.dump(P, f, ensure_ascii=False, indent=1)
     print('PLAN матчей дня %d, роликов %d, частей %d' % (len(nxt), len(ms), len(parts)), flush=True)
     gh = os.environ.get('GITHUB_OUTPUT')
+    dry = os.environ.get('REELS_DRY') == '1'            # только расчёт: что за матчи и есть ли линия (ничего не собираем и не шлём)
     if gh:
         with open(gh, 'a') as f:
-            f.write('parts=%s\n' % json.dumps(list(range(1, len(parts) + 1))))
+            f.write('parts=%s\n' % json.dumps([] if dry else list(range(1, len(parts) + 1))))
+    if dry:
+        for m in ms:
+            print('DRY %s %s — %s · %s · %.2f' % (m['d'][:16], m['h'], m['a'], m['pick'], m['odds']), flush=True)
+        return P
     lg = LG[league][1]
     head = ['Шортсы %s на %s.%s: %d' % (lg, day[8:10], day[5:7], len(ms))]
     head += ['%s %s — %s · %s · %s%s' % (m['d'][11:16], m['h'], m['a'], m['pick'], ('%.2f' % m['odds']).replace('.', ','),
