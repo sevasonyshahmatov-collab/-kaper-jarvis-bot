@@ -178,6 +178,7 @@ function onOpen() {
       .addItem('Применить самую точную модель', 'applyBestModel_')
       .addItem('Указать API-ключ Anthropic', 'setAnthropicApiKey_')
       .addItem('Навести порядок: цвета вкладок, скрыть служебные листы', 'tidyUpSheets_')
+      .addItem('⚽ Футбол: пересчитать лист «Футбол»', 'footSheetNow_')
       .addSubMenu(ui.createMenu('Пересоздать лист, если удалили')
         .addItem('Карточка команды', 'setupTeamCard_')
         .addItem('Купон дня', 'setupCouponSheet_')
@@ -1711,7 +1712,7 @@ function sheetGroupsBase_() {
   // Первая вкладка — «📌 Главная» (homeRender_): оглавление со ссылками. Скрытый лист вернуть: ПКМ по вкладкам → «Показать скрытые листы».
   return [
     { icon: '📌', name: 'главная', color: '#202124', sheets: [SHEET_HOME] },
-    { icon: '🟩', name: 'прогнозы и ставки', color: '#34a853', sheets: [SHEET_BRIEF, 'Что заходит', SHEET_ODDS, SHEET_VS, 'Купон дня', 'Мой купон', 'Точность', 'Банкролл', POST_SHEET, 'Ставки'] },
+    { icon: '🟩', name: 'прогнозы и ставки', color: '#34a853', sheets: [SHEET_BRIEF, 'Что заходит', SHEET_ODDS, SHEET_VS, 'Купон дня', 'Мой купон', 'Точность', 'Банкролл', POST_SHEET, 'Ставки', 'Футбол'] },
     { icon: '🟦', name: 'лига и команды', color: '#4285f4', sheets: ['Таблица', 'Карточка команды', 'Статистика_КХЛ', 'Статистика_НХЛ', KEY_SHEET, DOSSIER_SHEET, AGENT_SHEET, 'Вратари_сегодня'] },
     { icon: '🟧', name: 'видео экспертов', color: '#ff6d01', sheets: [VIDEO_SHEET, VIDEO_CH_SHEET] },
     { icon: '🟨', name: 'канал и игра', color: '#fbbc04', sheets: [GAME_VIEW, GAME_VIEW_OLD, NEWS_QUEUE_SHEET] },
@@ -1740,6 +1741,7 @@ var HOME_NOTES = {
   'Купон дня': 'самые уверенные события дня', 'Мой купон': 'собрать свой купон и посчитать вероятность',
   'Точность': 'как часто угадывает модель, Brier, разбивка по фаворитам', 'Банкролл': 'симуляция ставок по кэфам Pinnacle',
   'Посты': 'посты-прогнозы, которые бот прислал вам',
+  'Футбол': 'футбольные прогнозы в канале: счёт, ✅/❌, заходимость по турнирам и рынкам',
   'Таблица': 'турнирная таблица и рейтинг силы', 'Карточка команды': 'всё о команде и очных встречах — выбор в жёлтых ячейках',
   'Статистика_КХЛ': 'броски, большинство, вратари по командам', 'Статистика_НХЛ': 'статистика команд НХЛ',
   'Ключевые_игроки': 'лидеры и основной вратарь по последним матчам', 'Досье_команд': 'травмы, тренер, форма — сводка агента',
@@ -15970,7 +15972,7 @@ function recapCheckItems_(day) {
   PropertiesService.getScriptProperties().getKeys().forEach(function (k) {
     if (k.indexOf(PM_PROP) !== 0) return;
     var w = pmGet_(k.slice(PM_PROP.length));
-    if (w && w.start >= t0 && w.start < t1 && w.home && w.pick) ws.push(w);
+    if (w && w.league !== 'FOOT' && w.start >= t0 && w.start < t1 && w.home && w.pick) ws.push(w);   // футбол — свой учёт (лист «Футбол»)
   });
   ws.sort(function (a, b) { return a.start - b.start || (String(a.pid) < String(b.pid) ? -1 : 1); });
   return ws.slice(0, 30).map(function (w) {
@@ -16124,15 +16126,17 @@ var PM_NHL_API = 'https://api-web.nhle.com/v1/';
 function pmParse_(text) {
   var lines = String(text || '').replace(/<[^>]+>/g, '').split('\n').map(function (x) { return x.trim(); }).filter(String);
   if (!lines.length) return null;
-  var head = lines[0], lg = /^НХЛ\s*·/.test(head) ? 'NHL' : /^КХЛ\s*·/.test(head) ? 'KHL' : null, start = teamEditStart_(head);
+  var head = lines[0], ft = footTourOf_(head), lg = /^НХЛ\s*·/.test(head) ? 'NHL' : /^КХЛ\s*·/.test(head) ? 'KHL' : ft ? 'FOOT' : null, start = teamEditStart_(head);
   if (!lg || !start) return null;
   var w = { league: lg, start: start, kef: '' };
+  if (ft) { w.tour = ft[0]; w.espn = ft[1]; }
   lines.slice(1).forEach(function (l) {
     var t = l.match(/^(.+?)\s+[—–]\s+(.+)$/), pk = l.match(/^Прогноз:\s*(.+)$/i), kf = l.match(/^Кэф:\s*([\d.,]+)/i);
     if (t && !w.home && !/:/.test(l)) { w.home = t[1].trim(); w.away = t[2].trim(); }
     if (pk && !w.pick) w.pick = pk[1].trim();
     if (kf && !w.kef) w.kef = kf[1];
   });
+  if (ft && w.home) { w.home = w.home.replace(/[«»"]/g, '').trim(); w.away = w.away.replace(/[«»"]/g, '').trim(); }
   return w.home && w.pick ? w : null;
 }
 
@@ -16149,6 +16153,7 @@ function pmWatchSave_(pid, text, res) {
   var ch = Array.isArray(res) ? res[0] && res[0].message_id : res && res.message_id;
   w.pid = pid; w.ch = ch || null; w.st = 'wait'; w.t = Date.now();
   pmPut_(w);
+  if (w.league === 'FOOT') { try { footSheetUpsert_(w); } catch (e) { console.log('лист «Футбол»: ' + e.message); } }
   return w;
 }
 
@@ -16167,6 +16172,7 @@ function pmEditSync_(chat, mid, ch, sch, html) {
     if (!w || w.ch !== ch || w.st !== 'wait' || !(nw = pmParse_(plain))) return;
     w.pick = nw.pick; w.kef = nw.kef || w.kef; w.home = nw.home; w.away = nw.away;
     pmPut_(w);
+    if (w.league === 'FOOT') { try { footSheetUpsert_(w); } catch (e) { console.log('лист «Футбол»: ' + e.message); } }
   });
 }
 
@@ -16203,8 +16209,12 @@ function pmTick_() {
     if (k.indexOf(PM_PROP) !== 0) return;
     var w = pmGet_(k.slice(PM_PROP.length));
     if (!w || !w.start || now - w.start > PM_KEEP_MS) { p.deleteProperty(k); return; }
-    if (w.st !== 'wait' || now < w.start + (w.league === 'NHL' ? PM_AFTER_NHL_MS : PM_AFTER_KHL_MS)) return;
+    if (w.st !== 'wait' || now < w.start + (w.league === 'NHL' ? PM_AFTER_NHL_MS : w.league === 'FOOT' ? PM_AFTER_FOOT_MS : PM_AFTER_KHL_MS)) return;
     if (now > w.start + PM_GIVEUP_MS) { w.st = 'skip'; pmPut_(w); return; }
+    if (w.league === 'FOOT') {                                        // футбол: без послематчевого поста — счёт ESPN, ✅/❌ в лист «Футбол»
+      try { if (footSettleWatch_(w)) done.push(w.pid); } catch (e) { console.log('футбол ' + w.pid + ': ' + e.message); }
+      return;
+    }
     var fin = false;
     try { fin = pmFinished_(w); } catch (e) { console.log('послематчевый пост ' + w.pid + ': ' + e.message); }
     if (!fin) return;
@@ -16216,6 +16226,272 @@ function pmTick_() {
     pmPut_(w);
   });
   return done.length ? 'итоги: ' + done.join(', ') : '';
+}
+
+/* ── ⚽ Футбол: счёт, ✅/❌ и учёт по опубликованным прогнозам (владелец 30.10, docs/handoff/FOOTBALL_BOT.md) ──
+ *  Прогноз с шапкой турнира («АПЛ · 31 октября · 18:00 МСК») вышел в канал → запись PMW_ (league FOOT) и строка на листе «Футбол».
+ *  Послематчевого поста и итогов дня нет (владелец: «нет»). pmTick_ с PM_AFTER_FOOT_MS после начала раз в 5 минут смотрит
+ *  ESPN (scoreboard турнира, без ключа): матч — по времени начала, при нескольких в одно время — по названиям. Счёт — за 90 минут.
+ *  Ставка — из записи, то есть с правками владельца в боте (pmEditSync_). Итог — на лист и строкой в team/picks/FOOT_RESULTS.md.
+ *  Непонятная ставка — «?»: итог можно поставить руками (✅ ❌ ↩️) и нажать «⚽ Футбол: пересчитать лист».
+ */
+var PM_AFTER_FOOT_MS = 115 * 60000;      // 90 минут + перерыв + добавленное
+var FOOT_ESPN = 'https://site.api.espn.com/apis/site/v2/sports/soccer/';
+var FOOT_TOURS = [['АПЛ', 'eng.1'], ['Ла Лига', 'esp.1'], ['Серия А', 'ita.1'], ['Бундеслига', 'ger.1'], ['Лига 1', 'fra.1'],
+  ['Лига чемпионов', 'uefa.champions'], ['Лига Европы', 'uefa.europa'], ['Лига конференций', 'uefa.europa.conf'], ['Португалия', 'por.1']];
+var FOOT_SHEET = 'Футбол';
+var FOOT_RESULTS_MD = 'team/picks/FOOT_RESULTS.md';
+var FOOT_HEAD = ['№', 'Дата, МСК', 'Турнир', 'Матч', 'Ставка', 'Рынок', 'Кэф', 'Счёт', 'Итог', 'Прибыль, ед.'];
+// клубы, которые транслитом не узнать (ESPN пишет по-своему)
+var FOOT_ALIAS = { 'бавария': 'bayern munich', 'интер': 'internazionale', 'псж': 'paris saint germain', 'пари сен жермен': 'paris saint germain',
+  'боруссия д': 'borussia dortmund', 'боруссия дортмунд': 'borussia dortmund', 'боруссия м': 'monchengladbach', 'боруссия менхенгладбах': 'monchengladbach',
+  'байер': 'bayer leverkusen', 'атлетико': 'atletico madrid', 'реал': 'real madrid', 'вулверхэмптон': 'wolverhampton wanderers',
+  'манчестер юнайтед': 'manchester united', 'ман юнайтед': 'manchester united', 'манчестер сити': 'manchester city', 'ман сити': 'manchester city',
+  'айнтрахт': 'eintracht frankfurt', 'лейпциг': 'rb leipzig', 'ювентус': 'juventus', 'наполи': 'napoli', 'аякс': 'ajax', 'марсель': 'marseille',
+  'ницца': 'nice', 'севилья': 'sevilla', 'бетис': 'real betis', 'вильярреал': 'villarreal', 'сельта': 'celta vigo', 'атлетик': 'athletic club',
+  'кёльн': 'koln', 'кельн': 'koln', 'мюнхен': 'bayern munich', 'фиорентина': 'fiorentina', 'лацио': 'lazio', 'рома': 'roma' };
+
+/** Шапка поста → [турнир, код ESPN] или null. */
+function footTourOf_(head) {
+  var h = String(head || '').replace(/<[^>]+>/g, '').trim();
+  for (var i = 0; i < FOOT_TOURS.length; i++) if (new RegExp('^' + FOOT_TOURS[i][0] + '\\s*·').test(h)) return FOOT_TOURS[i];
+  return null;
+}
+
+/** Русское название → латиница для сравнения с ESPN. */
+function footLatin_(s) {
+  s = String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/[«»"]/g, '').trim();
+  if (FOOT_ALIAS[s]) return FOOT_ALIAS[s];
+  var map = { а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r',
+    с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya' };
+  return s.split('').map(function (c) { return map[c] !== undefined ? map[c] : c; }).join('');
+}
+
+/** Похожесть двух названий 0..1 (пары букв, Дайс). */
+function footSim_(a, b) {
+  var pairs = function (x) {
+    x = String(x || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+    var o = [];
+    for (var i = 0; i + 1 < x.length; i++) o.push(x.slice(i, i + 2));
+    return o;
+  };
+  var pa = pairs(a), pb = pairs(b), hit = 0;
+  if (!pa.length || !pb.length) return 0;
+  pb = pb.slice();
+  pa.forEach(function (p) { var k = pb.indexOf(p); if (k >= 0) { hit++; pb.splice(k, 1); } });
+  return 2 * hit / (pa.length + pb.length + hit);
+}
+
+/** Матчи ESPN турнира вокруг времени start: [{start, home, away, hg, ag, done, state, name}]. */
+function footEspnGames_(code, start) {
+  var f = function (ms) { return Utilities.formatDate(new Date(ms), 'UTC', 'yyyyMMdd'); };
+  var r = UrlFetchApp.fetch(FOOT_ESPN + code + '/scoreboard?dates=' + f(start - 86400000) + '-' + f(start + 86400000), { muteHttpExceptions: true });
+  if (r.getResponseCode() !== 200) throw new Error('ESPN ответил ' + r.getResponseCode());
+  return (JSON.parse(r.getContentText()).events || []).map(function (e) {
+    var c = (e.competitions || [])[0] || {}, st = (c.status || e.status || {}).type || {}, side = {};
+    (c.competitors || []).forEach(function (t) { side[t.homeAway] = t; });
+    var g = { start: new Date(e.date).getTime(), state: st.state || '', name: st.name || '', done: !!st.completed };
+    ['home', 'away'].forEach(function (k) {
+      var t = side[k] || {}, tm = t.team || {};
+      g[k] = [tm.displayName, tm.shortDisplayName, tm.name, tm.location].filter(String).join(' | ');
+      g[k === 'home' ? 'hg' : 'ag'] = t.score === undefined || t.score === '' ? null : Number(t.score);
+      var ls = (t.linescores || []).map(function (x) { return Number(x.value); });
+      if (ls.length >= 2) g[k === 'home' ? 'h90' : 'a90'] = ls[0] + ls[1];
+    });
+    if (/AET|PEN|EXTRA/i.test(g.name)) { g.hg = g.h90 === undefined ? null : g.h90; g.ag = g.a90 === undefined ? null : g.a90; }   // ставка — на 90 минут
+    return g;
+  });
+}
+
+/** Матч записи w среди игр ESPN: ближайшие по времени (±15 мин), при нескольких — по названиям. null — не нашёл. */
+function footPick_(w, games) {
+  var near = games.filter(function (g) { return Math.abs(g.start - w.start) <= 15 * 60000; });
+  if (!near.length) return null;
+  var h = footLatin_(w.home), a = footLatin_(w.away);
+  var sc = function (g) {
+    var best = function (ru, en) { return Math.max.apply(null, en.split(' | ').map(function (x) { return footSim_(ru, x); })); };
+    return best(h, g.home) + best(a, g.away);
+  };
+  near.sort(function (x, y) { return sc(y) - sc(x); });
+  if (near.length > 1 && sc(near[0]) - sc(near[1]) < 0.15) return null;          // не уверены — пусть посмотрит человек
+  if (sc(near[0]) < 0.5) return null;
+  return near[0];
+}
+
+/** Какая команда в тексте ставки: 1 — хозяева, 2 — гости, 0 — непонятно. */
+function footSide_(t, home, away) {
+  if (/хозя/.test(t)) return 1;
+  if (/гост/.test(t)) return 2;
+  var hits = function (name) {
+    return String(name || '').toLowerCase().replace(/ё/g, 'е').replace(/[«»"]/g, '').split(/[\s-]+/).filter(function (x) { return x.length >= 3; })
+      .reduce(function (n, x) { return n + (t.indexOf(x.slice(0, Math.max(3, x.length - 2))) >= 0 ? 1 : 0); }, 0);
+  };
+  var nh = hits(home), na = hits(away);
+  return nh > na ? 1 : na > nh ? 2 : 0;
+}
+
+/** Ставка → { m: рынок для учёта, f: функция(hg, ag) → 1 выигрыш | 0 возврат | −1 проигрыш } или null — не разобрали. */
+/** RegExp, где \\b — граница слова и для кириллицы (у JS \\b — только латиница). */
+var FOOT_B = '(?:(?<![а-яa-z0-9])(?=[а-яa-z0-9])|(?<=[а-яa-z0-9])(?![а-яa-z0-9]))';
+function footRx_(src) { return new RegExp(src.replace(/\\b/g, FOOT_B)); }
+
+function footBet_(pick, home, away) {
+  var R = footRx_;
+  var t = ' ' + String(pick || '').toLowerCase().replace(/ё/g, 'е').replace(/[«»"]/g, '').replace(/(\d),(\d)/g, '$1.$2').replace(/−|–/g, '-').replace(/x/g, 'х') + ' ';
+  var kinds = [/обе\s+(?:команды\s+)?(?:не\s+)?забьют/, R('тотал|\\bт[бм]\\b|больше|меньше'), R('фор[аы]|\\bф[12]\\b'), R('не\\s+проиграет|двойной|\\b1х\\b|\\bх2\\b|\\b12\\b'),
+    R('ничь|\\bх\\b'), R('побед|выигра|\\bп[12]\\b')].filter(function (re) { return re.test(t); }).length;
+  if (R('инд|\\bит[бм]?\\b|угл|карточ|удар|тайм').test(t)) return null;              // в учёте только исход, тоталы, форы, «обе забьют»
+  var m;
+  if (/обе\s+(?:команды\s+)?(?:не\s+)?забьют/.test(t)) {
+    var no = /обе\s+(?:команды\s+)?не\s+забьют|забьют\W+нет/.test(t);
+    return kinds > 1 ? null : { m: 'Другое', f: function (hg, ag) { return (hg > 0 && ag > 0) !== no ? 1 : -1; } };
+  }
+  if ((m = t.match(R('(?:тотал\\s+(больше|меньше)|\\b(тб|тм)\\b|(больше|меньше))\\s*\\(?\\s*(\\d+(?:\\.\\d+)?)'))) && kinds === 1) {
+    var over = /больше|тб/.test(m[1] || m[2] || m[3]), line = Number(m[4]);
+    return { m: line === 2.5 ? 'Тотал 2,5' : 'Другое', f: function (hg, ag) { return footLine_((hg + ag - line) * (over ? 1 : -1), line); } };
+  }
+  if ((m = t.match(R('\\bф([12])\\s*\\(?\\s*([+-]?\\d+(?:\\.\\d+)?)')) || t.match(/фор[аы]\s+(.+?)\s*\(?\s*([+-]\d+(?:\.\d+)?|0)\s*\)?\s/)) && kinds === 1) {
+    var s = m[1] === '1' ? 1 : m[1] === '2' ? 2 : footSide_(m[1], home, away), hc = Number(m[2]);
+    if (!s) return null;
+    return { m: 'Другое', f: function (hg, ag) { return footLine_((s === 1 ? hg - ag : ag - hg) + hc, hc); } };
+  }
+  if (kinds !== 1) return null;
+  if (R('не\\s+проиграет|двойной|\\b1х\\b|\\bх2\\b|\\b12\\b').test(t)) {
+    var dc = R('\\b1х\\b').test(t) ? 1 : R('\\bх2\\b').test(t) ? 2 : R('\\b12\\b').test(t) ? 12 : footSide_(t, home, away);
+    if (!dc) return null;
+    return { m: 'Другое', f: function (hg, ag) { return (dc === 12 ? hg !== ag : dc === 1 ? hg >= ag : ag >= hg) ? 1 : -1; } };
+  }
+  if (R('ничь|\\bх\\b').test(t)) return { m: '1Х2', f: function (hg, ag) { return hg === ag ? 1 : -1; } };
+  var w = R('\\bп1\\b').test(t) ? 1 : R('\\bп2\\b').test(t) ? 2 : footSide_(t, home, away);
+  if (!w) return null;
+  return { m: '1Х2', f: function (hg, ag) { return (w === 1 ? hg > ag : ag > hg) ? 1 : -1; } };
+}
+
+/** Линия с четвертями (2,25 / −0,75): d — перевес над линией в пользу ставки. → 1 | 0,5 | 0 | −0,5 | −1. */
+function footLine_(d, line) {
+  var q = Math.round(Math.abs(line) * 4) % 2 === 1;
+  if (!q) return d > 0 ? 1 : d < 0 ? -1 : 0;
+  var a = d + 0.25, b = d - 0.25, v = function (x) { return x > 0 ? 1 : x < 0 ? -1 : 0; };
+  return (v(a) + v(b)) / 2;
+}
+
+/** Исход → значок для листа. */
+function footMark_(r) { return r === 1 ? '✅' : r === 0.5 ? '✅½' : r === 0 ? '↩️' : r === -0.5 ? '❌½' : r === -1 ? '❌' : '?'; }
+
+/** Одна запись: закончен ли матч → рассчитать, записать. → true, если итог поставлен. */
+function footSettleWatch_(w) {
+  var games = footEspnGames_(w.espn || (footTourOf_(w.tour + ' ·') || [])[1], w.start), g = footPick_(w, games);
+  if (!g) { w.why = 'нет матча в ESPN'; pmPut_(w); return false; }
+  if (/POSTPONED|CANCEL|ABANDON/i.test(g.name) || (g.state === 'post' && !g.done)) {   // перенесён / отменён
+    w.st = 'done'; w.score = 'перенесён'; w.res = 0; w.mark = '↩️';
+  } else {
+    if (!g.done) return false;
+    if (g.hg === null || g.ag === null) { w.st = 'done'; w.score = '?'; w.mark = '?'; }
+    else {
+      var b = footBet_(w.pick, w.home, w.away);
+      w.st = 'done'; w.score = g.hg + ':' + g.ag;
+      if (b) { w.res = b.f(g.hg, g.ag); w.mark = footMark_(w.res); } else w.mark = '?';
+    }
+  }
+  w.fin = Date.now();
+  pmPut_(w);
+  try { footSheetUpsert_(w); } catch (e) { console.log('лист «Футбол»: ' + e.message); }
+  try {
+    teamAppend_(FOOT_RESULTS_MD, '- ' + Utilities.formatDate(new Date(w.start), 'Europe/Moscow', 'dd.MM HH:mm') + ' · ' + w.pid + ' · ' + w.tour + ' · ' +
+      w.home + ' — ' + w.away + ' · ' + w.pick + ' · ' + (w.kef || '—') + ' · ' + w.score + ' · ' + w.mark, 'Football: result ' + w.pid);
+  } catch (e) { console.log('FOOT_RESULTS: ' + e.message); }
+  return true;
+}
+
+/** Лист «Футбол»: создать с шапкой. Журнал — A:J с 4-й строки, сводка — справа (L:S). */
+function footSheet_() {
+  var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName(FOOT_SHEET);
+  if (sh) return sh;
+  sh = ss.insertSheet(FOOT_SHEET);
+  [56, 92, 118, 250, 210, 92, 56, 64, 52, 104, 24, 128, 62, 44, 44, 44, 98, 70, 74].forEach(function (px, i) { sh.setColumnWidth(i + 1, px); });
+  sh.setFrozenRows(4);
+  return sh;
+}
+
+/** Прибыль в единицах по значку итога и кэфу; null — матч не рассчитан. */
+function footProfit_(mark, kef) {
+  var k = Number(String(kef || '').replace(',', '.')) || 0;
+  return { '✅': k - 1, '✅½': (k - 1) / 2, '↩️': 0, '❌½': -0.5, '❌': -1 }[String(mark).trim()];
+}
+
+/** Добавить или обновить строку записи w и перерисовать лист. */
+function footSheetUpsert_(w) {
+  var sh = footSheet_(), rows = footRows_(sh), at = -1;
+  rows.forEach(function (r, i) { if (String(r[0]) === String(w.pid)) at = i; });
+  var row = [w.pid, Utilities.formatDate(new Date(w.start), 'Europe/Moscow', 'dd.MM HH:mm'), w.tour || '', w.home + ' — ' + w.away, w.pick,
+    (footBet_(w.pick, w.home, w.away) || { m: 'Другое' }).m, String(w.kef || '').replace('.', ','), w.score || '', w.mark || '⏳', ''];
+  if (at >= 0 && w.st === 'wait' && rows[at][8] && rows[at][8] !== '⏳') row[8] = rows[at][8];   // ручной итог не затираем
+  if (at >= 0) rows[at] = row; else rows.push(row);
+  footRender_(sh, rows);
+}
+
+/** Строки журнала с листа (ручные правки итога — как есть). */
+function footRows_(sh) {
+  var n = sh.getLastRow() - 4;
+  if (n <= 0) return [];
+  return sh.getRange(5, 1, n, FOOT_HEAD.length).getValues().filter(function (r) { return String(r[0]).trim(); })
+    .map(function (r) { return r.map(function (v) { return v instanceof Date ? Utilities.formatDate(v, 'Europe/Moscow', 'dd.MM HH:mm') : String(v); }); });
+}
+
+/** Нарисовать лист: заголовок, журнал (свежие сверху) и сводку по турнирам и рынкам. */
+function footRender_(sh, rows) {
+  var key = function (r) { var m = String(r[0]).match(/^(\d\d)(\d\d)-(\d+)/); return m ? (Number(m[1]) < 7 ? 1 : 0) * 1e6 + Number(m[1] + m[2]) * 100 + Number(m[3]) : 0; };
+  rows.sort(function (a, b) { return key(b) - key(a); });
+  rows.forEach(function (r) { var p = footProfit_(r[8], r[6]); r[9] = p === undefined ? '' : Math.round(p * 100) / 100; });
+  sh.clear();
+  var W = FOOT_HEAD.length;
+  sh.getRange(1, 1).setValue('⚽ ФУТБОЛ · прогнозы JARVIS в канале').setFontWeight('bold').setFontSize(14).setFontColor('#1a4fd6');
+  sh.getRange(2, 1).setValue('Строка появляется, когда прогноз вышел в канал; ставка — с правками владельца в боте. Счёт за 90 минут — ESPN, бот ставит итог сам ' +
+    'через 2 часа после начала. Итог можно поправить руками (✅ ❌ ↩️) → меню «⚽ Футбол: пересчитать лист».').setFontColor('#5f6368').setFontSize(9);
+  sh.getRange(4, 1, 1, W).setValues([FOOT_HEAD]).setFontWeight('bold').setBackground('#202124').setFontColor('#ffffff');
+  if (rows.length) {
+    sh.getRange(5, 1, rows.length, W).setNumberFormat('@').setValues(rows);
+    sh.getRange(5, 10, rows.length, 1).setNumberFormat('0.00');
+    sh.getRange(5, 7, rows.length, 3).setHorizontalAlignment('center');
+    sh.getRange(5, 1, rows.length, W).setBackgrounds(rows.map(function (r) {
+      var c = /✅/.test(r[8]) ? '#e6f4ea' : /❌/.test(r[8]) ? '#fce8e6' : r[8] === '?' ? '#fef7e0' : '#ffffff';
+      return FOOT_HEAD.map(function () { return c; });
+    }));
+  }
+  // сводка: заходимость = ✅ / (✅ + ❌), половинки — пополам; ROI — прибыль на рассчитанную ставку
+  var agg = function (name, pick) {
+    var a = { n: 0, w: 0, l: 0, p: 0, wait: 0, k: 0 };
+    rows.filter(pick).forEach(function (r) {
+      var pr = footProfit_(r[8], r[6]);
+      if (pr === undefined) { a.wait++; return; }
+      a.n++; a.p += pr; a.k += Number(String(r[6]).replace(',', '.')) || 0;
+      var m = String(r[8]).trim();
+      if (m === '✅') a.w++; else if (m === '✅½') a.w += 0.5; else if (m === '❌') a.l++; else if (m === '❌½') a.l += 0.5;
+    });
+    return [name, a.n, a.w, a.l, a.wait, a.w + a.l ? a.w / (a.w + a.l) : '', a.n ? a.p / a.n : '', a.n ? a.k / a.n : ''];
+  };
+  var tours = FOOT_TOURS.map(function (t) { return t[0]; }).filter(function (t) { return rows.some(function (r) { return r[2] === t; }); });
+  var blocks = [['По турнирам', tours.map(function (t) { return agg(t, function (r) { return r[2] === t; }); })],
+    ['По рынкам', ['1Х2', 'Тотал 2,5', 'Другое'].map(function (m) { return agg(m, function (r) { return r[5] === m; }); })]];
+  var r0 = 4, SH = ['', 'Ставок', '✅', '❌', 'Ждём', 'Заходимость', 'ROI', 'Ср. кэф'];
+  blocks.forEach(function (b, bi) {
+    var body = b[1].concat([agg('Всего', function () { return true; })]);
+    SH[0] = b[0];
+    sh.getRange(r0, 12, 1, SH.length).setValues([SH]).setFontWeight('bold').setBackground('#34a853').setFontColor('#ffffff');
+    sh.getRange(r0 + 1, 12, body.length, SH.length).setValues(body);
+    sh.getRange(r0 + body.length, 12, 1, SH.length).setFontWeight('bold').setBackground('#f1f3f4');
+    sh.getRange(r0 + 1, 17, body.length, 2).setNumberFormat('0.0%');
+    sh.getRange(r0 + 1, 19, body.length, 1).setNumberFormat('0.00');
+    r0 += body.length + 2;
+  });
+  if (!rows.length) sh.getRange(5, 1).setValue('Пока пусто — первая строка появится, когда футбольный прогноз выйдет в канал.').setFontColor('#80868b');
+}
+
+/** Меню: пересчитать лист (после ручной правки итога). */
+function footSheetNow_() {
+  var sh = footSheet_();
+  footRender_(sh, footRows_(sh));
+  SpreadsheetApp.getActive().toast('Лист «Футбол» пересчитан');
 }
 
 /* ── ✏️ «Редактировать» пост (решение владельца 15.10) ──
