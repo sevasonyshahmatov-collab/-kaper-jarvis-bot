@@ -68,5 +68,6 @@
 - YouTube — плагин `tubealfred-youtube` (нужна сеть к его серверу; из облака может быть закрыта). Картинки — `image-generation`.
 - Дизайн картинок, слайдов, сайта (владелец 27.10) — скиллы `impeccable` (типографика, отступы, палитра; команды audit,
   critique, polish, bolder) и `emil-design-eng` (мелочи и полировка интерфейса). Вёрстка HTML → снимок Playwright
-  (`require('playwright')`, пример — `team/out/2026-10-27/sheet_stories_html.py` + `shot.js`), результат смотреть глазами. Порядок «дизайн-студии» (владелец 28.10): `frontend-design` (стиль сначала) → `impeccable` → `taste-skill` → `emil-design-eng` → снимки Playwright на 3 ширинах. Где брать элементы и библиотеки — `docs/handoff/DESIGN_SOURCES.md`.
+  (`require('playwright')`, пример — `team/out/2026-10-27/sheet_stories_html.py` + `shot.js`), результат смотреть глазами. Порядок «дизайн-студии» (владелец 28.10): `frontend-design` (стиль сначала) → `ui-ux-pro-max` (палитры, шрифты, графики из базы: `python3 .claude/skills/ui-ux-pro-max/scripts/search.py "…" --design-system`) → `impeccable` → `taste-skill` → `emil-design-eng` → снимки Playwright на 3 ширинах. Где брать элементы и библиотеки — `docs/handoff/DESIGN_SOURCES.md`.
+- Хуки, удержание, «почему досматривают» — `marketing-psychology` (из aitmpl.com, MIT, 30.10); вместе с `ig-reel` и `jarvis-video-analyst`.
 - Правила канала важнее советов скиллов: без БК, промокодов, гарантий, выдуманных цифр (`team/RULES.md`, voice.md).
