@@ -164,7 +164,9 @@ def assign(matches, day, league='khl'):
     return matches
 
 
-def plan(league, day, top, per):
+def plan(league, day, top, per, spare=0):
+    """spare — сколько следующих дней можно взять, если в этот день матчей нет вовсе (30.10: ночной запуск делает ролики на
+    завтра; нет игр — ближайший игровой день, не дальше двух суток от запуска)."""
     import pin
     if league == 'khl':
         import khl_data
@@ -174,6 +176,10 @@ def plan(league, day, top, per):
         import nhl_data
         games, nxt = nhl_data.fetch(day)
         fon = {}
+    if not nxt and spare:
+        nd = (date.fromisoformat(day) + timedelta(days=1)).isoformat()
+        print('PLAN в %s матчей нет — берём %s' % (day, nd), flush=True)
+        return plan(league, nd, top, per, spare - 1)
     try:
         pins, _ = pin.fetch(league, day, [(x['h'], x['a']) for x in nxt])
     except Exception as e:  # noqa: BLE001 — без Pinnacle в КХЛ остаётся линия Фонбета
@@ -214,9 +220,15 @@ def plan(league, day, top, per):
         json.dump(P, f, ensure_ascii=False, indent=1)
     print('PLAN матчей дня %d, роликов %d, частей %d' % (len(nxt), len(ms), len(parts)), flush=True)
     gh = os.environ.get('GITHUB_OUTPUT')
+    dry = os.environ.get('REELS_DRY') == '1'            # только расчёт: что за матчи и есть ли линия (ничего не собираем и не шлём)
     if gh:
         with open(gh, 'a') as f:
-            f.write('parts=%s\n' % json.dumps(list(range(1, len(parts) + 1))))
+            f.write('day=%s\n' % day)                  # день мог сдвинуться (spare) — дальше идёт он
+            f.write('parts=%s\n' % json.dumps([] if dry else list(range(1, len(parts) + 1))))
+    if dry:
+        for m in ms:
+            print('DRY %s %s — %s · %s · %.2f' % (m['d'][:16], m['h'], m['a'], m['pick'], m['odds']), flush=True)
+        return P
     lg = LG[league][1]
     head = ['Шортсы %s на %s.%s: %d' % (lg, day[8:10], day[5:7], len(ms))]
     head += ['%s %s — %s · %s · %s%s' % (m['d'][11:16], m['h'], m['a'], m['pick'], ('%.2f' % m['odds']).replace('.', ','),
@@ -374,26 +386,34 @@ def ab_lines(m, i):
     return None, None
 
 
-SPREAD_FROM, SPREAD_STEP, SPREAD_LEAD = 9, 90, 120     # МСК: с 09:00, шаг 90 мин, не позже чем за 2 ч до матча
+SPREAD_FROM, SPREAD_TO, SPREAD_STEP, SPREAD_LEAD = 9, 22, 90, 120     # МСК: окно 09:00–22:00, шаг 90 мин, не позже чем за 2 ч до матча
 
 
 def publish_time(P, i):
-    """Время выхода ролика на YouTube (UTC) — владелец 20.10: не пачкой ночью, а с интервалами. Ролик i дня выходит
-    в 09:00 МСК + i × 90 мин (КХЛ — со сдвигом 45 мин), но не позже чем за 2 ч до начала своего матча; время уже прошло — None (сразу).
+    """Время выхода ролика (UTC) — владелец 20.10: не пачкой ночью, а с интервалами; владелец 30.10: за день до матча.
+    Ролик i выходит в 09:00 МСК + i × 90 мин (КХЛ — со сдвигом 45 мин) **накануне игрового дня** (ночной матч НХЛ до 06:00
+    относится к вечеру предыдущего дня), но не позже чем за 2 ч до начала своего матча; время уже прошло — None (сразу).
     Выключить: REELS_SPREAD=0."""
     if os.environ.get('REELS_SPREAD', '1') == '0':
         return None
     m = P['matches'][i]
     start = datetime.strptime(m['d'][:16], '%Y-%m-%d %H:%M').replace(tzinfo=MSK)
     now = datetime.now(MSK)
-    day0 = (start - timedelta(minutes=SPREAD_LEAD)).replace(hour=SPREAD_FROM, minute=0, second=0, microsecond=0)
-    if day0 > start - timedelta(minutes=SPREAD_LEAD):
-        day0 -= timedelta(days=1)
+    game_day = (start - timedelta(hours=6)).replace(hour=0, minute=0, second=0, microsecond=0)   # игровой день по Москве
+    day0 = (game_day - timedelta(days=1)).replace(hour=SPREAD_FROM)
     off = 45 if P.get('league') == 'khl' else 0          # КХЛ — между роликами НХЛ того же утра
     t = min(day0 + timedelta(minutes=SPREAD_STEP * i + off), start - timedelta(minutes=SPREAD_LEAD))
-    if t <= now + timedelta(minutes=20):
-        return None
-    return t.astimezone(timezone.utc)
+    soonest = now + timedelta(minutes=20)
+    if t > soonest:
+        return t.astimezone(timezone.utc)
+    if not SPREAD_FROM <= soonest.hour < SPREAD_TO:         # ночью не выкладываем: до 09:00 МСК ждём утра, после 22:00 — завтрашнего утра
+        morning = soonest.replace(hour=SPREAD_FROM, minute=0, second=0, microsecond=0)
+        if soonest.hour >= SPREAD_TO:
+            morning += timedelta(days=1)
+        morning = min(morning + timedelta(minutes=SPREAD_STEP * i + off), start - timedelta(minutes=SPREAD_LEAD))
+        if morning > soonest:
+            return morning.astimezone(timezone.utc)
+    return None
 
 
 def cover_for(m, code, base):
@@ -450,7 +470,7 @@ def main():
     if league not in LG:
         raise SystemExit(__doc__)
     if cmd == 'plan':
-        plan(league, day, int(opt('--max', 0)), int(opt('--per', 3)))
+        plan(league, day, int(opt('--max', 0)), int(opt('--per', 3)), int(opt('--spare', 0)))
     elif cmd == 'render':
         render(league, day, int(opt('--part', 1)), opt('--frames', None))
     else:
