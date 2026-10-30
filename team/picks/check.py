@@ -10,7 +10,10 @@ import re
 import sys
 
 MONTHS = 'января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря'
-HEAD = re.compile(r'^(КХЛ|НХЛ) · \d{1,2} (%s) · \d\d:\d\d МСК$' % MONTHS)
+# футбол — проба этапа 2 (владелец 30.10, docs/handoff/FOOTBALL_BRIEF.md): шапка с турниром, свой хэштег, пока без баннера
+FOOT_TAG = {'АПЛ': 'апл', 'Ла Лига': 'лалига', 'Серия А': 'серияа', 'Бундеслига': 'бундеслига', 'Лига 1': 'лига1',
+            'Лига чемпионов': 'лигачемпионов', 'Лига Европы': 'лигаевропы'}
+HEAD = re.compile(r'^(КХЛ|НХЛ|%s) · \d{1,2} (%s) · \d\d:\d\d МСК$' % ('|'.join(FOOT_TAG), MONTHS))
 TAGS = {'b', 'i', 'u', 's', 'blockquote', 'code', 'pre', 'a', 'tg-spoiler'}
 BANNED = ('джарвис', 'jarvis', 'гарант', 'на момент публикации', '18+', 'мнение, а не', 'промокод')
 CAREFUL = ('таблиц', 'букмекер', 'фонбет', 'pinnacle', 'пинакл')     # можно, но проверить: не аналитическая таблица и не реклама
@@ -109,7 +112,11 @@ def main(path):
         if pid in pids or pid in used:
             errs.append('%s: номер уже занят' % where)
         pids.append(pid)
-        if m.get('type') != 'animation' or not str((m.get('files') or [''])[0]).endswith('.mp4'):
+        foot = text.split(' · ')[0] in FOOT_TAG
+        if foot:
+            if m.get('type') != 'text':
+                errs.append('%s: футбол на пробе — текстовый пост ("type": "text"), баннеров клубов пока нет' % where)
+        elif m.get('type') != 'animation' or not str((m.get('files') or [''])[0]).endswith('.mp4'):
             errs.append('%s: пост — анимированный баннер: "type": "animation", файл .mp4 (владелец 15.10)' % where)
         if not m.get('html'):
             errs.append('%s: нужен "html": true' % where)
@@ -132,7 +139,8 @@ def main(path):
             errs.append('%s: нет цитаты <blockquote> с обоснованием' % where)
         if not re.search(r'^<i>.+</i>$', text, re.M):
             errs.append('%s: нет строки-завершения курсивом' % where)
-        want = '#%s #прогноз #jarvibet' % ('кхл' if lines[0].startswith('КХЛ') else 'нхл')
+        want = '#%s #прогноз #jarvibet' % (('футбол #' + FOOT_TAG[lines[0].split(' · ')[0]]) if foot else
+                                            ('кхл' if lines[0].startswith('КХЛ') else 'нхл'))
         if not text.rstrip().endswith('\n' + want):
             errs.append('%s: последней строкой хэштеги «%s» — лига из шапки, без даты (владелец 15.10)' % (where, want))
         low = html.unescape(re.sub(r'<[^>]+>', '', re.sub(r'#\w+', '', text))).lower()   # хэштеги (#jarvibet) не проверяем
