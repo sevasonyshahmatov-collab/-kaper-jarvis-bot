@@ -39,6 +39,12 @@ var ELO_K = 20;          // насколько сильно один матч д
 var ELO_BASE = 1500;     // Elo, соответствующий стартовому рейтингу 50 (середина шкалы)
 var ELO_SCALE = 6;       // 1 пункт стартового рейтинга (1-100) = 6 очков Elo
 var ELO_OT_CREDIT = 0.75; // "неполная" победа в ОТ/буллитах (не 1.0, а 0.75 против 0.25)
+// Владелец 29.10 («пересоберём НХЛ, нужно больше точности»): стартовый рейтинг весил больше формы — Колорадо 97 против
+// Сиэтла 23 давало ~93 % на победу. Проверка на матчах 2026/27 (team/picks/nhl_elo_bt.py, run 40902258589, 202 матча):
+// старт втрое ближе к середине + свой лёд в ожидании Elo — logloss 0,726 → 0,680, Брайер 0,260 → 0,243
+// («50 на 50» дало бы 0,693: прежний Elo был хуже монетки). Шкала рейтинга 1–100 (ELO_SCALE) не меняется.
+var ELO_START_SHRINK = 1 / 3; // доля отклонения стартового рейтинга от 50, которая идёт в Elo (97 → 66, 23 → 41)
+var ELO_HOME = 30;            // преимущество своего льда в ожидании Elo, очков (≈ 54 % на победу хозяев при равных)
 // «Быстрый старт» рейтинга: в первых ELO_EARLY_GAMES играх сезона каждой команды
 // рейтинг двигается сильнее (в 1 + ELO_EARLY_BOOST раз в первой игре, плавно до обычного).
 // 0 = выключено. Значение выбирается только по результату «Самопроверки» (тест 3).
@@ -474,7 +480,7 @@ function computeAndWriteElo_(silent) {
     // случайно попавшая в этот столбец заметка) не должны считаться командой
     if (!name || typeof rawRating !== 'number') continue;
     var startRating = rawRating;
-    elo[name] = ELO_BASE + (startRating - 50) * ELO_SCALE;
+    elo[name] = ELO_BASE + (startRating - 50) * ELO_SCALE * ELO_START_SHRINK;
     teamOrder.push(name);
   }
 
@@ -517,7 +523,7 @@ function computeAndWriteElo_(silent) {
 
     var eloHome = elo[game.home];
     var eloAway = elo[game.away];
-    var expectedHome = 1 / (1 + Math.pow(10, (eloAway - eloHome) / 400));
+    var expectedHome = 1 / (1 + Math.pow(10, (eloAway - eloHome - ELO_HOME) / 400));
 
     var homeWon = game.hg > game.ag;
     var actualHome;
@@ -4513,7 +4519,7 @@ function scWalkForward_(seasons, homeBase, otPenalty, eloOpts) {
 
   seasons.forEach(function (season) {
     var elo = {};
-    if (season.start) for (var t in season.start) elo[t] = ELO_BASE + (season.start[t] - 50) * ELO_SCALE;
+    if (season.start) for (var t in season.start) elo[t] = ELO_BASE + (season.start[t] - 50) * ELO_SCALE * ELO_START_SHRINK;
     var form = {}, lastGame = {}, played = {};
 
     // выездные серии и даты игр по расписанию сезона
@@ -4587,7 +4593,7 @@ function scWalkForward_(seasons, homeBase, otPenalty, eloOpts) {
 
       // Elo — ровно как в computeAndWriteElo_
       var eh = elo[h], ea = elo[a];
-      var exp = 1 / (1 + Math.pow(10, (ea - eh) / 400));
+      var exp = 1 / (1 + Math.pow(10, (ea - eh - ELO_HOME) / 400));
       var act = g.ot ? (homeWon ? ELO_OT_CREDIT : 1 - ELO_OT_CREDIT) : (homeWon ? 1 : 0);
       var mov = 1;
       if (!g.ot) {
