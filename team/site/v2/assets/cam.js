@@ -16,7 +16,8 @@
  const stage=document.getElementById('stage');if(!stage)return;
  const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
  const conn=navigator.connection||{};
- const MODE=RM?'still':(innerWidth<768||conn.saveData||/(^|-)2g|3g/.test(conn.effectiveType||''))?'lite':'scrub';
+ // телефон тоже получает полёт по прокрутке (владелец 31.10); облегчённый режим — только экономия трафика / медленная сеть
+ const MODE=RM?'still':(conn.saveData||/(^|-)2g|3g/.test(conn.effectiveType||''))?'lite':'scrub';
  document.documentElement.dataset.cam=MODE;
  const scenes=[...stage.querySelectorAll('.scene[data-seg]')];
  const veil=stage.querySelector('.veil');
@@ -41,7 +42,10 @@
   v.muted=true;v.defaultMuted=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('muted','');
   v.preload='auto';v.loop=!!loop;v.disablePictureInPicture=true;v.setAttribute('aria-hidden','true');
   v.addEventListener('loadeddata',()=>onok(v),{once:true});
-  v.addEventListener('error',()=>v.remove(),{once:true});
+  // запасной адрес: если просмотрщик (raw.githack) не отдал ролик — берём его прямо с GitHub
+  let alt=null;const m=location.href.match(/^https:\/\/raw\.githack\.com\/(.+)$/);
+  if(m)alt=new URL(src,location.href).href.replace('https://raw.githack.com/','https://raw.githubusercontent.com/');
+  v.addEventListener('error',()=>{if(alt&&v.src!==alt){v.src=alt;v.load()}else v.remove()});
   v.src=src;return v;
  }
  // ролики грузим только для текущего отрезка и соседей
