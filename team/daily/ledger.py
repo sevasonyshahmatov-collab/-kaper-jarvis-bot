@@ -173,6 +173,8 @@ class Ledger:
                 if t0 - timedelta(days=2) <= ts < t1:
                     notes.append('%s опубликован, но его нет в SENT.md — в итоги не вошёл' % pid)
                 continue
+            if row['league'] not in ('KHL', 'NHL'):              # футбол — свой учёт (лист «Футбол», docs/handoff/FOOTBALL_BOT.md)
+                continue
             if not (t0 <= row['start'] < t1):
                 continue
             bet, kef, changed = channel_version(row, ts, self.edits)
