@@ -66,3 +66,27 @@ Giant LED scoreboard in a dark arena close-up, glowing digits, bokeh crowd light
 ```
 
 Запрещено на макетах (правила канала): логотипы букмекеров и лиг, «гарантия», промокоды, белое свечение вокруг курсора.
+
+---
+
+## 7. РЕШЕНИЕ (владелец 30.10, позже): вёрстку макета оставляем, фон-«видео» всех сцен — из Higgsfield
+
+Сцены макета `team/site/v2/` (ветка `claude/team-dev-site-v2-mock`) заменяем роликами. Требования ко всем:
+16:9, 1080p, 5–8 с, камера медленная и плавная (ролик крутится по кругу), без людей, текста, логотипов; тёмная гамма
+(ночь #071225, золото прожекторов, циан у льда, зелень у газона), низ и левая треть кадра спокойнее — там текст.
+Порядок в Higgsfield: сначала кадр (Image, Soul / Nano Banana), затем Video (Kling / Veo / Seedance) из этого кадра с
+движением камеры из пресетов (Dolly In, Push In, Crane Up, Slow Pan). Готовые ролики — в чат «Сайт v2» или в бот;
+сжатие (webm + mp4 ≤2 МБ, постер) и вставку делает команда.
+
+| № | Сцена | Кадр (Image) | Движение (Video) |
+|---|---|---|---|
+| S1h | Тоннель → каток | `Dark concrete players' tunnel in an ice hockey arena, looking out to the bright floodlit ice rink at the end, cold blue haze, empty, no people, no logos, cinematic, photorealistic, 16:9` | `Slow dolly in through the tunnel toward the rink, light grows brighter, subtle haze drift` |
+| S1f | Тоннель → газон | `Dark players' tunnel of a football stadium at night, looking out to a floodlit green pitch, mist, empty, no people, no logos, cinematic, photorealistic, 16:9` | `Slow dolly in toward the pitch, floodlights glow, mist moves` |
+| S2 | Прожекторы | `Dark empty arena roof with rows of stadium floodlights, deep navy night, volumetric light beams, no people, no logos, 16:9` | `Floodlights switch on one by one from left to right, light beams cut through the haze, static camera with slight push in` |
+| S3h | Лёд сверху | `Top-down view of an empty ice hockey rink at night under floodlights, blue and red lines, glossy ice, dark surroundings, no logos, 16:9` | `Very slow drone glide across the ice, gentle reflections` |
+| S3f | Газон сверху | `Top-down view of an empty night football pitch, fresh green stripes, white lines, floodlights, dark surroundings, no logos, 16:9` | `Very slow drone glide across the pitch, light mist` |
+| S4 | Табло | `Giant LED scoreboard in a dark arena close-up, glowing amber and cyan digits, bokeh lights, no readable text, no logos, 16:9` | `Digits flicker and change, slow push in, bokeh shimmer` |
+| S5 | Трибуна | `Empty dark stadium stands at night, thousands of tiny warm lights like phone flashlights, navy and gold, no faces, no logos, 16:9` | `Slow horizontal pan across the stands, lights twinkle` |
+
+Лёд|газон (S3) делим по диагонали в коде: слева S3h, справа S3f. Телефон: те же ролики, команда сама обрежет до 9:16
+(важное держать по центру кадра); если Higgsfield даёт 9:16 без потерь — можно сразу вертикальную версию S1h.
