@@ -1402,8 +1402,8 @@ addEventListener('DOMContentLoaded',()=>{
 </script>
 
 <script>
-/* смена фонов героя: добавить кадр — дописать имя в список */
-(function(){var L=['arena-red','lights','arena-empty','arena-gold','ice'],b=document.getElementById('hslides');if(!b)return;
+/* фон героя: сейчас один кадр (lights); для смены дописать имена из team/site/hero в список L */
+(function(){var L=['lights'],b=document.getElementById('hslides');if(!b)return;
 var sl=L.map(function(n,i){var e=document.createElement('i');e.style.backgroundImage='url(assets/hero/'+n+'.jpg)';if(i%2)e.className='alt';b.appendChild(e);return e}),k=-1,t;
 function go(){if(k>=0)sl[k].classList.remove('on');k=(k+1)%sl.length;sl[k].classList.add('on')}
 var rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
