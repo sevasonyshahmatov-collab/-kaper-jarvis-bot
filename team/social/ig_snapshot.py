@@ -48,6 +48,19 @@ def notice(title, obj):
     print('::notice title=%s::%s' % (title, msg), flush=True)
 
 
+def mark(m):
+    """Метки роликов конвейера для сравнения (по подписи, team/reels_daily/instagram.caption): ab — заставка А/Б (27.10),
+    fmt — short (10–15 с, владелец 30.10) | long, card — карточка-призыв короткого ролика: protocol | share."""
+    c = m.get('caption') or ''
+    if 'в Telegram @jarvibet' not in c:
+        return
+    m['ab'] = 'B' if c.startswith('Разбор и итог матча') or '\nРазбор и итог матча' in c else 'A'
+    first = c.split('\n')[0]
+    m['fmt'] = 'short' if first.startswith(('Сохрани.', 'Отправь тому')) else 'long'
+    if m['fmt'] == 'short':
+        m['card'] = 'protocol' if first.startswith('Сохрани.') else 'share'
+
+
 def main(n=40):
     if not os.environ.get('IG_TOKEN') or not os.environ.get('IG_USER_ID'):
         print('IGSNAP_ERR нет IG_TOKEN / IG_USER_ID')
@@ -60,6 +73,7 @@ def main(n=40):
     for m in media:
         m.update(insights(m['id']))
         m['caption'] = (m.get('caption') or '')[:300]
+        mark(m)
         print('IGSNAP_MEDIA ' + json.dumps(m, ensure_ascii=False))
     print('IGSNAP_DONE %d' % len(media))
     # пометок не больше 10 на шаг — профиль и посты пачками по 8

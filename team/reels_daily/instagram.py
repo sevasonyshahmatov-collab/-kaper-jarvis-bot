@@ -37,19 +37,27 @@ def posted(first_line):
             _state['captions'] = []
     import yt_texts                                   # до 24.10 подпись начиналась сразу с матча, без «Прогноз на матч»
     lines = {first_line, first_line[len(yt_texts.HEAD):] if first_line.startswith(yt_texts.HEAD) else first_line}
-    return any(c.startswith(x) for c in _state['captions'] for x in lines)
+    return any(c.startswith(x) or ('\n' + x) in c[:400] for c in _state['captions'] for x in lines)
 
 
 CTA = 'Полный разбор и итоги — в Telegram @jarvibet (ссылка в шапке профиля)'   # владелец 22.10: цель — переход в канал
 CTA_B = 'Разбор и итог матча — в Telegram @jarvibet (ссылка в шапке профиля)'      # вариант Б сравнения заставок (27.10)
 
 
-def caption(m, y, ab=None):
+def caption(m, y, ab=None, first=None):
     """Подпись: описание для YouTube (матч, прогноз, Telegram) + хэштеги; ≤ 2200 знаков, хэштегов ≤ 30.
-    Сразу после первой строки — призыв в Telegram (первая строка не меняется: по ней posted() ищет повторы).
-    ab='B' — другой призыв: по нему снимок Instagram (team/social/ig_snapshot.py) отличает вариант заставки."""
-    first, _, rest = y['description'].partition('\n')
-    return (first + '\n' + (CTA_B if ab == 'B' else CTA) + '\n' + rest)[:2100]
+    Сразу после строки «Прогноз на матч …» — призыв в Telegram (строка не меняется: по ней posted() ищет повторы).
+    ab='B' — другой призыв: по нему снимок Instagram (team/social/ig_snapshot.py) отличает вариант заставки.
+    first — призыв карточки короткого ролика (владелец 30.10): первой строкой, перед «Прогноз на матч …»."""
+    head, _, rest = y['description'].partition('\n')
+    return ((first + '\n' if first else '') + head + '\n' + (CTA_B if ab == 'B' else CTA) + '\n' + rest)[:2100]
+
+
+def key_line(text):
+    """Строка подписи, по которой ищут повторы: «Прогноз на матч …» (у короткого ролика она вторая), иначе — первая."""
+    import yt_texts
+    ls = (text or '').split('\n')
+    return next((x for x in ls[:3] if x.startswith(yt_texts.HEAD)), ls[0])
 
 
 def zoomed(path, cover=None):

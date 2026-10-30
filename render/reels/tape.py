@@ -195,6 +195,10 @@ class Tape(C.Reel):
         im.putalpha(Image.fromarray(al.astype(np.uint8)))
         return C.rotate(im, 6)
 
+    def scenes(self):
+        """Для короткого ролика (core.Short): строки команд, затем «VS» перед дропом (pre долей)."""
+        return {'a': (self.t1, self.t2), 'b': (self.t2, self.b(-self.pre)), 'pick': (self.drop, self.t_cta)}
+
     # ── кадр ──
     def frame(self, t):
         u, D = self.u, self.drop

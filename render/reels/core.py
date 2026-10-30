@@ -684,6 +684,15 @@ class Reel:
     def frame(self, t):
         raise NotImplementedError
 
+    def scenes(self):
+        """Сцены шаблона для короткого ролика (Short): {'a': команда 1, 'b': команда 2, 'pick': (дроп, конец прогноза)}.
+        Шаблоны зовут их по-разному — берётся первое имя, которое есть; другое устройство — свой scenes() в модуле."""
+        def g(*ks):
+            return next(getattr(self, k) for k in ks if getattr(self, k, None) is not None)
+        t1, t2 = g('t1', 'T1', 't_in1', 't_home'), g('t2', 'T2', 't_in2', 't_away')
+        return {'a': (t1, t2), 'b': (t2, g('tp', 'TB', 'TR', 't_calc', 't_rush', 't_run', 't_vs')),
+                'pick': (self.drop, g('t_cta', 'TC', 't_end'))}
+
 
 _R = None
 
@@ -765,7 +774,14 @@ def ticker(fr, t, end):
 
 
 def footer(fr, t, dur):
-    """Нижняя зона кадра — только в конце ролика: затемнение + строка про ссылку (или плашка Telegram). fr — RGB/RGBA W×H."""
+    """Нижняя зона кадра — только в конце ролика: затемнение + строка про ссылку (или плашка Telegram). fr — RGB/RGBA W×H.
+    Короткий ролик (Short): без бегущей строки и без плашки в конце — только @jarvibet мелко внизу."""
+    if getattr(_R, 'short', False):
+        if t < getattr(_R, 'intro', 0.0):
+            return fr
+        fr = fr.convert('RGBA')
+        put(fr, text(HANDLE, 'mont', 34, (236, 241, 250), 800, track=0.06, stroke=3, stroke_fill=(0, 0, 0)), W / 2, SAFE_BOT + 52)
+        return fr
     end = dur - FOOTER_END_S
     if t < end:
         return ticker(fr, t, end)
@@ -784,6 +800,228 @@ def footer(fr, t, dur):
         lay.putalpha(lay.getchannel('A').point(lambda v: int(v * k)))
     fr.alpha_composite(lay)
     return fr
+
+
+# ─────────────────────── короткий ролик 10–15 с (владелец 30.10) ───────────────────────
+# Reels упирались в 120–165 просмотров при досмотре 4–6 с из ~23 с. Ролик шаблона ужимается до ~13 с: заставка 1,2 с
+# (make.py, А/Б), команда 1 и команда 2 по ~2,8 с, перед дропом ≤ 0,5 с, прогноз ~3,5 с ровно на дроп, карточка-призыв
+# ~2,5 с (сохранить / переслать), последние 0,3 с перетекают в первый кадр (петля). Склейки — резкие, на долю трека
+# (быстрый трек — на полдоли); анимации шаблона ускоряются не больше чем в SH_MAXV раз, длинная сцена обрезается спереди
+# (остаётся конец, где факты команды уже на экране). Без стартовой сцены с линией кэфов, бегущей строки и плашки
+# «ссылка в описании». REELS_SHORT=0 (make.py) — прежние ролики ~23 с.
+SH_A, SH_B, SH_PRE, SH_PICK, SH_CTA, SH_LOOP, SH_MAXV = 2.8, 2.8, 0.5, 3.5, 2.5, 0.3, 1.6
+SH_INK, SH_PAPER, SH_RED = (24, 27, 36), (246, 242, 232), (206, 38, 44)
+
+
+def _gen_acc(name):
+    """«болеет за Ладу»: винительный падеж короткого имени клуба (женский род на -а/-я; остальные не меняются)."""
+    if name.endswith('а') and ' ' not in name:
+        return name[:-1] + 'у'
+    if name.endswith('я') and ' ' not in name:
+        return name[:-1] + 'ю'
+    return name
+
+
+def short_cta(card, pick, h, a, side=None):
+    """Текст призыва карточки (он же первая строка подписи Instagram). card — 'protocol' | 'share'; side — 'h' | 'a' |
+    None (прогноз не на команду: тотал матча). Без призыва ставить (голос канала)."""
+    if card == 'protocol':
+        return 'Сохрани. После матча впишем счёт'
+    p = pick.lower()
+    if side is None:
+        return 'Отправь тому, кто ждёт %s' % ('скучный матч' if 'меньше' in p else 'голевую перестрелку')
+    other = a if side == 'h' else h
+    return 'Отправь тому, кто болеет за %s' % _gen_acc(other.short)
+
+
+def _bookmark(w, h, col):
+    return polygon([(0, 0), (w, 0), (w, h), (w / 2, h * 0.72), (0, h)], (int(w), int(h)), col)
+
+
+def _plane(s, col=(255, 255, 255)):
+    """Бумажный самолётик носом вправо-вверх, s — размер."""
+    im = polygon([(0, s * 0.55), (s, 0), (s * 0.62, s), (s * 0.45, s * 0.66)], (int(s), int(s)), col)
+    fold = polygon([(s * 0.45, s * 0.66), (s, 0), (s * 0.38, s * 0.86)], (int(s), int(s)), mix(col, (0, 0, 0), 0.25))
+    im.alpha_composite(fold)
+    return im
+
+
+class Short(Reel):
+    """Ролик шаблона, ужатый до ~12 с (+ заставка make.py) с карточкой-призывом в конце.
+
+    base — ролик шаблона (нужен scenes()); card — 'protocol' («Протокол матча»: сохрани, впишем счёт) | 'share'
+    («Отправь тому, кто…»); head — «КХЛ · 31.10 · 19:30 МСК»; pick — прогноз; fav — команда прогноза (Team) или None."""
+
+    short = True
+
+    def __init__(self, base, card, head, pick, fav=None, cta=None):
+        u = float(getattr(base, 'u', 1.0) or 1.0)
+        g = u / 2 if u > 0.7 else u                          # шаг склеек: доля, у медленного трека — полдоли
+
+        def q(x):
+            return max(g, g * round(x / g))
+        a, b, pick_d, cta_d = q(SH_A), q(SH_B), q(SH_PICK), q(SH_CTA)
+        pre = g * math.floor(SH_PRE / g + 0.1)
+        super().__init__(u, a + b + pre, getattr(base, 'seed', 7))
+        self.base, self.card, self.head, self.pick, self.fav, self.g = base, card, head, pick, fav, g
+        self.cta = cta or ''
+        sc = base.scenes()
+        D = base.drop
+        # (начало в ролике, конец, начало в шаблоне, скорость, предел в шаблоне)
+        self.segs = [self._win(0.0, a, sc['a'], True), self._win(a, a + b, sc['b'], True),
+                     (a + b, self.drop, D - pre, 1.0, D - 1e-3),
+                     self._win(self.drop, self.drop + pick_d, (D, sc['pick'][1]), False)]
+        self.t_cta = self.drop + pick_d
+        self.dur = self.t_cta + cta_d
+        self.cover_t = round(self.drop + min(1.2, pick_d / 2), 2)
+        self._lay = None
+
+    @staticmethod
+    def _win(o0, o1, sc, tail):
+        """Сцена шаблона sc=(t0, t1) → отрезок ролика [o0, o1]: ускорение до SH_MAXV; длиннее — tail=True оставляет конец
+        сцены (факты уже на экране), иначе — начало (прогноз встаёт на дроп). Короче — стоп-кадр в конце сцены."""
+        d, (t0, t1) = o1 - o0, sc
+        L = max(0.05, t1 - t0 - 0.08)                       # без последних кадров — там уже уход сцены
+        v = clamp(L / d, 1.0, SH_MAXV)
+        b0 = t0 + max(0.0, L - d * v) if tail else t0
+        return (o0, o1, b0, v, t0 + L)
+
+    def __getattr__(self, k):                               # ticker, voice_only, h, a… — от шаблона
+        if k == 'base':
+            raise AttributeError(k)
+        return getattr(self.base, k)
+
+    def base_t(self, t):
+        for o0, o1, b0, v, bmax in self.segs:
+            if t < o1:
+                return min(bmax, b0 + (t - o0) * v)
+        return self.segs[-1][4]
+
+    def _base_frame(self, t):
+        fr = self.base.frame(t)
+        if fr.size != (W, H):
+            fr = fr.resize((W, H), Image.LANCZOS)
+        return fr.convert('RGBA')
+
+    def frame(self, t):
+        if t < self.t_cta:
+            return self._base_frame(self.base_t(t))
+        return self._card(t - self.t_cta)
+
+    # ---------- карточка-призыв ----------
+    def _layers(self):
+        if self._lay is not None:
+            return self._lay
+        from PIL import ImageFilter
+        src = self._base_frame(self.base_t(self.t_cta - 1e-3)).convert('RGB')
+        bg = src.resize((W // 6, H // 6), Image.BILINEAR).filter(ImageFilter.GaussianBlur(4)).resize((W, H), Image.BILINEAR)
+        bg = Image.eval(bg, lambda v: int(v * 0.3)).convert('RGBA')
+        acc = self.fav.c1 if self.fav is not None else (255, 196, 64)
+        bg.alpha_composite(radial(W, H, acc, a0=70, power=2.3))
+        L = dict(bg=bg, acc=acc)
+        pick = lines(self.pick.upper(), 'mont', 64, 780, SH_INK, 900, gap=0.1, max_lines=3)
+        if self.card == 'protocol':
+            sw = 900
+            sh = 240 + (170 if self.fav is not None else 0) + pick.height + 95 + 190   # лист по содержимому, внизу — место штампу
+            sheet = rrect(sw, sh, 34, SH_PAPER)
+            for y in range(150, sh - 60, 64):                 # линовка протокола
+                sheet.alpha_composite(Image.new('RGBA', (sw - 120, 2), (24, 27, 36, 26)), (60, y))
+            put(sheet, text(self.head, 'mono', 40, (90, 96, 110), 800, track=0.04, max_w=sw - 120), sw / 2, 80)
+            put(sheet, text('ПРОГНОЗ JARVIS:', 'mont', 38, (120, 126, 140), 900, track=0.12), sw / 2, 190)
+            y = 240
+            if self.fav is not None:
+                e = self.fav.emb(150)
+                put(sheet, e, sw / 2, y + 75)
+                y += 170
+            put(sheet, pick, sw / 2, y + pick.height / 2)
+            sy = y + pick.height + 95
+            res, dash = text('ИТОГ:', 'mont', 64, SH_INK, 900), text('__ : __', 'mont', 80, SH_RED, 900)
+            x0 = (sw - res.width - 40 - dash.width) / 2
+            put(sheet, res, x0 + res.width / 2, sy)
+            blank = sheet.copy()                              # черточки мигают, двоеточие стоит
+            put(blank, text(':', 'mont', 80, SH_RED, 900), x0 + res.width + 40 + dash.width / 2, sy - 6)
+            put(sheet, dash, x0 + res.width + 40 + dash.width / 2, sy)
+            L['sheets'] = [with_shadow(sheet, 28, 0.55, 16), with_shadow(blank, 28, 0.55, 16)]
+            st = text('ПРОВЕРИМ', 'unb', 70, SH_RED, 900, track=0.06)
+            box = rrect(st.width + 70, st.height + 54, 18, (0, 0, 0), a=0, outline=SH_RED, width=9)
+            put(box, st, box.width / 2, box.height / 2)
+            L['stamp'] = rotate(box, 11)
+            L['t1'] = text('СОХРАНИ.', 'mont', 96, (255, 255, 255), 900, track=0.02)
+            L['t2'] = text('После матча впишем счёт', 'mont', 52, (236, 241, 250), 800, max_w=W - 160)
+            L['mark'] = _bookmark(70, 96, (255, 196, 64))
+        else:
+            words = self.cta.split(', ', 1)
+            L['t1'] = text(words[0] + (',' if len(words) > 1 else ''), 'mont', 88, (255, 255, 255), 900, max_w=W - 140)
+            L['t2'] = lines(words[1] if len(words) > 1 else '', 'mont', 88, W - 140, (255, 214, 90), 900,
+                            gap=0.1, max_lines=2)
+            pw = 920
+            ph = pick.height + 120 + (190 if self.fav is not None else 0)
+            plate = rrect(pw, ph, 36, SH_PAPER)
+            y = 60
+            if self.fav is not None:
+                put(plate, self.fav.emb(160), pw / 2, y + 80)
+                y += 190
+            put(plate, pick, pw / 2, y + pick.height / 2)
+            L['plate'] = with_shadow(plate, 26, 0.5, 14)
+            L['plane'] = glow(_plane(150), 14, 1.2, (255, 255, 255))
+        self._lay = L
+        return L
+
+    def _card(self, c):
+        L = self._layers()
+        fr = L['bg'].copy()
+        k = out_expo(seg(c, 0.0, 0.35))                    # въезд снизу за 0,35 с
+        ka = clamp(c / 0.12)
+        cy = (SAFE_TOP + SAFE_BOT) / 2
+        if self.card == 'protocol':
+            put(fr, L['t1'], W / 2, SAFE_TOP + 70, a=ka)
+            put(fr, L['t2'], W / 2, SAFE_TOP + 160, a=ka)
+            hop = math.sin(math.pi * seg(c, 0.35, 0.75)) * 46   # закладка подпрыгивает один раз
+            put(fr, L['mark'], W / 2 + L['t1'].width / 2 + 70, SAFE_TOP + 66 - hop, a=ka)
+            sheet = L['sheets'][int(c / 0.3) % 2]
+            put(fr, sheet, W / 2, lerp(H + sheet.height / 2, cy + 110, k))
+            ts = self.g                                       # штамп — на долю трека
+            if c >= ts:
+                s = 1.0 + 0.7 * (1 - out_cubic(seg(c, ts, ts + 0.16)))
+                put(fr, scale(L['stamp'], s), W / 2 + 170, cy + 110 + sheet.height / 2 - 110, a=clamp((c - ts) / 0.08))
+        else:
+            put(fr, L['t1'], W / 2, SAFE_TOP + 90, a=ka)
+            put(fr, L['t2'], W / 2, SAFE_TOP + 110 + L['t1'].height / 2 + 30 + L['t2'].height / 2, a=ka)
+            put(fr, L['plate'], W / 2, lerp(H + L['plate'].height / 2, cy + 230, k))
+            f = seg(c, 0.25, 0.85)                            # самолётик пролетает за 0,6 с
+            if 0 < f < 1:
+                x, y = lerp(-120, W + 140, f), lerp(cy + 520, SAFE_TOP + 330, f) - 120 * math.sin(math.pi * f)
+                for j in range(1, 6):                         # след
+                    ff = max(0.0, f - j * 0.035)
+                    tx, ty = lerp(-120, W + 140, ff), lerp(cy + 520, SAFE_TOP + 330, ff) - 120 * math.sin(math.pi * ff)
+                    put(fr, ellipse(14, 14, (255, 255, 255)), tx - 50, ty + 30, a=0.5 * (1 - j / 6))
+                put(fr, L['plane'], x, y)
+        return fr
+
+
+class Loop:
+    """Последние xf секунд ролика перетекают в его первый кадр — ролик закольцован (повторный просмотр без шва).
+    Остальное (dur, drop, intro, short…) — от обёрнутого ролика."""
+
+    def __init__(self, base, xf=SH_LOOP):
+        self.__dict__.update(base_=base, xf=xf, _first=None)
+
+    def __getattr__(self, k):
+        if k == 'base_':
+            raise AttributeError(k)
+        return getattr(self.base_, k)
+
+    def frame(self, t):
+        fr = self.base_.frame(t)
+        x = seg(t, self.dur - self.xf, self.dur)
+        if x <= 0:
+            return fr
+        if self._first is None:
+            f0 = self.base_.frame(0.0)
+            self.__dict__['_first'] = (f0 if f0.size == (W, H) else f0.resize((W, H), Image.LANCZOS)).convert('RGB')
+        if fr.size != (W, H):
+            fr = fr.resize((W, H), Image.LANCZOS)
+        return Image.blend(fr.convert('RGB'), self._first, x)
 
 
 # Поле по краям (владелец 18.10: на телефоне картинка «тютелька в тютельку», как будто чуть больше кадра):
