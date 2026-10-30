@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="ru" data-sport="hockey">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Хоккей — прогнозы JARVIS (макет v3a)</title>
+<meta name="description" content="Прогнозы на КХЛ и НХЛ по собственной модели: пост на каждый матч, итоги по месяцам — все, и минусы. Макет, пример данных.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#eceee8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="stylesheet" href="../assets/v3a.css">
+<style>
+.leagues.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.leagues.two a{grid-template-columns:96px 1fr;column-gap:22px;align-items:center;padding:28px clamp(18px,2.4vw,34px)}
+.leagues.two img{width:96px;height:96px;margin:0;grid-row:span 4}
+.leagues.two h3{font-size:clamp(34px,3.4vw,52px);text-transform:uppercase;font-weight:800}
+@media (max-width:620px){.leagues.two{grid-template-columns:1fr}.leagues.two a{grid-template-columns:64px 1fr}.leagues.two img{width:64px;height:64px}}
+.trends{margin-top:2px}
+.trends b{display:block;font:800 clamp(44px,4.4vw,68px)/.9 var(--display);color:var(--sport);font-variant-numeric:tabular-nums;margin-bottom:8px}
+.trends h3{font-size:20px}
+.table.wide td{font-size:17px}
+.table.wide .ra{width:76px}
+#honest .honest{grid-template-columns:minmax(0,.75fr) minmax(0,1.7fr)}
+@media (max-width:980px){#honest .honest{grid-template-columns:1fr}}
+.kt{position:relative;height:16px;display:block}.kt span{position:absolute;transform:translateX(-50%)}.kt span:first-child{transform:none}.kt span:last-child{transform:translateX(-100%)}
+.simbars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end;height:200px;margin:8px 0 14px}
+.simbars div{display:grid;grid-template-rows:auto 1fr auto;height:100%;text-align:center;gap:6px;font:600 15px/1 var(--display)}
+.simbars b{font:800 32px/1 var(--display);font-variant-numeric:tabular-nums}
+.simbars em{display:flex;align-items:flex-end;background:var(--paper-2);border-radius:3px;overflow:hidden}
+.simbars em i{display:block;width:100%;height:var(--h,0%);background:var(--ink-3);transition:height .5s var(--out)}
+.simbars .pk em i{background:var(--sport)}
+.simbars .pk b{color:var(--sport)}
+</style>
+</head>
+<body data-field="hockey">
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="../index.html" aria-label="JARVIS, на главную">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="index.html" aria-current="page">Хоккей</a>
+      <a href="../football/index.html">Футбол</a>
+    </nav>
+    <nav class="nav" aria-label="Разделы">
+      <a href="#matches">Матчи</a><a href="#leagues">Лиги</a><a href="#power">Сила</a><a href="#model">Модель</a><a href="#honest">Итоги</a><a href="#faq">Вопросы</a>
+    </nav>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Telegram</span></a>
+  </div>
+</header>
+<div class="ticker" id="ticker" aria-label="Матчи и итоги, бегущая строка"></div>
+
+<main id="main">
+<section class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <h1><span class="ln"><span>Хоккей:</span></span><span class="ln" style="--i:1"><span>КХЛ и НХЛ</span></span></h1>
+      <div data-rv>
+        <p class="lead">Прогноз на каждый матч от собственной модели. КХЛ днём, НХЛ ночью по Москве. Итоги — все, и минусы.</p>
+        <div class="hero-cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть @jarvibet</a><a class="btn btn-line" href="#matches">Матчи дня</a></div>
+        <ul class="facts" aria-label="Коротко">
+          <li><b class="num" data-count="153">153</b><span>прогноза в октябре</span></li>
+          <li><b class="num"><span data-count="72">72</span>&thinsp;%</b><span>зашло в октябре</span></li>
+          <li><b class="num" data-count="2">2</b><span>лиги</span></li>
+        </ul>
+        <ul class="chips" aria-label="Лиги"><li><a href="#lg-khl"><img src="../assets/lg/khl.svg" alt="" width="24" height="24">КХЛ</a></li><li><a href="#lg-nhl"><img src="../assets/lg/nhl.svg" alt="" width="24" height="24">НХЛ</a></li></ul>
+      </div>
+    </div>
+    <div data-rv>
+      <div class="board" id="board" aria-label="Табло: прогноз дня">
+        <div class="board-top"><span><i class="lamp"></i><b id="bhead">Прогноз дня</b></span><span id="bdate"></span></div>
+        <div class="brows"></div>
+        <div class="board-foot"><p class="note">Пример данных. Прогноз КХЛ выходит в канале до 08:00 МСК, НХЛ — до 14:00.</p><div class="pager" id="pager" aria-label="Другие прогнозы дня"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="matches">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Сегодня на льду</h2><p>Матчи дня КХЛ и НХЛ. Нажми на строку: почему ставка, кэфы и вероятность по модели. <span class="sample">Пример данных</span></p></div>
+    <div class="tabs" role="tablist" id="ltabs" aria-label="Фильтр по лигам"></div>
+    <ul class="mlist" id="mlist"></ul>
+    <a class="btn btn-ink more" href="https://t.me/jarvibet" target="_blank" rel="noopener">Все прогнозы дня — в канале</a>
+  </div>
+</section>
+
+<section class="sec" id="leagues">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Лиги и клубы</h2><p>Две лиги, одна модель. КХЛ — днём и вечером, НХЛ — ночью: ночные матчи собраны в один игровой день.</p></div>
+    <ul class="leagues two" id="flags" data-rv></ul>
+    <div class="wall" id="wall" data-rv></div>
+    <p class="note">Эмблемы — собственность клубов, показаны для навигации.</p>
+  </div>
+</section>
+
+<section class="sec" id="power">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Сила команд</h2><p>Рейтинг Эло — сила команды одним числом. Пересчитывается после каждого матча: победа над сильным стоит больше, чем над слабым.</p></div>
+    <div class="power">
+      <div data-rv><div class="pbars" id="pbars"></div><p class="note" style="margin-top:18px">КХЛ, рейтинг и изменение за последний матч. Пример данных.</p></div>
+      <div data-rv><h3 style="margin-bottom:14px">Что заходит у команд</h3>
+        <table class="table wide" id="hits"><thead><tr><th>Команда</th><th class="ra">Победа</th><th class="ra">ТБ 5,5</th><th class="ra">ТМ 5,5</th><th class="ra">ОТ</th></tr></thead><tbody></tbody></table>
+        <p class="note" style="margin-top:14px">Как часто у команды случается событие за сезон. Пример данных.</p></div>
+    </div>
+    <div class="twins trends" data-rv style="margin-top:clamp(32px,4vw,56px)">
+      <div><b class="num">7 из 10</b><h3>Трактор: тотал больше 5,5</h3><p>в последних играх</p></div>
+      <div><b class="num">8 из 11</b><h3>Колорадо забивает первым</h3><p>дома</p></div>
+      <div><b class="num">4 из 9</b><h3>Сибирь: матчи до овертайма</h3><p>Тренды — в мини-приложении в Telegram.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="model">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Как думает модель</h2><p>До матча модель разыгрывает его тысячи раз. Ставка — только там, где расчёт и линия сходятся.</p></div>
+    <ol class="steps" data-rv>
+      <li><h3>Форма</h3><p>Последние игры, сила атаки и обороны, место в таблице. Броски в створ и шайбы сверх ожидания — поправка на игру.</p></li>
+      <li><h3>Линия</h3><p>Кэфы рынка сравниваются с вероятностью модели. Где модель и рынок расходятся сильно — ставки нет.</p></li>
+      <li><h3>Выбор</h3><p>Самое вероятное событие в коридоре кэфов 1,6–2,3. Остальные матчи — разбор без выбора.</p></li>
+    </ol>
+    <div class="lab" data-rv>
+      <div>
+        <h3>Почему 1,6–2,3</h3>
+        <div class="corr"><div class="track"><i></i></div><input id="k" type="range" min="1.2" max="3.2" step="0.05" value="1.85" aria-label="Коэффициент"><span class="puck" id="puck"></span></div>
+        <div class="ticks kt"><span style="left:0">1,2</span><span style="left:20%">1,6</span><span style="left:55%">2,3</span><span style="left:100%">3,2</span></div>
+        <p class="kout" id="kout" aria-live="polite"></p>
+      </div>
+      <div>
+        <h3 id="simh">10 000 розыгрышей: Ак Барс — Локомотив</h3>
+        <div class="simbars" id="simbars"></div>
+        <button class="btn btn-line" type="button" id="again">Разыграть ещё раз</button>
+        <p class="note">Пример расчёта для матча-примера.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="honest">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Честные итоги</h2><p>Каждое утро в канале — итоги вчерашних матчей, и зашедшие, и нет. У каждого прогноза номер поста: любой можно проверить.</p></div>
+    <div class="honest">
+      <div data-rv>
+        <div class="headline-num"><span class="g"><span data-count="72">72</span>&thinsp;%</span></div>
+        <p class="honest-cap">Октябрь: 153 прогноза, 108 зашли, 42 нет, 3 возврата. Сентябрь: 25 прогнозов, 21 зашёл.</p>
+      </div>
+      <div class="months" id="months" data-rv style="margin-top:0"></div>
+    </div>
+  </div>
+</section>
+
+<section class="sub" id="subscribe">
+  <div class="wrap" data-rv>
+    <div><h2>Все прогнозы&nbsp;— в Telegram</h2>
+      <div class="cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Подписаться на @jarvibet</a><a class="btn btn-line" href="https://t.me/jarvibet" target="_blank" rel="noopener">Мини-приложение</a></div></div>
+    <ul>
+      <li><b>Пост на каждый матч</b><span>КХЛ — до 08:00 МСК, НХЛ — до 14:00, с кэфом и вероятностью.</span></li>
+      <li><b>Ролики и тренды</b><span>Матчи дня, сила команд и тренды — прямо в Telegram, без установки.</span></li>
+      <li><b>Итоги утром</b><span>Все прогнозы подряд, с номером поста и счётом матча.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="sec" id="faq">
+  <div class="wrap faq">
+    <div data-rv><h2>Вопросы</h2>
+      <div class="swap"><p>Футбол — топ-лиги Европы и Лига чемпионов, та же модель и те же честные итоги.</p><a class="btn btn-ink" href="../football/index.html">Прогнозы на футбол</a></div></div>
+    <div data-rv>
+      <details><summary>Это платно?</summary><p>Нет. Прогнозы, итоги и ролики в Telegram-канале @jarvibet бесплатные.</p></details>
+      <details><summary>Где посмотреть итоги?</summary><p>Каждое утро в канале и на сайте в разделе «Итоги»: все прогнозы подряд, с номером поста и счётом.</p></details>
+      <details><summary>Что такое «ВЫБОР»?</summary><p>Ставка, у которой модель даёт от 60 % при кэфе от 1,6. Остальные матчи — разбор без выбора.</p></details>
+      <details><summary>Почему кэф 1,6–2,3?</summary><p>Ниже — мало смысла рисковать, выше — больше случайности, чем расчёта.</p></details>
+      <details><summary>Когда выходят прогнозы?</summary><p>КХЛ — до 08:00 по Москве, НХЛ — до 14:00. Ночные матчи НХЛ собраны в один игровой день.</p></details>
+      <p class="legal">18+. Аналитика, а не призыв делать ставки. Выигрыш не гарантирован.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="plate" aria-hidden="true">Jarvis</p>
+    <div class="fcols">
+      <nav aria-label="Подвал"><a href="../index.html">Главная</a><a href="../football/index.html">Футбол</a><a href="#matches">Матчи</a><a href="#honest">Итоги</a><a href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a></nav>
+      <p>Макет v3a · пример данных · © JARVIS, @jarvibet</p>
+    </div>
+  </div>
+</footer>
+<a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Прогнозы дня — в Telegram</span><span aria-hidden="true">›</span></a>
+
+<script src="../assets/v3a.js"></script>
+<script>
+/* ПРИМЕРНЫЕ ДАННЫЕ (макет, как в v2: __TODAY, __RES, __MONTHS). На сайте их подставит build.py. Время — от «сейчас». */
+(()=>{
+ const two=n=>String(n).padStart(2,'0'),base=Math.ceil(Date.now()/6e5)*6e5;
+ const at=min=>{const d=new Date(base+min*6e4+3*3600e3);return `${d.getUTCFullYear()}-${two(d.getUTCMonth()+1)}-${two(d.getUTCDate())} ${two(d.getUTCHours())}:${two(d.getUTCMinutes())}`};
+ const M=(o,min)=>{o.t=at(min);return o};
+ window.__HTODAY=[
+  M({lg:'khl',a:'СКА',b:'ЦСКА',p:'Тотал больше 4,5',sp:'ТБ 4,5',k:'1.70',y:'Обе команды забивают в среднем больше трёх за игру',x:[2.25,4.1,2.6],pr:.56},90),
+  M({lg:'khl',a:'Ак Барс',b:'Локомотив',p:'Победа Локомотива',sp:'П2',k:'1.85',y:'Локомотив выиграл 2 из 3 последних',x:[2.10,4.20,1.85],pr:.58},190),
+  M({lg:'khl',a:'Сибирь',b:'Трактор',p:'Победа Трактора',sp:'П2',k:'1.95',y:'Трактор выше в таблице и в лучшей форме',x:[2.9,4.3,1.95],pr:.55},200),
+  M({lg:'nhl',a:'Бостон',b:'Торонто',p:'Победа Бостона',sp:'П1',k:'1.75',y:'Бостон дома, три победы подряд',x:[1.75,4.4,3.3],pr:.57},560),
+  M({lg:'nhl',a:'Колорадо',b:'Даллас',p:'Тотал больше 5,5',sp:'ТБ 5,5',k:'1.90',y:'Две самые результативные команды дивизиона',x:[2.0,4.3,2.7],pr:.54},620),
+  M({lg:'nhl',a:'Вегас',b:'Эдмонтон',p:'Победа Эдмонтона',sp:'П2',k:'2.05',y:'Эдмонтон набрал очки в последних 3 играх',x:[2.4,4.2,2.05],pr:.52},740)];
+ window.__RES=[{t:'Нэшвилл — Колорадо',b:'ТБ 5,5',ok:true},{t:'Рейнджерс — Лос-Анджелес',b:'ИТБ Рейнджерс 2,5',ok:true},{t:'Калгари — Торонто',b:'ТБ 5,5',ok:true},
+  {t:'Каролина — Бостон',b:'Ф2 +1,5',ok:true},{t:'Чикаго — Лос-Анджелес',b:'ИТБ Лос-Анджелеса 2,5',ok:false},{t:'Сибирь — Металлург',b:'П2',ok:false},
+  {t:'Нефтехимик — Адмирал',b:'ТБ 4,5',ok:true},{t:'Каролина — Коламбус',b:'П1',ok:true},{t:'Сент-Луис — Бостон',b:'ИТБ Бостона 2,5',ok:false}];
+ window.__MONTHS=[
+  {name:'Сентябрь',n:25,w:21,l:4,p:0,rows:[
+   {d:'07.09',lg:'КХЛ',h:'Нефтехимик',a:'Сочи',bet:'Победа Нефтехимика в основное время',kef:1.72,sc:'5:1',r:'w'},
+   {d:'08.09',lg:'КХЛ',h:'Барыс',a:'Салават Юлаев',bet:'Победа Салавата Юлаева в основное время',kef:1.75,sc:'8:6',r:'l'},
+   {d:'10.09',lg:'КХЛ',h:'Нефтехимик',a:'Автомобилист',bet:'Нефтехимик не проиграет в основное время',kef:1.82,sc:'3:1',r:'w'},
+   {d:'11.09',lg:'КХЛ',h:'Лада',a:'Торпедо',bet:'Индивидуальный тотал Торпедо больше 2,5',kef:1.75,sc:'2:7',r:'w'}]},
+  {name:'Октябрь',n:153,w:108,l:42,p:3,rows:[
+   {d:'29.10',lg:'КХЛ',h:'Сибирь',a:'Металлург',bet:'Победа Металлурга в основное время',kef:1.68,sc:'5:2',r:'l'},
+   {d:'29.10',lg:'КХЛ',h:'Северсталь',a:'Спартак',bet:'Итоговая победа Спартака',kef:1.77,sc:'3:2 Б',r:'l'},
+   {d:'29.10',lg:'КХЛ',h:'Нефтехимик',a:'Адмирал',bet:'Тотал матча больше 4,5',kef:1.65,sc:'3:4',r:'w'},
+   {d:'30.10',lg:'НХЛ',h:'Каролина',a:'Коламбус',bet:'Победа Каролины в основное время',kef:1.68,sc:'3:2',r:'w'},
+   {d:'30.10',lg:'НХЛ',h:'Сент-Луис',a:'Бостон',bet:'Индивидуальный тотал Бостона больше 2,5',kef:1.75,sc:'4:1',r:'l'},
+   {d:'30.10',lg:'НХЛ',h:'Лос-Анджелес',a:'Оттава',bet:'Итоговая победа Оттавы',kef:1.92,sc:'6:5 ОТ',r:'l'}]}];
+ window.__ELO=[['Локомотив',1612,14],['СКА',1598,6],['Ак Барс',1571,-4],['ЦСКА',1560,9],['Трактор',1534,-11],['Сибирь',1488,3]];
+ window.__HITS=[['Локомотив',68,41,59,18],['СКА',63,61,39,22],['Ак Барс',55,50,50,25],['Трактор',48,66,34,15],['Сибирь',36,45,55,29]];
+})();
+</script>
+<script>
+(()=>{
+const {esc,f1,pc,plural,RM}=JV;
+const LG={khl:{name:'КХЛ',full:'Континентальная хоккейная лига',when:'днём и вечером по Москве'},nhl:{name:'НХЛ',full:'Национальная хоккейная лига',when:'ночью по Москве'}};
+const LGI=id=>`../assets/lg/${id}.svg`;
+const EM={'СКА':'ska','ЦСКА':'cska','Ак Барс':'akbars','Локомотив':'lokomotiv','Сибирь':'sibir','Трактор':'traktor','Бостон':'nhl_bos','Торонто':'nhl_tor','Колорадо':'nhl_col','Даллас':'dallas','Вегас':'nhl_vgk','Эдмонтон':'nhl_edm'};
+const crest=n=>EM[n]?`../assets/em/${EM[n]}.webp`:LGI('khl');
+const D=window.__HTODAY;
+const cnt=id=>D.filter(m=>m.lg===id).length;
+const chev='<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5l5 5 5-5"/></svg>';
+const line=m=>{const inv=m.x.map(k=>1/k),s=inv.reduce((a,b)=>a+b);return inv.map(v=>v/s)};
+
+JV.ticker(document.getElementById('ticker'),[
+ ...[...D].sort((a,b)=>a.t<b.t?-1:1).map(m=>`<time>${m.t.slice(11)}</time><img src="${LGI(m.lg)}" alt="">${LG[m.lg].name}: ${esc(m.a)} — ${esc(m.b)} <span class="k">${esc(m.sp)} ${m.k.replace('.',',')}</span>`),
+ ...window.__RES.map(r=>`Вчера: ${esc(r.t)}, ${esc(r.b)} <span class="${r.ok?'ok':'no'}">${r.ok?'зашла':'не зашла'}</span>`)]);
+
+/* табло */
+const picks=[...D].sort((a,b)=>b.pr-a.pr).slice(0,4);
+const bd=JV.board(document.getElementById('board'),[{label:'Лига'},{label:'Хозяева'},{label:'Гости'},{label:'Ставка'},{label:'По модели',n:4,cls:'big gold'},{label:'До матча',n:8,cls:'big'}]);
+document.getElementById('bdate').textContent=new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+let cur=0,timer=0,shown=false;const pager=document.getElementById('pager');
+pager.innerHTML=picks.map((m,i)=>`<button type="button" aria-pressed="${i===0}" aria-label="${esc(m.a)} — ${esc(m.b)}"></button>`).join('');
+function show(i){cur=i;shown=true;const m=picks[i];
+ document.getElementById('bhead').textContent=i===0?'Прогноз дня':`Ещё прогноз, ${i+1} из ${picks.length}`;
+ pager.querySelectorAll('button').forEach((b,j)=>b.setAttribute('aria-pressed',j===i));
+ bd.set([`${LG[m.lg].name} ${m.t.slice(11)}`,m.a,m.b,`${m.sp}  ${m.k.replace('.',',')}`,Math.round(m.pr*100)+'%',JV.hms(JV.left(m.t))])}
+pager.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;show([...pager.children].indexOf(b));restart()});
+function restart(){clearInterval(timer);if(!RM)timer=setInterval(()=>show((cur+1)%picks.length),9000)}
+const boardEl=document.getElementById('board');
+boardEl.addEventListener('mouseenter',()=>clearInterval(timer));boardEl.addEventListener('mouseleave',restart);
+const bio=new IntersectionObserver(es=>{if(es[0].isIntersecting){show(0);restart();bio.disconnect()}});bio.observe(boardEl);
+
+/* матчи */
+const ltabs=document.getElementById('ltabs'),list=document.getElementById('mlist');
+ltabs.innerHTML=`<button class="tab" role="tab" aria-selected="true" data-l="all">Все <span class="c">${D.length}</span></button>`+
+ Object.entries(LG).map(([id,l])=>`<button class="tab" role="tab" aria-selected="false" data-l="${id}"><img src="${LGI(id)}" alt="">${l.name} <span class="c">${cnt(id)}</span></button>`).join('');
+function row(m){const L=LG[m.lg],ln=line(m),mx=Math.max(...ln);
+ return `<li class="match"><button class="mhead" type="button" aria-expanded="false">
+  <div class="mt"><time>${m.t.slice(11)}</time><span class="cd" data-t="${m.t}"></span></div>
+  <div><div class="lgline"><img src="${LGI(m.lg)}" alt="">${L.name}</div><div class="teams"><div class="team"><img src="${crest(m.a)}" alt="" loading="lazy"><span>${esc(m.a)}</span></div><div class="team"><img src="${crest(m.b)}" alt="" loading="lazy"><span>${esc(m.b)}</span></div></div></div>
+  <div class="probs">${['П1','Х','П2'].map((k,j)=>`<div class="pr ${ln[j]===mx?'top':''}"><span>${k}</span><em><i style="--w:${pc(ln[j])}"></i></em><b>${pc(ln[j])}</b></div>`).join('')}<div class="note" style="font-size:12px;font-family:var(--display)">линия рынка без маржи</div></div>
+  <div class="mpick"><span class="badge">Прогноз</span><strong>${esc(m.p)}</strong><span class="k">${m.k.replace('.',',')}</span></div>
+  <span class="chev">${chev}</span></button>
+  <div class="mbody"><div><dl class="mdet">
+   <div><dt>Почему</dt><dd>${esc(m.y)}</dd></div>
+   <div><dt>Кэфы П1 · Х · П2</dt><dd class="num">${m.x.map(v=>f1(v,2)).join(' · ')}</dd></div>
+   <div><dt>По модели</dt><dd class="num" style="font:800 28px/1 var(--display)">${Math.round(m.pr*100)} %</dd><dd class="note" style="margin-top:6px">Пост выходит в канале до матча, с номером.</dd></div>
+  </dl></div></div></li>`}
+function render(l){const sel=(l==='all'?D:D.filter(m=>m.lg===l)).slice().sort((a,b)=>a.t<b.t?-1:1);
+ ltabs.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.l===l));
+ list.innerHTML=sel.map(row).join('');
+ list.querySelectorAll('.match').forEach(li=>{const b=li.querySelector('.mhead');b.addEventListener('click',()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o)})});
+ if(!RM)list.querySelectorAll('.match').forEach((li,i)=>li.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:i*55,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}));
+ requestAnimationFrame(()=>list.querySelectorAll('.match').forEach(li=>li.classList.add('in')));tick()}
+function tick(){document.querySelectorAll('.cd[data-t]').forEach(e=>e.textContent=JV.inMin(JV.left(e.dataset.t)));if(shown)bd.tick(5,JV.hms(JV.left(picks[cur].t)))}
+ltabs.addEventListener('click',e=>{const t=e.target.closest('.tab');if(t)render(t.dataset.l)});
+render('all');setInterval(tick,1000);
+
+/* лиги и клубы */
+document.getElementById('flags').innerHTML=Object.entries(LG).map(([id,l])=>{const n=cnt(id);
+ return `<li><a id="lg-${id}" href="#matches" data-lg="${id}"><img src="${LGI(id)}" alt=""><h3>${l.name}</h3><p>${l.full}</p><span class="nt">Матчи ${l.when}</span><span class="cnt">${n} ${plural(n,'матч','матча','матчей')} сегодня</span></a></li>`}).join('');
+document.getElementById('flags').addEventListener('click',e=>{const a=e.target.closest('a[data-lg]');if(a)render(a.dataset.lg)});
+document.getElementById('wall').innerHTML=Object.keys(EM).map(n=>{const lg=EM[n].startsWith('nhl')||n==='Даллас'?'nhl':'khl';return `<a class="crest" href="#lg-${lg}" title="${esc(n)} · ${LG[lg].name}"><img src="${crest(n)}" alt="" loading="lazy"><span>${esc(n)}</span></a>`}).join('');
+
+/* сила команд */
+const lo=1440,hi=1640;
+document.getElementById('pbars').innerHTML=window.__ELO.map(([n,v,d],i)=>`<div class="pbar"><span>${esc(n)}</span><em><i style="--w:${((v-lo)/(hi-lo)*100).toFixed(1)}%;--d:${i*80}ms"></i></em><b>${v}</b></div>`).join('')+
+ `<p class="note" style="margin:0">${window.__ELO.map(([n,v,d])=>`${n} ${d>0?'+':'−'}${Math.abs(d)}`).join(', ')}</p>`;
+document.querySelector('#hits tbody').innerHTML=window.__HITS.map(([n,...v])=>`<tr><td style="width:auto;font:600 18px/1.2 var(--display);color:var(--ink)"><span class="cl"><img src="${crest(n)}" alt="">${esc(n)}</span></td>${v.map(x=>`<td class="ra">${x}%</td>`).join('')}</tr>`).join('');
+
+/* коридор кэфа */
+const k=document.getElementById('k'),ko=document.getElementById('kout'),puck=document.getElementById('puck');
+const kv=()=>{const v=+k.value,p=(v-1.2)/2;puck.style.left=(p*100)+'%';
+ ko.innerHTML=`<b>${f1(v,2)}</b> — ≈ ${Math.round(100/v)} % по линии. `+(v<1.6?'Слишком низкий кэф: рисковать ради такого нет смысла.':v<=2.3?'Рабочий коридор модели.':'Слишком высокий кэф: больше случайности, чем расчёта.')};
+k.addEventListener('input',kv);kv();
+
+/* 10 000 розыгрышей: П1 26 %, Х 16 %, П2 58 % — пример как в v2 */
+const sb=document.getElementById('simbars');
+function sim(n){const c=[0,0,0];for(let i=0;i<n;i++){const r=Math.random();c[r<.26?0:r<.42?1:2]++}return c.map(v=>v/n)}
+function showSim(r){sb.innerHTML=['П1','Х','П2'].map((l,i)=>`<div class="${i===2?'pk':''}"><b>${pc(r[i])}</b><em><i style="--h:0%"></i></em><span>${l}</span></div>`).join('');
+ requestAnimationFrame(()=>requestAnimationFrame(()=>sb.querySelectorAll('i').forEach((el,i)=>el.style.setProperty('--h',(r[i]*100/0.7).toFixed(1)+'%'))))}
+const simIO=new IntersectionObserver(es=>{if(es[0].isIntersecting){showSim(sim(10000));simIO.disconnect()}});simIO.observe(sb);
+document.getElementById('again').addEventListener('click',()=>{if(RM){showSim(sim(10000));return}let n=0;const iv=setInterval(()=>{const r=sim(300);sb.querySelectorAll('div').forEach((d,i)=>{d.querySelector('b').textContent=pc(r[i]);d.querySelector('i').style.setProperty('--h',(r[i]*100/0.7).toFixed(1)+'%')});if(++n>8){clearInterval(iv);const f=sim(10000);sb.querySelectorAll('div').forEach((d,i)=>{d.querySelector('b').textContent=pc(f[i]);d.querySelector('i').style.setProperty('--h',(f[i]*100/0.7).toFixed(1)+'%')})}},80)});
+
+/* месяцы */
+document.getElementById('months').innerHTML=window.__MONTHS.map(m=>`<div><h3>${m.name}</h3>
+ <div class="q num" style="font:800 40px/1 var(--display);margin:10px 0 4px">${m.w}<span style="color:var(--ink-3);font-size:.6em"> из ${m.n}</span></div>
+ <p class="note" style="margin:0">зашли · ${m.l} нет${m.p?` · ${m.p} ${plural(m.p,'возврат','возврата','возвратов')}`:''}</p>
+ <ul class="posts">${m.rows.slice(-4).map(r=>`<li><span class="d">${r.d}</span><span>${esc(r.h)} — ${esc(r.a)}, ${r.sc}<br><span class="note">${esc(r.bet)} · ${f1(r.kef,2)}</span></span><span class="res ${r.r}">${r.r==='w'?'зашла':'нет'}</span></li>`).join('')}</ul></div>`).join('');
+})();
+</script>
+</body>
+</html>

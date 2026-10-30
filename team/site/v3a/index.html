@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JARVIS — прогнозы на хоккей и футбол (макет v3a)</title>
+<meta name="description" content="Прогнозы на КХЛ, НХЛ и топ-лиги Европы по собственной модели. Итоги — все, и минусы. Макет, пример данных.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#eceee8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="stylesheet" href="assets/v3a.css">
+<style>
+.door .board .brow>span{min-width:0}
+.door .lgs{display:flex;flex-wrap:wrap;gap:6px}
+.door .lgs img{width:30px;height:30px}
+.door .hint{font:600 15px/1.2 var(--display);color:var(--ink-3)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--ink)}
+.duo>div{background:var(--paper);padding:clamp(22px,3vw,40px)}
+.duo .headline-num{font-size:clamp(72px,9vw,150px)}
+.duo p{max-width:40ch}
+@media (max-width:860px){.duo{grid-template-columns:1fr}}
+</style>
+</head>
+<body data-field="mix">
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="index.html" aria-label="JARVIS, главная">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="hockey/index.html">Хоккей</a>
+      <a href="football/index.html">Футбол</a>
+    </nav>
+    <nav class="nav" aria-label="Разделы"><a href="#fork">Выбор поля</a><a href="#model">Модель</a><a href="#honest">Итоги</a><a href="#faq">Вопросы</a></nav>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Telegram</span></a>
+  </div>
+</header>
+<div class="ticker" id="ticker" aria-label="Матчи дня, бегущая строка"></div>
+
+<main id="main">
+<section class="mast">
+  <div class="wrap">
+    <div class="mast-line"><span id="today">Сегодня</span><span>Матч-центр JARVIS · пример данных</span></div>
+    <h1><span class="ln"><span>Хоккей и футбол</span></span><span class="ln" style="--i:1"><span>в цифрах,</span></span><span class="ln" style="--i:2"><span>а не на эмоциях</span></span></h1>
+    <div data-rv><p class="lead">Прогноз на каждый матч от собственной модели. Итоги — все, и минусы. Выбери поле.</p></div>
+
+    <div class="fork" id="fork" data-rv>
+      <a class="door hk" href="hockey/index.html">
+        <h2>Хоккей</h2>
+        <div class="dl"><img src="assets/lg/khl.svg" alt="">КХЛ <img src="assets/lg/nhl.svg" alt="">НХЛ</div>
+        <p>КХЛ днём, НХЛ ночью по Москве. Пост на каждый матч.</p>
+        <div class="stat"><div><b class="num" data-count="6">6</b><span>матчей сегодня</span></div><div><b class="num"><span data-count="72">72</span>&thinsp;%</b><span>зашло в октябре</span></div></div>
+        <div class="board" id="bh"><div class="board-top"><span><i class="lamp"></i><b>Прогноз дня</b></span><span class="hint" style="color:#9d9a90">хоккей</span></div><div class="brows"></div></div>
+        <span class="go">В хоккей <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 10h13M11 4l6 6-6 6"/></svg></span>
+      </a>
+      <a class="door fb" href="football/index.html">
+        <h2>Футбол</h2>
+        <div class="lgs" aria-label="7 турниров"><img src="assets/lg/epl.svg" alt="АПЛ"><img src="assets/lg/laliga.svg" alt="Ла Лига"><img src="assets/lg/seriea.svg" alt="Серия А"><img src="assets/lg/bundesliga.svg" alt="Бундеслига"><img src="assets/lg/ligue1.svg" alt="Лига 1"><img src="assets/lg/portugal.svg" alt="Португалия"><img src="assets/lg/ucl.svg" alt="Лига чемпионов"></div>
+        <p>Топ-лиги Европы и Лига чемпионов. Проба с 30 октября.</p>
+        <div class="stat"><div><b class="num" data-count="6">6</b><span>матчей сегодня</span></div><div><b class="num" data-count="284">284</b><span>ставки в проверке</span></div></div>
+        <div class="board" id="bf"><div class="board-top"><span><i class="lamp"></i><b>Прогноз дня</b></span><span class="hint" style="color:#9d9a90">футбол</span></div><div class="brows"></div></div>
+        <span class="go">В футбол <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 10h13M11 4l6 6-6 6"/></svg></span>
+      </a>
+    </div>
+    <p class="note" style="margin-top:14px">Пример данных. Прогнозы выходят в канале: КХЛ — до 08:00 МСК, футбол — за 4–5 часов до матча.</p>
+  </div>
+</section>
+
+<section class="sec" id="model">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Как думает модель</h2><p>До матча модель разыгрывает его тысячи раз. Ставка — только там, где расчёт и линия сходятся.</p></div>
+    <ol class="steps" data-rv>
+      <li><h3>Форма</h3><p>Последние игры, сила атаки и обороны, место в таблице.</p></li>
+      <li><h3>Линия</h3><p>Кэфы рынка сравниваются с вероятностью модели.</p></li>
+      <li><h3>Выбор</h3><p>Самое вероятное событие в коридоре кэфов 1,6–2,3. В футболе — от 60 % по модели.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="sec" id="honest">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Честные итоги</h2><p>Каждое утро в канале — итоги вчерашних матчей, и зашедшие, и нет. У каждого прогноза номер поста: любой можно проверить.</p></div>
+    <div class="duo" data-rv>
+      <div><h3>Хоккей, октябрь</h3><div class="headline-num" style="margin-top:14px"><span class="g" style="color:var(--ice)"><span data-count="72">72</span>&thinsp;%</span></div><p>153 прогноза: 108 зашли, 42 нет, 3 возврата.</p><a class="btn btn-ink" href="hockey/index.html#honest">Итоги по хоккею</a></div>
+      <div><h3>Футбол: проба с 30.10</h3><div class="headline-num" style="margin-top:14px"><span>62,5</span><i>→</i><span class="g">60,9&thinsp;%</span></div><p>Реальные итоги покажем после двух недель пробы. Пока — как модель прошла проверку вслепую на сезоне 2025/26: обещано → зашло, 284 ставки.</p><a class="btn btn-ink" href="football/index.html#honest">Итоги по футболу</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="sub" id="subscribe">
+  <div class="wrap" data-rv>
+    <div><h2>Все прогнозы&nbsp;— в Telegram</h2>
+      <div class="cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Подписаться на @jarvibet</a></div></div>
+    <ul>
+      <li><b>Посты на каждый матч</b><span>С кэфом и вероятностью по модели.</span></li>
+      <li><b>Ролики</b><span>Матчи дня и тренды коротко.</span></li>
+      <li><b>Итоги дня</b><span>Все прогнозы подряд. Подписка бесплатная.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="sec" id="faq">
+  <div class="wrap faq">
+    <div data-rv><h2>Вопросы</h2></div>
+    <div data-rv>
+      <details><summary>Это платно?</summary><p>Нет. Прогнозы, итоги и ролики в Telegram-канале @jarvibet бесплатные.</p></details>
+      <details><summary>Где посмотреть итоги?</summary><p>Каждое утро в канале и здесь, в разделе «Итоги»: все прогнозы подряд, с номером поста и счётом матча.</p></details>
+      <details><summary>Какие лиги?</summary><p>Хоккей: КХЛ и НХЛ. Футбол: АПЛ, Ла Лига, Серия А, Бундеслига, Лига 1, Португалия и Лига чемпионов.</p></details>
+      <details><summary>Что такое «ВЫБОР»?</summary><p>Ставка, у которой модель даёт от 60 % при кэфе от 1,6. Остальные матчи — разбор без выбора.</p></details>
+      <details><summary>Почему кэф 1,6–2,3?</summary><p>Ниже — мало смысла рисковать, выше — больше случайности, чем расчёта.</p></details>
+      <p class="legal">18+. Аналитика, а не призыв делать ставки. Выигрыш не гарантирован.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="plate" aria-hidden="true">Jarvis</p>
+    <div class="fcols">
+      <nav aria-label="Подвал"><a href="hockey/index.html">Хоккей</a><a href="football/index.html">Футбол</a><a href="#honest">Итоги</a><a href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a></nav>
+      <p>Макет v3a · пример данных · © JARVIS, @jarvibet</p>
+    </div>
+  </div>
+</footer>
+<a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Прогнозы дня — в Telegram</span><span aria-hidden="true">›</span></a>
+
+<script src="assets/v3a.js"></script>
+<script>
+/* ПРИМЕРНЫЕ ДАННЫЕ (как в v2). Время — от «сейчас». */
+(()=>{
+const two=JV.two,base=Math.ceil(Date.now()/6e5)*6e5;
+const at=min=>{const d=new Date(base+min*6e4+3*3600e3);return `${d.getUTCFullYear()}-${two(d.getUTCMonth()+1)}-${two(d.getUTCDate())} ${two(d.getUTCHours())}:${two(d.getUTCMinutes())}`};
+const H={lg:'КХЛ',a:'Ак Барс',b:'Локомотив',sp:'П2',k:'1,85',pr:58,t:at(190)};
+const F={lg:'Ла Лига',a:'Реал Сосьедад',b:'Бетис',sp:'ТБ 2,5',k:'1,75',pr:62,t:at(280)};
+document.getElementById('today').textContent=new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'}).replace(/^./,c=>c.toUpperCase());
+const TK=[['19:30','КХЛ','Ак Барс — Локомотив','П2'],['17:00','КХЛ','СКА — ЦСКА','ТБ 4,5'],['21:00','Ла Лига','Реал Сосьедад — Бетис','ТБ 2,5'],['20:20','АПЛ','Арсенал — Брентфорд','П1'],['21:10','Серия А','Интер — Фиорентина','ТБ 2,5'],['02:00','НХЛ','Бостон — Торонто','П1'],['03:00','НХЛ','Колорадо — Даллас','ТБ 5,5'],['21:20','Бундеслига','Байер — Майнц','П1']];
+JV.ticker(document.getElementById('ticker'),TK.map(([t,l,m,p])=>`${l}: ${m} <span class="k">${p}</span>`));
+const mk=(id,m)=>{const b=JV.board(document.getElementById(id),[{label:'Хозяева'},{label:'Гости'},{label:'Ставка'},{label:'До матча',n:8,cls:'big gold'}]);
+ const io=new IntersectionObserver(es=>{if(es[0].isIntersecting){b.set([m.a,m.b,`${m.sp}  ${m.k}  ${m.pr}%`,JV.hms(JV.left(m.t))]);io.disconnect();setInterval(()=>b.tick(3,JV.hms(JV.left(m.t))),1000)}});io.observe(document.getElementById(id))};
+mk('bh',H);mk('bf',F);
+})();
+</script>
+</body>
+</html>

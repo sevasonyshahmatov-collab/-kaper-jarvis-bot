@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="ru" data-sport="football">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Футбол — прогнозы JARVIS (макет v3a)</title>
+<meta name="description" content="Прогнозы на АПЛ, Ла Лигу, Серию А, Бундеслигу, Лигу 1 и Лигу чемпионов по собственной модели. Проверка на сезоне 2025/26 и честные итоги. Макет, пример данных.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#eceee8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="stylesheet" href="../assets/v3a.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Какие турниры?","acceptedAnswer":{"@type":"Answer","text":"АПЛ, Ла Лига, Серия А, Бундеслига, Лига 1 и Лига чемпионов. Португалия — разбор матчей без «ВЫБОР»."}},
+{"@type":"Question","name":"Что такое «ВЫБОР»?","acceptedAnswer":{"@type":"Answer","text":"Ставка на 1Х2 или тотал 2,5, у которой вероятность по модели от 60 % при кэфе от 1,6."}},
+{"@type":"Question","name":"Почему нет ставки на матч?","acceptedAnswer":{"@type":"Answer","text":"Если ни один исход не набирает 60 %, ставки нет — только разбор. Так честнее."}},
+{"@type":"Question","name":"Это платно?","acceptedAnswer":{"@type":"Answer","text":"Нет. Прогнозы и итоги в Telegram-канале @jarvibet бесплатные."}}]}</script>
+</head>
+<body data-field="football">
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="../index.html" aria-label="JARVIS, на главную">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="../hockey/index.html">Хоккей</a>
+      <a href="index.html" aria-current="page">Футбол</a>
+    </nav>
+    <nav class="nav" aria-label="Разделы">
+      <a href="#matches">Матчи</a><a href="#leagues">Лиги</a><a href="#power">Сила</a><a href="#model">Модель</a><a href="#honest">Итоги</a><a href="#faq">Вопросы</a>
+    </nav>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Telegram</span></a>
+  </div>
+</header>
+<div class="ticker" id="ticker" aria-label="Матчи дня, бегущая строка"></div>
+
+<main id="main">
+<section class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <h1><span class="ln"><span>Футбол</span></span><span class="ln" style="--i:1"><span>в цифрах,</span></span><span class="ln" style="--i:2"><span>а не на эмоциях</span></span></h1>
+      <div data-rv>
+        <p class="lead">Топ-лиги Европы и Лига чемпионов. Ставка — только когда модель даёт от 60 %. Нет таких — честно пишем, что ставки нет.</p>
+        <div class="hero-cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть @jarvibet</a><a class="btn btn-line" href="#matches">Матчи дня</a></div>
+        <ul class="facts" aria-label="Коротко о модели">
+          <li><b class="num" data-count="11000">11 000</b><span>матчей в истории</span></li>
+          <li><b class="num" data-count="284">284</b><span>ставки в проверке</span></li>
+          <li><b class="num" data-count="7">7</b><span>турниров</span></li>
+        </ul>
+        <ul class="chips" id="chips" aria-label="Турниры"></ul>
+      </div>
+    </div>
+    <div data-rv>
+      <div class="board" id="board" aria-label="Табло: прогноз дня">
+        <div class="board-top"><span><i class="lamp"></i><b id="bhead">Прогноз дня</b></span><span id="bdate"></span></div>
+        <div class="brows"></div>
+        <div class="board-foot"><p class="note">Пример данных. Прогноз выходит в канале за 4–5 часов до матча.</p><div class="pager" id="pager" aria-label="Другие ставки «ВЫБОР»"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="matches">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Сегодня в эфире</h2><p>Матчи дня по турнирам. Нажми на строку: форма команд, личные встречи и прогноз, если он уже вышел в канале. <span class="sample">Пример данных</span></p></div>
+    <div class="tabs" role="tablist" id="ltabs" aria-label="Фильтр по турнирам"></div>
+    <ul class="mlist" id="mlist"></ul>
+    <a class="btn btn-ink more" href="https://t.me/jarvibet" target="_blank" rel="noopener">Все прогнозы дня — в канале</a>
+  </div>
+</section>
+
+<section class="sec" id="leagues">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Лиги и клубы</h2><p>Семь турниров под одной моделью. Наведи на герб — клуб выйдет в цвет; нажми — откроется его лига.</p></div>
+    <ul class="leagues" id="flags" data-rv></ul>
+    <div class="wall" id="wall" data-rv></div>
+    <p class="note">Эмблемы — собственность клубов, показаны для навигации.</p>
+  </div>
+</section>
+
+<section class="sec" id="power">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Сила команд</h2><p>Сила лиг Европы по матчам еврокубков: разница «атака − оборона», АПЛ — ноль. Рядом — порядок команд по модели.</p></div>
+    <div class="power">
+      <div data-rv><div class="pbars" id="pbars"></div><p class="note" style="margin-top:18px">Источник: проверка модели 30.10, предварительно.</p></div>
+      <div data-rv><table class="table" id="top8"><thead><tr><th>Место</th><th>Команда</th><th class="ra">Лига</th></tr></thead><tbody></tbody></table>
+      <p class="note" style="margin-top:14px">Порядок команд — пример; на сайте его подставит выгрузка модели.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="model">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Как думает модель</h2><p>Три шага до ставки — на примере матча дня.</p></div>
+    <ol class="steps" data-rv>
+      <li><h3>Атака и оборона</h3><div id="ad" style="display:grid;gap:10px"></div><div class="lam" id="lam"></div><p>Сила считается по голам и xG, свежие матчи весят больше.</p></li>
+      <li><h3>10 000 розыгрышей</h3><div class="grid5" id="grid5" role="img" aria-label="Вероятности счетов от 0:0 до 4:4"></div><div class="simout" id="simout" aria-live="polite"></div><button class="btn btn-line" type="button" id="again" style="justify-self:start">Разыграть ещё раз</button></li>
+      <li><h3>Модель и линия рынка</h3><div id="mix" style="display:grid;gap:10px"></div><p>Одна модель рынок не бьёт. Смесь с утренней линией обещает честно: расхождение 1–2 п. п.</p></li>
+    </ol>
+    <div class="lab" data-rv>
+      <div>
+        <h3>Порог «ВЫБОР»: сколько ставок и сколько зашло</h3>
+        <div class="slider"><input id="thr" type="range" min="50" max="70" step="1" value="60" aria-label="Порог вероятности, %">
+          <div class="ticks"><span>50 %</span><span>55</span><span>60</span><span>65</span><span>70 %</span></div></div>
+        <div class="throut" id="throut" aria-live="polite"></div>
+        <p class="note" id="thrnote"></p>
+      </div>
+      <div>
+        <h3>Разница классов</h3>
+        <div class="bigq num">−11,6 %</div>
+        <p>голов против расчёта, когда сильная атака играет против слабой обороны: ждали 2,63 гола, было 2,33 (240 матчей). Фаворит ведёт в счёте и сбавляет — поэтому модель не завышает крайние ожидания.</p>
+        <p class="note">Проверка 2024/25–2025/26 вслепую.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="honest">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Честные итоги</h2><p>До запуска модель прошла проверку вслепую на всём сезоне 2025/26. Цифры предварительные: выборки по лигам маленькие.</p></div>
+    <div class="honest">
+      <div data-rv>
+        <div class="headline-num"><span data-count="62.5" data-dec="1">62,5</span><i>→</i><span class="g"><span data-count="60.9" data-dec="1">60,9</span>&thinsp;%</span></div>
+        <p class="honest-cap">284 ставки «ВЫБОР» от 60 %: столько обещала модель → столько зашло. Проверка 2025/26 вслепую, предварительно.</p>
+      </div>
+      <div class="hgrid" data-rv>
+        <div><h3>1Х2, от 60 %</h3><div class="q num">63,2<i>→</i><span class="g">68,3 %</span></div><p>60 ставок: обещано → зашло</p></div>
+        <div><h3>Тотал 2,5, от 60 %</h3><div class="q num">62,1<i>→</i><span class="g">64,8 %</span></div><p>91 ставка</p></div>
+        <div><h3>Сезон 2026/27 до сегодня</h3><div class="q num">61,4<i>→</i><span class="g">63,4 %</span></div><p>101 ставка, смесь со средней линией рынка</p></div>
+        <div><h3>Почему без Португалии</h3><div class="q num">62,5<i>→</i><span class="bd">50,0 %</span></div><p>34 ставки не прошли проверку. Там — разбор матчей без «ВЫБОР».</p></div>
+        <div><h3>По лигам, от 60 %</h3><ul class="lgt" id="lgtable"></ul><p>Погрешность ±13 п. п.</p></div>
+        <div><h3>Живые итоги</h3><p style="font-size:16px;color:var(--ink)">Проба с 30.10. Первые итоги по каналу — после ~13.11, все подряд, и минусы.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sub" id="subscribe">
+  <div class="wrap" data-rv>
+    <div><h2>Прогнозы&nbsp;— в Telegram до матча</h2>
+      <div class="cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Подписаться на @jarvibet</a><a class="btn btn-line" href="https://t.me/jarvibet" target="_blank" rel="noopener">Мини-приложение</a></div></div>
+    <ul>
+      <li><b>Прогноз до матча</b><span>За 4–5 часов до свистка, с кэфом и вероятностью.</span></li>
+      <li><b>Разбор</b><span>Форма, личные встречи, почему ставка — или почему её нет.</span></li>
+      <li><b>Итоги утром</b><span>Все прогнозы подряд, с номером поста.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="sec" id="faq">
+  <div class="wrap faq">
+    <div data-rv><h2>Вопросы</h2>
+      <div class="swap"><p>Хоккей — КХЛ и НХЛ, та же модель и те же честные итоги.</p><a class="btn btn-ink" href="../hockey/index.html">Прогнозы на хоккей</a></div></div>
+    <div data-rv>
+      <details><summary>Какие турниры?</summary><p>АПЛ, Ла Лига, Серия А, Бундеслига, Лига 1 и Лига чемпионов. Португалия — разбор матчей без «ВЫБОР».</p></details>
+      <details><summary>Что такое «ВЫБОР»?</summary><p>Ставка на 1Х2 или тотал 2,5, у которой вероятность по модели от 60 % при кэфе от 1,6.</p></details>
+      <details><summary>Почему на матч нет ставки?</summary><p>Если ни один исход не набирает 60 %, ставки нет — только разбор. Так честнее.</p></details>
+      <details><summary>Где итоги?</summary><p>Каждое утро в канале. Футбол — проба с 30.10: первые итоги по каналу покажем после двух недель.</p></details>
+      <details><summary>Это платно?</summary><p>Нет. Прогнозы и итоги в Telegram-канале @jarvibet бесплатные.</p></details>
+      <p class="legal">18+. Аналитика, а не призыв делать ставки. Выигрыш не гарантирован.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="plate" aria-hidden="true">Jarvis</p>
+    <div class="fcols">
+      <nav aria-label="Подвал"><a href="../index.html">Главная</a><a href="../hockey/index.html">Хоккей</a><a href="#matches">Матчи</a><a href="#honest">Итоги</a><a href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a></nav>
+      <p>Макет v3a · пример данных · © JARVIS, @jarvibet</p>
+    </div>
+  </div>
+</footer>
+<a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Прогнозы дня — в Telegram</span><span aria-hidden="true">›</span></a>
+
+<script src="../assets/v3a.js"></script>
+<script>
+/* ПРИМЕРНЫЕ ДАННЫЕ (макет, как в v2). На сайте их подставит build.py: __FTODAY — матчи дня, __FOOTBT — проверка модели
+   (team/out/2026-10-30/football_bt.md). Время матчей — от «сейчас», чтобы отсчёт был живым. */
+(()=>{
+ const two=n=>String(n).padStart(2,'0'),base=Math.ceil(Date.now()/6e5)*6e5;
+ const at=min=>{const d=new Date(base+min*6e4+3*3600e3);return `${d.getUTCFullYear()}-${two(d.getUTCMonth()+1)}-${two(d.getUTCDate())} ${two(d.getUTCHours())}:${two(d.getUTCMinutes())}`};
+ const M=(o,min)=>{o.t=at(min);return o};
+ window.__FTODAY=[
+  M({lg:'laliga',a:'Реал Сосьедад',b:'Бетис',p:'Тотал больше 2,5',sp:'ТБ 2,5',k:'1.75',pr:.62,x:[2.45,3.4,2.95],pp:[.40,.27,.33],tb:.62,fa:'WWDLW',fb:'DWLWW',h2h:'2 победы · 2 ничьи · 1 поражение',att:[1.28,1.14],def:[.96,1.12]},280),
+  M({lg:'epl',a:'Арсенал',b:'Брентфорд',p:'Победа Арсенала',sp:'П1',k:'1.62',pr:.61,x:[1.62,4.0,5.2],pp:[.61,.22,.17],tb:.55,fa:'WWWDW',fb:'LDWLL',h2h:'4 победы · 1 ничья',att:[1.42,.98],def:[.78,1.18]},200),
+  M({lg:'seriea',a:'Интер',b:'Фиорентина',p:'Тотал больше 2,5',sp:'ТБ 2,5',k:'1.80',pr:.60,x:[1.7,3.9,4.6],pp:[.56,.24,.20],tb:.60,fa:'WDWWL',fb:'WLDDW',h2h:'3 победы · 1 ничья · 1 поражение',att:[1.36,1.08],def:[.84,1.04]},250),
+  M({lg:'bundesliga',a:'Байер',b:'Майнц',p:'Победа Байера',sp:'П1',k:'1.66',pr:.61,x:[1.66,4.1,4.9],pp:[.61,.21,.18],tb:.58,fa:'WWLWD',fb:'LLDWL',h2h:'3 победы · 2 ничьи',att:[1.38,.92],def:[.86,1.2]},260),
+  M({lg:'ligue1',a:'Марсель',b:'Ланс',p:'Прогноз выйдет в канале',k:'—',pr:.54,x:[2.0,3.5,3.8],pp:[.47,.27,.26],tb:.52,fa:'WLWDW',fb:'DWWLD',h2h:'2 победы · 1 ничья · 2 поражения',att:[1.2,1.06],def:[.98,.94]},290),
+  M({lg:'portugal',a:'Бенфика',b:'Брага',p:'Разбор без «ВЫБОР»',k:'—',pr:.58,x:[1.55,4.2,5.6],pp:[.58,.24,.18],tb:.57,fa:'WWDWW',fb:'WDLWD',h2h:'4 победы · 1 поражение',att:[1.4,1.1],def:[.8,1.0]},230)];
+ window.__FOOTBT={n:284,promised:62.5,got:60.9,
+  thr:[[55,824,59.3,56.8,-3.4],[57,512,61.0,58.2,-2.7],[60,284,62.5,60.9,.9],[62,136,64.3,58.8,-2.9],[65,36,67.5,58.3,-3.2]],
+  lg:{laliga:[45,62.7,71.1],seriea:[38,62.6,68.4],bundesliga:[66,63.2,60.6],epl:[53,61.8,58.5],ligue1:[48,62.3,56.2],portugal:[34,62.5,50.0]},
+  power:{epl:0,laliga:-.38,bundesliga:-.48,ligue1:-.56,seriea:-.60,portugal:-.97}};
+})();
+</script>
+<script>
+(()=>{
+const {esc,f1,pc,plural,RM}=JV;
+const LEAGUES=[{id:'epl',name:'АПЛ',full:'Англия'},{id:'laliga',name:'Ла Лига',full:'Испания'},{id:'seriea',name:'Серия А',full:'Италия'},
+ {id:'bundesliga',name:'Бундеслига',full:'Германия'},{id:'ligue1',name:'Лига 1',full:'Франция'},{id:'portugal',name:'Португалия',full:'Примейра',note:'разбор без «ВЫБОР»'},
+ {id:'ucl',name:'Лига чемпионов',full:'Еврокубок'}];
+const LN=Object.fromEntries(LEAGUES.map(l=>[l.id,l]));
+const LGI=id=>`../assets/lg/${id}.svg`;
+const FC={'Рома':'roma','ПСЖ':'psg','Ман Сити':'mancity','Челси':'chelsea','Бавария':'bayern','Барселона':'barcelona','Реал':'realmadrid','Арсенал':'arsenal','МЮ':'manutd',
+ 'Атлетико':'atletico','Милан':'milan','Интер':'inter','Боруссия Д':'dortmund','Спортинг':'sporting','Бенфика':'benfica','Порту':'porto','Наполи':'napoli','Ювентус':'juventus','Ливерпуль':'liverpool',
+ 'Фиорентина':'fiorentina','Байер':'leverkusen','Ланс':'lens','Марсель':'marseille','Бетис':'betis','Майнц':'mainz','Брага':'braga','Брентфорд':'brentford','Реал Сосьедад':'sociedad'};
+const crest=n=>FC[n]?`../assets/fc/${FC[n]}.webp`:LGI('ucl');
+const D=window.__FTODAY,B=window.__FOOTBT;
+const cnt=id=>D.filter(m=>m.lg===id).length;
+const PICK=m=>m.k!=='—'&&m.pr>=.6;
+const chev='<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5l5 5 5-5"/></svg>';
+
+/* бегущая строка */
+JV.ticker(document.getElementById('ticker'),[...D].sort((a,b)=>a.t<b.t?-1:1).map(m=>`<time>${m.t.slice(11)}</time><img src="${LGI(m.lg)}" alt="">${LN[m.lg].name}: ${esc(m.a)} — ${esc(m.b)} ${PICK(m)?`<span class="k">ВЫБОР ${Math.round(m.pr*100)}%</span>`:''}`));
+/* чипы турниров */
+document.getElementById('chips').innerHTML=LEAGUES.map(l=>`<li><a href="#lg-${l.id}"><img src="${LGI(l.id)}" alt="" width="24" height="24">${l.name}</a></li>`).join('');
+
+/* табло: самые вероятные «ВЫБОР», листаются */
+const picks=[...D].filter(PICK).sort((a,b)=>b.pr-a.pr);
+const bd=JV.board(document.getElementById('board'),[{label:'Турнир'},{label:'Хозяева'},{label:'Гости'},{label:'Ставка'},{label:'По модели',n:4,cls:'big gold'},{label:'До матча',n:8,cls:'big'}]);
+document.getElementById('bdate').textContent=new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+let cur=0,timer=0,shown=false;
+const pager=document.getElementById('pager');
+pager.innerHTML=picks.map((m,i)=>`<button type="button" aria-pressed="${i===0}" aria-label="${esc(m.a)} — ${esc(m.b)}"></button>`).join('');
+function show(i,spin=true){cur=i;shown=true;const m=picks[i];
+ document.getElementById('bhead').textContent=i===0?'Прогноз дня':`Тоже «ВЫБОР», ${i+1} из ${picks.length}`;
+ pager.querySelectorAll('button').forEach((b,j)=>b.setAttribute('aria-pressed',j===i));
+ bd.set([`${LN[m.lg].name} ${m.t.slice(11)}`,m.a,m.b,`${m.sp}  ${m.k.replace('.',',')}`,Math.round(m.pr*100)+'%',JV.hms(JV.left(m.t))],{spin})}
+pager.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;show([...pager.children].indexOf(b));restart()});
+function restart(){clearInterval(timer);if(!RM&&picks.length>1)timer=setInterval(()=>show((cur+1)%picks.length),9000)}
+const boardEl=document.getElementById('board');
+boardEl.addEventListener('mouseenter',()=>clearInterval(timer));boardEl.addEventListener('mouseleave',restart);
+// первая прокрутка цифр — когда табло видно
+const bio=new IntersectionObserver(es=>{if(es[0].isIntersecting){show(0);restart();bio.disconnect()}});bio.observe(boardEl);
+
+/* матчи дня */
+const ltabs=document.getElementById('ltabs'),list=document.getElementById('mlist');
+ltabs.innerHTML=`<button class="tab" role="tab" aria-selected="true" data-l="all">Все <span class="c">${D.length}</span></button>`+
+ LEAGUES.filter(l=>cnt(l.id)).map(l=>`<button class="tab" role="tab" aria-selected="false" data-l="${l.id}"><img src="${LGI(l.id)}" alt="">${l.name} <span class="c">${cnt(l.id)}</span></button>`).join('');
+const form=s=>`<span class="form">${[...s].map(c=>`<i class="${c.toLowerCase()}" aria-label="${c==='W'?'победа':c==='D'?'ничья':'поражение'}">${c==='W'?'В':c==='D'?'Н':'П'}</i>`).join('')}</span>`;
+function row(m){const L=LN[m.lg],pk=PICK(m),mx=Math.max(...m.pp);
+ return `<li class="match"><button class="mhead" type="button" aria-expanded="false">
+  <div class="mt"><time>${m.t.slice(11)}</time><span class="cd" data-t="${m.t}"></span></div>
+  <div><div class="lgline"><img src="${LGI(m.lg)}" alt="">${L.name}</div><div class="teams"><div class="team"><img src="${crest(m.a)}" alt="" loading="lazy"><span>${esc(m.a)}</span></div><div class="team"><img src="${crest(m.b)}" alt="" loading="lazy"><span>${esc(m.b)}</span></div></div></div>
+  <div class="probs">${['П1','Х','П2'].map((k,j)=>`<div class="pr ${m.pp[j]===mx?'top':''}"><span>${k}</span><em><i style="--w:${pc(m.pp[j])}"></i></em><b>${pc(m.pp[j])}</b></div>`).join('')}
+   <div class="pr ${m.tb>=.6?'top':''}"><span>ТБ 2,5</span><em><i style="--w:${pc(m.tb)}"></i></em><b>${pc(m.tb)}</b></div></div>
+  <div class="mpick">${pk?`<span class="badge">ВЫБОР</span><strong>${esc(m.p)}</strong><span class="k">${m.k.replace('.',',')}</span>`:`<span class="badge mute">${m.lg==='portugal'?'Только разбор':'Пост скоро'}</span><strong>${esc(m.p)}</strong>`}</div>
+  <span class="chev">${chev}</span></button>
+  <div class="mbody"><div><dl class="mdet">
+   <div><dt>Форма, 5 матчей</dt><dd>${esc(m.a)} ${form(m.fa)}</dd><dd>${esc(m.b)} ${form(m.fb)}</dd></div>
+   <div><dt>Личные встречи, 5 последних</dt><dd>${esc(m.h2h)}</dd><dt style="margin-top:12px">Кэфы П1 · Х · П2</dt><dd class="num">${m.x.map(v=>f1(v,2)).join(' · ')}</dd></div>
+   <div><dt>Наносит / допускает (1 — средний уровень лиги)</dt><dd class="num">${esc(m.a)}: ${f1(m.att[0],2)} / ${f1(m.def[0],2)}</dd><dd class="num">${esc(m.b)}: ${f1(m.att[1],2)} / ${f1(m.def[1],2)}</dd>
+   <dd class="note" style="margin-top:8px">${pk?'Прогноз вышел в канале за 4–5 часов до матча.':m.lg==='portugal'?'Португалия — разбор без «ВЫБОР».':'Пост выходит за 4–5 часов до матча.'}</dd></div>
+  </dl></div></div></li>`}
+function render(l){const sel=(l==='all'?D:D.filter(m=>m.lg===l)).slice().sort((a,b)=>a.t<b.t?-1:1);
+ ltabs.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.l===l));
+ list.innerHTML=sel.map(row).join('');
+ list.querySelectorAll('.match').forEach((li,i)=>{li.style.setProperty('--i',i);const b=li.querySelector('.mhead');
+  b.addEventListener('click',()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o)})});
+ if(!RM)list.querySelectorAll('.match').forEach((li,i)=>li.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:i*55,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}));
+ requestAnimationFrame(()=>list.querySelectorAll('.match').forEach(li=>li.classList.add('in')));tick()}
+function tick(){document.querySelectorAll('.cd[data-t]').forEach(e=>e.textContent=JV.inMin(JV.left(e.dataset.t)));
+ if(shown&&picks[cur])bd.tick(5,JV.hms(JV.left(picks[cur].t)))}
+ltabs.addEventListener('click',e=>{const t=e.target.closest('.tab');if(t)render(t.dataset.l)});
+render('all');setInterval(tick,1000);
+
+/* лиги и гербы */
+document.getElementById('flags').innerHTML=LEAGUES.map(l=>{const n=cnt(l.id);
+ return `<li><a id="lg-${l.id}" href="#matches" data-lg="${l.id}"><img src="${LGI(l.id)}" alt=""><h3>${l.name}</h3><p>${l.full}</p>${l.note?`<span class="nt">${l.note}</span>`:''}<span class="cnt">${n?n+' '+plural(n,'матч','матча','матчей')+' сегодня':'сегодня без матчей'}</span></a></li>`}).join('');
+document.getElementById('flags').addEventListener('click',e=>{const a=e.target.closest('a[data-lg]');if(a&&cnt(a.dataset.lg))render(a.dataset.lg);else if(a)render('all')});
+const CL=[['Ман Сити','epl'],['Ливерпуль','epl'],['Арсенал','epl'],['Челси','epl'],['МЮ','epl'],['Брентфорд','epl'],['Реал','laliga'],['Барселона','laliga'],['Атлетико','laliga'],['Реал Сосьедад','laliga'],['Бетис','laliga'],
+ ['Бавария','bundesliga'],['Боруссия Д','bundesliga'],['Байер','bundesliga'],['Майнц','bundesliga'],['Интер','seriea'],['Милан','seriea'],['Ювентус','seriea'],['Наполи','seriea'],['Рома','seriea'],['Фиорентина','seriea'],
+ ['ПСЖ','ligue1'],['Марсель','ligue1'],['Ланс','ligue1'],['Бенфика','portugal'],['Порту','portugal'],['Спортинг','portugal'],['Брага','portugal']];
+document.getElementById('wall').innerHTML=CL.map(([n,lg])=>`<a class="crest" href="#lg-${lg}" title="${esc(n)} · ${LN[lg].name}"><img src="${crest(n)}" alt="" loading="lazy"><span>${esc(n)}</span></a>`).join('');
+
+/* сила лиг и порядок команд */
+const LGN={epl:'АПЛ',laliga:'Ла Лига',bundesliga:'Бундеслига',ligue1:'Лига 1',seriea:'Серия А',portugal:'Португалия'};
+const mn=-1.2;
+document.getElementById('pbars').innerHTML=Object.entries(B.power).map(([id,v],i)=>`<div class="pbar"><span>${LGN[id]}</span><em><i style="--w:${((1-v/mn)*100).toFixed(1)}%;--d:${i*80}ms"></i></em><b>${v?f1(v,2).replace('-','−'):'0'}</b></div>`).join('');
+const TOP=[['Ман Сити','epl'],['Реал','laliga'],['Бавария','bundesliga'],['Ливерпуль','epl'],['Барселона','laliga'],['Арсенал','epl'],['Интер','seriea'],['ПСЖ','ligue1']];
+document.querySelector('#top8 tbody').innerHTML=TOP.map(([n,lg],i)=>`<tr><td>${i+1}</td><td><span class="cl"><img src="${crest(n)}" alt="">${esc(n)}</span></td><td class="ra">${LGN[lg]}</td></tr>`).join('');
+
+/* модель на матче-примере */
+const ex=picks[0]||D[0];
+const AVG=[1.52,1.18];
+const lh=ex.att[0]*ex.def[1]*AVG[0],la=ex.att[1]*ex.def[0]*AVG[1];
+document.getElementById('ad').innerHTML=[[ex.a+' наносит',ex.att[0]],[ex.b+' допускает',ex.def[1]],[ex.b+' наносит',ex.att[1],'var(--ink-3)'],[ex.a+' допускает',ex.def[0],'var(--ink-3)']]
+ .map(([k,v,c])=>`<div class="r"><span>${esc(k)}</span><em><i style="--w:${Math.min(100,v/1.6*100).toFixed(0)}%;${c?'--c:'+c:''}"></i></em><b>${f1(v,2)}</b></div>`).join('');
+document.getElementById('lam').innerHTML=`<span>Ожидаемые голы</span><b class="num">${f1(lh,2)} : ${f1(la,2)}</b>`;
+const fact=n=>n<2?1:n*fact(n-1),pois=(l,k)=>Math.exp(-l)*Math.pow(l,k)/fact(k);
+const G=[];for(let i=0;i<5;i++){G[i]=[];for(let j=0;j<5;j++)G[i][j]=pois(lh,i)*pois(la,j)}
+const gmax=Math.max(...G.flat());
+document.getElementById('grid5').innerHTML='<span></span>'+[0,1,2,3,4].map(j=>`<span>${j}</span>`).join('')+
+ G.map((r,i)=>`<span>${i}</span>`+r.map((v,j)=>{const h=v/gmax*.85+.05;return `<i class="${h>.42?'hot':''}" style="--h:${h.toFixed(2)}" title="${i}:${j}">${Math.round(v*100)}</i>`}).join('')).join('');
+const so=document.getElementById('simout');
+function sim(n){let h=0,d=0,a=0,o=0;const rp=l=>{let k=0,p=Math.exp(-l),s=p,u=Math.random();while(u>s&&k<12){k++;p*=l/k;s+=p}return k};
+ for(let i=0;i<n;i++){const x=rp(lh),y=rp(la);x>y?h++:x===y?d++:a++;if(x+y>2)o++}return [h,d,a,o].map(v=>v/n)}
+function showSim(r){const mx=Math.max(r[0],r[1],r[2]);so.innerHTML=[['П1',r[0]],['Х',r[1]],['П2',r[2]],['ТБ 2,5',r[3]]].map(([k,v],i)=>`<div class="${(i<3&&v===mx)||(i===3&&v>=.6)?'hi':''}"><b>${pc(v)}</b>${k}</div>`).join('')}
+let simR=sim(10000);showSim(simR);
+document.getElementById('again').addEventListener('click',()=>{if(RM){simR=sim(10000);showSim(simR);return}let k=0;const iv=setInterval(()=>{showSim(sim(800));if(++k>8){clearInterval(iv);simR=sim(10000);showSim(simR)}},70)});
+const inv=ex.x.map(k=>1/k),sum=inv.reduce((a,b)=>a+b),line=inv.map(v=>v/sum);
+const lg=p=>Math.log(p/(1-p)),ilg=x=>1/(1+Math.exp(-x));
+const mi=line.indexOf(Math.max(...line)),mModel=simR[mi],mLine=line[mi],mMix=ilg(.45*lg(mModel)+.55*lg(mLine));
+document.getElementById('mix').innerHTML=`<p class="note" style="margin:0">Исход ${['П1','Х','П2'][mi]} в матче ${esc(ex.a)} — ${esc(ex.b)}:</p>`+
+ [['Модель',mModel,'var(--ink-3)'],['Линия рынка',mLine,'#8a8f96'],['Смесь',mMix,'var(--sport)']].map(([k,v,c])=>`<div class="r"><span>${k}</span><em><i style="--w:${pc(v)};--c:${c}"></i></em><b>${pc(v)}</b></div>`).join('')+`<p class="note" style="margin:0">Пример расчёта.</p>`;
+const thr=document.getElementById('thr'),to=document.getElementById('throut'),tn=document.getElementById('thrnote');
+function showThr(){const v=+thr.value,row=B.thr.reduce((a,b)=>Math.abs(b[0]-v)<Math.abs(a[0]-v)?b:a);const [p,n,pr,got,roi]=row;
+ to.innerHTML=`<div><span>ставок</span><b>${n}</b></div><div><span>обещано</span><b>${f1(pr)} %</b></div><div class="${got>=pr-3?'got':'bad'}"><span>зашло</span><b>${f1(got)} %</b></div><div class="${roi>=0?'got':'bad'}"><span>ROI, закрытие</span><b>${roi>0?'+':roi<0?'−':''}${f1(Math.abs(roi))} %</b></div>`;
+ tn.textContent=(p!==v?`Ближайший посчитанный порог — ${p} %. `:'')+(p===60?'Наш порог: «зашло» в пределах 3 п. п. от обещанного.':p<60?'Ниже 60 % обещание расходится с результатом.':'Выше 62 % ставок мало, и они хуже.')+' Проверка вслепую, 2025/26.';
+ thr.setAttribute('aria-valuetext',`${v} %: ${n} ставок, зашло ${f1(got)} %`)}
+thr.addEventListener('input',showThr);showThr();
+
+/* итоги по лигам */
+document.getElementById('lgtable').innerHTML=Object.entries(B.lg).filter(([k])=>k!=='portugal').map(([k,[n,pr,got]])=>`<li><span>${LGN[k]} · ${n}</span><b class="${got<pr?'dn':''}">${f1(pr)} → ${f1(got)} %</b></li>`).join('');
+})();
+</script>
+</body>
+</html>
