@@ -4,6 +4,8 @@
   • сила клубов — football_model.py по истории football_hist.py (лиги — football-data, xG — Understat / по ударам);
     константы — лучшие по проверке на истории (football_bt.py, calib.json → FOOT);
   • еврокубки — сила в лиге × сила лиги (football_bt.fit_league_factors по еврокубкам прошлых лет);
+  • вероятность — смесь модели с линией Pinnacle без маржи (calib.json → FOOT.stack): одна модель линию не бьёт;
+    ставки — только рынки FOOT.markets (1Х2, тотал 2,5), порог FOOT_P (football_bt.py, run 587);
   • линия — Pinnacle guest API (как хоккей, pin.py), без ключа; кэфы moneyline/total — матч (period 0 = 90 минут).
 Печатает FOOT (матч, λ, вероятности, кэфы) и FOOTPICK (самая вероятная ставка с кэфом ≥ 1,6 и p ≥ FOOT_P, «ВЫБОР»).
 Боевых прогнозов не шлёт. Отдельно: python team/picks/football_live.py E0 2026-10-31"""
@@ -17,6 +19,7 @@ import requests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import football_hist as FH  # noqa: E402
+import football_bt as BT  # noqa: E402
 import football_model as FM  # noqa: E402
 
 API = 'https://guest.api.arcadia.pinnacle.com/0.1'
@@ -77,11 +80,24 @@ def pin_day(lg, day):
     return {pairs[k]: odds[k] for k in pairs}
 
 
+def line_probs(od, rho):
+    """Линия без маржи по всем рынкам: 1Х2 и ТБ 2,5 Pinnacle → Пуассон под эти цены (как football_bt.market_probs)."""
+    if not all(k in od for k in ('П1', 'Х', 'П2')):
+        return None
+    g = {'pc': [od['П1'], od['Х'], od['П2']]}
+    if 'ТБ 2.5' in od:
+        g['o25'] = [od['ТБ 2.5'], od['ТМ 2.5']]
+    mm, _ = BT.market_probs(g, rho, 'pin')
+    return mm
+
+
 def main(lg, day):
     P, C = conf()
     floor = C.get('FOOT_P', 0.6)
     data = FH.load()
     cal = C.get('calib') or {}
+    st = C.get('stack') or {}
+    kinds = C.get('markets') or list(cal)
     if lg in FH.OURS:
         games = sorted(data['dom'][lg], key=lambda g: g['d'])
         coef = C.get('xg_coef', {}).get(lg, (0.3, 0.03))
@@ -109,16 +125,18 @@ def main(lg, day):
             continue
         lh, la = FM.lambdas(R, mh, ma, h, a, P)
         m = FM.markets(lh, la, P['rho'])
+        mk = line_probs(od, P['rho'])
         pr = {}
         for k, p in m.items():
-            ab = cal.get(k)
-            if ab:
-                x = math.log(max(1e-6, p) / max(1e-6, 1 - p))
-                p = 1 / (1 + math.exp(-(ab[0] + ab[1] * x)))
+            if mk and k in mk and k in st:       # смесь с линией Pinnacle — как в проверке (run 587)
+                a_, b_, c_ = st[k]
+                p = 1 / (1 + math.exp(-(a_ + b_ * BT.logit(p) + c_ * BT.logit(mk[k]))))
+            elif k in cal:
+                p = BT.cal(cal, k, p)
             pr[k] = p
         out('FOOT', '%s %s | %s — %s | λ %.2f : %.2f | %s' % (day, t, h, a, lh, la, ' · '.join(
             '%s %.0f%%%s' % (k, 100 * pr[k], ' @%.2f' % od[k] if k in od else '') for k in sorted(pr) if k in od or k in ('1Х', 'Х2', 'ОЗ да', 'ОЗ нет'))))
-        ok = [(pr[k], k, od[k]) for k in od if k in pr and od[k] >= 1.6 and pr[k] >= floor]
+        ok = [(pr[k], k, od[k]) for k in od if k in pr and k in kinds and od[k] >= 1.6 and pr[k] >= floor]
         if ok:
             p, k, o = max(ok)
             out('FOOTPICK', '%s — %s | ВЫБОР %s @%.2f | p %.0f%%' % (h, a, k, o, 100 * p))

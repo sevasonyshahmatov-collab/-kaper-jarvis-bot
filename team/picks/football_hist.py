@@ -163,8 +163,12 @@ ALIAS = {   # ESPN → football-data, где похожесть по буква�
     'borussia monchengladbach': "M'gladbach", 'eintracht frankfurt': 'Ein Frankfurt', 'paris saint germain': 'Paris SG',
     'sporting cp': 'Sp Lisbon', 'sporting braga': 'Braga', 'vitoria guimaraes': 'Guimaraes', 'psv eindhoven': 'PSV Eindhoven',
     'az alkmaar': 'AZ Alkmaar', 'red bull salzburg': 'Salzburg', 'club brugge': 'Club Brugge', 'union st gilloise': 'St. Gilloise',
-    'olympiacos': 'Olympiakos', 'fenerbahce': 'Fenerbahce', 'galatasaray': 'Galatasaray', 'pafos': 'Pafos',
+    'olympiacos': 'Olympiakos', 'f c kbenhavn': 'FC Copenhagen', 'rennais': 'Rennes',
+    'athletic': 'Ath Bilbao', 'heart of midlothian': 'Hearts', 'istanbul basaksehir': 'Buyuksehyr', 'fenerbahce': 'Fenerbahce', 'galatasaray': 'Galatasaray', 'pafos': 'Pafos',
 }
+
+
+FOREIGN = ('larnaca', 'limassol', 'nicosia', 'escaldes', 'famagusta', 'paphos')
 
 
 def score_name(nn, cand):
@@ -342,6 +346,9 @@ def build():
             return memo[(nm, s)]
         best = (0, None, None)
         nn = norm(nm)
+        if any(w in nn for w in FOREIGN):      # кипрские и андоррские тёзки греческих и итальянских клубов
+            memo[(nm, s)] = (None, None)
+            return memo[(nm, s)]
         for ss in (s, s - 1):
             for code in dom:
                 for c in fd_names.get((code, ss)) or []:
