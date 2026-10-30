@@ -31,7 +31,7 @@
 - Ролики: `render/reels/`, конвейер `team/reels_daily/`, правила роликов — `team/RULES.md` «Ролики».
 - Сайт: `team/site/`, `docs/handoff/SITE.md`. Соцсети: `docs/handoff/SMM_AGENT.md`.
 - Бот и таблицы (Apps Script): `apps-script/`, `docs/handoff/HANDOFF_CODE.md`; проверка без затрат — `tools/gas_mock/`.
-- Живое состояние (оба аккаунта): `team/NOW.md`. Передачи между сессиями: `docs/handoff/` (свежая — `HANDOFF_LEAD_2910.md`).
+- Живое состояние (оба аккаунта): `team/NOW.md`. Передачи между сессиями: `docs/handoff/` (свежая — `HANDOFF_LEAD_3010.md`).
 
 ## Скиллы проекта (`.claude/skills/`)
 - `jarvis-send` — отправить владельцу в Telegram сообщение, картинку, видео (задание для `itogi.yml`).
