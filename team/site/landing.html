@@ -416,6 +416,8 @@ html{scroll-padding-top:65px}
 @media (hover:hover) and (pointer:fine){.btn-tg:hover::after{left:130%;transition:left .7s cubic-bezier(.23,1,.32,1)}}
 @media (prefers-reduced-motion:reduce){.board::after{display:none}.dg>span{transition:none}
  .matches.go .card{animation:fadeOnly .3s ease both}.inner{transition:transform .01s}.card.open .back{animation:none}}
+.matches.gs.go .card{animation:none}
+html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!important}
 @keyframes fadeOnly{from{opacity:0}to{opacity:1}}
 </style>
 
@@ -1231,4 +1233,43 @@ addEventListener('DOMContentLoaded',()=>{
    e.textContent=s<=0?(s>-3*3600?'идёт':''):m<60?`через ${m} мин`:`через ${Math.floor(m/60)} ч ${m%60} мин`})}
  window.__tick=tick;tick();setInterval(tick,1000);
 });
+</script>
+<script>
+// Плавная прокрутка (Lenis) и анимации GSAP (владелец 30.10). Только компьютер с мышью и без «уменьшить движение»:
+// на телефоне библиотеки не грузятся — остаются CSS-анимации. Грузим после загрузки страницы, когда браузер свободен;
+// CDN недоступен — страница работает как раньше.
+(()=>{if(!matchMedia('(pointer:fine) and (min-width:900px)').matches||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ const LIB=['https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js','https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js'];
+ const add=src=>new Promise((ok,no)=>{const e=document.createElement('script');e.src=src;e.async=false;e.onload=ok;e.onerror=no;document.head.appendChild(e)});
+ const start=()=>Promise.all(LIB.map(add)).then(run).catch(()=>{});
+ const go=()=>'requestIdleCallback' in window?requestIdleCallback(start,{timeout:1200}):setTimeout(start,300);
+ document.readyState==='complete'?go():addEventListener('load',go);
+ function run(){
+  gsap.registerPlugin(ScrollTrigger);
+  // прокрутка колесом — с инерцией; ссылки «#…» тоже плавно, с запасом под шапку
+  const lenis=new Lenis({lerp:.11});window.__lenis=lenis;
+  lenis.on('scroll',ScrollTrigger.update);gsap.ticker.add(t=>lenis.raf(t*1000));gsap.ticker.lagSmoothing(0);
+  const top=document.querySelector('.top');
+  document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));
+   if(!t)return;e.preventDefault();lenis.scrollTo(t,{offset:-(top?top.offsetHeight:0)-12,duration:1.1})}));
+  // «Прогноз дня»: табло наклоняется за мышью и при прокрутке уходит чуть медленнее текста
+  const b=document.querySelector('.hero .board');
+  if(b){gsap.set(b,{transformPerspective:1000});
+   const rx=gsap.quickTo(b,'rotationX',{duration:.7,ease:'power3'}),ry=gsap.quickTo(b,'rotationY',{duration:.7,ease:'power3'});
+   b.addEventListener('pointermove',e=>{const r=b.getBoundingClientRect();ry(((e.clientX-r.left)/r.width-.5)*7);rx(-((e.clientY-r.top)/r.height-.5)*7)});
+   b.addEventListener('pointerleave',()=>{rx(0);ry(0)});
+   gsap.to(b,{y:-60,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:.6}})}
+  // матчи дня: карточки «раздаются» снизу по одной, когда список доходит до экрана и при смене вкладки КХЛ/НХЛ
+  const list=document.getElementById('mlist');
+  if(list){const seen0=list.classList.contains('go');list.classList.add('gs');
+   const deal=()=>gsap.fromTo(list.querySelectorAll('.card'),{opacity:0,y:46,rotationX:-28,transformPerspective:900,transformOrigin:'50% 100%'},
+    {opacity:1,y:0,rotationX:0,duration:.8,ease:'expo.out',stagger:.07,clearProps:'opacity,transform'});
+   let seen=seen0;
+   if(!seen){gsap.set(list.querySelectorAll('.card'),{opacity:0});
+    ScrollTrigger.create({trigger:list,start:'top 85%',once:true,onEnter:()=>{seen=true;deal()}})}
+   new MutationObserver(()=>{if(seen)deal()}).observe(list,{childList:true})}
+  // заголовки разделов слегка «всплывают» за прокруткой
+  gsap.utils.toArray('section.s .s-head h2').forEach(h=>gsap.fromTo(h,{y:24},{y:-8,ease:'none',scrollTrigger:{trigger:h,start:'top bottom',end:'bottom top',scrub:.6}}))}
+})();
 </script>
