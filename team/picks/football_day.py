@@ -10,6 +10,9 @@
   FDPICK   «ВЫБОР <ставка> @кэф p» — самая вероятная из FOOT.markets с кэфом ≥ 1,6 и p ≥ FOOT_P; нет — «нет ставки»
   FDFORM   последние 5 матчей команды (дата, соперник, счёт, xG) и место/очки в лиге
   FDH2H    последние очные встречи (лиги, 3 сезона)
+  FDTEAM   статистика команды в сезоне и рейтинг (атака/оборона, место по силе)
+  FDVS     «наносит / допускает»: угловые, жёлтые, удары в створ — ожидание на матч
+  FDWIDE   рынки Pinnacle с наибольшим перевесом модели (p·кэф − 1); FDSOT — удары в створ (кэфа у Pinnacle нет)
   FDERR    ошибки (нет линии, нет команды в истории)
 Боевых прогнозов не шлёт. Запуск: python team/picks/football_day.py 2026-10-31"""
 import bisect
@@ -24,6 +27,9 @@ import football_bt as BT  # noqa: E402
 import football_hist as FH  # noqa: E402
 import football_live as FL  # noqa: E402
 import football_model as FM  # noqa: E402
+import football_wide as W  # noqa: E402
+
+WIDE = '--narrow' not in sys.argv     # широкая роспись (владелец 30.10): все рынки Pinnacle + угловые, карточки, удары
 
 TOURN = [('E0', 'АПЛ'), ('SP1', 'Ла Лига'), ('I1', 'Серия А'), ('D1', 'Бундеслига'), ('F1', 'Лига 1'),
          ('UCL', 'Лига чемпионов'), ('UEL', 'Лига Европы')]
@@ -106,6 +112,14 @@ def main(day):
 
     cupctx = None
     total = picks = 0
+    stfit = {}
+
+    def stat_rating(lg, key):
+        if (lg, key) not in stfit:
+            known = {g['h'] for g in dom[lg] if g['s'] == s - 1}
+            stfit[(lg, key)] = (W.stat_fit(dom[lg], key, day, known), W.dispersion(dom[lg], key, day))
+        return stfit[(lg, key)]
+
     for code, title in TOURN:
         try:
             line = FL.pin_day(code, day)
@@ -114,6 +128,12 @@ def main(day):
             continue
         if not line:
             continue
+        full = {}
+        if WIDE:
+            try:
+                full = W.pin_full(code, day)
+            except Exception as e:
+                out('FDERR', '%s: вся линия Pinnacle недоступна %r' % (title, e))
         for (ph, pa, t), od in sorted(line.items(), key=lambda kv: kv[0][2]):
             if code in FH.OURS:
                 (lh_, h), (la_, a) = find_team(ph, data, s, code), find_team(pa, data, s, code)
@@ -158,11 +178,71 @@ def main(day):
                 tb = table(dom[lg_], s, day).get(tm)
                 pos = ' | %s: %d место, %d очк. за %d игр, разница %+d' % (lg_, tb[0], tb[1], tb[2], tb[3]) if tb else ''
                 out('FDFORM', '%s %s%s | %s' % (side, tm, pos, '; '.join(form(dom[lg_], tm, day))))
+            if WIDE:
+                try:
+                    wide(dom, (lh_, h), (la_, a), lh, la, od, full.get((ph, pa, t)) or {}, P, rating, stat_rating, day, s)
+                except Exception as e:
+                    out('FDERR', 'широкая роспись %s — %s: %r' % (h, a, e))
             if h and a and lh_ == la_ and lh_ in dom:
                 hh = [g for g in dom[lh_] if {g['h'], g['a']} == {h, a} and g['d'] < day][-3:]
                 if hh:
                     out('FDH2H', '; '.join('%s %s %d:%d %s' % (g['d'], g['h'], g['hg'], g['ag'], g['a']) for g in hh))
     out('FDDONE', 'матчей %d, ВЫБОР %d, порог %d%%' % (total, picks, 100 * floor))
+
+
+def wide(dom, home, away, lh, la, od, full, P, rating, stat_rating, day, s):
+    """Широкая роспись матча: статистика и рейтинги команд, «наносит / допускает», все рынки с кэфом Pinnacle и перевесом."""
+    (lgh, h), (lga, a) = home, away
+    # голы: λ модели и линии (по 1Х2 и ТБ 2,5 Pinnacle) — среднее геометрическое; модель одна линию не бьёт
+    mk = None
+    if all(k in od for k in ('П1', 'Х', 'П2')):
+        p1, px, p2 = BT.nv([od['П1'], od['Х'], od['П2']])
+        pov = BT.nv([od['ТБ 2.5'], od['ТМ 2.5']])[0] if 'ТБ 2.5' in od else None
+        mk = BT.market_lams(p1, px, p2, pov, P['rho'])
+    gh, ga = (math.sqrt(lh * mk[0]), math.sqrt(la * mk[1])) if mk else (lh, la)
+    share = W.ht_share(dom[lgh], day) if lgh in dom else 0.44
+    M = W.goal_markets(gh, ga, P['rho'], share)
+    for side, (lg, tm) in (('х', home), ('г', away)):
+        if tm and lg in dom:
+            R = rating(lg)[0]
+            pw = W.power_table(R, *rating(lg)[1:]).get(tm)
+            pan = W.team_panel(dom[lg], tm, s, day, R)
+            out('FDTEAM', '%s %s (%s%s) | %s' % (side, tm, lg, ', сила: %d-е место в лиге, %+.2f гола за матч к средней' % pw
+                                              if pw else '', pan or 'нет игр в сезоне'))
+    exp = {}
+    for key, nm in W.STATS.items():
+        if not (h and a and lgh in dom and lga in dom):
+            break
+        (Rh, mhh, mah), rr = stat_rating(lgh, key)
+        (Ra, mha, maa), _ = stat_rating(lga, key)
+        if h not in Rh or a not in Ra:
+            continue
+        Ah, Dh = Rh[h]
+        Aa, Da = Ra[a]
+        eh, ea = mhh * Ah * Da, maa * Aa * Dh
+        exp[key] = (eh, ea, rr)
+        out('FDVS', '%s: %s наносит ×%.2f к средней, %s допускает ×%.2f → ждём у %s %.1f | %s наносит ×%.2f, %s допускает ×%.2f → '
+            'ждём у %s %.1f | всего %.1f' % (nm, h, Ah, a, Da, h, eh, a, Aa, h, Dh, a, ea, eh + ea))
+        M.update(W.stat_markets(key, eh, ea, rr))
+    rows = []
+    for k, o in full.items():
+        mkey = k.replace('карточки', 'жёлтые') if k.startswith('карточки') else k
+        if mkey.startswith('жёлтые') and any(ch.isdigit() for ch in mkey):
+            try:
+                if float(mkey.rsplit(' ', 1)[-1]) > 12:      # «очки за карточки», не число карточек
+                    continue
+            except ValueError:
+                pass
+        if mkey in M and o:
+            rows.append((M[mkey] * o - 1, mkey, M[mkey], o))
+    out('FDWIDECNT', 'рынков с кэфом Pinnacle: %d, рассчитано моделью: %d' % (len(rows), len(M)))
+    for edge, k, p, o in sorted(rows, reverse=True)[:12]:
+        if p >= 0.4 and o >= 1.5:
+            out('FDWIDE', '%s | p %.1f%% · кэф %.2f · перевес %+.1f%%' % (k, 100 * p, o, 100 * edge))
+    for key in ('st',):                                   # ударов в створ у Pinnacle нет — только расчёт
+        if key in exp:
+            best = sorted(((v, k) for k, v in M.items() if k.startswith(W.STATS[key]) and 0.6 <= v <= 0.8), reverse=True)[:4]
+            out('FDSOT', ' · '.join('%s %.0f%%' % (k, 100 * v) for v, k in best))
 
 
 def cup_context(data, dom, P, day):

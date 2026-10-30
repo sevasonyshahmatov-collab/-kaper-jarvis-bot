@@ -6,7 +6,8 @@
 Бундеслига D1, Лига 1 F1, Португалия P1. Для общей шкалы еврокубков — ещё лиги их соперников (Нидерланды, Бельгия,
 Турция, Шотландия, Греция — с ударами; Австрия, Швейцария, Дания, Норвегия, Швеция, Польша, Чехия — только счёт).
 Еврокубки — ESPN scoreboard по месяцам (ЛЧ, ЛЕ, ЛК): счёт за 90 минут (без овертайма), команды ESPN → клуб football-data.
-Матч лиги: {s, d, lg, h, a, hg, ag, sh: [удары х, г], st: [в створ х, г], pc: [П1 Х П2 закрытие Pinnacle],
+Матч лиги: {s, d, lg, h, a, hg, ag, sh: [удары х, г], st: [в створ х, г], ht: [счёт 1-го тайма], co: [угловые],
+            yc: [жёлтые], rc: [красные], fo: [фолы], pc: [П1 Х П2 закрытие Pinnacle],
             po: [открытие Pinnacle], ac: [средняя закрытие], o25: [ТБ ТМ 2,5 закрытие Pinnacle], oo25: [открытие], a25: [средняя]}
 Матч кубка: {s, d, lg: 'UCL'|'UEL'|'UECL', h, a (клуб football-data или 'espn:<id>'), hl, al (лига клуба), hg, ag, e: FT, n: нейтральное поле,
              bo: [П1 Х П2 букмекера ESPN], bt: [тотал, больше, меньше]}; xG — Understat (топ-5, без Португалии): xg: [х, г]
@@ -107,6 +108,12 @@ def league_csv(code, s):
             g['st'] = [int(row['HST']), int(row['AST'])]
         except (KeyError, TypeError, ValueError):
             pass
+        for k, keys in (('ht', ('HTHG', 'HTAG')), ('co', ('HC', 'AC')), ('yc', ('HY', 'AY')), ('rc', ('HR', 'AR')),
+                        ('fo', ('HF', 'AF'))):
+            try:
+                g[k] = [int(row[keys[0]]), int(row[keys[1]])]
+            except (KeyError, TypeError, ValueError):
+                pass
         for k, keys in (('pc', ('PSCH', 'PSCD', 'PSCA')), ('po', ('PSH', 'PSD', 'PSA')), ('ac', ('AvgCH', 'AvgCD', 'AvgCA'))):
             v = trio(row, *keys)
             if v:
