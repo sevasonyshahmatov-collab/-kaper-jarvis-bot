@@ -33,7 +33,8 @@ SEASONS = [2021, 2022, 2023, 2024, 2025, 2026]          # год начала с
 CUR = SEASONS[-1]
 OURS = {'E0': 'АПЛ', 'SP1': 'Ла Лига', 'I1': 'Серия А', 'D1': 'Бундеслига', 'F1': 'Лига 1', 'P1': 'Португалия'}
 MORE = ['N1', 'B1', 'T1', 'SC0', 'G1']                  # лиги соперников по еврокубкам, тот же формат CSV
-EXTRA = {'AUT': 'aut.1', 'SWZ': 'sui.1', 'DNK': 'den.1', 'NOR': 'nor.1', 'SWE': 'swe.1', 'POL': 'pol.1'}
+EXTRA = {'AUT': 'aut.1', 'SWZ': 'sui.1', 'DNK': 'den.1', 'NOR': 'nor.1', 'SWE': 'swe.1', 'POL': 'pol.1', 'ROU': 'rou.1',
+         'IRL': 'irl.1', 'FIN': 'fin.1'}
 ESPN_LG = {'E0': 'eng.1', 'SP1': 'esp.1', 'I1': 'ita.1', 'D1': 'ger.1', 'F1': 'fra.1', 'P1': 'por.1', 'N1': 'ned.1',
            'B1': 'bel.1', 'T1': 'tur.1', 'SC0': 'sco.1', 'G1': 'gre.1', 'AUT': 'aut.1', 'SWZ': 'sui.1', 'DNK': 'den.1',
            'NOR': 'nor.1', 'SWE': 'swe.1', 'POL': 'pol.1', 'CZE': 'cze.1', 'CRO': 'cro.1', 'SRB': 'srb.1',
@@ -166,6 +167,20 @@ ALIAS = {   # ESPN → football-data, где похожесть по буква�
 }
 
 
+def score_name(nn, cand):
+    """Похожесть имени ESPN (уже norm) и имени football-data: 1 — совпало, 0,9 — одно внутри другого, иначе difflib."""
+    if ALIAS.get(nn) == cand:
+        return 1.0
+    k = norm(cand)
+    if not k:
+        return 0.0
+    if k == nn:
+        return 1.0
+    if k in nn.split() or nn in k.split() or (len(k) > 4 and k in nn) or (len(nn) > 4 and nn in k):
+        return 0.9
+    return difflib.SequenceMatcher(None, nn, k).ratio()
+
+
 def espn_teams(code, s):
     """ESPN: команды лиги в сезоне s → {id: имя}."""
     lg = ESPN_LG.get(code)
@@ -202,9 +217,12 @@ def ml(v):
     return round(1 + v / 100, 3) if v > 0 else (round(1 + 100 / abs(v), 3) if v < 0 else None)
 
 
+_SEEN = {}
+
+
 def cup_month(comp, ym):
     """ESPN scoreboard за месяц (dates=ГГГГММ) — завершённые матчи с кэфами букмекера ESPN, если есть."""
-    path = os.path.join(CACHE, 'espn', '%s_%s.json' % (comp, ym))
+    path = os.path.join(CACHE, 'espn2', '%s_%s.json' % (comp, ym))
     if os.path.exists(path):
         return json.load(open(path))
     r = get(E + CUPS[comp] + '/scoreboard', params={'dates': ym, 'limit': 400})
@@ -226,9 +244,20 @@ def cup_month(comp, ym):
         g = dict(d=(e.get('date') or '')[:10], lg=comp, hid=h[0], aid=a[0], hn=h[1], an=a[1], hg=h[2], ag=a[2], e=e_,
                  n=bool(c.get('neutralSite')))
         o = (c.get('odds') or [None])[0] or {}
-        k1 = ml((o.get('homeTeamOdds') or {}).get('moneyLine'))
-        kx = ml((o.get('drawOdds') or {}).get('moneyLine'))
-        k2 = ml((o.get('awayTeamOdds') or {}).get('moneyLine'))
+        if o and not _SEEN.get(comp):
+            _SEEN[comp] = 1
+            out('FH', 'ESPN кэфы %s %s: %s' % (comp, ym, json.dumps(o, ensure_ascii=False)[:600]))
+
+        def mline(x):
+            x = x or {}
+            v = x.get('moneyLine')
+            if v is None:
+                v = ((x.get('close') or {}).get('odds') or (x.get('current') or {}).get('odds')
+                     or (x.get('open') or {}).get('odds'))
+            return ml(v)
+        k1 = mline(o.get('homeTeamOdds'))
+        kx = mline(o.get('drawOdds'))
+        k2 = mline(o.get('awayTeamOdds'))
         if k1 and kx and k2:
             g['bo'] = [k1, kx, k2]
         if o.get('overUnder') and ml(o.get('overOdds')) and ml(o.get('underOdds')):
@@ -303,22 +332,29 @@ def build():
     for code in EXTRA:
         dom[code] = extra_csv(code)
         out('FH', '%s матчей %d (только счёт)' % (code, len(dom[code])))
-    # команды ESPN → лига и имя football-data, по сезонам
     fd_names = {(code, s): sorted({g['h'] for g in gs if g['s'] == s} | {g['a'] for g in gs if g['s'] == s})
                 for code, gs in dom.items() for s in SEASONS}
-    jobs = [(code, s) for code in ESPN_LG for s in SEASONS]
-    with ThreadPoolExecutor(8) as ex:
-        tl = dict(zip(jobs, ex.map(lambda j: espn_teams(*j), jobs)))
-    idmap = {}          # (id, s) → (лига, имя fd или None)
-    miss = []
-    for (code, s), teams in tl.items():
-        for tid, name in teams.items():
-            cands = fd_names.get((code, s)) or []
-            fd = match_name(name, cands) if cands else None
-            if cands and not fd:
-                miss.append('%s/%d %s' % (code, s, name))
-            idmap[(tid, s)] = (code, fd)
-    out('FH', 'ESPN команд-сезонов %d, не сопоставлено с football-data %d: %s' % (len(idmap), len(miss), '; '.join(miss[:25])))
+    fuzzy = {}
+
+    def by_name(nm, s, memo={}):
+        """Клуб еврокубка → (лига, имя football-data) среди всех лиг сезона s (или прошлого)."""
+        if (nm, s) in memo:
+            return memo[(nm, s)]
+        best = (0, None, None)
+        nn = norm(nm)
+        for ss in (s, s - 1):
+            for code in dom:
+                for c in fd_names.get((code, ss)) or []:
+                    sc = score_name(nn, c)
+                    if sc > best[0]:
+                        best = (sc, code, c)
+            if best[0] >= 0.9:
+                break
+        memo[(nm, s)] = (best[1], best[2]) if best[0] >= 0.8 else (None, None)
+        if 0.8 <= best[0] < 1.0:
+            fuzzy[nm] = '%s→%s/%s' % (nm, best[1], best[2])
+        return memo[(nm, s)]
+
     # еврокубки
     jobs = [(c, ym) for s in SEASONS for c in CUPS for ym in cup_months(s)]
     with ThreadPoolExecutor(8) as ex:
@@ -334,7 +370,7 @@ def build():
                 if e.get(k):
                     g[k] = e[k]
             for k, tid, nm in (('h', e['hid'], e['hn']), ('a', e['aid'], e['an'])):
-                lg, fd = idmap.get((tid, s)) or idmap.get((tid, s - 1)) or (None, None)
+                lg, fd = by_name(nm, s)
                 g[k] = fd or 'espn:%s' % tid
                 g[k + 'l'] = lg or '?'
                 if not lg:
@@ -346,6 +382,7 @@ def build():
         by.setdefault((g['s'], g['lg']), 0)
         by[(g['s'], g['lg'])] += 1
     out('FH', 'еврокубки: ' + ', '.join('%s %d/%02d: %d' % (c, s, (s + 1) % 100, n) for (s, c), n in sorted(by.items())))
+    out('FH', 'нестрогие сопоставления (%d): %s' % (len(fuzzy), '; '.join(sorted(fuzzy.values()))))
     out('FH', 'клубы кубков без лиги (%d): %s' % (len(nolg), ', '.join(sorted(nolg, key=lambda k: -nolg[k])[:30])))
     data = dict(made=date.today().isoformat(), dom=dom, cup=cup)
     with gzip.open(OUT, 'wt', encoding='utf-8') as f:
