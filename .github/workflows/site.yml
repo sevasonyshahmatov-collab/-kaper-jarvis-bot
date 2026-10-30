@@ -117,6 +117,26 @@ jobs:
         run: |
           mkdir -p site
           python team/site/build.py site $(ls out/reels_daily/*-"${{ steps.day.outputs.day }}"/plan.json 2>/dev/null)
+      - name: Проверить сайт (Playwright)
+        # team/site/check.js (владелец 30.10): 390/768/1440 — главная, «Прогноз дня» с отсчётом, карточки «через N ч M мин»,
+        # Telegram, ссылки, картинки, ошибки консоли, горизонтальная прокрутка. Публикацию не останавливает: отчёт — в логе
+        # (CHECK OK / CHECK FAIL), снимки — артефакт site-check на 3 дня. Днём (лёгкие запуски) не гоняем — экономия минут.
+        if: steps.day.outputs.light != 'yes'
+        continue-on-error: true
+        timeout-minutes: 6
+        env:
+          SITE_URL: ${{ steps.day.outputs.url }}
+        run: |
+          mkdir -p /tmp/pw && cd /tmp/pw && npm i -s --no-save playwright@1.56.0 >/dev/null && npx playwright install --with-deps chromium >/dev/null 2>&1
+          cd "$GITHUB_WORKSPACE" && NODE_PATH=/tmp/pw/node_modules node team/site/check.js site out/site_check
+      - name: Снимки проверки
+        if: always() && steps.day.outputs.light != 'yes'
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-check
+          path: out/site_check
+          retention-days: 3
+          if-no-files-found: ignore
       - name: Опубликовать
         if: env.SITE_REPO != ''
         env:

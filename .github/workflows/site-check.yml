@@ -1,0 +1,45 @@
+# Проверка правок сайта до слияния (владелец 30.10): берёт живой сайт (открытый репозиторий, данные дней и посты канала),
+# пересобирает его кодом из ветки (team/site/build.py --no-settle — без сети к лигам) и гоняет team/site/check.js
+# на 390/768/1440. Снимки — артефакт site-check-pr на 3 дня. Ничего не публикует.
+name: Проверка сайта
+
+on:
+  pull_request:
+    paths: ['team/site/**', '.github/workflows/site-check.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.SITE_REPO || 'sevasonyshahmatov-collab/sevasonyshahmatov-collab.github.io' }}
+          path: site
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install "pillow>=11" numpy requests cairosvg
+      - name: Собрать сайт кодом ветки
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://sevasonyshahmatov-collab.github.io/' }}
+        run: python team/site/build.py site --no-settle
+      - name: Проверить (Playwright)
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://sevasonyshahmatov-collab.github.io/' }}
+        run: |
+          mkdir -p /tmp/pw && cd /tmp/pw && npm i -s --no-save playwright@1.56.0 >/dev/null && npx playwright install --with-deps chromium >/dev/null 2>&1
+          cd "$GITHUB_WORKSPACE" && NODE_PATH=/tmp/pw/node_modules node team/site/check.js site out/site_check
+      - name: Снимки
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-check-pr
+          path: out/site_check
+          retention-days: 3
+          if-no-files-found: ignore

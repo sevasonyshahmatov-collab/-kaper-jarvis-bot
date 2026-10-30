@@ -42,6 +42,20 @@
 ## Проверка без сети
     SITE_URL=https://example.github.io/jarvis python team/site/build.py /tmp/site <plan.json> --no-settle
 
+## Автопроверка (Playwright, владелец 30.10)
+`team/site/check.js` открывает собранный сайт из папки (без сервера и сети) на ширинах 390, 768, 1440: главная, «Прогноз дня»
+с отсчётом (время ставится за 2 ч до матча), карточки «через N ч M мин», вкладка НХЛ, кнопка Telegram, свои ссылки,
+картинки, ошибки консоли, пустые блоки, горизонтальная прокрутка; плюс прогнозы, страница матча, тренды, приложение.
+Итог — `CHECK OK` / `CHECK FAIL`, `report.txt` и снимки в папке проверки.
+- После каждой правки сайта, в облачном чате (живой сайт открыт, его репозиторий клонируется):
+
+      git clone -q --depth 1 https://github.com/sevasonyshahmatov-collab/sevasonyshahmatov-collab.github.io /tmp/site
+      SITE_URL=https://sevasonyshahmatov-collab.github.io/ python team/site/build.py /tmp/site --no-settle
+      node team/site/check.js /tmp/site /tmp/site_check
+
+- PR с правками `team/site/**` — задание `site-check.yml` (то же самое; снимки — артефакт `site-check-pr`).
+- `site.yml` — шаг перед публикацией в полных запусках (не днём); публикацию не останавливает, снимки — артефакт `site-check`.
+
 ## Состояние (23.10)
 - Сайт: **https://sevasonyshahmatov-collab.github.io/** — репозиторий `sevasonyshahmatov-collab/sevasonyshahmatov-collab.github.io`
   (переименован из `jarvibet`, чтобы сайт был в корне адреса: Яндекс Вебмастер подтверждает права только на весь адрес).
