@@ -1,0 +1,93 @@
+# Модель учится сама раз в неделю (владелец 30.10, «таблица-агент», шаг 1): team/picks/learn_weekly.py — прогон рейтинга
+# КХЛ и НХЛ на истории, честная проверка поправки на отложенных матчах (последние 4 недели), новые коэффициенты в
+# team/picks/calib.json — только если не хуже текущих; сводка «обещали / зашло» и короткий отчёт владельцу в бот.
+# Код и коммит — ветка команды (cron GitHub срабатывает только из main — этот файл в обеих ветках).
+# По расписанию работает только после «Да» владельца на предложение 3010-lw (строка «согласие на 3010-lw» в team/INBOX.md);
+# ручной запуск — всегда.
+name: Модель — самообучение раз в неделю
+
+on:
+  schedule:
+    - cron: '17 4 * * 1'          # пн 07:17 МСК: после прогнозов КХЛ (04:40) и до прогнозов НХЛ (10:40), утренние посты бота — 06:00 и 08:30
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: 'Только проверка: calib.json не менять, не коммитить (1 — да)'
+        required: false
+        default: '0'
+      send:
+        description: 'Отчёт владельцу в бот (1 — да)'
+        required: false
+        default: '1'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: learn-weekly
+  cancel-in-progress: false
+
+env:
+  BRANCH: claude/project-migration-old-account-6e31vz
+  OK_PID: 3010-lw
+
+jobs:
+  learn:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/project-migration-old-account-6e31vz
+      - name: Согласие владельца на расписание
+        id: gate
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && ! grep -q "согласие на $OK_PID" team/INBOX.md; then
+            echo "Нет «Да» владельца на $OK_PID — по расписанию не запускаю"; echo "go=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=1" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.go == '1'
+        with:
+          python-version: '3.11'
+      - if: steps.gate.outputs.go == '1'
+        run: pip install numpy requests
+      # история матчей прошлых сезонов (.lines/nhl_hist, .lines/khl_hist) — из кэша прогнозов; обратно не сохраняем,
+      # чтобы не перебить свежий кэш itogi.yml (.lines/lines.jsonl)
+      - uses: actions/cache/restore@v4
+        if: steps.gate.outputs.go == '1'
+        with:
+          path: .lines
+          key: team-state-${{ github.run_id }}
+          restore-keys: |
+            team-state-
+      - name: Прогон и решение
+        if: steps.gate.outputs.go == '1'
+        env:
+          DRY: ${{ github.event.inputs.dry || '0' }}
+        run: |
+          flag=""; [ "$DRY" = "1" ] && flag="--dry"
+          python team/picks/learn_weekly.py $flag
+      - name: Коммит в ветку команды
+        if: steps.gate.outputs.go == '1' && github.event.inputs.dry != '1'
+        run: |
+          D=$(TZ=Europe/Moscow date +%F)
+          git config user.name "jarvis-learn"
+          git config user.email "actions@users.noreply.github.com"
+          git add team/picks/calib.json "team/out/$D/learn_weekly.md" "team/out/$D/learn_weekly.json"
+          if git diff --cached --quiet; then echo "нечего коммитить"; exit 0; fi
+          ch=$(python -c "import json;print(','.join(json.load(open('team/picks/calib.json')).get('learn',{}).get('changed',[])) if json.load(open('team/picks/calib.json')).get('learn',{}).get('date')=='$D' else '-')")
+          git commit -m "Модель: недельная проверка $D, поправка: ${ch:--} (learn-weekly run ${{ github.run_number }})"
+          for i in 1 2 3 4; do
+            git pull --rebase origin "$BRANCH" && git push origin "HEAD:$BRANCH" && exit 0
+            sleep $((2 ** i))
+          done
+          exit 1
+      - name: Отчёт владельцу в бот
+        if: steps.gate.outputs.go == '1' && github.event.inputs.send != '0'
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+        run: |
+          D=$(TZ=Europe/Moscow date +%F)
+          INPUT_PAYLOAD="{\"kind\":\"team\",\"job\":\"team/out/$D/learn_weekly.json\"}" python render/itogi_job.py
