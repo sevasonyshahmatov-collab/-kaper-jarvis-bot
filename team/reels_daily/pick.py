@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Прогноз на матч для ролика — правило владельца 17.10: из «Что заходит» (team/picks/calc.py) самое вероятное событие
-с кэфом 1,6–2,3. Равный матч (П1 и П2 близки) — ближе к 1,6–1,7; аутсайдер против сильного — 1,8–2,0.
+с кэфом 1,6–2,3. Владелец 30.10 («опять сплошные форы +1,5»): порог — как у «ВЫБОР» в прогнозах (НХЛ — calc.nhl_floor:
+инд. тотал и фора +1,5 от 60 %, остальное от 65 %; КХЛ — от 50 %), нет ставки выше порога — матч без ролика; в один день —
+разные виды ставок, фора +1,5 — не больше MAX_PLUS15 роликов, дальше — следующая ставка другого вида выше порога. Равный матч (П1 и П2 близки) — ближе к 1,6–1,7; аутсайдер против сильного — 1,8–2,0.
 Пример 17.10: Сибирь — Барыс (2.60/3.70/2.40) → ТБ 4,5 за 1,61; Сочи — Локомотив (6.80/4.70/1.41) → фора Локомотива −1,5 за 1,75."""
 import os
 import random
@@ -15,8 +17,8 @@ import calc  # noqa: E402
 from settle import gen  # noqa: E402
 
 LO, HI = 1.6, 2.3
-MIN_P = 0.45            # ниже — уже не «самая вероятная», матч без ролика
-NEAR = 0.04             # в пределах 4 п. п. от самой вероятной выбираем кэф, подходящий матчу
+KHL_P = calc.MIN_P[0]   # КХЛ: «ВЫБОР» от 50 %, как в прогнозах; НХЛ — calc.nhl_floor
+MAX_PLUS15 = 2          # владелец 30.10: фора +1,5 — не больше 1–2 роликов в день
 EQUAL, STRONG = 0.75, 0.5   # П-меньший / П-больший: ≥ 0,75 — равный матч; < 0,5 — аутсайдер против сильного
 
 
@@ -33,18 +35,25 @@ def band(x1x2):
     return LO, HI
 
 
-def choose(rows, x1x2, avoid=()):
-    """rows — ставки calc.brief (t, g, p, odds). avoid — виды ставок (g), уже взятые сегодня: берём другой вид,
-    если он не дальше NEAR от лучшего. → ставка или None."""
-    ok = [x for x in rows if x.get('odds') and LO <= x['odds'] <= HI and x['p'] >= MIN_P]
+def floor(x, league):
+    return calc.nhl_floor(x) if league == 'nhl' else KHL_P
+
+
+def plus15(x):
+    return bool(x.get('k')) and calc.key_of(x['k']) == 'фора +1.5'
+
+
+def choose(rows, x1x2, avoid=(), league='khl', plus=0):
+    """rows — ставки calc.brief (t, g, k, p, odds). avoid — виды ставок (g), уже взятые сегодня: сначала другой вид;
+    plus — сколько фор +1,5 уже взято сегодня (не больше MAX_PLUS15). → ставка или None (нет ставки выше порога)."""
+    ok = [x for x in rows if x.get('odds') and LO <= x['odds'] <= HI and x['p'] >= floor(x, league)
+          and not (plus >= MAX_PLUS15 and plus15(x))]
     if not ok:
         return None
-    best = max(x['p'] for x in ok)
-    near = [x for x in ok if x['p'] >= best - NEAR]
     lo, hi = band(x1x2)
     dist = lambda x: max(lo - x['odds'], 0, x['odds'] - hi)  # noqa: E731
-    near.sort(key=lambda x: (round(dist(x), 3) > 0.05, x['g'] in avoid, -x['p']))
-    return near[0]
+    ok.sort(key=lambda x: (x['g'] in avoid, round(dist(x), 3) > 0.05, -x['p']))
+    return ok[0]
 
 
 def human(t, h, a, ot=False):
@@ -80,13 +89,14 @@ def day_picks(games, nxt, pins, fon, league='khl', backup=()):
     G = calc.prep(games)
     T = calc.team_games(G)
     M = calc.model(G)
-    out, kinds = [], []
+    calc.LEAGUE = league.upper()            # поправка вероятностей по лиге (calc.calibrate), как в прогнозах
+    out, kinds, plus = [], [], 0
     for x in nxt:
         H, A = x['h'], x['a']
         if H not in T or A not in T:
             print('PICK %s — %s: у команды нет матчей в сезоне' % (H, A), flush=True)
             continue
-        r = calc.match(T, M, H, A)
+        r = calc.match(T, M, H, A, (calc.NHL_NEW or {}).get((H, A)))
         mks, fb = (pins or {}).get((H, A)), (fon or {}).get((H, A))
         rows, _ = calc.brief(H, A, r, mks, fb)
         x1x2 = [calc.odds_for(('ml', 6, s), mks)[0] or calc.fonbet_for(('ml', 6, s), fb) for s in ('home', 'draw', 'away')]
@@ -95,11 +105,13 @@ def day_picks(games, nxt, pins, fon, league='khl', backup=()):
                 print('PICK %s — %s: нет линии П1/Х/П2 — без ролика' % (H, A), flush=True)
                 continue
             x1x2 = None                     # запасная линия ESPN: только рынки с ОТ, коридор кэфа — общий 1,6–2,3
-        c = choose(rows, x1x2, avoid=kinds)
+        c = choose(rows, x1x2, avoid=kinds, league=league, plus=plus)
         if not c:
-            print('PICK %s — %s: нет ставки от %d %% с кэфом %.1f–%.1f — без ролика' % (H, A, MIN_P * 100, LO, HI), flush=True)
+            print('PICK %s — %s: нет ставки выше порога (%s) с кэфом %.1f–%.1f — без ролика'
+                  % (H, A, 'НХЛ 60/65 %' if league == 'nhl' else 'КХЛ %d %%' % (KHL_P * 100), LO, HI), flush=True)
             continue
         kinds.append(c['g'])
+        plus += plus15(c)
         mk = next((k for k in calc.markets(H, A) if k['t'] == c['t']), None)
         out.append(dict(h=H, a=A, d=x['d'], arena=x.get('arena') or '', x1x2=x1x2, t=c['t'], g=c['g'], p=c['p'],
                         odds=round(c['odds'], 2), sim=simulate(r, M, mk, H + A), fact=fact(T, H, A, mk), p3=p3(r, M),

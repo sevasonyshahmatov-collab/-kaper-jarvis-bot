@@ -13,14 +13,28 @@ import pin  # noqa: E402
 
 LEAGUE, DAY = sys.argv[1].lower(), sys.argv[2]
 print('DAYJOB %s %s' % (LEAGUE, DAY), flush=True)
+calc.LEAGUE = LEAGUE.upper()                     # поправка вероятностей по лиге (calc.calibrate, team/picks/calib.json)
 if LEAGUE == 'khl':
     import khl_data
     games, nxt = khl_data.fetch(DAY)
     fon = {(x['h'], x['a']): x.get('bets') for x in nxt}
+    try:                                         # новый рейтинг КХЛ (владелец 29.10) — когда включён в khl_live.ENABLED
+        import khl_live
+        if khl_live.ENABLED:
+            calc.NHL_NEW, calc.NHL_WN = khl_live.prepare(DAY, nxt), khl_live.WN
+    except Exception as e:  # noqa: BLE001 — не посчитался: прогнозы по старому расчёту
+        print('NHLLIVEERR КХЛ: новый рейтинг не посчитан, считаю по-старому: %r' % e, flush=True)
+        calc.NHL_NEW = {}
 else:
     import nhl_data
     games, nxt = nhl_data.fetch(DAY)
     fon = {}
+    try:                                         # новый рейтинг НХЛ (владелец 29.10): xG, вратарь-стартер, два дня подряд
+        import nhl_live
+        calc.NHL_NEW, calc.NHL_WN = nhl_live.prepare(DAY, nxt), nhl_live.WN
+    except Exception as e:  # noqa: BLE001 — не посчитался: прогнозы по старому расчёту
+        print('NHLLIVEERR новый рейтинг не посчитан, считаю по-старому: %r' % e, flush=True)
+        calc.NHL_NEW = {}
 pairs = [(x['h'], x['a']) for x in nxt]
 try:
     pins, starts = pin.fetch(LEAGUE, DAY, pairs)

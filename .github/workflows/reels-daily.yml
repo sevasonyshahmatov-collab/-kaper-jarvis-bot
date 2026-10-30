@@ -50,6 +50,12 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install "pillow>=11" numpy requests cairosvg rlottie-python
+      # история матчей для нового рейтинга (team/picks/nhl_hist.py, khl_hist.py кэшируют в .lines) — свой кэш конвейера
+      - uses: actions/cache/restore@v4
+        with:
+          path: .lines
+          key: reels-lines-${{ github.run_id }}
+          restore-keys: reels-lines-
       - id: day
         env:
           DAY_IN: ${{ github.event.inputs.day || github.event.client_payload.day }}
@@ -74,6 +80,11 @@ jobs:
         run: |
           m="$MAX_IN"; [[ "$m" =~ ^[0-9]{1,2}$ ]] || m=0
           python team/reels_daily/make.py plan "${{ steps.day.outputs.league }}" "${{ steps.day.outputs.day }}" --max "$m" --per 3
+      - uses: actions/cache/save@v4
+        if: always() && hashFiles('.lines/**') != ''
+        with:
+          path: .lines
+          key: reels-lines-${{ github.run_id }}
       - uses: actions/upload-artifact@v4
         with:
           name: plan

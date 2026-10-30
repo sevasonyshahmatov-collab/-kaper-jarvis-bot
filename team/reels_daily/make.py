@@ -174,6 +174,14 @@ def plan(league, day, top, per):
         import nhl_data
         games, nxt = nhl_data.fetch(day)
         fon = {}
+    import calc
+    try:                                            # новый рейтинг (владелец 29.10) — как в прогнозах (team/picks/day.py)
+        live = importlib.import_module('khl_live' if league == 'khl' else 'nhl_live')
+        if getattr(live, 'ENABLED', True):
+            calc.NHL_NEW, calc.NHL_WN = live.prepare(day, nxt), live.WN
+    except Exception as e:  # noqa: BLE001 — не посчитался: ролики по старому расчёту
+        print('NHLLIVEERR новый рейтинг не посчитан, считаю по-старому: %r' % e, flush=True)
+        calc.NHL_NEW = {}
     try:
         pins, _ = pin.fetch(league, day, [(x['h'], x['a']) for x in nxt])
     except Exception as e:  # noqa: BLE001 — без Pinnacle в КХЛ остаётся линия Фонбета

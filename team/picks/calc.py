@@ -16,13 +16,60 @@ BRIEF (ставки с кэфом: вероятность, кэф, «ВЫБОР�
 с кэфом заметно выше), PICKJSON (то же одной строкой для team/picks/parse_log.py).
 Запускается из team/picks/day.py; отдельно: python team/picks/calc.py games.json 'Хозяева|Гости;…'"""
 import json
+from datetime import datetime, timezone
 import math
+import os
 import sys
 
 K, W, MAXG = 6, 0.5, 12
 MIN_ODDS = 1.6          # владелец 15.10: самая вероятная ставка с кэфом от 1,6
 MIN_P = (0.5, 0.45)     # выбор — среди ставок от 50 % (нет таких — от 45 %, «ВЫБОР?»); ниже — не «самая вероятная», решает сессия
+NHL_P = (0.60, 0.65)    # владелец 29.10: НХЛ — инд. тотал и фора +1,5 от 60 %, остальное от 65 % (nhl_floor)
 ALT_P, ALT_K = 0.06, 0.15   # «чуть менее вероятная, но кэф выше»: до 6 п. п. ниже по вероятности и кэф выше на 0,15+
+# Владелец 22.10: «нужна модель, которая выдаёт наиболее точные вероятные прогнозы». Разбор предложений 15–21.10: модель
+# обещала ~62 %, заходило ~50 % (тоталы 45 % при 62 %, фора +1,5 — 56 % при 67 %). До большой подгонки на истории —
+# вероятность модели наполовину сдвигаем к вероятности из линии (кэф без маржи ~4 %): «самая вероятная» выбирается по ней.
+W_MKT, MARGIN_EST = 0.5, 1.04
+# Поправка вероятности модели по виду ставки и лиге (team/picks/backtest.py: 2025/26 + этот сезон, ~7000 ставок на лигу):
+# logit(p') = a + b·logit(p). LEAGUE ставят day.py и шортсы ('KHL' | 'NHL'); нет — без поправки.
+LEAGUE = None
+# Новый рейтинг НХЛ (владелец 29.10; team/picks/nhl_live.py ставит из day.py): {(хозяева, гости): {lh, la, s, info}} —
+# ожидаемые голы с формой по xG, вратарём-стартером и усталостью; вес модели против частоты NHL_WN, поправка — calib.json «NHL2».
+# Пусто (не посчиталось) — всё по-старому.
+NHL_NEW = {}
+NHL_WN = 0.8
+try:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'calib.json'), encoding='utf-8') as _f:
+        CALIB = json.load(_f)
+except (OSError, ValueError):
+    CALIB = {}
+
+
+def key_of(k):
+    """Вид ставки без стороны: ('ml',6,'draw') → 'ничья осн.', ('sp',6,'away',1.5) → 'фора +1.5' …"""
+    t = k[0]
+    if t == 'ml':
+        return 'итоговая победа' if k[1] == 0 else ('ничья осн.' if k[2] == 'draw' else 'победа осн.')
+    if t == 'sp':
+        return 'не проиграет осн.' if abs(k[3]) == 0.5 else 'фора %+g' % k[3]
+    if t == 'tot':
+        return 'тотал %s %g' % ('больше' if k[2] == 'over' else 'меньше', k[3])
+    if t == 'tt':
+        return 'инд. тотал %s %g' % ('больше' if k[3] == 'over' else 'меньше', k[4])
+    return str(k)
+
+
+def calibrate(k, p):
+    lg = str(LEAGUE or '').upper()
+    ab = (CALIB.get(lg + '2' if NHL_NEW else lg) or {}).get(key_of(k))      # новый рейтинг — своя поправка (NHL2 / KHL2)
+    if not ab:
+        return p
+    x = math.log(max(1e-6, min(1 - 1e-6, p)) / (1 - max(1e-6, min(1 - 1e-6, p))))
+    return 1 / (1 + math.exp(-(ab[0] + ab[1] * x)))
+
+
+def p_adj(p, odds):
+    return (1 - W_MKT) * p + W_MKT / (odds * MARGIN_EST) if odds else p
 
 
 def out(tag, text):
@@ -139,10 +186,12 @@ def freq(lst, home, f, lg):
     return (s + K * lg) / (w + K) if w else None
 
 
-def match(T, M, H, A):
-    lh, la = lam(M, H, A)
+def match(T, M, H, A, new=None):
+    """new — {lh, la, s} нового рейтинга НХЛ (NHL_NEW): ожидаемые голы и доля ОТ оттуда, вес модели NHL_WN."""
+    lh, la = (new['lh'], new['la']) if new else lam(M, H, A)
+    w = NHL_WN if new else W
     P = scores(lh, la, M['rho'])
-    s = max(0.3, min(0.7, (M['ot'].get(H, 0.5) + 1 - M['ot'].get(A, 0.5)) / 2))
+    s = new['s'] if new else max(0.3, min(0.7, (M['ot'].get(H, 0.5) + 1 - M['ot'].get(A, 0.5)) / 2))
     home_recs = [view(x, True) for t in T for x in T[t] if x['home']]
     rows = []
     for mk in markets(H, A):
@@ -159,7 +208,7 @@ def match(T, M, H, A):
                     pm += P[i][j]
         eh, ea = freq(T.get(H), True, mk['f'], lg), freq(T.get(A), False, mk['f'], lg)
         pe = ea if eh is None else eh if ea is None else (eh + ea) / 2
-        rows.append(dict(g=mk['g'], t=mk['t'], k=mk['k'], p=W * pm + (1 - W) * pe, pm=pm, pe=pe, lg=lg))
+        rows.append(dict(g=mk['g'], t=mk['t'], k=mk['k'], p=w * pm + (1 - w) * pe, pm=pm, pe=pe, lg=lg))
     bi = max(((i, j) for i in range(MAXG + 1) for j in range(MAXG + 1)), key=lambda ij: P[ij[0]][ij[1]])
     return dict(lam=(lh, la), s=s, rows=rows, score=(bi[0], bi[1], P[bi[0]][bi[1]]))
 
@@ -223,18 +272,48 @@ def fonbet_for(k, fon):
         return None
 
 
+LINES = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), '.lines', 'lines.jsonl')
+
+
+def log_lines(H, A, info, rows):
+    """Линия и вероятности модели к каждому матчу — для подбора доли линии W_MKT (владелец 22.10). Файл живёт в кэше
+    Actions (itogi.yml, .lines); итог матча подставит разбор позже по дате и командам."""
+    rec = dict(t=datetime.now(timezone.utc).isoformat()[:16], league=LEAGUE, d=info.get('d'), h=H, a=A,
+               rows=[dict(k=key_of(x['k']) if x.get('k') else x['t'], t=x['t'], pm=x['p_model'], pc=x['p_cal'], o=x['odds'])
+                     for x in rows if x.get('odds')])
+    try:
+        os.makedirs(os.path.dirname(LINES), exist_ok=True)
+        with open(LINES, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(rec, ensure_ascii=False, separators=(',', ':')) + '\n')
+    except OSError as e:
+        print('LINESERR %r' % e, flush=True)
+
+
+def nhl_floor(x):
+    """Порог вероятности для НХЛ (владелец 29.10, заходимость 15–29.10): инд. тоталы 16/22 и фора +1,5 12/19 — от 60 %;
+    «не проиграет» 10/21, тоталы 7/18, победы 3/11 — от 65 %. Нет ставки выше порога — матч без прогноза."""
+    key = key_of(x['k']) if x.get('k') else ''
+    return NHL_P[0] if key.startswith('инд. тотал') or key == 'фора +1.5' else NHL_P[1]
+
+
 def brief(H, A, r, mks, fon):
     """Ставки с кэфом по убыванию вероятности + выбор по правилу владельца."""
     rows = []
-    for x in sorted(r['rows'], key=lambda x: -x['p']):
+    for x in r['rows']:
         v, src = odds_for(x['k'], mks)
         fb = fonbet_for(x['k'], fon)
         k = v or fb
-        rows.append(dict(t=x['t'], g=x['g'], p=round(x['p'], 4), pm=round(x['pm'], 4), pe=round(x['pe'], 4), lg=round(x['lg'], 4),
-                         pin=v, fon=fb, odds=k, src=src if v else ('Фонбет, осн. время' if fb else '')))
+        rows.append(dict(t=x['t'], g=x['g'], k=x['k'], p=round(p_adj(calibrate(x['k'], x['p']), k), 4), p_model=round(x['p'], 4),
+                         p_cal=round(calibrate(x['k'], x['p']), 4), pm=round(x['pm'], 4),
+                         pe=round(x['pe'], 4), lg=round(x['lg'], 4), pin=v, fon=fb, odds=k,
+                         src=src if v else ('Фонбет, осн. время' if fb else '')))
+    rows.sort(key=lambda x: -x['p'])
     pick = None
-    for floor, mark in zip(MIN_P, ('ВЫБОР', 'ВЫБОР?')):
-        ok = [x for x in rows if x['odds'] and x['odds'] >= MIN_ODDS and x['p'] >= floor]
+    floors = MIN_P
+    if str(LEAGUE or '').upper() == 'NHL':      # владелец 29.10: НХЛ — только уверенные ставки (разбор 15–29.10)
+        floors = (None,)
+    for floor, mark in zip(floors, ('ВЫБОР', 'ВЫБОР?')):
+        ok = [x for x in rows if x['odds'] and x['odds'] >= MIN_ODDS and x['p'] >= (floor or nhl_floor(x))]
         if ok:
             pick = ok[0]
             pick['mark'] = mark
@@ -330,20 +409,23 @@ def run(raw_games, pairs, pins=None, fonbet=None, meta=None):
         if H not in T or A not in T:
             out('PAIR', '%s — %s | у одной из команд нет матчей в сезоне — расчёта нет' % (H, A))
             continue
-        r = match(T, M, H, A)
+        new = NHL_NEW.get((H, A))
+        r = match(T, M, H, A, new)
         mks = (pins or {}).get((H, A))
         fon = (fonbet or {}).get((H, A))
-        out('PAIR', '%s — %s | λ %.2f : %.2f | самый вероятный счёт осн. времени %d:%d (%.1f%%) | доля ОТ хозяев s=%.2f | линия Pinnacle: %s'
-            % (H, A, r['lam'][0], r['lam'][1], r['score'][0], r['score'][1], 100 * r['score'][2], r['s'], 'есть' if mks else 'НЕТ'))
+        out('PAIR', '%s — %s | λ %.2f : %.2f | самый вероятный счёт осн. времени %d:%d (%.1f%%) | доля ОТ хозяев s=%.2f | линия Pinnacle: %s%s'
+            % (H, A, r['lam'][0], r['lam'][1], r['score'][0], r['score'][1], 100 * r['score'][2], r['s'], 'есть' if mks else 'НЕТ',
+               ' | новый рейтинг' if new else ''))
         for x in sorted(r['rows'], key=lambda x: -x['p']):
             out('CALC', '%s—%s | %-40s %5.1f%% | честный %5.2f | модель %5.1f%% | частота %5.1f%% | лига %5.1f%%'
                 % (H, A, x['t'], 100 * x['p'], 1 / x['p'], 100 * x['pm'], 100 * x['pe'], 100 * x['lg']))
         rows, pick = brief(H, A, r, mks, fon)
+        log_lines(H, A, (meta or {}).get((H, A)) or {}, rows)
         for x in rows:
             if not x['odds']:
                 continue
-            out('BRIEF', '%s—%s | %5.1f%% %-40s | кэф %.2f (%s)%s | p×k %.2f%s'
-                % (H, A, 100 * x['p'], x['t'], x['odds'], x['src'],
+            out('BRIEF', '%s—%s | %5.1f%% (модель %4.1f%%) %-40s | кэф %.2f (%s)%s | p×k %.2f%s'
+                % (H, A, 100 * x['p'], 100 * x['p_model'], x['t'], x['odds'], x['src'],
                    ', Фонбет %.2f' % x['fon'] if x['fon'] and x['pin'] else '', x['p'] * x['odds'],
                    ' | ' + x['mark'] if x.get('mark') else ''))
         if not pick:
@@ -358,6 +440,8 @@ def run(raw_games, pairs, pins=None, fonbet=None, meta=None):
         x1x2 = [odds_for(('ml', 6, s), mks)[0] or fonbet_for(('ml', 6, s), fon) for s in ('home', 'draw', 'away')]
         fin = [odds_for(('ml', 0, s), mks)[0] for s in ('home', 'away')]
         info = dict((meta or {}).get((H, A)) or {})
+        if new:
+            info['rate'] = new.get('info')
         info.update(h=H, a=A, x1x2=x1x2, fin=fin, pick=pick,
                     top=[{k: x[k] for k in ('t', 'p', 'odds', 'src', 'mark') if k in x} for x in rows if x['odds']][:12])
         out('PICKJSON', json.dumps(info, ensure_ascii=False, separators=(',', ':')))
