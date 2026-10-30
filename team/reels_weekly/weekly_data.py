@@ -8,6 +8,7 @@ team/PICKS.md, расчёт по счёту — team/daily/settle.py, как в 
 
   python team/reels_weekly/weekly_data.py week khl 2026-10-19     топ-5 результативных команд недели пн–вс + наши прогнозы
   python team/reels_weekly/weekly_data.py under khl 2026-10-30    худшие для тотала больше 5,5 за сезон (по основному времени)
+  python team/reels_weekly/weekly_data.py over nhl 2026-10-30     чаще всех тотал больше 5,5;  defense — меньше всех пропускают
 """
 import json
 import os
@@ -46,7 +47,7 @@ def games(league, t0, t1):
         out, d = [], t0.date() - timedelta(days=1)
         while d <= t1.date():
             for g in D.nhl_day(d.isoformat()):
-                if t0 <= g['start'] < t1:
+                if t0 <= g['start'] - timedelta(hours=12) < t1:      # ночные матчи НХЛ — к игровому дню накануне
                     out.append(g)
             d += timedelta(days=1)
     out = [g for g in out if g['state'] == 'final' and g['hg'] is not None]
@@ -79,21 +80,35 @@ def top_scoring(gs, n=5):
     return rows[:n], len(rows)
 
 
-def worst_over(gs, line=5.5, league='KHL', n=5):
-    """Доля матчей сезона с тоталом основного времени меньше line: больше доля — выше; при равенстве — ниже средний тотал."""
+def worst_over(gs, line=5.5, league='KHL', n=5, over=False):
+    """Доля матчей сезона с тоталом основного времени меньше line (over=True — больше): больше доля — выше; при равенстве —
+    ниже (over — выше) средний тотал. Поле under — число таких матчей в обоих случаях."""
     t = defaultdict(lambda: dict(gp=0, under=0, tot=0))
     for g in gs:
         tot = g['reg'][0] + g['reg'][1]
         for me in (g['home'], g['away']):
             t[me]['gp'] += 1
-            t[me]['under'] += tot < line
+            t[me]['under'] += (tot > line) if over else (tot < line)
             t[me]['tot'] += tot
     rows = []
     for k, v in t.items():
         if v['gp'] >= MIN_GAMES[league]:
             rows.append(dict(team=k, gp=v['gp'], under=v['under'], avg=round(v['tot'] / v['gp'], 2),
                              share=round(v['under'] / v['gp'], 4)))
-    rows.sort(key=lambda r: (-r['share'], r['avg'], -r['gp'], r['team']))
+    rows.sort(key=lambda r: (-r['share'], -r['avg'] if over else r['avg'], -r['gp'], r['team']))
+    return rows[:n], len(rows), len(t)
+
+
+def best_defense(gs, league='KHL', n=5):
+    """Меньше всех пропускают за игру (без победных буллитов); команды от MIN_GAMES матчей."""
+    t = defaultdict(lambda: dict(gp=0, gf=0, ga=0))
+    for g in gs:
+        for side, me, op in (('h', g['home'], 'a'), ('a', g['away'], 'h')):
+            t[me]['gp'] += 1
+            t[me]['gf'] += goals(g, side)
+            t[me]['ga'] += goals(g, op)
+    rows = [dict(team=k, avg=round(v['ga'] / v['gp'], 2), **v) for k, v in t.items() if v['gp'] >= MIN_GAMES[league]]
+    rows.sort(key=lambda r: (r['ga'] / r['gp'], -r['gp'], r['team']))
     return rows[:n], len(rows), len(t)
 
 
@@ -103,7 +118,7 @@ def our_week(league, t0, t1):
     import morning
     led = ledger.Ledger(t1)
     picks, notes = led.published(t0, t1)
-    picks = [p for p in picks if p['league'] == league]
+    picks = [p for p in picks if p['league'] == league and t0 <= p['start'] < t1]   # ledger берёт с запасом ±14 ч
     for s in notes:
         print('WEEKNOTE ' + s, flush=True)
     found, errs = D.games_for(picks)
@@ -134,16 +149,35 @@ def week(league, monday):
                 src='приложение КХЛ' if league == 'KHL' else 'api-web.nhle.com')
 
 
-def under(league, day, line=5.5):
-    t1 = datetime.fromisoformat(day).replace(tzinfo=MSK) + timedelta(days=1)
-    gs = games(league, season_start(day), t1)
-    top, nteams, nall = worst_over(gs, line, league)
-    return dict(kind='under', league=league, line=line, upto=day, games=len(gs), teams=nteams, teams_all=nall, top=top,
+def season_games(league, day):
+    return games(league, season_start(day), datetime.fromisoformat(day).replace(tzinfo=MSK) + timedelta(days=1))
+
+
+def under(league, day, line=5.5, over=False):
+    gs = season_games(league, day)
+    top, nteams, nall = worst_over(gs, line, league, over=over)
+    return dict(kind='over' if over else 'under', league=league, line=line, upto=day, games=len(gs), teams=nteams, teams_all=nall, top=top,
                 last=max(g['start'] for g in gs).date().isoformat() if gs else None,
                 src='приложение КХЛ' if league == 'KHL' else 'api-web.nhle.com')
 
 
+def defense(league, day):
+    gs = season_games(league, day)
+    top, nteams, nall = best_defense(gs, league)
+    return dict(kind='defense', league=league, upto=day, games=len(gs), teams=nteams, teams_all=nall, top=top,
+                last=max(g['start'] for g in gs).date().isoformat() if gs else None,
+                src='приложение КХЛ' if league == 'KHL' else 'api-web.nhle.com')
+
+
+def build(kind, league, day):
+    if kind == 'week':
+        return week(league, day)
+    if kind == 'defense':
+        return defense(league, day)
+    return under(league, day, over=kind == 'over')
+
+
 if __name__ == '__main__':
     kind, lg, day = sys.argv[1], sys.argv[2].upper(), sys.argv[3]
-    r = week(lg, day) if kind == 'week' else under(lg, day)
+    r = build(kind, lg, day)
     print('WEEKDATA ' + json.dumps(r, ensure_ascii=False, separators=(',', ':')), flush=True)
