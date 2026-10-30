@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ru" data-sport="both">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JARVIS — прогнозы на хоккей и футбол (макет v3c)</title>
+<meta name="description" content="Прогнозы на КХЛ, НХЛ и топ-лиги Европы по собственной модели. Итоги — все, и минусы. Макет, пример данных.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#02070b">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;600;700;800&family=Fira+Code:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/v3c.css">
+</head>
+<body>
+<script>document.documentElement.classList.add('js')</script>
+<a class="skip" href="#main">К содержанию</a>
+<canvas id="field" aria-hidden="true"></canvas>
+<div class="veil" aria-hidden="true"></div>
+
+<header class="hd" id="hd">
+ <div class="wrap">
+  <a class="logo" href="index.html" aria-label="JARVIS, на главную"><i aria-hidden="true"></i>JARVIS</a>
+  <nav class="sport" aria-label="Вид спорта"><a href="hockey/index.html">Хоккей</a><a href="football/index.html">Футбол</a></nav>
+  <nav class="links" aria-label="Разделы"><a href="#today">Прогноз дня</a><a href="hockey/index.html#honest">Итоги</a><a href="football/index.html#model">Модель</a></nav>
+  <a class="btn btn-acc" data-mag href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Telegram</span></a>
+ </div>
+</header>
+
+<main id="main">
+ <section class="fork" data-shape="split">
+  <div class="wrap">
+   <h1 class="rv">Хоккей и футбол в цифрах, а не на эмоциях</h1>
+   <p class="lead rv" style="--d:120">Прогноз на каждый матч от собственной модели. Итоги — все, и минусы. Выбери поле.</p>
+   <div class="doors">
+    <a class="door ice glass rv" style="--d:200" href="hockey/index.html" data-in>
+     <div class="lgs"><img src="assets/lg/khl.svg" alt=""><img src="assets/lg/nhl.svg" alt=""></div>
+     <h2>Хоккей</h2>
+     <p>КХЛ днём, НХЛ ночью по Москве. Пост на каждый матч.</p>
+     <div class="stat"><div><b class="num" data-count="6">6</b><span>матчей сегодня</span></div><div><b class="num" data-count="72" data-suf="%">72%</b><span>зашло в октябре</span></div></div>
+     <span class="go-b">В хоккей <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="door glass rv" style="--d:300" href="football/index.html" data-in>
+     <div class="lgs"><img src="assets/lg/epl.svg" alt=""><img src="assets/lg/laliga.svg" alt=""><img src="assets/lg/seriea.svg" alt=""><img src="assets/lg/bundesliga.svg" alt=""><img src="assets/lg/ucl.svg" alt=""></div>
+     <h2>Футбол</h2>
+     <p>Топ-лиги Европы и Лига чемпионов. Проба с 30 октября.</p>
+     <div class="stat"><div><b class="num" data-count="6">6</b><span>матчей сегодня</span></div><div><b class="num" data-count="284">284</b><span>ставки в проверке</span></div></div>
+     <span class="go-b">В футбол <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+   </div>
+  </div>
+ </section>
+
+ <section id="today" data-shape="network">
+  <div class="wrap">
+   <div class="sec-head">
+    <h2 class="rv">Прогноз дня</h2>
+    <p class="lead rv" style="--d:100">Самый уверенный прогноз модели на сегодня — по хоккею и по футболу. <span class="sample">Пример данных.</span></p>
+   </div>
+   <div class="today">
+    <div class="board ice glass rv" data-tilt data-in>
+     <div class="b-top"><span class="live">Хоккей</span><span class="b-lg"><img src="assets/lg/khl.svg" alt="">КХЛ · 19:30 МСК</span></div>
+     <div class="b-match"><div class="tm"><img src="assets/em/akbars.webp" alt="">Ак Барс</div>
+      <div class="ring"><svg viewBox="0 0 132 132" aria-hidden="true"><circle class="bg" cx="66" cy="66" r="58" pathLength="1"/><circle class="tick" cx="66" cy="66" r="50" pathLength="1"/><circle class="fg" cx="66" cy="66" r="58" pathLength="1" data-p="0.58"/></svg><div><b class="num" data-count="58" data-suf="%">58%</b><small>по модели</small></div></div>
+      <div class="tm"><img src="assets/em/lokomotiv.webp" alt="">Локомотив</div></div>
+     <div class="b-pick"><div><span>Прогноз</span><strong>Победа Локомотива</strong></div><span class="k num">1.85</span></div>
+     <p class="sample">Прогноз выйдет в канале до 08:00 МСК.</p>
+    </div>
+    <div class="board glass rv" style="--d:120" data-tilt data-in>
+     <div class="b-top"><span class="live">Футбол</span><span class="b-lg"><img src="assets/lg/laliga.svg" alt="">Ла Лига · 21:00 МСК</span></div>
+     <div class="b-match"><div class="tm"><img src="assets/clubs/sociedad.webp" alt="">Реал Сосьедад</div>
+      <div class="ring"><svg viewBox="0 0 132 132" aria-hidden="true"><circle class="bg" cx="66" cy="66" r="58" pathLength="1"/><circle class="tick" cx="66" cy="66" r="50" pathLength="1"/><circle class="fg" cx="66" cy="66" r="58" pathLength="1" data-p="0.62"/></svg><div><b class="num" data-count="62" data-suf="%">62%</b><small>по модели</small></div></div>
+      <div class="tm"><img src="assets/clubs/betis.webp" alt="">Бетис</div></div>
+     <div class="b-pick"><div><span>ВЫБОР</span><strong>Тотал больше 2,5</strong></div><span class="k num">1.75</span></div>
+     <p class="sample">Футбол — проба с 30.10, прогнозы пока черновиками.</p>
+    </div>
+   </div>
+  </div>
+ </section>
+
+ <section id="subscribe" class="sub" data-shape="plane">
+  <div class="wrap">
+   <h2 class="rv">Все прогнозы — в Telegram</h2>
+   <ol class="flow rv" style="--d:120" data-in>
+    <li><b>Модель разыгрывает матч</b><span>10 000 раз до начала — по форме, силе атаки и обороны.</span></li>
+    <li><b>Пост на каждый матч</b><span>С кэфом и вероятностью. Нет уверенного исхода — честный разбор без ставки.</span></li>
+    <li><b>Итоги утром</b><span>Все прогнозы подряд, и минусы, с номером поста.</span></li>
+   </ol>
+   <div class="cta rv" style="--d:200"><a class="btn btn-acc" data-mag href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Подписаться на @jarvibet</span></a><a class="btn btn-line" data-mag href="hockey/index.html"><span>Хоккей</span></a><a class="btn btn-line" data-mag href="football/index.html"><span>Футбол</span></a></div>
+   <p class="law">18+. Аналитика, а не призыв делать ставки. Выигрыш не гарантирован.</p>
+  </div>
+ </section>
+</main>
+
+<footer>
+ <div class="wrap">
+  <div class="word" aria-hidden="true">JARVIS</div>
+  <div class="fcols">
+   <nav aria-label="Подвал"><a href="index.html">Главная</a><a href="hockey/index.html">Хоккей</a><a href="football/index.html">Футбол</a><a href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a></nav>
+   <p>Макет v3c · пример данных · © JARVIS, @jarvibet</p>
+  </div>
+ </div>
+</footer>
+<a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Прогнозы дня — в Telegram</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<script src="assets/ui.js"></script>
+<script src="assets/field.js"></script>
+</body>
+</html>

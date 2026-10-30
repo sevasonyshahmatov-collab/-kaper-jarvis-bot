@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ru" data-sport="football">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Футбол — прогнозы JARVIS (макет v3c)</title>
+<meta name="description" content="Прогнозы на АПЛ, Ла Лигу, Серию А, Бундеслигу, Лигу 1 и Лигу чемпионов по собственной модели. Проверка на сезоне 2025/26 и честные итоги. Макет, пример данных.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#020a08">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;600;700;800&family=Fira+Code:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/v3c.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Какие турниры?","acceptedAnswer":{"@type":"Answer","text":"АПЛ, Ла Лига, Серия А, Бундеслига, Лига 1 и Лига чемпионов. Португалия — разбор матчей без «ВЫБОР»."}},
+{"@type":"Question","name":"Что такое «ВЫБОР»?","acceptedAnswer":{"@type":"Answer","text":"Ставка на 1Х2 или тотал 2,5, у которой вероятность по модели от 60 % при кэфе от 1,6."}},
+{"@type":"Question","name":"Почему на матч нет ставки?","acceptedAnswer":{"@type":"Answer","text":"Если ни один исход не набирает 60 %, ставки нет — только разбор. Так честнее."}},
+{"@type":"Question","name":"Это платно?","acceptedAnswer":{"@type":"Answer","text":"Нет. Прогнозы и итоги в Telegram-канале @jarvibet бесплатные."}}]}</script>
+</head>
+<body>
+<script>document.documentElement.classList.add('js')</script>
+<a class="skip" href="#main">К содержанию</a>
+<canvas id="field" aria-hidden="true"></canvas>
+<div class="veil" aria-hidden="true"></div>
+
+<header class="hd" id="hd">
+ <div class="wrap">
+  <a class="logo" href="../index.html" aria-label="JARVIS, на главную"><i aria-hidden="true"></i>JARVIS</a>
+  <nav class="sport" aria-label="Вид спорта"><a href="../hockey/index.html">Хоккей</a><a href="index.html" aria-current="page">Футбол</a></nav>
+  <nav class="links" aria-label="Разделы"><a href="#matches">Матчи</a><a href="#leagues">Лиги</a><a href="#model">Модель</a><a href="#honest">Итоги</a></nav>
+  <a class="btn btn-acc" data-mag href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Telegram</span></a>
+ </div>
+</header>
+
+<main id="main">
+ <section class="hero" id="top" data-shape="hero">
+  <div class="wrap">
+   <div>
+    <h1 class="rv">Футбол в цифрах, а не на эмоциях</h1>
+    <p class="lead rv" style="--d:120">Топ-лиги Европы и Лига чемпионов. Ставка — только когда модель даёт от 60&nbsp;%. Нет таких — честно пишем, что ставки нет.</p>
+    <ul class="facts rv" style="--d:220" data-in aria-label="Коротко о модели">
+     <li><b class="num" data-count="11000">11 000</b><span>матчей в истории</span></li>
+     <li><b class="num" data-count="284">284</b><span>ставки в проверке</span></li>
+     <li><b class="num" data-count="7">7</b><span>турниров</span></li>
+    </ul>
+    <div class="cta rv" style="--d:300">
+     <a class="btn btn-acc" data-mag href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Открыть @jarvibet</span></a>
+     <a class="btn btn-line" data-mag href="#matches"><span>Матчи дня</span></a>
+    </div>
+    <ul class="chips rv" style="--d:380" id="chips" aria-label="Турниры"></ul>
+   </div>
+   <div class="board glass rv" style="--d:260" id="board" data-tilt aria-label="Прогноз дня"></div>
+  </div>
+ </section>
+
+ <section id="matches" data-shape="network">
+  <div class="wrap">
+   <div class="sec-head">
+    <h2 class="rv">Сегодня в эфире</h2>
+    <p class="lead rv" style="--d:100">Матчи дня и что о них думает модель: П1, ничья, П2 и тотал 2,5. Открой матч — форма команд, личные встречи и сила атаки. <span class="sample">Пример данных.</span></p>
+   </div>
+   <div class="tabs rv" style="--d:160" role="tablist" id="tabs" aria-label="Фильтр по турнирам"></div>
+   <div class="matches" id="mlist"></div>
+  </div>
+ </section>
+
+ <section id="leagues" data-shape="orbit">
+  <div class="wrap">
+   <div class="sec-head">
+    <h2 class="rv">Лиги и клубы</h2>
+    <p class="lead rv" style="--d:100">Семь турниров под одной моделью. Португалия — только разбор: проверку модель там не прошла.</p>
+   </div>
+   <ul class="leagues" id="lgs"></ul>
+  </div>
+  <div class="marq rv" style="--d:200" id="marq" aria-label="Клубы"></div>
+  <div class="wrap"><p class="note" style="margin-top:18px">Эмблемы — собственность клубов, показаны для навигации.</p></div>
+ </section>
+
+ <section id="power" data-shape="wave">
+  <div class="wrap">
+   <div class="sec-head">
+    <h2 class="rv">Сила команд</h2>
+    <p class="lead rv" style="--d:100">Насколько лиги Европы слабее АПЛ по матчам еврокубков, и кто сильнее всех по модели.</p>
+   </div>
+   <div class="power">
+    <div class="pw glass rv" data-in id="pwl"></div>
+    <div class="pw glass rv" style="--d:120" data-in>
+     <h3>Порядок команд</h3>
+     <p class="note">Место команды по модели. Порядок — пример; на сайте его подставит выгрузка модели.</p>
+     <ol class="order" id="order"></ol>
+    </div>
+   </div>
+  </div>
+ </section>
+
+ <section id="model" data-shape="hist">
+  <div class="wrap">
+   <div class="sec-head">
+    <h2 class="rv">Как думает модель</h2>
+    <p class="lead rv" style="--d:100">Три шага до ставки — на матче дня. Пока ты листаешь, фон собирается в те же 10 000 розыгрышей.</p>
+   </div>
+   <ol class="steps">
+    <li class="step glass rv" data-in>
+     <span class="sn">1 / 3</span><h3>Атака и оборона</h3>
+     <div class="ad" id="ad"></div>
+     <div class="lam" id="lam"></div>
+     <p>Сила считается по голам и xG, свежие матчи весят больше.</p>
+    </li>
+    <li class="step sim glass rv" style="--d:120" data-in id="simbox">
+     <span class="sn">2 / 3</span>
+     <div class="sim-top"><h3 id="simh">10 000 розыгрышей</h3><b class="counter" id="simn">0</b></div>
+     <div class="hist" id="hist" role="img" aria-label="Распределение голов за матч в 10 000 розыгрышах"></div>
+     <div class="sim-out" id="simout" aria-live="polite"></div>
+     <button class="btn btn-line" data-mag type="button" id="again"><span>Разыграть ещё раз</span></button>
+    </li>
+    <li class="step glass rv" style="--d:240" data-in>
+     <span class="sn">3 / 3</span><h3>Модель + линия рынка</h3>
+     <div class="mix" id="mix"></div>
+     <p>Одна модель рынок не бьёт. Смесь с утренней линией обещает честно: расхождение 1–2 п. п.</p>
+    </li>
+   </ol>
+   <div class="thr-wrap">
+    <div class="thr-box glass rv" data-in>
+     <h3>Порог «ВЫБОР»: сколько ставок и сколько зашло</h3>
+     <div class="range"><input id="thr" type="range" min="55" max="65" step="1" value="60" aria-label="Порог вероятности, %"></div>
+     <div class="ticks"><span>55&nbsp;%</span><span>57</span><span>60</span><span>62</span><span>65&nbsp;%</span></div>
+     <div class="thr-out" id="throut" aria-live="polite"></div>
+     <p class="thr-note" id="thrnote"></p>
+    </div>
+    <div class="gap glass rv" style="--d:120">
+     <h3>Разница классов</h3>
+     <div class="big">−11,6&nbsp;%</div>
+     <span class="note">голов против расчёта</span>
+     <p>Сильная атака против слабой обороны: ждали 2,63 гола, было 2,33 (240 матчей). Фаворит ведёт в счёте и сбавляет — поэтому модель не завышает крайние ожидания.</p>
+     <p class="note">Проверка 2024/25–2025/26 вслепую.</p>
+    </div>
+   </div>
+  </div>
+ </section>
+
+ <section id="honest" data-shape="ring" data-opts='{"p":0.609}'>
+  <div class="wrap">
+   <div class="sec-head">
+    <h2 class="rv">Честные итоги</h2>
+    <p class="lead rv" style="--d:100">До запуска модель прошла проверку вслепую на всём сезоне 2025/26. Цифры предварительные: выборки по лигам маленькие.</p>
+   </div>
+   <div class="honest">
+    <div class="rv" data-in>
+     <div class="big-ring">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+       <circle class="o-bg" cx="100" cy="100" r="92" stroke-width="5"/><circle class="o" cx="100" cy="100" r="92" stroke-width="5" pathLength="1" data-p="0.625"/>
+       <circle class="i-bg" cx="100" cy="100" r="78" stroke-width="12"/><circle class="i" cx="100" cy="100" r="78" stroke-width="12" pathLength="1" data-p="0.609"/>
+      </svg>
+      <div class="ctr"><b class="num" data-count="60.9" data-dec="1" data-suf="%">60,9%</b><span>зашло из 284 ставок «ВЫБОР» от 60&nbsp;%</span></div>
+     </div>
+     <div class="leg"><span><i style="background:color-mix(in srgb,var(--ink) 50%,transparent)"></i>обещала модель — 62,5&nbsp;%</span><span><i style="background:var(--acc)"></i>зашло — 60,9&nbsp;%</span></div>
+    </div>
+    <div class="res-list">
+     <div class="res glass rv"><h3>1Х2, от 60&nbsp;%</h3><p>60 ставок: обещано → зашло</p><div class="vs num">63,2<i>→</i><span class="up">68,3&nbsp;%</span></div></div>
+     <div class="res glass rv" style="--d:80"><h3>Тотал 2,5, от 60&nbsp;%</h3><p>91 ставка</p><div class="vs num">62,1<i>→</i><span class="up">64,8&nbsp;%</span></div></div>
+     <div class="res glass rv" style="--d:160"><h3>Сезон 2026/27 до сегодня</h3><p>101 ставка, смесь со средней линией рынка</p><div class="vs num">61,4<i>→</i><span class="up">63,4&nbsp;%</span></div></div>
+     <div class="res glass rv" style="--d:240"><h3>По лигам, от 60&nbsp;%</h3><p>Предварительно: погрешность ±13 п. п.</p><ul class="lg-table" id="lgtable"></ul></div>
+     <div class="res glass rv" style="--d:320"><h3>Почему без Португалии</h3><p>34 ставки не прошли проверку. Там — разбор матчей без «ВЫБОР».</p><div class="vs num">62,5<i>→</i><span class="dn">50,0&nbsp;%</span></div></div>
+    </div>
+   </div>
+   <div class="trial glass rv"><div><b>Итоги каждое утро — в Telegram</b><span>Зашедшие и нет, с номером поста. Футбол — проба с 30.10, первые итоги по каналу — после ~13.11.</span></div><a class="btn btn-acc" data-mag href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Открыть @jarvibet</span></a></div>
+  </div>
+ </section>
+
+ <section id="subscribe" class="sub" data-shape="plane">
+  <div class="wrap">
+   <h2 class="rv">Прогнозы — в Telegram до матча</h2>
+   <ol class="flow rv" style="--d:120" data-in>
+    <li><b>Прогноз до матча</b><span>За 4–5 часов до свистка, с кэфом и вероятностью.</span></li>
+    <li><b>Разбор</b><span>Форма, личные встречи, почему ставка — или почему её нет.</span></li>
+    <li><b>Итоги утром</b><span>Все прогнозы подряд, с номером поста.</span></li>
+   </ol>
+   <div class="cta rv" style="--d:200"><a class="btn btn-acc" data-mag href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Подписаться на @jarvibet</span></a></div>
+  </div>
+ </section>
+
+ <section id="faq" data-shape="dust">
+  <div class="wrap faq-grid">
+   <div>
+    <h2 class="rv">Вопросы</h2>
+    <div class="go rv" style="--d:100">
+     <p>Хоккей — КХЛ и НХЛ, та же модель и те же честные итоги.</p>
+     <a class="swap" href="../hockey/index.html" style="--to:#9edcff">Прогнозы на хоккей <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    </div>
+   </div>
+   <div class="faq rv" style="--d:120">
+    <details><summary>Какие турниры?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary><p>АПЛ, Ла Лига, Серия А, Бундеслига, Лига 1 и Лига чемпионов. Португалия — разбор матчей без «ВЫБОР».</p></details>
+    <details><summary>Что такое «ВЫБОР»?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary><p>Ставка на 1Х2 или тотал 2,5, у которой вероятность по модели от 60&nbsp;% при кэфе от 1,6.</p></details>
+    <details><summary>Почему на матч нет ставки?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary><p>Если ни один исход не набирает 60&nbsp;%, ставки нет — только разбор. Так честнее.</p></details>
+    <details><summary>Где итоги?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary><p>Каждое утро в канале. Футбол — проба с 30.10: первые итоги по каналу покажем после двух недель.</p></details>
+    <details><summary>Это платно?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary><p>Нет. Прогнозы и итоги в Telegram-канале @jarvibet бесплатные.</p></details>
+    <p class="law">18+. Аналитика, а не призыв делать ставки. Выигрыш не гарантирован.</p>
+   </div>
+  </div>
+ </section>
+</main>
+
+<footer>
+ <div class="wrap">
+  <div class="word" aria-hidden="true">JARVIS</div>
+  <div class="fcols">
+   <nav aria-label="Подвал"><a href="../index.html">Главная</a><a href="../hockey/index.html">Хоккей</a><a href="#matches">Матчи</a><a href="#honest">Итоги</a><a href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a></nav>
+   <p>Макет v3c · пример данных · © JARVIS, @jarvibet</p>
+  </div>
+ </div>
+</footer>
+<a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Прогнозы дня — в Telegram</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+
+<script>
+/* ПРИМЕРНЫЕ ДАННЫЕ (макет) — те же, что в макете v2: матчи дня и проверка модели (football_bt.md, 30.10).
+   Время матчей — от «сейчас», чтобы отсчёт был живым. */
+(()=>{
+ const two=n=>String(n).padStart(2,'0'),base=Math.ceil(Date.now()/6e5)*6e5;
+ const at=min=>{const d=new Date(base+min*6e4+3*3600e3);return `${d.getUTCFullYear()}-${two(d.getUTCMonth()+1)}-${two(d.getUTCDate())} ${two(d.getUTCHours())}:${two(d.getUTCMinutes())}`};
+ const M=(o,min)=>{o.t=at(min);return o};
+ window.__FTODAY=[
+  M({lg:'laliga',a:'Реал Сосьедад',b:'Бетис',p:'Тотал больше 2,5',k:'1.75',pr:.62,x:[2.45,3.4,2.95],pp:[.40,.27,.33],tb:.62,fa:'WWDLW',fb:'DWLWW',h2h:'2 победы · 2 ничьи · 1 поражение',att:[1.28,1.14],def:[.96,1.12]},280),
+  M({lg:'epl',a:'Арсенал',b:'Брентфорд',p:'Победа Арсенала',k:'1.62',pr:.61,x:[1.62,4.0,5.2],pp:[.61,.22,.17],tb:.55,fa:'WWWDW',fb:'LDWLL',h2h:'4 победы · 1 ничья',att:[1.42,.98],def:[.78,1.18]},200),
+  M({lg:'seriea',a:'Интер',b:'Фиорентина',p:'Тотал больше 2,5',k:'1.80',pr:.60,x:[1.7,3.9,4.6],pp:[.56,.24,.20],tb:.60,fa:'WDWWL',fb:'WLDDW',h2h:'3 победы · 1 ничья · 1 поражение',att:[1.36,1.08],def:[.84,1.04]},250),
+  M({lg:'bundesliga',a:'Байер',b:'Майнц',p:'Победа Байера',k:'1.66',pr:.61,x:[1.66,4.1,4.9],pp:[.61,.21,.18],tb:.58,fa:'WWLWD',fb:'LLDWL',h2h:'3 победы · 2 ничьи',att:[1.38,.92],def:[.86,1.2]},260),
+  M({lg:'ligue1',a:'Марсель',b:'Ланс',p:'Прогноз выйдет в канале',k:'—',pr:.54,x:[2.0,3.5,3.8],pp:[.47,.27,.26],tb:.52,fa:'WLWDW',fb:'DWWLD',h2h:'2 победы · 1 ничья · 2 поражения',att:[1.2,1.06],def:[.98,.94]},290),
+  M({lg:'portugal',a:'Бенфика',b:'Брага',p:'Разбор без «ВЫБОР»',k:'—',pr:.58,x:[1.55,4.2,5.6],pp:[.58,.24,.18],tb:.57,fa:'WWDWW',fb:'WDLWD',h2h:'4 победы · 1 поражение',att:[1.4,1.1],def:[.8,1.0]},230)];
+ window.__FOOTBT={n:284,promised:62.5,got:60.9,
+  thr:[[55,824,59.3,56.8,-3.4],[57,512,61.0,58.2,-2.7],[60,284,62.5,60.9,.9],[62,136,64.3,58.8,-2.9],[65,36,67.5,58.3,-3.2]],
+  lg:{laliga:[45,62.7,71.1],seriea:[38,62.6,68.4],bundesliga:[66,63.2,60.6],epl:[53,61.8,58.5],ligue1:[48,62.3,56.2],portugal:[34,62.5,50.0]},
+  power:{epl:0,laliga:-.38,bundesliga:-.48,ligue1:-.56,seriea:-.60,portugal:-.97}};
+})();
+</script>
+<script src="../assets/ui.js"></script>
+<script src="../assets/sport.js"></script>
+<script src="../assets/field.js"></script>
+</body>
+</html>
