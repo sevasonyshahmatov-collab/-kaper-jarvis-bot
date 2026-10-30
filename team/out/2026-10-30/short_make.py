@@ -4,8 +4,12 @@
 Данные клубов — team/out/2026-10-13/team_stats_1014.json (образец формата, не прогноз дня)."""
 import json
 import os
+import shutil
 import subprocess
 import sys
+
+if not shutil.which('ffmpeg'):                    # в itogi.yml ffmpeg не ставится
+    subprocess.run('sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null', shell=True, check=True)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 for p in (os.path.join(ROOT, 'render'), os.path.join(ROOT, 'team', 'picks'), os.path.join(ROOT, 'team', 'reels_daily')):
@@ -16,7 +20,7 @@ from reels import core as C, intro, owner_tracks  # noqa: E402
 import nhl  # noqa: E402
 
 nhl.register()
-OUT = os.path.join(ROOT, 'out', 'short_3010')
+OUT = os.path.join(ROOT, 'team', 'out', '2026-10-30', 'short')     # team/out/**/*.mp4 — артефакт «videos» (архив)
 os.makedirs(OUT, exist_ok=True)
 stats = json.load(open(os.path.join(ROOT, 'team', 'out', '2026-10-13', 'team_stats_1014.json'), encoding='utf-8'))
 M = [(0, dict(d='2026-10-31 19:30', h='Детройт', a='Коламбус', pick='Победа Коламбуса в основное время', odds=1.95, tpl='card')),
