@@ -56,10 +56,20 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .soc.ig{background:linear-gradient(45deg,#f9a825,#e1306c 50%,#833ab4);border-color:#e1306c;color:#fff;box-shadow:0 6px 22px -8px #e1306c}   /* обе в цвете площадки */
 .soc.ig:hover{filter:brightness(1.12)}
 
+/* смена фонов героя (Syntx, 30.10): картинки team/site/hero → assets/hero, плавное перетекание, наезд; без анимации — один кадр */
+.hslides{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.hslides i{position:absolute;inset:0;background:center/cover no-repeat;opacity:0;transition:opacity 2.2s ease;will-change:opacity,transform}
+.hslides i.on{opacity:.9;animation:hkb 14s ease-out forwards}
+.hslides i.alt.on{animation-name:hkb2}
+@keyframes hkb{from{transform:scale(1.04)}to{transform:scale(1.14) translate(-1.2%,-.8%)}}
+@keyframes hkb2{from{transform:scale(1.14) translate(1%,.6%)}to{transform:scale(1.04)}}
+@media (prefers-reduced-motion:reduce){.hslides i.on{animation:none}.hslides i{transition:none}}
 /* hero */
 .hero{position:relative;overflow:hidden;padding-block:56px 64px}
 .veil{position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(90deg,rgba(7,18,37,.88) 0%,rgba(7,18,37,.6) 38%,rgba(7,18,37,0) 62%)}
 #rink{position:absolute;inset:0;width:100%;height:100%;z-index:0;filter:blur(3px);opacity:.85}
+.hslides~#rink{opacity:.25;mix-blend-mode:screen}
+@media (max-width:700px){.hslides~.veil{background:linear-gradient(180deg,rgba(7,18,37,.5),rgba(7,18,37,.72))}}
 .hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center}
 .hero h1{font-size:clamp(40px,7vw,84px);font-weight:900;letter-spacing:-.01em}
 .hero h1 .c{color:var(--cyan)} .hero h1 .r{color:var(--red)}
@@ -474,6 +484,7 @@ header .btn-tg.nudge{animation:nudge .9s cubic-bezier(.34,1.56,.64,1)}
 </header>
 
 <section class="hero">
+  <div class="hslides" id="hslides" aria-hidden="true"></div>
   <canvas id="rink" aria-hidden="true"></canvas>
   <div class="veil" aria-hidden="true"></div>
   <div class="wrap">
@@ -1388,4 +1399,14 @@ addEventListener('DOMContentLoaded',()=>{
  if(hb&&cta&&!still&&'IntersectionObserver' in window){let off=false;new IntersectionObserver(es=>{off=!es[0].isIntersecting}).observe(cta);
   setInterval(()=>{if(!off||document.hidden)return;hb.classList.remove('nudge');void hb.offsetWidth;hb.classList.add('nudge')},16000)}
 });
+</script>
+
+<script>
+/* смена фонов героя: добавить кадр — дописать имя в список */
+(function(){var L=['arena-red','lights','arena-empty','arena-gold','ice'],b=document.getElementById('hslides');if(!b)return;
+var sl=L.map(function(n,i){var e=document.createElement('i');e.style.backgroundImage='url(assets/hero/'+n+'.jpg)';if(i%2)e.className='alt';b.appendChild(e);return e}),k=-1,t;
+function go(){if(k>=0)sl[k].classList.remove('on');k=(k+1)%sl.length;sl[k].classList.add('on')}
+var rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
+Promise.all(L.map(function(n){return new Promise(function(r){var m=new Image();m.onload=m.onerror=r;m.src='assets/hero/'+n+'.jpg'})})).then(function(){go();if(rm)return;t=setInterval(go,9000);
+document.addEventListener('visibilitychange',function(){clearInterval(t);if(!document.hidden)t=setInterval(go,9000)})})})();
 </script>

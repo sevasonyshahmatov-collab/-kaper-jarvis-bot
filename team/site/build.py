@@ -610,6 +610,7 @@ def build(site, plans, do_settle=True):
     os.makedirs(os.path.join(site, 'assets'), exist_ok=True)
     shutil.copy(os.path.join(HERE, 'site.css'), os.path.join(site, 'assets', 'site.css'))
     shutil.copy(os.path.join(HERE, 'og.jpg'), os.path.join(site, 'assets', 'og.jpg'))   # превью ссылки (Telegram, VK)
+    shutil.copytree(os.path.join(HERE, 'hero'), os.path.join(site, 'assets', 'hero'), dirs_exist_ok=True)   # смена фонов героя (Syntx 30.10)
     # мини-приложение Telegram (прототип, владелец 25.10): team/site/app → <сайт>/app/, данные → <сайт>/app/data.json
     shutil.copytree(os.path.join(HERE, 'app'), os.path.join(site, 'app'), dirs_exist_ok=True)
     app_data(D, site, logos)
