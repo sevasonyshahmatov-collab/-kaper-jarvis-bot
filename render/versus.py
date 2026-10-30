@@ -21,6 +21,7 @@ import poster
 import quality
 
 S = quality.S
+PATTERN = 'rings'          # узор панелей: 'rings' — круги (хоккей), 'lines' — диагональные полосы (футбол, 30.10)
 W = H = 1080
 BG = (22, 20, 24)
 
@@ -97,7 +98,11 @@ def _panel(w, h, color, center, seed, fade='down', dim=0.42, pad=0, freq=15):
     ang = np.arctan2(dy, dx)
     rng = np.random.default_rng(seed)
     wob = sum(a * np.sin(k * ang + p) for a, k, p in zip(rng.uniform(.004, .012, 3), (2, 3, 5), rng.uniform(0, 6, 3)))
-    r = (np.abs(dx) ** 3 + np.abs(dy) ** 3) ** (1 / 3) + wob
+    if PATTERN == 'lines':
+        a = np.radians(-32)
+        r = (dx * np.cos(a) + dy * np.sin(a)) * 0.62 + wob * 0.25
+    else:
+        r = (np.abs(dx) ** 3 + np.abs(dy) ** 3) ** (1 / 3) + wob
     ring = np.sin(r * 2 * np.pi * freq)
     ring = np.clip(ring * 3, -1, 1)                      # чёткие полосы, мягкие края
     t = y / h if fade == 'down' else 1 - y / h
@@ -176,6 +181,8 @@ EMBLEM_DY = 6                                        # эмблема чуть �
 
 def _teams(home, away, league):
     """→ (хозяева, гости, акцент); хозяева/гости — (ru, цвет, аббр., подпись сбоку)."""
+    global PATTERN
+    PATTERN = 'lines' if football.is_foot(league) else 'rings'
     if league == 'NHL':
         nhl.register()
     elif football.is_foot(league):

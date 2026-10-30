@@ -1,5 +1,5 @@
 {"day": "2026-10-30", "make": ["team/picks/banners.py team/out/2026-10-30/foot_sample.json"], "messages": [
- {"to": "owner", "type": "animation", "files": ["out/picks/foot-sample/vs_1.mp4"], "text": "Образцы футбольных гифок (Versus, как в хоккее): АПЛ · Манчестер Сити — Брайтон. Ждём ваше да / правки.", "vs": {"league": "АПЛ", "home": "Манчестер Сити", "away": "Брайтон", "date": "31 октября", "time": "18:00", "odds": [1.64, 4.64, 4.75]}},
+ {"to": "owner", "type": "animation", "files": ["out/picks/foot-sample/vs_1.mp4"], "text": "Футбол, фон с диагональными линиями вместо кругов (хоккей — круги). АПЛ · Манчестер Сити — Брайтон. Ждём ваше да / правки.", "vs": {"league": "АПЛ", "home": "Манчестер Сити", "away": "Брайтон", "date": "31 октября", "time": "18:00", "odds": [1.64, 4.64, 4.75]}},
  {"to": "owner", "type": "animation", "files": ["out/picks/foot-sample/vs_2.mp4"], "text": "Серия А · Удинезе — Рома", "vs": {"league": "Серия А", "home": "Удинезе", "away": "Рома", "date": "31 октября", "time": "20:00", "odds": [5.67, 4.54, 1.57]}},
  {"to": "owner", "type": "animation", "files": ["out/picks/foot-sample/vs_3.mp4"], "text": "Лига чемпионов · Фенербахче — Ливерпуль (4 ноября, на будущее)", "vs": {"league": "Лига чемпионов", "home": "Фенербахче", "away": "Ливерпуль", "date": "4 ноября", "time": "20:45", "odds": [4.86, 4.43, 1.60]}}
 ]}

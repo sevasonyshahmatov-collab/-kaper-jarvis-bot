@@ -448,6 +448,7 @@ def _club(team, league):
         nhl.register()
     elif football.is_foot(league):
         football.register()
+    versus.PATTERN = 'lines' if football.is_foot(league) else 'rings'
     ru = versus._team(team, league)[0]
     return ru, poster.TEAMS[ru][0].replace('/', '_') if ru in poster.TEAMS else ru
 
