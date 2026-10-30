@@ -398,9 +398,6 @@ def goal_outcomes(i, j, ht):
     return r
 
 
-if __name__ == '__main__':
-    if '--bt' in sys.argv:
-        bt()
 
 
 # ---------- вся линия Pinnacle на матч ----------
@@ -558,3 +555,59 @@ def special(o, m, prices, h, a):
                 o['ЕФ2 %+d' % hc] = val
     for k in [k for k, v in o.items() if v is None]:
         del o[k]
+
+
+# ---------- разница классов: хватает ли умножения «наносит × допускает»? (вопрос владельца 30.10, ПСЖ — Гавр) ----------
+def gap():
+    """2024/25–2025/26 вслепую: для голов, ударов в створ и угловых — ожидание модели против факта по группам
+    «сильная атака (сила ≥ 1,3) против слабой обороны (допускает ≥ 1,1)» и прочим. Если факт систематически выше
+    ожидания в первой группе — умножения мало, нужна поправка на разницу классов."""
+    import football_live as FL
+    P, C = FL.conf()
+    data = FH.load()
+    agg = defaultdict(lambda: [0, 0.0, 0.0])
+    for lg in FH.OURS:
+        games = sorted(data['dom'][lg], key=lambda g: g['d'])
+        for g in games:
+            if C.get('xg') == 'us' and g.get('xg'):
+                g['x'] = g['xg']
+        cache = {}
+        for g in games:
+            if g['s'] not in (2024, 2025):
+                continue
+            d = g['d']
+            if d not in cache:
+                known = {x['h'] for x in games if x['s'] == g['s'] - 1}
+                cache[d] = {'g': FM.fit(games, d, P, known)}
+                for k in ('st', 'co'):
+                    cache[d][k] = stat_fit(games, k, d, known)
+            for key in ('g', 'st', 'co'):
+                R, mh, ma = cache[d][key]
+                if g['h'] not in R or g['a'] not in R:
+                    continue
+                if key == 'g':
+                    act = (g['hg'], g['ag'])
+                elif key in g:
+                    act = tuple(g[key])
+                else:
+                    continue
+                Ah, Dh = R[g['h']]
+                Aa, Da = R[g['a']]
+                for att, dfn, mu, y in ((Ah, Da, mh, act[0]), (Aa, Dh, ma, act[1])):
+                    grp = ('сильная атака ≥1,3 × слабая оборона ≥1,1' if att >= 1.3 and dfn >= 1.1 else
+                           'сильная атака ≥1,3 × крепкая оборона <0,9' if att >= 1.3 and dfn < 0.9 else
+                           'слабая атака <0,8 × крепкая оборона <0,9' if att < 0.8 and dfn < 0.9 else 'прочие')
+                    a = agg[(key, grp)]
+                    a[0] += 1
+                    a[1] += mu * att * dfn
+                    a[2] += y
+    nm = {'g': 'голы', 'st': 'удары в створ', 'co': 'угловые'}
+    for (key, grp), (n, e, y) in sorted(agg.items()):
+        out('FWGAP', '%s | %s | случаев %d | ждали %.2f · было %.2f · разница %+.1f%%' % (nm[key], grp, n, e / n, y / n, 100 * (y / e - 1)))
+
+
+if __name__ == '__main__':
+    if '--bt' in sys.argv:
+        bt()
+    if '--gap' in sys.argv:
+        gap()

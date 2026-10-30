@@ -53,28 +53,26 @@ def main():
         out('FBIN', 'tools/list %s %s' % (st, json.dumps(j, ensure_ascii=False)[:400]))
     day = next((a for a in sys.argv[1:] if a[:2] == '20'), datetime.now(timezone(timedelta(hours=3))).strftime('%Y-%m-%d'))
     saved = {}
-    for t in tools:
-        nm = t.get('name') or ''
-        props = (t.get('inputSchema') or {}).get('properties') or {}
-        if not any(w in nm.lower() for w in ('predict', 'match', 'fixture')):
-            continue
-        for lg in ('premier_league', 'champions_league', 'EPL', 'UCL'):
-            args = {}
-            for k in props:
-                if 'league' in k.lower() or 'competition' in k.lower():
-                    args[k] = lg
-                elif 'date' in k.lower():
-                    args[k] = day
-            if not args and props:
+    for lg in ('premier_league', 'champions_league'):
+        st, j, sid = rpc('tools/call', dict(name='get_match_predictions', arguments=dict(league=lg)), sid=sid)
+        mw = None
+        try:
+            mw = json.loads(j['result']['content'][0]['text']).get('matchweek')
+        except Exception:
+            pass
+        for w in ([mw + d for d in range(0, 5)] if mw else [None]):
+            args = dict(league=lg, **({'matchweek': w} if w else {}))
+            st, j, sid = rpc('tools/call', dict(name='get_match_predictions', arguments=args), sid=sid)
+            try:
+                data = json.loads(j['result']['content'][0]['text'])
+            except Exception:
                 continue
-            st, j, sid = rpc('tools/call', dict(name=nm, arguments=args), sid=sid)
-            res = j.get('result') or j.get('error') or j
-            txt = json.dumps(res, ensure_ascii=False)
-            out('FBINCALL', '%s %s → %s %s' % (nm, json.dumps(args, ensure_ascii=False), st, txt[:1500]))
-            if j.get('result') and not (j['result'].get('isError')):
-                saved['%s|%s' % (nm, lg)] = j['result']
-            if not args:
-                break
+            ms = [m for m in data.get('matches') or [] if m.get('status') != 'finished']
+            for m in ms:
+                pr = {p_.get('type'): (p_.get('value'), p_.get('confidence')) for p_ in m.get('predictions') or []}
+                out('FBINPRED', '%s тур %s | %s | %s — %s | %s' % (lg, w, m.get('kickoff_time'), m.get('home_team'), m.get('away_team'),
+                                                               json.dumps(pr, ensure_ascii=False)))
+                saved[m.get('match_id') or '%s-%s' % (m.get('home_team'), m.get('away_team'))] = m
     if saved:
         path = os.path.join(ROOT, '.lines', 'football_fbin', day + '.json')
         os.makedirs(os.path.dirname(path), exist_ok=True)
