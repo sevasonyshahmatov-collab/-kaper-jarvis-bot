@@ -1,15 +1,16 @@
 # Конвейер шортсов (team/reels_daily/make.py, docs/handoff/CONVEYOR.md): матчи дня, прогноз по правилу владельца (кэф 1,6–2,3),
 # один матч — один ролик, шаблоны по очереди; владельцу в Telegram ролик со звуком и без + тексты для YouTube.
-# Оба — рано утром по Красноярску, чтобы ролики выходили за 12–15 ч до матча.
+# НХЛ — 02:00 МСК (игровой день сегодня), КХЛ — 16:00 МСК на завтра (владелец 30.10).
 # Ролики — артефактом запуска на 2 дня (владелец 17.10), в репозиторий не кладём.
 # Секреты: TG_BOT_TOKEN (бот таблиц), TRACKS_KEY (треки, ветка claude/team-dev-tracks-v2).
 name: Шортсы — конвейер
 
 on:
   schedule:
-    # владелец 17.10: ролики заранее, за 12–15 ч до матча — к утру по Красноярску (МСК+4); день — дата по Москве
-    - cron: '0 23 * * *'          # НХЛ — 02:00 МСК (06:00 Красноярск): матчи ближайшей ночи (игровой день НХЛ = дата по Москве)
-    - cron: '30 23 * * *'         # КХЛ — 02:30 МСК (06:30 Красноярск): матчи этого дня (по расписанию — только из main)
+    # владелец 30.10: ролики — как можно раньше, КХЛ на завтра. НХЛ: линия на игровой день появляется у Pinnacle только
+    # около 02:00 МСК этого дня (на 13:00 МСК накануне линии ещё нет, проба 30.10), раньше собирать нечего (README).
+    - cron: '0 23 * * *'          # НХЛ — 02:00 МСК: игровой день НХЛ = дата по Москве (матчи ночи на следующее число); выкладка с 09:00
+    - cron: '0 13 * * *'          # КХЛ — 16:00 МСК: матчи ЗАВТРА (линия на завтра уже стоит днём; нет игр — ближайший день, ≤ 2 суток)
   workflow_dispatch:
     inputs:
       league:
@@ -46,7 +47,7 @@ jobs:
     timeout-minutes: 15
     outputs:
       parts: ${{ steps.plan.outputs.parts }}
-      day: ${{ steps.day.outputs.day }}
+      day: ${{ steps.plan.outputs.day || steps.day.outputs.day }}
       league: ${{ steps.day.outputs.league }}
     steps:
       - uses: actions/checkout@v4
@@ -64,12 +65,15 @@ jobs:
           echo "max=${MAX_RUN:-}" >> "$GITHUB_OUTPUT"
           echo "only=${ONLY_RUN:-}" >> "$GITHUB_OUTPUT"
           [ "$CRON" = '0 23 * * *' ] && LG_IN=nhl
+          [ -n "$CRON" ] && SPARE=1                                  # по расписанию: нет игр в этот день — следующий
           lg="${LG_IN:-khl}"; lg="${lg,,}"
           [[ "$lg" =~ ^(khl|nhl)$ ]] || { echo "плохая лига: $lg"; exit 1; }
           d="${DAY_IN:-$(TZ=Europe/Moscow date +%F)}"
+          [ -z "$DAY_IN" ] && [ "$CRON" = '0 13 * * *' ] && d="$(TZ=Europe/Moscow date -d tomorrow +%F)"   # КХЛ по расписанию — на завтра
           [[ "$d" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "плохой день: $d"; exit 1; }
           echo "day=$d" >> "$GITHUB_OUTPUT"
           echo "league=$lg" >> "$GITHUB_OUTPUT"
+          echo "spare=${SPARE:-0}" >> "$GITHUB_OUTPUT"
       - id: plan
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
@@ -78,7 +82,7 @@ jobs:
           REELS_DRY: ${{ github.event.inputs.dry }}
         run: |
           m="$MAX_IN"; [[ "$m" =~ ^[0-9]{1,2}$ ]] || m=0
-          python team/reels_daily/make.py plan "${{ steps.day.outputs.league }}" "${{ steps.day.outputs.day }}" --max "$m" --per 3
+          python team/reels_daily/make.py plan "${{ steps.day.outputs.league }}" "${{ steps.day.outputs.day }}" --max "$m" --per 3 --spare "${{ steps.day.outputs.spare }}"
       - uses: actions/upload-artifact@v4
         with:
           name: plan
