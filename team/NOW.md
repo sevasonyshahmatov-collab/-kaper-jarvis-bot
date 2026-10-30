@@ -28,7 +28,7 @@
 - «Хоккей — Актуальный, 30.10» — `session_01GakKTPqHVs34Xbv4nWLQ4o` (руководитель).
 - «Рейтинг НХЛ — пересборка модели» — `session_01GakKTN82GbCPBEFErfYkBS` (Opus, 550 тыс. токенов — новое туда не писать,
   после слияния таблицы архивировать).
-- Б: «Сайт v2 — 30.10» — `session_01MtLSoeSv8gymmHS6ujNVRc` (сайт v2; прошлый «Сайт JARVIS — 30.10» `session_01MtLSofPyYze8WVT94Wxp75` закрыт).
+- Б: «Сайт v2 — 2 (30.10)» — `session_01MtLSohCCgm788XkGSKyYHh` (полёт камеры по стадиону, видео; прошлые «Сайт v2» и «Сайт JARVIS» закрыты).
 - Б: «Ролики: Топ недели + антирейтинги (КХЛ/НХЛ)» — `session_01MtLSoe18qpABRZCCgZoWqS`.
 - «Футбол — Актуальный, 30.10» — `session_01GakKTMJoNwpEU3xHE6ySaK` (Opus; ТЗ `docs/handoff/FOOTBALL_BRIEF.md`: источники, модель, бэктест, потом прогнозы; владелец пишет туда напрямую).
 - Б: «Таблица-агент: самообучение модели + ответы в боте» — `session_01MtLSohmo2MDdRisJBQSoL1`.
