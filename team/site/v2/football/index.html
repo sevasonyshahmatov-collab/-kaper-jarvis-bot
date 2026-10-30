@@ -283,17 +283,18 @@
 <script>document.body.classList.replace('no-js','js')</script>
 <a class="skip" href="#main">К содержанию</a>
 
-<!-- КАМЕРА. Ролики кладутся в assets/football/: F0.mp4 … F6.mp4 (компьютер, 1920×1080, «каждый кадр ключевой» у F1–F5),
+<!-- КАМЕРА. Сейчас стоят ролики полёта 31.10 (Kling, team/site_v2_video: F1=V01+V02, F2=V03, F2b=V04, F3=V05+V05b,
+     F4=V06+V07, F5=V08–V10, петли F0=L0, F6=L1 «туда-обратно»; 1280×720, all-intra). Обратного пути пока нет. Ролики кладутся в assets/football/: F0.mp4 … F6.mp4 (компьютер, 1920×1080, «каждый кадр ключевой» у F1–F5),
      F1_back.mp4 … F5_back.mp4 (обратный путь), F0_m.mp4 и F6_m.mp4 (телефон, петли 720p). Код менять не нужно. -->
 <div id="stage" aria-hidden="true">
-  <div class="scene on" data-seg="F0" data-loop data-rate="0.3" data-move="orbit" data-video="../assets/football/F0" data-poster="../assets/football/F0.webp"></div>
-  <div class="scene" data-seg="F1" data-move="descend" data-video="../assets/football/F1" data-video-back="../assets/football/F1_back" data-poster="../assets/football/F1.webp"></div>
-  <div class="scene" data-seg="F2" data-move="dolly" data-video="../assets/football/F2" data-video-back="../assets/football/F2_back" data-poster="../assets/football/F2.webp"></div>
-  <div class="scene" data-seg="F2b" data-move="pan" data-video="../assets/football/F2b" data-video-back="../assets/football/F2b_back" data-poster="../assets/football/F2b.webp"></div>
-  <div class="scene" data-seg="F3" data-move="push" data-video="../assets/football/F3" data-video-back="../assets/football/F3_back" data-poster="../assets/football/F3.webp"></div>
-  <div class="scene" data-seg="F4" data-move="dolly" data-video="../assets/football/F4" data-video-back="../assets/football/F4_back" data-poster="../assets/football/F4.webp"></div>
-  <div class="scene" data-seg="F5" data-move="rise" data-video="../assets/football/F5" data-video-back="../assets/football/F5_back" data-poster="../assets/football/F5.webp"></div>
-  <div class="scene" data-seg="F6" data-loop data-rate="0.5" data-move="sway" data-video="../assets/football/F6" data-poster="../assets/football/F6.webp"></div>
+  <div class="scene on" data-seg="F0" data-loop data-rate="0.7" data-move="orbit" data-video="../assets/football/F0" data-poster="../assets/football/F0.webp"></div>
+  <div class="scene" data-seg="F1" data-move="descend" data-video="../assets/football/F1" data-poster="../assets/football/F1.webp"></div>
+  <div class="scene" data-seg="F2" data-move="dolly" data-video="../assets/football/F2" data-poster="../assets/football/F2.webp"></div>
+  <div class="scene" data-seg="F2b" data-move="pan" data-video="../assets/football/F2b" data-poster="../assets/football/F2b.webp"></div>
+  <div class="scene" data-seg="F3" data-move="push" data-video="../assets/football/F3" data-poster="../assets/football/F3.webp"></div>
+  <div class="scene" data-seg="F4" data-move="dolly" data-video="../assets/football/F4" data-poster="../assets/football/F4.webp"></div>
+  <div class="scene" data-seg="F5" data-move="rise" data-video="../assets/football/F5" data-poster="../assets/football/F5.webp"></div>
+  <div class="scene" data-seg="F6" data-loop data-rate="0.8" data-move="sway" data-video="../assets/football/F6" data-poster="../assets/football/F6.webp"></div>
   <div class="grade"></div>
   <div class="veil"></div>
 </div>
@@ -320,12 +321,12 @@
   <i aria-hidden="true"></i>
   <a href="#stadium" data-seg="F0"><span>Стадион</span><b></b></a>
   <a href="#matches" data-seg="F1"><span>Вход</span><b></b></a>
-  <a href="#leagues" data-seg="F2"><span>Лобби</span><b></b></a>
-  <a href="#clubs" data-seg="F2b"><span>Зал клубов</span><b></b></a>
+  <a href="#leagues" data-seg="F2"><span>Холл</span><b></b></a>
+  <a href="#clubs" data-seg="F2b"><span>Галерея</span><b></b></a>
   <a href="#model" data-seg="F3"><span>Аналитика</span><b></b></a>
   <a href="#honest" data-seg="F4"><span>Тоннель</span><b></b></a>
   <a href="#subscribe" data-seg="F5"><span>Поле</span><b></b></a>
-  <a href="#final" data-seg="F6"><span>Закат</span><b></b></a>
+  <a href="#final" data-seg="F6"><span>Над полем</span><b></b></a>
 </nav>
 
 <main id="main">
