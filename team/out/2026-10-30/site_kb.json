@@ -1,0 +1,4 @@
+{"day": "2026-10-30",
+ "messages": [
+  {"to": "owner", "type": "documents", "files": ["team/out/2026-10-30/stadium_storyboard.md"], "captions": ["Раскадровка полёта по стадиону — загрузить в «База знаний» агента Syntx"]}
+ ]}
