@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ru" data-sport="hockey" data-theme="arena">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Команда — матчи, таблица, сила · JARVIS (макет v3a)</title>
+<meta name="description" content="Страница клуба КХЛ и НХЛ: все матчи сезона, место в таблице, шестиугольник силы, статистика и наши прогнозы на команду.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#071225">
+<script>/* палитра как на /hockey/: ?theme=arena (по умолчанию) | a | b | c; команда — ?id=<slug эмблемы> */
+(()=>{const t=new URLSearchParams(location.search).get('theme'),d=document.documentElement;if(/^(arena|a|b|c)$/.test(t||''))d.dataset.theme=t;
+document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a1220',b:'#0b2a84',c:'#e3eff9'}[d.dataset.theme]||'#071225'})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="stylesheet" href="../assets/v3a.css">
+<link rel="stylesheet" href="../assets/team.css">
+</head>
+<body data-field="hockey">
+<div class="arena-bg" aria-hidden="true"><i class="bm"></i><i class="bm"></i><i class="bm"></i><i class="bm"></i><i class="sp"></i></div>
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="../index.html" aria-label="JARVIS, на главную">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="../hockey/index.html" aria-current="page">Хоккей</a>
+      <a href="../football/index.html">Футбол</a>
+    </nav>
+    <nav class="nav" aria-label="Разделы">
+      <a href="#table">Таблица</a><a href="#stats">Статистика</a><a href="#games">Матчи</a><a href="#picks">Ставки</a>
+    </nav>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.6-1.4ZM9.4 13.3l9-5.7-7.2 6.6-.3 3.2-1.5-4.1Z"/></svg><span>@jarvibet</span></a>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero tmhero" id="top">
+  <div class="wrap" id="hero"></div>
+</section>
+
+<section class="sec tmsec" id="table" data-zone="p1">
+  <div class="wrap" id="tableBox"></div>
+</section>
+
+<section class="sec tmsec" id="games" data-zone="p2">
+  <div class="wrap" id="gamesBox"></div>
+</section>
+
+<section class="sec tmsec" id="picks" data-zone="p3">
+  <div class="wrap" id="picksBox"></div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="plate" aria-hidden="true">Jarvis</p>
+    <div class="fcols">
+      <nav aria-label="Подвал"><a href="../index.html">Главная</a><a href="../hockey/index.html#leagues">Лиги и клубы</a><a href="../football/index.html">Футбол</a><a href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a></nav>
+      <p id="foot">Макет v3a · © JARVIS, @jarvibet</p>
+    </div>
+  </div>
+</footer>
+<a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Получать прогноз в 08:00 — @jarvibet</span><span aria-hidden="true">›</span></a>
+
+<script src="../assets/data/teams.js"></script>
+<script src="../assets/v3a.js"></script>
+<script src="../assets/team.js"></script>
+</body>
+</html>
