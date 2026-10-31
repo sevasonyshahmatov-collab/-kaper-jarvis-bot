@@ -1,0 +1,42 @@
+{
+ "day": "2026-10-31",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-10-31/site_v3a_themes/before.jpg"
+   ],
+   "text": "Сайт v3a, «Хоккей» — как было: серая бумага, у половины клубов значок КХЛ вместо эмблемы."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-10-31/site_v3a_themes/theme_a.jpg"
+   ],
+   "text": "Вариант А — «ночной лёд» (рекомендуем): тёмно-синий фон, светлый текст, жёлтые и ледяные акценты. Эмблемы всех 54 клубов КХЛ и НХЛ, настоящие знаки лиг на цветных плашках."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-10-31/site_v3a_themes/theme_b.jpg"
+   ],
+   "text": "Вариант Б — насыщенный кобальт: яркий синий фон, белый текст, мятные и жёлтые акценты."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-10-31/site_v3a_themes/theme_c.jpg"
+   ],
+   "text": "Вариант В — светлый лёд: холодный голубой фон, тёмно-синий текст, цветные блоки."
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Макет «Хоккей» — три палитры, открываются по ссылкам:\nА (ночной лёд): https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/b4acdce84288d0228ec5e5e3f0d5f95849126f3f/team/site/v3a/hockey/index.html?theme=a\nБ (кобальт): https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/b4acdce84288d0228ec5e5e3f0d5f95849126f3f/team/site/v3a/hockey/index.html?theme=b\nВ (светлый лёд): https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/b4acdce84288d0228ec5e5e3f0d5f95849126f3f/team/site/v3a/hockey/index.html?theme=c\n\nСделали: новый фон и цвета текста, цветные плашки лиг (КХЛ — синий с красным, НХЛ — чёрный с серебром), цвет уверенности модели, эмблемы всех клубов КХЛ и НХЛ, настоящие логотипы лиг. Табло оставили.\n\nКакой вариант берём?"
+  }
+ ]
+}
