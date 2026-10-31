@@ -69,9 +69,8 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
     <div class="bcol" data-rv>
       <div class="board" id="board" aria-label="Табло: прогноз дня">
         <div class="board-top"><span class="bmeta"><span id="blg"></span><b id="bmeta">КХЛ · 10:30 МСК</b></span><span class="bwhen"><i class="lamp"></i><span id="bhead">Прогноз дня</span><span class="bdot">·</span><span id="bdate"></span></span></div>
-        <div class="vsm" id="vsm"><img class="vsp" id="vsp" alt=""><video class="vsv" id="vsv" muted playsinline loop preload="auto" aria-hidden="true"></video></div>
-        <div class="mstage" aria-live="polite"><div class="mcard" id="mcard"></div></div>
-        <div class="bcount"><div class="brows"></div></div>
+        <div class="mstage" id="mstage" aria-live="polite"><div class="mcard" id="mcard"></div></div>
+        <div class="cdown" role="timer" aria-label="До матча"><span class="cdl">До матча</span><span class="cdv num" id="cdv"></span></div>
         <div class="board-foot"><p class="note">Пример данных. Прогноз КХЛ выходит в канале до 08:00 МСК, НХЛ — до 14:00.</p><div class="pager" id="pager" aria-label="Другие прогнозы дня"></div></div>
       </div>
       <a class="btn btn-tg get8" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>Получать прогноз в 08:00</a>
@@ -332,26 +331,26 @@ const line=m=>{const inv=m.x.map(k=>1/k),s=inv.reduce((a,b)=>a+b);return inv.map
  JV.ticker(document.getElementById('ticker'),L.map(m=>{const day=m.t.slice(0,10),tag=day===today?'':day===tmr?'<span class="tm2">завтра</span>':`<span class="tm2">${day.slice(8)}.${day.slice(5,7)}</span>`;
   return `${tag}<time>${m.t.slice(11)}</time>${LGP(m.lg)}${CI(m.a,'tc')}${esc(m.a)} — ${esc(m.b)}${CI(m.b,'tc')}<span class="kq">${m.x.map(v=>f1(v,2)).join(' · ')}</span>`}))}
 
-/* табло */
+/* карточка «Прогноз дня»: эмблемы лицом к лицу → ставка словами → кэф и вероятность → почему → отсчёт.
+   Без табло split-flap: обычные табличные цифры, секунда сменяется лёгким сдвигом. */
 const picks=D.filter(m=>m.vs).sort((a,b)=>a.t<b.t?-1:1);
-/* баннер матча: эмблемы лицом к лицу, ставка словами, кэф и вероятность; split-flap — только у отсчёта «До матча» */
-const bd=JV.board(document.getElementById('board'),[{label:'До матча',n:8,cls:'big'}]);
-const mcard=document.getElementById('mcard');
+const mcard=document.getElementById('mcard'),cdv=document.getElementById('cdv');
 const lvl=p=>p>=.57?'hi':p>=.54?'mid':'lo';
-const card=m=>`<div class="bet lv-${lvl(m.pr)}"><span class="bl">Прогноз · ${esc(m.a)} — ${esc(m.b)}</span><strong>${esc(m.p)}</strong><span class="k num" aria-label="коэффициент">${m.k.replace('.',',')}</span>
+const tm=(n,cls)=>`<div class="tm${n.length>10?' long':''}">${CI(n)}<small>${cls}</small><span>${esc(n)}</span></div>`;
+const card=m=>`<div class="face">${tm(m.a,'хозяева')}<div class="vs"><span aria-hidden="true">—</span><time>${m.t.slice(11)}</time></div>${tm(m.b,'гости')}</div>
+ <div class="bet lv-${lvl(m.pr)}"><span class="bl">Прогноз</span><strong>${esc(m.p)}</strong><span class="k num" aria-label="коэффициент">${m.k.replace('.',',')}</span>
   <span class="pm"><em><i style="--w:${Math.round(m.pr*100)}%"></i></em><b class="num">${Math.round(m.pr*100)} % по модели</b></span></div>
  <p class="why"><b>Почему:</b> ${esc(m.y)}.</p>`;
-const vsv=document.getElementById('vsv'),vsp=document.getElementById('vsp'),vsm=document.getElementById('vsm');
-const BAN=k=>`../assets/banners/${k}`;
-function media(m){vsp.src=BAN(m.vs)+'.webp';vsp.alt=`Баннер матча: ${m.a} — ${m.b}, ${LG[m.lg].name}, ${m.t.slice(8,10)}.${m.t.slice(5,7)} в ${m.t.slice(11)}`;
- if(RM){vsv.removeAttribute('src');vsv.load();return}
- vsv.src=BAN(m.vs)+'.mp4';vsv.poster=BAN(m.vs)+'.webp';const p=vsv.play();p&&p.catch(()=>{})}
-/* соседние баннеры подгружаем заранее — смена без пустого кадра */
-const warm=i=>{const m=picks[i];if(!m)return;const im=new Image();im.src=BAN(m.vs)+'.webp'};
+/* отсчёт: «32 ч 44 мин 05 с»; меняется только та часть, что изменилась */
+cdv.innerHTML=['h','m','s'].map((u,i)=>`<span class="cu" data-u="${u}"><b></b><small>${['ч','мин','с'][i]}</small></span>`).join('');
+const cu=[...cdv.querySelectorAll('.cu b')],cdWord=document.createElement('b');cdWord.className='cdw';cdv.appendChild(cdWord);
+function cdSet(sec){const on=sec>0;cdv.classList.toggle('over',!on);
+ if(!on){cdWord.textContent=sec>-7200?'идёт':'завершён';return}
+ const v=[Math.floor(sec/3600),Math.floor(sec%3600/60),sec%60].map(n=>String(n).padStart(2,'0'));
+ v.forEach((x,i)=>{const el=cu[i];if(el.textContent===x)return;const first=!el.textContent;el.textContent=x;
+  if(!first&&!RM&&el.animate)el.animate([{opacity:0,transform:'translateY(-35%)'},{opacity:1,transform:'none'}],{duration:260,easing:'cubic-bezier(.23,1,.32,1)'})})}
 function swap(m,dir){
-  if(RM||!mcard.animate||!mcard.innerHTML){mcard.innerHTML=card(m);media(m);return}
-  vsm.animate([{opacity:1,transform:'none'},{opacity:0,transform:`translateX(${-24*dir}px) scale(.985)`}],{duration:180,easing:'cubic-bezier(.55,0,1,.45)',fill:'forwards'}).finished.then(a=>{media(m);
-    vsm.getAnimations().forEach(x=>x.cancel());vsm.animate([{opacity:0,transform:`translateX(${28*dir}px) scale(.985)`},{opacity:1,transform:'none'}],{duration:460,easing:'cubic-bezier(.23,1,.32,1)'})}).catch(()=>media(m));
+  if(RM||!mcard.animate||!mcard.innerHTML){mcard.innerHTML=card(m);return}
   const out=mcard.animate([{opacity:1,transform:'none'},{opacity:0,transform:`translateX(${-18*dir}px)`}],{duration:180,easing:'cubic-bezier(.55,0,1,.45)',fill:'forwards'});
   out.finished.then(()=>{mcard.innerHTML=card(m);out.cancel();
     mcard.animate([{opacity:0,transform:`translateX(${22*dir}px)`},{opacity:1,transform:'none'}],{duration:420,easing:'cubic-bezier(.23,1,.32,1)'})}).catch(()=>{mcard.innerHTML=card(m)});
@@ -365,9 +364,9 @@ function show(i){const dir=i>=cur?1:-1;cur=i;const m=picks[i];
  document.getElementById('bmeta').textContent=`${LG[m.lg].name} · ${m.t.slice(11)} МСК`;
  document.getElementById('bhead').textContent=i===0?`Прогноз дня · 1 из ${picks.length}`:`Прогноз ${i+1} из ${picks.length}`;
  pager.querySelectorAll('button').forEach((b,j)=>b.setAttribute('aria-pressed',j===i));
- swap(m,shown?dir:1);shown=true;bd.set([JV.hms(JV.left(m.t))]);warm((i+1)%picks.length)
+ swap(m,shown?dir:1);shown=true;cdSet(JV.left(m.t));
  document.getElementById('bdate').textContent=new Date(m.t.slice(0,10)+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}
-{let sx=null,sy=0;const z=document.getElementById('vsm');
+{let sx=null,sy=0;const z=document.getElementById('mstage');
  z.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
  z.addEventListener('touchend',e=>{if(sx===null)return;const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;sx=null;
   if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)){show((cur+(dx<0?1:picks.length-1))%picks.length);restart()}},{passive:true})}
@@ -424,7 +423,7 @@ function render(l){const sel=(l==='all'?D:D.filter(m=>m.lg===l)).slice().sort((a
   b.addEventListener('click',()=>{if(!body.innerHTML)body.innerHTML=back(sel[i]);requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o)})})});
  if(!RM)list.querySelectorAll('.match').forEach((li,i)=>li.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:i*55,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}));
  requestAnimationFrame(()=>list.querySelectorAll('.match').forEach(li=>li.classList.add('in')));tick()}
-function tick(){document.querySelectorAll('.cd[data-t]').forEach(e=>e.textContent=JV.inMin(JV.left(e.dataset.t)));if(shown)bd.tick(0,JV.hms(JV.left(picks[cur].t)))}
+function tick(){document.querySelectorAll('.cd[data-t]').forEach(e=>e.textContent=JV.inMin(JV.left(e.dataset.t)));if(shown)cdSet(JV.left(picks[cur].t))}
 ltabs.addEventListener('click',e=>{const t=e.target.closest('.tab');if(t)render(t.dataset.l)});
 render('all');setInterval(tick,1000);
 

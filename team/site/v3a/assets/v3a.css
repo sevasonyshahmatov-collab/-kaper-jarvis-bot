@@ -881,3 +881,25 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 @media (max-width:980px){[data-theme="arena"] .hero .wrap{grid-template-columns:1fr}}
 @media (min-width:981px){.hero .board,.hero .get8{max-width:min(470px,calc((100svh - 230px) * .78))}[data-theme="arena"] .hero{padding-top:clamp(28px,3vw,48px)}}
 .crest{cursor:pointer}.crest:focus-visible{outline:3px solid var(--ice);outline-offset:2px}
+
+/* ══ 31.10 (вечер): карточка «Прогноз дня» без табло split-flap ══ */
+.board.khl{--acc:#6f9dff}.board.nhl{--acc:#c7d0db}
+.hero .board{padding:clamp(16px,2vw,24px)}
+.hero .board .face{padding:clamp(14px,3cqw,22px) 0 clamp(16px,3.6cqw,24px)}
+.hero .board .face .em{width:clamp(60px,19cqw,100px);height:clamp(60px,19cqw,100px)}
+.hero .board .face .vs time{border:1px solid color-mix(in srgb,var(--acc,#ffc21a) 45%,transparent);background:transparent;color:var(--flap-ink)}
+.hero .board .bet{box-shadow:inset 4px 0 0 var(--acc,var(--signal));padding:14px clamp(14px,3.4cqw,20px)}
+.hero .board .why{margin:12px 2px 0}
+.cdown{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)}
+.cdl{font:600 14px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--acc,#b9b6aa)}
+.cdv{display:flex;align-items:baseline;gap:clamp(10px,2.6cqw,16px);font-variant-numeric:tabular-nums}
+.cu{display:inline-flex;align-items:baseline;gap:4px}
+.cu b{display:inline-block;font:800 clamp(30px,8.4cqw,44px)/1 var(--display);color:var(--flap-ink);min-width:1.12em;text-align:right;letter-spacing:-.01em}
+.cu small{font:600 13px/1 var(--display);color:#9aa3ad}
+.cdv .cdw{display:none;font:800 28px/1 var(--display);color:var(--signal)}
+.cdv.over .cu{display:none}.cdv.over .cdw{display:inline}
+/* плашки периодов — обычная цифра, без «флажка» табло */
+.period .pn{background:var(--signal);color:var(--signal-ink);width:auto;min-width:34px;height:34px;padding:0 8px;border-radius:4px;font-size:24px}
+.period .pn::after{display:none}
+@media (max-width:620px){.period .pn{height:30px;min-width:30px;font-size:21px}}
+@media (min-width:981px){.hero .board,.hero .get8{max-width:540px}}
