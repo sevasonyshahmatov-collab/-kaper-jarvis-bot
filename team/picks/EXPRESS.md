@@ -54,7 +54,7 @@ NHLSTAND, PER), от первого лица.</blockquote>
 
 ## Ежедневный запуск (задача 08:23 МСК → новый чат; шаги для холодного чата)
 `D` — сегодня по Москве (`TZ=Europe/Moscow date +%F`). Работать в ветке команды `claude/project-migration-old-account-6e31vz`.
-1. **Уже сделано?** `git pull --rebase`; если есть `team/out/D/express.json` и строка «экспресс» за D в `team/NOW.md`
+1. **Уже сделано?** `git pull --rebase`; если есть `team/out/D/express_msgs.json` и строка «экспресс» за D в `team/NOW.md`
    («События») — ничего не делать, одна строка руководителю. Оборванный запуск — продолжить с того, что есть в `team/out/D/`.
 2. **Данные** (Actions, ~2 мин на лигу; README §1, «Логи Actions из облака закрыты»): по заданию на лигу —
    `team/out/D/express_khl_data.json`: `{"day": "D", "make": ["team/picks/notice_brief.py khl D"], "messages": []}`, так же
@@ -73,16 +73,17 @@ NHLSTAND, PER), от первого лица.</blockquote>
 5. **Тексты:** `team/out/D/express_<k>.txt` по образцу выше (k — номер купона), `python3 .claude/skills/ig-human/detect.py`
    и `humanize.py --report` — канцелярита и «структурных» замечаний 0 (тире и «·» в шапке — формат, оставить).
 6. **Задание:** скопировать `team/out/2026-10-31/express_nhl_mk.py` в `team/out/D/express_mk.py`, поправить: D, файлы
-   текстов, записку (ноги, кэфы, шансы, самая слабая нога, «да купон», «нравится формат?»). `make` — 
-   `team/picks/express_render.py team/out/D/express_coupons.json out/express/D`; сообщения: на каждый купон `photo`
-   (e<k>_feed.jpg + подпись), для купона 1 ещё `animation` (e1_anim.mp4 + та же подпись), `album` сторис, записка.
-   `python3 team/out/D/express_mk.py` → `team/out/D/express.json`. Проверить: подписи ≤ 1024.
-   Посмотреть 1–2 картинки локально: `python3 team/picks/express_render.py team/out/D/express_coupons.json out/express/D`
-   и Read `out/express/D/e1_feed.jpg`.
-7. **Отправка:** коммит (coupons, тексты, facts, mk, json) → push → `gh workflow run itogi.yml --ref <ветка> -f
-   payload='{"kind":"team","job":"team/out/D/express.json"}'` → дождаться `completed success`. Неудача без логов:
-   ошибки видны владельцу в боте («не всё отправилось»); для диагностики — временный скрипт отправки с пометками
-   `::notice` по каждому сообщению (31.10: так нашли, что jpg не попали в git).
+   текстов (`express_<k>.txt`), записку (ноги, кэфы, шансы, самая слабая нога, «да купон», «нравится формат?»).
+   `python3 team/out/D/express_mk.py` → `team/out/D/express_msgs.json` (сообщения: на каждый купон `photo` e<k>_feed.jpg +
+   подпись; для купона 1 ещё `animation` e1_anim.mp4 + та же подпись; `album` сторис; записка) и `team/out/D/express.json`
+   (`make`: `express_render.py` → картинки, `express_send.py express_msgs.json` → отправка по одному, `messages: []`).
+   Подписи ≤ 1024. Посмотреть 1–2 картинки локально: `python3 team/picks/express_render.py team/out/D/express_coupons.json
+   out/express/D` и Read `out/express/D/e1_feed.jpg` (ffmpeg в облаке есть).
+7. **Отправка:** коммит (coupons, тексты, facts, mk, json) → push (`git pull --rebase` перед ним) → `gh workflow run
+   itogi.yml --ref <ветка> -f payload='{"kind":"team","job":"team/out/D/express.json"}'` → дождаться completed → итог по
+   сообщениям: `gh api repos/<repo>/check-runs/<job_id>/annotations -q '.[]|.title+" "+.message' | grep EX` (EXRENDER_* —
+   картинки, EXSEND_<i> ok / ОШИБКА / НЕТ ФАЙЛОВ). Не ушло — исправить и дослать только эти номера:
+   `team/picks/express_send.py team/out/D/express_msgs.json 1 3` (задание с тем же `make` render). Проверка без отправки — `--dry`.
 8. **Instagram** — только после «да купон» (ниже). Без этого ничего не публиковать.
 9. **Записать:** строка в `team/NOW.md` «События» («ЧЧ:ММ · <аккаунт> · экспрессы D: купоны …, run …») и в `team/LOG.md`;
    push; руководителю — 3–5 строк (купоны, кэфы, шансы, run, что ждёт владельца).

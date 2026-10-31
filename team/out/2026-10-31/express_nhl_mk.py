@@ -34,15 +34,19 @@ note = ('<b>Экспресс НХЛ — версия 3</b>\n\n'
         'Одобряете — напишите “да купон” в чат руководителя, опубликую в Instagram пост + сторис (купон на три; '
         'скажете «на два» — опубликую его).\n\n'
         'Проба рубрики “Экспресс”: нравится формат? кнопку публикации добавим после “да”')
-job = {'day': D, 'make': ['team/picks/express_render.py team/out/%s/express_coupons.json %s' % (D, X.rstrip('/'))],
-       'messages': [
+# Схема (с 31.10): сообщения — в express_msgs.json, задание — make: картинки (express_render.py), затем отправка
+# по одному с пометками EXSEND (express_send.py); jpg/mp4 в git не попадают, логи Actions из облака закрыты.
+msgs = {'day': D, 'messages': [
     {'to': 'owner', 'type': 'photo', 'html': True, 'files': [X + 'e1_feed.jpg'], 'text': E1},
     {'to': 'owner', 'type': 'animation', 'html': True, 'files': [X + 'e1_anim.mp4'], 'text': E1},
     {'to': 'owner', 'type': 'photo', 'html': True, 'files': [X + 'e2_feed.jpg'], 'text': E2},
     {'to': 'owner', 'type': 'album', 'files': [X + 'e1_story.jpg', X + 'e2_story.jpg'],
      'text': 'Сторис для Instagram (1080×1920): купон на три и на два'},
     {'to': 'owner', 'type': 'text', 'html': True, 'text': note}]}
-json.dump(job, open('team/out/%s/express_nhl.json' % D, 'w'), ensure_ascii=False, indent=1)
-for m in job['messages']:
+json.dump(msgs, open('team/out/%s/express_msgs.json' % D, 'w'), ensure_ascii=False, indent=1)
+job = {'day': D, 'make': ['team/picks/express_render.py team/out/%s/express_coupons.json %s' % (D, X.rstrip('/')),
+                          'team/picks/express_send.py team/out/%s/express_msgs.json' % D], 'messages': []}
+json.dump(job, open('team/out/%s/express.json' % D, 'w'), ensure_ascii=False, indent=1)
+for m in msgs['messages']:
     print(m['type'], len(m['text']))
 print(E2)
