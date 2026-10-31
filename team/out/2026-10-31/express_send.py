@@ -8,7 +8,10 @@ tok = os.environ['TG_BOT_TOKEN']
 owner = tj.owner_chat(tok, '@jarvibet')
 job = json.load(open(os.path.join(ROOT, 'team/out/2026-10-31/express_nhl.json'), encoding='utf-8'))
 bad = 0
+only = {int(a) for a in sys.argv[1:]}
 for i, m in enumerate(job['messages']):
+    if only and i not in only:
+        continue
     try:
         tj.send(tok, owner, m, False)
         print('::notice title=EXSEND_%d::ok %s' % (i, m['type']), flush=True)

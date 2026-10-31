@@ -46,7 +46,7 @@ NHLSTAND), от первого лица.</blockquote>
    `team/out/D/express_ig_caption.txt`.
 2. План `team/out/D/express_ig_plan.json`: `feed`, `story`, `caption`, `job`. Замок: `"approved": "owner"` и `"approval"`
    (где и когда владелец написал «да купон») — без них `team/picks/express_ig.py` ничего не публикует.
-3. Коммит плана, запуск `itogi.yml` с `team/out/D/express_ig.json`: лента (картинка + подпись) и сторис
+3. Коммит плана, запуск `itogi.yml` с `team/out/D/express_ig.json` (сначала рисует картинки — jpg в team/out не коммитятся): лента (картинка + подпись) и сторис
    (`media_type=STORIES`); картинку Instagram берёт по ссылке litterbox (1 ч), секреты IG_TOKEN / IG_USER_ID — в itogi.yml.
    Итог (ссылки) скрипт присылает владельцу в бот и пишет пометкой `EXPRESS_IG`.
 4. Строка в `team/NOW.md` и `team/LOG.md`.
