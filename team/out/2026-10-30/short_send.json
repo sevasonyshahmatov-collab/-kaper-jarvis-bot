@@ -1,0 +1,32 @@
+{
+ "day": "2026-10-30",
+ "make": [
+  "team/out/2026-10-30/short_make.py"
+ ],
+ "messages": [
+  {
+   "to": "owner",
+   "type": "video",
+   "files": [
+    "team/out/2026-10-30/short/before_card.mp4"
+   ],
+   "text": "БЫЛО: «Карточка», ~23 с"
+  },
+  {
+   "to": "owner",
+   "type": "video",
+   "files": [
+    "team/out/2026-10-30/short/after_card.mp4"
+   ],
+   "text": "СТАЛО: «Карточка», ~13 с, в конце «Протокол матча» (сохрани — впишем счёт)"
+  },
+  {
+   "to": "owner",
+   "type": "video",
+   "files": [
+    "team/out/2026-10-30/short/after_radar_quantum.mp4"
+   ],
+   "text": "СТАЛО: «Радар», ~13 с, в конце «Отправь тому, кто ждёт скучный матч»"
+  }
+ ]
+}

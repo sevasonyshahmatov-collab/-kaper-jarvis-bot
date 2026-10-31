@@ -307,14 +307,20 @@ def one(P, i, league, day, code, lg, frames):
     from reels import intro
     t0 = time.time()
     r, key, start = reel(m, P['stats'], code)
-    r.ticker_tag, r.ticker = ticker(P, lg)
+    if SHORT:                                       # владелец 30.10: ролик 10–15 с, в конце — призыв сохранить / переслать
+        d0 = r.drop
+        r = C.Short(r, card(i), short_head(m, lg), m['pick'], *short_fav(m, code), cta=short_cta(m, i, code))
+        start += d0 - r.drop                        # прогноз — ровно на дроп трека
+    else:
+        r.ticker_tag, r.ticker = ticker(P, lg)
     base = os.path.join(out_dir(league, day), '%02d_%s' % (i + 1, m['tpl']))
     if frames:
         r = intro.wrap(r, m['h'], m['a'], code, *ab_lines(m, i))
+        r = C.Loop(r) if SHORT else r
         print(C.render(r, base + '.mp4', frames=[int(round(float(x) * C.FPS)) for x in frames.split(',')]))
         return
     track = owner_tracks.wav(key)
-    if os.environ.get('REELS_TTS') == '1':          # владелец 20.10: озвучка и субтитры (пока по флагу, на пробу)
+    if os.environ.get('REELS_TTS') == '1' and not SHORT:     # владелец 20.10: озвучка и субтитры (по флагу; к короткому — нет)
         import voice
         r, mix = voice.voiced(r, m, TEMPLATES[m['tpl']][0], track, start, base)
         if mix:
@@ -323,10 +329,13 @@ def one(P, i, league, day, code, lg, frames):
     # владелец 27.10: сравнение заставок — чётные ролики дня А (прогноз и кэф), нечётные Б (вопрос, ответ на дропе)
     r = intro.wrap(r, m['h'], m['a'], code, *ab_lines(m, i))
     start -= getattr(r, 'intro', 0.0)
+    r = C.Loop(r) if SHORT else r
     C.render(r, base + '.mp4', track=track, start=start, extra_out=base + '_clean.mp4')
-    print('REEL %s — %s | %s | заставка %s | трек %s с %.2f с, дроп на %.2f с | %.1f с ролика за %.0f с'
-          % (m['h'], m['a'], m['tpl'], ab(i) or '-', key, start, r.drop, r.dur, time.time() - t0), flush=True)
+    print('REEL %s — %s | %s | заставка %s | %s | трек %s с %.2f с, дроп на %.2f с | %.1f с ролика за %.0f с'
+          % (m['h'], m['a'], m['tpl'], ab(i) or '-', ('short ' + card(i)) if SHORT else 'long', key, start, r.drop, r.dur,
+             time.time() - t0), flush=True)
     y = yt_texts.youtube(m, lg)
+    cta = short_cta(m, i, code) if SHORT else None
     cover = cover_for(m, code, base)
     if m.get('yt', True):
         url, note = youtube.upload(base + '.mp4', y['title'], y['description'], y['tags'] + ['tpl_' + m['tpl']],
@@ -338,18 +347,48 @@ def one(P, i, league, day, code, lg, frames):
     yt_url, yt_note = url, note
     head = ('YouTube: %s\n%s\n\n' % (url, note)) if url else ('YouTube: %s\n\n' % note) if note else ''
     if instagram.deferred():       # владелец 26.10: в Instagram — по одному днём, по расписанию YouTube (team/reels_daily/ig_queue.py)
-        ig, ignote = instagram.queue(base, instagram.caption(m, y, ab(i)), cover, publish_time(P, i), m['d'][:16])
+        ig, ignote = instagram.queue(base, instagram.caption(m, y, ab(i), first=cta), cover, publish_time(P, i), m['d'][:16])
     else:
-        ig, ignote = instagram.upload(base + '.mp4', instagram.caption(m, y, ab(i)), cover)
+        ig, ignote = instagram.upload(base + '.mp4', instagram.caption(m, y, ab(i), first=cta), cover)
     head += ('Instagram: %s\n\n' % ig) if ig else ('Instagram: %s\n\n' % ignote) if ignote else ''
     with open(base + '.json', 'w', encoding='utf-8') as f:          # для пакета владельцу (pack.py)
-        json.dump(dict(i=i, ab=ab(i), d=m['d'], h=m['h'], a=m['a'], lg=lg, video=os.path.basename(base) + '.mp4', yt=yt_url,
+        json.dump(dict(i=i, ab=ab(i), fmt='short' if SHORT else 'long', card=card(i) if SHORT else None, d=m['d'], h=m['h'], a=m['a'], lg=lg, video=os.path.basename(base) + '.mp4', yt=yt_url,
                        yt_note=yt_note, ig=ig, title=y['title'], description=y['description']), f, ensure_ascii=False)
     if os.environ.get('REELS_TG_EACH') == '1':                       # прежний режим: каждый ролик отдельно
         tg_reel(base + '.mp4', base + '_clean.mp4', head + yt_texts.block(m, lg), y['title'], cover)
 
 
-AB_DUR = 1.5                         # заставка сравнения: строк больше — 1,5 с вместо 1 с (у обоих вариантов одинаково)
+SHORT = os.environ.get('REELS_SHORT', '1') != '0'      # владелец 30.10: ролики 10–15 с (core.Short); 0 — прежние ~23 с
+AB_DUR = 1.2 if SHORT else 1.5       # заставка сравнения: строк больше — 1,5 с вместо 1 с; в коротком ролике — 1,2 с
+
+
+def card(i):
+    """Карточка-призыв в конце короткого ролика: 'protocol' (сохрани — впишем счёт) | 'share' (отправь тому, кто…).
+    Меняется через два ролика ((i // 2) % 2), чтобы не совпадать с заставкой А/Б (i % 2) — сравниваются отдельно."""
+    return 'protocol' if (i // 2) % 2 == 0 else 'share'
+
+
+def short_fav(m, code):
+    """→ (команда прогноза Team | None,): тотал матча — ни одной команды (в финале без эмблемы)."""
+    from reels import core as C
+    from reels import form as F
+    h, a = C.match(m['h'], m['a'], code)
+    p = m['pick'].lower()
+    if p.startswith('тотал матча') or ('тотал' in p and not any(t.short.lower()[:4] in p for t in (h, a))):
+        return (None,)
+    return ((h if F.fav_side(h, a, m['pick']) == 'h' else a),)
+
+
+def short_cta(m, i, code):
+    """Текст призыва карточки — он же первая строка подписи Instagram."""
+    from reels import core as C
+    h, a = C.match(m['h'], m['a'], code)
+    fav = short_fav(m, code)[0]
+    return C.short_cta(card(i), m['pick'], h, a, None if fav is None else ('h' if fav.name == h.name else 'a'))
+
+
+def short_head(m, lg):
+    return '%s · %s.%s · %s МСК' % (lg, m['d'][8:10], m['d'][5:7], m['d'][11:16])
 
 
 def ab(i):

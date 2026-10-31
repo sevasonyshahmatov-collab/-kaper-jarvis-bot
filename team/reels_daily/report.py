@@ -147,7 +147,7 @@ def ig_views(days):
             if not said:
                 print('REPORTERR Instagram %s: %s' % (metric, str(ins.get('error', ins))[:300]), flush=True)
         said = True
-        out.append(dict(link=m.get('permalink'), title=(m.get('caption') or '').split('\n')[0][:60], at=t, views=views))
+        out.append(dict(link=m.get('permalink'), title=next((x for x in (m.get('caption') or '').split('\n')[:3] if x.startswith('Прогноз на матч')), (m.get('caption') or '').split('\n')[0])[:60], at=t, views=views))
     return out
 
 

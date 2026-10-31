@@ -84,7 +84,7 @@ def live(items, now):
     """Задания, которые ещё можно выложить (матч не начался), — по одному на матч (последнее); по времени выхода."""
     seen, out = set(), []
     for q in sorted(items, key=lambda q: -q['created']):
-        first = q['text'].split('\n')[0]
+        first = instagram.key_line(q['text'])
         if first in seen:
             continue
         seen.add(first)
@@ -133,7 +133,7 @@ def main(dry=False):
     videos = fetch(ROOT)
     items = jobs(ROOT)
     t0, last = time.time(), None
-    rest = [q for q in live(items, datetime.now(timezone.utc)) if not instagram.posted(q['text'].split('\n')[0])]
+    rest = [q for q in live(items, datetime.now(timezone.utc)) if not instagram.posted(instagram.key_line(q['text']))]
     print('IGQ заданий %d, ждут выкладки %d' % (len(items), len(rest)), flush=True)
     while rest:
         now = datetime.now(timezone.utc)
@@ -149,7 +149,7 @@ def main(dry=False):
             time.sleep(wait + 5)
             continue
         q = todo[0]
-        first = q['text'].split('\n')[0]
+        first = instagram.key_line(q['text'])
         if dry:
             print('IGQ выложил бы: %s (по плану %s МСК)' % (first[:80], q['at'].astimezone(MSK).strftime('%H:%M')))
             rest.remove(q)
