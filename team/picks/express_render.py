@@ -35,6 +35,7 @@ def main(src, out):
     cs = json.load(open(os.path.join(ROOT, src), encoding='utf-8'))['coupons']
     out = os.path.join(ROOT, out)
     os.makedirs(out, exist_ok=True)
+    done = []
     for k, c in enumerate(cs, 1):
         if not c.get('legs'):
             continue
@@ -44,11 +45,15 @@ def main(src, out):
         for fmt in ('feed', 'story'):
             p = ec.render(legs, os.path.join(out, 'e%d_%s.jpg' % (k, fmt)), fmt=fmt,
                           cta='Все прогнозы — в Telegram @jarvibet' if fmt == 'story' else None, **kw)
-            print('::notice title=EXRENDER_%s::%d КБ' % (os.path.basename(p), os.path.getsize(p) // 1024), flush=True)
+            done.append('%s %d КБ' % (os.path.basename(p), os.path.getsize(p) // 1024))
         p = ec.animate(legs, os.path.join(out, 'e%d_anim.mp4' % k), **kw)
-        print('::notice title=EXRENDER_%s::%d КБ' % (os.path.basename(p), os.path.getsize(p) // 1024), flush=True)
+        done.append('%s %d КБ' % (os.path.basename(p), os.path.getsize(p) // 1024))
         p = ec.animate(legs, os.path.join(out, 'e%d_story.mp4' % k), fmt='story', cta='Все прогнозы — в Telegram @jarvibet', **kw)
-        print('::notice title=EXRENDER_%s::%d КБ' % (os.path.basename(p), os.path.getsize(p) // 1024), flush=True)
+        done.append('%s %d КБ' % (os.path.basename(p), os.path.getsize(p) // 1024))
+
+
+    # одна пометка на все файлы: в шаге Actions — не больше 10 пометок, остальные нужны отправке (EXSEND_<i>)
+    print('::notice title=EXRENDER::%s' % ' · '.join(done), flush=True)
 
 
 if __name__ == '__main__':

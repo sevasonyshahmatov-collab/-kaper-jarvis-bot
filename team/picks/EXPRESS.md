@@ -75,7 +75,7 @@
    team/out/D/express_coupons.json out/express/D` → Read `out/express/D/e1_feed.jpg`.
 6. **Отправка:** коммит (coupons, posts, msgs, express.json, EXPRESS_LOG.md) → push → `gh workflow run itogi.yml --ref
    <ветка> -f payload='{"kind":"team","job":"team/out/D/express.json"}'` → completed → итог по сообщениям:
-   `gh api …/check-runs/<job>/annotations -q '.[]|.title+" "+.message' | grep EX` (EXRENDER_* — картинки,
+   `gh api …/check-runs/<job>/annotations -q '.[]|.title+" "+.message' | grep EX` (EXRENDER — картинки одной строкой,
    EXSEND_<i> ok / ОШИБКА / НЕТ ФАЙЛОВ). Не ушло — дослать только эти номера: задание с тем же `make`-render и
    `team/picks/express_send.py team/out/D/express_msgs.json 1 3`. Проверка без отправки — `--dry`.
 7. **Instagram** — сам: владелец жмёт «Опубликовать» → бот публикует в канал и запускает Instagram (ниже). Руками не
