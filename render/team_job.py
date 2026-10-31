@@ -212,6 +212,13 @@ def postmatch_env(payload):
     # текст из чата команды, когда нейросети недоступны (team/postmatch/README.md, 29.10)
     if pm.get('facts_only'):
         out['facts_only'] = 1
+    # футбол (31.10): турнир и код лиги ESPN; force — итог заново, хотя по номеру он уже уходил (run.py: один итог на прогноз)
+    if pm.get('tour'):
+        out['tour'] = str(pm['tour']).replace('\n', ' ')[:40]
+    if re.fullmatch(r'[a-z]+(\.[a-z0-9]+){1,2}', str(pm.get('espn') or '')):
+        out['espn'] = pm['espn']
+    if pm.get('force'):
+        out['force'] = 1
     for k, n in (('story', 900), ('outro', 300)):
         if pm.get(k):
             out[k] = str(pm[k]).replace('\n', ' ')[:n]
