@@ -397,7 +397,7 @@ function det(m){if(m.det)return m.det;const A=TD[SL(m.a)]||null,B=TD[SL(m.b)]||n
 function back(m){const {A,B,h2h}=det(m),nmS=sl=>(window.JV_TEAMS.names||{})[sl]||sl;
  const smp=g=>g.s?' <span class="smp">пример</span>':'';
  const last=t=>`<div class="l3"><h5>${CI(t.name)}${esc(t.name)}</h5><ul>${t.g.slice(0,3).map(g=>{const r=rOf(g);return `<li><b class="rs ${r}" title="${RESF[r]}">${RES[r]}</b><span class="op">${CI(nmS(g.o))}${esc(nmS(g.o))}</span><span class="sc num">${g.gf}:${g.ga}${g.x?`<small>${g.x}</small>`:''}</span><span class="d">${dd(g.d)}${smp(g)}</span></li>`}).join('')||'<li class="none">Нет данных</li>'}</ul></div>`;
- const form=t=>`<div class="fm"><span>${CI(t.name)}${esc(t.name)}</span><span class="dots" aria-label="форма: ${t.g.slice(0,5).map(g=>(rOf(g)==='w'?'победа над ':'поражение от ')+nmS(g.o)+' '+g.gf+':'+g.ga).join(', ')}">${t.g.slice(0,5).map(g=>{const r=rOf(g),o=nmS(g.o),sc=`${g.gf}:${g.ga}`,ex=g.x?(g.x==='Б'?' по буллитам':' в овертайме'):'',tt=r==='w'?`Победа над ${o} ${sc}${ex}`:`Поражение от ${o} ${sc}${ex}`;return `<i class="${r}" title="${esc(tt)}"><img src="../assets/em/${esc(g.o)}.webp" alt="" loading="lazy"></i>`}).join('')}</span></div>`;
+ const form=t=>`<div class="fm"><span>${CI(t.name)}${esc(t.name)}</span><span class="dots" aria-label="форма: ${t.g.slice(0,5).reverse().map(g=>(rOf(g)==='w'?'победа над ':'поражение от ')+nmS(g.o)+' '+g.gf+':'+g.ga).join(', ')}">${t.g.slice(0,5).reverse().map(g=>{const r=rOf(g),o=nmS(g.o),sc=`${g.gf}:${g.ga}`,ex=g.x?(g.x==='Б'?' по буллитам':' в овертайме'):'',tt=r==='w'?`Победа над ${o} ${sc}${ex}`:`Поражение от ${o} ${sc}${ex}`;return `<i class="${r}" title="${esc(tt)}"><img src="../assets/em/${esc(g.o)}.webp" alt="" loading="lazy"></i>`}).join('')}</span></div>`;
  /* личные встречи: счёт с точки зрения хозяев матча m.a */
  const wA=h2h.filter(g=>g.gf>g.ga).length,wB=h2h.length-wA;
  const h2hHTML=h2h.length?`<p class="h2t"><span>${CI(m.a)}${esc(m.a)}</span><b class="num">${wA} — ${wB}</b><span>${esc(m.b)}${CI(m.b)}</span></p><ul class="h2l">${h2h.map(g=>{const home=g.h?m.a:m.b,away=g.h?m.b:m.a,hs=g.h?g.gf:g.ga,as=g.h?g.ga:g.gf,aw=g.gf>g.ga;
@@ -405,7 +405,7 @@ function back(m){const {A,B,h2h}=det(m),nmS=sl=>(window.JV_TEAMS.names||{})[sl]|
   :`<p class="none">В этом сезоне ещё не встречались.</p>`;
  return `<div class="xd">
   <section class="xb x-last"><h4>Последние 3 матча</h4><div class="two">${last(A)}${last(B)}</div></section>
-  <section class="xb x-form"><h4>Форма <span class="note">последние 5, слева — свежий; в кружке — соперник</span></h4>${form(A)}${form(B)}</section>
+  <section class="xb x-form"><h4>Форма <span class="note">последние 5: слева раньше, справа последняя; в кружке — соперник</span></h4>${form(A)}${form(B)}</section>
   <section class="xb x-stat"><h4>Статистика команды <span class="note">сезон 2026/27</span></h4><table class="st"><thead><tr><th></th><th>${CI(A.name)}<span>${esc(A.name)}</span></th><th>${CI(B.name)}<span>${esc(B.name)}</span></th></tr></thead>
    <tbody>${A.st.map((r,i)=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${B.st[i]?B.st[i][1]:'—'}</td></tr>`).join('')}</tbody></table></section>
   <section class="xb x-h2h"><h4>Личные встречи в этом сезоне</h4>${h2hHTML}</section>

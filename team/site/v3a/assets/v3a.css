@@ -700,6 +700,7 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 .dots{display:flex;gap:5px}
 .dots i{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-style:normal}
 .dots i img{width:66%;height:66%;object-fit:contain;opacity:.62}
+.dots i:last-child{box-shadow:0 0 0 2px var(--card,#fff),0 0 0 4px var(--ink)}
 .st{width:100%;border-collapse:collapse;font:500 14px/1.2 var(--display)}
 .st th{font-weight:700;text-align:center;padding:0 4px 8px;vertical-align:bottom}
 .st th .em{width:26px;height:26px;margin:0 auto 4px;display:block}
