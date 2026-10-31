@@ -1,0 +1,34 @@
+{
+ "day": "2026-10-31",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": ["team/out/2026-10-31/site_v3a_team2/team-ska-1440.jpg"],
+   "text": "Страница команды теперь в цветах клуба. У каждого из 54 клубов свой фон: градиент из фирменных цветов и большая полупрозрачная эмблема у края. Шестиугольник, место в таблице, полоски и кнопки тоже в цвете клуба. Текст всегда читается: светлый или тёмный выбирается сам. На картинке СКА."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": ["team/out/2026-10-31/site_v3a_team2/team-akbars-1440.jpg"],
+   "text": "Ак Барс: зелёный с красным."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": ["team/out/2026-10-31/site_v3a_team2/team-nhl_bos-1440.jpg"],
+   "text": "Бостон: чёрный с жёлтым."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": ["team/out/2026-10-31/site_v3a_team2/team-form-closeup.jpg"],
+   "text": "Форма за последние 5 игр. Букв «В» и «П» больше нет, в кружке эмблема соперника. Зелёный кружок значит победу, красный поражение, серый поражение в овертайме или по буллитам. Наведёшь на кружок, и появится подпись вроде «Победа над Сочи 4:3». Внизу то же самое в раскрытой карточке матча на странице «Хоккей»."
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "СКА:\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/33d0f3a47d9aced6f9df4f0563f33528c8624327/team/site/v3a/team/index.html?id=ska\n\nАк Барс:\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/33d0f3a47d9aced6f9df4f0563f33528c8624327/team/site/v3a/team/index.html?id=akbars\n\nБостон:\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/33d0f3a47d9aced6f9df4f0563f33528c8624327/team/site/v3a/team/index.html?id=nhl_bos\n\nТак?"
+  }
+ ]
+}
