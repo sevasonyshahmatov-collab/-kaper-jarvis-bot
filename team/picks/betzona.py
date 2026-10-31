@@ -205,7 +205,7 @@ LEAGUES = {   # страница лиги на сайте → наш турни�
     'prognozy-chempionat-england.html': 'АПЛ', 'prognozy-chempionat-spain.html': 'Ла Лига',
     'prognozy-chempionat-italy.html': 'Серия А', 'prognozy-chempionat-germanii.html': 'Бундеслига',
     'prognozy-chempionat-francii.html': 'Лига 1'}
-CUP = [('Премьер-лига', 'Англия', 'АПЛ'), ('Примера', 'Испания', 'Ла Лига'), ('Серия A', 'Италия', 'Серия А'),
+CUP = [('Премьер-лига', 'Англия', 'АПЛ'), ('Ла Лига', 'Испания', 'Ла Лига'), ('Примера', 'Испания', 'Ла Лига'), ('Серия A', 'Италия', 'Серия А'),
        ('Серия А', 'Италия', 'Серия А'), ('Бундеслига', 'Германия', 'Бундеслига'), ('Лига 1', 'Франция', 'Лига 1'),
        ('Лига чемпионов', '', 'Лига чемпионов'), ('Лига Европы', '', 'Лига Европы')]
 MON = {'января': 1, 'февраля': 2, 'марта': 3, 'апреля': 4, 'мая': 5, 'июня': 6, 'июля': 7, 'августа': 8,
@@ -269,7 +269,7 @@ def cards(q, page_url):
 
 def detail(u):
     q = parse(get(u))
-    d = {'url': u, 'info': [], 'raw': []}
+    d = {'url': u, 'info': [], 'raw': [], 'concl': []}
     teams, vals = [], []
     for i, (c, t) in enumerate(q.ctext):
         if c == 'icon-cup' and 'cup' not in d:
@@ -288,6 +288,12 @@ def detail(u):
             vals.append(t)
         elif c == 'info':
             d['info'].append(t)
+        elif c == 'bet_name' and 'market' not in d:
+            d['market'] = t
+        elif c == 'ratio' and 'odds' not in d:
+            d['odds'] = t
+        elif c == 'gray-block':
+            d['concl'].append(t)
         elif re.search(r'bet|forecast|prognoz|stavk|ratio|coef|verdict|conclusion|outcome', c, re.I) \
                 and c != 'forecast-description' and len(d['raw']) < 12:
             d['raw'].append('[%s] %s' % (c, t[:160]))
@@ -342,20 +348,20 @@ def run(day):
         top.add(e['match'])
         out('BZMATCH', '%s | %s %s | %s | %s' % (cup, e['day'], e['time'], e['match'].replace(' - ', ' — '), e['url']))
         out('BZPRED', '%s | %s | %s | эксперт %s, ROI %s, прогнозов %s (%s) | %s' % (
-            e['match'], d.get('market', '?'), e.get('odds', d.get('odds', '?')), d.get('author', '?'), d['roi'], d['n'],
-            d.get('astat', ''), ' / '.join(d['info'])[:600]))
-        for r in d['raw']:
-            out('BZRAW', '%s | %s' % (e['match'], r))
+            e['match'], d.get('market', '?'), d.get('odds', e.get('odds', '?')), d.get('author', '?'), d['roi'], d['n'],
+            d.get('astat', '').replace('Статистика прогнозов автора ', ''), ' '.join(d['concl'])[:450]))
         if dbg:
             dbg = False
             for c, t in q.ctext[250:700]:
                 if c not in ('name', 'sub_name', 'drop', 'col', 'col-1', 'col-2') and 'menu' not in c:
                     out('BZDBG', '[%s] %s' % (c, t[:200]))
     for x in usr_all:
-        tag = 'top' if x['match'] in top else 'не сверено'
+        if x['match'] not in top:
+            continue
+        tag = 'top'
         out('BZPRED', '%s | %s | %s | пользователь %s, %s %s, %s | %s' % (
             x['match'], x.get('market', '?'), x.get('odds', '?'), x.get('author', '?'), x['day'], x['time'], tag,
-            ' '.join(x['body'])[:500]))
+            ' '.join(x['body'])[:350]))
     out('BZDONE', '%s: экспертных %d, коротких %d, топ-матчей %d, запросов %d' % (
         day, len(exp_all), len(usr_all), len(top), _n[0]))
 
