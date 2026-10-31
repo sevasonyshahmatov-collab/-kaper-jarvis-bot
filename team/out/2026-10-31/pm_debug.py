@@ -17,3 +17,18 @@ try:
     g = data.match_game(found, p); note('match %s' % g)
 except Exception as e:
     import traceback; note('ERR ' + traceback.format_exc()[-800:])
+try:
+    import chronicle, requests
+    note('FACTS ' + chronicle.facts(p, g))
+    gk = os.environ.get('GEMINI_API_KEY', '').strip(); ak = os.environ.get('ANTHROPIC_API_KEY', '').strip()
+    note('keys gemini=%s anthropic=%s' % (bool(gk), bool(ak)))
+    if gk:
+        r = requests.post('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent', headers={'x-goog-api-key': gk}, timeout=60,
+                          json={'contents': [{'role': 'user', 'parts': [{'text': 'скажи ок'}]}]})
+        note('gemini %s %s' % (r.status_code, r.text[:200]))
+    if ak:
+        r = requests.post('https://api.anthropic.com/v1/messages', headers={'x-api-key': ak, 'anthropic-version': '2023-06-01'}, timeout=60,
+                          json={'model': 'claude-haiku-4-5', 'max_tokens': 10, 'messages': [{'role': 'user', 'content': 'ок'}]})
+        note('claude %s %s' % (r.status_code, r.text[:200]))
+except Exception as e:
+    import traceback; note('ERR2 ' + traceback.format_exc()[-800:])
