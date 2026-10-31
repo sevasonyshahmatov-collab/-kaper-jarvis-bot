@@ -8,7 +8,7 @@ PATH = '/events/list?lang=ru&version=0&scopeMarket=1600'
 
 
 def note(t, m):
-    print('::notice title=%s::%s' % (t, str(m).replace('\n', ' ')[:6000]), flush=True)
+    print('::notice title=%s::%s' % (t, str(m).replace('\n', ' ')[:62000]), flush=True)
 
 
 def get(url):
@@ -27,30 +27,31 @@ data = None
 for h in HOSTS:
     try:
         data = get(h + PATH)
-        note('FBHOST', '%s ok, ключи %s' % (h, list(data.keys())))
+        print('FBHOST', '%s ok, ключи %s' % (h, list(data.keys())))
         break
     except Exception as e:
-        note('FBHOST', '%s %r' % (h, e))
+        print('FBHOST', '%s %r' % (h, e))
 for h in HOSTS[:1]:
-    for p in ('/line/factorsCatalog/tablesList/?lang=ru&version=0', '/events/factorsCatalog?lang=ru'):
+    for p in ('/line/factorsCatalog/tables/?lang=ru&version=0', '/factorsCatalog/tables?lang=ru&version=0', '/line/factorsCatalog/tables?lang=ru&version=0&sysId=1'):
         try:
             c = get(h + p)
             raw = json.dumps(c, ensure_ascii=False)
             note('FBCAT', '%s ok %d знаков: %s' % (p, len(raw), raw[:1500]))
             b = base64.b64encode(gzip.compress(raw.encode())).decode()
-            if len(b) < 120000:
-                parts = [b[i:i + 6000] for i in range(0, len(b), 6000)]
+            if len(b) < 180000:
+                parts = [b[i:i + 60000] for i in range(0, len(b), 60000)]
                 for i, s in enumerate(parts):
                     note('FC_%d/%d' % (i + 1, len(parts)), s)
             break
         except Exception as e:
-            note('FBCAT', '%s %r' % (p, e))
+            print('FBCAT', p, repr(e), flush=True)
 if not data:
     sys.exit(0)
 sports = {s['id']: s for s in data.get('sports', [])}
-KEYS = ('КХЛ', 'НХЛ', 'Англия. Премьер', 'Испания. Примера', 'Италия. Серия A', 'Германия. Бундеслига', 'Франция. Лига 1',
+KEYS = ('Италия. Серия', 'КХЛ', 'НХЛ', 'Англия. Премьер', 'Испания. Примера', 'Италия. Серия A', 'Германия. Бундеслига', 'Франция. Лига 1',
         'Лига чемпионов', 'Лига Европы')
-segs = [s for s in sports.values() if s.get('kind') == 'segment' and any(k in (s.get('name') or '') for k in KEYS)]
+segs = [s for s in sports.values() if s.get('kind') == 'segment' and any(k in (s.get('name') or '') for k in KEYS)
+        and not any(w in s['name'] for w in ('Итоги', 'Специальн', 'Лучший', 'Статист', 'Кто выше', 'Победитель', 'RFEF', 'Бундеслига 2', 'Бундеслига 3', 'Серия B'))]
 evs = data['events']
 subs = {}
 for e in evs:
@@ -62,6 +63,7 @@ note('FBSPORTS', 'всего событий %d, лиг-сегментов %d; н
 dump = {'sports': [sports[s['id']] for s in segs] + [sports[p] for p in {s.get('parentId') for s in segs} if p in sports],
         'events': [], 'factors': {}}
 nfoot = {}
+summ = []
 for s in segs:
     mains = [e for e in evs if e.get('sportId') == s['id'] and not e.get('parentId')]
     lines = []
@@ -73,16 +75,18 @@ for s in segs:
         lines.append('%s—%s %s n%d [%s]' % (e.get('team1'), e.get('team2'), e.get('startTime'), n,
                                            ','.join(sorted({'%s/%s' % (x.get('name') or '', x.get('kind') or '') for x in sb}))[:300]))
         hockey = 'КХЛ' in s['name'] or 'НХЛ' in s['name']
-        if hockey or nfoot.get(s['id'], 0) < 2:
+        if hockey or nfoot.get(s['id'], 0) < 1:
             if not hockey:
                 nfoot[s['id']] = nfoot.get(s['id'], 0) + 1
             for x in alls:
                 dump['events'].append(x)
                 dump['factors'][x['id']] = facs.get(x['id'], [])
-    note('FBLEAGUE', '%s %s: матчей %d | %s' % (s['id'], s['name'], len(mains), ' ; '.join(lines[:8])))
+    print('FBLEAGUE', '%s %s: матчей %d | %s' % (s['id'], s['name'], len(mains), ' ; '.join(lines[:8])), flush=True)
+    summ.append('%s %s: %d [%s]' % (s['id'], s['name'], len(mains), ' ; '.join(lines[:2])))
 raw = json.dumps(dump, ensure_ascii=False, separators=(',', ':'))
 b = base64.b64encode(gzip.compress(raw.encode())).decode()
-parts = [b[i:i + 6000] for i in range(0, len(b), 6000)]
+parts = [b[i:i + 60000] for i in range(0, len(b), 60000)]
+note('FBSUM', ' || '.join(summ))
 note('FBDUMP', 'событий %d, %d знаков, частей %d' % (len(dump['events']), len(raw), len(parts)))
 for i, s in enumerate(parts):
     note('FB_%d/%d' % (i + 1, len(parts)), s)
