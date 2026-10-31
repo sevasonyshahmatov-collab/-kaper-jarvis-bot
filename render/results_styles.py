@@ -21,8 +21,18 @@ import league_mark
 
 S = quality.S                       # 3 — «4К» (3240×4050 у постера 1080×1350), см. quality.py
 W = 1080
-ACCENT = {'KHL': (255, 194, 61), 'NHL': (122, 202, 255)}
-TAG = {'KHL': 'KXL', 'NHL': 'NHL'}
+class _Lg(dict):
+    """Футбол (31.10, «Итог матча» по футбольным ставкам): турнир не KHL/NHL — подпись = название турнира, акцент — футбольный."""
+    def __init__(self, base, other):
+        super().__init__(base)
+        self.other = other
+
+    def __missing__(self, key):
+        return self.other(key)
+
+
+ACCENT = _Lg({'KHL': (255, 194, 61), 'NHL': (122, 202, 255)}, lambda k: (150, 232, 120))
+TAG = _Lg({'KHL': 'KXL', 'NHL': 'NHL'}, lambda k: str(k).upper())
 MARK_TEXT = {'ОТ': 'ОВЕРТАЙМ', 'Б': 'БУЛЛИТЫ', 'ОТ/Б': 'ОТ / БУЛЛИТЫ'}
 
 

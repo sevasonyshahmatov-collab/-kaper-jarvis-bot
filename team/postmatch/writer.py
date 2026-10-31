@@ -46,6 +46,20 @@ SYSTEM = """Ты пишешь послематчевый пост для Telegra
 2) вывод владельца: одно-два коротких предложения, 60–160 знаков — что берём на заметку или настрой на следующие матчи.
 Больше ничего не пиши."""
 
+def system(p):
+    """Подсказка под вид спорта: футбол (владелец 31.10) — те же правила, но про поле, голы и тайм."""
+    if (p or {}).get('league') != 'FOOT':
+        return SYSTEM
+    s = SYSTEM.replace('о хоккее (КХЛ и НХЛ)', 'о футболе (топ-лиги Европы и еврокубки)')
+    s = s.replace('разбирается в хоккее', 'разбирается в футболе').replace('на льду', 'на поле')
+    s = re.sub(r'\(большинство, вратарь,\s*снятие вратаря, игрок, броски, концовка\)', '(гол, пенальти, удаление, вратарь, удары, концовка)', s)
+    s = s.replace('фамилии игроков НХЛ', 'фамилии игроков').replace('(Овечкин, Макдэвид, Капризов)', '(Холанд, Мбаппе, Гримальдо)')
+    return s
+
+
+_sport = [None]
+
+
 ANGLES = ['начни с момента, который решил матч',
           'начни с того, чего я ждал от матча перед игрой, и сравни с тем, что случилось',
           'начни с игрока или вратаря, который сделал этот матч',
@@ -142,7 +156,7 @@ def _gemini(key, user):
                 return None
             try:
                 r = requests.post(GEMINI_URL % model, headers={'x-goog-api-key': key}, timeout=90, json={
-                    'systemInstruction': {'parts': [{'text': SYSTEM}]},
+                    'systemInstruction': {'parts': [{'text': system(_sport[0])}]},
                     'contents': [{'role': 'user', 'parts': [{'text': '\n\n'.join(user)}]}],
                     'generationConfig': {'temperature': 1.0, 'maxOutputTokens': 8192}})
             except requests.RequestException as e:
@@ -186,6 +200,7 @@ def write(p, g, res_word, chronicle, why='', recent=()):
         return None
     user = _prompt(p, res_word, chronicle, why, recent)
     _recent[0] = list(recent)
+    _sport[0] = p
     gkey = os.environ.get('GEMINI_API_KEY', '').strip()
     _deadline[0] = time.time() + BUDGET
     # владелец 19.10: пост по заготовке не отправлять — у Google перегрузка обычно проходит за минуты, пробуем ещё раунды
@@ -205,8 +220,8 @@ def write(p, g, res_word, chronicle, why='', recent=()):
     return None
 
 
-ROUNDS = (0, 120, 240)
-BUDGET = 15 * 60          # на текст не больше 15 мин: задание itogi.yml ограничено 40 мин, финал ждём до 14
+ROUNDS = (0, 120)
+BUDGET = 8 * 60           # 31.10: нет ответа — пост по шаблону из фактов, долго не ждём
 _deadline = [0.0]
 _recent = [[]]
 
@@ -225,7 +240,7 @@ def _claude(p, user):
     for attempt in range(RETRIES + 1):
         try:
             r = client.beta.messages.create(
-                model=MODEL, max_tokens=16000, system=SYSTEM,
+                model=MODEL, max_tokens=16000, system=system(_sport[0]),
                 betas=['server-side-fallback-2026-07-01'], fallbacks='default',
                 output_config={'effort': 'medium'},
                 messages=[{'role': 'user', 'content': '\n\n'.join(user)}])

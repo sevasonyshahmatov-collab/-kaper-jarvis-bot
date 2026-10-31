@@ -71,7 +71,10 @@ def _match(home, away, league, date, time, odds, pick, kef):
     if league == 'NHL':
         nhl.register()
     (hn, hc, _, _), (an, ac, _, _), acc = versus._teams(home, away, league)
-    return Match(_club(hn, hc, league), _club(an, ac, league), tuple(acc), 'КХЛ' if league == 'KHL' else 'НХЛ',
+    import football
+    tag = 'КХЛ' if league == 'KHL' else football.label(league) if football.is_foot(league) and league != 'FOOT' else \
+        'ФУТБОЛ' if league == 'FOOT' else 'НХЛ'
+    return Match(_club(hn, hc, league), _club(an, ac, league), tuple(acc), tag,
                  league, date or '', time or '', odds, pick, kef)
 
 

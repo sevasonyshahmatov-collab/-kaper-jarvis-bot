@@ -43,15 +43,59 @@ WEEK = ['понедельник', 'вторник', 'среда', 'четвер�
 def load_pick(pm):
     st = datetime.strptime(str(pm['start'])[:16], '%Y-%m-%d %H:%M').replace(tzinfo=data.MSK)
     kef = str(pm.get('kef') or '').replace(',', '.').strip()
-    lg = 'NHL' if str(pm.get('league', '')).upper() in ('NHL', 'НХЛ') else 'KHL'
-    return dict(pid=str(pm['pid']), league=lg, home=settle.canon(pm['home']), away=settle.canon(pm['away']), start=st,
+    lgr = str(pm.get('league', '')).upper()
+    lg = 'NHL' if lgr in ('NHL', 'НХЛ') else 'FOOT' if lgr in ('FOOT', 'ФУТБОЛ') else 'KHL'
+    nm = (lambda x: str(x).replace('«', '').replace('»', '').strip()) if lg == 'FOOT' else settle.canon
+    return dict(pid=str(pm['pid']), league=lg, home=nm(pm['home']), away=nm(pm['away']), start=st,
                 pick=str(pm['pick']).strip(), kef=float(kef) if re.fullmatch(r'\d+(\.\d+)?', kef) else None,
-                ch=pm.get('ch'))
+                ch=pm.get('ch'), tour=str(pm.get('tour') or ''), espn=str(pm.get('espn') or ''))
+
+
+# Один итог на прогноз (31.10: владельцу дважды пришёл итог 3110-1 — бот и ручная досылка). Журнал переходит
+# из задания в задание через кэш Actions (.pm_recent, itogi.yml); повтор — только с "force": 1 в pm.
+DONE = os.path.join(ROOT, '.pm_recent', 'done.json')
+
+
+DONE_REPO = os.path.join(HERE, 'sent_pm.json')      # отправленные вручную чатами команды — вписывать сюда же
+
+
+def done_pids():
+    d = {}
+    for path in (DONE_REPO, DONE):
+        try:
+            with open(path, encoding='utf-8') as f:
+                d.update(json.load(f))
+        except (OSError, ValueError):
+            pass
+    return d
+
+
+def mark_done(pid, how):
+    try:
+        with open(DONE, encoding='utf-8') as f:
+            d = json.load(f)
+    except (OSError, ValueError):
+        d = {}
+    d[pid] = '%s · %s' % (datetime.now(data.MSK).strftime('%d.%m %H:%M'), how)
+    if len(d) > 300:
+        d = dict(list(d.items())[-300:])
+    os.makedirs(os.path.dirname(DONE), exist_ok=True)
+    with open(DONE, 'w', encoding='utf-8') as f:
+        json.dump(d, f, ensure_ascii=False, indent=1)
 
 
 def final_game(p):
     """Матч прогноза; ждёт финала до WAIT_MIN минут. → матч или None."""
     t_end = time.time() + WAIT_MIN * 60
+    while p['league'] == 'FOOT':
+        import foot
+        g = foot.game(p)
+        if g and g['state'] == 'final':
+            return g
+        print('ещё не финал:', g and g['state'], flush=True)
+        if time.time() > t_end:
+            return None
+        time.sleep(60)
     while True:
         found, errs = data.games_for([p])
         for e in errs:
@@ -68,6 +112,8 @@ def final_game(p):
 def goals_of(p, g):
     """Голы матча по порядку: [{per: 1..5, sec, side: 'h'|'a', who: фамилия или '', status: 'бол'|'мен'|'рав'|''}]."""
     out = []
+    if p['league'] == 'FOOT':
+        return out                                    # футбол: голы — в g['goals'] (foot.py)
     try:
         if p['league'] == 'KHL':
             j = data.khl_get('event_v2.json?id=%s' % g['id'])
@@ -400,9 +446,15 @@ def post_text(p, g, goals, res, why, legs=None, body=None):
     lines.append(('📈 Кэф: <b>%s</b> — <b>%s</b>%s' % (kef, word, tail)) if kef else ('📈 Итог: <b>%s</b>%s' % (word, tail)))
     if res == settle.PUSH and why:
         lines[-1] += ' (%s)' % e(why)
-    st, outro = body if body else (story(p, g, goals, rnd, legs, res), _pick(OUTRO[res], _num_of(p)))
+    if body:
+        st, outro = body
+    elif p['league'] == 'FOOT':
+        import foot
+        st, outro = foot.story(p, g, legs, res, _num_of(p)), _pick(foot.OUTRO[res], _num_of(p))
+    else:
+        st, outro = story(p, g, goals, rnd, legs, res), _pick(OUTRO[res], _num_of(p))
     lines += ['', '<i>%s</i>%s' % (e(st), ' 🔥' if res == settle.WIN else ''), '', e(outro) if body else outro, '',
-              '#%s #итог #jarvibet' % ('кхл' if p['league'] == 'KHL' else 'нхл')]
+              '#%s #итог #jarvibet' % {'KHL': 'кхл', 'NHL': 'нхл', 'FOOT': 'футбол'}[p['league']]]
     return '\n'.join(lines)
 
 
@@ -420,7 +472,7 @@ def checks_for(p, g, legs, res_legs):
             tm = p['home'] if l_['side'] == 'h' else p['away']
             t = '%s — %s: %s' % (sc, tm.upper(), plural(h if l_['side'] == 'h' else a, 'ШАЙБА', 'ШАЙБЫ', 'ШАЙБ'))
         elif l_['kind'] in ('win', 'dc', 'draw', 'nodraw'):
-            how = ' В ОСН. ВРЕМЯ' if l_.get('scope', 'reg') == 'reg' else ''
+            how = ' В ОСН. ВРЕМЯ' if l_.get('scope', 'reg') == 'reg' and p['league'] != 'FOOT' else ''
             if h == a:
                 t = '%s — НИЧЬЯ%s' % (sc, how)
             else:
@@ -439,7 +491,12 @@ def render(p, g, legs, res, res_legs, path):
     d = g['start']
     date = '%s, %d %s' % (WEEK[d.weekday()], d.day, MONTHS[d.month - 1])
     hit = True if res == settle.WIN else False if res == settle.LOSS else None
-    return pm.render(p['home'], p['away'], g['hg'], g['ag'], path, mark=g.get('end') or '', league=p['league'], date=date,
+    league = p['league']
+    if league == 'FOOT':                                   # футбол: эмблемы ESPN (render/football.py), подпись — турнир
+        import football
+        football.register()
+        league = p.get('tour') if football.is_foot(p.get('tour') or '') else 'FOOT'
+    return pm.render(p['home'], p['away'], g['hg'], g['ag'], path, mark=g.get('end') or '', league=league, date=date,
                      pick=p['pick'], kef=p['kef'], hit=hit, style='verdict_anim',
                      checks=checks_for(p, g, legs, res_legs))
 
@@ -481,6 +538,10 @@ def main():
     raw = json.loads(a.pm)
     p = load_pick(raw)
     print('прогноз:', p['pid'], p['home'], '—', p['away'], p['start'], p['pick'], p['kef'], flush=True)
+    sent = done_pids().get(p['pid'])
+    if sent and not raw.get('force') and not raw.get('facts_only'):
+        print('POSTMATCH итог %s уже отправлен (%s) — повтор не шлю; нужен заново — "force": 1' % (p['pid'], sent), flush=True)
+        return 0
     g = final_game(p)
     if not g:
         print('POSTMATCHERR матч ещё не закончен — поста нет', flush=True)
@@ -495,7 +556,11 @@ def main():
     word = {settle.WIN: 'зашла', settle.LOSS: 'не зашла', settle.PUSH: 'возврат'}[res]
     mine = [t for t in sent_texts() if t not in recent]
     print('POSTMATCH сверка с недавними: в канале %d, отправлено владельцу %d' % (len(recent), len(mine)), flush=True)
-    facts = chronicle.facts(p, g)
+    if p['league'] == 'FOOT':
+        import foot
+        facts = foot.facts(p, g)
+    else:
+        facts = chronicle.facts(p, g)
     # нейросети не отвечают (лимит Gemini, нет денег на Claude API) — текст пишет чат команды: сначала хроника
     # («facts_only»: только печать в лог, владельцу ничего), затем готовые «story» и «outro» в pm
     if raw.get('facts_only'):
@@ -505,28 +570,30 @@ def main():
         body = (str(raw['story']).strip(), str(raw['outro']).strip())
     else:
         body = writer.write(p, g, word, facts, pick_why, (mine[::-1] + list(recent))[:6])
-    if body:
-        remember(p, body)
-        text = post_text(p, g, goals, res, why, legs, body)
-        print(text, flush=True)
-        path = os.path.join('out', 'postmatch', '%s.mp4' % p['pid'])
-        if not a.no_render:
-            render(p, g, legs, res, res_legs, path)
-        # номер итога: <прогноз>r<номер поста прогноза в канале> — бот публикует итог ответом на этот пост
-        msg = {'to': 'owner', 'type': 'animation', 'files': [path], 'text': text, 'html': True, 'emoji': True,
-               'buttons': 'post', 'pid': '%sr%s' % (p['pid'], ch or '')}
+    if not body:
+        # владелец 31.10: нейросеть не ответила — пост по шаблону из фактов (счёт, ставка, ✅/❌, ход матча), а не «не готов»
+        print('POSTMATCHERR текста от нейросети нет — пост по шаблону из фактов', flush=True)
     else:
-        # владелец 19.10: короткий пост из заготовок не нужен — только предупреждение, текст допишем вручную
-        print('POSTMATCHERR текста от нейросети нет — пост из заготовок не отправляю', flush=True)
-        msg = {'to': 'owner', 'type': 'text',
-               'text': 'Послематчевый пост %s — %s %d:%d (ставка %s) не готов: нейросеть для текста сейчас не отвечает. '
-                       'Пост из заготовок не отправляю — напишу полный текст вручную и пришлю с кнопкой «Опубликовать».'
-                       % (p['home'], p['away'], g['hg'], g['ag'], word)}
+        remember(p, body)
+    text = post_text(p, g, goals, res, why, legs, body)
+    print(text, flush=True)
+    path = os.path.join('out', 'postmatch', '%s.mp4' % p['pid'])
+    msg = {'to': 'owner', 'type': 'animation', 'files': [path], 'text': text, 'html': True, 'emoji': True,
+           'buttons': 'post', 'pid': '%sr%s' % (p['pid'], ch or '')}
+    if not a.no_render:
+        try:
+            render(p, g, legs, res, res_legs, path)
+        except Exception as e:  # noqa: BLE001 — без баннера итог всё равно уходит текстом
+            print('POSTMATCHERR баннер: %r — отправляю текстом' % e, flush=True)
+            msg.update(type='text', files=[])
+            msg.pop('files')
+    # номер итога: <прогноз>r<номер поста прогноза в канале> — бот публикует итог ответом на этот пост
     with open(a.job_file, encoding='utf-8') as f:
         job = json.load(f)
     job['messages'] = (job.get('messages') or []) + [msg]
     with open(a.job_file, 'w', encoding='utf-8') as f:
         json.dump(job, f, ensure_ascii=False, indent=1)
+    mark_done(p['pid'], 'нейросеть' if body else 'шаблон')
     return 0
 
 
