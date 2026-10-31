@@ -44,7 +44,7 @@ GAP = 18                     # между полосами
 ROW_MAX = 240                # выше полоса — перебор (1–3 матча)
 OSW, ALU, MAN = 'Oswald[wght].ttf', 'AlumniSans[wght].ttf', 'Manrope[wght].ttf'
 TAG = {'KHL': 'KXL', 'NHL': 'NHL', 'KHL+NHL': 'КХЛ · НХЛ',     # 'KHL+NHL' и '*-RU' — итоги прогнозов (team/daily/banner.py):
-       'KHL-RU': 'КХЛ', 'NHL-RU': 'НХЛ'}                          # там лига кириллицей (владелец 16.10), в остальных — бренд KXL
+       'KHL-RU': 'КХЛ', 'NHL-RU': 'НХЛ', 'FOOT-RU': 'ФУТБОЛ'}         # FOOT-RU — футбольные итоги (team/daily/foot_recap.py)                          # там лига кириллицей (владелец 16.10), в остальных — бренд KXL
 INK = (24, 20, 14)           # текст на плашках, как у versus
 GREY = (150, 148, 156)
 FOOT_ODDS = recap.FOOT_ODDS  # «…на момент публикации» — без упоминания таблицы
@@ -77,9 +77,9 @@ def _layout(n, rows, h_max=None):
 def _club(name, league):
     """→ (ключ клуба, цвет панели, второй цвет, аббревиатура) через versus._team; неизвестный клуб не роняет постер."""
     name = str(name).strip()
-    key = KHL_ALIAS.get(name, name) if league != 'NHL' else name
+    key = KHL_ALIAS.get(name, name) if league not in ('NHL', 'FOOT-RU') else name
     try:
-        ru, c1, c2, abbr, _ = vs._team(key, league)
+        ru, c1, c2, abbr, _ = vs._team(key, 'FOOT' if league == 'FOOT-RU' else league)
         return ru, c1, c2, abbr
     except KeyError:
         return name, (110, 112, 120), (60, 60, 64), name.replace(' ', '').replace('-', '')[:3].upper()
@@ -277,6 +277,10 @@ def render(items, path, league='KHL', title='МАТЧИ ДНЯ', date_title=None
     if league == 'NHL' or any(str(it.get('league', '')).upper() == 'NHL' for it in items):
         nhl.register()
     acc = poster.ACC if 'KHL' in league else nhl.ICE
+    if league == 'FOOT-RU':
+        import football
+        football.register()
+        acc = football.ACC
     if results:
         title = 'ИТОГИ ДНЯ' if title == 'МАТЧИ ДНЯ' else title
         H, paint = (_rs_strips(items, rows, league, acc, h_max) if h_max and style == 'strips'   # высокий постер: h_max

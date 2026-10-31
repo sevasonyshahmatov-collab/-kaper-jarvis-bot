@@ -404,6 +404,14 @@ def build(d, variant=0, card=True, out_dir=None, led=None, recap_only=False, sel
             msgs.append(dict(post, type='text', text=recap['text'], pid='%s-r1' % mmdd(d)))
             if rel:
                 msgs.append(dict(post, type='photo' if len(rel) == 1 else 'album', files=rel, text='', pid='%s-r2' % mmdd(d)))
+    if not greet_only and not sel and source == 'channel':
+        # футбол — отдельный пост со своим баннером (владелец 31.10): только опубликованное в канал, купоны не входят
+        import foot_recap
+        fm, fnote = foot_recap.build(d, engine().plan(d, variant + 7), os.path.join(out_dir or os.path.join(ROOT, 'out', 'daily', d.isoformat()), 'foot'), card)
+        for m in fm:
+            problems += ['футбол: ' + e for e in compose.validate(m['text'], photo=m['type'] != 'text')] if m['text'] else []
+        msgs += fm
+        msgs[0]['text'] += '\n\n' + fnote
     if problems:
         msgs[0]['text'] += '\n\nПроверка постов: ' + compose.esc('; '.join(problems))
     summary = dict(day=d.isoformat(), morning=morning and morning['layout'], recap=recap and recap['tone'],
