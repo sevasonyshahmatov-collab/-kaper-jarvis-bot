@@ -279,7 +279,8 @@ def voice_track(reel, wavs):
 
 def build(pid, job_path):
     reel, title, what = PROBES[pid]()
-    novoice = os.environ.get('REELS_V3_NOVOICE') == '1'
+    novoice = os.environ.get('REELS_V3_VOICE_ON') != '1'   # владелец 31.10: «забудем про озвучку» — по умолчанию без голоса
+    reel.subs = not novoice
     wavs = []
     if not novoice:
         import tts
@@ -292,7 +293,7 @@ def build(pid, job_path):
     silent = base + '_silent.mp4'
     C.render(reel, silent, track=None)
     v = voice_track(reel, wavs) if wavs else np.zeros(int(reel.dur * SR), np.float32)
-    mix = v + 0.075 * bed(reel.dur, reel.T)
+    mix = v + (0.075 if wavs else 0.35) * bed(reel.dur, reel.T)
     mix = mix / max(1.0, np.abs(mix).max() / 0.95)
     paths = {}
     for suf, audio in (('', mix), ('_clean', v)):

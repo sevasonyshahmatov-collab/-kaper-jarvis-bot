@@ -35,8 +35,8 @@ PREP = {'в', 'на', 'за', 'из', 'к', 'и', 'без', 'у', 'с', 'по', 
 
 
 def est(say):
-    """Оценка длины фразы без синтеза (≈14,5 знака в секунду у Edge +6 %)."""
-    return 0.35 + len(say) / 14.5
+    """Длина сцены без голоса — время прочесть (≈17 знаков в секунду, ролик без озвучки — владелец 31.10)."""
+    return 0.3 + len(say) / 17.0
 
 
 _BG = {}
@@ -164,7 +164,8 @@ class V3(C.Reel):
         fr = background(self.league, getattr(self, 'tint', None))
         i, lt, L = self.at(t)
         getattr(self, 'draw_' + self.scenes[i]['k'])(fr, lt, L, t)
-        self.subtitle(fr, t)
+        if getattr(self, 'subs', True):
+            self.subtitle(fr, t)
         return fr
 
 
