@@ -612,3 +612,43 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 @media (max-width:620px){[data-theme="arena"] #honest>.wrap{border-radius:0}}
 [data-theme="arena"] .sub{background:#0b1730}
 [data-theme="arena"] .steps>li:nth-child(2)::before{color:#a8410a}
+
+/* ── баннер матча на табло (31.10): эмблемы лицом к лицу, ставка словами; split-flap — только отсчёт ── */
+.board-top .bmeta{display:flex;align-items:center;gap:0;color:var(--flap-ink)}
+.board-top .bmeta b{color:var(--flap-ink);font-weight:700;font-size:16px}
+.board-top .bwhen{display:flex;align-items:center;gap:6px;color:#b9b6aa;text-align:right}
+.board-top .bwhen .lamp{margin-right:2px}
+.board-top .bdot{color:#5d6670}
+.mstage{overflow:hidden;margin:0 -4px;padding:0 4px}
+.mcard{will-change:transform,opacity}
+.face{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:clamp(8px,3cqw,20px);padding:clamp(8px,2.4cqw,16px) 0 clamp(14px,3.4cqw,20px)}
+.face .tm{display:grid;justify-items:center;text-align:center;gap:8px;min-width:0}
+.face .em{width:clamp(56px,18cqw,96px);height:clamp(56px,18cqw,96px);object-fit:contain;--crest-bg:#eef3fa;background:#eef3fa;padding:clamp(5px,1.6cqw,9px);border-radius:50%;
+  box-shadow:0 0 0 1px rgba(255,255,255,.12),0 10px 24px -12px #000}
+.face .tm span{font:700 clamp(19px,5.4cqw,28px)/1.05 var(--display);color:var(--flap-ink);text-wrap:balance;overflow-wrap:normal;hyphens:manual;max-width:100%;min-height:2.1em;align-content:start;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.face .tm small{font:500 12px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:#8d949c}
+.face .vs{display:grid;justify-items:center;gap:6px;align-self:center;padding-bottom:28px}
+.face .vs span{font:800 clamp(26px,6cqw,36px)/1 var(--display);color:#5d6670}
+.face .vs time{font:700 clamp(15px,3.6cqw,18px)/1 var(--display);color:var(--signal);font-variant-numeric:tabular-nums;background:var(--flap);padding:6px 9px;border-radius:4px}
+.bet{--lv:#b9c5d9;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"bl k" "st k" "pm pm";gap:4px 14px;align-items:center;
+  background:var(--flap);border-radius:8px;padding:12px clamp(12px,3cqw,18px);box-shadow:inset 3px 0 0 var(--signal)}
+.bet.lv-hi{--lv:#4fd98a}.bet.lv-mid{--lv:#ffc21a}.bet.lv-lo{--lv:#b9c5d9}
+.bet .bl{grid-area:bl;font:600 12px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:#9d9a90}
+.bet strong{grid-area:st;font:700 clamp(20px,5.2cqw,26px)/1.1 var(--display);color:var(--flap-ink);min-width:0}
+.bet .k{grid-area:k;font:800 clamp(36px,9.4cqw,52px)/1 var(--display);color:var(--signal);letter-spacing:-.01em}
+.bet .pm{grid-area:pm;display:grid;grid-template-columns:minmax(60px,140px) auto;align-items:center;gap:10px;margin-top:6px}
+.bet .pm em{height:6px;border-radius:3px;background:#3a3f45;overflow:hidden}
+.bet .pm i{display:block;height:100%;width:var(--w);background:var(--lv);border-radius:3px}
+.bet .pm b{font:700 15px/1 var(--display);color:var(--lv)}
+.bcount{margin-top:12px}
+.bcount .brow{grid-template-columns:auto 1fr;gap:12px;margin:0}
+.bcount .brow>span{font:600 14px/1 var(--display);color:#b9b6aa;letter-spacing:.02em}
+.bcount .cells{justify-content:flex-start}
+.board .bcount .brow.big .fl{--cw:clamp(18px,calc((100cqw - 110px) / 11),32px)}
+@media (max-width:420px){.board .bcount .brow{grid-template-columns:auto 1fr}.board .bcount .brow.big .fl{--cw:clamp(18px,calc((100cqw - 96px) / 9.4),30px)}}
+
+.face .tm.long span{font-size:clamp(16px,4.5cqw,24px)}
+.board-top .bmeta b,.board-top .bwhen{white-space:nowrap}
+@media (max-width:620px){.board-top .bdot,.board-top #bdate{display:none}.face .tm span{min-height:2.1em}}
+.face .tm small{order:-1;margin-bottom:-2px}.face .tm .em{order:-2}

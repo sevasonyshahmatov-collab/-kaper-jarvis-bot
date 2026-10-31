@@ -73,8 +73,9 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
     </div>
     <div class="bcol" data-rv>
       <div class="board" id="board" aria-label="Табло: прогноз дня">
-        <div class="board-top"><span><i class="lamp"></i><b id="bhead">Прогноз дня</b></span><span style="display:flex;align-items:center"><span id="blg"></span><span id="bdate"></span></span></div>
-        <div class="brows"></div>
+        <div class="board-top"><span class="bmeta"><span id="blg"></span><b id="bmeta">КХЛ · 10:30 МСК</b></span><span class="bwhen"><i class="lamp"></i><span id="bhead">Прогноз дня</span><span class="bdot">·</span><span id="bdate"></span></span></div>
+        <div class="mstage" aria-live="polite"><div class="mcard" id="mcard"></div></div>
+        <div class="bcount"><div class="brows"></div></div>
         <div class="board-foot"><p class="note">Пример данных. Прогноз КХЛ выходит в канале до 08:00 МСК, НХЛ — до 14:00.</p><div class="pager" id="pager" aria-label="Другие прогнозы дня"></div></div>
       </div>
       <a class="btn btn-tg get8" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>Получать прогноз в 08:00</a>
@@ -207,7 +208,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
  window.__HTODAY=[
   M({lg:'khl',a:'СКА',b:'ЦСКА',p:'Тотал больше 4,5',sp:'ТБ 4,5',k:'1.70',y:'Обе команды забивают в среднем больше трёх за игру',x:[2.25,4.1,2.6],pr:.56},90),
   M({lg:'khl',a:'Ак Барс',b:'Локомотив',p:'Победа Локомотива',sp:'П2',k:'1.85',y:'Локомотив выиграл 2 из 3 последних',x:[2.10,4.20,1.85],pr:.58},190),
-  M({lg:'khl',a:'Сибирь',b:'Трактор',p:'Победа Трактора',sp:'П2',k:'1.95',y:'Трактор выше в таблице и в лучшей форме',x:[2.9,4.3,1.95],pr:.55},200),
+  M({lg:'khl',a:'Салават Юлаев',b:'Автомобилист',p:'Победа Автомобилиста',sp:'П2',k:'1.95',y:'Автомобилист выше в таблице и в лучшей форме',x:[2.9,4.3,1.95],pr:.55},200),
   M({lg:'nhl',a:'Бостон',b:'Торонто',p:'Победа Бостона',sp:'П1',k:'1.75',y:'Бостон дома, три победы подряд',x:[1.75,4.4,3.3],pr:.57},560),
   M({lg:'nhl',a:'Колорадо',b:'Даллас',p:'Тотал больше 5,5',sp:'ТБ 5,5',k:'1.90',y:'Две самые результативные команды дивизиона',x:[2.0,4.3,2.7],pr:.54},620),
   M({lg:'nhl',a:'Вегас',b:'Эдмонтон',p:'Победа Эдмонтона',sp:'П2',k:'2.05',y:'Эдмонтон набрал очки в последних 3 играх',x:[2.4,4.2,2.05],pr:.52},740)];
@@ -274,15 +275,31 @@ JV.ticker(document.getElementById('ticker'),[
 
 /* табло */
 const picks=[...D].sort((a,b)=>b.pr-a.pr).slice(0,4);
-const bd=JV.board(document.getElementById('board'),[{label:'Лига'},{label:'Хозяева'},{label:'Гости'},{label:'Ставка'},{label:'По модели',n:4,cls:'big gold'},{label:'До матча',n:8,cls:'big'}]);
+/* баннер матча: эмблемы лицом к лицу, ставка словами, кэф и вероятность; split-flap — только у отсчёта «До матча» */
+const bd=JV.board(document.getElementById('board'),[{label:'До матча',n:8,cls:'big'}]);
+const mcard=document.getElementById('mcard');
+const lvl=p=>p>=.57?'hi':p>=.54?'mid':'lo';
+const card=m=>`<div class="face">
+  <div class="tm${m.a.length>10?' long':''}">${CI(m.a)}<span>${esc(m.a)}</span><small>хозяева</small></div>
+  <div class="vs"><span aria-hidden="true">—</span><time>${m.t.slice(11)}</time></div>
+  <div class="tm${m.b.length>10?' long':''}">${CI(m.b)}<span>${esc(m.b)}</span><small>гости</small></div></div>
+ <div class="bet lv-${lvl(m.pr)}"><span class="bl">Прогноз</span><strong>${esc(m.p)}</strong><span class="k num" aria-label="коэффициент">${m.k.replace('.',',')}</span>
+  <span class="pm"><em><i style="--w:${Math.round(m.pr*100)}%"></i></em><b class="num">${Math.round(m.pr*100)} % по модели</b></span></div>`;
+function swap(m,dir){
+  if(RM||!mcard.animate||!mcard.innerHTML){mcard.innerHTML=card(m);return}
+  const out=mcard.animate([{opacity:1,transform:'none'},{opacity:0,transform:`translateX(${-18*dir}px)`}],{duration:180,easing:'cubic-bezier(.55,0,1,.45)',fill:'forwards'});
+  out.finished.then(()=>{mcard.innerHTML=card(m);out.cancel();
+    mcard.animate([{opacity:0,transform:`translateX(${22*dir}px)`},{opacity:1,transform:'none'}],{duration:420,easing:'cubic-bezier(.23,1,.32,1)'})}).catch(()=>{mcard.innerHTML=card(m)});
+}
 document.getElementById('bdate').textContent=new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
 let cur=0,timer=0,shown=false;const pager=document.getElementById('pager');
 pager.innerHTML=picks.map((m,i)=>`<button type="button" aria-pressed="${i===0}" aria-label="${esc(m.a)} — ${esc(m.b)}"></button>`).join('');
-function show(i){cur=i;shown=true;const m=picks[i];
+function show(i){const dir=i>=cur?1:-1;cur=i;const m=picks[i];
  document.getElementById('blg').innerHTML=LGP(m.lg);
- document.getElementById('bhead').textContent=i===0?'Прогноз дня':`Ещё прогноз, ${i+1} из ${picks.length}`;
+ document.getElementById('bmeta').textContent=`${LG[m.lg].name} · ${m.t.slice(11)} МСК`;
+ document.getElementById('bhead').textContent=i===0?`Прогноз дня · 1 из ${picks.length}`:`Прогноз ${i+1} из ${picks.length}`;
  pager.querySelectorAll('button').forEach((b,j)=>b.setAttribute('aria-pressed',j===i));
- bd.set([`${LG[m.lg].name} ${m.t.slice(11)}`,m.a,m.b,`${m.sp}  ${m.k.replace('.',',')}`,Math.round(m.pr*100)+'%',JV.hms(JV.left(m.t))])}
+ swap(m,shown?dir:1);shown=true;bd.set([JV.hms(JV.left(m.t))])}
 pager.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;show([...pager.children].indexOf(b));restart()});
 function restart(){clearInterval(timer);if(!RM)timer=setInterval(()=>show((cur+1)%picks.length),9000)}
 const boardEl=document.getElementById('board');
@@ -312,7 +329,7 @@ function render(l){const sel=(l==='all'?D:D.filter(m=>m.lg===l)).slice().sort((a
  list.querySelectorAll('.match').forEach(li=>{const b=li.querySelector('.mhead');b.addEventListener('click',()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o)})});
  if(!RM)list.querySelectorAll('.match').forEach((li,i)=>li.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:i*55,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}));
  requestAnimationFrame(()=>list.querySelectorAll('.match').forEach(li=>li.classList.add('in')));tick()}
-function tick(){document.querySelectorAll('.cd[data-t]').forEach(e=>e.textContent=JV.inMin(JV.left(e.dataset.t)));if(shown)bd.tick(5,JV.hms(JV.left(picks[cur].t)))}
+function tick(){document.querySelectorAll('.cd[data-t]').forEach(e=>e.textContent=JV.inMin(JV.left(e.dataset.t)));if(shown)bd.tick(0,JV.hms(JV.left(picks[cur].t)))}
 ltabs.addEventListener('click',e=>{const t=e.target.closest('.tab');if(t)render(t.dataset.l)});
 render('all');setInterval(tick,1000);
 
