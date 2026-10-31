@@ -201,8 +201,163 @@ def main(argv):
     notices()
 
 
+LEAGUES = {   # страница лиги на сайте → наш турнир; «Футбол. Англия» включает Чемпионшип — турнир сверяем по странице прогноза
+    'prognozy-chempionat-england.html': 'АПЛ', 'prognozy-chempionat-spain.html': 'Ла Лига',
+    'prognozy-chempionat-italy.html': 'Серия А', 'prognozy-chempionat-germanii.html': 'Бундеслига',
+    'prognozy-chempionat-francii.html': 'Лига 1'}
+CUP = [('Премьер-лига', 'Англия', 'АПЛ'), ('Примера', 'Испания', 'Ла Лига'), ('Серия A', 'Италия', 'Серия А'),
+       ('Серия А', 'Италия', 'Серия А'), ('Бундеслига', 'Германия', 'Бундеслига'), ('Лига 1', 'Франция', 'Лига 1'),
+       ('Лига чемпионов', '', 'Лига чемпионов'), ('Лига Европы', '', 'Лига Европы')]
+MON = {'января': 1, 'февраля': 2, 'марта': 3, 'апреля': 4, 'мая': 5, 'июня': 6, 'июля': 7, 'августа': 8,
+       'сентября': 9, 'октября': 10, 'ноября': 11, 'декабря': 12, 'янв': 1, 'фев': 2, 'мар': 3, 'апр': 4,
+       'июн': 6, 'июл': 7, 'авг': 8, 'сен': 9, 'окт': 10, 'ноя': 11, 'дек': 12,
+       'февр': 2, 'сент': 9, 'нояб': 11}
+MKT = re.compile(r'^(П1|П2|Х|X|1X|X2|12|Победа ?[12]|Ничья|ТБ|ТМ|Ф1|Ф2|ИТБ|ИТМ|Обе|1-й тайм|Тотал|Фора)', re.I)
+
+
+def ddate(t, year):
+    m = re.search(r'(\d{1,2}) ([а-я]+)\.?,? (\d\d:\d\d)', t)
+    if not m or m.group(2) not in MON:
+        return None, None
+    return '%d-%02d-%02d' % (year, MON[m.group(2)], int(m.group(1))), m.group(3)
+
+
+def cup_of(text):
+    for k, c, name in CUP:
+        if k in text and (not c or c in text) and 'Кубок' not in text and 'Чемпионшип' not in text:
+            return name
+    return None
+
+
+def cards(q, page_url):
+    """Карточки экспертов (ссылка на страницу прогноза) и короткие прогнозы пользователей со страницы лиги."""
+    exp, usr, cur = [], [], None
+    links = {}
+    for href, t in q.links:
+        if 'prognoz-' in href and href.endswith('.html'):
+            links.setdefault(re.sub(r'\s+', ' ', t), []).append(urljoin(page_url, href))
+    for c, t in q.ctext:
+        if c == 'bets-description-card__match-info__name-string':
+            exp.append({'match': t})
+        elif c == 'bets-description-card__match-info__description' and exp:
+            exp[-1]['when'] = t
+        elif c == 'bets-description-card__ratio__value' and exp:
+            exp[-1]['odds'] = t
+        elif c == 'bets-users-short-card__match-title':
+            cur = {'match': t, 'body': []}
+            usr.append(cur)
+        elif cur is not None and c == 'mr-2' and 'when' not in cur:
+            cur['when'] = t
+        elif cur is not None and c == 'bets-users-short-card__header-user-info-name':
+            cur['author'] = t
+        elif cur is not None and c == 'bets-users-short-card__header-bet-title':
+            cur['market'] = t
+        elif cur is not None and c == 'bets-users-short-card__header-bet-ratio':
+            cur['odds'] = t
+        elif cur is not None and c == 'bets-users-short-card__body':
+            cur['body'].append(t)
+    # ссылки на страницы экспертов: по порядку карточек
+    hrefs = [urljoin(page_url, h) for h, t in q.links if re.search(r'-prognoz-\d+\.html$', h) and ' - ' in t
+             and re.search(r'\d\d:\d\d', t)]
+    seen, uniq = set(), []
+    for h in hrefs:
+        if h not in seen:
+            seen.add(h)
+            uniq.append(h)
+    return exp, usr, uniq
+
+
+def detail(u):
+    q = parse(get(u))
+    d = {'url': u, 'info': [], 'raw': []}
+    teams, vals = [], []
+    for i, (c, t) in enumerate(q.ctext):
+        if c == 'icon-cup' and 'cup' not in d:
+            d['cup'] = t
+        elif c == 'match-review-head-team-name':
+            teams.append(t)
+        elif c == 'match-review-head-date' and 'date' not in d:
+            d['date'] = t
+        elif c == 'match-review-head-scores' and 'time' not in d:
+            d['time'] = t
+        elif c == 'author-stats_name' and 'author' not in d:
+            d['author'] = t
+        elif c == 'author-stats_stats-text' and 'astat' not in d:
+            d['astat'] = t
+        elif c == 'author-stats_value-text':
+            vals.append(t)
+        elif c == 'info':
+            d['info'].append(t)
+        elif re.search(r'bet|forecast|prognoz|stavk|ratio|coef|verdict|conclusion|outcome', c, re.I) \
+                and c != 'forecast-description' and len(d['raw']) < 12:
+            d['raw'].append('[%s] %s' % (c, t[:160]))
+    d['teams'] = teams[:2]
+    d['roi'], d['profit'], d['n'] = (vals + ['', '', ''])[:3]
+    for line in d['raw']:
+        t = line.split('] ', 1)[1]
+        if 'market' not in d and MKT.match(t) and len(t) < 40:
+            d['market'] = t
+        if 'odds' not in d and re.fullmatch(r'\d\.\d{1,3}', t):
+            d['odds'] = t
+    return d, q
+
+
 def run(day):
-    raise NotImplementedError('парсер — после разведки')
+    d0 = datetime.strptime(day, '%Y-%m-%d')
+    days = {day, (d0 + timedelta(days=1)).strftime('%Y-%m-%d')}
+    exp_all, usr_all = [], []
+    for page, lg in LEAGUES.items():
+        u = urljoin(BASE, page)
+        try:
+            q = parse(get(u))
+        except Exception as e:
+            out('BZERR', '%s: %s' % (u, e))
+            continue
+        exp, usr, hrefs = cards(q, u)
+        for k, e in enumerate(exp):
+            e['lg'], e['url'] = lg, hrefs[k] if k < len(hrefs) else ''
+            e['day'], e['time'] = ddate(e.get('when', ''), d0.year)
+        for x in usr:
+            x['lg'] = lg
+            x['day'], x['time'] = ddate(x.get('when', ''), d0.year)
+        exp_all += [e for e in exp if e['day'] in days]
+        usr_all += [x for x in usr if x['day'] in days]
+        out('BZLG', '%s: экспертов %d (на D/D+1 %d), коротких %d, ссылок %d' % (
+            lg, len(exp), sum(e['day'] in days for e in exp), len(usr), len(hrefs)))
+    # страницы экспертов — турнир, рынок, автор, доводы
+    top = set()
+    dbg = '--debug' in sys.argv
+    for e in exp_all:
+        if not e['url'] or _n[0] >= MAX_REQ - 1:
+            continue
+        try:
+            d, q = detail(e['url'])
+        except Exception as ex:
+            out('BZERR', '%s: %s' % (e['url'], ex))
+            continue
+        cup = cup_of(d.get('cup', ''))
+        if not cup:
+            out('BZSKIP', '%s | %s — не топ-лига' % (e['match'], d.get('cup', '?')))
+            continue
+        top.add(e['match'])
+        out('BZMATCH', '%s | %s %s | %s | %s' % (cup, e['day'], e['time'], e['match'].replace(' - ', ' — '), e['url']))
+        out('BZPRED', '%s | %s | %s | эксперт %s, ROI %s, прогнозов %s (%s) | %s' % (
+            e['match'], d.get('market', '?'), e.get('odds', d.get('odds', '?')), d.get('author', '?'), d['roi'], d['n'],
+            d.get('astat', ''), ' / '.join(d['info'])[:600]))
+        for r in d['raw']:
+            out('BZRAW', '%s | %s' % (e['match'], r))
+        if dbg:
+            dbg = False
+            for c, t in q.ctext[250:700]:
+                if c not in ('name', 'sub_name', 'drop', 'col', 'col-1', 'col-2') and 'menu' not in c:
+                    out('BZDBG', '[%s] %s' % (c, t[:200]))
+    for x in usr_all:
+        tag = 'top' if x['match'] in top else 'не сверено'
+        out('BZPRED', '%s | %s | %s | пользователь %s, %s %s, %s | %s' % (
+            x['match'], x.get('market', '?'), x.get('odds', '?'), x.get('author', '?'), x['day'], x['time'], tag,
+            ' '.join(x['body'])[:500]))
+    out('BZDONE', '%s: экспертных %d, коротких %d, топ-матчей %d, запросов %d' % (
+        day, len(exp_all), len(usr_all), len(top), _n[0]))
 
 
 if __name__ == '__main__':
