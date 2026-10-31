@@ -1,12 +1,15 @@
 <!doctype html>
-<html lang="ru" data-sport="football">
+<html lang="ru" data-sport="football" data-theme="a">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Футбол — прогнозы JARVIS (макет v3a)</title>
 <meta name="description" content="Прогнозы на АПЛ, Ла Лигу, Серию А, Бундеслигу, Лигу 1 и Лигу чемпионов по собственной модели. Проверка на сезоне 2025/26 и честные итоги. Макет, пример данных.">
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#eceee8">
+<meta name="theme-color" content="#0a1220">
+<script>/* палитра: ?theme=a|b|c (а — «ночной лёд», по умолчанию; б — кобальт; в — светлый лёд) */
+(()=>{const t=new URLSearchParams(location.search).get('theme'),d=document.documentElement;if(/^[abc]$/.test(t||''))d.dataset.theme=t;
+document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84',c:'#e3eff9'}[d.dataset.theme]||'#0a1220'})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">

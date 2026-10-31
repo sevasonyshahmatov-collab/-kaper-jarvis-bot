@@ -65,10 +65,13 @@ JV.field=function(kind){
   const cv=document.createElement('canvas');cv.id='field';cv.setAttribute('aria-hidden','true');document.body.prepend(cv);
   const g=cv.getContext('2d');let W=0,H=0,D=1,raf=0,last=0;
   const size=()=>{D=Math.min(1.5,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*D;cv.height=H*D;g.setTransform(D,0,0,D,0,0);draw(performance.now())};
-  const ink='rgba(16,22,31,.085)',ink2='rgba(16,22,31,.05)';
+  /* цвета разметки — из CSS-переменных темы (--fld-*), чтобы лёд читался на любом фоне */
+  const cs=getComputedStyle(doc),V=(n,d)=>cs.getPropertyValue(n).trim()||d;
+  const ink=V('--fld','rgba(16,22,31,.085)'),ink2=V('--fld-2','rgba(16,22,31,.05)'),fPitch=V('--fld-pitch','rgba(22,112,74,.028)'),
+    fRed=V('--fld-red','rgba(196,48,59,.16)'),fBlue=V('--fld-blue','rgba(20,98,168,.16)'),fRun=V('--fld-run','rgba(20,98,168,.14)'),fRun2=V('--fld-run2','rgba(16,22,31,.10)');
   function pitch(cx,cy,L,ang){ // L — длина поля в px
     const w=L*.64;g.save();g.translate(cx,cy);g.rotate(ang);g.lineWidth=1.4;g.strokeStyle=ink;
-    for(let i=0;i<12;i++){if(i%2)continue;g.fillStyle='rgba(22,112,74,.028)';g.fillRect(-L/2+i*L/12,-w/2,L/12,w)}
+    for(let i=0;i<12;i++){if(i%2)continue;g.fillStyle=fPitch;g.fillRect(-L/2+i*L/12,-w/2,L/12,w)}
     g.strokeRect(-L/2,-w/2,L,w);g.beginPath();g.moveTo(0,-w/2);g.lineTo(0,w/2);g.stroke();
     g.beginPath();g.arc(0,0,L*.087,0,7);g.stroke();
     [-1,1].forEach(s=>{const bx=s*L/2;g.strokeRect(s<0?bx:bx-L*.157,-w*.31,L*.157,w*.62);g.strokeRect(s<0?bx:bx-L*.052,-w*.14,L*.052,w*.28);
@@ -78,11 +81,11 @@ JV.field=function(kind){
   function rink(cx,cy,L,ang){
     const w=L*.425,r=w*.28;g.save();g.translate(cx,cy);g.rotate(ang);g.lineWidth=1.4;g.strokeStyle=ink;
     g.beginPath();g.roundRect(-L/2,-w/2,L,w,r);g.stroke();
-    g.strokeStyle='rgba(196,48,59,.16)';g.lineWidth=3;g.beginPath();g.moveTo(0,-w/2);g.lineTo(0,w/2);g.stroke();
-    g.strokeStyle='rgba(20,98,168,.16)';[-1,1].forEach(s=>{g.beginPath();g.moveTo(s*L*.125,-w/2);g.lineTo(s*L*.125,w/2);g.stroke()});
-    g.lineWidth=1.3;g.strokeStyle='rgba(196,48,59,.13)';[-1,1].forEach(s=>{g.beginPath();g.moveTo(s*L*.445,-w/2+r*.4);g.lineTo(s*L*.445,w/2-r*.4);g.stroke();
+    g.strokeStyle=fRed;g.lineWidth=3;g.beginPath();g.moveTo(0,-w/2);g.lineTo(0,w/2);g.stroke();
+    g.strokeStyle=fBlue;[-1,1].forEach(s=>{g.beginPath();g.moveTo(s*L*.125,-w/2);g.lineTo(s*L*.125,w/2);g.stroke()});
+    g.lineWidth=1.3;g.strokeStyle=fRed;[-1,1].forEach(s=>{g.beginPath();g.moveTo(s*L*.445,-w/2+r*.4);g.lineTo(s*L*.445,w/2-r*.4);g.stroke();
       [-1,1].forEach(t=>{g.beginPath();g.arc(s*L*.345,t*w*.26,w*.15,0,7);g.stroke()})});
-    g.strokeStyle='rgba(20,98,168,.15)';g.beginPath();g.arc(0,0,w*.15,0,7);g.stroke();
+    g.strokeStyle=fBlue;g.beginPath();g.arc(0,0,w*.15,0,7);g.stroke();
     g.restore()}
   const runs=Array.from({length:4},(_,i)=>({a:Math.random()*6.28,s:.00004+Math.random()*.00005,y:.2+i*.2}));
   function draw(now){
@@ -94,7 +97,7 @@ JV.field=function(kind){
     // «тактические» пунктиры — медленные дуги розыгрышей
     g.save();g.setLineDash([2,10]);g.lineWidth=1.6;g.lineCap='round';
     runs.forEach((r,i)=>{const p=now*r.s+r.a,x0=W*(.08+.2*i),y0=H*r.y+Math.sin(p)*30;
-      g.strokeStyle=i%2?'rgba(16,22,31,.10)':(kind==='hockey'?'rgba(20,98,168,.14)':'rgba(22,112,74,.14)');
+      g.strokeStyle=i%2?fRun2:fRun;
       g.lineDashOffset=-now*.012;g.beginPath();g.moveTo(x0,y0);g.bezierCurveTo(x0+W*.12,y0-120+Math.cos(p)*60,x0+W*.22,y0+90,x0+W*.32,y0-20+Math.sin(p*1.3)*40);g.stroke()});
     g.restore();
     g.strokeStyle=ink2;g.lineWidth=1;g.beginPath();for(let x=(-sy*.5)%96;x<W;x+=96){g.moveTo(x,0);g.lineTo(x,H)}g.stroke();
@@ -143,12 +146,19 @@ function wipe(){
   if(came){w.querySelectorAll('i').forEach(i=>i.style.transform='scaleY(1)');requestAnimationFrame(()=>requestAnimationFrame(()=>{w.querySelectorAll('i').forEach(i=>i.style.transform='');w.classList.add('reveal')}))}
   addEventListener('pageshow',e=>{if(e.persisted){w.classList.remove('cover');w.classList.add('reveal')}});
   document.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a||a.target||e.metaKey||e.ctrlKey||e.shiftKey)return;
-    const h=a.getAttribute('href');if(!/index\.html(#.*)?$/.test(h)||h.startsWith('#'))return;
+    const h=a.getAttribute('href');if(!/index\.html(\?[^#]*)?(#.*)?$/.test(h)||h.startsWith('#'))return;
     e.preventDefault();try{sessionStorage.setItem('jv-wipe','1')}catch(err){}
     w.classList.remove('reveal');w.classList.add('cover');setTimeout(()=>location.href=a.href,560)});
 }
 
-document.addEventListener('DOMContentLoaded',()=>{chrome();wipe();
+/* ── тема из адреса (?theme=a|b|c) — переносим на ссылки между страницами макета ── */
+function keepTheme(){
+  const t=new URLSearchParams(location.search).get('theme');if(!/^[abc]$/.test(t||''))return;
+  document.querySelectorAll('a[href*="index.html"]').forEach(a=>{const h=a.getAttribute('href');if(/^https?:/.test(h))return;
+    const [p,hash]=h.split('#');a.setAttribute('href',p.split('?')[0]+'?theme='+t+(hash?'#'+hash:''))});
+}
+
+document.addEventListener('DOMContentLoaded',()=>{keepTheme();chrome();wipe();
   requestAnimationFrame(()=>document.querySelector('.hero,.mast')?.classList.add('ready'));
   JV.reveal();
   const k=document.body.dataset.field;if(k)JV.field(k);
