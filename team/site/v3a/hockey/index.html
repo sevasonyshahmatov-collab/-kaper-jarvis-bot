@@ -1,15 +1,15 @@
 <!doctype html>
-<html lang="ru" data-sport="hockey" data-theme="a">
+<html lang="ru" data-sport="hockey" data-theme="arena">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Хоккей — прогнозы JARVIS (макет v3a)</title>
 <meta name="description" content="Прогнозы на КХЛ и НХЛ по собственной модели: пост на каждый матч, итоги по месяцам — все, и минусы. Макет, пример данных.">
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#0a1220">
-<script>/* палитра: ?theme=a|b|c (а — «ночной лёд», по умолчанию; б — кобальт; в — светлый лёд) */
-(()=>{const t=new URLSearchParams(location.search).get('theme'),d=document.documentElement;if(/^[abc]$/.test(t||''))d.dataset.theme=t;
-document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84',c:'#e3eff9'}[d.dataset.theme]||'#0a1220'})();</script>
+<meta name="theme-color" content="#071225">
+<script>/* палитра: ?theme=arena (по умолчанию: «Трансляция с арены» — тёмная арена, при прокрутке включают свет) | a «ночной лёд» | b кобальт | c светлый лёд */
+(()=>{const t=new URLSearchParams(location.search).get('theme'),d=document.documentElement;if(/^(arena|a|b|c)$/.test(t||''))d.dataset.theme=t;
+document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a1220',b:'#0b2a84',c:'#e3eff9'}[d.dataset.theme]||'#071225'})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
@@ -38,6 +38,7 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
 </style>
 </head>
 <body data-field="hockey">
+<div class="arena-bg" id="arena" aria-hidden="true"><i class="bm"></i><i class="bm"></i><i class="bm"></i><i class="bm"></i><i class="sp"></i></div>
 <a class="skip" href="#main">К содержанию</a>
 <header class="hd" id="hd">
   <div class="wrap">
@@ -58,30 +59,32 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
 <section class="hero" id="top">
   <div class="wrap">
     <div>
-      <h1><span class="ln"><span>Хоккей:</span></span><span class="ln" style="--i:1"><span>КХЛ и НХЛ</span></span></h1>
+      <h1><span class="ln"><span>Хоккей:</span></span> <span class="ln" style="--i:1"><span>КХЛ и НХЛ</span></span></h1>
       <div data-rv>
         <p class="lead">Прогноз на каждый матч от собственной модели. КХЛ днём, НХЛ ночью по Москве. Итоги — все, и минусы.</p>
         <div class="hero-cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть @jarvibet</a><a class="btn btn-line" href="#matches">Матчи дня</a></div>
         <ul class="facts" aria-label="Коротко">
-          <li><b class="num" data-count="153">153</b><span>прогноза в октябре</span></li>
-          <li><b class="num"><span data-count="72">72</span>&thinsp;%</b><span>зашло в октябре</span></li>
+          <li><b class="num" data-count="153" id="fN">153</b><span id="fNl">прогноза в октябре</span></li>
+          <li><b class="num"><span data-count="71" id="fP">71</span>&thinsp;%</b><span id="fPl">зашло в октябре</span></li>
           <li><b class="num" data-count="2">2</b><span>лиги</span></li>
         </ul>
         <ul class="chips" aria-label="Лиги"><li><a href="#lg-khl"><span class="lgp khl"><img src="../assets/lg/khl.webp" alt=""></span>КХЛ</a></li><li><a href="#lg-nhl"><span class="lgp nhl"><img src="../assets/lg/nhl.webp" alt=""></span>НХЛ</a></li></ul>
       </div>
     </div>
-    <div data-rv>
+    <div class="bcol" data-rv>
       <div class="board" id="board" aria-label="Табло: прогноз дня">
         <div class="board-top"><span><i class="lamp"></i><b id="bhead">Прогноз дня</b></span><span style="display:flex;align-items:center"><span id="blg"></span><span id="bdate"></span></span></div>
         <div class="brows"></div>
         <div class="board-foot"><p class="note">Пример данных. Прогноз КХЛ выходит в канале до 08:00 МСК, НХЛ — до 14:00.</p><div class="pager" id="pager" aria-label="Другие прогнозы дня"></div></div>
       </div>
+      <a class="btn btn-tg get8" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>Получать прогноз в 08:00</a>
     </div>
   </div>
 </section>
 
-<section class="sec" id="matches">
+<section class="sec" id="matches" data-zone="p1">
   <div class="wrap">
+    <div class="period" data-rv><p><span class="pn">1</span><span class="pw">-й период</span><span class="pt">Сегодня на льду</span><span class="pc num">20:00</span></p></div>
     <div class="sec-head" data-rv><h2>Сегодня на льду</h2><p>Матчи дня <span class="lgp khl"><img src="../assets/lg/khl.webp" alt=""></span>КХЛ и <span class="lgp nhl"><img src="../assets/lg/nhl.webp" alt=""></span>НХЛ. Нажми на строку: почему ставка, кэфы и вероятность по модели. <span class="sample">Пример данных</span></p></div>
     <div class="tabs" role="tablist" id="ltabs" aria-label="Фильтр по лигам"></div>
     <ul class="mlist" id="mlist"></ul>
@@ -89,8 +92,9 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
   </div>
 </section>
 
-<section class="sec" id="leagues">
+<section class="sec" id="leagues" data-zone="p2">
   <div class="wrap">
+    <div class="period" data-rv><p><span class="pn">2</span><span class="pw">-й период</span><span class="pt">Лиги, клубы и сила команд</span><span class="pc num">20:00</span></p></div>
     <div class="sec-head" data-rv><h2>Лиги и клубы</h2><p>Две лиги, одна модель. <span class="lgp khl"><img src="../assets/lg/khl.webp" alt=""></span>КХЛ — днём и вечером, <span class="lgp nhl"><img src="../assets/lg/nhl.webp" alt=""></span>НХЛ — ночью: ночные матчи собраны в один игровой день.</p></div>
     <ul class="leagues two" id="flags" data-rv></ul>
     <div class="wall" id="wall" data-rv></div>
@@ -98,7 +102,7 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
   </div>
 </section>
 
-<section class="sec" id="power">
+<section class="sec" id="power" data-zone="p2b">
   <div class="wrap">
     <div class="sec-head" data-rv><h2>Сила команд</h2><p>Рейтинг Эло — сила команды одним числом. Пересчитывается после каждого матча: победа над сильным стоит больше, чем над слабым.</p></div>
     <div class="power">
@@ -115,8 +119,9 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
   </div>
 </section>
 
-<section class="sec" id="model">
+<section class="sec" id="model" data-zone="p3">
   <div class="wrap">
+    <div class="period" data-rv><p><span class="pn">3</span><span class="pw">-й период</span><span class="pt">Модель, итоги и вопросы</span><span class="pc num">20:00</span></p></div>
     <div class="sec-head" data-rv><h2>Как думает модель</h2><p>До матча модель разыгрывает его тысячи раз. Ставка — только там, где расчёт и линия сходятся.</p></div>
     <ol class="steps" data-rv>
       <li><h3>Форма</h3><p>Последние игры, сила атаки и обороны, место в таблице. Броски в створ и шайбы сверх ожидания — поправка на игру.</p></li>
@@ -140,13 +145,13 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
   </div>
 </section>
 
-<section class="sec" id="honest">
+<section class="sec" id="honest" data-zone="p3">
   <div class="wrap">
     <div class="sec-head" data-rv><h2>Честные итоги</h2><p>Каждое утро в канале — итоги вчерашних матчей, и зашедшие, и нет. У каждого прогноза номер поста: любой можно проверить.</p></div>
     <div class="honest">
       <div data-rv>
-        <div class="headline-num"><span class="g"><span data-count="72">72</span>&thinsp;%</span></div>
-        <p class="honest-cap">Октябрь: 153 прогноза, 108 зашли, 42 нет, 3 возврата. Сентябрь: 25 прогнозов, 21 зашёл.</p>
+        <div class="headline-num"><span class="g"><span data-count="71" id="hP">71</span>&thinsp;%</span></div>
+        <p class="honest-cap" id="hCap">Октябрь: 153 прогноза, 108 зашли, 42 нет, 3 возврата. Сентябрь: 25 прогнозов, 21 зашёл.</p>
       </div>
       <div class="months" id="months" data-rv style="margin-top:0"></div>
     </div>
@@ -190,7 +195,7 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
     </div>
   </div>
 </footer>
-<a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Прогнозы дня — в Telegram</span><span aria-hidden="true">›</span></a>
+<a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Получать прогноз в 08:00 — @jarvibet</span><span aria-hidden="true">›</span></a>
 
 <script src="../assets/v3a.js"></script>
 <script>
@@ -251,6 +256,14 @@ const crest=n=>{const k=club(n);if(EM[k])return `../assets/em/${EM[k]}.webp`;con
 const CI=(n,cls='')=>`<img class="em${cls?' '+cls:''}" src="${crest(n)}" alt="" loading="lazy">`;
 document.querySelectorAll('img[data-crest]').forEach(i=>i.src=crest(i.dataset.crest));
 const D=window.__HTODAY;
+/* цифры «прогнозов / зашло» — из тех же данных __MONTHS, что и блок «Честные итоги»: нигде не расходятся */
+{const M=window.__MONTHS,last=M[M.length-1],pct=m=>Math.round(m.w/m.n*100),$=id=>document.getElementById(id);
+ const mon=s=>s.toLowerCase().replace(/ь$/,'е').replace(/рт$/,'рте').replace(/й$/,'е');
+ const setN=(el,v)=>{el.dataset.count=v;el.textContent=v};
+ setN($('fN'),last.n);$('fNl').textContent=`${plural(last.n,'прогноз','прогноза','прогнозов')} в ${mon(last.name)}`;
+ setN($('fP'),pct(last));$('fPl').textContent=`зашло в ${mon(last.name)} (${last.w} из ${last.n})`;setN($('hP'),pct(last));
+ $('hCap').textContent=[...M].reverse().map(m=>`${m.name}: ${m.n} ${plural(m.n,'прогноз','прогноза','прогнозов')}, ${m.w} ${plural(m.w,'зашёл','зашли','зашли')}`+
+  (m.l?`, ${m.l} нет`:'')+(m.p?`, ${m.p} ${plural(m.p,'возврат','возврата','возвратов')}`:'')+` — ${pct(m)} %`).join('. ')+'.'}
 const cnt=id=>D.filter(m=>m.lg===id).length;
 const chev='<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5l5 5 5-5"/></svg>';
 const line=m=>{const inv=m.x.map(k=>1/k),s=inv.reduce((a,b)=>a+b);return inv.map(v=>v/s)};

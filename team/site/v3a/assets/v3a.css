@@ -506,3 +506,109 @@ h3 .lgp{--s:18px;margin-right:8px;vertical-align:-2px}
 [data-theme="c"] .trends{background:transparent;gap:8px}
 [data-theme="c"] .trends>div{border-radius:6px}
 .door .dl .lgp img{width:var(--s);height:calc(var(--s) * .92)}
+
+/* ── общие правки 31.10 ─────────────────────────────────────── */
+h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всегда две строки, не слипаются */
+.bcol{display:grid;gap:12px;align-content:start}
+.get8{justify-content:center}
+/* плашка Telegram на телефоне — нижняя панель во всю ширину, у body отступ снизу, чтобы не закрывала подвал */
+.tgbar{left:0;right:0;bottom:0;border-radius:0;padding:14px max(18px,env(safe-area-inset-left)) calc(14px + env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));
+  box-shadow:0 -8px 20px -14px var(--shadow)}
+@media (max-width:760px){body{padding-bottom:calc(52px + env(safe-area-inset-bottom))}}
+/* телефон: табло сразу под коротким заголовком, текст и цифры — после табло */
+@media (max-width:980px){
+  .hero .wrap>div:first-child{display:contents}
+  .hero h1{order:0}.hero .bcol{order:1}.hero .wrap>div:first-child>[data-rv]{order:2}
+  .hero .wrap{gap:18px}
+}
+@media (max-width:620px){
+  .hero{padding-top:18px}
+  .hero h1{font-size:clamp(36px,10.4vw,46px);line-height:.9}
+  .hero .lead{margin-top:6px;font-size:17px}
+  .facts{margin-top:22px}.facts b{font-size:38px}
+  .board{padding:12px}.board-top{margin-bottom:8px}.brow{margin-top:4px}.board-foot{margin-top:10px}
+  .board-foot .note{font-size:12.5px}
+  .get8{width:100%;padding:15px 18px}
+}
+
+/* ── периоды: плашки «1-й / 2-й / 3-й период», как на табло арены ── */
+.period{margin:0 0 clamp(28px,3.4vw,48px)}
+.period p{display:inline-flex;align-items:center;gap:12px;margin:0;background:var(--board);color:var(--flap-ink);padding:8px 16px 8px 8px;border-radius:6px;
+  font:700 17px/1 var(--display);letter-spacing:.04em;text-transform:uppercase;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.period .pn{display:inline-grid;place-items:center;width:34px;height:42px;background:linear-gradient(var(--flap) 50%,var(--flap-2) 50%);border-radius:3px;
+  color:var(--signal);font:800 30px/1 var(--display);position:relative}
+.period .pn::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#0b0c0e} /* taste-skill-ignore: шов флажка */
+.period .pw{margin-left:-3px}
+.period .pt{color:#b9b6aa;font-weight:600;letter-spacing:.02em;text-transform:none;padding-left:12px;border-left:1px solid #3a3f45}
+.period .pc{color:var(--signal);padding-left:12px;border-left:1px solid #3a3f45}
+@media (max-width:620px){.period p{font-size:15px;gap:10px}.period .pt{display:none}.period .pn{width:30px;height:38px;font-size:26px}}
+
+/* ══ тема «arena» — «Трансляция с арены» (по умолчанию) ═════════════════════════════════
+   Первый экран — тёмная арена с фона лендинга (#071225 → #0c2146, голубое свечение надо льдом, разметка льда),
+   прожекторы и светящееся табло. При прокрутке «включают свет»: --bgc (цвет зоны) светлеет до спортивной газеты.
+   1-й период — полусвет (светлый лёд), 2-й — газета с полосами цветов лиг и голубой «Силой», 3-й — тёплая бумага,
+   «Честные итоги» — тёмная вставка. */
+[data-theme="arena"]{
+  --bgc:rgb(7,18,37); --lit:0;
+  --paper:#eceee8; --paper-2:#dfe3dc; --paper-3:#cfd5cc;
+  --ice:#0f5aa6; --red:#c4303b; --win:#1a7342;
+  --khl:#1146b8; --khl-2:#d72b3a; --nhl:#0c0e12; --nhl-2:#c3ccd6;
+  --fld:rgba(16,40,80,.10); --fld-2:rgba(16,40,80,.045); --fld-red:rgba(196,48,59,.2); --fld-blue:rgba(15,90,166,.2);
+  --fld-run:rgba(15,90,166,.16); --fld-run2:rgba(196,48,59,.12);
+  --grain-op:.35;
+}
+[data-theme="arena"] body{background:var(--bgc)}
+.arena-bg{display:none}
+[data-theme="arena"] .arena-bg{display:block;position:fixed;inset:0;z-index:-3;pointer-events:none;opacity:calc(1 - var(--lit));overflow:hidden;
+  background:radial-gradient(55% 60% at 88% 12%,rgba(62,224,255,.22),transparent 70%),radial-gradient(45% 40% at 0% 100%,rgba(62,224,255,.08),transparent 70%),
+    radial-gradient(70% 45% at 50% 108%,rgba(160,215,255,.22),transparent 70%),linear-gradient(180deg,#0c2146,#071225 70%)}
+/* прожекторы: широкие мягкие лучи сверху, чуть покачиваются; без привязки к курсору */
+.arena-bg .bm{position:absolute;top:-12%;width:30vw;height:130%;transform-origin:50% 0;
+  background:linear-gradient(180deg,rgba(200,230,255,.20),rgba(200,230,255,.05) 55%,transparent 80%);
+  clip-path:polygon(44% 0,56% 0,100% 100%,0 100%);filter:blur(10px)}
+.arena-bg .bm:nth-child(1){left:2%;transform:rotate(-24deg)}
+.arena-bg .bm:nth-child(2){left:24%;transform:rotate(-9deg);opacity:.75}
+.arena-bg .bm:nth-child(3){left:50%;transform:rotate(10deg);opacity:.7}
+.arena-bg .bm:nth-child(4){left:70%;transform:rotate(24deg)}
+.arena-bg .sp{position:absolute;left:50%;bottom:-18%;width:120vw;height:55vh;transform:translateX(-50%);
+  background:radial-gradient(50% 50% at 50% 50%,rgba(170,215,255,.18),transparent 70%)}
+@media (prefers-reduced-motion:no-preference){
+  .arena-bg .bm{animation:sway 9s ease-in-out infinite alternate}
+  .arena-bg .bm:nth-child(2){animation-duration:11s;animation-delay:-3s}.arena-bg .bm:nth-child(3){animation-duration:10s;animation-delay:-6s}
+  .arena-bg .bm:nth-child(4){animation-duration:12s;animation-delay:-2s}
+}
+@keyframes sway{from{rotate:-3deg}to{rotate:3deg}}
+/* тёмная арена: светлые переменные в герое и в шапке, пока свет не включили */
+[data-theme="arena"] .hero,[data-theme="arena"]:not(.lit) .hd{
+  --paper:#071225; --paper-2:#14264a; --paper-3:#1e3460; --card:#0f1d38; --card-hi:#16284a;
+  --ink:#eaf3ff; --ink-2:#b8c9e4; --ink-3:#8fa6cc; --rule:#1e3460; --rule-2:#2c4675;
+  --ice:#3ee0ff; --sport:#3ee0ff; --crest-bg:#eef3fa; --crest-pad:1; --shadow:rgba(0,0,0,.6);
+  color:var(--ink)}
+[data-theme="arena"] .hd{background:color-mix(in srgb,var(--bgc) 90%,transparent);transition:color .3s ease}
+[data-theme="arena"] .hero>.wrap{opacity:calc(1 - var(--lit) * 1.6)}
+[data-theme="arena"] .hero{padding-bottom:clamp(64px,9vw,140px)}
+[data-theme="arena"] .hero h1 .ln:last-child{color:var(--ice)}
+/* табло светится над ареной */
+[data-theme="arena"] .hero .board{background:#03070f;box-shadow:0 0 0 1px rgba(62,224,255,.28),0 0 0 6px rgba(62,224,255,.05),0 30px 90px -24px rgba(62,224,255,.35),0 40px 70px -30px #000}
+[data-theme="arena"] .hero .board::before{content:"";position:absolute;left:18px;right:18px;top:-1px;height:2px;border-radius:2px;
+  background:linear-gradient(90deg,transparent,rgba(62,224,255,.9),transparent)}
+[data-theme="arena"] .hero .btn-line{box-shadow:inset 0 0 0 2px rgba(234,243,255,.7)}
+[data-theme="arena"] .hero .btn-line:hover{background:var(--ink);color:#071225}
+/* 1-й период — полусвет: светлый лёд */
+[data-theme="arena"] [data-zone="p1"]{--paper:#d6e2ee; --paper-2:#c6d5e5; --paper-3:#b5c7db; --card:#eef4fa; --card-hi:#fff; --ink-3:#4f5d6c}
+[data-theme="arena"] #matches .wrap>:not(.period){opacity:clamp(0,calc(var(--lit) * 2 - .4),1)}
+/* 2-й период — газета; «Лиги и клубы» на мягких полосах цветов КХЛ (синий, красный) и НХЛ (чёрный, серебро) */
+[data-theme="arena"] #leagues::before{content:"";position:absolute;inset:-6vh 0 -4vh;z-index:-1;pointer-events:none;
+  background:linear-gradient(100deg,rgba(17,70,184,.13) 0,rgba(17,70,184,.07) 22%,rgba(215,43,58,.08) 30%,transparent 46%,transparent 54%,rgba(12,14,18,.06) 64%,rgba(150,165,182,.26) 100%);
+  -webkit-mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent)}
+[data-theme="arena"] [data-zone="p2b"]{--paper:#dde8f2; --paper-2:#cddcea; --paper-3:#bccfe2; --card:#f1f6fb; --ink-3:#4f5d6c}
+/* 3-й период — тёплая бумага; «Честные итоги» — тёмная вставка, как в газете */
+[data-theme="arena"] [data-zone="p3"]{--paper:#efe9db; --paper-2:#e4dccb; --paper-3:#d8cfbb; --card:#f7f2e8; --ink-3:#5a5446}
+[data-theme="arena"] #honest>.wrap{
+  --paper:#0e1a30; --paper-2:#18284a; --paper-3:#22365e; --card:#13213d; --ink:#eef3fb; --ink-2:#c0cde2; --ink-3:#97a8c6; --rule:#22365e; --rule-2:#3a5384;
+  --sport:#4cc2ff; --crest-bg:#eef3fa; --crest-pad:1; --win:#34d27f; --win-ink:#03200f; --red:#ff6b78; --loss-ink:#2b0409;
+  color:var(--ink);background:radial-gradient(60% 80% at 100% 0%,rgba(62,224,255,.12),transparent 60%),#0e1a30;border-radius:12px;
+  padding-top:clamp(32px,4vw,64px);padding-bottom:clamp(32px,4vw,64px)}
+@media (max-width:620px){[data-theme="arena"] #honest>.wrap{border-radius:0}}
+[data-theme="arena"] .sub{background:#0b1730}
+[data-theme="arena"] .steps>li:nth-child(2)::before{color:#a8410a}

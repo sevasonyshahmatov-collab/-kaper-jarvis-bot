@@ -67,7 +67,7 @@ JV.field=function(kind){
   const size=()=>{D=Math.min(1.5,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*D;cv.height=H*D;g.setTransform(D,0,0,D,0,0);draw(performance.now())};
   /* цвета разметки — из CSS-переменных темы (--fld-*), чтобы лёд читался на любом фоне */
   const cs=getComputedStyle(doc),V=(n,d)=>cs.getPropertyValue(n).trim()||d;
-  const ink=V('--fld','rgba(16,22,31,.085)'),ink2=V('--fld-2','rgba(16,22,31,.05)'),fPitch=V('--fld-pitch','rgba(22,112,74,.028)'),
+  let ink=V('--fld','rgba(16,22,31,.085)'),ink2=V('--fld-2','rgba(16,22,31,.05)'),fPitch=V('--fld-pitch','rgba(22,112,74,.028)'),
     fRed=V('--fld-red','rgba(196,48,59,.16)'),fBlue=V('--fld-blue','rgba(20,98,168,.16)'),fRun=V('--fld-run','rgba(20,98,168,.14)'),fRun2=V('--fld-run2','rgba(16,22,31,.10)');
   function pitch(cx,cy,L,ang){ // L — длина поля в px
     const w=L*.64;g.save();g.translate(cx,cy);g.rotate(ang);g.lineWidth=1.4;g.strokeStyle=ink;
@@ -88,8 +88,11 @@ JV.field=function(kind){
     g.strokeStyle=fBlue;g.beginPath();g.arc(0,0,w*.15,0,7);g.stroke();
     g.restore()}
   const runs=Array.from({length:4},(_,i)=>({a:Math.random()*6.28,s:.00004+Math.random()*.00005,y:.2+i*.2}));
+  const AR=doc.dataset.theme==='arena',DK={ink:'rgba(150,200,255,.13)',ink2:'rgba(150,200,255,.05)',red:'rgba(255,93,108,.34)',blue:'rgba(76,194,255,.34)',run:'rgba(76,194,255,.24)',run2:'rgba(255,194,26,.18)'},
+    LT={ink,ink2,red:fRed,blue:fBlue,run:fRun,run2:fRun2};
   function draw(now){
-    g.clearRect(0,0,W,H);const sy=scrollY*.12,t=now*.00004;
+    g.clearRect(0,0,W,H);
+    if(AR){const l=JV.lit,P=l<.5?DK:LT;g.globalAlpha=Math.min(1,Math.abs(l-.5)*2+.15);ink=P.ink;ink2=P.ink2;fRed=P.red;fBlue=P.blue;fRun=P.run;fRun2=P.run2}const sy=scrollY*.12,t=now*.00004;
     const L=Math.max(W,H*1.3)*1.25,dx=Math.sin(t)*W*.05,ang=-.08+Math.sin(t*.7)*.025;
     if(kind==='hockey')rink(W*.52+dx,H*.5-sy%(H*1.4)+H*.2,L,ang);
     else if(kind==='mix'){pitch(W*.7+dx,H*.55-sy*.6,L*.9,ang);rink(W*.18-dx,H*.38-sy*.4,L*.62,-ang*1.4)}
@@ -127,7 +130,10 @@ JV.count=count;
 /* ── шапка, навигация по разделам, плашка Telegram ──────────── */
 function chrome(){
   const hd=document.getElementById('hd'),bar=document.getElementById('tgbar');
-  const onS=()=>{const y=scrollY;hd&&hd.classList.toggle('stuck',y>8);bar&&bar.classList.toggle('on',y>innerHeight*.8&&y<document.body.scrollHeight-innerHeight*1.6)};
+  /* нижняя панель Telegram на телефоне: прячется, пока на экране табло, список матчей или блок подписки */
+  const hide=new Set(),watch=['board','matches','subscribe'].map(id=>document.getElementById(id)).filter(Boolean);
+  const onS=()=>{const y=scrollY;hd&&hd.classList.toggle('stuck',y>8);bar&&bar.classList.toggle('on',y>innerHeight*.6&&!hide.size&&y<document.body.scrollHeight-innerHeight*1.4)};
+  if(bar&&'IntersectionObserver' in window){const bio=new IntersectionObserver(es=>{es.forEach(e=>e.isIntersecting?hide.add(e.target):hide.delete(e.target));onS()});watch.forEach(el=>bio.observe(el))}
   addEventListener('scroll',onS,{passive:true});onS();
   const nav=document.querySelector('.nav');if(!nav||!('IntersectionObserver' in window))return;
   const ind=document.createElement('i');ind.className='bar';nav.appendChild(ind);
@@ -151,14 +157,44 @@ function wipe(){
     w.classList.remove('reveal');w.classList.add('cover');setTimeout(()=>location.href=a.href,560)});
 }
 
+/* ── тема «arena»: тёмная арена на первом экране, при прокрутке «включают свет» ──
+   Цвет фона (--bgc) идёт по зонам data-zone: арена → полусвет (лёд) → газета → тёплая бумага.
+   --lit 0…1 — насколько включён свет (гаснут прожекторы, герой уходит, разметка льда меняет цвет). */
+JV.lit=1;
+function arena(){
+  if(doc.dataset.theme!=='arena'){JV.lit=1;return}
+  const hero=document.querySelector('.hero'),hd=document.getElementById('hd');if(!hero)return;
+  const Z={arena:[7,18,37],p1:[214,226,238],p2:[236,238,232],p2b:[221,232,242],p3:[239,233,219]};
+  const zones=()=>[{el:hero,c:Z.arena},...[...document.querySelectorAll('[data-zone]')].map(el=>({el,c:Z[el.dataset.zone]||Z.p2}))];
+  let zs=zones(),tops=[];
+  const measure=()=>{zs=zones();tops=zs.map((z,i)=>i?z.el.getBoundingClientRect().top+scrollY:0)};
+  const mix=(a,b,t)=>a.map((v,i)=>Math.round(v+(b[i]-v)*t));
+  let lastLit=-1,lastC='';
+  const upd=()=>{
+    const vh=innerHeight,c=scrollY+vh*.5;let i=0;while(i<tops.length-1&&tops[i+1]<=c)i++;
+    let col=zs[i].c,lit;
+    const dn=i<tops.length-1?tops[i+1]-c:1e9,up=i>0?c-tops[i]:1e9,Wn=i===0?vh*.36:vh*.3,Wu=i===1?vh*.36:vh*.3;
+    if(up<Wu)col=mix(zs[i-1].c,zs[i].c,.5+up/Wu*.5);else if(dn<Wn)col=mix(zs[i].c,zs[i+1].c,.5-dn/Wn*.5);
+    if(i===0)lit=dn<Wn?.5-dn/Wn*.5:0;else if(i===1&&up<Wu)lit=.5+up/Wu*.5;else lit=1;
+    if(RM)lit=lit<.5?0:1,col=lit?col:Z.arena;
+    lit=Math.round(lit*100)/100;JV.lit=lit;
+    const cs=`rgb(${col.join(',')})`;if(cs!==lastC){doc.style.setProperty('--bgc',cs);lastC=cs}
+    if(lit!==lastLit){doc.style.setProperty('--lit',lit);doc.classList.toggle('lit',lit>=.5);lastLit=lit}
+  };
+  measure();upd();
+  addEventListener('scroll',()=>requestAnimationFrame(upd),{passive:true});
+  addEventListener('resize',()=>{measure();upd()});addEventListener('load',()=>{measure();upd()});
+  if('ResizeObserver' in window)new ResizeObserver(()=>{measure();upd()}).observe(document.body);
+}
+
 /* ── тема из адреса (?theme=a|b|c) — переносим на ссылки между страницами макета ── */
 function keepTheme(){
-  const t=new URLSearchParams(location.search).get('theme');if(!/^[abc]$/.test(t||''))return;
+  const t=new URLSearchParams(location.search).get('theme');if(!/^(arena|a|b|c)$/.test(t||''))return;
   document.querySelectorAll('a[href*="index.html"]').forEach(a=>{const h=a.getAttribute('href');if(/^https?:/.test(h))return;
     const [p,hash]=h.split('#');a.setAttribute('href',p.split('?')[0]+'?theme='+t+(hash?'#'+hash:''))});
 }
 
-document.addEventListener('DOMContentLoaded',()=>{keepTheme();chrome();wipe();
+document.addEventListener('DOMContentLoaded',()=>{keepTheme();arena();chrome();wipe();
   requestAnimationFrame(()=>document.querySelector('.hero,.mast')?.classList.add('ready'));
   JV.reveal();
   const k=document.body.dataset.field;if(k)JV.field(k);
