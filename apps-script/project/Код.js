@@ -16240,7 +16240,7 @@ function pmTick_() {
     if (k.indexOf(PM_PROP) !== 0) return;
     var w = pmGet_(k.slice(PM_PROP.length));
     if (!w || !w.start || now - w.start > PM_KEEP_MS) { p.deleteProperty(k); return; }
-    if (w.league === 'FOOT' && w.st === 'done' && !w.pmsent && (w.pmfails || 0) < 3 && /^\d+:\d+$/.test(String(w.score || ''))) {
+    if (w.league === 'FOOT' && w.st === 'done' && !w.pmsent && w.pmfails > 0 && w.pmfails < 3 && /^\d+:\d+$/.test(String(w.score || ''))) {
       if (pmFootDispatch_(w)) done.push(w.pid);                       // футбол: «Итог матча» не ушёл с первого раза — ещё попытка
       return;
     }
