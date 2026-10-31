@@ -6964,7 +6964,9 @@ function gamePostMatches_(silent) {
   if (!silent) uiAlert_('Опубликовано в канал' + (inGroup ? ' и группу' : '') + ': ' + matches.length + ' матч(ей) с кнопками.');
   return { posted: true, matches: matches.length };
 }
+var GAME_POST_AUTO = false;   // владелец 31.10: пост «Угадай победителей» в канал больше не публиковать
 function gamePostMatchesAuto_() {
+  if (!GAME_POST_AUTO) return;
   var p = PropertiesService.getScriptProperties();
   if (!p.getProperty('TG_BOT_TOKEN') || !p.getProperty('TG_CHANNEL')) return;   // игра не подключена
   autoStart_('gamePostMatchesAuto_');
@@ -9533,7 +9535,7 @@ var AUTO_JOBS = [
   { fn: 'videoChannelsAuto_', kind: 'hours', every: 1, what: 'Каналы YouTube (лист «Видео_каналы»): новые ролики про лигу — на разбор в Gemini' },
   { fn: 'selfUpdateAuto_', kind: 'minutes', every: 5, what: 'Новый код таблицы в GitHub — поставить самой (бот — на новую версию), разовые шаги — через минуту' },
   { fn: 'runAfterGameDay_', kind: 'day', hour: 6, what: 'Обновить всё после игрового дня: результаты, Elo, календарь, прогнозы, точность, составы, ключевые игроки, проверка выводов агента, банкролл, итоги игры' },
-  { fn: 'gamePostMatchesAuto_', kind: 'day', hour: 12, what: 'Игра «Угадай победителей»: пост «матчи дня» в канал' },
+  { fn: 'gamePostMatchesAuto_', kind: 'day', hour: 12, what: 'Игра «Угадай победителей»: пост в канал ВЫКЛЮЧЕН (владелец 31.10)' },
   { fn: 'bannersAuto_', kind: 'day', hour: 9, what: 'Карточки матчей дня (картинки) — вам в Telegram' },
   { fn: 'agentDailyBriefAuto_', kind: 'day', hour: 13, what: 'Агент: сводка по матчам дня в личку (новости, досье, заявки прошлых матчей)' },
   { fn: 'updateMarketOddsAuto_', kind: 'hours', every: 2, what: 'Коэффициенты рынка и «Лучший прогноз»' },
