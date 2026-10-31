@@ -16240,10 +16240,16 @@ function pmTick_() {
     if (k.indexOf(PM_PROP) !== 0) return;
     var w = pmGet_(k.slice(PM_PROP.length));
     if (!w || !w.start || now - w.start > PM_KEEP_MS) { p.deleteProperty(k); return; }
+    if (w.league === 'FOOT' && w.st === 'done' && !w.pmsent && w.pmfails > 0 && w.pmfails < 3 && /^\d+:\d+$/.test(String(w.score || ''))) {
+      if (pmFootDispatch_(w)) done.push(w.pid);                       // футбол: «Итог матча» не ушёл с первого раза — ещё попытка
+      return;
+    }
     if (w.st !== 'wait' || now < w.start + (w.league === 'NHL' ? PM_AFTER_NHL_MS : w.league === 'FOOT' ? PM_AFTER_FOOT_MS : PM_AFTER_KHL_MS)) return;
     if (now > w.start + PM_GIVEUP_MS) { w.st = 'skip'; pmPut_(w); return; }
-    if (w.league === 'FOOT') {                                        // футбол: без послематчевого поста — счёт ESPN, ✅/❌ в лист «Футбол»
-      try { if (footSettleWatch_(w)) done.push(w.pid); } catch (e) { console.log('футбол ' + w.pid + ': ' + e.message); }
+    if (w.league === 'FOOT') {                                        // футбол: счёт ESPN, ✅/❌ в лист «Футбол», затем «Итог матча» (владелец 31.10)
+      try {
+        if (footSettleWatch_(w)) { done.push(w.pid); if (/^\d+:\d+$/.test(String(w.score || ''))) pmFootDispatch_(w); }
+      } catch (e) { console.log('футбол ' + w.pid + ': ' + e.message); }
       return;
     }
     var fin = false;
@@ -16257,6 +16263,18 @@ function pmTick_() {
     pmPut_(w);
   });
   return done.length ? 'итоги: ' + done.join(', ') : '';
+}
+
+/** Футбол доигран (footSettleWatch_ записал счёт) → itogi.yml: «Итог матча» по опубликованной ставке, как у хоккея
+ *  (team/postmatch/run.py, league FOOT: счёт и голы — ESPN). Один запуск на прогноз: w.pmsent; не вышло — до 3 попыток. */
+function pmFootDispatch_(w) {
+  var day = Utilities.formatDate(new Date(w.start), 'Europe/Moscow', 'yyyy-MM-dd');
+  var r = recapDispatch_({ kind: 'team', job: 'team/out/' + day + '/postmatch_auto.json', day: day,
+    pm: { pid: w.pid, league: 'FOOT', tour: w.tour || '', espn: w.espn || '', home: w.home, away: w.away,
+      start: Utilities.formatDate(new Date(w.start), 'Europe/Moscow', 'yyyy-MM-dd HH:mm'), pick: w.pick, kef: w.kef, ch: w.ch } });
+  if (r.ok) { w.pmsent = Date.now(); } else { w.pmfails = (w.pmfails || 0) + 1; w.pmwhy = r.why; }
+  pmPut_(w);
+  return r.ok;
 }
 
 /* ── ⚽ Футбол: счёт, ✅/❌ и учёт по опубликованным прогнозам (владелец 30.10, docs/handoff/FOOTBALL_BOT.md) ──

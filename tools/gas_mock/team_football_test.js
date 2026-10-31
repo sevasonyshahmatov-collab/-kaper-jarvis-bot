@@ -94,9 +94,22 @@ ctx.pmWatchSave_('3110-1', 'КХЛ · 31 октября · 19:00 МСК\nАдм�
 assert.strictEqual(JSON.stringify(ctx.recapCheckItems_('2026-11-01').map(x => x.t)), JSON.stringify(['Адмирал — Спартак']));
 delete env.props['PMW_3110-1'];
 
-// 6. тик после матчей: счёт ESPN, итог по фактической ставке, без послематчевого задания
+// 6. тик после матчей: счёт ESPN, итог по фактической ставке, «Итог матча» по каждой доигранной ставке со счётом (владелец 31.10)
 ctx.pmTick_();
-assert.strictEqual(disp.length, 0, 'для футбола не должно быть postmatch_auto');
+const pmJobs = () => disp.filter(x => /postmatch_auto\.json$/.test(x.job));
+assert.deepStrictEqual(pmJobs().map(x => x.pm.pid).sort(), ['3110-2', '3110-3', '3110-5'], 'postmatch_auto — по доигранным со счётом, перенесённый — нет');
+const j2 = pmJobs().find(x => x.pm.pid === '3110-2');
+assert.deepStrictEqual([j2.job, j2.pm.league, j2.pm.tour, j2.pm.espn, j2.pm.pick, j2.pm.ch], ['team/out/2026-10-31/postmatch_auto.json', 'FOOT', 'АПЛ', 'eng.1', 'тотал меньше 2,5', 501]);
+ctx.pmTick_();
+assert.strictEqual(pmJobs().length, 3, 'один итог на прогноз: второй тик не запускает повторно');
+// доигранная раньше запись без попыток (рассчитана до этой правки) — повтора нет; неудачная попытка — ещё раз
+const old = Object.assign(JSON.parse(env.props['PMW_3110-3']), { pmsent: 0 });
+delete old.pmsent; env.props['PMW_3110-3'] = JSON.stringify(old);
+ctx.pmTick_();
+assert.strictEqual(pmJobs().length, 3, 'старая рассчитанная запись — без итога');
+old.pmfails = 1; env.props['PMW_3110-3'] = JSON.stringify(old);
+ctx.pmTick_();
+assert.strictEqual(pmJobs().length, 4, 'после неудачной попытки — повтор');
 assert.ok(fetched.length && fetched.every(u => /scoreboard\?dates=\d{8}$/.test(u)), 'ESPN — только один день в запросе: ' + fetched[0]);
 const st = pid => JSON.parse(env.props['PMW_' + pid]);
 assert.deepStrictEqual([st('3110-2').score, st('3110-2').mark], ['2:1', '❌'], 'ТМ 2,5 при 2:1');   // по правке владельца, не по черновику (ТБ — был бы ✅)
