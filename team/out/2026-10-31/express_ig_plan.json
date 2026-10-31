@@ -1,6 +1,9 @@
-{"approved": "", "approval": "",
- "note": "Заполнить approved=owner и approval (откуда «да купон», дата/время) только после одобрения владельца. Купон по умолчанию — на три матча; если владелец выберет «на два» — feed/story e2_* и своя подпись.",
- "feed": "team/out/2026-10-31/express/e3_feed.jpg",
- "story": "team/out/2026-10-31/express/e3_story.jpg",
+{
+ "approved": "",
+ "approval": "",
+ "note": "Заполнить approved=owner и approval (где и когда «да купон») только после одобрения владельца. По умолчанию купон на три (e1); «на два» — e2_* и своя подпись.",
+ "feed": "out/express/2026-10-31/e1_feed.jpg",
+ "story": "out/express/2026-10-31/e1_story.jpg",
  "caption": "team/out/2026-10-31/express_ig_caption.txt",
- "job": "team/out/2026-10-31/express_ig.json"}
+ "job": "team/out/2026-10-31/express_ig.json"
+}

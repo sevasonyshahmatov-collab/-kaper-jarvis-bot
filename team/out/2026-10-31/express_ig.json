@@ -1,1 +1,1 @@
-{"day": "2026-10-31", "make": ["team/out/2026-10-31/express_render.py", "team/picks/express_ig.py team/out/2026-10-31/express_ig_plan.json"], "messages": []}
+{"day": "2026-10-31", "make": ["team/picks/express_render.py team/out/2026-10-31/express_coupons.json out/express/2026-10-31", "team/picks/express_ig.py team/out/2026-10-31/express_ig_plan.json"], "messages": []}
