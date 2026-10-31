@@ -33,6 +33,7 @@ sys.path.insert(0, os.path.join(ROOT, 'render'))
 import data  # noqa: E402
 import settle  # noqa: E402
 
+RENDER_MAX = 6 * 60                # на баннер не больше 6 мин, иначе — текстом
 WAIT_MIN = 14                     # сколько ждать финала, если бот запустил чуть раньше (лимит задания — 20 мин)
 MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
 WEEK = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
@@ -581,12 +582,20 @@ def main():
     msg = {'to': 'owner', 'type': 'animation', 'files': [path], 'text': text, 'html': True, 'emoji': True,
            'buttons': 'post', 'pid': '%sr%s' % (p['pid'], ch or '')}
     if not a.no_render:
+        import signal
+
+        def _too_long(*_):
+            raise TimeoutError('баннер дольше %d с' % RENDER_MAX)
+        signal.signal(signal.SIGALRM, _too_long)
+        signal.alarm(RENDER_MAX)          # 31.10: баннер 3110-8 рисовался 38 мин — задание сняли, итог не ушёл
         try:
             render(p, g, legs, res, res_legs, path)
         except Exception as e:  # noqa: BLE001 — без баннера итог всё равно уходит текстом
             print('POSTMATCHERR баннер: %r — отправляю текстом' % e, flush=True)
             msg.update(type='text', files=[])
             msg.pop('files')
+        finally:
+            signal.alarm(0)
     # номер итога: <прогноз>r<номер поста прогноза в канале> — бот публикует итог ответом на этот пост
     with open(a.job_file, encoding='utf-8') as f:
         job = json.load(f)
