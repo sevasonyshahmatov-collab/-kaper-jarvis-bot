@@ -1,0 +1,6 @@
+{"approved": "", "approval": "",
+ "note": "Заполнить approved=owner и approval (откуда «да купон», дата/время) только после одобрения владельца. Купон по умолчанию — на три матча; если владелец выберет «на два» — feed/story e2_* и своя подпись.",
+ "feed": "team/out/2026-10-31/express/e3_feed.jpg",
+ "story": "team/out/2026-10-31/express/e3_story.jpg",
+ "caption": "team/out/2026-10-31/express_ig_caption.txt",
+ "job": "team/out/2026-10-31/express_ig.json"}
