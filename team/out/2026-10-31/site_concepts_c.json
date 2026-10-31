@@ -1,0 +1,34 @@
+{
+ "day": "2026-10-31",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-10-31/site_concepts/coupon_d1.jpg"
+   ],
+   "text": "«Мой купон» и избранные клубы: хранится только у человека в браузере, лимит на неделю, честная математика экспресса, уведомления в боте. Суммы — пример."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-10-31/site_concepts/coupon_m.jpg"
+   ],
+   "text": "Купон на телефоне."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-10-31/site_concepts/how_d1.jpg"
+   ],
+   "text": "«Как мы считаем»: публикуем до матча, ничего не удаляем, что модель знает и чего нет, чего мы не делаем, 18+."
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Смотреть живьём (откройте в браузере):\nГлавная: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/f945d07dc11c662d35bc3ef5512e0455d1cb0429/team/site/v3a/concepts/home.html\nМатч: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/f945d07dc11c662d35bc3ef5512e0455d1cb0429/team/site/v3a/concepts/match.html\nАрхив: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/f945d07dc11c662d35bc3ef5512e0455d1cb0429/team/site/v3a/concepts/archive.html\nКупон: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/f945d07dc11c662d35bc3ef5512e0455d1cb0429/team/site/v3a/concepts/coupon.html\nКак мы считаем: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/f945d07dc11c662d35bc3ef5512e0455d1cb0429/team/site/v3a/concepts/how.html\n\nДокументы исследования лежат в ветке claude/team-dev-site-v3a, папка team/site/research/ (конкуренты, аудитория, карта смыслов, ТЗ главной).\n\nТри вопроса:\n1. Что из концептов берём, а что нравится меньше всего?\n2. Что убрать или упростить?\n3. Делать ли следующим шагом перенос на живой сайт (сначала архив и страница матча)?"
+  }
+ ]
+}
