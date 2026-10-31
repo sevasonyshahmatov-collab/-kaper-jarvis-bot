@@ -28,6 +28,9 @@ def date_title(legs):
 
 
 def main(src, out):
+    sys.path.insert(0, os.path.join(ROOT, 'team', 'picks'))
+    import banners
+    banners.ensure_ffmpeg()                           # на раннере ffmpeg может не быть (как у баннеров прогнозов)
     cs = json.load(open(os.path.join(ROOT, src), encoding='utf-8'))['coupons']
     out = os.path.join(ROOT, out)
     os.makedirs(out, exist_ok=True)
