@@ -1,0 +1,40 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><link rel="stylesheet" href="_base.css"><style>
+body{width:1440px;height:900px;overflow:hidden;padding:56px 84px}
+.head{display:flex;justify-content:space-between;align-items:end;border-bottom:3px solid var(--ink);padding-bottom:14px}
+h2{font-size:84px}
+.big{text-align:right}.big b{font:800 120px/0.85 var(--display);color:var(--ice)}.big span{display:block;color:var(--ink-2);font-size:15px;margin-top:8px}
+.strip{display:flex;gap:5px;margin:22px 0 6px}.strip i{width:32px;height:32px;border-radius:4px;display:grid;place-items:center;font:800 14px var(--display);color:#fff}
+.w{background:var(--win)}.l{background:var(--red)}.v{background:var(--ink-3)}
+.cap{font-size:14px;color:var(--ink-3);margin-bottom:22px}
+.grid{display:grid;grid-template-columns:1fr 420px;gap:48px}
+table{width:100%;border-collapse:collapse;font-size:16px}
+th{font:700 13px var(--display);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);text-align:left;padding:8px 10px;border-bottom:1.5px solid var(--ink)}
+td{padding:13px 10px;border-bottom:1px solid var(--paper-3);vertical-align:middle}
+td.n{font:700 15px var(--display);color:var(--ink-3)} td.sc{font:800 22px var(--display)}
+td.m{font:700 19px var(--display);text-transform:uppercase}
+.stamp{display:inline-block;font:900 17px/1 var(--display);text-transform:uppercase;letter-spacing:.08em;padding:7px 11px;border:3px solid;border-radius:6px;transform:rotate(-5deg)}
+.stamp.w{color:var(--win);border-color:var(--win);background:#1d7a4512}.stamp.l{color:var(--red);border-color:var(--red);background:#c4303b10;transform:rotate(3deg)}
+.side h3{font-size:30px;margin-bottom:12px}
+.chart{background:#fff8;border:1px solid var(--paper-3);border-radius:10px;padding:16px}
+.chart small{color:var(--ink-3);font-size:13px}
+.post{display:inline-block;margin-top:2px;font-size:13px;color:var(--ice);text-decoration:underline}
+</style></head><body>
+<div class="head"><div><span class="tag">Мокап · пример данных</span><h2 style="margin-top:12px">Протокол прогнозов</h2></div>
+<div class="big"><b>72 %</b><span>октябрь: 108 зашли, 42 нет, 3 возврата → 108 из 150 (возвраты не в счёт)</span></div></div>
+<div class="strip" id="strip"></div><p class="cap">Последние 30 прогнозов по порядку: зелёный — зашёл, красный — нет, серый — возврат. Минусы не прячем.</p>
+<div class="grid"><table><thead><tr><th>Дата</th><th>Матч</th><th>Счёт</th><th>Прогноз · кэф</th><th>Итог</th></tr></thead><tbody>
+<tr><td class="n">30.10</td><td class="m">Сент-Луис — Бостон<br><a class="post">пост №412 в канале</a></td><td class="sc">4:1</td><td>ИТ Бостона больше 2,5 · 1,75</td><td><span class="stamp l">Нет</span></td></tr>
+<tr><td class="n">30.10</td><td class="m">Каролина — Коламбус<br><a class="post">пост №411</a></td><td class="sc">3:2</td><td>Победа Каролины в осн. время · 1,68</td><td><span class="stamp w">Зашла</span></td></tr>
+<tr><td class="n">29.10</td><td class="m">Нефтехимик — Адмирал<br><a class="post">пост №405</a></td><td class="sc">3:4</td><td>Тотал больше 4,5 · 1,65</td><td><span class="stamp w">Зашла</span></td></tr>
+<tr><td class="n">29.10</td><td class="m">Лос-Анджелес — Оттава<br><a class="post">пост №403</a></td><td class="sc">6:5 ОТ</td><td>Победа Оттавы · 1,92</td><td><span class="stamp l">Нет</span></td></tr>
+<tr><td class="n">28.10</td><td class="m">Лада — Торпедо<br><a class="post">пост №398</a></td><td class="sc">2:7</td><td>ИТ Торпедо больше 2,5 · 1,75</td><td><span class="stamp w">Зашла</span></td></tr>
+</tbody></table>
+<div class="side"><h3>Как растёт счёт за октябрь</h3><div class="chart"><svg id="c" width="386" height="250"></svg><small>Зашли минус не зашли, нарастающим итогом. Ровно то, что было в канале.</small></div></div></div>
+<script>
+const st=document.getElementById('strip');const seq='wwlwwwvwlwwwlwwlwwwwlwwlwwwlww';for(const c of seq){const i=document.createElement('i');i.className=c;i.textContent=c=='w'?'✓':c=='l'?'✕':'=';st.appendChild(i)}
+const c=document.getElementById('c'),NS='http://www.w3.org/2000/svg';let seed=3;const r=()=>(seed=(seed*16807)%2147483647)/2147483647;
+let v=0,pts=[];for(let d=0;d<=31;d++){pts.push([12+d*11.8,230-v*3.6]);const n=5;for(let k=0;k<n;k++)v+=r()<.72?1:-1}
+const p=document.createElementNS(NS,'polyline');p.setAttribute('points',pts.map(q=>q.join(',')).join(' '));p.setAttribute('fill','none');p.setAttribute('stroke','#1462a8');p.setAttribute('stroke-width','3');c.appendChild(p);
+const l=document.createElementNS(NS,'line');Object.entries({x1:12,x2:380,y1:230,y2:230,stroke:'#5d6773','stroke-dasharray':'4 4'}).forEach(([k,v])=>l.setAttribute(k,v));c.appendChild(l);
+const last=pts.at(-1);const t=document.createElementNS(NS,'circle');Object.entries({cx:last[0],cy:last[1],r:6,fill:'#ffc21a',stroke:'#10161f','stroke-width':2}).forEach(([k,v])=>t.setAttribute(k,v));c.appendChild(t);
+</script></body></html>

@@ -1,0 +1,45 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><link rel="stylesheet" href="_base.css"><style>
+body{width:1440px;height:900px;overflow:hidden}
+.wrap{display:grid;grid-template-columns:520px minmax(0,1fr);gap:56px;padding:64px 84px}
+h1{font-size:92px;margin:18px 0 22px}
+.lead{max-width:30ch;color:var(--ink-2);margin-bottom:26px}
+.term{background:var(--board);color:#9fe3b0;border-radius:10px;padding:16px 18px;font-size:14px;line-height:1.7;margin-bottom:26px}
+.term b{color:var(--signal)}
+.stage{background:var(--board);border-radius:16px;padding:22px 26px 20px;position:relative;box-shadow:0 30px 60px -30px #0007}
+.top{display:flex;justify-content:space-between;color:var(--flap-ink);font:700 18px var(--display);text-transform:uppercase;margin-bottom:6px}
+.top span:last-child{color:var(--signal)}
+svg{display:block}
+.legend{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;margin-top:8px}
+.legend b{display:block;font:800 54px/1 var(--display);color:var(--flap-ink)}
+.legend .hi b{color:var(--signal)}
+.legend span{color:#9aa3ad;font:600 15px var(--display);text-transform:uppercase}
+.note{color:var(--ink-3);font-size:13px;margin-top:12px}
+.again{position:absolute;right:26px;top:58px;background:transparent;border:1.5px solid #ffffff55;color:var(--flap-ink);border-radius:999px;padding:8px 14px;font:700 14px var(--display);text-transform:uppercase}
+</style></head><body><div class="wrap"><div>
+<span class="tag">Мокап · пример данных</span>
+<h1>Модель сыграла этот матч 10&nbsp;000 раз</h1>
+<p class="lead">Ак Барс — Локомотив, сегодня 10:10 МСК. Смотри, куда ложатся шайбы: так модель видит исход.</p>
+<div class="term mono">&gt; форма, броски, xG… ок<br>&gt; линия рынка без маржи: П2 ≈ 51 %<br>&gt; модель: <b>П2 57 %</b> · кэф 1,85 → ВЫБОР</div>
+<a class="btn" href="#">Прогноз в Telegram до 08:00 ›</a>
+<p class="note">На экране 300 шайб для наглядности, расчёт — 10 000 розыгрышей.</p>
+</div><div class="stage"><div class="top"><span>Ак Барс — Локомотив</span><span>Розыгрыш 7 412 / 10 000</span></div>
+<button class="again">↻ Разыграть ещё раз</button>
+<svg id="s" viewBox="0 0 740 560" width="100%"></svg>
+<div class="legend"><div><b>27 %</b><span>Ак Барс (П1)</span></div><div><b>16 %</b><span>Ничья в осн. время</span></div><div class="hi"><b>57 %</b><span>Локомотив (П2)</span></div></div>
+</div></div>
+<script>
+const s=document.getElementById('s'),W=740,H=560,NS='http://www.w3.org/2000/svg';
+const el=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);s.appendChild(e);return e};
+let seed=7;const r=()=>(seed=(seed*16807)%2147483647)/2147483647;
+// pegs
+for(let row=0;row<9;row++){const n=row+4;for(let i=0;i<n;i++){el('circle',{cx:W/2+(i-(n-1)/2)*58,cy:40+row*30,r:3.2,fill:'#5b636d'})}}
+// bins
+const bw=W/3,base=H-8,share=[.27,.16,.57],maxh=200;
+[0,1,2].forEach(i=>{el('rect',{x:i*bw+8,y:base-maxh-20,width:bw-16,height:maxh+20,fill:'#1d2126',rx:6});});
+el('line',{x1:bw,y1:base-maxh-20,x2:bw,y2:base,stroke:'#3a4049','stroke-width':2});el('line',{x1:2*bw,y1:base-maxh-20,x2:2*bw,y2:base,stroke:'#3a4049','stroke-width':2});
+// stacked pucks in bins
+const col=['#9aa3ad','#6b737d','#ffc21a'];
+[0,1,2].forEach(i=>{const cnt=Math.round(share[i]*300*0.74);const perRow=11;for(let k=0;k<cnt;k++){const rr=Math.floor(k/perRow),cc=k%perRow;el('ellipse',{cx:i*bw+24+cc*((bw-48)/(perRow-1))+(rr%2?5:0),cy:base-8-rr*9.6,rx:9,ry:4.2,fill:col[i],opacity:.95})}});
+// falling pucks with trails
+for(let k=0;k<26;k++){const y=30+r()*290,x=W/2+(r()-.5)*(y*1.4+40);const tgt=r()<.57?2:(r()<.6?0:1);el('line',{x1:x-(r()-.5)*20,y1:y-34,x2:x,y2:y,stroke:'#ffffff22','stroke-width':3,'stroke-linecap':'round'});el('ellipse',{cx:x,cy:y,rx:8,ry:4,fill:tgt==2?'#ffc21a':'#d8dde3'})}
+</script></body></html>

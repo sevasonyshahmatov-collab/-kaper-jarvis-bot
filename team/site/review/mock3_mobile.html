@@ -1,0 +1,38 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><link rel="stylesheet" href="_base.css"><style>
+body{width:390px;height:844px;overflow:hidden;position:relative}
+.hd{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+.logo{font:900 26px var(--display)}.logo i{background:var(--signal);font-style:normal;padding:0 4px;border-radius:3px}
+.seg{background:var(--paper-3);border-radius:999px;padding:3px;font:700 14px var(--display)}.seg b{background:var(--ink);color:#fff;border-radius:999px;padding:6px 12px;display:inline-block}.seg span{padding:6px 10px;display:inline-block}
+.proof{margin:2px 16px 10px;font:600 15px/1.3 var(--display);color:var(--ink-2);display:flex;gap:8px;align-items:center}
+.proof .dots i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:2px}
+.w{background:var(--win)}.l{background:var(--red)}
+.board{margin:0 12px;background:var(--board);border-radius:14px;padding:14px 14px 16px;color:var(--flap-ink)}
+.bt{display:flex;justify-content:space-between;font:700 14px var(--display);text-transform:uppercase;margin-bottom:10px}.bt b{color:var(--signal)}
+.row{display:flex;gap:3px;margin:5px 0}.row s{text-decoration:none;width:24px;height:32px;background:var(--flap);border-radius:3px;display:grid;place-items:center;font:800 20px var(--display);position:relative}
+.row s::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#0008}
+.lbl{font:600 11px var(--display);text-transform:uppercase;color:#9aa3ad;margin-top:8px}
+.big s{width:36px;height:46px;font-size:30px}.y s{color:var(--signal)}
+.cta{margin:14px 12px 0}
+.btn{width:100%;justify-content:center;font-size:19px;padding:17px}
+.sub{text-align:center;font-size:13px;color:var(--ink-3);margin-top:8px}
+.next{margin:16px 16px 0;border-top:2px solid var(--ink);padding-top:10px}
+.next h2{font-size:30px}
+.mrow{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--paper-3);font:700 17px var(--display)}
+.mrow span:last-child{color:var(--ice)}
+.tag{position:absolute;right:12px;bottom:12px}
+</style></head><body>
+<div class="hd"><div class="logo">JAR<i>V</i>IS</div><div class="seg"><b>Хоккей</b><span>Футбол</span></div></div>
+<div class="proof"><span class="dots"><i class="w"></i><i class="w"></i><i class="l"></i><i class="w"></i><i class="w"></i></span>Вчера 4 из 5 · октябрь 72 % · все минусы в канале</div>
+<div class="board"><div class="bt"><b>● Прогноз дня · КХЛ 10:10</b><span>1 / 4</span></div>
+<div class="lbl">Матч</div><div class="row">AK БАРС</div>
+<div class="row" id="r1"></div><div class="row" id="r2"></div>
+<div class="lbl">Ставка · по модели</div><div class="row big y" id="r3"></div>
+<div class="lbl">До матча</div><div class="row big" id="r4"></div></div>
+<div class="cta"><a class="btn">Получать прогноз в 08:00 — Telegram</a><p class="sub">Бесплатно · 1 пост на матч · без рекламы букмекеров</p></div>
+<div class="next"><h2>Ещё сегодня</h2><div class="mrow"><span>16:20 Бостон — Торонто</span><span>П1 57 %</span></div><div class="mrow"><span>17:20 Колорадо — Даллас</span><span>ТБ 5,5</span></div></div>
+<span class="tag">Мокап · пример данных</span>
+<script>
+const f=(id,t)=>{const r=document.getElementById(id);r.innerHTML=[...t].map(c=>`<s>${c==' '?'':c}</s>`).join('')};
+document.querySelector('.row').remove();
+f('r1','АК БАРС');f('r2','ЛОКОМОТИВ');f('r3','П2 1,85 57%');f('r4','03:12:29');
+</script></body></html>
