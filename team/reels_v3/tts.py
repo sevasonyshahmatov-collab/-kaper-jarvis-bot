@@ -71,9 +71,13 @@ def say_edge(text, voice='ru-RU-DmitryNeural', rate='+8%', pitch='+0Hz'):
         _pip('edge-tts'); import edge_tts
     out = tempfile.mktemp(suffix='.mp3')
 
-    async def go():
-        await edge_tts.Communicate(text, voice, rate=rate, pitch=pitch).save(out)
-    asyncio.run(go())
+    async def go(kw):
+        await edge_tts.Communicate(text, voice, **kw).save(out)
+    try:
+        asyncio.run(go(dict(rate=rate, pitch=pitch)))
+    except Exception as e:  # noqa: BLE001 — «No audio was received»: повтор без параметров голоса
+        print('TTS edge повтор без rate/pitch: %r' % e, flush=True)
+        asyncio.run(go({}))
     return _read_any(out)
 
 
@@ -86,6 +90,7 @@ def say_qwen(text, instruct=QWEN_INSTRUCT, model='Qwen/Qwen3-TTS-12Hz-1.7B-Voice
     except ImportError:
         _pip('qwen-tts'); from qwen_tts import Qwen3TTSModel
     import torch
+    torch.set_num_threads(os.cpu_count() or 4)
     if model not in _M:
         _M[model] = Qwen3TTSModel.from_pretrained(model, device_map='cpu', dtype=torch.float32)
     wavs, sr = _M[model].generate_voice_design(text=text, language='Russian', instruct=instruct)
@@ -119,9 +124,27 @@ def say_vosk(text, speaker=2):
     return _read_any(out)
 
 
+FALLBACK = os.environ.get('REELS_V3_FALLBACK', 'vosk:%s' % os.environ.get('REELS_V3_VOSK_MALE', '3'))
+_DEAD = set()
+
+
 def say(text, spec=None):
-    """«движок:голос» → float32 моно SR."""
-    eng, _, arg = (spec or DEFAULT).partition(':')
+    """«движок:голос» → float32 моно SR. Если основной движок не отдал звук — запасной (FALLBACK), до конца запуска."""
+    spec = spec or DEFAULT
+    if spec in _DEAD and FALLBACK:
+        return _say(text, FALLBACK)
+    try:
+        return _say(text, spec)
+    except Exception as e:  # noqa: BLE001
+        if not FALLBACK or spec == FALLBACK:
+            raise
+        print('TTS %s не сработал (%r) → запасной %s' % (spec, e, FALLBACK), flush=True)
+        _DEAD.add(spec)
+        return _say(text, FALLBACK)
+
+
+def _say(text, spec):
+    eng, _, arg = spec.partition(':')
     if eng == 'edge':
         return say_edge(text, arg or 'ru-RU-DmitryNeural')
     if eng == 'qwen':

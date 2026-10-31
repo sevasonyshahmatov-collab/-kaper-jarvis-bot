@@ -24,9 +24,26 @@ PHRASE = ('Что будет, если весь сезон ставить на �
 PROBES = [
     ('A', 'edge:ru-RU-DmitryNeural', 'Edge TTS · Дмитрий (мужской)', 'нейроголос Microsoft, бесплатно; условия коммерческого использования не прописаны'),
     ('B', 'qwen', 'Qwen3-TTS · голос по описанию', 'открытая модель Alibaba, Apache-2.0 — можно в коммерции'),
-    ('C', 'vosk:2', 'Vosk TTS (Alpha Cephei)', 'открытая модель, Apache-2.0, работает без интернета'),
-    ('D', 'edge:ru-RU-SvetlanaNeural', 'Edge TTS · Светлана (женский)', 'тот же движок, что A, — женский вариант'),
+    ('C', 'vosk:male', 'Vosk TTS (Alpha Cephei) · мужской', 'открытая модель, Apache-2.0, работает без интернета'),
 ]
+
+
+def vosk_male():
+    """Мужской голос Vosk: из голосов модели — с самым низким основным тоном (владелец 31.10: голос мужской)."""
+    import librosa
+    best = None
+    for sp in range(5):
+        try:
+            w = tts._say('Проверка голоса для роликов.', 'vosk:%d' % sp)
+        except Exception as e:  # noqa: BLE001
+            print('VOSK %d нет: %r' % (sp, e), flush=True)
+            continue
+        f0, vf, _ = librosa.pyin(w, fmin=60, fmax=400, sr=tts.SR)
+        f = float(np.nanmedian(f0)) if np.any(vf) else 999.0
+        print('VOSK голос %d — тон %.0f Гц' % (sp, f), flush=True)
+        if best is None or f < best[1]:
+            best = (sp, f)
+    return best[0]
 FONT = os.path.join(ROOT, 'render', 'fonts', 'Unbounded[wght].ttf')
 FONT2 = os.path.join(ROOT, 'render', 'fonts', 'GolosText[wght].ttf')
 
@@ -57,17 +74,22 @@ def main(job_path):
     outdir = os.path.join(os.path.dirname(job_path), 'voice_probe')
     os.makedirs(outdir, exist_ok=True)
     msgs, report = [], []
+    only = set(sys.argv[2:])
     for letter, spec, title, note in PROBES:
+        if only and letter not in only:
+            continue
+        if spec == 'vosk:male':
+            spec = 'vosk:%d' % vosk_male()
         t0 = time.time()
         try:
             try:
-                wav = tts.say(PHRASE, spec)
+                wav = tts._say(PHRASE, spec)
             except Exception:
                 if spec != 'qwen':
                     raise
                 traceback.print_exc()
                 spec, title, note = 'chat', 'Chatterbox · мультиязычный', 'открытая модель Resemble AI, MIT — можно в коммерции'
-                wav = tts.say(PHRASE, spec)
+                wav = tts._say(PHRASE, spec)
             png = os.path.join(outdir, '%s.png' % letter)
             mp4 = os.path.join(outdir, 'voice_%s.mp4' % letter)
             card(png, letter, title, note)
