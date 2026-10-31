@@ -9,7 +9,7 @@ import re
 import sys
 
 TAGS = ('DAYJOB', 'KHLSTAGE', 'KHLNEXT', 'KHLPAIR', 'KHLERR', 'NHLNEXT', 'NHLSTAND', 'NHLCLUB', 'NHLH2HPREV', 'NHLERR', 'NHLRATE', 'NHLGK', 'NHLLIVEERR', 'NHL ', 'KHL ',
-        'PINERR', 'PINMISS', 'LEAGUE', 'TABLE', 'PAIR', 'CALC', 'BRIEF', 'TEAM', 'PER', 'LAST', 'H2H', 'PICKJSON')
+        'PINERR', 'PINMISS', 'FONERR', 'FONMISS', 'FONSTAT', 'LEAGUE', 'TABLE', 'PAIR', 'CALC', 'BRIEF', 'TEAM', 'PER', 'LAST', 'H2H', 'PICKJSON')
 
 
 def text_of(raw):
@@ -56,7 +56,7 @@ def main(path, folder):
     by = lambda tag: [ln[len(tag) + 1:] for ln in ls if ln.startswith(tag + ' ')]  # noqa: E731
     md = ['# Сводка к прогнозам: ' + ' '.join(by('DAYJOB')), '']
     md += [ln for ln in ls if ln.startswith(('NHL ', 'KHL '))]
-    for tag in ('KHLSTAGE', 'LEAGUE', 'TABLE', 'PINMISS', 'PINERR', 'KHLERR', 'NHLERR', 'NHLLIVEERR'):
+    for tag in ('KHLSTAGE', 'LEAGUE', 'TABLE', 'PINMISS', 'PINERR', 'FONSTAT', 'FONMISS', 'FONERR', 'KHLERR', 'NHLERR', 'NHLLIVEERR'):
         md += ['%s: %s' % (tag, x) for x in by(tag)]
     md.append('')
     for i, m in enumerate(picks, 1):
@@ -69,7 +69,8 @@ def main(path, folder):
         if isinstance(place, dict):
             place = place.get('name') or ''
         md += ['## %d. %s — %s · %s МСК%s' % (i, h, a, m.get('d', ''), ' · ' + str(place) if place else ''),
-               'Линия: П1/Х/П2 осн. время %s / %s / %s · итоговая победа (с ОТ и Б) %s / %s' % (f(x1[0]), f(x1[1]), f(x1[2]), f(fin[0]), f(fin[1]))]
+               'Линия (%s): П1/Х/П2 осн. время %s / %s / %s · итоговая победа (с ОТ и Б) %s / %s' % (
+                   m.get('book') or 'Pinnacle', f(x1[0]), f(x1[1]), f(x1[2]), f(fin[0]), f(fin[1]))]
         if m.get('bets'):
             md.append('Фонбет (приложение КХЛ): %s' % json.dumps(m['bets'], ensure_ascii=False))
         md.append('Ставки с кэфом от 35 % — вероятность «Что заходит», кэф, p×k:')
