@@ -235,6 +235,9 @@ PROBES = {'1.1': p11, '1.2': p12, '2.1': p21, '2.2': p22, '3.1': p31, '3.2': p32
 
 
 # ───────────────────────────── звук ─────────────────────────────
+SWOOSH = os.environ.get('REELS_V3_SWOOSH') == '1'   # «вжухи» на сменах владелец отклонил 26.10 — по умолчанию нет
+
+
 def bed(dur, cuts, seed=3):
     """Лёгкий фон: тёплый аккорд (ля минор 9) с медленным дыханием + мягкий «вжух» на смене сцен. Синтез, без треков."""
     t = np.arange(int(dur * SR)) / SR
@@ -243,7 +246,7 @@ def bed(dur, cuts, seed=3):
         out += a * np.sin(2 * np.pi * f * t + np.sin(2 * np.pi * 0.11 * t) * 0.6)
     out *= 0.55 + 0.45 * np.sin(2 * np.pi * 0.17 * t) ** 2
     rnd = np.random.default_rng(seed)
-    for c in cuts[1:]:
+    for c in (cuts[1:] if SWOOSH else []):
         n = int(0.35 * SR)
         i = int(max(0, c - 0.25) * SR)
         if i + n > len(out):
