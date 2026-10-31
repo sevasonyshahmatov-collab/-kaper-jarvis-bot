@@ -8,7 +8,7 @@ body[data-lg="nhl"]{--lgc:var(--nhl);--lgc2:var(--nhl-2)}
 .tmhero{padding-top:clamp(28px,4vw,56px)}
 [data-theme="arena"] .tmhero{padding-bottom:clamp(56px,7vw,110px)}
 .tmhero .wrap{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);align-items:center}
-.tmhero::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:linear-gradient(90deg,var(--lgc) 0 62%,var(--lgc2) 62%)}
+.tmhero::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;z-index:2;background:linear-gradient(90deg,var(--cacc) 0 64%,var(--con) 64%)}
 .crumb{display:inline-flex;align-items:center;gap:8px;font:600 16px/1 var(--display);text-decoration:none;color:var(--ink-2);padding:8px 0;margin-bottom:clamp(14px,2vw,28px)}
 .crumb:hover{color:var(--ink);text-decoration:underline}
 .tmrow{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(16px,2.4vw,32px);align-items:center}
@@ -79,10 +79,11 @@ body[data-lg="nhl"]{--lgc:var(--nhl);--lgc2:var(--nhl-2)}
 .formbox{margin-top:16px;background:var(--card);border-radius:8px;padding:16px;display:grid;gap:12px}
 .frm{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
 .frm li{display:grid;justify-items:center;gap:6px}
-.frm b{display:grid;place-items:center;width:clamp(44px,4.4vw,56px);aspect-ratio:1;border-radius:50%;font:800 clamp(17px,1.6vw,21px)/1 var(--display);color:#fff}
+.frm b{display:grid;place-items:center;width:clamp(44px,4.4vw,56px);aspect-ratio:1;border-radius:50%}
+.frm b img{width:66%;height:66%;object-fit:contain;opacity:.62}
 .frm span{font:600 14px/1 var(--display);color:var(--ink-2);font-variant-numeric:tabular-nums}
-.frm .w b{background:var(--win);color:var(--win-ink)}.frm .l b{background:var(--red);color:var(--loss-ink)}.frm .ot b{background:var(--ink-3)}
-.frm li:last-child b{box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--ink)}
+.frm .w b{background:var(--win)}.frm .l b{background:var(--red)}.frm .ot b{background:color-mix(in srgb,var(--red) 35%,#7d848c)}
+.frm li:last-child b{box-shadow:0 0 0 3px var(--card),0 0 0 5px var(--cbase,var(--ink))}
 
 /* ── матчи сезона ── */
 .gfilter{margin:0 0 18px}
@@ -174,3 +175,32 @@ body[data-lg="nhl"]{--lgc:var(--nhl);--lgc2:var(--nhl-2)}
   .pks .gd{grid-area:d;display:flex;gap:8px;align-items:baseline}.pks .pm{grid-area:m}.pks .pt{grid-area:t}.pks .pr{grid-area:r;align-self:center}
 }
 .stand tr+tr td{border-top-color:var(--sep)}
+
+/* ══ фон клуба (31.10): градиент из фирменных цветов, «джерси»-фактура, крупная полупрозрачная эмблема у края ══ */
+[data-theme] .tmhero.hero{
+  --paper:var(--c1); --paper-2:color-mix(in srgb,var(--con) 14%,var(--c1)); --paper-3:color-mix(in srgb,var(--con) 22%,var(--c1));
+  --card:rgba(0,0,0,.26); --card-hi:rgba(0,0,0,.34);
+  --ink:var(--con); --ink-2:color-mix(in srgb,var(--con) 90%,var(--c2)); --ink-3:color-mix(in srgb,var(--con) 78%,var(--c2));
+  --rule:color-mix(in srgb,var(--con) 14%,transparent); --rule-2:color-mix(in srgb,var(--con) 18%,transparent);
+  --ice:var(--cacc); --sport:var(--cacc); --crest-bg:#eef3fa; --crest-pad:1;
+  color:var(--ink);overflow:hidden;isolation:isolate;
+  background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--con) 4%,transparent) 0 2px,transparent 2px 16px),
+    linear-gradient(125deg,var(--c1) 0%,var(--c2) 55%,var(--c3) 100%)}
+body.on-light .tmhero.hero{--card:rgba(255,255,255,.34);--card-hi:rgba(255,255,255,.45)}
+.tmhero .wrap{position:relative;z-index:1}
+.tmwm{position:absolute;z-index:0;pointer-events:none;right:-9vw;top:50%;width:min(64vw,860px);height:auto;transform:translateY(-50%) rotate(-8deg);opacity:.1;filter:saturate(.6)}
+[data-theme="arena"] .tmhero .tmplace b{color:var(--cacc)}
+[data-theme="arena"]:not(.lit) body .hd{background:color-mix(in srgb,var(--c1) 94%,transparent)}
+.tmpower{box-shadow:inset 0 0 0 1px var(--rule-2)}
+.tmcrest{box-shadow:0 0 0 4px var(--cacc),0 0 0 7px var(--c3),0 24px 40px -24px #000}
+.stand tr.me td{background:var(--cbase);color:#fff}
+body.on-light .stand tr.me td{color:var(--con)}
+.stand tr.me td:first-child,[data-theme="arena"] .stand tr.me td:first-child{color:var(--cacc);box-shadow:inset 5px 0 0 var(--cacc)}
+.bar i{background:var(--team)}
+.gfilter button[aria-pressed="true"]{background:var(--cbase);color:var(--con)}
+.kx>span:first-child{background:var(--cbase);color:var(--con)}
+.ha.h{background:var(--cbase);color:var(--con)}
+@media (max-width:620px){
+  .tmwm{width:118vw;right:-46vw;top:30%}
+  .tmcrest{box-shadow:0 0 0 3px var(--cacc),0 0 0 5px var(--c3),0 16px 30px -18px #000}
+}

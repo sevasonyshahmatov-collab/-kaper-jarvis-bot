@@ -19,6 +19,7 @@ const tl=(s,inner,cls='')=>`<a class="${cls}" href="index.html?id=${esc(s)}${tq}
 const BACK=lg=>`../hockey/index.html${THEME?'?theme='+encodeURIComponent(THEME):''}#lg-${lg}`;
 const MON=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'],WD=['вс','пн','вт','ср','чт','пт','сб'];
 const day=d=>{const [y,m,dd]=d.slice(0,10).split('-').map(Number),x=new Date(Date.UTC(y,m-1,dd));return {d:dd,mon:MON[m-1],wd:WD[x.getUTCDay()],tm:d.slice(11,16)}};
+const formTitle=g=>{const r=g.gf>g.ga?'W':(g.x?'OTL':'L'),o=nm(g.o),sc=`${g.gf}:${g.ga}`;return r==='W'?`Победа над ${o} ${sc}${g.x?(g.x==='Б'?' по буллитам':' в овертайме'):''}`:`Поражение от ${o} ${sc}${r==='OTL'?(g.x==='Б'?' по буллитам':' в овертайме'):''}`};
 const res=g=>g.gf>g.ga?'W':(g.x?'OTL':'L');
 const RL={W:['В','w','победа'],L:['П','l','поражение'],OTL:['ОТ','ot','поражение в овертайме или по буллитам']};
 // тёмный фирменный цвет на тёмном фоне не виден — осветляем (как bright() в app/index.html)
@@ -58,9 +59,31 @@ if(!T){
 }
 
 const lg=T.lg,L=LG[lg],conf=T.conf||'';
-const acc=bright((T.colors||[])[2]||(T.colors||[])[0]);
+/* ── палитра клуба: градиент шапки из фирменных цветов (assets/data/clubs.js), текст светлый или тёмный по контрасту ≥ 4,5:1 ── */
+const rgb=h=>{const n=parseInt(String(h).replace('#','').replace(/^(.)(.)(.)$/,'$1$1$2$2$3$3'),16);return [n>>16,n>>8&255,n&255]};
+const hex=a=>'#'+a.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');
+const mix=(a,b,t)=>hex(rgb(a).map((v,i)=>v+(rgb(b)[i]-v)*t));
+const lum=h=>{const c=rgb(h).map(v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4});return .2126*c[0]+.7152*c[1]+.0722*c[2]};
+const cr=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+function palette(c){
+ let stops=[c[0],mix(c[0],c[1],.5),c[1]],acc=c[2];
+ const ok=t=>stops.every(s=>cr(t,s)>=4.5&&cr(mix(t,s,.25),s)>=4.5);   // и основной текст, и приглушённый (подписи)
+ let text=null;
+ for(let k=0;k<14&&!text;k++){if(ok('#ffffff'))text='#ffffff';else if(ok('#0b0f16'))text='#0b0f16';else stops=stops.map(s=>mix(s,'#000000',.1))}
+ text=text||'#ffffff';
+ // акцент должен читаться на фоне шапки (≥ 3:1 — крупные цифры и линии шестиугольника)
+ for(let k=0;k<10&&stops.some(s=>cr(acc,s)<3);k++)acc=mix(acc,text,.18);
+ // акцент на светлой «газете» ниже (полоски, обводки): затемняем до ≥ 3:1 к бумаге
+ let accL=c[2];for(let k=0;k<12&&cr(accL,'#eceee8')<3;k++)accL=mix(accL,'#000000',.12);
+ return {stops,text,acc,accL,base:stops[0]};
+}
+const CP=palette((window.JV_CLUBS||{})[ID]||[T.colors?.[0]||'#1b2a44',T.colors?.[1]||'#0b1220',bright(T.colors?.[2])]);
+const acc=CP.acc;
 document.title=`${T.name} — матчи сезона, место в таблице, сила команды · JARVIS`;
-document.documentElement.style.setProperty('--team',acc);
+{const st=document.body.style;[['--c1',CP.stops[0]],['--c2',CP.stops[1]],['--c3',CP.stops[2]],['--con',CP.text],['--cacc',CP.acc],['--team',CP.accL],['--cbase',CP.base]].forEach(([k,v])=>st.setProperty(k,v));
+ document.body.classList.toggle('on-light',CP.text!=='#ffffff');
+ const m=document.querySelector('meta[name=theme-color]');if(m)m.content=CP.stops[0];
+ const wm=document.createElement('img');wm.className='tmwm';wm.src=`../assets/em/${ID}.webp`;wm.alt='';wm.setAttribute('aria-hidden','true');document.querySelector('.tmhero').prepend(wm)}
 document.body.dataset.lg=lg;
 const played=T.games.filter(g=>g.gf!=null),future=T.games.filter(g=>g.gf==null);
 const hasSample=T.games.some(g=>g.s||g.ks);
@@ -121,8 +144,8 @@ document.getElementById('tableBox').innerHTML=`
     ${tile('Дома · в гостях',hm?`${hm[0]}–${hm[1]}`:'—',aw?` · ${aw[0]}–${aw[1]}`:'',null,'победы–поражения дома и на выезде')}
    </div>
    <div class="formbox"><span class="sl">Форма — последние 5 игр</span>
-    <ol class="frm" aria-label="Последние 5 игр, слева раньше">${last5.map(g=>{const r=RL[res(g)];return `<li class="${r[1]}" title="${esc(nm(g.o))}, ${g.gf}:${g.ga}${g.x?' '+g.x:''} — ${r[2]}"><b>${r[0]}</b><span>${g.gf}:${g.ga}</span></li>`}).join('')}</ol>
-    <p class="ss">Слева — раньше, справа — последняя игра. ОТ — поражение в овертайме или по буллитам. За 10 игр — <b>${T.l10s||T.l10+' '+plural(T.l10,'очко','очка','очков')}</b>.</p></div>
+    <ol class="frm" aria-label="Последние 5 игр, слева раньше">${last5.map(g=>{const t=formTitle(g);return `<li class="${RL[res(g)][1]}" title="${esc(t)}" aria-label="${esc(t)}"><b><img src="../assets/em/${esc(g.o)}.webp" alt="" loading="lazy"></b><span>${g.gf}:${g.ga}${g.x?' '+g.x:''}</span></li>`}).join('')}</ol>
+    <p class="ss">Слева — раньше, справа — последняя игра. В кружке — соперник: зелёный — победа, красный — поражение, серый — поражение в овертайме или по буллитам. За 10 игр — <b>${T.l10s||T.l10+' '+plural(T.l10,'очко','очка','очков')}</b>.</p></div>
   </div>
  </div>`;
 
