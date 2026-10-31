@@ -35,6 +35,7 @@
 ## Где что
 - Правила команды: `team/RULES.md`; порядок дня руководителя: `team/LEAD.md`; журнал: `team/LOG.md`; решения владельца
   от бота: `team/INBOX.md`; прогнозы: `team/picks/README.md`, история — `team/PICKS.md`.
+- Кэфы: в постах и пороге — Фонбет (`team/picks/fonbet.py`), Pinnacle — для вероятности; план — `docs/handoff/FONBET.md`.
 - Итоги дня: `team/daily/` (`morning.py`, `ask.py`, `banner.py`); послематчевые посты: `team/postmatch/README.md`.
 - Ролики: `render/reels/`, конвейер `team/reels_daily/`, правила роликов — `team/RULES.md` «Ролики».
 - Сайт: `team/site/`, `docs/handoff/SITE.md`. Соцсети: `docs/handoff/SMM_AGENT.md`.
