@@ -41,10 +41,15 @@ def main(src, out):
         for fmt in ('feed', 'story'):
             p = ec.render(legs, os.path.join(out, 'e%d_%s.jpg' % (k, fmt)), fmt=fmt,
                           cta='Разбор — в Telegram @jarvibet' if fmt == 'story' else None, **kw)
-            print(p, os.path.getsize(p) // 1024, 'КБ', flush=True)
+            print('::notice title=EXRENDER_%s::%d КБ' % (os.path.basename(p), os.path.getsize(p) // 1024), flush=True)
         p = ec.animate(legs, os.path.join(out, 'e%d_anim.mp4' % k), **kw)
-        print(p, os.path.getsize(p) // 1024, 'КБ', flush=True)
+        print('::notice title=EXRENDER_%s::%d КБ' % (os.path.basename(p), os.path.getsize(p) // 1024), flush=True)
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2])
+    try:
+        main(sys.argv[1], sys.argv[2])
+    except Exception as e:  # noqa: BLE001 — логи из облака закрыты: причина — пометкой
+        import traceback
+        print('::notice title=EXRENDER::%s' % traceback.format_exc()[-900:].replace('\n', ' | '), flush=True)
+        raise
