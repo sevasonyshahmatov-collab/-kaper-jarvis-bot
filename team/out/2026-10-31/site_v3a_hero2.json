@@ -1,0 +1,42 @@
+{
+ "day": "2026-10-31",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-10-31/site_v3a_hero2/hockey-hero2-before-after.jpg"
+   ],
+   "text": "Первый экран, было и стало. Вернул карточку матча: эмблемы, ставка словами, кэф, процент по модели и причина. Перекидных цифр, как на табло в аэропорту, больше нет нигде. Отсчёт до матча теперь обычными крупными цифрами. Цвет карточки меняется под лигу матча."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-10-31/site_v3a_hero2/hockey-card-open2.jpg"
+   ],
+   "text": "Раскрытая карточка матча. Последние 3 матча: слева результат, справа дата, без «@». Вместо наших ставок теперь «Личные встречи в этом сезоне», со счётом и победителем. Матчи и статистика взяты из данных сезона. Где данных нет, стоит пометка «пример»."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-10-31/site_v3a_hero2/team-ska-1440.jpg"
+   ],
+   "text": "Страница команды. Она открывается по нажатию на эмблему в «Лигах и клубах». На картинке СКА, компьютер."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-10-31/site_v3a_hero2/team-nhl_bos-390.jpg"
+   ],
+   "text": "Страница команды на телефоне, Бостон."
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Хоккей:\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/3a7c9712d3d27f363d403c3b9da5dfbe36be06cc/team/site/v3a/hockey/index.html\n\nСтраница команды:\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/3a7c9712d3d27f363d403c3b9da5dfbe36be06cc/team/site/v3a/team/index.html?id=ska\n\nТак лучше?"
+  }
+ ]
+}
