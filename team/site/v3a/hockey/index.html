@@ -253,6 +253,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Получать прогноз в 08:00 — @jarvibet</span><span aria-hidden="true">›</span></a>
 
 <script src="../assets/v3a.js"></script>
+<script src="../assets/data/teams.js"></script>
 <script>
 /* ПРИМЕРНЫЕ ДАННЫЕ (макет, как в v2: __TODAY, __RES, __MONTHS). На сайте их подставит build.py. */
 (()=>{
@@ -382,32 +383,33 @@ const ltabs=document.getElementById('ltabs'),list=document.getElementById('mlist
 ltabs.innerHTML=`<button class="tab" role="tab" aria-selected="true" data-l="all">Все <span class="c">${D.length}</span></button>`+
  Object.entries(LG).map(([id,l])=>`<button class="tab" role="tab" aria-selected="false" data-l="${id}">${LGP(id)}${l.name} <span class="c">${cnt(id)}</span></button>`).join('');
 D.forEach((m,i)=>m.tot=window.__HTOT[i%window.__HTOT.length]);
-/* детерминированный «случай» по названиям команд — одинаковые примерные данные при каждом открытии */
-const seedOf=t=>[...t].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,7);
-const rng=seed=>()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
-const two=n=>String(n).padStart(2,'0');
-function det(m){if(m.det)return m.det;const r=rng(seedOf(m.a+m.b)),pool=(m.lg==='khl'?KHL_CLUBS:NHL_CLUBS).map(c=>c[0]).filter(n=>n!==m.a&&n!==m.b);
- const team=(name,str)=>{const games=[];for(let g=0;g<5;g++){const opp=pool[(r()*pool.length)|0],home=r()<.5,q=r(),res=q<str?'w':q<str+.12?'o':'l';
-   let x=1+((r()*4)|0),y=(r()*x)|0;if(res==='o'){y=x;x=x+1}if(res==='l')[x,y]=[y,x+ (x===y?1:0)];
-   const d=new Date(Date.now()-(2+g*2+((r()*2)|0))*864e5);games.push({d:`${two(d.getDate())}.${two(d.getMonth()+1)}`,opp,home,sc:`${x}:${y}${res==='o'?' ОТ':''}`,res})}
-  const gf=(2.3+r()*1.3),ga=(2.1+r()*1.2);
-  return {name,games,st:[['Шайбы за игру',gf.toFixed(1).replace('.',',')],['Пропущено за игру',ga.toFixed(1).replace('.',',')],['Большинство',`${(17+r()*12).toFixed(1).replace('.',',')} %`],['Меньшинство',`${(76+r()*9).toFixed(1).replace('.',',')} %`],['Место в конференции',`${1+((r()*12)|0)}`]]}};
- const A=team(m.a,.38+r()*.25),B=team(m.b,.38+r()*.25);
- const lineT=m.tot[0],bets=[];
- const kinds=[t=>`Победа ${t}`,()=>`ТБ ${lineT}`,t=>`${t}: ИТБ 2,5`,()=>`ТМ ${lineT}`,t=>`${t} не проиграет`];
- for(let k=0;k<4;k++){const t=r()<.5?m.a:m.b,d=new Date(Date.now()-(3+k*3+((r()*3)|0))*864e5);bets.push({d:`${two(d.getDate())}.${two(d.getMonth()+1)}`,t:kinds[(r()*kinds.length)|0](t),k:(1.6+r()*.6).toFixed(2).replace('.',','),ok:r()<.68})}
- return m.det={A,B,bets}}
-const RES={w:'В',l:'П',o:'ОТ'},RESF={w:'победа',l:'поражение',o:'овертайм или буллиты'};
-function back(m){const {A,B,bets}=det(m);
- const last=t=>`<div class="l3"><h5>${CI(t.name)}${esc(t.name)}</h5><ul>${t.games.slice(0,3).map(g=>`<li><span class="d">${g.d}</span><span class="op">${g.home?'':'@ '}${CI(g.opp)}${esc(g.opp)}</span><span class="sc num">${g.sc}</span><b class="rs ${g.res}" title="${RESF[g.res]}">${RES[g.res]}</b></li>`).join('')}</ul></div>`;
- const form=t=>`<div class="fm"><span>${CI(t.name)}${esc(t.name)}</span><span class="dots" aria-label="форма: ${t.games.map(g=>RESF[g.res]).join(', ')}">${t.games.map(g=>`<i class="${g.res}">${RES[g.res]}</i>`).join('')}</span></div>`;
+/* раскрытая карточка — из assets/data/teams.js (матчи сезона с живого сайта; у записей s:1 — пример) */
+const TD=(window.JV_TEAMS||{}).teams||{},SL=n=>EM[club(n)];
+const dd=t=>`${t.slice(8,10)}.${t.slice(5,7)}`;
+const played=g=>g.gf!=null&&g.ga!=null;
+const rOf=g=>g.gf>g.ga?'w':g.x?'o':'l';
+const RES={w:'В',l:'П',o:'ОТ'},RESF={w:'победа',l:'поражение',o:'поражение в овертайме или по буллитам'};
+function det(m){if(m.det)return m.det;const A=TD[SL(m.a)]||null,B=TD[SL(m.b)]||null;
+ const games=T=>T?T.games.filter(played).sort((x,y)=>x.d<y.d?1:-1):[];
+ const st=T=>T?[['Шайбы за игру',(T.gf/T.gp).toFixed(1).replace('.',',')],['Пропущено за игру',(T.ga/T.gp).toFixed(1).replace('.',',')],['Очки',T.pts],['Победы — поражения',`${T.w} — ${T.l}`],['Место в конференции',T.place]]:[];
+ const h2h=A?games(A).filter(g=>g.o===SL(m.b)):[];
+ return m.det={A:{name:m.a,g:games(A),st:st(A)},B:{name:m.b,g:games(B),st:st(B)},h2h}}
+function back(m){const {A,B,h2h}=det(m),nmS=sl=>(window.JV_TEAMS.names||{})[sl]||sl;
+ const smp=g=>g.s?' <span class="smp">пример</span>':'';
+ const last=t=>`<div class="l3"><h5>${CI(t.name)}${esc(t.name)}</h5><ul>${t.g.slice(0,3).map(g=>{const r=rOf(g);return `<li><b class="rs ${r}" title="${RESF[r]}">${RES[r]}</b><span class="op">${CI(nmS(g.o))}${esc(nmS(g.o))}</span><span class="sc num">${g.gf}:${g.ga}${g.x?`<small>${g.x}</small>`:''}</span><span class="d">${dd(g.d)}${smp(g)}</span></li>`}).join('')||'<li class="none">Нет данных</li>'}</ul></div>`;
+ const form=t=>`<div class="fm"><span>${CI(t.name)}${esc(t.name)}</span><span class="dots" aria-label="форма: ${t.g.slice(0,5).map(g=>RESF[rOf(g)]).join(', ')}">${t.g.slice(0,5).map(g=>`<i class="${rOf(g)}">${RES[rOf(g)]}</i>`).join('')}</span></div>`;
+ /* личные встречи: счёт с точки зрения хозяев матча m.a */
+ const wA=h2h.filter(g=>g.gf>g.ga).length,wB=h2h.length-wA;
+ const h2hHTML=h2h.length?`<p class="h2t"><span>${CI(m.a)}${esc(m.a)}</span><b class="num">${wA} — ${wB}</b><span>${esc(m.b)}${CI(m.b)}</span></p><ul class="h2l">${h2h.map(g=>{const home=g.h?m.a:m.b,away=g.h?m.b:m.a,hs=g.h?g.gf:g.ga,as=g.h?g.ga:g.gf,aw=g.gf>g.ga;
+   return `<li class="${aw?'wa':'wb'}"><span class="d">${dd(g.d)}</span><span class="pp">${CI(home)}<span class="${hs>as?'wn':''}">${esc(home)}</span></span><span class="sc num"><b class="${hs>as?'wn':''}">${hs}</b>:<b class="${as>hs?'wn':''}">${as}</b>${g.x?`<small>${g.x}</small>`:''}</span><span class="pp aw">${CI(away)}<span class="${as>hs?'wn':''}">${esc(away)}</span></span>${smp(g)}</li>`}).join('')}</ul>`
+  :`<p class="none">В этом сезоне ещё не встречались.</p>`;
  return `<div class="xd">
   <section class="xb x-last"><h4>Последние 3 матча</h4><div class="two">${last(A)}${last(B)}</div></section>
   <section class="xb x-form"><h4>Форма <span class="note">последние 5, слева — свежий</span></h4>${form(A)}${form(B)}</section>
-  <section class="xb x-stat"><h4>Статистика команды</h4><table class="st"><thead><tr><th></th><th>${CI(A.name)}<span>${esc(A.name)}</span></th><th>${CI(B.name)}<span>${esc(B.name)}</span></th></tr></thead>
-   <tbody>${A.st.map((r,i)=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${B.st[i][1]}</td></tr>`).join('')}</tbody></table></section>
-  <section class="xb x-bets"><h4>Что заходило в наших ставках</h4><ul>${bets.map(b=>`<li><span class="d">${b.d}</span><span>${esc(b.t)}</span><span class="num k">${b.k}</span><b class="${b.ok?'ok':'no'}" aria-label="${b.ok?'зашла':'не зашла'}">${b.ok?'✓':'✕'}</b></li>`).join('')}</ul></section>
-  <p class="note xn"><span class="sample">Пример данных</span> Полная статистика — в мини-приложении и таблице.</p></div>`}
+  <section class="xb x-stat"><h4>Статистика команды <span class="note">сезон 2026/27</span></h4><table class="st"><thead><tr><th></th><th>${CI(A.name)}<span>${esc(A.name)}</span></th><th>${CI(B.name)}<span>${esc(B.name)}</span></th></tr></thead>
+   <tbody>${A.st.map((r,i)=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${B.st[i]?B.st[i][1]:'—'}</td></tr>`).join('')}</tbody></table></section>
+  <section class="xb x-h2h"><h4>Личные встречи в этом сезоне</h4>${h2hHTML}</section>
+  <p class="note xn">Матчи и статистика — по данным сезона; помеченное «пример» — примерные данные макета.</p></div>`}
 function row(m){const L=LG[m.lg],ln=line(m),mx=Math.max(...ln),[tl,to,tu]=m.tot;
  return `<li class="match ${m.lg}"><button class="mhead" type="button" aria-expanded="false">
   <div class="mt"><time>${m.t.slice(11)}</time><span class="cd" data-t="${m.t}"></span></div>

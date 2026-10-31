@@ -903,3 +903,25 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 .period .pn::after{display:none}
 @media (max-width:620px){.period .pn{height:30px;min-width:30px;font-size:21px}}
 @media (min-width:981px){.hero .board,.hero .get8{max-width:540px}}
+/* раскрытая карточка: последние 3 — результат слева под эмблемой, дата справа; личные встречи */
+.l3 li{grid-template-columns:30px minmax(0,1fr) auto auto;gap:8px}
+.l3 h5{padding-left:2px}
+.l3 .rs{height:22px;width:30px}
+.l3 .sc small,.h2l .sc small{font-size:11px;color:var(--ink-3);margin-left:3px;font-weight:600}
+.l3 .d{font-size:13px;text-align:right;white-space:nowrap}
+.l3 .none,.x-h2h .none{color:var(--ink-3);font-size:15px}
+.smp{font:600 10px/1 var(--display);text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);background:rgba(16,22,31,.07);padding:2px 4px;border-radius:3px;margin-left:4px}
+.h2t{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px;font:700 16px/1.1 var(--display)}
+.h2t span{display:flex;align-items:center;gap:6px;min-width:0}
+.h2t b{font:800 28px/1 var(--display)}
+.h2l{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.h2l li{display:grid;grid-template-columns:42px minmax(0,1fr) auto minmax(0,1fr) auto;align-items:center;gap:8px;font:500 14px/1.2 var(--display);padding:6px 0;border-top:1px solid rgba(16,22,31,.08)}
+.h2l li:first-child{border-top:0}
+.h2l .d{color:var(--ink-3)}
+.h2l .pp{display:flex;align-items:center;gap:5px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h2l .pp.aw{flex-direction:row-reverse;justify-content:flex-start}
+.h2l .pp .em{width:18px;height:18px}
+.h2l .wn{font-weight:800;color:var(--ink)}
+.h2l .sc{font:500 22px/1 var(--display);color:var(--ink-3)}
+.h2l .sc b{font-weight:500}.h2l .sc b.wn{font-weight:800;color:#1a7342}
+@media (max-width:560px){.h2l li{grid-template-columns:38px minmax(0,1fr) auto minmax(0,1fr);font-size:13px}.h2l .smp{display:none}.l3 li{font-size:13.5px}}
