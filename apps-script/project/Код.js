@@ -15727,6 +15727,7 @@ function teamCallback_(q, parts) {
       teamEditPubSave_(m.chat.id, m.message_id, album ? album.first : null, r.result);   // номер поста в канале — для правок до начала матча
       try { pmWatchSave_(pid, String(m.caption || m.text || ''), r.result); } catch (e) { console.log('послематчевый пост: ' + e.message); }
       answer('Опубликовано в канал');
+      if (expressDay_(pid)) { try { expressAfterPub_(m, pid); } catch (e) { console.log('экспресс → Instagram: ' + e.message); } }
       teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · опубликовано владельцем: ' + pid + ' ' + title, 'Inbox: draft published by the owner');
     } else if (act === 'unsched') {
       var sv = teamSchedGet_(m.chat.id, m.message_id);
@@ -15754,6 +15755,34 @@ function teamCallback_(q, parts) {
         reply_markup: { force_reply: true, input_field_placeholder: 'что поправить' } });
     } else answer();
   } catch (e) { answer('Не получилось: ' + String(e.message).slice(0, 150), true); }
+}
+
+/* ── 🎟 Купон «Экспресс» (владелец 31.10, team/picks/EXPRESS.md) ──
+ *  Купоны приходят черновиками с номером ДДММ-eN (3110-e1) и шапкой без времени («НХЛ · 31 октября · экспресс»):
+ *  «Опубликовать» выпускает купон в канал сразу (teamEditStart_ не находит времени — не за 1,5 / 4 ч, как прогнозы).
+ *  После публикации бот запускает itogi.yml на ветке команды (задание team/out/<день>/express_ig.json — из заготовки
+ *  team/daily/jobs/express_ig.json; payload express.pid): Actions рисуют картинки и публикуют купон в Instagram — лента
+ *  (картинка + подпись) и сторис (видео). Нажатие кнопки = согласие владельца (team/picks/express_ig.py без него не
+ *  публикует). Не удалось запустить — сообщение под купоном; канал не откатываем. Итог Instagram пришлёт сам запуск. */
+
+/** «3110-e1» → «2026-10-31» (день купона по МСК); не купон — null. */
+function expressDay_(pid) {
+  var m = String(pid || '').match(/^(\d\d)(\d\d)-e\d{1,2}$/);
+  if (!m) return null;
+  var now = new Date(), y = Number(Utilities.formatDate(now, 'Europe/Moscow', 'yyyy'));
+  if (m[2] === '12' && Utilities.formatDate(now, 'Europe/Moscow', 'MM') === '01') y -= 1;   // декабрьский купон, нажали в январе
+  return y + '-' + m[2] + '-' + m[1];
+}
+
+/** Купон вышел в канал → itogi.yml: Instagram (лента + сторис). */
+function expressAfterPub_(m, pid) {
+  var day = expressDay_(pid);
+  if (!day) return;
+  var r = recapDispatch_({ kind: 'team', job: 'team/out/' + day + '/express_ig.json', day: day, express: { pid: pid } });
+  if (!r.ok) {
+    tg_('sendMessage', { chat_id: m.chat.id, reply_to_message_id: m.message_id,
+      text: '⚠️ Купон ' + pid + ' в канале, но в Instagram не отправлен: ' + r.why });
+  }
 }
 
 /* ── ⏰ Выход поста за полтора часа до матча (решение владельца 15.10) ──
