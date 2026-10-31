@@ -128,7 +128,9 @@ def main(path):
         if not re.search(r'^Прогноз: <b>[^<]+</b>$', text, re.M):
             errs.append('%s: нет строки «Прогноз: <b>…</b>»' % where)
         km = re.search(r'^Кэф: <b>(\d+),(\d\d)</b>$', text, re.M)
-        if not km:
+        if not km and re.search(r'^Кэф: <b>—</b>$', text, re.M):
+            warns.append('%s: кэф «—» — нет линии, ставка по модели (README, «Посты на ВСЕ матчи дня»)' % where)
+        elif not km:
             errs.append('%s: нет строки «Кэф: <b>1,67</b>» (запятая, две цифры)' % where)
         elif float(km.group(1) + '.' + km.group(2)) < 1.6:
             warns.append('%s: кэф ниже 1,6 — правило владельца: от 1,6' % where)
