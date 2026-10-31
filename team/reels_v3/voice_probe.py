@@ -53,6 +53,7 @@ def to_mp4(png, wav, sr, out):
 
 
 def main(job_path):
+    tts.ensure_ffmpeg()
     outdir = os.path.join(os.path.dirname(job_path), 'voice_probe')
     os.makedirs(outdir, exist_ok=True)
     msgs, report = [], []

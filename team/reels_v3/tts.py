@@ -37,8 +37,16 @@ def _pip(*pkgs):
     subprocess.run([sys.executable, '-m', 'pip', 'install', '-q', *pkgs], check=True)
 
 
+def ensure_ffmpeg():
+    """На раннере Actions ffmpeg нет — ставим (как reels-daily.yml)."""
+    import shutil
+    if not shutil.which('ffmpeg'):
+        subprocess.run('sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null', shell=True, check=True)
+
+
 def _read_any(path):
     """Любой аудиофайл → float32 моно SR (через ffmpeg)."""
+    ensure_ffmpeg()
     raw = subprocess.run(['ffmpeg', '-v', 'error', '-i', path, '-f', 'f32le', '-ac', '1', '-ar', str(SR), '-'],
                          check=True, capture_output=True).stdout
     return np.frombuffer(raw, dtype=np.float32).copy()
@@ -56,7 +64,7 @@ def _resample(wav, sr):
     return _read_any(path)
 
 
-def say_edge(text, voice='ru-RU-DmitryNeural', rate='+6%', pitch='+0Hz'):
+def say_edge(text, voice='ru-RU-DmitryNeural', rate='+8%', pitch='+0Hz'):
     try:
         import edge_tts
     except ImportError:
