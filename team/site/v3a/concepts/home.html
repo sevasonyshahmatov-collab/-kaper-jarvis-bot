@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JARVIS — концепт главной</title><link rel="stylesheet" href="concepts.css"></head><body>
+<div class="dark" style="padding-bottom:60px">
+<div class="arena-lines"></div>
+<div class="wrap">
+  <header class="top"><a class="logo" href="#">JARVIS</a>
+    <nav class="nav"><a href="#">Хоккей</a><a href="#">Футбол</a><a href="archive.html">Счёт</a><a class="keep" href="#">Telegram</a><span class="age">18+</span></nav></header>
+  <div style="position:relative;z-index:2;padding-top:28px">
+    <div class="kick">Пятница, 31 октября · игровой день</div>
+    <h1 class="disp" style="font-size:clamp(54px,9vw,128px);margin:14px 0 0">Разбор матча —<br>за пять минут</h1>
+    <p class="lead" style="font-size:21px">Форма, линия и вероятность модели на одном экране. Решаешь ты.</p>
+  </div>
+  <div class="doors">
+    <article class="door h"><div class="bar"></div>
+      <div class="leagues"><span class="lgbox" style="background:linear-gradient(90deg,var(--khl) 0 72%,var(--khl-2) 72%)"><img src="../assets/lg/khl.webp" alt="КХЛ"></span><span class="lgbox" style="background:linear-gradient(90deg,var(--nhl) 0 72%,var(--nhl-2) 72%)"><img src="../assets/lg/nhl.webp" alt="НХЛ"></span></div>
+      <h3>Хоккей</h3>
+      <div class="next"><span class="t">19:30</span>
+        <span class="pair"><img class="crest" style="--s:36px" src="../assets/em/ska.webp" alt="СКА"> СКА — ЦСКА <img class="crest" style="--s:36px" src="../assets/em/cska.webp" alt="ЦСКА"></span>
+        <span class="st">прогноз готов</span></div>
+      <div class="more">ещё сегодня: <b>Салават — Ак Барс 17:00</b> · <b>Авангард — Металлург 19:00</b> · <b>СТЛ — БОС 02:00</b></div><div class="facts"><div class="fact"><b>6</b><span>матчей сегодня</span></div><div class="fact"><b class="num" style="font-family:var(--display)">108 из 153</b><span>зашло · октябрь · 71 %</span></div></div>
+      <div style="margin-top:auto"><a class="btn" href="#" style="background:var(--ink);color:#f3f0e4;border-color:var(--ink)">В хоккей →</a></div>
+    </article>
+    <article class="door f"><div class="bar"></div>
+      <div class="leagues"><img src="../assets/lg/epl.svg" alt="АПЛ"><img src="../assets/lg/laliga.svg" alt="Ла Лига"><img src="../assets/lg/seriea.svg" alt="Серия А"><img src="../assets/lg/bundesliga.svg" alt="Бундеслига"><img src="../assets/lg/ligue1.svg" alt="Лига 1"><img src="../assets/lg/ucl.svg" alt="ЛЧ"></div>
+      <h3>Футбол</h3>
+      <div class="next"><span class="t">22:00</span>
+        <span class="pair"><img class="crest" style="--s:36px" src="../assets/fc/arsenal.webp" alt="Арсенал"> Арсенал — Ливерпуль <img class="crest" style="--s:36px" src="../assets/fc/liverpool.webp" alt="Ливерпуль"></span>
+        <span class="st" style="color:var(--ink-3)">прогноз в 16:00</span></div>
+      <div class="more">ещё сегодня: <b>Интер — Милан 19:45</b> · <b>Барселона — Севилья 21:30</b> · <b>ПСЖ — Лион 22:45</b></div><div class="facts"><div class="fact"><b>9</b><span>матчей сегодня</span></div><div class="fact"><b style="font-size:24px;padding-top:6px">проба с 30.10</b><span>считаем отдельно · без процента</span></div></div>
+      <div style="margin-top:auto"><a class="btn alt" href="#">В футбол →</a></div>
+    </article>
+  </div>
+  <p style="position:relative;z-index:2;margin:14px 0 0;font:600 12px/1.3 var(--sans);color:#9fb2d4">Матчи и время — <span class="ex" style="vertical-align:1px">пример</span></p>
+</div></div>
+
+<!-- 2. Прогноз дня -->
+<section class="blk" style="border-top:0;padding-top:20px"><div class="wrap">
+  <div class="head"><div><div class="kick">Прогноз дня</div><h2 class="sec">Один матч — целиком</h2></div><span class="ex">пример данных</span></div>
+  <div class="pick">
+    <div class="l">
+      <div class="mhead"><span class="lgchip khl"><img src="../assets/lg/khl.webp" alt="">КХЛ</span><span class="num" style="font-weight:700">Сегодня, 19:30 МСК · Санкт-Петербург</span></div>
+      <div class="vs">
+        <div class="team"><img class="crest" style="--s:84px" src="../assets/em/ska.webp" alt=""><div><div class="nm">СКА</div><div class="sub">дома · 7 побед в 9</div></div></div>
+        <div class="dash">—</div>
+        <div class="team r2"><img class="crest" style="--s:84px" src="../assets/em/cska.webp" alt=""><div><div class="nm">ЦСКА</div><div class="sub">в гостях · 3 из 8</div></div></div>
+      </div>
+      <div class="prob" style="--a:61%;--b:12%"><div>П1 61 %</div><div>ОТ</div><div>П2 27 %</div></div>
+      <div class="pcap"><span>Победа СКА · выбран исход</span><span>Овертайм</span><span>Победа ЦСКА</span></div>
+      <div class="tiny" style="margin-top:20px">Форма, последние 5</div><div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center;margin-top:8px"><b class="disp" style="font-size:18px">СКА</b><div class="dots" style="margin:0"><i>✓</i><i>✓</i><i class="x">✕</i><i>✓</i><i>✓</i></div><b class="disp" style="font-size:18px">ЦСКА</b><div class="dots" style="margin:0"><i class="x">✕</i><i>✓</i><i class="x">✕</i><i class="p">↺</i><i>✓</i></div></div><div class="stamp"><span>опубликовано 07:42</span><span>пост №1234</span><span>кэф 1,70</span></div>
+    </div>
+    <div class="r">
+      <div class="tiny">Модель против рынка</div>
+      <div class="scale"><div class="ax"></div><div class="rng" style="left:59%;width:2%"></div>
+        <div class="dot k" style="left:59%"></div><div class="dot m" style="left:61%"></div>
+        <div class="dotl" style="left:59%;top:42px;transform:translateX(-90%)">рынок 59 %</div><div class="dotl" style="left:61%;transform:translateX(-10%)">модель 61 %</div></div>
+      <div class="num" style="font-size:14px;margin:6px 0 16px">Линия 1,70 → рынок даёт 59 % · расхождение +2 п.п.</div>
+      <div class="tiny" style="margin-bottom:6px">Почему</div>
+      <ol class="why">
+        <li>Хозяева: 7 побед в 9 домашних матчах</li>
+        <li><div>Вратарь гостей — запасной <em>вероятно · данные на 14:20</em></div></li>
+        <li>Личные встречи: тотал больше в 4 из 5</li>
+      </ol>
+      <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap"><a class="btn" href="match.html">Весь разбор →</a><a class="btn alt" href="#">Все матчи дня</a></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- 3. Счёт -->
+<section class="blk"><div class="wrap">
+  <div class="head"><div><div class="kick">Счёт прогнозов · октябрь</div><h2 class="sec">Все прогнозы.<br>И минусы тоже</h2></div><a class="btn alt" href="archive.html">Весь архив →</a></div>
+  <div class="score2">
+    <div><div class="huge">108<small> из 153</small></div>
+      <div class="sub2"><span><b>71 %</b> зашло</span><span><b>42</b> не зашли</span><span><b>3</b> возврата</span></div>
+      <div class="sub2"><span class="ex">ROI — скоро</span><span class="ex">средний кэф — считаем</span></div>
+      <p style="font:500 13px/1.4 var(--sans);color:var(--ink-3);margin:16px 0 0">Выборка небольшая. Смотрите на дистанции.</p>
+      <div style="margin-top:22px;padding:12px 14px;border:1px solid var(--ink);background:var(--card)"><div class="tiny">Футбол</div><div style="font:600 15px/1.35 var(--sans);margin-top:4px">Проба с 30.10 — считаем отдельно.<br><span style="color:var(--ink-3)">Проверка на истории — не реальные ставки.</span></div></div></div>
+    <div><div class="tiny">Последние 30 прогнозов · новые справа</div>
+      <div class="sq" id="sq"></div>
+      <table class="tbl cards"><thead><tr><th>Дата</th><th>Матч</th><th>Ставка</th><th class="n">Кэф</th><th class="n">Опубликовано</th><th>Итог</th><th class="n">Пост</th></tr></thead><tbody>
+      <tr><td class="n">30.10</td><td><span class="mt"><img class="crest" src="../assets/em/nhl_stl.webp" alt="">СТЛ — БОС<img class="crest" src="../assets/em/nhl_bos.webp" alt=""></span></td><td>ИТБ 2,5</td><td class="n">1,75</td><td class="n">14:12</td><td><span class="res x">✕</span></td><td class="n">№1229</td></tr>
+      <tr><td class="n">30.10</td><td><span class="mt"><img class="crest" src="../assets/em/salavat.webp" alt="">САЛ — АКБ<img class="crest" src="../assets/em/akbars.webp" alt=""></span></td><td>П1</td><td class="n">1,82</td><td class="n">07:51</td><td><span class="res">✓</span></td><td class="n">№1226</td></tr>
+      <tr><td class="n">30.10</td><td><span class="mt"><img class="crest" src="../assets/em/avangard.webp" alt="">АВА — МЕТ<img class="crest" src="../assets/em/metallurg.webp" alt=""></span></td><td>ТБ 4,5</td><td class="n">1,90</td><td class="n">07:49</td><td><span class="res">✓</span></td><td class="n">№1225</td></tr>
+      <tr><td class="n">29.10</td><td><span class="mt"><img class="crest" src="../assets/em/nhl_tor.webp" alt="">ТОР — МТЛ<img class="crest" src="../assets/em/nhl_mtl.webp" alt=""></span></td><td>П1</td><td class="n">1,66</td><td class="n">14:05</td><td><span class="res p">↺</span></td><td class="n">№1221</td></tr>
+      <tr><td class="n">29.10</td><td><span class="mt"><img class="crest" src="../assets/em/lokomotiv.webp" alt="">ЛОК — ТОР<img class="crest" src="../assets/em/torpedo.webp" alt=""></span></td><td>П1</td><td class="n">1,95</td><td class="n">07:44</td><td><span class="res x">✕</span></td><td class="n">№1218</td></tr>
+      </tbody></table>
+      <p style="margin:10px 0 0"><span class="ex">строки таблицы — пример</span></p></div>
+  </div>
+</div></section>
+<script>
+(function(){var s="1101110111011111011101101111011110".replace(/./g,function(c,i){return c}).slice(0,30);var o="";for(var i=0;i<30;i++){var c=s[i];var r=i==12?'p':(c=='0'?'x':'');o+='<i class="'+r+'">'+(r=='p'?'↺':(c=='0'?'✕':'✓'))+'</i>'}document.getElementById('sq').innerHTML=o})();
+</script>
+
+<!-- 4. Игровой день -->
+<section class="blk"><div class="wrap">
+  <div class="head"><div><div class="kick">Твой игровой день · МСК</div><h2 class="sec">Когда и что смотреть</h2></div></div>
+  <div class="timeline">
+    <div><div class="h">08<small>:00</small></div><p>Прогнозы КХЛ в канале</p><div class="mini">Пост: СКА — ЦСКА, П1, 1,70</div></div>
+    <div><div class="h">днём</div><p>Разобрать матч: форма, вратари, линия</p><div class="mini">Карточка матча: 3 фактора</div></div>
+    <div><div class="h">за 5 ч</div><p>Футбол: прогноз на вечер</p><div class="mini">Арсенал — Ливерпуль, 16:00</div></div>
+    <div><div class="h">14<small>:00</small></div><p>НХЛ на ночь</p><div class="mini">Пост: СТЛ — БОС, ИТБ</div></div>
+    <div><div class="h">утро</div><p>Итоги вчера: все, и минусы</p><div class="mini">Итоги: 6 прогнозов, 4 ✓</div></div>
+  </div>
+  <div class="three">
+    <div class="tile"><h4>Уже выбрал ставку — сверься</h4><p>Шкала «модель / рынок» покажет, где ты расходишься с цифрами.</p>
+      <div class="scale" style="margin:0;height:46px"><div class="ax"></div><div class="dot k" style="left:56%"></div><div class="dot m" style="left:64%"></div></div></div>
+    <div class="tile"><h4>Болеешь за клуб — открой его</h4><p>Страница команды: форма, тренды, твои матчи.</p>
+      <div class="crests" style="grid-template-columns:repeat(6,1fr)"><img src="../assets/em/ska.webp" alt=""><img src="../assets/em/cska.webp" alt=""><img src="../assets/em/spartak.webp" alt=""><img src="../assets/em/dinamo_msk.webp" alt=""><img src="../assets/em/lokomotiv.webp" alt=""><img src="../assets/em/torpedo.webp" alt=""><img src="../assets/em/akbars.webp" alt=""><img src="../assets/em/salavat.webp" alt=""><img src="../assets/em/avangard.webp" alt=""><img src="../assets/em/metallurg.webp" alt=""><img src="../assets/em/sibir.webp" alt=""><img src="../assets/em/traktor.webp" alt=""></div></div>
+    <div class="tile"><h4>Нет времени — прогноз дня</h4><p>Одна карточка: матч, вероятность, три причины.</p>
+      <div style="border:1px solid var(--ink);padding:10px;background:#fff;display:flex;align-items:center;gap:10px"><img class="crest" style="--s:30px" src="../assets/em/ska.webp" alt=""><b class="disp" style="font-size:20px">СКА — ЦСКА</b><img class="crest" style="--s:30px" src="../assets/em/cska.webp" alt=""><span class="num" style="margin-left:auto;font-weight:800">61 %</span></div></div>
+  </div>
+</div></section>
+
+<!-- 5. До и после -->
+<section class="blk"><div class="wrap">
+  <div class="head"><div><div class="kick">Что видно до матча</div><h2 class="sec">До и после — на примере</h2></div><span class="ex">пример разбора</span></div>
+  <div class="seg"><span>Зашёл</span><span class="on">Не зашёл</span></div>
+  <div class="ba">
+    <div><div class="tiny">До матча · 14:12</div>
+      <div style="display:flex;align-items:center;gap:12px;margin:14px 0"><img class="crest" style="--s:64px" src="../assets/em/nhl_stl.webp" alt=""><b class="disp" style="font-size:40px">Сент-Луис — Бостон</b><img class="crest" style="--s:64px" src="../assets/em/nhl_bos.webp" alt=""></div>
+      <div class="num" style="font-size:15px;margin-bottom:10px">Ставка: ИТБ 2,5 · кэф 1,75 · модель 63 %</div>
+      <ol class="why"><li>У Бостона 6 из 8 в гостях с ИТ больше 2,5</li><li>Сент-Луис пропускает 3,3 за игру на домашнем льду</li><li><div>Вратарь Сент-Луиса — основной <em>подтверждён</em></div></li></ol></div>
+    <div><div class="tiny">После матча</div>
+      <div class="finalscore" style="margin:14px 0"><span>1 : 2</span><span class="res x" style="width:48px;height:48px;font-size:28px">✕</span></div>
+      <p style="margin:0 0 10px;font:400 16px/1.45 var(--text)"><b>Что сработало:</b> Бостон создал моменты, как и ждала модель.</p>
+      <p style="margin:0;font:400 16px/1.45 var(--text)"><b>Что не учли:</b> вратарь хозяев отразил 94 % бросков. Промах остаётся в счёте.</p>
+      <p class="tiny" style="margin:18px 0 0">Пять минут на матч вместо десяти вкладок</p></div>
+  </div>
+</div></section>
+
+<!-- 6. Как думает модель -->
+<section class="blk"><div class="wrap">
+  <div class="head"><div><div class="kick">Как думает модель</div><h2 class="sec">Три шага</h2></div><a class="btn alt" href="how.html">Как мы считаем →</a></div>
+  <div class="steps">
+    <div><div class="no">1</div><h4>Форма</h4><p>Результаты, броски и Эло каждого клуба за сезон.</p></div>
+    <div><div class="no">2</div><h4>Линия</h4><p>Вероятность из кэфа без маржи — это мнение рынка.</p></div>
+    <div><div class="no">3</div><h4>Выбор</h4><p>Ставка выходит, только когда модель даёт от 60 % при кэфе 1,6–2,3.</p></div>
+  </div>
+  <div class="simb"><div style="height:100%">П1 61 %</div><div style="height:20%">ОТ 12 %</div><div style="height:44%">П2 27 %</div></div>
+  <p class="tiny" style="margin-top:8px">10 000 розыгрышей одного матча · <span class="ex">пример</span></p>
+</div></section>
+
+<!-- 7. Бесплатное и платное -->
+<section class="blk"><div class="wrap">
+  <div class="head"><div><div class="kick">Для тех, кто считает сам</div><h2 class="sec">Что бесплатно, что глубже</h2></div></div>
+  <div class="two">
+    <div><h4>Бесплатно всегда</h4><ul><li>Прогноз на каждый матч</li><li>Разбор: форма, вратари, линия</li><li>Весь архив, с минусами</li><li>Страницы команд</li><li>Канал в Telegram</li></ul></div>
+    <div><h4>Аналитическая таблица</h4><p style="margin:0;font:400 16px/1.45 var(--text);color:var(--ink-2)">20+ листов: Эло, «что заходит у команд», купон, банкролл, досье, травмы.</p>
+      <div class="sheets"><div>Эло</div><div>Купон</div><div>Банкролл</div><div>Травмы</div></div>
+      <p style="margin:16px 0 0;font:600 14px/1.4 var(--sans)">Оплата появится скоро. Узнать первым — в Telegram.</p></div>
+  </div>
+</div></section>
+
+<!-- 8. Telegram и FAQ -->
+<section class="blk"><div class="wrap tg">
+  <div><div class="kick">Telegram · @jarvibet</div><h2 class="sec">Прогнозы приходят сами</h2>
+    <p class="lead">Пост на каждый матч, ролики и итоги дня. Время публикации видно у каждого.</p>
+    <div class="post" style="margin:22px 0"><b>КХЛ · СКА — ЦСКА</b>Ставка: П1 · кэф 1,70 · модель 61 %<br>Почему: дом 7 из 9, запасной вратарь гостей, H2H.<div class="m">07:42 · №1234 · <span class="ex">пример</span></div></div>
+    <a class="btn" href="#">Открыть канал →</a></div>
+  <div class="faq"><div class="kick" style="margin-bottom:12px">Вопросы</div>
+    <details open><summary>Это платно?</summary><p>Прогнозы, разборы и архив бесплатны. Платной будет аналитическая таблица.</p></details>
+    <details><summary>Где все итоги?</summary><p>В архиве «Счёт»: с временем публикации, кэфом и номером поста.</p></details>
+    <details><summary>Почему 71 %, а не ROI?</summary><p>ROI считаем и покажем здесь. Пока он не посчитан, мы его не пишем.</p></details>
+    <details><summary>Модель знает про вратаря?</summary><p>Показываем состав вратарей с пометкой: подтверждено или вероятно.</p></details>
+    <details><summary>Какие лиги?</summary><p>КХЛ, НХЛ и пять футбольных лиг плюс Лига чемпионов.</p></details>
+    <details><summary>Что такое ВЫБОР?</summary><p>Ставка, на которую модель даёт от 60 % при кэфе 1,6–2,3.</p></details>
+    <details><summary>Футбол — почему отдельно?</summary><p>Там проба с 30.10: считаем отдельно, чтобы не смешивать цифры.</p></details></div>
+</div></section>
+<footer class="f"><div class="wrap"><span class="age">18+</span><div>Прогноз — это вероятность, а не обещание. Ставки несут риск потери денег. Самозапрет на ставки — на Госуслугах. Эмблемы — собственность клубов.</div></div></footer>
+<div class="sticky-tg"><span>Прогнозы — в Telegram @jarvibet</span><a href="#">Открыть</a></div>
+</body></html>
