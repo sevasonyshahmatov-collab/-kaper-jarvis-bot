@@ -1,0 +1,28 @@
+{
+ "day": "2026-10-31",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "animation",
+   "files": ["team/out/2026-10-31/site_v3a_motion/hockey-titles-1440.mp4"],
+   "text": "Заголовки на странице «Хоккей». Буквы по очереди выезжают снизу, будто из-под невидимой черты, и чуть пружинят. Первый экран анимируется при загрузке, остальные разделы — когда до них долистаешь, один раз."
+  },
+  {
+   "to": "owner",
+   "type": "animation",
+   "files": ["team/out/2026-10-31/site_v3a_motion/team-ska-1440.mp4"],
+   "text": "Страница СКА. Фон шапки теперь живой: фирменные цвета клуба медленно перетекают, сверху лёгкое зерно. Эмблема клуба осталась поверх. Имя клуба тоже выезжает по буквам."
+  },
+  {
+   "to": "owner",
+   "type": "animation",
+   "files": ["team/out/2026-10-31/site_v3a_motion/team-nhl_bos-1440.mp4"],
+   "text": "Бостон: чёрный с золотом. Движение медленное, чтобы не отвлекать от цифр."
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Хоккей:\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/c022c8e517802439b82f8fdd6029179b716320cf/team/site/v3a/hockey/index.html\n\nСКА:\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/c022c8e517802439b82f8fdd6029179b716320cf/team/site/v3a/team/index.html?id=ska\n\nТак?"
+  }
+ ]
+}
