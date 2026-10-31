@@ -5,9 +5,11 @@
 не проходят проверку на истории, team/out/2026-10-30/football_bt.md). День — по Москве.
 По каждому матчу печатает:
   FDMATCH  турнир | время МСК | хозяева — гости (имена football-data) | Pinnacle: имена
-  FDLINE   кэфы Pinnacle 90 минут (П1 Х П2, тоталы, «не проиграет» = фора +0,5)
+  FDLINE   кэфы Pinnacle 90 минут (П1 Х П2, тоталы, «не проиграет» = фора +0,5) — для вероятности (смесь с линией)
+  FDFON    кэфы Фонбета 90 минут (по ним ставит владелец, 31.10) — в пост, порог 1,6 и «ВЫБОР»; нет — Pinnacle с пометкой
   FDPROB   вероятности: смесь модели с линией (как в проверке), λ модели
-  FDPICK   «ВЫБОР <ставка> @кэф p» — самая вероятная из FOOT.markets с кэфом ≥ 1,6 и p ≥ FOOT_P; нет — «нет ставки»
+  FDPICK   «ВЫБОР <ставка> @кэф (Фонбет; Pinnacle …) | p» — самая вероятная из FOOT.markets с кэфом Фонбета ≥ 1,6
+           (нет у Фонбета — Pinnacle) и p ≥ FOOT_P; нет — «нет ставки»
   FDFORM   последние 5 матчей команды (дата, соперник, счёт, xG) и место/очки в лиге
   FDH2H    последние очные встречи (лиги, 3 сезона)
   FDTEAM   статистика команды в сезоне и рейтинг (атака/оборона, место по силе)
@@ -28,6 +30,7 @@ import football_hist as FH  # noqa: E402
 import football_live as FL  # noqa: E402
 import football_model as FM  # noqa: E402
 import football_wide as W  # noqa: E402
+import fonbet as FON  # noqa: E402
 
 WIDE = '--narrow' not in sys.argv     # широкая роспись (владелец 30.10): все рынки Pinnacle + угловые, карточки, удары
 
@@ -134,6 +137,11 @@ def main(day):
                 full = W.pin_full(code, day)
             except Exception as e:
                 out('FDERR', '%s: вся линия Pinnacle недоступна %r' % (title, e))
+        try:                                   # линия Фонбета (владелец 31.10: ставит там)
+            fevs = FON.foot_day(code, day)
+        except Exception as e:  # noqa: BLE001 — нет Фонбета: кэфы Pinnacle, как раньше
+            out('FDERR', '%s: линия Фонбета недоступна %r' % (title, e))
+            fevs = []
         for (ph, pa, t), od in sorted(line.items(), key=lambda kv: kv[0][2]):
             if code in FH.OURS:
                 (lh_, h), (la_, a) = find_team(ph, data, s, code), find_team(pa, data, s, code)
@@ -142,6 +150,9 @@ def main(day):
             total += 1
             out('FDMATCH', '%s | %s | %s — %s | Pinnacle: %s — %s' % (title, t, h or '?', a or '?', ph, pa))
             out('FDLINE', ' · '.join('%s %.2f' % (k, od[k]) for k in sorted(od)))
+            fe = FON.match_foot(fevs, ph, pa, t, day, title) if fevs else None
+            fo = fe['flat'] if fe else {}
+            out('FDFON', ' · '.join('%s %.2f' % (k, fo[k]) for k in sorted(od) if k in fo) or 'нет у Фонбета — кэфы Pinnacle')
             if code in FH.OURS:
                 if not h or not a:
                     out('FDERR', 'нет в истории лиги: %s — %s' % (ph, pa))
@@ -163,13 +174,15 @@ def main(day):
                     p = BT.cal(cal, k, p)
                 pr[k] = p
             out('FDPROB', 'λ %.2f : %.2f | %s' % (lh, la, ' · '.join('%s %.1f%%' % (k, 100 * pr[k]) for k in sorted(pr))))
-            ok = [(pr[k], k, od[k]) for k in od if k in pr and k in kinds and od[k] >= 1.6 and pr[k] >= floor]
+            book = lambda k: fo.get(k) or od[k]  # noqa: E731 — кэф поста и порога: Фонбет, нет — Pinnacle
+            ok = [(pr[k], k, book(k)) for k in od if k in pr and k in kinds and book(k) >= 1.6 and pr[k] >= floor]
             if ok:
                 p, k, o = max(ok)
                 picks += 1
-                out('FDPICK', 'ВЫБОР %s @%.2f | p %.1f%%' % (k, o, 100 * p))
+                out('FDPICK', 'ВЫБОР %s @%.2f (%s) | p %.1f%%' % (k, o, 'Фонбет; Pinnacle %.2f' % od[k] if k in fo
+                                                                 else 'Pinnacle — у Фонбета нет', 100 * p))
             else:
-                best = max(((pr[k], k, od[k]) for k in od if k in pr and k in kinds and od[k] >= 1.6), default=None)
+                best = max(((pr[k], k, book(k)) for k in od if k in pr and k in kinds and book(k) >= 1.6), default=None)
                 out('FDPICK', 'нет ставки от %d%% (лучшая с кэфом от 1,6: %s)' % (
                     100 * floor, '%s @%.2f p %.1f%%' % (best[1], best[2], 100 * best[0]) if best else '—'))
             for side, (lg_, tm) in (('х', (lh_, h)), ('г', (la_, a))):
@@ -180,7 +193,7 @@ def main(day):
                 out('FDFORM', '%s %s%s | %s' % (side, tm, pos, '; '.join(form(dom[lg_], tm, day))))
             if WIDE:
                 try:
-                    wide(dom, (lh_, h), (la_, a), lh, la, od, full.get((ph, pa, t)) or {}, P, rating, stat_rating, day, s)
+                    wide(dom, (lh_, h), (la_, a), lh, la, od, full.get((ph, pa, t)) or {}, P, rating, stat_rating, day, s, fo)
                 except Exception as e:
                     out('FDERR', 'широкая роспись %s — %s: %r' % (h, a, e))
             if h and a and lh_ == la_ and lh_ in dom:
@@ -190,8 +203,11 @@ def main(day):
     out('FDDONE', 'матчей %d, ВЫБОР %d, порог %d%%' % (total, picks, 100 * floor))
 
 
-def wide(dom, home, away, lh, la, od, full, P, rating, stat_rating, day, s):
-    """Широкая роспись матча: статистика и рейтинги команд, «наносит / допускает», все рынки с кэфом Pinnacle и перевесом."""
+def wide(dom, home, away, lh, la, od, full, P, rating, stat_rating, day, s, fo=None):
+    """Широкая роспись матча: статистика и рейтинги команд, «наносит / допускает», все рынки с кэфом и перевесом.
+    Кэф — Фонбета (fo, team/picks/fonbet.py: таймы, угловые, жёлтые, удары в створ — то, что модель умеет считать), нет —
+    Pinnacle. «ВЫБОР» по этим рынкам не ставим (кэфов в истории нет), только показываем."""
+    fo = fo or {}
     (lgh, h), (lga, a) = home, away
     # голы: λ модели и линии (по 1Х2 и ТБ 2,5 Pinnacle) — среднее геометрическое; модель одна линию не бьёт
     mk = None
@@ -225,7 +241,9 @@ def wide(dom, home, away, lh, la, od, full, P, rating, stat_rating, day, s):
             'ждём у %s %.1f | всего %.1f' % (nm, h, Ah, a, Da, h, eh, a, Aa, h, Dh, a, ea, eh + ea))
         M.update(W.stat_markets(key, eh, ea, rr))
     rows = []
-    for k, o in full.items():
+    cand = {k: o for k, o in full.items()}
+    cand.update({k: o for k, o in fo.items() if k not in cand})
+    for k, o in cand.items():
         mkey = k.replace('карточки', 'жёлтые') if k.startswith('карточки') else k
         if mkey.startswith('жёлтые') and any(ch.isdigit() for ch in mkey):
             try:
@@ -234,20 +252,24 @@ def wide(dom, home, away, lh, la, od, full, P, rating, stat_rating, day, s):
             except ValueError:
                 pass
         if mkey in M and o:
-            rows.append((M[mkey] * o - 1, mkey, M[mkey], o))
-    out('FDWIDECNT', 'рынков с кэфом Pinnacle: %d, рассчитано моделью: %d' % (len(rows), len(M)))
+            ob = fo.get(mkey) or o                 # кэф Фонбета, нет — Pinnacle
+            rows.append((M[mkey] * ob - 1, mkey, M[mkey], ob, 'Фонбет' if mkey in fo else 'Pinnacle'))
+    out('FDWIDECNT', 'рынков с кэфом: %d (Фонбет %d), рассчитано моделью: %d' % (len(rows), sum(1 for r in rows if r[4] == 'Фонбет'),
+                                                                               len(M)))
     try:        # журнал линии и расчёта — для проверки угловых/карточек/таймов на живых кэфах (в истории их кэфов нет)
         import json
         path = os.path.join(FH.ROOT, '.lines', 'football_wide', day + '.jsonl')
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'a', encoding='utf-8') as f:
-            f.write(json.dumps(dict(d=day, h=h, a=a, lg=lgh, odds=full, p={k: round(M[k], 4) for k in full if k in M}),
+            f.write(json.dumps(dict(d=day, h=h, a=a, lg=lgh, odds=full, fon=fo,
+                                    p={k: round(M[k], 4) for k in set(full) | set(fo) if k in M}),
                                ensure_ascii=False) + '\n')
     except OSError:
         pass
-    for edge, k, p, o in sorted(rows, reverse=True)[:12]:
+    for edge, k, p, o, bk in sorted(rows, reverse=True)[:12]:
         if p >= 0.4 and o >= 1.5:
-            out('FDWIDE', '%s | p %.1f%% · кэф %.2f · перевес %+.1f%%' % (k, 100 * p, o, 100 * edge))
+            out('FDWIDE', '%s | p %.1f%% · кэф %.2f · перевес %+.1f%% · %s' % (
+                k, 100 * p, o, 100 * edge, bk + ('; Pinnacle %.2f' % full[k] if bk == 'Фонбет' and full.get(k) else '')))
     for key in ('st',):                                   # ударов в створ у Pinnacle нет — только расчёт
         if key in exp:
             best = sorted(((v, k) for k, v in M.items() if k.startswith(W.STATS[key]) and 0.6 <= v <= 0.8), reverse=True)[:4]

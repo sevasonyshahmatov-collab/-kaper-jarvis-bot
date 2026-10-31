@@ -44,5 +44,11 @@ except Exception as e:  # noqa: BLE001 — без линии расчёт всё
 missing = [p for p in pairs if p not in pins]
 if missing:
     print('PINMISS нет линии Pinnacle: %s' % ', '.join('%s—%s' % p for p in missing), flush=True)
-calc.run(games, pairs, pins, fon, {(x['h'], x['a']): dict(x, league=LEAGUE) for x in nxt})
+try:                                             # линия Фонбета (владелец 31.10: ставит там) — кэфы постов и порог 1,6
+    import fonbet
+    fonline = {p: v['mks'] for p, v in fonbet.hockey_day(LEAGUE, DAY, pairs).items()}
+except Exception as e:  # noqa: BLE001 — нет Фонбета: кэфы Pinnacle, как раньше
+    print('FONERR %r' % e, flush=True)
+    fonline = {}
+calc.run(games, pairs, pins, fon, {(x['h'], x['a']): dict(x, league=LEAGUE) for x in nxt}, fonline)
 print('DAYJOB готово: матчей %d' % len(pairs), flush=True)

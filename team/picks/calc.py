@@ -279,7 +279,8 @@ def log_lines(H, A, info, rows):
     """Линия и вероятности модели к каждому матчу — для подбора доли линии W_MKT (владелец 22.10). Файл живёт в кэше
     Actions (itogi.yml, .lines); итог матча подставит разбор позже по дате и командам."""
     rec = dict(t=datetime.now(timezone.utc).isoformat()[:16], league=LEAGUE, d=info.get('d'), h=H, a=A,
-               rows=[dict(k=key_of(x['k']) if x.get('k') else x['t'], t=x['t'], pm=x['p_model'], pc=x['p_cal'], o=x['odds'])
+               rows=[dict(k=key_of(x['k']) if x.get('k') else x['t'], t=x['t'], pm=x['p_model'], pc=x['p_cal'],
+                    o=x.get('odds_mkt') or x['odds'], fo=x.get('fon'))
                      for x in rows if x.get('odds')])
     try:
         os.makedirs(os.path.dirname(LINES), exist_ok=True)
@@ -296,17 +297,25 @@ def nhl_floor(x):
     return NHL_P[0] if key.startswith('инд. тотал') or key == 'фора +1.5' else NHL_P[1]
 
 
-def brief(H, A, r, mks, fon):
-    """Ставки с кэфом по убыванию вероятности + выбор по правилу владельца."""
+def brief(H, A, r, mks, fon, fl=None):
+    """Ставки с кэфом по убыванию вероятности + выбор по правилу владельца.
+    Кэф для показа и порога (от 1,6) — Фонбета (владелец 31.10: ставит там): вся линия fl (team/picks/fonbet.py), нет —
+    П1/Х/П2 из приложения КХЛ (fon), нет — Pinnacle с пометкой. Смесь модели с линией (p_adj) — по Pinnacle, как раньше."""
     rows = []
     for x in r['rows']:
-        v, src = odds_for(x['k'], mks)
-        fb = fonbet_for(x['k'], fon)
-        k = v or fb
-        rows.append(dict(t=x['t'], g=x['g'], k=x['k'], p=round(p_adj(calibrate(x['k'], x['p']), k), 4), p_model=round(x['p'], 4),
+        v, src = odds_for(x['k'], mks)                       # Pinnacle
+        fv, fsrc = odds_for(x['k'], fl) if fl else (None, '')
+        fb = fv or fonbet_for(x['k'], fon)                   # Фонбет
+        if fv:
+            fsrc = 'Фонбет, ' + fsrc
+        elif fb:
+            fsrc = 'Фонбет, осн. время'
+        k = fb or v                                          # кэф поста и порога
+        km = v or fb                                         # кэф для смеси с линией — Pinnacle (модель не меняем)
+        rows.append(dict(t=x['t'], g=x['g'], k=x['k'], p=round(p_adj(calibrate(x['k'], x['p']), km), 4), p_model=round(x['p'], 4),
                          p_cal=round(calibrate(x['k'], x['p']), 4), pm=round(x['pm'], 4),
-                         pe=round(x['pe'], 4), lg=round(x['lg'], 4), pin=v, fon=fb, odds=k,
-                         src=src if v else ('Фонбет, осн. время' if fb else '')))
+                         pe=round(x['pe'], 4), lg=round(x['lg'], 4), pin=v, fon=fb, odds=k, odds_mkt=km,
+                         src=fsrc if fb else ('Pinnacle, %s — у Фонбета нет' % src if v else '')))
     rows.sort(key=lambda x: -x['p'])
     pick = None
     floors = MIN_P
@@ -393,8 +402,9 @@ def team_report(T, tb, t):
                                                               x['opp'], x['gf'], x['ga'], res(x)) for x in lst[-6:])))
 
 
-def run(raw_games, pairs, pins=None, fonbet=None, meta=None):
-    """pairs — [(хозяева, гости)]; pins — {(хозяева, гости): рынки Pinnacle}; fonbet — {(хозяева, гости): bets}; meta — {(х, г): {...}}."""
+def run(raw_games, pairs, pins=None, fonbet=None, meta=None, fonline=None):
+    """pairs — [(хозяева, гости)]; pins — {(хозяева, гости): рынки Pinnacle}; fonbet — {(хозяева, гости): bets};
+    meta — {(х, г): {...}}; fonline — {(х, г): рынки Фонбета как у Pinnacle} (team/picks/fonbet.py)."""
     games = prep(raw_games)
     if not games:
         out('LEAGUE', 'нет сыгранных матчей — расчёт невозможен')
@@ -413,20 +423,22 @@ def run(raw_games, pairs, pins=None, fonbet=None, meta=None):
         r = match(T, M, H, A, new)
         mks = (pins or {}).get((H, A))
         fon = (fonbet or {}).get((H, A))
-        out('PAIR', '%s — %s | λ %.2f : %.2f | самый вероятный счёт осн. времени %d:%d (%.1f%%) | доля ОТ хозяев s=%.2f | линия Pinnacle: %s%s'
+        fl = (fonline or {}).get((H, A))
+        out('PAIR', '%s — %s | λ %.2f : %.2f | самый вероятный счёт осн. времени %d:%d (%.1f%%) | доля ОТ хозяев s=%.2f | линия Pinnacle: %s'
+            ' | Фонбет: %s%s'
             % (H, A, r['lam'][0], r['lam'][1], r['score'][0], r['score'][1], 100 * r['score'][2], r['s'], 'есть' if mks else 'НЕТ',
-               ' | новый рейтинг' if new else ''))
+               'есть' if fl else 'НЕТ', ' | новый рейтинг' if new else ''))
         for x in sorted(r['rows'], key=lambda x: -x['p']):
             out('CALC', '%s—%s | %-40s %5.1f%% | честный %5.2f | модель %5.1f%% | частота %5.1f%% | лига %5.1f%%'
                 % (H, A, x['t'], 100 * x['p'], 1 / x['p'], 100 * x['pm'], 100 * x['pe'], 100 * x['lg']))
-        rows, pick = brief(H, A, r, mks, fon)
+        rows, pick = brief(H, A, r, mks, fon, fl)
         log_lines(H, A, (meta or {}).get((H, A)) or {}, rows)
         for x in rows:
             if not x['odds']:
                 continue
             out('BRIEF', '%s—%s | %5.1f%% (модель %4.1f%%) %-40s | кэф %.2f (%s)%s | p×k %.2f%s'
                 % (H, A, 100 * x['p'], 100 * x['p_model'], x['t'], x['odds'], x['src'],
-                   ', Фонбет %.2f' % x['fon'] if x['fon'] and x['pin'] else '', x['p'] * x['odds'],
+                   ', Pinnacle %.2f' % x['pin'] if x['fon'] and x['pin'] else '', x['p'] * x['odds'],
                    ' | ' + x['mark'] if x.get('mark') else ''))
         if not pick:
             out('BRIEF', '%s—%s | нет ставки от 45 %% с кэфом от %.1f — выбрать самому (самая вероятная с кэфом) или честно пропустить матч'
@@ -437,12 +449,15 @@ def run(raw_games, pairs, pins=None, fonbet=None, meta=None):
         out('H2H', '%s — %s | %s' % (H, A, ' · '.join('%s %s %d:%d %s%s' % (g['day'][8:10] + '.' + g['day'][5:7], g['home'], g['hg'], g['ag'],
                                                                            g['away'], ' ' + g['e'] if g['e'] else '') for g in h2h)
                                      or 'в этом сезоне не играли'))
-        x1x2 = [odds_for(('ml', 6, s), mks)[0] or fonbet_for(('ml', 6, s), fon) for s in ('home', 'draw', 'away')]
-        fin = [odds_for(('ml', 0, s), mks)[0] for s in ('home', 'away')]
+        # линия для баннера и обзора — Фонбет (по нему ставит владелец), нет — Pinnacle
+        x1x2 = [odds_for(('ml', 6, s), fl)[0] or fonbet_for(('ml', 6, s), fon) or odds_for(('ml', 6, s), mks)[0]
+                for s in ('home', 'draw', 'away')]
+        fin = [odds_for(('ml', 0, s), fl)[0] or odds_for(('ml', 0, s), mks)[0] for s in ('home', 'away')]
         info = dict((meta or {}).get((H, A)) or {})
         if new:
             info['rate'] = new.get('info')
-        info.update(h=H, a=A, x1x2=x1x2, fin=fin, pick=pick,
+        info.update(h=H, a=A, x1x2=x1x2, fin=fin, pick=pick, book='Фонбет' if fl else 'Pinnacle',
+                    x1x2_pin=[odds_for(('ml', 6, s), mks)[0] for s in ('home', 'draw', 'away')],
                     top=[{k: x[k] for k in ('t', 'p', 'odds', 'src', 'mark') if k in x} for x in rows if x['odds']][:12])
         out('PICKJSON', json.dumps(info, ensure_ascii=False, separators=(',', ':')))
 
