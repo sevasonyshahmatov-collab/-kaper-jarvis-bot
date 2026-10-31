@@ -5,7 +5,7 @@
     python team/picks/betzona.py 2026-10-31            # прогнозы на день D и D+1
     python team/picks/betzona.py --probe               # разведка разметки (печать ссылок и текста страниц)
 Вежливо: один проход в день, ≤1 запроса в секунду, не больше MAX_REQ страниц, без входа и обхода защиты.
-Сырые страницы не сохраняются. Вывод — строки с метками (и копия ::notice PB_* — логи Actions из облака закрыты):
+Сырые страницы не сохраняются. Вывод — строки с метками (и копия ::notice BZ_* — логи Actions из облака закрыты):
     BZMATCH  лига | дата время МСК | хозяева — гости | url
     BZPRED   хозяева — гости | рынок | кэф | автор/рейтинг | довод (≤300 знаков)
     BZERR    ошибка;  BZDONE  итог
@@ -54,11 +54,16 @@ class Page(HTMLParser):
 
     def __init__(self):
         super().__init__()
-        self.links, self.text, self.classes, self.ld = [], [], {}, []
+        self.links, self.text, self.classes, self.ld, self.ctext = [], [], {}, [], []
+        self._cls = ''
         self._skip, self._a, self._ld, self._buf = 0, None, None, []
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
+        if tag in self.BLOCK:
+            self._flush()
+        if a.get('class') and tag not in self.SKIP:
+            self._cls = a['class'].split()[0]
         for c in (a.get('class') or '').split():
             self.classes[c] = self.classes.get(c, 0) + 1
         if tag == 'script' and a.get('type') == 'application/ld+json':
@@ -67,8 +72,6 @@ class Page(HTMLParser):
             self._skip += 1
         if tag == 'a' and a.get('href'):
             self._a = [a['href'], []]
-        if tag in self.BLOCK:
-            self._flush()
 
     def handle_endtag(self, tag):
         if tag == 'script' and self._ld is not None:
@@ -95,6 +98,7 @@ class Page(HTMLParser):
         t = ' '.join(''.join(self._buf).split())
         if t:
             self.text.append(t)
+            self.ctext.append((self._cls, t))
         self._buf = []
 
 
@@ -106,12 +110,12 @@ def parse(html):
 
 
 def notices():
-    """Строки BZ* пометками ::notice PB_i/n (gzip+base64), как foot_notice.py."""
+    """Строки BZ* пометками ::notice BZ_i/n (gzip+base64), как foot_notice.py."""
     b = base64.b64encode(gzip.compress('\n'.join(OUT).encode('utf-8'))).decode()
     step = 3500
     parts = [b[i:i + step] for i in range(0, len(b), step)] or ['']
     for i, s in enumerate(parts[:10]):
-        print('::notice title=PB_%d/%d::%s' % (i + 1, len(parts), s), flush=True)
+        print('::notice title=BZ_%d/%d::%s' % (i + 1, len(parts), s), flush=True)
 
 
 # ---------- разведка ----------
@@ -166,9 +170,27 @@ def probe():
     out('BZDONE', 'probe, запросов %d' % _n[0])
 
 
+def probe_urls(urls):
+    for u in urls:
+        try:
+            q = parse(get(u))
+        except Exception as e:
+            out('BZERR', '%s: %s' % (u, e))
+            continue
+        out('BZPAGE', u)
+        for s in q.ld[:3]:
+            out('BZLD', s[:1500])
+        for c, t in q.ctext[:400]:
+            out('BZTXT', '[%s] %s' % (c, t[:300]))
+    out('BZDONE', 'probe, запросов %d' % _n[0])
+
+
 def main(argv):
     try:
-        if '--probe' in argv:
+        urls = [a for a in argv if a.startswith('http')]
+        if '--probe' in argv and urls:
+            probe_urls(urls)
+        elif '--probe' in argv:
             probe()
         else:
             day = next((a for a in argv if re.match(r'\d{4}-\d\d-\d\d$', a)), datetime.now(MSK).strftime('%Y-%m-%d'))
