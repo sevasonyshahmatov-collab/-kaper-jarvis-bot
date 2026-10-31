@@ -191,7 +191,7 @@ function arena(){
 function keepTheme(){
   const t=new URLSearchParams(location.search).get('theme');if(!/^(arena|a|b|c)$/.test(t||''))return;
   document.querySelectorAll('a[href*="index.html"]').forEach(a=>{const h=a.getAttribute('href');if(/^https?:/.test(h))return;
-    const [p,hash]=h.split('#');a.setAttribute('href',p.split('?')[0]+'?theme='+t+(hash?'#'+hash:''))});
+    const [p,hash]=h.split('#'),[path,q]=p.split('?'),sp=new URLSearchParams(q||'');sp.set('theme',t);a.setAttribute('href',path+'?'+sp.toString()+(hash?'#'+hash:''))});
 }
 
 document.addEventListener('DOMContentLoaded',()=>{keepTheme();arena();chrome();wipe();

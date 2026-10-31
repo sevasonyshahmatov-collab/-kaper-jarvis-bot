@@ -209,12 +209,12 @@ def _draw_panels(img, specs):
         _paste_emblem(img, emb, (x0 + x1) / 2 * S, ((y0 + y1) / 2 + EMBLEM_DY) * S, EMBLEM * S)
 
 
-def layers(home, away, date='', time='', odds=None, league='KHL', tz='время московское', fade=('down', 'up')):
+def layers(home, away, date='', time='', odds=None, league='KHL', tz='время московское', fade=('down', 'up'), site=False):
     """Слои баннера по отдельности (для анимации, versus_anim.py), размер W*S × H*S, без текстуры холста:
     {'bg': фон RGBA, 'fg': текст/плашки/марка на прозрачном RGBA, 'specs': панели (_panel_specs)}."""
     (hn, hc, ha, hs), (an, ac, aa, as_), acc = _teams(home, away, league)
     fg = Image.new('RGBA', (W * S, H * S), (0, 0, 0, 0))
-    _draw_foreground(fg, hc, ha, hs, ac, aa, as_, acc, date, time, odds, league, tz)
+    _draw_foreground(fg, hc, ha, hs, ac, aa, as_, acc, date, time, odds, league, tz, site=site)
     return {'bg': _background(), 'fg': fg, 'specs': _panel_specs(hc, ac, hn, an, fade)}
 
 
@@ -231,16 +231,20 @@ def render(home, away, path, date='', time='', odds=None, league='KHL', tz='вр
     return path
 
 
-def _draw_foreground(img, hc, ha, hs, ac, aa, as_, acc, date, time, odds, league, tz):
-    """Аббревиатуры, вертикальные подписи, дата/время/линия и марка канала — поверх панелей."""
+def _draw_foreground(img, hc, ha, hs, ac, aa, as_, acc, date, time, odds, league, tz, site=False):
+    """Аббревиатуры, вертикальные подписи, дата/время/линия и марка канала — поверх панелей.
+    site=True — вариант для сайта (владелец 31.10): без «vs», аббревиатуры гостей плотно под хозяевами."""
     d = ImageDraw.Draw(img)
     # аббревиатуры: хозяева слева, «vs» между строк, гости справа — лесенкой
     AB = 'AlumniSans[wght].ttf'
     fa = min((_fit(t, 340 * S, 155 * S, 900, AB) for t in (ha, aa)), key=lambda f: f.size)
-    _text_ink(d, 684 * S, 36 * S, ha, fa, _mix(hc, 0.06) + (255,), anchor='l')
-    fv = brand_kit.font('Oswald[wght].ttf', 40 * S, 600)
-    d.text((690 * S, 218 * S), 'vs', font=fv, fill=(245, 245, 245), anchor='lm')
-    _text_ink(d, 1030 * S, 241 * S, aa, fa, _mix(ac, 0.06) + (255,), anchor='r')
+    hh = _text_ink(d, 684 * S, 36 * S, ha, fa, _mix(hc, 0.06) + (255,), anchor='l')
+    if site:
+        _text_ink(d, 1030 * S, 36 * S + hh + 16 * S, aa, fa, _mix(ac, 0.06) + (255,), anchor='r')
+    else:
+        fv = brand_kit.font('Oswald[wght].ttf', 40 * S, 600)
+        d.text((690 * S, 218 * S), 'vs', font=fv, fill=(245, 245, 245), anchor='lm')
+        _text_ink(d, 1030 * S, 241 * S, aa, fa, _mix(ac, 0.06) + (255,), anchor='r')
 
     # вертикальные подписи
     fs = brand_kit.font('Manrope[wght].ttf', 17 * S, 600)

@@ -15,11 +15,6 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
 <link rel="stylesheet" href="../assets/v3a.css">
 <style>
-.leagues.two{grid-template-columns:repeat(2,minmax(0,1fr))}
-.leagues.two a{grid-template-columns:96px 1fr;column-gap:22px;align-items:center;padding:28px clamp(18px,2.4vw,34px)}
-.leagues.two img{width:96px;height:96px;margin:0;grid-row:span 4}
-.leagues.two h3{font-size:clamp(34px,3.4vw,52px);text-transform:uppercase;font-weight:800}
-@media (max-width:620px){.leagues.two{grid-template-columns:1fr}.leagues.two a{grid-template-columns:64px 1fr}.leagues.two img{width:64px;height:64px}}
 .trends{margin-top:2px}
 .trends b{display:block;font:800 clamp(44px,4.4vw,68px)/.9 var(--display);color:var(--sport);font-variant-numeric:tabular-nums;margin-bottom:8px}
 .trends h3{font-size:20px}
@@ -48,7 +43,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
       <a href="../football/index.html">Футбол</a>
     </nav>
     <nav class="nav" aria-label="Разделы">
-      <a href="#matches">Матчи</a><a href="#leagues">Лиги</a><a href="#power">Сила</a><a href="#model">Модель</a><a href="#honest">Итоги</a><a href="#faq">Вопросы</a>
+      <a href="#matches">Матчи</a><a href="#leagues">Лиги</a><a href="#table">Таблица</a><a href="#model">Модель</a><a href="#honest">Итоги</a><a href="#faq">Вопросы</a>
     </nav>
     <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Telegram</span></a>
   </div>
@@ -74,6 +69,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
     <div class="bcol" data-rv>
       <div class="board" id="board" aria-label="Табло: прогноз дня">
         <div class="board-top"><span class="bmeta"><span id="blg"></span><b id="bmeta">КХЛ · 10:30 МСК</b></span><span class="bwhen"><i class="lamp"></i><span id="bhead">Прогноз дня</span><span class="bdot">·</span><span id="bdate"></span></span></div>
+        <div class="vsm" id="vsm"><img class="vsp" id="vsp" alt=""><video class="vsv" id="vsv" muted playsinline loop preload="auto" aria-hidden="true"></video></div>
         <div class="mstage" aria-live="polite"><div class="mcard" id="mcard"></div></div>
         <div class="bcount"><div class="brows"></div></div>
         <div class="board-foot"><p class="note">Пример данных. Прогноз КХЛ выходит в канале до 08:00 МСК, НХЛ — до 14:00.</p><div class="pager" id="pager" aria-label="Другие прогнозы дня"></div></div>
@@ -95,27 +91,86 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 
 <section class="sec" id="leagues" data-zone="p2">
   <div class="wrap">
-    <div class="period" data-rv><p><span class="pn">2</span><span class="pw">-й период</span><span class="pt">Лиги, клубы и сила команд</span><span class="pc num">20:00</span></p></div>
+    <div class="period" data-rv><p><span class="pn">2</span><span class="pw">-й период</span><span class="pt">Лиги, клубы и таблица</span><span class="pc num">20:00</span></p></div>
     <div class="sec-head" data-rv><h2>Лиги и клубы</h2><p>Две лиги, одна модель. <span class="lgp khl"><img src="../assets/lg/khl.webp" alt=""></span>КХЛ — днём и вечером, <span class="lgp nhl"><img src="../assets/lg/nhl.webp" alt=""></span>НХЛ — ночью: ночные матчи собраны в один игровой день.</p></div>
-    <ul class="leagues two" id="flags" data-rv></ul>
-    <div class="wall" id="wall" data-rv></div>
+    <div class="leagues two" id="flags" role="tablist" aria-label="Выбор лиги" data-rv></div>
+    <div id="wallbox" role="tabpanel" aria-live="polite"><h3 class="wallh" id="wallh"></h3><div class="wall" id="wall"></div></div>
     <p class="note">Эмблемы — собственность клубов, показаны для навигации.</p>
   </div>
 </section>
 
-<section class="sec" id="power" data-zone="p2b">
+<section class="sec" id="table" data-zone="p2b">
   <div class="wrap">
-    <div class="sec-head" data-rv><h2>Сила команд</h2><p>Рейтинг Эло — сила команды одним числом. Пересчитывается после каждого матча: победа над сильным стоит больше, чем над слабым.</p></div>
-    <div class="power">
-      <div data-rv><div class="pbars" id="pbars"></div><p class="note" style="margin-top:18px"><span class="lgp khl"><img src="../assets/lg/khl.webp" alt=""></span> КХЛ, рейтинг и изменение за последний матч. Пример данных.</p></div>
-      <div data-rv><h3 style="margin-bottom:14px"><span class="lgp khl"><img src="../assets/lg/khl.webp" alt=""></span>Что заходит у команд</h3>
-        <table class="table wide" id="hits"><thead><tr><th>Команда</th><th class="ra">Победа</th><th class="ra">ТБ 5,5</th><th class="ra">ТМ 5,5</th><th class="ra">ОТ</th></tr></thead><tbody></tbody></table>
-        <p class="note" style="margin-top:14px">Как часто у команды случается событие за сезон. Пример данных.</p></div>
-    </div>
-    <div class="twins trends" data-rv style="margin-top:clamp(32px,4vw,56px)">
-      <div><img class="em tcrest" data-crest="Трактор" alt=""><b class="num">7 из 10</b><h3>Трактор: тотал больше 5,5</h3><p>в последних играх</p></div>
-      <div><img class="em tcrest" data-crest="Колорадо" alt=""><b class="num">8 из 11</b><h3>Колорадо забивает первым</h3><p>дома</p></div>
-      <div><img class="em tcrest" data-crest="Сибирь" alt=""><b class="num">4 из 9</b><h3>Сибирь: матчи до овертайма</h3><p>Тренды — в мини-приложении в Telegram.</p></div>
+    <div class="sec-head" data-rv><div><p class="eyebrow">Для тех, кто считает сам</p><h2>Аналитическая таблица</h2></div>
+      <div><ul class="feat"><li>Все матчи КХЛ и НХЛ в одном месте</li><li>Форма команд, вероятности модели и кэфы</li><li>Обновляется каждый игровой день</li></ul>
+      <a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Хочу таблицу</a><p class="note" style="margin-top:10px">Оплата появится скоро. Сейчас доступ — через Telegram.</p></div></div>
+    <div class="tour" id="tour" data-rv aria-roledescription="карусель" aria-label="Что внутри таблицы">
+      <div class="tour-steps" id="tsteps" role="tablist" aria-label="Листы таблицы">
+        <button type="button" role="tab" class="tstep" aria-selected="true" data-i="0">Эло</button>
+        <button type="button" role="tab" class="tstep" aria-selected="false" data-i="1">Прогнозы</button>
+        <button type="button" role="tab" class="tstep" aria-selected="false" data-i="2">Что заходит</button>
+        <button type="button" role="tab" class="tstep" aria-selected="false" data-i="3">Расписание</button>
+        <button type="button" role="tab" class="tstep" aria-selected="false" data-i="4">История</button>
+        <button type="button" role="tab" class="tstep" aria-selected="false" data-i="5">И ещё</button>
+      </div>
+      <div class="tour-grid">
+        <div class="stack tour-text">
+          <article class="tc on"><h3>Рейтинг Эло</h3><p>Сила каждой команды одним числом. Рейтинг пересчитывается после каждого матча: победа над сильным соперником стоит больше, чем над слабым.</p>
+            <ul><li>Все команды лиги в одном списке</li><li>Как менялась сила команды за сезон</li><li>Поправка на игру: броски в створ и шайбы сверх ожидания</li></ul></article>
+          <article class="tc"><h3>Прогнозы на все матчи</h3><p>Все матчи ближайших дней на одном листе: время по Москве, прогноз модели, коэффициенты и вероятность. После игры рядом появляется счёт.</p>
+            <ul><li>КХЛ и НХЛ</li><li>Расчёт модели рядом с линией</li><li>Обновляется каждое утро</li></ul></article>
+          <article class="tc"><h3>Что заходит у команд</h3><p>Как часто у каждой команды случается то или иное событие за сезон: победа, тотал больше или меньше, игра в овертайм.</p>
+            <ul><li>Видно сильные и слабые стороны каждой команды</li><li>Конструктор матча: выбираешь две команды и видишь, что вероятнее в их игре</li></ul></article>
+          <article class="tc"><h3>Расписание и результаты</h3><p>Все матчи сезона с датой и временем по Москве. У сыгранных стоит счёт, отмечены овертаймы и буллиты.</p>
+            <ul><li>Сегодня, завтра и вся неделя</li><li>Ночные матчи НХЛ собраны в один игровой день</li></ul></article>
+          <article class="tc"><h3>История ставок</h3><p>Каждый прогноз остаётся в таблице: зашёл или нет и по какому кэфу. Видно, как часто модель угадывает и как менялся банк на дистанции.</p>
+            <ul><li>Точность модели по фаворитам и аутсайдерам</li><li>Ничего не удаляется</li></ul></article>
+          <article class="tc"><h3>И это только часть</h3><p>Мы показали 5 листов. Всего в таблице их больше 20: коэффициенты, купон дня, точность модели, карточки команд, статистика, травмы и ключевые игроки.</p>
+            <a class="btn btn-tg tc-cta" href="https://t.me/jarvibet" target="_blank" rel="noopener">Узнать про доступ →</a></article>
+        </div>
+        <div class="tour-vis">
+          <div class="win" id="twin">
+            <div class="win-bar"><i></i><i></i><i></i><span>Пример данных</span></div>
+            <div class="stack win-body">
+              <div class="tv on"><div class="elo" id="elo"></div></div>
+              <div class="tv"><table class="gt"><tr><th>Время</th><th>Матч</th><th>Прогноз</th><th>Кэф</th><th>Вер.</th></tr>
+                <tr><td>17:00</td><td>СКА — ЦСКА</td><td>ТБ 4,5</td><td class="k">1,70</td><td><i class="pb" style="--w:61%"></i>61%</td></tr>
+                <tr><td>19:30</td><td>Ак Барс — Локомотив</td><td>П2</td><td class="k">1,85</td><td><i class="pb" style="--w:58%"></i>58%</td></tr>
+                <tr><td>19:30</td><td>Сибирь — Трактор</td><td>П2</td><td class="k">1,95</td><td><i class="pb" style="--w:55%"></i>55%</td></tr>
+                <tr><td>02:00</td><td>Бостон — Торонто</td><td>П1</td><td class="k">1,75</td><td><i class="pb" style="--w:60%"></i>60%</td></tr>
+                <tr><td>03:00</td><td>Колорадо — Даллас</td><td>ТБ 5,5</td><td class="k">1,90</td><td><i class="pb" style="--w:56%"></i>56%</td></tr></table></div>
+              <div class="tv"><table class="heat" id="heat"></table></div>
+              <div class="tv"><div class="cal">
+                <div class="day">Сегодня</div>
+                <div class="gm"><time>17:00</time><img data-crest="СКА" alt=""><span>СКА — ЦСКА</span><img data-crest="ЦСКА" alt=""></div>
+                <div class="gm"><time>19:30</time><img data-crest="Ак Барс" alt=""><span>Ак Барс — Локомотив</span><img data-crest="Локомотив" alt=""></div>
+                <div class="gm"><time>19:30</time><img data-crest="Сибирь" alt=""><span>Сибирь — Трактор</span><img data-crest="Трактор" alt=""></div>
+                <div class="day">Вчера</div>
+                <div class="gm done"><time>2:1 ОТ</time><img data-crest="Локомотив" alt=""><span>Локомотив — Сибирь</span><img data-crest="Сибирь" alt=""></div>
+                <div class="gm done"><time>3:4</time><img data-crest="Трактор" alt=""><span>Трактор — СКА</span><img data-crest="СКА" alt=""></div></div></div>
+              <div class="tv"><div class="hist">
+                <svg viewBox="0 0 300 110" class="hchart" role="img" aria-label="Пример изменения банка">
+                  <line x1="10" y1="80" x2="290" y2="80" class="zero"/>
+                  <path class="area" d="M10,80 L24,71.5 L38,63 L52,73 L66,64.5 L80,74.5 L94,84.5 L108,76 L122,67.5 L136,59 L150,69 L164,60.5 L178,70.5 L192,62 L206,53.5 L220,63.5 L234,55 L248,46.5 L262,56.5 L276,48 L290,39.5 L290,80 Z"/>
+                  <path class="ln" d="M10,80 L24,71.5 L38,63 L52,73 L66,64.5 L80,74.5 L94,84.5 L108,76 L122,67.5 L136,59 L150,69 L164,60.5 L178,70.5 L192,62 L206,53.5 L220,63.5 L234,55 L248,46.5 L262,56.5 L276,48 L290,39.5"/>
+                  <circle cx="290" cy="39.5" r="4" class="end"/>
+                  <text x="10" y="104" class="ax">20 прогнозов назад</text><text x="290" y="104" class="ax" text-anchor="end">сейчас</text></svg>
+                <div class="hr"><span>29.10</span><span>Нефтехимик — Адмирал</span><span>ТБ 4,5 · 1,65</span><b class="w">✓</b></div>
+                <div class="hr"><span>30.10</span><span>Сент-Луис — Бостон</span><span>ИТБ 2,5 · 1,75</span><b class="l">✕</b></div>
+                <div class="hr"><span>30.10</span><span>Каролина — Коламбус</span><span>П1 · 1,68</span><b class="w">✓</b></div></div></div>
+              <div class="tv"><div class="more">
+                <div><b>Коэффициенты</b><span>линия на ближайшие матчи и итоги прошлых</span></div><div><b>Модель против рынка</b><span>чья оценка точнее</span></div>
+                <div><b>Купон дня</b><span>самые уверенные события дня</span></div><div><b>Мой купон</b><span>собрать свой и посчитать вероятность</span></div>
+                <div><b>Точность</b><span>как часто угадывает модель</span></div><div><b>Банкролл</b><span>симуляция на дистанции</span></div>
+                <div><b>Карточка команды</b><span>всё о команде и очных встречах</span></div><div><b>Статистика</b><span>броски, большинство, вратари</span></div>
+                <div><b>Ключевые игроки</b><span>лидеры и основной вратарь</span></div><div><b>Досье команд</b><span>травмы, тренер, форма</span></div>
+                <div><b>Разбор перед матчем</b><span>сводка по каждой игре</span></div><div class="etc"><b>и другие</b><span>всего больше 20 листов</span></div></div></div>
+            </div>
+            <div class="win-tabs" aria-hidden="true"><span class="on">Рейтинг Эло</span><span>Прогнозы</span><span>Что заходит</span><span>Расписание</span><span>История ставок</span><span>И ещё…</span></div>
+          </div>
+          <div class="tour-nav"><button type="button" class="tarr" id="tprev" aria-label="Предыдущий лист">‹</button><span class="tcount num" id="tcount">1 / 6</span><button type="button" class="tarr" id="tnext" aria-label="Следующий лист">›</button></div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -200,18 +255,19 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 
 <script src="../assets/v3a.js"></script>
 <script>
-/* ПРИМЕРНЫЕ ДАННЫЕ (макет, как в v2: __TODAY, __RES, __MONTHS). На сайте их подставит build.py. Время — от «сейчас». */
+/* ПРИМЕРНЫЕ ДАННЫЕ (макет, как в v2: __TODAY, __RES, __MONTHS). На сайте их подставит build.py. */
 (()=>{
- const two=n=>String(n).padStart(2,'0'),base=Math.ceil(Date.now()/6e5)*6e5;
- const at=min=>{const d=new Date(base+min*6e4+3*3600e3);return `${d.getUTCFullYear()}-${two(d.getUTCMonth()+1)}-${two(d.getUTCDate())} ${two(d.getUTCHours())}:${two(d.getUTCMinutes())}`};
- const M=(o,min)=>{o.t=at(min);return o};
+ /* матчи дня — примерные; у четырёх в карусели первого экрана есть анимированный баннер (render/versus_anim.py, site=True),
+    дата и время в баннере совпадают с t */
  window.__HTODAY=[
-  M({lg:'khl',a:'СКА',b:'ЦСКА',p:'Тотал больше 4,5',sp:'ТБ 4,5',k:'1.70',y:'Обе команды забивают в среднем больше трёх за игру',x:[2.25,4.1,2.6],pr:.56},90),
-  M({lg:'khl',a:'Ак Барс',b:'Локомотив',p:'Победа Локомотива',sp:'П2',k:'1.85',y:'Локомотив выиграл 2 из 3 последних',x:[2.10,4.20,1.85],pr:.58},190),
-  M({lg:'khl',a:'Салават Юлаев',b:'Автомобилист',p:'Победа Автомобилиста',sp:'П2',k:'1.95',y:'Автомобилист выше в таблице и в лучшей форме',x:[2.9,4.3,1.95],pr:.55},200),
-  M({lg:'nhl',a:'Бостон',b:'Торонто',p:'Победа Бостона',sp:'П1',k:'1.75',y:'Бостон дома, три победы подряд',x:[1.75,4.4,3.3],pr:.57},560),
-  M({lg:'nhl',a:'Колорадо',b:'Даллас',p:'Тотал больше 5,5',sp:'ТБ 5,5',k:'1.90',y:'Две самые результативные команды дивизиона',x:[2.0,4.3,2.7],pr:.54},620),
-  M({lg:'nhl',a:'Вегас',b:'Эдмонтон',p:'Победа Эдмонтона',sp:'П2',k:'2.05',y:'Эдмонтон набрал очки в последних 3 играх',x:[2.4,4.2,2.05],pr:.52},740)];
+  {lg:'khl',t:'2026-11-01 14:30',a:'Салават Юлаев',b:'Автомобилист',p:'Победа Автомобилиста',sp:'П2',k:'1.95',y:'Автомобилист выше в таблице и в лучшей форме',x:[2.9,4.3,1.95],pr:.55},
+  {lg:'khl',t:'2026-11-01 17:00',a:'СКА',b:'ЦСКА',p:'Тотал больше 4,5',sp:'ТБ 4,5',k:'1.70',y:'Обе команды забивают в среднем больше трёх за игру',x:[2.25,4.1,2.6],pr:.56,vs:'ska_cska'},
+  {lg:'khl',t:'2026-11-01 19:30',a:'Ак Барс',b:'Локомотив',p:'Победа Локомотива',sp:'П2',k:'1.85',y:'Локомотив выиграл 2 из 3 последних',x:[2.10,4.20,1.85],pr:.58,vs:'akbars_lok'},
+  {lg:'nhl',t:'2026-11-02 02:00',a:'Бостон',b:'Торонто',p:'Победа Бостона',sp:'П1',k:'1.75',y:'Бостон дома, три победы подряд',x:[1.75,4.4,3.3],pr:.57,vs:'bos_tor'},
+  {lg:'nhl',t:'2026-11-02 04:00',a:'Колорадо',b:'Даллас',p:'Тотал больше 5,5',sp:'ТБ 5,5',k:'1.90',y:'Две самые результативные команды дивизиона',x:[2.0,4.3,2.7],pr:.555,vs:'col_dal'},
+  {lg:'nhl',t:'2026-11-02 05:00',a:'Вегас',b:'Эдмонтон',p:'Победа Эдмонтона',sp:'П2',k:'2.05',y:'Эдмонтон набрал очки в последних 3 играх',x:[2.4,4.2,2.05],pr:.52}];
+ /* котировки тотала к матчам дня (пример): линия, больше, меньше */
+ window.__HTOT=[['4,5',1.70,2.15],['5,5',2.05,1.78],['4,5',1.92,1.90],['5,5',1.95,1.87],['5,5',1.90,1.92],['6,5',2.10,1.74]];
  window.__RES=[{t:'Нэшвилл — Колорадо',b:'ТБ 5,5',ok:true},{t:'Рейнджерс — Лос-Анджелес',b:'ИТБ Рейнджерс 2,5',ok:true},{t:'Калгари — Торонто',b:'ТБ 5,5',ok:true},
   {t:'Каролина — Бостон',b:'Ф2 +1,5',ok:true},{t:'Чикаго — Лос-Анджелес',b:'ИТБ Лос-Анджелеса 2,5',ok:false},{t:'Сибирь — Металлург',b:'П2',ok:false},
   {t:'Нефтехимик — Адмирал',b:'ТБ 4,5',ok:true},{t:'Каролина — Коламбус',b:'П1',ok:true},{t:'Сент-Луис — Бостон',b:'ИТБ Бостона 2,5',ok:false}];
@@ -269,24 +325,33 @@ const cnt=id=>D.filter(m=>m.lg===id).length;
 const chev='<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5l5 5 5-5"/></svg>';
 const line=m=>{const inv=m.x.map(k=>1/k),s=inv.reduce((a,b)=>a+b);return inv.map(v=>v/s)};
 
-JV.ticker(document.getElementById('ticker'),[
- ...[...D].sort((a,b)=>a.t<b.t?-1:1).map(m=>`<time>${m.t.slice(11)}</time>${LGP(m.lg)}${CI(m.a,'tc')}${esc(m.a)} — ${CI(m.b,'tc')}${esc(m.b)} <span class="k">${esc(m.sp)} ${m.k.replace('.',',')}</span>`),
- ...window.__RES.map(r=>{const [h,a]=r.t.split(' — ');return `Вчера: ${CI(h,'tc')}${esc(h)} — ${CI(a,'tc')}${esc(a)}, ${esc(r.b)} <span class="${r.ok?'ok':'no'}">${r.ok?'зашла':'не зашла'}</span>`})]);
+/* бегущая строка: только ближайшие будущие матчи (сегодня, завтра и ночь после), без наших прогнозов — время, лига, клубы, П1 · Х · П2 */
+{const mskDay=ms=>new Date(ms+3*3600e3).toISOString().slice(0,10),today=mskDay(Date.now()),tmr=mskDay(Date.now()+864e5);
+ const up=[...D].filter(m=>JV.left(m.t)>0&&JV.left(m.t)<48*3600).sort((a,b)=>a.t<b.t?-1:1); /* ближайшие 48 ч: ночные матчи НХЛ — следующей датой */
+ const L=up.length?up:[...D].filter(m=>JV.left(m.t)>0).sort((a,b)=>a.t<b.t?-1:1).slice(0,8);
+ JV.ticker(document.getElementById('ticker'),L.map(m=>{const day=m.t.slice(0,10),tag=day===today?'':day===tmr?'<span class="tm2">завтра</span>':`<span class="tm2">${day.slice(8)}.${day.slice(5,7)}</span>`;
+  return `${tag}<time>${m.t.slice(11)}</time>${LGP(m.lg)}${CI(m.a,'tc')}${esc(m.a)} — ${esc(m.b)}${CI(m.b,'tc')}<span class="kq">${m.x.map(v=>f1(v,2)).join(' · ')}</span>`}))}
 
 /* табло */
-const picks=[...D].sort((a,b)=>b.pr-a.pr).slice(0,4);
+const picks=D.filter(m=>m.vs).sort((a,b)=>a.t<b.t?-1:1);
 /* баннер матча: эмблемы лицом к лицу, ставка словами, кэф и вероятность; split-flap — только у отсчёта «До матча» */
 const bd=JV.board(document.getElementById('board'),[{label:'До матча',n:8,cls:'big'}]);
 const mcard=document.getElementById('mcard');
 const lvl=p=>p>=.57?'hi':p>=.54?'mid':'lo';
-const card=m=>`<div class="face">
-  <div class="tm${m.a.length>10?' long':''}">${CI(m.a)}<span>${esc(m.a)}</span><small>хозяева</small></div>
-  <div class="vs"><span aria-hidden="true">—</span><time>${m.t.slice(11)}</time></div>
-  <div class="tm${m.b.length>10?' long':''}">${CI(m.b)}<span>${esc(m.b)}</span><small>гости</small></div></div>
- <div class="bet lv-${lvl(m.pr)}"><span class="bl">Прогноз</span><strong>${esc(m.p)}</strong><span class="k num" aria-label="коэффициент">${m.k.replace('.',',')}</span>
-  <span class="pm"><em><i style="--w:${Math.round(m.pr*100)}%"></i></em><b class="num">${Math.round(m.pr*100)} % по модели</b></span></div>`;
+const card=m=>`<div class="bet lv-${lvl(m.pr)}"><span class="bl">Прогноз · ${esc(m.a)} — ${esc(m.b)}</span><strong>${esc(m.p)}</strong><span class="k num" aria-label="коэффициент">${m.k.replace('.',',')}</span>
+  <span class="pm"><em><i style="--w:${Math.round(m.pr*100)}%"></i></em><b class="num">${Math.round(m.pr*100)} % по модели</b></span></div>
+ <p class="why"><b>Почему:</b> ${esc(m.y)}.</p>`;
+const vsv=document.getElementById('vsv'),vsp=document.getElementById('vsp'),vsm=document.getElementById('vsm');
+const BAN=k=>`../assets/banners/${k}`;
+function media(m){vsp.src=BAN(m.vs)+'.webp';vsp.alt=`Баннер матча: ${m.a} — ${m.b}, ${LG[m.lg].name}, ${m.t.slice(8,10)}.${m.t.slice(5,7)} в ${m.t.slice(11)}`;
+ if(RM){vsv.removeAttribute('src');vsv.load();return}
+ vsv.src=BAN(m.vs)+'.mp4';vsv.poster=BAN(m.vs)+'.webp';const p=vsv.play();p&&p.catch(()=>{})}
+/* соседние баннеры подгружаем заранее — смена без пустого кадра */
+const warm=i=>{const m=picks[i];if(!m)return;const im=new Image();im.src=BAN(m.vs)+'.webp'};
 function swap(m,dir){
-  if(RM||!mcard.animate||!mcard.innerHTML){mcard.innerHTML=card(m);return}
+  if(RM||!mcard.animate||!mcard.innerHTML){mcard.innerHTML=card(m);media(m);return}
+  vsm.animate([{opacity:1,transform:'none'},{opacity:0,transform:`translateX(${-24*dir}px) scale(.985)`}],{duration:180,easing:'cubic-bezier(.55,0,1,.45)',fill:'forwards'}).finished.then(a=>{media(m);
+    vsm.getAnimations().forEach(x=>x.cancel());vsm.animate([{opacity:0,transform:`translateX(${28*dir}px) scale(.985)`},{opacity:1,transform:'none'}],{duration:460,easing:'cubic-bezier(.23,1,.32,1)'})}).catch(()=>media(m));
   const out=mcard.animate([{opacity:1,transform:'none'},{opacity:0,transform:`translateX(${-18*dir}px)`}],{duration:180,easing:'cubic-bezier(.55,0,1,.45)',fill:'forwards'});
   out.finished.then(()=>{mcard.innerHTML=card(m);out.cancel();
     mcard.animate([{opacity:0,transform:`translateX(${22*dir}px)`},{opacity:1,transform:'none'}],{duration:420,easing:'cubic-bezier(.23,1,.32,1)'})}).catch(()=>{mcard.innerHTML=card(m)});
@@ -295,58 +360,112 @@ document.getElementById('bdate').textContent=new Date().toLocaleDateString('ru-R
 let cur=0,timer=0,shown=false;const pager=document.getElementById('pager');
 pager.innerHTML=picks.map((m,i)=>`<button type="button" aria-pressed="${i===0}" aria-label="${esc(m.a)} — ${esc(m.b)}"></button>`).join('');
 function show(i){const dir=i>=cur?1:-1;cur=i;const m=picks[i];
+ boardEl.classList.toggle('khl',m.lg==='khl');boardEl.classList.toggle('nhl',m.lg==='nhl');
  document.getElementById('blg').innerHTML=LGP(m.lg);
  document.getElementById('bmeta').textContent=`${LG[m.lg].name} · ${m.t.slice(11)} МСК`;
  document.getElementById('bhead').textContent=i===0?`Прогноз дня · 1 из ${picks.length}`:`Прогноз ${i+1} из ${picks.length}`;
  pager.querySelectorAll('button').forEach((b,j)=>b.setAttribute('aria-pressed',j===i));
- swap(m,shown?dir:1);shown=true;bd.set([JV.hms(JV.left(m.t))])}
+ swap(m,shown?dir:1);shown=true;bd.set([JV.hms(JV.left(m.t))]);warm((i+1)%picks.length)
+ document.getElementById('bdate').textContent=new Date(m.t.slice(0,10)+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}
+{let sx=null,sy=0;const z=document.getElementById('vsm');
+ z.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+ z.addEventListener('touchend',e=>{if(sx===null)return;const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;sx=null;
+  if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)){show((cur+(dx<0?1:picks.length-1))%picks.length);restart()}},{passive:true})}
 pager.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;show([...pager.children].indexOf(b));restart()});
 function restart(){clearInterval(timer);if(!RM)timer=setInterval(()=>show((cur+1)%picks.length),9000)}
 const boardEl=document.getElementById('board');
 boardEl.addEventListener('mouseenter',()=>clearInterval(timer));boardEl.addEventListener('mouseleave',restart);
 const bio=new IntersectionObserver(es=>{if(es[0].isIntersecting){show(0);restart();bio.disconnect()}});bio.observe(boardEl);
 
-/* матчи */
+/* матчи: лицевая сторона — котировки события (П1 · Х · П2 и тотал), по нажатию строка раскрывается:
+   последние 3 матча, форма, статистика команд, что заходило в наших последних ставках. Всё — пример данных. */
 const ltabs=document.getElementById('ltabs'),list=document.getElementById('mlist');
 ltabs.innerHTML=`<button class="tab" role="tab" aria-selected="true" data-l="all">Все <span class="c">${D.length}</span></button>`+
  Object.entries(LG).map(([id,l])=>`<button class="tab" role="tab" aria-selected="false" data-l="${id}">${LGP(id)}${l.name} <span class="c">${cnt(id)}</span></button>`).join('');
-const conf=p=>p>=.57?'hi':p>=.54?'mid':'lo';
-function row(m){const L=LG[m.lg],ln=line(m),mx=Math.max(...ln);
- return `<li class="match"><button class="mhead" type="button" aria-expanded="false">
+D.forEach((m,i)=>m.tot=window.__HTOT[i%window.__HTOT.length]);
+/* детерминированный «случай» по названиям команд — одинаковые примерные данные при каждом открытии */
+const seedOf=t=>[...t].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,7);
+const rng=seed=>()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
+const two=n=>String(n).padStart(2,'0');
+function det(m){if(m.det)return m.det;const r=rng(seedOf(m.a+m.b)),pool=(m.lg==='khl'?KHL_CLUBS:NHL_CLUBS).map(c=>c[0]).filter(n=>n!==m.a&&n!==m.b);
+ const team=(name,str)=>{const games=[];for(let g=0;g<5;g++){const opp=pool[(r()*pool.length)|0],home=r()<.5,q=r(),res=q<str?'w':q<str+.12?'o':'l';
+   let x=1+((r()*4)|0),y=(r()*x)|0;if(res==='o'){y=x;x=x+1}if(res==='l')[x,y]=[y,x+ (x===y?1:0)];
+   const d=new Date(Date.now()-(2+g*2+((r()*2)|0))*864e5);games.push({d:`${two(d.getDate())}.${two(d.getMonth()+1)}`,opp,home,sc:`${x}:${y}${res==='o'?' ОТ':''}`,res})}
+  const gf=(2.3+r()*1.3),ga=(2.1+r()*1.2);
+  return {name,games,st:[['Шайбы за игру',gf.toFixed(1).replace('.',',')],['Пропущено за игру',ga.toFixed(1).replace('.',',')],['Большинство',`${(17+r()*12).toFixed(1).replace('.',',')} %`],['Меньшинство',`${(76+r()*9).toFixed(1).replace('.',',')} %`],['Место в конференции',`${1+((r()*12)|0)}`]]}};
+ const A=team(m.a,.38+r()*.25),B=team(m.b,.38+r()*.25);
+ const lineT=m.tot[0],bets=[];
+ const kinds=[t=>`Победа ${t}`,()=>`ТБ ${lineT}`,t=>`${t}: ИТБ 2,5`,()=>`ТМ ${lineT}`,t=>`${t} не проиграет`];
+ for(let k=0;k<4;k++){const t=r()<.5?m.a:m.b,d=new Date(Date.now()-(3+k*3+((r()*3)|0))*864e5);bets.push({d:`${two(d.getDate())}.${two(d.getMonth()+1)}`,t:kinds[(r()*kinds.length)|0](t),k:(1.6+r()*.6).toFixed(2).replace('.',','),ok:r()<.68})}
+ return m.det={A,B,bets}}
+const RES={w:'В',l:'П',o:'ОТ'},RESF={w:'победа',l:'поражение',o:'овертайм или буллиты'};
+function back(m){const {A,B,bets}=det(m);
+ const last=t=>`<div class="l3"><h5>${CI(t.name)}${esc(t.name)}</h5><ul>${t.games.slice(0,3).map(g=>`<li><span class="d">${g.d}</span><span class="op">${g.home?'':'@ '}${CI(g.opp)}${esc(g.opp)}</span><span class="sc num">${g.sc}</span><b class="rs ${g.res}" title="${RESF[g.res]}">${RES[g.res]}</b></li>`).join('')}</ul></div>`;
+ const form=t=>`<div class="fm"><span>${CI(t.name)}${esc(t.name)}</span><span class="dots" aria-label="форма: ${t.games.map(g=>RESF[g.res]).join(', ')}">${t.games.map(g=>`<i class="${g.res}">${RES[g.res]}</i>`).join('')}</span></div>`;
+ return `<div class="xd">
+  <section class="xb x-last"><h4>Последние 3 матча</h4><div class="two">${last(A)}${last(B)}</div></section>
+  <section class="xb x-form"><h4>Форма <span class="note">последние 5, слева — свежий</span></h4>${form(A)}${form(B)}</section>
+  <section class="xb x-stat"><h4>Статистика команды</h4><table class="st"><thead><tr><th></th><th>${CI(A.name)}<span>${esc(A.name)}</span></th><th>${CI(B.name)}<span>${esc(B.name)}</span></th></tr></thead>
+   <tbody>${A.st.map((r,i)=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${B.st[i][1]}</td></tr>`).join('')}</tbody></table></section>
+  <section class="xb x-bets"><h4>Что заходило в наших ставках</h4><ul>${bets.map(b=>`<li><span class="d">${b.d}</span><span>${esc(b.t)}</span><span class="num k">${b.k}</span><b class="${b.ok?'ok':'no'}" aria-label="${b.ok?'зашла':'не зашла'}">${b.ok?'✓':'✕'}</b></li>`).join('')}</ul></section>
+  <p class="note xn"><span class="sample">Пример данных</span> Полная статистика — в мини-приложении и таблице.</p></div>`}
+function row(m){const L=LG[m.lg],ln=line(m),mx=Math.max(...ln),[tl,to,tu]=m.tot;
+ return `<li class="match ${m.lg}"><button class="mhead" type="button" aria-expanded="false">
   <div class="mt"><time>${m.t.slice(11)}</time><span class="cd" data-t="${m.t}"></span></div>
   <div><div class="lgline">${LGP(m.lg)}${L.name}</div><div class="teams"><div class="team">${CI(m.a)}<span>${esc(m.a)}</span></div><div class="team">${CI(m.b)}<span>${esc(m.b)}</span></div></div></div>
-  <div class="probs">${['П1','Х','П2'].map((k,j)=>`<div class="pr ${ln[j]===mx?'top':''}"><span>${k}</span><em><i style="--w:${pc(ln[j])}"></i></em><b>${pc(ln[j])}</b></div>`).join('')}<div class="note" style="font-size:12px;font-family:var(--display)">линия рынка без маржи</div></div>
-  <div class="mpick"><span class="badge">Прогноз</span><strong>${esc(m.p)}</strong><span class="row"><span class="k">${m.k.replace('.',',')}</span><span class="conf ${conf(m.pr)}">${Math.round(m.pr*100)} % по модели</span></span></div>
+  <div class="quotes"><div class="q3">${['П1','Х','П2'].map((k,j)=>`<span class="qc${ln[j]===mx?' fav':''}"><small>${k}</small><b class="num">${f1(m.x[j],2)}</b><em class="num">${pc(ln[j])}</em></span>`).join('')}</div>
+   <div class="qt">Тотал ${tl} <span>Б <b class="num">${f1(to,2)}</b></span><span>М <b class="num">${f1(tu,2)}</b></span></div></div>
   <span class="chev">${chev}</span></button>
-  <div class="mbody"><div><dl class="mdet">
-   <div><dt>Почему</dt><dd>${esc(m.y)}</dd></div>
-   <div><dt>Кэфы П1 · Х · П2</dt><dd class="num">${m.x.map(v=>f1(v,2)).join(' · ')}</dd></div>
-   <div><dt>По модели</dt><dd class="num conf ${conf(m.pr)}" style="font:800 28px/1 var(--display)">${Math.round(m.pr*100)} %</dd><dd class="note" style="margin-top:6px">Пост выходит в канале до матча, с номером.</dd></div>
-  </dl></div></div></li>`}
+  <div class="mbody"><div>${''}</div></div></li>`}
 function render(l){const sel=(l==='all'?D:D.filter(m=>m.lg===l)).slice().sort((a,b)=>a.t<b.t?-1:1);
  ltabs.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.l===l));
  list.innerHTML=sel.map(row).join('');
- list.querySelectorAll('.match').forEach(li=>{const b=li.querySelector('.mhead');b.addEventListener('click',()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o)})});
+ list.querySelectorAll('.match').forEach((li,i)=>{const b=li.querySelector('.mhead'),body=li.querySelector('.mbody>div');
+  b.addEventListener('click',()=>{if(!body.innerHTML)body.innerHTML=back(sel[i]);requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o)})})});
  if(!RM)list.querySelectorAll('.match').forEach((li,i)=>li.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:i*55,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}));
  requestAnimationFrame(()=>list.querySelectorAll('.match').forEach(li=>li.classList.add('in')));tick()}
 function tick(){document.querySelectorAll('.cd[data-t]').forEach(e=>e.textContent=JV.inMin(JV.left(e.dataset.t)));if(shown)bd.tick(0,JV.hms(JV.left(picks[cur].t)))}
 ltabs.addEventListener('click',e=>{const t=e.target.closest('.tab');if(t)render(t.dataset.l)});
 render('all');setInterval(tick,1000);
 
-/* лиги и клубы */
-document.getElementById('flags').innerHTML=Object.entries(LG).map(([id,l])=>{const n=cnt(id);
- return `<li class="${id}"><a id="lg-${id}" href="#matches" data-lg="${id}"><img src="${LGI(id)}" alt=""><h3>${l.name}</h3><p>${l.full}</p><span class="nt">Матчи ${l.when}</span><span class="cnt">${n} ${plural(n,'матч','матча','матчей')} сегодня</span></a></li>`}).join('');
-document.getElementById('flags').addEventListener('click',e=>{const a=e.target.closest('a[data-lg]');if(a)render(a.dataset.lg)});
-/* стена эмблем — по лигам, все клубы КХЛ и НХЛ; лига берётся из CLUB_LG, а не из имени файла */
-const wall=document.getElementById('wall');
-wall.outerHTML=[['khl',KHL_CLUBS],['nhl',NHL_CLUBS]].map(([lg,list])=>`<h3 class="wallh">${LGP(lg)}<span>${LG[lg].name}</span><span>${list.length} ${plural(list.length,'клуб','клуба','клубов')}</span></h3>
- <div class="wall" data-lg="${lg}">${list.map(([n])=>`<a class="crest" href="#lg-${CLUB_LG[n]}" title="${esc(n)} · ${LG[CLUB_LG[n]].name}">${CI(n)}<span>${esc(n)}</span></a>`).join('')}</div>`).join('');
+/* лиги и клубы: две большие плашки — переключатель, ниже эмблемы выбранной лиги */
+const flags=document.getElementById('flags'),wallEl=document.getElementById('wall'),wallH=document.getElementById('wallh');
+const CLUBS={khl:KHL_CLUBS,nhl:NHL_CLUBS};let curLg='';
+/* эмблема на стене — ссылка на страницу команды (team/index.html?id=<файл эмблемы>); тема из адреса сохраняется */
+const TQ=(t=>/^(arena|a|b|c)$/.test(t||'')?'&theme='+t:'')(new URLSearchParams(location.search).get('theme'));
+flags.innerHTML=Object.entries(LG).map(([id,l])=>{const n=cnt(id);
+ return `<button type="button" role="tab" class="lgtab ${id}" id="lg-${id}" data-lg="${id}" aria-selected="false" aria-controls="wallbox"><img class="lgbg" src="${LGI(id)}" alt=""><span class="lgtx"><span class="lgn">${l.name}</span><span class="lgf">${l.full}</span><span class="nt">Матчи ${l.when}</span><span class="cnt">${n} ${plural(n,'матч','матча','матчей')} сегодня</span></span></button>`}).join('');
+function pickLg(lg,anim=true){if(lg===curLg)return;curLg=lg;
+ flags.querySelectorAll('.lgtab').forEach(b=>b.setAttribute('aria-selected',b.dataset.lg===lg));
+ const list=CLUBS[lg],put=()=>{wallH.innerHTML=`${LGP(lg)}<span>${LG[lg].name}</span><span>${list.length} ${plural(list.length,'клуб','клуба','клубов')}</span>`;
+  wallEl.dataset.lg=lg;wallEl.innerHTML=list.map(([n,slug],i)=>`<a class="crest" style="--i:${i}" href="../team/index.html?id=${slug}${TQ}" title="${esc(n)} · ${LG[lg].name}: страница команды">${CI(n)}<span>${esc(n)}</span></a>`).join('');
+  if(anim&&!RM)wallEl.querySelectorAll('.crest').forEach((c,i)=>c.animate([{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'none'}],{duration:420,delay:Math.min(i,32)*18,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}))};
+ if(anim&&!RM&&wallEl.innerHTML){wallEl.animate([{opacity:1},{opacity:0,transform:'translateY(6px)'}],{duration:160,easing:'ease-in'}).finished.then(put)}else put()}
+flags.addEventListener('click',e=>{const b=e.target.closest('.lgtab');if(b)pickLg(b.dataset.lg)});
+flags.addEventListener('keydown',e=>{if(!/Arrow(Left|Right)/.test(e.key))return;const t=[...flags.querySelectorAll('.lgtab')],i=t.findIndex(b=>b.dataset.lg===curLg),n=t[(i+(e.key==='ArrowRight'?1:t.length-1))%t.length];n.focus();pickLg(n.dataset.lg)});
+pickLg('khl',false);
+/* ссылки на #lg-khl / #lg-nhl (чипы, тикер, строки матчей) переключают лигу */
+document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#lg-"]');if(!a)return;const lg=a.getAttribute('href').slice(4);if(LG[lg]){pickLg(lg)}});
+if(/^#lg-(khl|nhl)$/.test(location.hash))pickLg(location.hash.slice(4),false);
 
-/* сила команд */
-const lo=1440,hi=1640;
-document.getElementById('pbars').innerHTML=window.__ELO.map(([n,v,d],i)=>`<div class="pbar"><span>${CI(n)}${esc(n)}</span><em><i style="--w:${((v-lo)/(hi-lo)*100).toFixed(1)}%;--d:${i*80}ms"></i></em><b>${v}</b></div>`).join('')+
- `<p class="note" style="margin:0">${window.__ELO.map(([n,v,d])=>`${n} ${d>0?'+':'−'}${Math.abs(d)}`).join(', ')}</p>`;
-document.querySelector('#hits tbody').innerHTML=window.__HITS.map(([n,...v])=>`<tr><td style="width:auto;font:600 18px/1.2 var(--display);color:var(--ink)"><span class="cl">${CI(n)}${esc(n)}</span></td>${v.map(x=>`<td class="ra">${x}%</td>`).join('')}</tr>`).join('');
+/* аналитическая таблица: 6 листов, как на лендинге — точки-вкладки, стрелки, свайп, клавиатура */
+{const tour=document.getElementById('tour'),steps=[...tour.querySelectorAll('.tstep')],tcs=[...tour.querySelectorAll('.tc')],tvs=[...tour.querySelectorAll('.tv')],tabs=[...tour.querySelectorAll('.win-tabs span')],cnt=document.getElementById('tcount');
+ const N=steps.length,TONE=['var(--ice)','#b07a00','var(--red)','var(--ice)','#b07a00','#6b4fc9'];let ti=0;
+ const go=i=>{ti=(i+N)%N;[steps,tcs,tvs,tabs].forEach(L=>L.forEach((el,j)=>{el.classList.toggle('on',j===ti)}));steps.forEach((b,j)=>b.setAttribute('aria-selected',j===ti));
+  tour.style.setProperty('--tone',TONE[ti]);cnt.textContent=`${ti+1} / ${N}`;const t=tabs[ti],bar=t&&t.parentElement;if(bar)bar.scrollTo({left:t.offsetLeft-bar.clientWidth/2+t.offsetWidth/2,behavior:'smooth'})};
+ steps.forEach((b,j)=>b.addEventListener('click',()=>go(j)));
+ document.getElementById('tprev').onclick=()=>go(ti-1);document.getElementById('tnext').onclick=()=>go(ti+1);
+ tour.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){go(ti+1);e.preventDefault()}else if(e.key==='ArrowLeft'){go(ti-1);e.preventDefault()}});
+ let x0=null,y0=0;const vis=tour.querySelector('.tour-grid');
+ vis.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;x0=e.clientX;y0=e.clientY},{passive:true});
+ vis.addEventListener('pointerup',e=>{if(x0===null)return;const dx=e.clientX-x0,dy=e.clientY-y0;x0=null;if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy))go(ti+(dx<0?1:-1))},{passive:true});
+ vis.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
+ vis.addEventListener('touchend',e=>{if(x0===null)return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy))go(ti+(dx<0?1:-1))},{passive:true});
+ const lo=1440,hi=1640;
+ document.getElementById('elo').innerHTML=window.__ELO.map(([n,v,d],i)=>`<div class="er"><b>${i+1}</b>${CI(n)}<span>${esc(n)}</span><em style="--w:${((v-lo)/(hi-lo)*100).toFixed(0)}%"></em><strong>${v}</strong><small class="${d>0?'up':'dn'}">${d>0?'+':'−'}${Math.abs(d)}</small></div>`).join('');
+ document.getElementById('heat').innerHTML='<tr><th></th><th>Победа</th><th>ТБ 5,5</th><th>ТМ 5,5</th><th>ОТ</th></tr>'+window.__HITS.map(([n,...v])=>`<tr><td>${CI(n)}${esc(n)}</td>${v.map(x=>`<td style="--h:${(x/100).toFixed(2)}">${x}%</td>`).join('')}</tr>`).join('');
+ tour.querySelectorAll('img[data-crest]').forEach(i=>{i.src=crest(i.dataset.crest);i.className='em'});
+ go(0);}
 
 /* коридор кэфа */
 const k=document.getElementById('k'),ko=document.getElementById('kout'),puck=document.getElementById('puck');

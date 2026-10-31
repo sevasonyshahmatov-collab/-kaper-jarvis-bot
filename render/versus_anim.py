@@ -291,12 +291,12 @@ class _Side:
         return _drop_shadow(box, alpha, self.size), (box, rgb, alpha, ftex), (pos, ergb, ea, etex)
 
 
-def _static(home, away, date, time, odds, league, tz, fade):
+def _static(home, away, date, time, odds, league, tz, fade, site=False):
     """Неподвижные слои 1080²: фон (без текстуры), текст/плашки (rgb, alpha) и панели (versus._panel_specs)."""
     S0 = versus.S
     versus.S = SS                                         # текст — в 3× независимо от JARVIS_S
     try:
-        ly = versus.layers(home, away, date, time, odds, league, tz, fade)
+        ly = versus.layers(home, away, date, time, odds, league, tz, fade, site=site)
     finally:
         versus.S = S0
     bg = np.asarray(ly['bg'].convert('RGB').resize((W, H), Image.LANCZOS), np.float32)
@@ -572,13 +572,14 @@ def _screen_bg(grain=GRAIN):
 
 
 def compose(home, away, path_mp4, date='', time='', odds=None, league='KHL', plates_dir='out/anim/plates', gif=False,
-            tz='время московское', seconds=4, fps=30, target_mb=3.0, sheet=None, grain=GRAIN):
+            tz='время московское', seconds=4, fps=30, target_mb=3.0, sheet=None, grain=GRAIN, site=False):
     """Баннер из готовых плашек: фон → плашка хозяев → плашка гостей → текст. Цвета берёт как versus (с заменой
-    цвета гостей при совпадении), недостающие плашки рисует в plates_dir. → path_mp4 (+ .gif / контактный лист)."""
+    цвета гостей при совпадении), недостающие плашки рисует в plates_dir. → path_mp4 (+ .gif / контактный лист).
+    site=True — вариант для сайта: без «vs», аббревиатуры ближе (по умолчанию — как в Телеграме, без изменений)."""
     (hn, hc, _, _), (an, ac, _, _), _ = versus._teams(home, away, league)
     plates = [get_plate(hn, 'home', league, hc, plates_dir, seconds, fps),
               get_plate(an, 'away', league, ac, plates_dir, seconds, fps)]
-    bg, fg_rgb, fg_a, _ = _static(home, away, date, time, odds, league, tz, ('down', 'up'))
+    bg, fg_rgb, fg_a, _ = _static(home, away, date, time, odds, league, tz, ('down', 'up'), site=site)
     scr = _Canvas(grain).screen
     fa = fg_a[..., None]
     # текст поверх фона — точно как у статики (зерно на смешанный цвет); здесь — вклад текста «с предумножением»:
