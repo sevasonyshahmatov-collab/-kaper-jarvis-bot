@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Картинки купонов «Экспресс» из JSON team/picks/express.py: для купона k — e<k>_feed.jpg (1080×1350),
-e<k>_story.jpg (1080×1920) и e<k>_anim.mp4 (≤ 5 с, ноги выезжают по очереди). Рисовать в Actions (jpg/mp4 в team/out
+e<k>_story.jpg (1080×1920), e<k>_anim.mp4 (лента, ≤ 5 с, ноги выезжают по очереди, затем общий кэф) и
+e<k>_story.mp4 (сторис-видео). Без шанса модели и пояснений (владелец 31.10: «просто сам экспресс и снизу общий кэф»). Рисовать в Actions (jpg/mp4 в team/out
 не коммитятся): в задании "make": ["team/picks/express_render.py <coupons.json> <папка>"].
     PYTHONPATH=render python3 team/picks/express_render.py team/out/2026-10-31/express_coupons.json out/express/2026-10-31"""
 import json
@@ -39,13 +40,14 @@ def main(src, out):
             continue
         legs = [dict(home=x['home'], away=x['away'], time=x['time'], bet=x['bet_short'], kef=x['kef'], league=x['league'])
                 for x in c['legs']]
-        kw = dict(date_title='%s · %s' % (date_title(c['legs']), WORD.get(len(legs), '%d события' % len(legs))),
-                  total=c['kef'], chance=c['p'])
+        kw = dict(date_title=date_title(c['legs']), total=c['kef'])     # владелец 31.10: только события и общий кэф
         for fmt in ('feed', 'story'):
             p = ec.render(legs, os.path.join(out, 'e%d_%s.jpg' % (k, fmt)), fmt=fmt,
-                          cta='Разбор — в Telegram @jarvibet' if fmt == 'story' else None, **kw)
+                          cta='Все прогнозы — в Telegram @jarvibet' if fmt == 'story' else None, **kw)
             print('::notice title=EXRENDER_%s::%d КБ' % (os.path.basename(p), os.path.getsize(p) // 1024), flush=True)
         p = ec.animate(legs, os.path.join(out, 'e%d_anim.mp4' % k), **kw)
+        print('::notice title=EXRENDER_%s::%d КБ' % (os.path.basename(p), os.path.getsize(p) // 1024), flush=True)
+        p = ec.animate(legs, os.path.join(out, 'e%d_story.mp4' % k), fmt='story', cta='Все прогнозы — в Telegram @jarvibet', **kw)
         print('::notice title=EXRENDER_%s::%d КБ' % (os.path.basename(p), os.path.getsize(p) // 1024), flush=True)
 
 

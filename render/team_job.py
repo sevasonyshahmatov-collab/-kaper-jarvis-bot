@@ -189,6 +189,15 @@ def recap_env(payload):
     return out
 
 
+def express_env(payload):
+    """Купон опубликован владельцем кнопкой в боте (payload бота: express = {pid: 'ДДММ-eN'}) → EXPRESS_PID и
+    EXPRESS_BY=owner-button — «замок» team/picks/express_ig.py (без нажатия кнопки в Instagram не публикуем)."""
+    ex = payload.get('express')
+    if not isinstance(ex, dict) or not re.fullmatch(r'\d{4}-e\d{1,2}', str(ex.get('pid') or '')):
+        return {}
+    return {'EXPRESS_PID': str(ex['pid']), 'EXPRESS_BY': 'owner-button'}
+
+
 def postmatch_env(payload):
     """Прогноз для послематчевого поста (payload бота: pm = {pid, league, home, away, start, pick, kef, ch}) → POSTMATCH.
     Только проверенные значения: номер ММДД-N, лига, начало «ГГГГ-ММ-ДД ЧЧ:ММ», строки до 200 знаков."""
@@ -218,6 +227,7 @@ def main(payload):
     env = dict(os.environ, PYTHONPATH=os.path.join(ROOT, 'render') + os.pathsep + os.environ.get('PYTHONPATH', ''))
     env.update(recap_env(payload))           # утренний опрос: RECAP_PIDS / RECAP_FREE / RECAP_DAY / RECAP_AT (team/daily/ask.py)
     env.update(postmatch_env(payload))       # послематчевый пост: POSTMATCH — прогноз из payload бота (team/postmatch/run.py)
+    env.update(express_env(payload))         # купон «Экспресс» опубликован кнопкой → Instagram (team/picks/express_ig.py)
     errors = []
     for script in job.get('make') or []:
         print('рисую:', script)
