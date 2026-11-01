@@ -1,0 +1,5 @@
+{"day": "2026-11-01", "make": ["team/picks/express_result.py team/out/2026-10-31/express_coupons.json 1 out/express/2026-11-01"],
+ "messages": [
+  {"to": "owner", "type": "photo", "html": true, "files": ["out/express/2026-11-01/e1_result.jpg"], "buttons": "post", "pid": "3110-e1r",
+   "text": "Итог экспресса ✅ Зашёл!\n\nНХЛ · 31 октября – 1 ноября\n\n1. <b>Лос-Анджелес — Баффало</b> 2:3 · фора +2,5 ✅\n2. <b>Монреаль — Питтсбург</b> 5:4 · ИТ Питтсбурга больше 1,5 ✅\n3. <b>Ванкувер — Торонто</b> 2:4 · ИТ Ванкувера больше 1,5 ✅\n\nОбщий кэф: <b>1,83</b>\n\n#нхл #экспресс #jarvibet"}
+ ]}
