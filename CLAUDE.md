@@ -44,7 +44,7 @@
 - Ролики: `render/reels/`, конвейер `team/reels_daily/`, правила роликов — `team/RULES.md` «Ролики».
 - Сайт: `team/site/`, `docs/handoff/SITE.md`. Соцсети: `docs/handoff/SMM_AGENT.md`.
 - Бот и таблицы (Apps Script): `apps-script/`, `docs/handoff/HANDOFF_CODE.md`; проверка без затрат — `tools/gas_mock/`.
-- **Схема команды и агентов: `docs/handoff/AGENTS.md` — прочитать в начале.** Живое состояние (оба аккаунта): `team/NOW.md`. Передачи между сессиями: `docs/handoff/` (свежая — `HANDOFF_LEAD_3110.md`).
+- **Схема команды и агентов: `docs/handoff/AGENTS.md` — прочитать в начале.** Живое состояние (оба аккаунта): `team/NOW.md`. Передачи между сессиями: `docs/handoff/` (свежая — `HANDOFF_LEAD_0111.md`).
 
 ## Скиллы проекта (`.claude/skills/`)
 - Как устроены агенты (чаты, диспетчер, скиллы, Actions), как создавать и зачем — `docs/handoff/AGENTS.md`.
