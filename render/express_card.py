@@ -66,6 +66,22 @@ def _leg(img, it, y0, R, acc, i, F):
     mv._txt(d, (zx1 - 14) * S, yp * S, kv, F['kef'], mv.INK + (255,), 'r')
     room = (zx1 - zx0 - kw - 42) * S
     mv._txt(d, (zx0 + 14) * S, yp * S, it['bet'], mv._fit_room(it['bet'], MAN, 800, F['bet'], room), mv.INK + (255,), 'l')
+    mk = it.get('mark')                                  # итог ноги: win / loss / push — кружок с галочкой у полосы
+    if mk:
+        col = {'win': (46, 190, 105), 'loss': (225, 70, 70), 'push': (150, 148, 156)}[mk]
+        r = min(28, R * 0.1)
+        cx, cy = zc, y0 + R * 0.51
+        d.ellipse(((cx - r) * S, (cy - r) * S, (cx + r) * S, (cy + r) * S), fill=col)
+        w = max(3, int(r * 0.2 * S))
+        if mk == 'win':
+            d.line(((cx - r * .45) * S, cy * S, (cx - r * .1) * S, (cy + r * .38) * S, (cx + r * .5) * S, (cy - r * .36) * S),
+                   fill=(255, 255, 255), width=w, joint='curve')
+        elif mk == 'loss':
+            for sg in (1, -1):
+                d.line(((cx - r * .38) * S, (cy - sg * r * .38) * S, (cx + r * .38) * S, (cy + sg * r * .38) * S),
+                       fill=(255, 255, 255), width=w)
+        else:
+            d.line(((cx - r * .4) * S, cy * S, (cx + r * .4) * S, cy * S), fill=(255, 255, 255), width=w)
 
 
 def render(legs, path, **kw):
