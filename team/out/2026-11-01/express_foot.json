@@ -1,0 +1,19 @@
+{
+ "day": "2026-11-01",
+ "make": [
+  "team/picks/express_render.py team/out/2026-11-01/express_foot_coupons.json out/express/2026-11-01-foot"
+ ],
+ "messages": [
+  {
+   "to": "owner",
+   "type": "animation",
+   "html": true,
+   "files": [
+    "out/express/2026-11-01-foot/e1_anim.mp4"
+   ],
+   "text": "Футбол · 1 ноября · экспресс\n\n1. <b>Расинг Сантандер — Реал Мадрид</b>, 18:15 МСК\nпобеда Реал Мадрида в основное время · 1,23\n2. <b>Ливерпуль — Арсенал</b>, 19:30 МСК\nдвойной шанс 1Х (Ливерпуль не проиграет) · 1,55\n\nОбщий кэф: <b>1,91</b>\n\n#футбол #экспресс #jarvibet",
+   "buttons": "post",
+   "pid": "0111-e4"
+  }
+ ]
+}
