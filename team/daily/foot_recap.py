@@ -60,7 +60,6 @@ def pick_of(post, year):
 
 def rows_for(d):
     """→ (рассчитанные строки, не рассчитано [(прогноз, почему)])."""
-    import foot
     t0, t1 = ask.window(d)
     posts, _ = channel.feed(t0)
     by_match = {}
@@ -68,8 +67,14 @@ def rows_for(d):
         p = pick_of(post, t1.year)
         if p and t0 <= p['start'] < t1:
             by_match[(p['home'], p['away'], p['start'])] = p          # один матч в двух постах — последний пост
+    return rows_from(sorted(by_match.values(), key=lambda x: x['start']))
+
+
+def rows_from(picks):
+    """Список прогнозов → (рассчитанные строки, не рассчитано). Общая часть канала и бота (--auto)."""
+    import foot
     rows, skipped = [], []
-    for p in sorted(by_match.values(), key=lambda x: x['start']):
+    for p in picks:
         print('FOOT_RECAP | %s | %s | %s — %s | %s | %s | кэф %s' % (p['pid'], p['tour'], p['home'], p['away'],
               p['start'].strftime('%d.%m %H:%M'), p['bet'], p['kef']), flush=True)
         try:
@@ -92,10 +97,25 @@ def rows_for(d):
     return rows, skipped
 
 
-def build(d, plan, out_dir, card=True):
+def picks_from_env():
+    """Ставки от бота (RECAP_FOOT: [{tour, home, away, start, pick, kef}]) — с правками владельца, а не из ленты канала."""
+    import json
+    out = []
+    for i, x in enumerate(json.loads(os.environ.get('RECAP_FOOT') or '[]')):
+        try:
+            st = datetime.strptime(x['start'], '%Y-%m-%d %H:%M').replace(tzinfo=MSK)
+            kef = float(str(x.get('kef') or '').replace(',', '.')) if x.get('kef') else None
+        except ValueError:
+            continue
+        out.append(dict(msg_id=i, pid='№%d' % (i + 1), league='FOOT', tour=x['tour'], start=st, home=x['home'], away=x['away'],
+                        bet=x['pick'], kef=kef))
+    return sorted(out, key=lambda p: p['start'])
+
+
+def build(d, plan, out_dir, card=True, picks=None):
     """→ (сообщения: пост итогов и, если надо, баннер отдельно; строка для вступления владельцу)."""
     try:
-        rows, skipped = rows_for(d)
+        rows, skipped = rows_from(picks) if picks is not None else rows_for(d)
     except Exception as e:  # noqa: BLE001
         traceback.print_exc()
         return [], 'футбол: итоги не собрались (%s)' % compose.esc(repr(e)[:100])
@@ -132,6 +152,14 @@ def build(d, plan, out_dir, card=True):
 if __name__ == '__main__':
     import morning
     d = date.fromisoformat(sys.argv[1])
+    if '--auto' in sys.argv:       # бот: итоги по сверенным ставкам сразу после финала последнего матча (RECAP_FOOT)
+        jf = sys.argv[sys.argv.index('--auto') + 1]
+        msgs, note = build(d, morning.engine().plan(d, 7), os.path.join(ROOT, 'out', 'daily', d.isoformat(), 'foot'), picks=picks_from_env())
+        print('FOOTRECAP', note, flush=True)
+        if not msgs:
+            msgs = [{'to': 'owner', 'type': 'text', 'html': True, 'text': 'Итоги футбола за %s не собрались: %s' % (compose.dm(d), note)}]
+        morning.write_job(d, msgs, os.path.join(ROOT, jf) if not os.path.isabs(jf) else jf)
+        sys.exit(0)
     msgs, note = build(d, morning.engine().plan(d, 7), os.path.join(ROOT, 'out', 'daily', d.isoformat(), 'foot'), card='--no-card' not in sys.argv)
     print(note)
     for m in msgs:

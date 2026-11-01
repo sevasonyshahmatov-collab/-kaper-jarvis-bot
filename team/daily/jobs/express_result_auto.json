@@ -1,0 +1,5 @@
+{
+ "day": "{day}",
+ "make": ["team/picks/express_result.py --auto team/out/{day}/express_result_auto.json"],
+ "messages": []
+}
