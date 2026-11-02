@@ -31,7 +31,8 @@ def compute(src, k, out):
     legs, res = [], []
     for x, p in zip(c['legs'], picks):
         g = data.match_game(found, p)
-        if not g or g['state'] != 'final' or g.get('hg') is None:
+        live_ok = os.environ.get('EXPRESS_FORCE_LIVE') == '1' and g and g.get('hg') is not None and g['state'] in ('live', 'final')
+        if not g or (g['state'] != 'final' and not live_ok) or g.get('hg') is None:
             print('EXPRRES %s — %s: нет финала (%s)' % (x['home'], x['away'], g and g['state']), flush=True)
             res.append(None)
             continue
@@ -110,7 +111,28 @@ def auto(job_file):
     return 0
 
 
+def manual(src, k, out, job_file, pid):
+    """Разово по просьбе владельца: рассчитать купон src[k] и дописать «Итог экспресса» в задание job_file (pid — ДДММ-eN)."""
+    os.environ['EXPRESS_FORCE_LIVE'] = '1'          # владелец подтвердил: идущий матч уже решил ногу («больше» не отыгрывается)
+    c, legs, res, status = compute(src, k, out)
+    if status == 'pending':
+        print('EXPRERR не все ноги сыграны', flush=True)
+        return 1
+    day, n = pid.split('-e')
+    img = os.path.join(out, 'e%s_result.jpg' % k)
+    msg = {'to': 'owner', 'type': 'photo', 'html': True, 'emoji': True, 'files': [img], 'text': result_text(c, legs, status),
+           'buttons': 'post', 'pid': '%s-e%sr' % (day, n)}
+    jp = os.path.join(ROOT, job_file)
+    job = json.load(open(jp, encoding='utf-8'))
+    job['messages'] = (job.get('messages') or []) + [msg]
+    json.dump(job, open(jp, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    print('EXPRSENT', pid, status, flush=True)
+    return 0
+
+
 if __name__ == '__main__':
+    if sys.argv[1] == '--manual':
+        sys.exit(manual(*sys.argv[2:7]))
     if sys.argv[1] == '--auto':
         sys.exit(auto(sys.argv[2]))
     main(*sys.argv[1:4])
