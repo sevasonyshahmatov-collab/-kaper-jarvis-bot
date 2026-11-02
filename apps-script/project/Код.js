@@ -8019,6 +8019,8 @@ function liveUpdateAuto_() {
     try { teamSchedTick_(); } catch (e) { console.log('выход постов: ' + e.message); }   // посты команды за полтора часа до матча
     try { recapAutoTick_(); } catch (e) { console.log('утренние посты: ' + e.message); }   // 06:00 МСК — «Начало игрового дня», 08:30 — итоги из канала
     try { pmTick_(); } catch (e) { console.log('послематчевые посты: ' + e.message); }      // итог по каждому опубликованному прогнозу после финала
+    try { expressTick_(); } catch (e) { console.log('итог экспресса: ' + e.message); }      // итог купона после финала последней ноги (владелец 01.11)
+    try { recapFinalTick_(); } catch (e) { console.log('итоги дня после финала: ' + e.message); }   // сверка итогов дня сразу после последнего матча (владелец 01.11)
     var lv = null, lw = null;
     try { lv = liveUpdate_(new Date()); } catch (e) { console.log('live: ' + e.message); autoMark_('liveUpdateAuto_', false, 'LIVE: ' + e.message); }
     try { lw = lineupWatch_(new Date()); } catch (e) { console.log('lineups: ' + e.message); autoMark_('liveUpdateAuto_', false, 'заявки: ' + e.message); }
@@ -15726,6 +15728,8 @@ function teamCallback_(q, parts) {
       mark('✅ Опубликовано');
       teamEditPubSave_(m.chat.id, m.message_id, album ? album.first : null, r.result);   // номер поста в канале — для правок до начала матча
       try { pmWatchSave_(pid, String(m.caption || m.text || ''), r.result); } catch (e) { console.log('послематчевый пост: ' + e.message); }
+      if (expressDay_(pid)) { try { expressWatchSave_(pid, String(m.caption || m.text || ''), r.result); } catch (e) { console.log('итог экспресса: запись купона: ' + e.message); } }
+      if (/^\d{4}-e\d{1,2}r\d*$/.test(String(pid))) { try { expressResultLog_(pid, String(m.caption || m.text || '')); } catch (e) { console.log('учёт экспрессов: ' + e.message); } }
       answer('Опубликовано в канал');
       if (expressDay_(pid)) { try { expressAfterPub_(m, pid); } catch (e) { console.log('экспресс → Instagram: ' + e.message); } }
       teamAppend_('team/INBOX.md', '- [x] ' + teamStamp_() + ' · опубликовано владельцем: ' + pid + ' ' + title, 'Inbox: draft published by the owner');
@@ -15783,6 +15787,91 @@ function expressAfterPub_(m, pid) {
     tg_('sendMessage', { chat_id: m.chat.id, reply_to_message_id: m.message_id,
       text: '⚠️ Купон ' + pid + ' в канале, но в Instagram не отправлен: ' + r.why });
   }
+}
+
+/* ── 🎟 Итог экспресса — ответом на пост купона (владелец 01.11, образец — «Итог матча»: pmWatchSave_ / pmTick_) ──
+ *  Купон вышел в канал по кнопке → EXW_<ДДММ-eN> = {pid, ch — номер поста купона в канале, day, league, legs: [{home, away, start}],
+ *  last — начало последней ноги}. expressTick_ (из liveUpdateAuto_): после last + PM_AFTER_* проверяет, что все ноги доиграны
+ *  (pmFinished_), и один раз запускает itogi.yml (задание express_result_auto из заготовки, payload exres {pid, ch}) —
+ *  team/picks/express_result.py --auto присылает владельцу баннер с ✅/❌ и текст, номер ДДММ-eNr<ch>. «Опубликовать» под ним
+ *  публикует итог ответом на пост купона (pmReplyTo_); проигрыш — тоже итог. Учёт — team/picks/EXPRESS_RESULTS.md. */
+var EXW_PROP = 'EXW_';
+
+function expressGet_(pid) {
+  try { return JSON.parse(PropertiesService.getScriptProperties().getProperty(EXW_PROP + pid) || 'null'); } catch (e) { return null; }
+}
+function expressPut_(w) { PropertiesService.getScriptProperties().setProperty(EXW_PROP + w.pid, JSON.stringify(w)); }
+
+/** Текст купона («1. Лос-Анджелес — Баффало, 23:00 МСК» / «…, 1 ноября, 02:00 МСК») → {league, legs: [{home, away, start}]} или null. */
+function expressParse_(pid, text) {
+  var day = expressDay_(pid);
+  if (!day) return null;
+  var lines = String(text || '').replace(/<[^>]+>/g, '').split('\n').map(function (x) { return x.trim(); }).filter(String);
+  var lg = lines.length && /^НХЛ\s*·/.test(lines[0]) ? 'NHL' : lines.length && /^КХЛ\s*·/.test(lines[0]) ? 'KHL' : null;
+  if (!lg) return null;
+  var y = Number(day.slice(0, 4)), mon0 = Number(day.slice(5, 7)), d0 = Number(day.slice(8, 10)), legs = [], numbered = 0;
+  var z = function (n) { return ('0' + n).slice(-2); };
+  lines.forEach(function (l) {
+    if (!/^\d+\.\s/.test(l)) return;
+    numbered++;
+    var m = l.match(/^\d+\.\s+(.+?)\s+[—–]\s+(.+?),\s*(?:(\d{1,2})\s+([а-яё]+),\s*)?(\d{1,2}):(\d\d)\s*МСК/i);
+    if (!m) return;
+    var mo = mon0, dd = d0, yy = y;
+    if (m[3]) {
+      var i = RU_MONTHS_GEN.indexOf(m[4].toLowerCase());
+      if (i < 0) return;
+      mo = i + 1; dd = Number(m[3]);
+      if (mo < mon0) yy += 1;                                           // купон 31 декабря, нога 1 января
+    }
+    legs.push({ home: m[1].trim(), away: m[2].trim(), start: new Date(yy + '-' + z(mo) + '-' + z(dd) + 'T' + z(Number(m[5])) + ':' + m[6] + ':00+03:00').getTime() });
+  });
+  return legs.length && legs.length === numbered ? { league: lg, legs: legs } : null;
+}
+
+/** Купон вышел в канал: запомнить для итога. res — ответ copyMessage. */
+function expressWatchSave_(pid, text, res) {
+  var c = expressParse_(pid, text);
+  if (!c) { console.log('итог экспресса: не разобрал купон ' + pid); return null; }
+  var w = { pid: pid, ch: (Array.isArray(res) ? res[0] && res[0].message_id : res && res.message_id) || null, day: expressDay_(pid),
+    league: c.league, legs: c.legs, last: Math.max.apply(null, c.legs.map(function (l) { return l.start; })), st: 'wait', t: Date.now() };
+  expressPut_(w);
+  return w;
+}
+
+/** Из liveUpdateAuto_ (раз в 5 минут): итог купонов, все ноги которых доиграны. Один запуск на купон (st: wait → sent). */
+function expressTick_() {
+  var p = PropertiesService.getScriptProperties(), now = Date.now(), done = [];
+  p.getKeys().forEach(function (k) {
+    if (k.indexOf(EXW_PROP) !== 0) return;
+    var w = expressGet_(k.slice(EXW_PROP.length));
+    if (!w || !w.last || now - w.last > PM_KEEP_MS) { p.deleteProperty(k); return; }
+    if (w.st !== 'wait' || now < w.last + (w.league === 'NHL' ? PM_AFTER_NHL_MS : PM_AFTER_KHL_MS)) return;
+    if (now > w.last + PM_GIVEUP_MS) {
+      w.st = 'skip'; expressPut_(w);
+      var chat = recapOwnerChat_();
+      if (chat) tgRaw_('sendMessage', { chat_id: chat, text: '⚠️ Купон ' + w.pid + ': за ' + (PM_GIVEUP_MS / 3600000) + ' ч после последней ноги финал не подтвердился — итог экспресса не собран. Пришлите счета — соберу вручную.' });
+      return;
+    }
+    var fin = true;
+    w.legs.forEach(function (l) {
+      if (!fin) return;
+      try { fin = pmFinished_({ league: w.league, home: l.home, away: l.away, start: l.start }); } catch (e) { fin = false; console.log('итог экспресса ' + w.pid + ': ' + e.message); }
+    });
+    if (!fin) return;
+    var r = recapDispatch_({ kind: 'team', job: 'team/out/' + w.day + '/express_result_auto.json', day: w.day, exres: { pid: w.pid, ch: w.ch } });
+    if (r.ok) { w.st = 'sent'; w.sent = now; done.push(w.pid); } else { w.fails = (w.fails || 0) + 1; w.why = r.why; }
+    expressPut_(w);
+  });
+  return done.length ? 'итог экспресса: ' + done.join(', ') : '';
+}
+
+/** «Итог экспресса» опубликован → строка в team/picks/EXPRESS_RESULTS.md (зашёл ✅ / нет ❌ / возврат ↩️, кэф, счета ног). */
+function expressResultLog_(pid, text) {
+  var plain = String(text || '').replace(/<[^>]+>/g, ''), first = plain.split('\n')[0];
+  var mark = /✅/.test(first) ? '✅ зашёл' : /❌/.test(first) ? '❌ не зашёл' : '↩️ возврат', kef = (plain.match(/Общий кэф:\s*([\d.,]+)/) || [])[1] || '—';
+  var legs = plain.split('\n').filter(function (l) { return /^\d+\.\s/.test(l); }).map(function (l) { return l.replace(/^\d+\.\s*/, ''); }).join('; ');
+  teamAppend_('team/picks/EXPRESS_RESULTS.md', '- ' + teamStamp_() + ' · ' + pid.replace(/r\d*$/, '') + ' · ' + mark + ' · кэф ' + kef + ' · ' + legs,
+    'Express result: ' + pid);
 }
 
 /* ── ⏰ Выход поста за полтора часа до матча (решение владельца 15.10) ──
@@ -15933,13 +16022,16 @@ var RECAP_WINDOW_HOUR = 8;              // МСК: окно итогов — м�
 var RECAP_REMIND_MS = 30 * 60000;       // напоминание о сверке — не раньше чем через полчаса после неё
 var DAILY_AUTO_JOBS = [                 // порядок = порядок запуска, если таблица «проснулась» поздно и пора обоим
   { key: 'greet', hour: DAILY_GREET_HOUR, min: DAILY_GREET_MIN, job: 'morning_greet', title: '«Начало игрового дня»' },
-  { key: 'recap', hour: DAILY_RECAP_HOUR, min: DAILY_RECAP_MIN, check: true, title: 'сверка ставок перед итогами' }
+  { key: 'recap', hour: DAILY_RECAP_HOUR, min: DAILY_RECAP_MIN, check: true, title: 'сверка ставок перед итогами' },
+  { key: 'recapf', hour: DAILY_RECAP_HOUR, min: DAILY_RECAP_MIN, check: true, grp: 'foot', title: 'сверка футбольных ставок' }   // запасной: обычно ушла сразу после финала
 ];
 
 function recapAutoGet_(day) {
   try { return JSON.parse(PropertiesService.getScriptProperties().getProperty(RECAP_AUTO_PROP + day) || 'null'); } catch (e) { return null; }
 }
-function recapAutoPut_(st) { PropertiesService.getScriptProperties().setProperty(RECAP_AUTO_PROP + st.day, JSON.stringify(st)); }
+function recapAutoPut_(st) { PropertiesService.getScriptProperties().setProperty(RECAP_AUTO_PROP + (st.key || st.day), JSON.stringify(st)); }
+/** Состояние футбольных итогов дня — отдельная запись RECAP_AUTO_<день>f (хоккей и футбол сверяются и уходят отдельно, владелец 01.11). */
+function recapAutoGetFoot_(day) { return recapAutoGet_(day + 'f') || { day: day, key: day + 'f', grp: 'foot' }; }
 
 /** Чат владельца: тот, где владелец нажимал кнопки команды, иначе создатель канала, иначе TG_OWNER_ID / TG_ADMIN_ID. */
 function recapOwnerChat_() {
@@ -15959,35 +16051,74 @@ function recapAutoTick_() {
   p.getKeys().forEach(function (k) {
     [RECAP_AUTO_PROP, RECAP_ASK_PROP].forEach(function (pre) { if (k.indexOf(pre) === 0 && k.slice(pre.length) < old) p.deleteProperty(k); });
   });
-  var st = recapAutoGet_(day) || { day: day }, done = [], why = '';
+  var st = recapAutoGet_(day) || { day: day }, stF = recapAutoGetFoot_(day), done = [], why = '';
   if (mins >= DAILY_LAST_HOUR * 60) {                         // сверка без ответа — одно напоминание, итоги сами не собираем
-    if (st.check !== 'sent' || st.remind || Date.now() - (st.at || 0) < RECAP_REMIND_MS) return '';
-    st.remind = mskNow_('HH:mm');
-    recapAutoPut_(st);
-    tgRaw_('sendMessage', { chat_id: st.chat, reply_parameters: { message_id: st.mid, allow_sending_without_reply: true },
-      text: '⏰ Итоги за ' + recapDayLabel_(st.day) + ' ещё не собраны: сверка ждёт ответа — нажмите кнопку под ней. Это напоминание — одно.' });
-    return 'напоминание';
+    var reminded = [];
+    [st, stF].forEach(function (x) {
+      if (x.check !== 'sent' || x.remind || Date.now() - (x.at || 0) < RECAP_REMIND_MS) return;
+      x.remind = mskNow_('HH:mm');
+      recapAutoPut_(x);
+      tgRaw_('sendMessage', { chat_id: x.chat, reply_parameters: { message_id: x.mid, allow_sending_without_reply: true },
+        text: '⏰ Итоги' + (x.grp === 'foot' ? ' футбола' : '') + ' за ' + recapDayLabel_(x.day) + ' ещё не собраны: сверка ждёт ответа — нажмите кнопку под ней. Это напоминание — одно.' });
+      reminded.push(x.key || x.day);
+    });
+    return reminded.length ? 'напоминание' : '';
   }
   DAILY_AUTO_JOBS.forEach(function (j) {
-    if (mins < j.hour * 60 + j.min || st[j.key]) return;
-    var r = j.check ? recapCheckSend_(st) : recapDispatch_({ kind: 'team', job: 'team/out/' + day + '/' + j.job + '.json', day: day });
-    if (r.ok) { st[j.key] = mskNow_('HH:mm'); done.push(j.key); return; }
+    var cur = j.grp === 'foot' ? stF : st;
+    if (mins < j.hour * 60 + j.min || cur[j.key]) return;
+    var r = j.check ? recapCheckSend_(cur) : recapDispatch_({ kind: 'team', job: 'team/out/' + day + '/' + j.job + '.json', day: day });
+    if (r.ok) { cur[j.key] = mskNow_('HH:mm'); if (cur.check !== 'none') done.push(j.key); return; }
     why = why || r.why;
-    st.errWhy = r.why;
-    st.fails = (st.fails || 0) + 1;
-    console.log('утренние посты: ' + j.job + ' не запустился: ' + r.why);
+    cur.errWhy = r.why;
+    cur.fails = (cur.fails || 0) + 1;
+    console.log('утренние посты: ' + (j.job || j.key) + ' не запустился: ' + r.why);
   });
   if (why && !st.errSent) {                                   // владельцу — одно сообщение в день, дальше молча пробуем каждые 5 минут
     var chat = recapOwnerChat_();
     if (chat) {
-      var left = DAILY_AUTO_JOBS.filter(function (j) { return !st[j.key]; }).map(function (j) { return j.title; });
+      var left = DAILY_AUTO_JOBS.filter(function (j) { return j.grp !== 'foot' && !st[j.key]; }).map(function (j) { return j.title; });
       var res = tgRaw_('sendMessage', { chat_id: chat, text: '⚠️ Утренние посты не запустились (' + left.join(', ') + '): ' + why +
         '\nБот пробует снова каждые 5 минут до ' + ('0' + DAILY_LAST_HOUR).slice(-2) + ':00 МСК. Это сообщение — одно за день.' });
       if (res && res.ok) st.errSent = mskNow_('HH:mm');
     }
   }
-  if (done.length || why) recapAutoPut_(st);
+  if (done.length || why) { recapAutoPut_(st); if (stF.recapf || stF.check || stF.fails) recapAutoPut_(stF); }
   return done.length ? 'запуск: ' + done.join(', ') : why ? 'ошибка' : '';
+}
+
+/** Игровой день итогов для матча с началом ms: итоги собираются утром D за матчи с 08:00 D−1 до 08:00 D (yyyy-MM-dd). */
+function recapWindowDay_(ms) {
+  return addDaysKey_(Utilities.formatDate(new Date(ms - RECAP_WINDOW_HOUR * 3600000), 'Europe/Moscow', 'yyyy-MM-dd'), 1);
+}
+
+/** Из liveUpdateAuto_ (раз в 5 минут): сверка итогов дня — сразу после финала последнего матча со ставками, на который вышли посты за
+ *  игровой день, отдельно хоккей (КХЛ+НХЛ, ДДММ-r1) и футбол (ДДММ-f1) (владелец 01.11). Не ждём, пока выйдут ещё не опубликованные
+ *  посты окна (TMSCHED_ с матчем в окне). Состояние RECAP_AUTO_<день>[f].check ставит и 08:30-запасной вариант — второй раз не шлёт. */
+function recapFinalTick_() {
+  var p = PropertiesService.getScriptProperties(), today = mskNow_('yyyy-MM-dd'), hm = mskNow_('HH:mm').split(':'), mins = Number(hm[0]) * 60 + Number(hm[1]);
+  var groups = {}, grp = function (d, foot) { var k = d + (foot ? 'f' : ''); return groups[k] || (groups[k] = { day: d, foot: foot, n: 0, open: 0, pending: 0 }); };
+  p.getKeys().forEach(function (k) {
+    var w, s;
+    if (k.indexOf(PM_PROP) === 0) {
+      w = pmGet_(k.slice(PM_PROP.length));
+      if (!w || !w.start || !w.home || !w.pick || w.st === 'skip') return;
+      var g = grp(recapWindowDay_(w.start), w.league === 'FOOT');
+      g.n++; if (w.st === 'wait') g.open++;
+    } else if (k.indexOf('TMSCHED_') === 0) {
+      try { s = JSON.parse(p.getProperty(k)); } catch (e) { return; }
+      if (s && s.start && s.at > Date.now()) grp(recapWindowDay_(s.start), !!footTourOf_(String(s.txt || '').split('\n')[0])).pending++;   // ждёт выхода в канал
+    }
+  });
+  Object.keys(groups).forEach(function (key) {
+    var g = groups[key];
+    if (!g.n || g.open || g.pending || g.day < today || (g.day === today && mins >= DAILY_LAST_HOUR * 60)) return;
+    var st = g.foot ? recapAutoGetFoot_(g.day) : (recapAutoGet_(g.day) || { day: g.day });
+    if (st.check) return;                                     // сверка уже отправлена (или это сделал запасной запуск 08:30)
+    var r = recapCheckSend_(st);
+    if (r.ok && st.check === 'sent') { st[g.foot ? 'recapf' : 'recap'] = mskNow_('HH:mm'); st.early = true; recapAutoPut_(st); }
+    else if (!r.ok) console.log('сверка итогов ' + key + ': ' + r.why);
+  });
 }
 
 /** «25 октября» — вчерашний день для утра day (yyyy-MM-dd). */
@@ -15998,16 +16129,18 @@ function recapDayLabel_(day) {
 
 /** Ставки для сверки утра day: записи PMW_ с началом матча в окне (08:00 вчера – 08:00 сегодня МСК), по времени.
  *  → [{t: 'Хозяева — Гости', pick, kef: '1,85'}] (не больше 30 — столько берёт render/team_job.py). */
-function recapCheckItems_(day) {
+function recapCheckItems_(day, foot) {
   var t1 = new Date(day + 'T' + ('0' + RECAP_WINDOW_HOUR).slice(-2) + ':00:00+03:00').getTime(), t0 = t1 - 86400000, ws = [];
   PropertiesService.getScriptProperties().getKeys().forEach(function (k) {
     if (k.indexOf(PM_PROP) !== 0) return;
     var w = pmGet_(k.slice(PM_PROP.length));
-    if (w && w.league !== 'FOOT' && w.start >= t0 && w.start < t1 && w.home && w.pick) ws.push(w);   // футбол — свой учёт (лист «Футбол»)
+    if (w && (w.league === 'FOOT') === !!foot && w.st !== 'skip' && w.start >= t0 && w.start < t1 && w.home && w.pick) ws.push(w);   // футбол — отдельный пост ДДММ-f1
   });
   ws.sort(function (a, b) { return a.start - b.start || (String(a.pid) < String(b.pid) ? -1 : 1); });
   return ws.slice(0, 30).map(function (w) {
-    return { t: w.home + ' — ' + w.away, pick: String(w.pick).trim(), kef: String(w.kef || '').replace('.', ',') };
+    var it = { t: w.home + ' — ' + w.away, pick: String(w.pick).trim(), kef: String(w.kef || '').replace('.', ',') };
+    if (foot) { it.home = w.home; it.away = w.away; it.tour = w.tour || ''; it.start = Utilities.formatDate(new Date(w.start), 'Europe/Moscow', 'yyyy-MM-dd HH:mm'); }
+    return it;
   });
 }
 
@@ -16018,8 +16151,9 @@ function recapCheckLine_(it, sep) { return it.t + ': ' + it.pick + (it.kef ? sep
 function recapCheckSend_(st) {
   var chat = recapOwnerChat_();
   if (!chat) return { ok: false, why: 'не знаю чат владельца (нажмите любую кнопку команды в боте).' };
-  var items = recapCheckItems_(st.day), d = st.day, label = recapDayLabel_(d);
-  var text = 'Сверка перед итогами за ' + label + '\n', kb;
+  var foot = st.grp === 'foot', items = recapCheckItems_(st.day, foot), d = st.key || st.day, label = recapDayLabel_(st.day);
+  if (foot && !items.length) { st.check = 'none'; return { ok: true }; }       // футбольных ставок за окно нет — поста нет
+  var text = 'Сверка перед итогами' + (foot ? ' футбола' : '') + ' за ' + label + '\n', kb;
   if (items.length) {
     text += 'Ставки из постов канала (с правками в боте):\n' + items.map(function (it, i) { return (i + 1) + '. ' + recapCheckLine_(it, ' · '); }).join('\n') +
       '\n\nВсё так — соберу итоги по этому списку. Ставку меняли прямо в канале или чего-то нет — «Поправить».';
@@ -16038,9 +16172,15 @@ function recapCheckSend_(st) {
 
 /** Итоги по списку lines («Матч: ставка, кэф …»): itogi.yml с заданием recap_ask; удалось — st.check = how. → {ok} | {ok:false, why}. */
 function recapCheckRun_(st, lines, how) {
-  var free = lines.map(function (l) { return /^\s*прогноз\s*:/i.test(l) ? l : 'Прогноз: ' + l; });
-  var r = recapDispatch_({ kind: 'team', job: 'team/out/' + st.day + '/recap_ask.json', day: st.day, pids: [], free: free,
-    at: mskNow_('yyyy-MM-dd HH:mm') });
+  var free = lines.map(function (l) { return /^\s*прогноз\s*:/i.test(l) ? l : 'Прогноз: ' + l; }), r;
+  if (st.grp === 'foot') {                                     // футбол: те же строки, но с турниром и началом из сверки → foot_recap.py --auto
+    var foot = recapFootItems_(st, lines);
+    if (foot.bad.length) return { ok: false, why: 'не нашёл в сверке матч: ' + foot.bad.join('; ') };
+    r = recapDispatch_({ kind: 'team', job: 'team/out/' + st.day + '/foot_recap_auto.json', day: st.day, foot: foot.items });
+  } else {
+    r = recapDispatch_({ kind: 'team', job: 'team/out/' + st.day + '/recap_ask.json', day: st.day, pids: [], free: free,
+      at: mskNow_('yyyy-MM-dd HH:mm') });
+  }
   if (!r.ok) return r;
   st.check = how; st.run = mskNow_('HH:mm'); st.free = free;
   recapAutoPut_(st);
@@ -16049,12 +16189,26 @@ function recapCheckRun_(st, lines, how) {
   return r;
 }
 
+/** Строки футбольной сверки «Хозяева — Гости: ставка, кэф 1,85» → ставки с турниром и началом из st.items (по названию матча). */
+function recapFootItems_(st, lines) {
+  var out = [], bad = [], norm = function (x) { return String(x || '').toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').trim(); };
+  lines.forEach(function (l) {
+    var t = String(l).replace(/^\s*прогноз\s*:\s*/i, ''), i = t.indexOf(':');
+    var title = norm(i > 0 ? t.slice(0, i) : t), rest = i > 0 ? t.slice(i + 1).trim() : '', km = rest.match(/[,;]?\s*к[эо]ф\s*([\d.,]+)\s*$/i);
+    var base = (st.items || []).filter(function (it) { return norm(it.t) === title; })[0];
+    if (!base) { bad.push(i > 0 ? t.slice(0, i) : t); return; }
+    out.push({ tour: base.tour, home: base.home, away: base.away, start: base.start,
+      pick: (km ? rest.slice(0, km.index) : rest).trim() || base.pick, kef: km ? km[1] : base.kef });
+  });
+  return { items: out, bad: bad };
+}
+
 /** Кнопки сверки: tm|rck||<день> «Всё верно», tm|rfx||<день> «Поправить» / «Прислать свои ставки», tm|rsk||<день> «Без итогов». */
 function recapCheckCallback_(q, parts, answer) {
   var m = q.message, act = parts[1], day = String(parts[3] || '');
-  var st = /^\d{4}-\d\d-\d\d$/.test(day) ? recapAutoGet_(day) : null;
+  var st = /^\d{4}-\d\d-\d\df?$/.test(day) ? recapAutoGet_(day) : null;
   if (!st || !st.check) { answer('Сверка устарела — пришлите ставки команде через /задача', true); return; }
-  var label = recapDayLabel_(day);
+  var label = recapDayLabel_(st.day);
   if (act === 'rfx') {
     var lines = (st.items || []).map(function (it) { return recapCheckLine_(it, ', '); });
     answer('Пришлите исправленный список ответом');
@@ -16210,10 +16364,10 @@ function pmEditSync_(chat, mid, ch, sch, html) {
 /** Номер поста прогноза в канале для итога «ММДД-Nr<номер>» (номер дописывает скрипт — из записи бота или ленты канала)
  *  или «ММДД-Nr» (тогда — из записи PMW_) — ответить на него; иначе null. */
 function pmReplyTo_(pid) {
-  var m = String(pid || '').match(/^(\d{4}-\d+)r(\d*)$/);
+  var m = String(pid || '').match(/^(\d{4}-(?:e)?\d+)r(\d*)$/);
   if (!m) return null;
   if (m[2]) return Number(m[2]);
-  var w = pmGet_(m[1]);
+  var w = /-e/.test(m[1]) ? expressGet_(m[1]) : pmGet_(m[1]);
   return w && w.ch ? w.ch : null;
 }
 

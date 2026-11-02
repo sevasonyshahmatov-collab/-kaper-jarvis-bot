@@ -1,0 +1,5 @@
+{
+ "day": "{day}",
+ "make": ["team/daily/foot_recap.py {day} --auto team/out/{day}/foot_recap_auto.json"],
+ "messages": []
+}

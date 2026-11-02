@@ -198,6 +198,29 @@ def express_env(payload):
     return {'EXPRESS_PID': str(ex['pid']), 'EXPRESS_BY': 'owner-button'}
 
 
+def exres_env(payload):
+    """Все ноги купона сыграны (payload бота: exres = {pid: 'ДДММ-eN', ch: номер поста купона в канале}) → EXPRESS_RES
+    для team/picks/express_result.py --auto («Итог экспресса» владельцу, ответом на пост купона)."""
+    ex = payload.get('exres')
+    if not isinstance(ex, dict) or not re.fullmatch(r'\d{4}-e\d{1,2}', str(ex.get('pid') or '')):
+        return {}
+    out = {'pid': str(ex['pid'])}
+    if str(ex.get('ch') or '').isdigit():
+        out['ch'] = int(ex['ch'])
+    return {'EXPRESS_RES': json.dumps(out)}
+
+
+def foot_env(payload):
+    """Футбольные итоги дня сразу после финала (payload бота: foot = [{tour, home, away, start, pick, kef}]) → RECAP_FOOT
+    для team/daily/foot_recap.py --auto. Проверенные значения: начало «ГГГГ-ММ-ДД ЧЧ:ММ», строки до 200 знаков, не больше 30."""
+    out = []
+    for x in (payload.get('foot') or [])[:30]:
+        if not isinstance(x, dict) or not re.fullmatch(r'\d{4}-\d\d-\d\d \d\d:\d\d', str(x.get('start') or '')):
+            continue
+        out.append({k: str(x.get(k) or '').replace('\n', ' ')[:200] for k in ('tour', 'home', 'away', 'start', 'pick', 'kef')})
+    return {'RECAP_FOOT': json.dumps(out, ensure_ascii=False)} if out else {}
+
+
 def postmatch_env(payload):
     """Прогноз для послематчевого поста (payload бота: pm = {pid, league, home, away, start, pick, kef, ch}) → POSTMATCH.
     Только проверенные значения: номер ММДД-N, лига, начало «ГГГГ-ММ-ДД ЧЧ:ММ», строки до 200 знаков."""
@@ -234,6 +257,8 @@ def main(payload):
     env = dict(os.environ, PYTHONPATH=os.path.join(ROOT, 'render') + os.pathsep + os.environ.get('PYTHONPATH', ''))
     env.update(recap_env(payload))           # утренний опрос: RECAP_PIDS / RECAP_FREE / RECAP_DAY / RECAP_AT (team/daily/ask.py)
     env.update(postmatch_env(payload))       # послематчевый пост: POSTMATCH — прогноз из payload бота (team/postmatch/run.py)
+    env.update(exres_env(payload))           # итог экспресса: EXPRESS_RES (team/picks/express_result.py --auto)
+    env.update(foot_env(payload))            # футбольные итоги дня: RECAP_FOOT (team/daily/foot_recap.py --auto)
     env.update(express_env(payload))         # купон «Экспресс» опубликован кнопкой → Instagram (team/picks/express_ig.py)
     errors = []
     for script in job.get('make') or []:
