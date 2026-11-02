@@ -113,7 +113,8 @@ def parse_leg(text, home, away):
             raise ValueError('индивидуальный тотал: не понял команду/линию')
         return dict(kind='it', side=s, ou=ou, line=line, scope=scope)
     # тотал матча
-    if re.search(r'\bтотал|\bт[бм]\b', t):
+    if re.search(r'\bтотал|\bт[бм]\b', t) or (re.search(r'больше|меньше', t) and not side and not re.search(r'\bф[12]\b|\bфор', t)
+                                                 and _num(t) is not None):   # «5.5 меньше» без слова «тотал» (владелец 01.11)
         ou, line = _ou(t), _num(t)
         if not ou or line is None:
             raise ValueError('тотал: не понял больше/меньше или линию')
