@@ -5,22 +5,30 @@
    "to": "owner",
    "type": "photo",
    "files": [
-    "team/out/2026-11-03/site_club_hero_bg/collage_desktop.jpg"
+    "team/out/2026-11-03/site_club_hero_bg/collage_a_hero_desktop.jpg"
    ],
-   "text": "Компьютер: Флорида, СКА, Ак Барс — шапка и начало страницы"
+   "text": "Вариант А, компьютер: шапка Флориды, СКА, Ак Барса, фон размыт"
   },
   {
    "to": "owner",
    "type": "photo",
    "files": [
-    "team/out/2026-11-03/site_club_hero_bg/collage_phone.jpg"
+    "team/out/2026-11-03/site_club_hero_bg/collage_b_hero_phone.jpg"
    ],
-   "text": "Телефон 390: те же три клуба"
+   "text": "Вариант А, телефон"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_club_hero_bg/collage_v_bottom.jpg"
+   ],
+   "text": "Вариант Б: низ страницы, компьютер и телефон"
   },
   {
    "to": "owner",
    "type": "text",
-   "text": "Картинка теперь только в шапке клуба, ниже — светлая страница как раньше.\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/45cbd137b8be1dd22366430b2d1139fdeeef2fec/team/site/v3a/team/index.html?id=nhl_fla\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/45cbd137b8be1dd22366430b2d1139fdeeef2fec/team/site/v3a/team/index.html?id=ska\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/45cbd137b8be1dd22366430b2d1139fdeeef2fec/team/site/v3a/team/index.html?id=akbars\n\nТак? Если да — дам промты для остальных 51 клуба."
+   "text": "Картинка клуба — два варианта, сравни:\nА — в шапке, размытая (по умолчанию)\nБ — в самом конце страницы, шапка как раньше; выше везде всё как раньше.\n\nФлорида\nА https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/62b6715d903e16f1697605dc70d3acd292148c09/team/site/v3a/team/index.html?id=nhl_fla&bgv=hero\nБ https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/62b6715d903e16f1697605dc70d3acd292148c09/team/site/v3a/team/index.html?id=nhl_fla&bgv=bottom\nСКА\nА https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/62b6715d903e16f1697605dc70d3acd292148c09/team/site/v3a/team/index.html?id=ska&bgv=hero\nБ https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/62b6715d903e16f1697605dc70d3acd292148c09/team/site/v3a/team/index.html?id=ska&bgv=bottom\nАк Барс\nА https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/62b6715d903e16f1697605dc70d3acd292148c09/team/site/v3a/team/index.html?id=akbars&bgv=hero\nБ https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/62b6715d903e16f1697605dc70d3acd292148c09/team/site/v3a/team/index.html?id=akbars&bgv=bottom\n\nКакой вариант берём?"
   }
  ]
 }
