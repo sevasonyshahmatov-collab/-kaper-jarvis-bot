@@ -89,7 +89,6 @@ def build_lu():
             return [sum(1 for x in xs if hitf(m, x[1], x[2])), len(xs)]
         home = lambda g: g['h'] == tid
         away = lambda g: g['a'] == tid
-        inl = lambda g: LG.get(g['lg']) == T['lg']
         tg = team_games.get(tid, [])
         last = tg[-10:]
         byg = {x[1]['id']: x for x in ap}
@@ -104,7 +103,7 @@ def build_lu():
                'y': sum(x[2][7] for x in ap), 'r': sum(x[2][8] for x in ap),
                'N': len(ap), 'st': sum(x[2][1] for x in ap), 'mn': round(sum(mins) / len(mins)) if mins else None,
                'm': {m: cnt(m) for m in MK}, 'mh': {m: cnt(m, home) for m in MK}, 'ma': {m: cnt(m, away) for m in MK},
-               'ml': {m: cnt(m, inl) for m in MK}, 'ff': form,
+               'ff': form,
                'fo': [by_espn.get(g['a'] if g['h'] == tid else g['h'], '') for g in last]}
         row['sg'] = row['m']['sg']; row['cr'] = row['m']['cr']; row['home'] = row['mh']['sg']; row['away'] = row['ma']['sg']
         row['f'] = ''.join('g' if c == '1' else '-' for c in form['sg'])
