@@ -32,5 +32,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A team/site/v3a/hockey/data team/site/v3a/football/data
           git diff --cached --quiet || git commit -m "Игроки v3a: данные НХЛ, КХЛ и фото футболистов"
-          git pull --rebase -q || true
-          git push
+          for i in 1 2 3 4 5; do
+            git fetch -q --depth=50 origin "$GITHUB_REF_NAME" && git rebase -q FETCH_HEAD && git push && exit 0
+            git rebase --abort 2>/dev/null; sleep 10
+          done
+          exit 1
