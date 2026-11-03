@@ -1,0 +1,50 @@
+{
+ "day": "2026-11-04",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Сайт за ночь (макет v3a)\n\n1. Страницы лиг — АПЛ, Ла Лига, Серия А, Бундеслига, Лига 1, РПЛ, ЛЧ, ЛЕ, КХЛ, НХЛ: таблица (общая/дома/в гостях, конференции), ближайший тур, результаты, бомбардиры, статистика лиги. Кнопки лиг на главных и в карточке клуба ведут туда.\n2. Тренды дня — футбол и хоккей: «Бавария: ТБ 2.5 в 8 из 8», серии, обе забьют, овертаймы, игроки в форме. Фильтры по лиге и типу.\n3. Игроки футбола — теперь по составам: N = матчи, где игрок вышел, + рынки 1+ в створ, 2+ удара, гол+пас, минуты. 665 матчей, 2723 игрока.\n4. Фото футболистов в стиле НХЛ: голова и плечи, без фона. Готово 80, остальные обрабатываются сами (по ~140 за запуск), без чужих лиц — нет уверенного лица → инициалы.\n5. Одна шапка на всех страницах: Матчи · КХЛ · НХЛ · Игроки · Тренды · Модель (футбол — Лиги, ЛЧ), на телефоне кнопка «Меню»; у клуба — липкая полоса разделов.\n6. Агент-оценщик прошёл сайт: 6,3 из 10 (оформление сильное, искать было трудно — таблицы и игроки не находились). Главное уже исправлено пунктами 1 и 5; отчёт — team/site/review/UX_AUDIT_0411.md.\n\nСсылки:\nАПЛ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/14ce5ee88fcee4aa8102442766c20473b27d4a1f/team/site/v3a/football/league.html?lg=epl\nКХЛ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/14ce5ee88fcee4aa8102442766c20473b27d4a1f/team/site/v3a/hockey/league.html?lg=khl\nТренды: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/14ce5ee88fcee4aa8102442766c20473b27d4a1f/team/site/v3a/football/trends.html\nИгроки: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/14ce5ee88fcee4aa8102442766c20473b27d4a1f/team/site/v3a/football/players.html\nКлуб: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/14ce5ee88fcee4aa8102442766c20473b27d4a1f/team/site/v3a/team/index.html?id=avangard\n\nТвоё ночное сообщение оборвалось на «И в…» — допиши, что хотел."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-04/site/m-epl.jpg"
+   ],
+   "text": "Страница лиги: АПЛ"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-04/site/m-khl.jpg"
+   ],
+   "text": "Страница лиги: КХЛ — таблица по конференциям"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-04/site/m-ftr.jpg"
+   ],
+   "text": "Тренды дня: футбол"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-04/site/m-fpl.jpg"
+   ],
+   "text": "Игроки: футбол по составам, новые портреты"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-04/site/m-av.jpg"
+   ],
+   "text": "Клуб: новая шапка и полоса разделов"
+  }
+ ]
+}
