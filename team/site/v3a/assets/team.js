@@ -293,6 +293,54 @@ if(nextG){
   draw();
  }}
 
+/* ── 2б². тоталы и дом/выезд: гистограммы по сыгранным матчам (без примеров), карточки «Дома | В гостях» ── */
+{const box=document.getElementById('totalsBox'),sec=document.getElementById('totals'),st={per:'all',ven:'all'};
+ if(box&&sec&&real.length>=5){
+ const f1=v=>(Math.round(v*100)/100).toFixed(2).replace('.',','),pc=(n,N)=>N?Math.round(n/N*100)+'%':'—';
+ const hist=(title,sub,vals,labels,lines,N,off=0)=>{
+  const n=labels.length,cnt=labels.map((_,i)=>vals.filter(v=>Math.min(Math.max(v-off,0),n-1)===i).length),mx=Math.max(1,...cnt);
+  const ln=lines.map(l=>{const k=vals.filter(v=>v>l.t).length;return {...l,k,txt:`больше ${String(l.t).replace('.',',')} — ${k} из ${N}`}});
+  return `<figure class="hg" role="img" aria-label="${esc(title)}: ${esc(labels.map((l,i)=>l+' — '+cnt[i]).join(', '))}">
+   <figcaption><b>${esc(title)}</b><small>${esc(sub)}</small></figcaption>
+   <div class="hp" style="--n:${n}">${cnt.map((c,i)=>`<span class="hc"><i class="hb" style="height:${(c/mx*76).toFixed(1)}%"></i><b class="hn num" style="bottom:calc(${(c/mx*76).toFixed(1)}% + 3px)">${c}</b></span>`).join('')}
+    ${ln.map(l=>`<span class="hl" style="left:${(l.pos/n*100).toFixed(2)}%"><em>${esc(String(l.t).replace('.',','))}</em></span>`).join('')}</div>
+   <div class="hx" style="--n:${n}">${labels.map(l=>`<span>${esc(l)}</span>`).join('')}</div>
+   <ul class="hlg">${ln.map(l=>`<li><i></i>${esc(l.txt)}</li>`).join('')}</ul></figure>`};
+ const draw=()=>{
+  let a=real.filter(g=>st.ven==='all'||(st.ven==='home'?g.h:!g.h));if(st.per==='l10')a=a.slice(-10);
+  const N=a.length,scope=st.per==='l10'?`последних ${N}`:`${N}`,unit={all:'матчей',home:'домашних матчей',away:'гостевых матчей'}[st.ven];
+  const tot=a.map(g=>g.gf+g.ga),avgT=N?tot.reduce((x,y)=>x+y,0)/N:0,avgF=N?a.reduce((x,g)=>x+g.gf,0)/N:0,avgA=N?a.reduce((x,g)=>x+g.ga,0)/N:0;
+  const short=N<3;
+  const sub=`${scope} ${unit}`;
+  document.getElementById('tsOut').innerHTML=short?`<p class="tsnone">Для такого среза мало сыгранных матчей.</p>`:`
+   <div class="tsbig"><div><b class="num">${f1(avgT)}</b><span>средний тотал матча</span></div><div><b class="num">${f1(avgF)}</b><span>забивает ${esc(T.name)} за игру</span></div><div><b class="num">${f1(avgA)}</b><span>пропускает за игру</span></div></div>
+   <div class="hgs">
+    ${hist('Сколько шайб в матчах',sub,tot,['2 и меньше','3','4','5','6','7','8 и больше'],[{t:4.5,pos:3},{t:5.5,pos:4},{t:6.5,pos:5}],N,2)}
+    ${hist(`Сколько забивает ${T.name}`,sub,a.map(g=>g.gf),['0','1','2','3','4','5+'],[{t:2.5,pos:3},{t:3.5,pos:4}],N)}
+    ${hist('Сколько пропускает',sub,a.map(g=>g.ga),['0','1','2','3','4','5+'],[],N)}
+   </div>`};
+ box.innerHTML=`<div class="sec-head" data-rv><h2>Тоталы и дом/выезд</h2><p>Сколько шайб падает в матчах ${esc(T.name)} и чем отличается игра дома и в гостях. Только сыгранные матчи сезона.</p></div>
+  <div class="trctl" data-rv><div class="gfilter"><div class="seg" id="tsPer" role="group" aria-label="Период"><button type="button" aria-pressed="true" data-v="all">Весь сезон</button><button type="button" aria-pressed="false" data-v="l10">Последние 10</button></div></div>
+   <div class="gfilter"><div class="seg" id="tsVen" role="group" aria-label="Где играли"><button type="button" aria-pressed="true" data-v="all">Все</button><button type="button" aria-pressed="false" data-v="home">Дома</button><button type="button" aria-pressed="false" data-v="away">В гостях</button></div></div></div>
+  <div id="tsOut" data-rv></div>
+  <h3 class="dvh" data-rv>Дома и в гостях</h3><div class="dvg" id="haBox" data-rv></div>`;
+ sec.hidden=false;
+ for(const [id,key] of [['tsPer','per'],['tsVen','ven']])document.getElementById(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  st[key]=b.dataset.v;document.querySelectorAll('#'+id+' button').forEach(x=>x.setAttribute('aria-pressed',x===b));draw()});
+ // карточки дом/выезд — по всему сезону
+ const side=h=>{const a=real.filter(g=>!!g.h===h),N=a.length,w=a.filter(g=>g.gf>g.ga),l=a.filter(g=>g.gf<g.ga),wo=w.filter(g=>g.x).length,lo=l.filter(g=>g.x).length;
+  const gf=N?a.reduce((x,g)=>x+g.gf,0)/N:0,ga=N?a.reduce((x,g)=>x+g.ga,0)/N:0,tt=N?a.reduce((x,g)=>x+g.gf+g.ga,0)/N:0,o55=a.filter(g=>g.gf+g.ga>5.5).length;
+  return {N,w:w.length,l:l.length,wo,lo,wp:N?w.length/N:0,gf,ga,tt,o55p:N?o55/N:0,o55,form:a.slice(-5)}};
+ const H=side(true),A=side(false);
+ const best=(k,hi)=>H.N&&A.N&&H[k]!==A[k]?((H[k]>A[k])===hi?'h':'a'):'';
+ const rows=[['Матчей',s=>s.N,null],['Победы–поражения',s=>`${s.w}–${s.l}`,null,s=>`в том числе ОТ/Б: ${s.wo} поб., ${s.lo} пор.`],['Побед, %',s=>pc(s.w,s.N),'wp',null,1],['Забито за игру',s=>f1(s.gf),'gf',null,1],['Пропущено за игру',s=>f1(s.ga),'ga',null,0],['Средний тотал',s=>f1(s.tt),null],['Тотал больше 5,5, % матчей',s=>pc(s.o55,s.N),null,s=>`${s.o55} из ${s.N}`]];
+ const card=(s,nm,cls)=>`<article class="dvc ${cls}" aria-label="${nm}"><h4>${nm}</h4><dl>${rows.map(([t,fn,k,sm,hi])=>{const bst=k&&best(k,!!hi)===(cls==='h'?'h':'a');
+  return `<div class="${bst?'bst':''}"><dt>${esc(t)}</dt><dd><b class="num">${esc(fn(s))}</b>${sm?`<small>${esc(sm(s))}</small>`:''}</dd></div>`}).join('')}</dl>
+  <div class="dvf"><span>Форма, последние 5</span><span class="dvd">${s.form.map(g=>`<i class="${g.gf>g.ga?'y':'n'}" title="${esc(g.gf+':'+g.ga+(g.x?' ОТ/Б':''))}" aria-label="${g.gf>g.ga?'победа':'поражение'} ${esc(g.gf+':'+g.ga)}"></i>`).join('')||'—'}</span></div></article>`;
+ document.getElementById('haBox').innerHTML=card(H,'Дома','h')+card(A,'В гостях','a');
+ draw();
+ }else if(sec)sec.hidden=true}
+
 /* ── 2в. сравнение с соперником следующего матча: наложенный шестиугольник силы, статистика бок о бок, матчи этого сезона ── */
 if(nextG){
  const o=nextG.o,O=D.teams[o];
