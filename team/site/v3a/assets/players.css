@@ -55,3 +55,13 @@ body{background:var(--paper);color:var(--ink)}
   [data-sport=hockey] .pr .av{width:58px;height:58px}
   .pr .nm b{white-space:normal;font-size:18px}
 }
+/* форма: мини-график последних 10 матчей (вместо квадратиков, владелец 03.11) */
+.strip{display:grid;gap:6px;align-content:center}
+.strip .bars{display:flex;align-items:flex-end;gap:4px;height:46px;padding-top:14px;border-bottom:1px solid var(--rule-2)}
+.strip .bars i{flex:1;max-width:20px;height:calc(var(--h)*100%);min-height:3px;border-radius:4px 4px 0 0;background:var(--paper-3);position:relative;font-style:normal}
+.strip .bars i.g{background:var(--pitch)}
+.pl[data-m=cr] .strip .bars i.g{background:var(--signal)}
+.strip .bars i b{position:absolute;bottom:100%;left:0;right:0;text-align:center;font:700 11px/14px var(--display);color:var(--ink-3)}
+.strip .bars i.g b{color:var(--ink)}
+.strip small{font:600 13px/1.2 var(--display);color:var(--ink-3)} .strip small b{color:var(--ink)}
+@media (max-width:900px){.strip .bars i{max-width:none}}

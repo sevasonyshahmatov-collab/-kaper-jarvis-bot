@@ -31,8 +31,9 @@ function render(){
   L.sort((a,b)=>val(b)-val(a)||b.h[0]-a.h[0]||a.p.n.localeCompare(b.p.n));
   $('meta').textContent=`${L.length} игроков · ${st.m==='cr'?'получал карточку':'забивал'} хотя бы в одном матче${st.ha==='home'?' дома':st.ha==='away'?' в гостях':''} · данные на ${D.built}`;
   $('list').innerHTML=L.slice(0,st.lim).map((x,i)=>{const p=x.p,T=D.teams[p.t]||{},h=x.h,pc=Math.round(100*h[0]/h[1]);
-    const strip=[...p.f].map((c,j)=>{const o=D.teams[p.fo[j]];const t=(o?o.n:'')+(c==='g'?' — забил':c==='c'?' — карточка':'');
-      return `<i class="${c==='-'?'':c}" title="${esc(t)}">${c==='g'?'Г':c==='c'?'К':''}</i>`}).join('');
+    const F=[...p.f],ok=c=>st.m==='cr'?c==='c':c==='g',F5=F.slice(-5);
+    const strip=`<div class="bars">${F.map((c,j)=>{const o=D.teams[p.fo[j]];const t=(o?o.n:'')+(c==='g'?' — забил':c==='c'?' — карточка':' — нет');
+      return `<i class="${ok(c)?'g':''}" style="--h:${ok(c)?1:.08}" title="${esc(t)}"></i>`}).join('')}</div><small>5 матчей: <b>${F5.filter(ok).length}/${F5.length}</b> · 10: <b>${F.filter(ok).length}/${F.length}</b></small>`;
     const nx=p.nx&&D.teams[p.nx.o];
     const sub=st.m==='cr'?`${p.y} жёлт.${p.r?` · ${p.r} красн.`:''}`:`${p.G} ${p.G%10===1&&p.G%100!==11?'гол':p.G%10>=2&&p.G%10<=4&&(p.G%100<12||p.G%100>14)?'гола':'голов'}${p.pen?` · ${p.pen} с пен.`:''}`;
     return `<article class="pr" role="listitem">

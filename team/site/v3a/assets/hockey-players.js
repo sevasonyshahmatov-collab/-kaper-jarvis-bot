@@ -29,7 +29,8 @@ fetch(`data/${LG}_players.json`).then(r=>r.json()).then(D=>{
   L.sort((a,b)=>val(b)-val(a)||b.h[0]-a.h[0]||a.p.n.localeCompare(b.p.n));
   $('meta').textContent=`${L.length} ${pl(L.length,'игрок','игрока','игроков')} · ${M.w} хотя бы в одном матче${st.ha==='home'?' дома':st.ha==='away'?' в гостях':''} · данные на ${D.built}`;
   $('list').innerHTML=L.slice(0,st.lim).map((x,i)=>{const p=x.p,h=x.h,pc=Math.round(100*h[0]/h[1]),c=(TM[p.t]||[])[1]||'#334';
-   const strip=p.log.slice(-10).map(r=>{const ok=M.f(r);return `<i class="${ok?'g':''}" title="${esc(r[0].slice(8,10)+'.'+r[0].slice(5,7)+' '+(r[3]?'— ':'@ ')+tn(r[2]))}: ${r[4]}+${r[5]}${r[6]!=null?', бросков '+r[6]:''}">${M.v(r)}</i>`}).join('');
+   const L10=p.log.slice(-10),mx=Math.max(st.m==='s3'?4:2,...L10.map(M.v)),hit=a=>a.filter(M.f).length,L5=L10.slice(-5);
+   const strip=`<div class="bars">${L10.map(r=>{const ok=M.f(r),v=M.v(r);return `<i class="${ok?'g':''}" style="--h:${Math.max(.08,v/mx)}" title="${esc(r[0].slice(8,10)+'.'+r[0].slice(5,7)+' '+(r[3]?'дома, ':'в гостях, ')+tn(r[2]))}: ${r[4]}+${r[5]}${r[6]!=null?', бросков '+r[6]:''}"><b>${v}</b></i>`}).join('')}</div><small>5 матчей: <b>${hit(L5)}/${L5.length}</b> · 10: <b>${hit(L10)}/${L10.length}</b></small>`;
    const sp=a=>{const lg=p.log.filter(r=>r[3]===a);return`${lg.filter(M.f).length}/${lg.length}`};
    const nx=D.next[p.t];
    return `<article class="pr" role="listitem"><span class="rk">${i+1}</span>
