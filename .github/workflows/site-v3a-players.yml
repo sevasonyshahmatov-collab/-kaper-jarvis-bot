@@ -26,6 +26,8 @@ jobs:
         continue-on-error: true
       - run: python team/site/v3a/football/players_photos_fetch.py
         continue-on-error: true
+      - run: python team/site/v3a/football/players_lineups_fetch.py
+        continue-on-error: true
       - name: Закоммитить данные
         run: |
           git config user.name "github-actions[bot]"
