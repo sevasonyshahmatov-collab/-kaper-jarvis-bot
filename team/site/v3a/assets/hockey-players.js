@@ -7,7 +7,7 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const em=ab=>`../assets/em/nhl_${ab.toLowerCase()}.webp`;
 const ini=n=>n.split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
 const tn=ab=>(TM[ab]||[ab])[0];
-const MK={pt:{f:r=>r[4]+r[5]>0,ch:'О',w:'набирал очко'},g:{f:r=>r[4]>0,ch:'Г',w:'забивал'},a:{f:r=>r[5]>0,ch:'П',w:'отдавал передачу'},s3:{f:r=>r[6]>=3,ch:'3+',w:'бросал 3+ раза в створ'}};
+const MK={pt:{f:r=>r[4]+r[5]>0,v:r=>r[4]+r[5],w:'набирал очко'},g:{f:r=>r[4]>0,v:r=>r[4],w:'забивал'},a:{f:r=>r[5]>0,v:r=>r[5],w:'отдавал передачу'},s3:{f:r=>r[6]>=3,v:r=>r[6],w:'бросал 3+ раза в створ'}};
 const POS={'':'Все',F:'Нападающие',D:'Защитники'};
 const st={m:'pt',pos:'',tm:'',ha:'',so:'rate',q:'',lim:30};
 const mmss=s=>`${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
@@ -26,7 +26,7 @@ fetch('data/nhl_players.json').then(r=>r.json()).then(D=>{
   L.sort((a,b)=>val(b)-val(a)||b.h[0]-a.h[0]||a.p.n.localeCompare(b.p.n));
   $('meta').textContent=`${L.length} ${pl(L.length,'игрок','игрока','игроков')} · ${M.w} хотя бы в одном матче${st.ha==='home'?' дома':st.ha==='away'?' в гостях':''} · данные на ${D.built}`;
   $('list').innerHTML=L.slice(0,st.lim).map((x,i)=>{const p=x.p,h=x.h,pc=Math.round(100*h[0]/h[1]),c=(TM[p.t]||[])[1]||'#334';
-   const strip=p.log.slice(-10).map(r=>{const ok=M.f(r);return `<i class="${ok?'g':''}" title="${esc(r[0].slice(8,10)+'.'+r[0].slice(5,7)+' '+(r[3]?'— ':'@ ')+tn(r[2]))}: ${r[4]}+${r[5]}, бросков ${r[6]}">${ok?M.ch:''}</i>`}).join('');
+   const strip=p.log.slice(-10).map(r=>{const ok=M.f(r);return `<i class="${ok?'g':''}" title="${esc(r[0].slice(8,10)+'.'+r[0].slice(5,7)+' '+(r[3]?'— ':'@ ')+tn(r[2]))}: ${r[4]}+${r[5]}, бросков ${r[6]}">${M.v(r)}</i>`}).join('');
    const sp=a=>{const lg=p.log.filter(r=>r[3]===a);return`${lg.filter(M.f).length}/${lg.length}`};
    const nx=D.next[p.t];
    return `<article class="pr" role="listitem"><span class="rk">${i+1}</span>
