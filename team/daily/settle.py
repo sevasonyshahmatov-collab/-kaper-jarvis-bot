@@ -195,6 +195,8 @@ def settle_leg(leg, g):
     if k == 'nodraw':
         return WIN if h != a else LOSS
     if k == 'hc':
+        if abs(leg['line']) < 1e-9 and me == op:
+            return WIN                              # фора 0: ничья — «зашло» (владелец 03.11)
         return _cmp(me - op + leg['line'])
     if k == 'tot':
         d = h + a - leg['line']
