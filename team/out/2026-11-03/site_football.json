@@ -1,0 +1,42 @@
+{
+ "day": "2026-11-03",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_football/football_desktop.jpg"
+   ],
+   "text": "Футбол, компьютер: сверху первый экран с прогнозом дня, ниже плашки лиг и эмблемы клубов"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_football/football_phone.jpg"
+   ],
+   "text": "Футбол, телефон: прогноз дня, ближайшие матчи с линией, лиги"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_football/club_desktop.jpg"
+   ],
+   "text": "Страница клуба (Арсенал), компьютер: шапка с силой команды, тоталы и дом/выезд"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_football/club_phone.jpg"
+   ],
+   "text": "Страница клуба (Зенит), телефон: шапка, таблица лиги, следующий матч"
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Футбол готов: страница «Футбол» и страницы всех 112 клубов (АПЛ, Ла Лига, Серия А, Бундеслига, Лига 1 и РПЛ), данные ESPN на 3 ноября. В Лиге чемпионов своих страниц пока нет.\n\nСтраница «Футбол»: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/2576951132403433029792da3fc3b74d9bab955e/team/site/v3a/football/index.html\nКлуб (Арсенал): https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/2576951132403433029792da3fc3b74d9bab955e/team/site/v3a/football/team.html?id=arsenal\nКлуб (Зенит): https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/2576951132403433029792da3fc3b74d9bab955e/team/site/v3a/football/team.html?id=zenit_st_petersburg\n\nТак?"
+  }
+ ]
+}
