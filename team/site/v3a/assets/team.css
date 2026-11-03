@@ -356,3 +356,40 @@ body[class] .g.h2g,body .g.h2g{grid-template-columns:110px 32px minmax(0,1fr) au
 .nmh2h .h2in{padding:0 clamp(14px,2vw,24px) 16px}
 .nmh2h .h2in .note{margin:0 0 10px}
 @media (prefers-reduced-motion:reduce){.nmh2h .h2ar{transition:none}}
+
+/* сравнение с соперником (владелец 03.11): наложенный шестиугольник, статистика бок о бок, матчи сезона */
+.nmh2h .h2in.cmp{display:grid;gap:22px;padding-top:4px}
+.cmp .cmps h3{font:800 18px/1.2 var(--display);margin:0 0 6px;padding-top:14px;border-top:1px solid var(--sep)}
+.cmp .cmps:first-child h3{border-top:0;padding-top:0}
+.cmp .rad{margin:4px 0 0}
+.cmp .radar{max-width:460px}
+.cmp .radar .rpoly{fill-opacity:.2;stroke-width:2.6}
+.cmp .radar .rpoly.dash{fill-opacity:.06;stroke-width:3}
+.cmp .radar .rsep{fill:var(--ink-3);font-weight:600}
+.cmp .cmpleg{margin-top:2px}
+.cmp .cmpleg span{display:inline-flex;align-items:center;gap:6px}
+.cmp .cmpleg img{width:26px;height:26px;object-fit:contain}
+.cmp .cmpleg b{font-weight:800}
+.cmp .cmpw{overflow-x:auto;border-radius:8px;box-shadow:0 0 0 1px var(--sep)}
+.cmpt{width:100%;border-collapse:collapse;font:500 16px/1.25 var(--display);background:var(--card)}
+.cmpt th,.cmpt td{padding:9px 12px;text-align:center;border-top:1px solid var(--sep);vertical-align:middle}
+.cmpt thead th{border-top:0;font:800 15px/1.15 var(--display);vertical-align:bottom;color:var(--ink)}
+.cmpt thead th img{display:block;width:34px;height:34px;object-fit:contain;margin:0 auto 4px}
+.cmpt thead th span{display:block;overflow-wrap:anywhere}
+.cmpt .cl{text-align:left;font-weight:600;color:var(--ink-2);width:38%}
+.cmpt tbody th.cl{font-weight:600}
+.cmpt td .num{display:inline-block;padding:3px 10px;border-radius:6px;font-weight:600;color:var(--ink)}
+.cmpt td small{display:block;font:500 12px/1.2 var(--display);color:var(--ink-3)}
+.cmpt td.lead .num{font-weight:800;background:color-mix(in srgb,var(--c) 18%,transparent);box-shadow:inset 0 -2px 0 var(--c)}
+.cmp .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.cmp .cmpno{margin:0 0 10px;font:600 16px/1.3 var(--display);color:var(--ink-2)}
+.cmp .cmpall{margin:10px 0 0}
+body .g.h2g.nx{grid-template-columns:110px 32px minmax(0,1fr) auto}
+.cmp .h2l{max-width:none}
+.rs.nxt{width:auto;height:30px;padding:0 10px;font:700 13px/1 var(--display);background:transparent;color:var(--ink);box-shadow:0 0 0 2px var(--ink) inset}
+@media (max-width:720px){
+ body .g.h2g.nx{grid-template-columns:70px 26px minmax(0,1fr) auto;grid-template-areas:"d h o r";gap:6px}
+ .rs.nxt{padding:0 7px;font-size:12px;height:26px}
+ .cmpt{font-size:15px}.cmpt th,.cmpt td{padding:8px 6px}.cmpt .cl{width:34%;font-size:14px}.cmpt td .num{padding:3px 6px}
+}
+@media (prefers-reduced-motion:reduce){.cmp *{transition:none!important;animation:none!important}}

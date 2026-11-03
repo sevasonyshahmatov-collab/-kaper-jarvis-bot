@@ -37,11 +37,11 @@ function radar(series,ax){
  for(const k of [100,75,50,25])o+=`<polygon class="${k===100?'rg0':'rg'}" points="${poly(Array(6).fill(k))}"/>`;
  for(let i=0;i<6;i++){const [x,y]=pt(i,100);o+=`<line class="rg" x1="${c}" y1="${cy}" x2="${x}" y2="${y}"/>`}
  if(one)o+=`<polygon class="rmid" points="${poly(Array(6).fill(55))}"/>`;
- series.slice().reverse().forEach(s=>{o+=`<polygon class="rpoly" points="${poly(s.v)}" fill="${s.c}" stroke="${s.c}"/>`;
+ series.slice().reverse().forEach(s=>{o+=`<polygon class="rpoly${s.dash?' dash':''}" points="${poly(s.v)}" fill="${s.c}" stroke="${s.c}"${s.dash?' stroke-dasharray="9 6"':''}/>`;
   s.v.forEach((x,i)=>{if(x!=null){const [px,py]=pt(i,x);o+=`<circle class="rdot" cx="${px}" cy="${py}" r="5" fill="${s.c}"/>`}})});
  ax.forEach((a,i)=>{const [lx,vy]=pt(i,100),ty=[0,1,5].includes(i)?vy-26:vy+22;
   o+=`<text class="rlab" x="${lx}" y="${ty}" text-anchor="middle">${esc(a)}</text><text class="rval" x="${lx}" y="${ty+19}" text-anchor="middle">${
-   series.map(s=>`<tspan fill="${s.c}">${s.v[i]??'—'}</tspan>`).join('')}</text>`});
+   series.map(s=>`<tspan fill="${s.c}">${s.v[i]??'—'}</tspan>`).join('<tspan class="rsep"> · </tspan>')}</text>`});
  return o+'</svg>';
 }
 
@@ -293,23 +293,73 @@ if(nextG){
   draw();
  }}
 
-/* ── 2в. личные встречи с соперником следующего матча: текущий сезон + два прошлых (h2h из teams.json) ── */
+/* ── 2в. сравнение с соперником следующего матча: наложенный шестиугольник силы, статистика бок о бок, матчи этого сезона ── */
 if(nextG){
- const o=nextG.o,SL=d=>d<'2025-07-01'?'2024/25':d<'2026-07-01'?'2025/26':'2026/27';
- const old=((T.h2h||{})[o]||[]).map(r=>({d:r[0],h:r[1],gf:r[2],ga:r[3],x:r[4]||''}));
- const cur=real.filter(g=>g.o===o);
- const all=old.concat(cur.map(g=>({d:g.d.slice(0,10),h:g.h,gf:g.gf,ga:g.ga,x:g.x||''}))).sort((a,b)=>b.d.localeCompare(a.d));
+ const o=nextG.o,O=D.teams[o];
+ const old=((T.h2h||{})[o]||[]).map(r=>({gf:r[2],ga:r[3]}));
+ const cur=real.filter(g=>g.o===o);                       // текущий сезон, сыгранные (без примеров)
  const hasOld=!!T.h2h;
- const w=all.filter(g=>g.gf>g.ga).length,l=all.length-w,gf=all.reduce((s,g)=>s+g.gf,0),ga=all.reduce((s,g)=>s+g.ga,0);
- const seasons=new Set(all.map(g=>SL(g.d))).size;
- const item=g=>{const t=day(g.d),r=rlab(g);return `<li class="g h2g ${g.h?'home':'away'}"><span class="gd"><b>${t.d} ${t.mon}</b><small>${t.wd} · ${SL(g.d)}</small></span>
-  <span class="ha ${g.h?'h':'a'}" title="${g.h?'дома':'в гостях'}">${g.h?'Д':'В'}</span><span class="hv">${g.h?'Дома':'В гостях'}</span>
-  <span class="sc num">${g.gf}:${g.ga}${g.x?`<small>${g.x}</small>`:''}</span><span class="rs ${r[1]}" title="${r[2]}">${r[0]}</span></li>`};
+ const rec=a=>{const w=a.filter(g=>g.gf>g.ga).length;return [w,a.length-w]};
+ const [cw,cl]=rec(cur),[tw,tl_]=rec(old.concat(cur));
+ const tot=old.length+cur.length;
+ const clubCol=id=>palette((window.JV_CLUBS||{})[id]||(D.teams[id].colors||['#1b2a44','#0b1220','#3ee0ff'])).accL;
+ const c1=clubCol(ID),c2=clubCol(o);
+ const near=Math.hypot(...rgb(c1).map((v,i)=>v-rgb(c2)[i]))<110;
+ const nT=esc(T.name),nO=esc(nm(o));
+ // — сводка в шапке: «В–П» этого сезона и за 3 сезона —
+ const sumCur=cur.length?`в этом сезоне ${cw}–${cl}`:'в этом сезоне ещё не встречались';
+ const sumAll=hasOld&&tot?` · за 3 сезона ${tw}–${tl_}`:(hasOld?' · за 3 сезона не встречались':'');
+ // — 1. наложенный шестиугольник —
+ const A2=O.axes||[];
+ const rad=`<div class="cmpad"><div class="rad">${radar([{v:T.axes||[],c:c1,name:T.name},{v:A2,c:c2,name:nm(o),dash:near}],ax)}</div>
+  <div class="legend cmpleg"><span>${em(ID)}<b style="color:${c1}">${nT}</b></span><span>${em(o)}<b style="color:${c2}">${nO}</b></span><span><i class="d"></i>середина лиги</span></div></div>`;
+ // — 2. статистика бок о бок —
+ const nn=v=>v!=null&&!Number.isNaN(+v);
+ const sgn=v=>v>0?'+'+v:v<0?'−'+Math.abs(v):'0';
+ const stk=t=>{const a=t.games.filter(g=>g.gf!=null).sort((x,y)=>String(x.d).localeCompare(String(y.d)));let n=0,w=null;
+  for(let i=a.length-1;i>=0;i--){const win=a[i].gf>a[i].ga;if(w===null)w=win;if(win!==w)break;n++}return {n,win:w}};
+ const sT=stk(T),sO=stk(O);
+ const rT=T.raw||[],rO=O.raw||[];
+ const fm=t=>nn(t.l10s)||t.l10s?esc(t.l10s):(nn(t.l10)?`${t.l10} ${plural(t.l10,'очко','очка','очков')}`:null);
+ const pc=r=>lg==='nhl'?f(r*100,1)+'%':f(r);
+ // [подпись, значение клуба, значение соперника, число клуба, число соперника, лучше (1 — больше, -1 — меньше, 0 — не сравниваем)]
+ const rows=[];
+ const add=(lab,a,b,x,y,dir)=>{if(a!=null&&b!=null)rows.push([lab,a,b,x,y,dir])};
+ const confNote=O.conf!==conf?t=>`<small>${esc(t.conf)}</small>`:()=>'';
+ add('Место в конференции',`${T.place}-е${confNote(T)}`,`${O.place}-е${confNote(O)}`,T.place,O.place,-1);
+ add('Очки',T.pts,O.pts,T.pts,O.pts,1);
+ add('Игры',T.gp,O.gp,0,0,0);
+ add('Победы–поражения',`${T.w}–${T.l}`,`${O.w}–${O.l}`,T.w/T.gp,O.w/O.gp,1);
+ add('Очки за игру',f(T.pts/T.gp),f(O.pts/O.gp),T.pts/T.gp,O.pts/O.gp,1);
+ add('Забито за игру',f(T.gf/T.gp),f(O.gf/O.gp),T.gf/T.gp,O.gf/O.gp,1);
+ add('Пропущено за игру',f(T.ga/T.gp),f(O.ga/O.gp),T.ga/T.gp,O.ga/O.gp,-1);
+ add('Разница шайб',sgn(T.gf-T.ga),sgn(O.gf-O.ga),T.gf-T.ga,O.gf-O.ga,1);
+ if(fm(T)&&fm(O))add('Форма: последние 10',fm(T),fm(O),nn(T.l10)?T.l10:0,nn(O.l10)?O.l10:0,nn(T.l10)&&nn(O.l10)?1:0);
+ if(nn(rT[3])&&nn(rO[3]))add(lg==='nhl'?'Большинство, реализация':'Большинство, голов за игру',pc(rT[3]),pc(rO[3]),rT[3],rO[3],1);
+ if(nn(rT[4])&&nn(rO[4]))add(lg==='nhl'?'Меньшинство, нейтрализация':'Меньшинство, пропущено за игру',pc(rT[4]),pc(rO[4]),rT[4],rO[4],lg==='nhl'?1:-1);
+ if(sT.n>=3||sO.n>=3){const sf=s=>s.n>=3?`${s.n} ${s.win?plural(s.n,'победа','победы','побед'):plural(s.n,'поражение','поражения','поражений')}`:'—';
+  add('Серия',sf(sT),sf(sO),0,0,0)}
+ const cell=(v,x,y,dir,c,side)=>{const mine=side?y:x,his=side?x:y,w=dir&&Math.abs(mine-his)>1e-9&&(dir>0?mine>his:mine<his);
+  return `<td class="${w?'lead':''}"${w?` style="--c:${c}"`:''}><span class="num">${v}</span></td>`};
+ const tbl=`<table class="cmpt"><caption class="sr">Статистика сезона: ${nT} и ${nO}</caption>
+  <thead><tr><th scope="col" class="cl">Показатель</th><th scope="col" style="--c:${c1}">${em(ID)}<span>${nT}</span></th><th scope="col" style="--c:${c2}">${em(o)}<span>${nO}</span></th></tr></thead>
+  <tbody>${rows.map(r=>`<tr><th scope="row" class="cl">${esc(r[0])}</th>${cell(r[1],r[3],r[4],r[5],c1,0)}${cell(r[2],r[3],r[4],r[5],c2,1)}</tr>`).join('')}</tbody></table>`;
+ // — 3. матчи этого сезона между командами —
+ const item=(g,nx)=>{const t=day(g.d),h=g.h,r=nx?null:rlab(g);return `<li class="g h2g ${nx?'nx ':''}${h?'home':'away'}"><span class="gd"><b>${t.d} ${t.mon}</b><small>${t.wd}${nx&&t.tm?' · '+t.tm+' МСК':''}</small></span>
+  <span class="ha ${h?'h':'a'}" title="${h?'дома':'в гостях'}">${h?'Д':'В'}</span><span class="hv">${h?'Дома':'В гостях'}</span>
+  ${nx?`<span class="rs nxt">следующий</span>`:`<span class="sc num">${g.gf}:${g.ga}${g.x?`<small>${esc(g.x)}</small>`:''}</span><span class="rs ${r[1]}" title="${r[2]}">${r[0]}</span>`}</li>`};
+ const mt=cur.length?`<ol class="gs h2l">${cur.map(g=>item(g,0)).join('')}${item(nextG,1)}</ol>`
+  :`<p class="cmpno">В этом сезоне ещё не встречались.</p><ol class="gs h2l">${item(nextG,1)}</ol>`;
+ const allSum=hasOld&&tot?`<p class="note cmpall">За 3 сезона: ${tw}–${tl_} в ${tot} ${plural(tot,'матче','матчах','матчах')}. Счёт — с точки зрения ${nT}.</p>`:(hasOld?`<p class="note cmpall">За 3 сезона команды не встречались.</p>`:'');
  const dt=document.getElementById('nmh2h');
- dt.innerHTML=`<summary><span class="h2cr">${em(ID)}${em(o)}</span><span class="h2st"><b>${esc(T.name)} — ${esc(nm(o))}: история встреч</b>
-   <small>${all.length?`${w}–${l} · ${all.length} ${plural(all.length,'матч','матча','матчей')}, шайбы ${gf}:${ga}${hasOld?`, ${seasons} ${plural(seasons,'сезон','сезона','сезонов')}`:''}`:'в этих сезонах не встречались'}</small></span><span class="h2ar" aria-hidden="true">▾</span></summary>
-  <div class="h2in">${all.length?`<p class="note">${hasOld?'Текущий сезон и два прошлых.':'Только текущий сезон.'} Счёт — с точки зрения ${esc(T.name)}.</p><ol class="gs h2l">${all.map(item).join('')}</ol>`:''}</div>`;
- if(all.length)dt.hidden=false;
+ dt.innerHTML=`<summary><span class="h2cr">${em(ID)}${em(o)}</span><span class="h2st"><b>Сравнение: ${nT} — ${nO}</b>
+   <small>${sumCur}${sumAll}</small></span><span class="h2ar" aria-hidden="true">▾</span></summary>
+  <div class="h2in cmp">
+   <section class="cmps"><h3>Сила команд</h3><p class="note">Те же шесть показателей, что в шестиугольнике выше: балл — место в лиге, 100 — лучшая команда.${near?' Цвета клубов близки, поэтому '+nO+' — пунктиром.':''}</p>${rad}</section>
+   <section class="cmps"><h3>Статистика сезона</h3><div class="cmpw" tabindex="0" role="region" aria-label="Статистика команд, листается вбок">${tbl}</div><p class="note">Выделено более сильное значение.</p></section>
+   <section class="cmps"><h3>Матчи этого сезона</h3>${mt}${allSum}</section>
+  </div>`;
+ dt.hidden=false;
 }
 
 /* ── 3б. игроки: лидеры, вкладки «Полевые» / «Вратари», сортировка по клику на заголовок ── */
