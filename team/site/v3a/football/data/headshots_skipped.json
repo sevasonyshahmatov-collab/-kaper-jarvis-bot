@@ -141,7 +141,7 @@
 },
 "309273": {
 "f": "Rasmus Højlund with a fan.jpg",
-"why": "ошибка загрузки"
+"why": "лицо у края кадра"
 },
 "328238": {
 "f": "Bradley Barcola France v Spain 7.24.26-112 (cropped).jpg",
@@ -149,11 +149,11 @@
 },
 "323974": {
 "f": "Entrenamiento Argentina Sub20 previo al mundial - BugWarp (49) - Matías Soulé (cropped).jpg",
-"why": "ошибка загрузки"
+"why": "нет лица"
 },
 "323833": {
 "f": "Egas Cacintura 2021.jpg",
-"why": "ошибка загрузки"
+"why": "нет лица"
 },
 "338854": {
 "f": "FC Liefering gegen SV Stripfing (2023-09-15) 05.jpg",
@@ -165,7 +165,7 @@
 },
 "233278": {
 "f": "Anderson Arroyo 2025.jpg",
-"why": "ошибка загрузки"
+"why": "нет лица"
 },
 "287788": {
 "f": "Christian Noboa 2019 Sochi.jpg",
@@ -173,19 +173,15 @@
 },
 "192060": {
 "f": "Tolisso asse ol 2425.png",
-"why": "ошибка загрузки"
+"why": "нет лица"
 },
 "214375": {
 "f": "Emilano Buendia April 2026 (cropped).jpg",
-"why": "ошибка загрузки"
+"why": "несколько лиц"
 },
 "288340": {
 "f": "Lens - Stade Rennais (20-08-2023) 54.jpg",
 "why": "нет лица"
-},
-"277525": {
-"f": "Abdelli asse sco 2425.png",
-"why": "ошибка загрузки"
 },
 "286967": {
 "f": "Jack Rudoni.png",
@@ -193,15 +189,15 @@
 },
 "198563": {
 "f": "FC Salzburg versus Vitória Guimarães (UEFA Euroleague 23. November 2017) 27.jpg",
-"why": "ошибка загрузки"
+"why": "нет лица"
 },
 "270817": {
 "f": "Ekkelenkamp2022.jpg",
-"why": "ошибка загрузки"
+"why": "нет лица"
 },
 "312227": {
 "f": "Luciano Gondou).jpg",
-"why": "ошибка загрузки"
+"why": "нет лица"
 },
 "301976": {
 "f": "14.03.2026 «Зенит» — «Спартак».jpg 1 (Pablo Solari).jpg",
@@ -229,6 +225,74 @@
 },
 "253991": {
 "f": "FC Salzburg vs. Ferencváros Budapest (2025-10-23 UEFA Euroleague) 33 (Kristoffer Zachariassen).jpg",
+"why": "ошибка загрузки"
+},
+"325053": {
+"f": "Nikita Krivtsov 2022.jpg",
+"why": "ошибка загрузки"
+},
+"255889": {
+"f": "Pape Gueye France v Senegal 16 June 2026-359 (cropped).jpg",
+"why": "нет лица"
+},
+"265993": {
+"f": "Sergio-Gomez-2023.jpg",
+"why": "ошибка загрузки"
+},
+"282229": {
+"f": "GAE - Ajax - 52788469380 (Brobbey).jpg",
+"why": "нет лица"
+},
+"236721": {
+"f": "Alphonso Davies Canada v Qatar 18 June 2026-007 (cropped).jpg",
+"why": "лицо у края кадра"
+},
+"283941": {
+"f": "Ander Barrenetxea 2018.jpg",
+"why": "ошибка загрузки"
+},
+"307515": {
+"f": "U19 DFB Perspektivteam, Duisburg-Wedau.jpg",
+"why": "нет лица"
+},
+"308254": {
+"f": "AitorParedes2022.jpg",
+"why": "нет лица"
+},
+"297371": {
+"f": "SD Negreira - Real Sociedad, Copa do Rei 2025-26 12 (Turrientes).jpg",
+"why": "ошибка загрузки"
+},
+"173817": {
+"f": "Domenico Berardi, Palazzo Chigi, 2021.jpg",
+"why": "ошибка загрузки"
+},
+"174617": {
+"f": "2022128153308 2022-05-08 Fussball Eintracht Frankfurt vs Borussia Mönchengladbach - Sven - 1D X MK II - 0729 - B70I6840 (cropped) (cropped).jpg",
+"why": "ошибка загрузки"
+},
+"189974": {
+"f": "Giovanni Simeone 2016-17.jpg",
+"why": "лицо мелкое"
+},
+"171508": {
+"f": "Lucas Olaza.jpg",
+"why": "ошибка загрузки"
+},
+"195027": {
+"f": "Sheraldo Becker (2018).jpg",
+"why": "ошибка загрузки"
+},
+"181946": {
+"f": "Aguilar rcl asse 2425.png",
+"why": "ошибка загрузки"
+},
+"211770": {
+"f": "Sadiq Umar.jpg",
+"why": "ошибка загрузки"
+},
+"241173": {
+"f": "1189124 sPICT (cropped).jpg",
 "why": "ошибка загрузки"
 }
 }
