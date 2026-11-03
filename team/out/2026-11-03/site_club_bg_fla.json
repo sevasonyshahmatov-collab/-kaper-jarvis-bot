@@ -1,0 +1,58 @@
+{
+ "day": "2026-11-03",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_club_bg_fla/nhl_fla_desktop_was_now.jpg"
+   ],
+   "text": "Флорида — компьютер: слева было, справа стало"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_club_bg_fla/nhl_fla_phone_was_now.jpg"
+   ],
+   "text": "Флорида — телефон: сверху было, снизу стало"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_club_bg_fla/ska_desktop_was_now.jpg"
+   ],
+   "text": "СКА — компьютер: слева было, справа стало"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_club_bg_fla/ska_phone_was_now.jpg"
+   ],
+   "text": "СКА — телефон: сверху было, снизу стало"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_club_bg_fla/akbars_desktop_was_now.jpg"
+   ],
+   "text": "Ак Барс — компьютер: слева было, справа стало"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_club_bg_fla/akbars_phone_was_now.jpg"
+   ],
+   "text": "Ак Барс — телефон: сверху было, снизу стало"
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Фон-картинка на страницах клубов, как просили: сцена одним слоем на всю страницу, секции — тёмное стекло.\nФлорида: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/71f5f3565c3e8286a598583a32ed31c79aad151a/team/site/v3a/team/index.html?id=nhl_fla\nСКА: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/71f5f3565c3e8286a598583a32ed31c79aad151a/team/site/v3a/team/index.html?id=ska\nАк Барс: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/71f5f3565c3e8286a598583a32ed31c79aad151a/team/site/v3a/team/index.html?id=akbars\nТак? Если да — пришлите картинки для других клубов (промты дам). Картинки в полном размере — теперь чёткие на большом экране."
+  }
+ ]
+}
