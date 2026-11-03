@@ -1,0 +1,34 @@
+{
+ "day": "2026-11-03",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_football_cups/cups_plates.jpg"
+   ],
+   "text": "Лиги и клубы: теперь 8 плашек (4 в ряд), справа Лига чемпионов и Лига Европы. Слева компьютер, справа телефон"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_football_cups/ucl_page.jpg"
+   ],
+   "text": "Страница «Лига чемпионов»: ближайший матч, таблица общего этапа, эмблемы всех 36 клубов"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_football_cups/ucl_header.jpg"
+   ],
+   "text": "Шапка с вкладкой «Лига чемпионов» (на телефоне — «ЛЧ»); на хоккейных страницах вкладки нет"
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Готово: Лига чемпионов и Лига Европы добавлены (по 36 клубов, таблица общего этапа с зонами, матчи, эмблемы со ссылками). У клубов кубков есть страницы (всего теперь 151), в «Матчах сезона» у них плашка ЛЧ/ЛЕ. Данные ESPN на 3 ноября.\n\nФутбол: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/17f6de6b9b2e6102591973a117d6c04569f915bb/team/site/v3a/football/index.html\nЛига чемпионов: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/17f6de6b9b2e6102591973a117d6c04569f915bb/team/site/v3a/football/ucl.html\nКлуб в ЛЧ (Порту): https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/17f6de6b9b2e6102591973a117d6c04569f915bb/team/site/v3a/football/team.html?id=porto\n\nТак?"
+  }
+ ]
+}
