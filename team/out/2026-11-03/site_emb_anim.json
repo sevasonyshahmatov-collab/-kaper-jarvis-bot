@@ -1,0 +1,18 @@
+{
+ "day": "2026-11-03",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "animation",
+   "files": [
+    "team/out/2026-11-03/site_emb_anim/site_emb_anim.mp4"
+   ],
+   "text": "Варианты 1–4 по очереди, затем 3 на СКА"
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Анимация эмблемы клуба, 4 варианта (Флорида; СКА — вариант 3):\n1 · выход на лёд: въезжает снизу с отскоком, один раз — https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/cc069140671956a09080342f2168208f134d72c3/team/site/v3a/team/index.html?id=nhl_fla&emb=1\n2 · 3D-наклон за мышью (на телефоне — от прокрутки) — https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/cc069140671956a09080342f2168208f134d72c3/team/site/v3a/team/index.html?id=nhl_fla&emb=2\n3 · отблеск льда по силуэту + лёгкое дыхание — https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/cc069140671956a09080342f2168208f134d72c3/team/site/v3a/team/index.html?id=nhl_fla&emb=3\n4 · ледяная крошка вокруг эмблемы — https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/cc069140671956a09080342f2168208f134d72c3/team/site/v3a/team/index.html?id=nhl_fla&emb=4\nКакой вариант берём? Можно и сочетание, например 1 + 3."
+  }
+ ]
+}
