@@ -22,7 +22,7 @@ jobs:
           python-version: '3.11'
       - run: pip install requests
       - run: python team/site/v3a/hockey/nhl_players_fetch.py
-      - run: python team/site/v3a/hockey/khl_probe.py
+      - run: python team/site/v3a/hockey/khl_players_fetch.py
         continue-on-error: true
       - name: Закоммитить данные
         run: |
