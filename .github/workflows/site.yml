@@ -175,3 +175,5 @@ jobs:
           name: site
           path: site/
           retention-days: 3
+          # аудит 03.11: в site/.git лежит SITE_TOKEN (checkout его сохраняет) — скрытые файлы в артефакт не берём явно
+          include-hidden-files: false
