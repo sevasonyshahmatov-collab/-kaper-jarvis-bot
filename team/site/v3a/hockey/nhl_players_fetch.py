@@ -1,0 +1,106 @@
+# -*- coding: utf-8 -*-
+"""Игроки НХЛ для раздела «Игроки» (макет v3a, владелец 03.11): по каждому матчу регулярного сезона — голы, передачи,
+броски, время на льду, штраф каждого полевого игрока; фото (headshot) и позиция из состава; следующий матч команды.
+Источник — api-web.nhle.com (из облака закрыт, запуск в Actions: workflow site-v3a-players.yml).
+Результат — hockey/data/nhl_players.json (коммит в ту же ветку). Запуск из корня: python team/site/v3a/hockey/nhl_players_fetch.py"""
+import json, os, time
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta, timezone
+
+import requests
+
+MSK = timezone(timedelta(hours=3))
+H = os.path.dirname(os.path.abspath(__file__))
+S = requests.Session(); S.headers['User-Agent'] = 'Mozilla/5.0'
+W = 'https://api-web.nhle.com/v1/'
+err = []
+
+
+def get(path):
+    for k in range(3):
+        try:
+            r = S.get(W + path, timeout=30)
+            if r.status_code == 200:
+                return r.json()
+            if r.status_code == 404:
+                return None
+        except Exception as e:  # noqa: BLE001
+            if k == 2:
+                err.append('%s %r' % (path, e))
+        time.sleep(1 + k)
+    return None
+
+
+def msk(s):
+    return datetime.fromisoformat(s.replace('Z', '+00:00')).astimezone(MSK).strftime('%Y-%m-%d %H:%M')
+
+
+def toi(s):
+    try:
+        m, c = str(s).split(':'); return int(m) * 60 + int(c)
+    except Exception:  # noqa: BLE001
+        return 0
+
+
+st = get('standings/now') or {}
+TEAMS = sorted({r['teamAbbrev']['default'] for r in st.get('standings') or []})
+print('NHLP teams', len(TEAMS), flush=True)
+
+
+def club(ab):
+    sch = get('club-schedule-season/%s/now' % ab) or {}
+    ro = get('roster/%s/current' % ab) or {}
+    return ab, sch.get('games') or [], ro
+
+
+games, nxt, roster = {}, {}, {}
+with ThreadPoolExecutor(6) as ex:
+    for ab, gs, ro in ex.map(club, TEAMS):
+        for g in gs:
+            if g.get('gameType') != 2:
+                continue
+            if g.get('gameState') in ('OFF', 'FINAL'):
+                games[g['id']] = g
+            elif ab not in nxt or g['startTimeUTC'] < nxt[ab]['t']:
+                h, a = g['homeTeam']['abbrev'], g['awayTeam']['abbrev']
+                nxt[ab] = {'t': g['startTimeUTC'], 'd': msk(g['startTimeUTC']), 'o': a if h == ab else h, 'h': int(h == ab)}
+        for k in ('forwards', 'defensemen', 'goalies'):
+            for p in ro.get(k) or []:
+                roster[p['id']] = {'t': ab, 'img': p.get('headshot'), 'no': p.get('sweaterNumber'), 'pos': p.get('positionCode')}
+print('NHLP games', len(games), 'roster', len(roster), flush=True)
+
+
+def box(gid):
+    return gid, get('gamecenter/%d/boxscore' % gid)
+
+
+P = {}
+with ThreadPoolExecutor(8) as ex:
+    for gid, b in ex.map(box, sorted(games)):
+        if not b:
+            continue
+        g = games[gid]
+        d = msk(g['startTimeUTC'])
+        pg = b.get('playerByGameStats') or {}
+        for side, home in (('homeTeam', 1), ('awayTeam', 0)):
+            me = b[side]['abbrev']; op = b['awayTeam' if home else 'homeTeam']['abbrev']
+            for grp in ('forwards', 'defense'):
+                for p in (pg.get(side) or {}).get(grp) or []:
+                    pid = p['playerId']
+                    r = P.setdefault(pid, {'id': pid, 'n': (p.get('name') or {}).get('default', ''), 'pos': p.get('position'), 'log': []})
+                    r['log'].append([d, me, op, home, p.get('goals', 0), p.get('assists', 0), p.get('sog', 0), toi(p.get('toi')),
+                                     p.get('pim', 0)])
+
+out = []
+for pid, r in P.items():
+    r['log'].sort()
+    ro = roster.get(pid, {})
+    r['t'] = ro.get('t') or r['log'][-1][1]
+    r['img'] = ro.get('img'); r['no'] = ro.get('no'); r['pos'] = ro.get('pos') or r['pos']
+    out.append(r)
+res = {'built': datetime.now(MSK).strftime('%Y-%m-%d %H:%M'), 'season': '2026/27', 'next': nxt, 'players': out, 'err': err[:30],
+       'cols': ['d', 'team', 'opp', 'home', 'g', 'a', 'sog', 'toi_sec', 'pim']}
+os.makedirs(os.path.join(H, 'data'), exist_ok=True)
+with open(os.path.join(H, 'data', 'nhl_players.json'), 'w', encoding='utf-8') as f:
+    json.dump(res, f, ensure_ascii=False, separators=(',', ':'))
+print('NHLP players', len(out), 'errors', len(err), flush=True)

@@ -1,0 +1,32 @@
+# Игроки НХЛ для макета v3a (раздел «Игроки»): на ветках claude/team-dev-* при изменении team/site/v3a/hockey/players_run.txt
+# запускает nhl_players_fetch.py (api-web.nhle.com) и коммитит hockey/data/nhl_players.json в ту же ветку.
+name: Игроки НХЛ для сайта v3a
+
+on:
+  push:
+    branches: ['claude/team-dev-**']
+    paths: ['team/site/v3a/hockey/players_run.txt']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  players:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests
+      - run: python team/site/v3a/hockey/nhl_players_fetch.py
+      - name: Закоммитить данные
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add team/site/v3a/hockey/data
+          git diff --cached --quiet || git commit -m "Игроки НХЛ для сайта v3a (api-web.nhle.com)"
+          git pull --rebase -q || true
+          git push
