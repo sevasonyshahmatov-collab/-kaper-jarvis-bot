@@ -8,6 +8,9 @@
 Чего на живом сайте нет — ранние матчи сезона и линия на дальние матчи — дописывается правдоподобным примером
 с пометкой s:1 (на странице подписано «Пример данных»). Пример детерминированный (сид — slug команды).
 
+Настоящие матчи сезона и игроки — season.json рядом (собирает team/out/2026-11-03/team_season.py в Actions из API КХЛ и НХЛ,
+лог запуска → season.json). Есть данные по клубу — ранние матчи берутся оттуда, примера нет; нет — остаётся пример (s:1).
+
 Запуск: python3 team/site/v3a/team/build_data.py [/путь/к/клону]   (по умолчанию /tmp/live)
 """
 import glob, json, os, random, sys
@@ -15,7 +18,8 @@ from datetime import date, datetime, timedelta
 
 LIVE = sys.argv[1] if len(sys.argv) > 1 else '/tmp/live'
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets', 'data', 'teams.json')
-TODAY = date(2026, 10, 31)
+TODAY = date(2026, 11, 3)
+SEASON = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'season.json'), encoding='utf-8'))
 START = {'khl': date(2026, 9, 5), 'nhl': date(2026, 10, 7)}
 
 db = json.load(open(os.path.join(LIVE, 'app', 'data.json'), encoding='utf-8'))
@@ -82,6 +86,36 @@ for r in db.get('results', []):
 def res_of(gf, ga, ex):
     return 'W' if gf > ga else ('OTL' if ex else 'L')
 
+def r1(v, d=1):
+    return None if v is None else round(float(v), d)
+
+POS = {'Н': 'Нап', 'З': 'Защ', 'Ц': 'Цен'}
+
+def players(lg, real):
+    """Игроки клуба в одном виде для обеих лиг: полевые (n, no, pos, gp, g, a, pts, pm, pim, sog?, toi — секунд за игру),
+    вратари (n, no, gp, w, l, sv — % отражённых, gaa, so). Нет данных — None."""
+    sk, gk = [], []
+    for p in real.get('sk') or []:
+        st = p.get('st')
+        if st:      # КХЛ
+            if not st.get('gp'):
+                continue
+            sk.append({'n': p['n'], 'no': p.get('no'), 'pos': POS.get(p.get('pos'), p.get('pos')), 'gp': st.get('gp'), 'g': st.get('g') or 0, 'a': st.get('a') or 0,
+                       'pts': st.get('pts') or 0, 'pm': st.get('pm') or 0, 'pim': st.get('pim') or 0,
+                       'toi': round(st['toi_avg'] * 60) if st.get('toi_avg') else None})
+        elif p.get('gp'):
+            sk.append({k: p.get(k) for k in ('n', 'no', 'pos', 'gp', 'g', 'a', 'pts', 'pm', 'pim', 'sog', 'toi')})
+            sk[-1]['pos'] = POS.get(sk[-1]['pos'], sk[-1]['pos'])
+    for p in real.get('gk') or []:
+        st = p.get('st')
+        if st:
+            gk.append({'n': p['n'], 'no': p.get('no'), 'gp': st.get('gp'), 'w': st.get('w') or 0, 'l': st.get('l') or 0,
+                       'sv': r1(st.get('sv_pct')), 'gaa': r1(st.get('gaa'), 2), 'so': st.get('so') or 0})
+        elif p.get('gp'):
+            gk.append({'n': p['n'], 'no': p.get('no'), 'gp': p['gp'], 'w': p.get('w') or 0, 'l': (p.get('l') or 0) + (p.get('otl') or 0),
+                       'sv': r1(p['svp'] * 100) if p.get('svp') is not None else None, 'gaa': r1(p.get('gaa'), 2), 'so': p.get('so') or 0})
+    return {'sk': sk, 'gk': gk} if sk or gk else None
+
 out_teams = {}
 for slug, t in teams.items():
     rnd = random.Random(slug)
@@ -99,10 +133,22 @@ for slug, t in teams.items():
             x = g['x']
             r['k'] = [x[0], x[1], x[2]] if home else [x[2], x[1], x[0]]   # [победа команды, ничья, победа соперника]
         rows.append(r)
+    real = (SEASON.get(lg) or {}).get(t['name']) or {}
+    rg = [g for g in real.get('games') or [] if g.get('gf') is not None and g.get('o') in by_name]
+    if len(rg) >= (t['gp'] or 0) - 1 and rg:      # весь сезон настоящий: таблица и сезон сходятся (±1 матч из-за времени выгрузки)
+        fut = [r for r in rows if 'gf' not in r]
+        rows = [{'d': g['d'], 'o': by_name[g['o']], 'h': g['h'], 'gf': g['gf'], 'ga': g['ga'], 'x': g.get('x') or ''} for g in rg] + fut
+        # настоящие ближайшие матчи НХЛ из расписания (линии пока нет — оценка ks, ниже)
+        have = {(r['d'][:10], r['o']) for r in fut}
+        nxt = [g for g in real.get('games') or [] if g.get('gf') is None and g.get('o') in by_name
+               and g['d'][:10] >= f'{TODAY:%Y-%m-%d}' and (g['d'][:10], by_name[g['o']]) not in have]
+        for g in nxt[:max(0, 4 - len(fut))]:
+            rows.append({'d': g['d'], 'o': by_name[g['o']], 'h': g['h']})
     played = [r for r in rows if 'gf' in r]
+    real_ok = bool(rg) and len(rg) >= (t['gp'] or 0) - 1
     # ── пример: ранние матчи сезона, которых нет в данных живого сайта (по итоговым В/П/очкам/шайбам таблицы)
     otl_total = max(0, (t['pts'] or 0) - 2 * (t['w'] or 0))
-    n = max(0, (t['gp'] or 0) - len(played))
+    n = 0 if real_ok else max(0, (t['gp'] or 0) - len(played))
     need_w = max(0, (t['w'] or 0) - sum(res_of(r['gf'], r['ga'], r['x']) == 'W' for r in played))
     need_otl = max(0, otl_total - sum(res_of(r['gf'], r['ga'], r['x']) == 'OTL' for r in played))
     need_w = min(need_w, n)
@@ -168,6 +214,7 @@ for slug, t in teams.items():
     tp = [p for p in picks.values() if slug in (by_name.get(p['h']), by_name.get(p['a']))]
     tp.sort(key=lambda p: p['d'], reverse=True)
     t2 = dict(t)
+    t2['pl'] = players(lg, real)
     t2['games'] = rows
     t2['picks'] = [{**p, 'h': by_name[p['h']], 'a': by_name[p['a']]} for p in tp]
     out_teams[slug] = t2

@@ -208,3 +208,51 @@ body.on-light .stand tr.me td{color:var(--con)}
 .tmbg{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block}
 .tmhero.has-bg::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
   background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--con) 4%,transparent) 0 2px,transparent 2px 16px)}
+
+/* ── сводка матчей и раздел «Игроки» (03.11) ── */
+.gsum{list-style:none;margin:0 0 18px;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;background:var(--sep);border-radius:8px;overflow:hidden}
+.gsum li{background:var(--card);padding:14px 16px;display:grid;gap:6px;align-content:start}
+.gsum b{font:800 clamp(30px,3vw,42px)/1 var(--display)}
+.gsum span{font:600 14px/1.25 var(--display);color:var(--ink-3)}
+.gsum .w b{color:var(--win)}.gsum .l b{color:var(--red)}
+.plead{list-style:none;margin:0 0 22px;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;background:var(--sep);border-radius:8px;overflow:hidden}
+.plead li{background:var(--card);padding:18px 18px 16px;display:grid;gap:8px;align-content:start;border-top:4px solid var(--team)}
+.pln{font:800 clamp(22px,2vw,28px)/1.1 var(--display);text-transform:uppercase;overflow-wrap:anywhere}
+.pln small{font:700 15px/1 var(--display);color:var(--ink-3);margin-left:8px;text-transform:none}
+.plv{display:flex;align-items:baseline;gap:8px}
+.plv b{font:800 clamp(48px,5vw,68px)/1 var(--display);color:var(--ink)}
+.plv small{font:700 18px/1 var(--display);color:var(--ink-2)}
+.gfilter button small{margin-left:7px;font:600 13px/1 var(--display);opacity:.7}
+.plwrap{background:var(--card);border-radius:8px;overflow:auto;max-width:100%;max-height:720px;-webkit-overflow-scrolling:touch}
+.plwrap:focus-visible{outline:3px solid var(--team);outline-offset:2px}
+.pltab{border-collapse:separate;border-spacing:0;font-size:17px;min-width:100%}
+.pltab th{position:sticky;top:0;z-index:2;background:var(--paper-2);padding:0;white-space:nowrap}
+.pltab th button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;justify-content:flex-end;gap:4px;width:100%;padding:12px 10px;font:600 14px/1 var(--display);color:var(--ink-2)}
+.pltab th.tx button{justify-content:flex-start}
+.pltab th button:hover{color:var(--ink)}
+.pltab th button:focus-visible{outline:3px solid var(--team);outline-offset:-3px}
+.pltab th button i{font-style:normal;width:10px;color:var(--team)}
+.pltab th[aria-sort] button{color:var(--ink)}
+.pltab td{padding:10px;border-top:1px solid var(--sep);background:var(--card);white-space:nowrap}
+.pltab td.tx{text-align:left}
+.pltab td.on{font-weight:800;background:color-mix(in srgb,var(--team) 11%,var(--card))}
+.pltab .c1{position:sticky;left:0;z-index:1;width:46px;min-width:46px;text-align:right;color:var(--ink-3);font:700 16px/1.2 var(--display)}
+.pltab th.c1{z-index:3;padding:12px 10px;font:600 14px/1 var(--display);color:var(--ink-2);text-align:right;width:46px;min-width:46px}
+.pltab .c2{position:sticky;left:46px;z-index:1;text-align:left;box-shadow:1px 0 0 var(--sep)}
+.pltab th.c2{z-index:3}
+.pltab td.c2{font:700 18px/1.2 var(--display);min-width:150px}
+.pltab td.c1{background:var(--card)}
+.pltab tbody tr:hover td{background:var(--card-hi)}
+.pltab tbody tr:hover td.on{background:color-mix(in srgb,var(--team) 14%,var(--card-hi))}
+.plnote{margin-top:14px;max-width:80ch}
+@media (max-width:980px){.plead{grid-template-columns:1fr}.plead li{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"l v" "n v" "s v";column-gap:14px}.plead .sl{grid-area:l}.plead .pln{grid-area:n}.plead .plv{grid-area:v;align-self:center}.plead .ss{grid-area:s}}
+@media (max-width:620px){
+  .gsum{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gsum li{padding:12px}
+  .pltab{font-size:16px}
+  .pltab td{padding:9px 8px}
+  .pltab td.c2{min-width:132px;font-size:17px}
+  .pltab .c1,.pltab th.c1{width:38px;min-width:38px;padding-left:6px;padding-right:6px}
+  .pltab .c2{left:38px}
+  .plwrap{max-height:560px}
+}
