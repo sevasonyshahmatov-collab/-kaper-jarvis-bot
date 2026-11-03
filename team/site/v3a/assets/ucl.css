@@ -1,0 +1,77 @@
+/* JARVIS v3a — оформление Лиги чемпионов (data-theme="ucl") и Лиги Европы (data-theme="uel"): ночной тёмно-синий, серебро и белый,
+   звёздное небо (assets/ucl-sky.js), крупный знак турнира на фоне, карточки — тёмное стекло с серебряной кромкой. Без свечений у курсора. */
+[data-theme="ucl"]{
+  --paper:#081539; --paper-2:#102257; --paper-3:#192e6c; --card:#0d1d4c; --card-hi:#14285f;
+  --ink:#f4f7ff; --ink-2:#c9d4ee; --ink-3:#a3b5da; --rule:#26407f; --rule-2:#94a9d8;
+  --board:#050c26; --flap:#0f1d4a; --flap-2:#0a1538; --flap-ink:#f4f7ff;
+  --signal:#ffc21a; --signal-ink:#1a1400;
+  --ice:#9cc8ff; --sport:#9cc8ff; --pitch:#7fd0ff; --red:#ff7f8b; --win:#46d68e; --win-ink:#03200f; --loss-ink:#2b0409; --sport-ink:#04122e;
+  --crest-bg:#eef3fa; --crest-pad:1; --shadow:rgba(0,0,0,.55); --grain-blend:overlay; --grain-op:.2;
+  --fld:rgba(170,195,240,.10); --fld-2:rgba(170,195,240,.04); --fld-pitch:rgba(127,208,255,.03);
+  --fld-red:rgba(255,127,139,.25); --fld-blue:rgba(156,200,255,.25); --fld-run:rgba(156,200,255,.2); --fld-run2:rgba(255,194,26,.14);
+  --glass:rgba(10,24,64,.62); --edge:rgba(196,210,238,.34); --team:#9cc8ff;
+  color-scheme:dark}
+[data-theme="uel"]{
+  --paper:#0e0b08; --paper-2:#1b150f; --paper-3:#2b2217; --card:#16110c; --card-hi:#201912;
+  --ink:#f8f1e8; --ink-2:#dccdb9; --ink-3:#b9a78f; --rule:#3d2d1c; --rule-2:#d49a5a;
+  --board:#070503; --flap:#1c140c; --flap-2:#130d07; --flap-ink:#f8f1e8;
+  --signal:#ffc21a; --signal-ink:#1a1400;
+  --ice:#ffa04a; --sport:#ffa04a; --pitch:#ffa04a; --red:#ff8a7a; --win:#46d68e; --win-ink:#03200f; --loss-ink:#2b0409; --sport-ink:#1a0d00;
+  --crest-bg:#f4efe8; --crest-pad:1; --shadow:rgba(0,0,0,.6); --grain-blend:overlay; --grain-op:.2;
+  --fld:rgba(255,160,74,.08); --fld-2:rgba(255,160,74,.03); --fld-pitch:rgba(255,160,74,.02);
+  --fld-red:rgba(255,138,122,.25); --fld-blue:rgba(255,160,74,.22); --fld-run:rgba(255,160,74,.18); --fld-run2:rgba(255,194,26,.12);
+  --glass:rgba(24,17,10,.66); --edge:rgba(214,170,120,.34); --team:#ffa04a;
+  color-scheme:dark}
+[data-theme="ucl"] body{background:radial-gradient(120% 70% at 85% 0%,#0f2a78 0%,rgba(15,42,120,0) 60%),linear-gradient(180deg,#0b1a4a 0%,#06102e 100%) fixed #06102e;color:var(--ink)}
+[data-theme="uel"] body{background:radial-gradient(110% 60% at 90% 0%,#3a1e08 0%,rgba(58,30,8,0) 60%),linear-gradient(180deg,#14100b 0%,#080604 100%) fixed #080604;color:var(--ink)}
+[data-theme="ucl"] .arena-bg,[data-theme="uel"] .arena-bg{display:none}
+/* небо и знак турнира: фиксированный слой под содержимым */
+.ucl-deco{position:fixed;inset:0;z-index:-2;pointer-events:none;overflow:hidden}
+.ucl-deco svg{position:absolute;inset:0;width:100%;height:100%}
+.ucl-deco .lgbig{position:absolute;right:-9vw;top:4vh;height:min(104vh,980px);width:auto;max-width:none;opacity:.10;transform:rotate(-8deg)}
+[data-theme="uel"] .ucl-deco .lgbig{opacity:.12}
+/* шапка и полоса матчей */
+[data-theme="ucl"] .hd,[data-theme="uel"] .hd{background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--edge)}
+[data-theme="ucl"] .ticker,[data-theme="uel"] .ticker{background:rgba(4,10,30,.7);border-color:var(--edge)}
+[data-theme="uel"] .ticker{background:rgba(8,6,4,.75)}
+/* первый экран: без арены, табло на тёмном стекле */
+[data-theme="ucl"] .hero,[data-theme="uel"] .hero{background:none}
+[data-theme="ucl"] .hero h1 .ln:last-child{color:#c7defc}
+[data-theme="uel"] .hero h1 .ln:last-child{color:var(--ice)}
+[data-theme="ucl"] .hero .board,[data-theme="uel"] .hero .board{background:var(--glass);backdrop-filter:blur(10px);box-shadow:0 0 0 1px var(--edge),0 30px 70px -30px #000}
+/* тёмное стекло с серебряной кромкой */
+[data-theme="ucl"] :is(.match,.st,.formbox,.hg,.dvc,.tr,.nmatch,.nmh2h,.plead li,.resl li,.hv>div,.gsum li,.tmpower,.tmtable,.ltab,.cmpw,.pkempty,.faq details,.gs>li,.tmpills li),
+[data-theme="uel"] :is(.match,.st,.formbox,.hg,.dvc,.tr,.nmatch,.nmh2h,.plead li,.resl li,.hv>div,.gsum li,.tmpower,.tmtable,.ltab,.cmpw,.pkempty,.faq details,.gs>li,.tmpills li){
+  background:var(--glass);border:1px solid var(--edge);backdrop-filter:blur(6px)}
+[data-theme="ucl"] .qc,[data-theme="uel"] .qc{background:rgba(255,255,255,.06);border-color:var(--edge)}
+[data-theme="ucl"] .qc b,[data-theme="uel"] .qc b{color:var(--ink)}
+[data-theme="ucl"] .match .qc.fav{background:#2a5bd6;border-color:#8fb4ff;box-shadow:inset 0 -3px 0 #cfe0ff}
+[data-theme="uel"] .match .qc.fav{background:#d9590a;border-color:#ffb27a;box-shadow:inset 0 -3px 0 #ffd2b0}
+[data-theme="ucl"] .tab,[data-theme="uel"] .tab{background:rgba(255,255,255,.07);color:var(--ink)}
+[data-theme="ucl"] .tab[aria-selected="true"],[data-theme="uel"] .tab[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+[data-theme="ucl"] .sec-head h2,[data-theme="uel"] .sec-head h2{color:var(--ink)}
+[data-theme="ucl"] .period p,[data-theme="uel"] .period p{background:rgba(5,12,38,.8);border:1px solid var(--edge)}
+[data-theme="ucl"] .ltab,[data-theme="uel"] .ltab{background:var(--glass)}
+[data-theme="ucl"] .ltab th,[data-theme="uel"] .ltab th{border-bottom-color:var(--rule-2)}
+[data-theme="ucl"] .ltab tr.z1 td:first-child{box-shadow:inset 4px 0 0 #7fd0ff}[data-theme="ucl"] .ltab tr.z2 td:first-child{box-shadow:inset 4px 0 0 #c9d4ee}[data-theme="ucl"] .ltab tr.z4 td:first-child{box-shadow:inset 4px 0 0 #ff7f8b}
+[data-theme="uel"] .ltab tr.z1 td:first-child{box-shadow:inset 4px 0 0 #ffa04a}[data-theme="uel"] .ltab tr.z2 td:first-child{box-shadow:inset 4px 0 0 #dccdb9}[data-theme="uel"] .ltab tr.z4 td:first-child{box-shadow:inset 4px 0 0 #ff8a7a}
+[data-theme="ucl"] .btn-ink,[data-theme="uel"] .btn-ink{background:var(--ink);color:var(--paper)}
+[data-theme="ucl"] .btn-line,[data-theme="uel"] .btn-line{box-shadow:inset 0 0 0 2px var(--rule-2);color:var(--ink)}
+[data-theme="ucl"] .sub,[data-theme="uel"] .sub{background:rgba(4,10,30,.7)}
+[data-theme="ucl"] footer,[data-theme="uel"] footer{background:rgba(4,10,30,.6)}
+/* страница клуба: шапка — ночной градиент, а не цвета клуба */
+body.ctx-cup .tmhero.hero{background:linear-gradient(120deg,#0b1a4a 0%,#081340 55%,#06102e 100%)}
+[data-theme="uel"] body.ctx-cup .tmhero.hero{background:linear-gradient(120deg,#2a1608 0%,#150d06 60%,#0a0704 100%)}
+body.ctx-cup .tmhero::before{background:linear-gradient(90deg,#9cc8ff 0 64%,#ffffff 64%)}
+[data-theme="uel"] body.ctx-cup .tmhero::before{background:linear-gradient(90deg,#ff8a1f 0 64%,#ffffff 64%)}
+/* переключатель контекста в шапке клуба */
+.ctxsw{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px;padding:0;list-style:none}
+.ctxsw a{display:inline-flex;align-items:center;gap:8px;padding:7px 14px 7px 8px;border-radius:999px;text-decoration:none;font:700 15px/1 var(--display);color:var(--con,#fff);background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.28);transition:background .2s ease}
+.ctxsw a:hover{background:rgba(255,255,255,.2)}
+.ctxsw a[aria-current="page"]{background:#fff;color:#0a1b30;box-shadow:none}
+.ctxsw small{font:600 13px/1 var(--display);opacity:.8}
+.ctxsw .lgp{--s:18px}
+.eloline{margin:10px 0 0;font:600 15px/1.3 var(--display);color:var(--ink-2)}
+.eloline b{font:800 22px/1 var(--display);color:var(--ink);font-variant-numeric:tabular-nums;margin-right:4px}
+.eloline small{display:block;margin-top:4px;font:500 12px/1.3 var(--display);color:var(--ink-3)}
+.fewn{display:inline-block;margin-left:8px;font:700 12px/1 var(--display);letter-spacing:.04em;text-transform:uppercase;padding:4px 7px;border-radius:4px;background:var(--paper-3);color:var(--ink-2);vertical-align:middle}

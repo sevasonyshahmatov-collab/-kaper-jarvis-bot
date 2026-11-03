@@ -143,6 +143,7 @@ for T_ in TEAMS.values():
         T_.setdefault(k, 0)
     T_.setdefault('note', '')
 
+CTXK = lambda g: g['lg'] if g['lg'] in CUPS else 'l'
 # матчи сезона и ближайшие
 UP = []
 for g in sorted(raw['games'], key=lambda x: x['d']):
@@ -167,12 +168,12 @@ for g in sorted(raw['games'], key=lambda x: x['d']):
             s = slug.get(tid)
             if not pid or not nm or kind == 'og' or s not in (h, a):
                 continue
-            e = TEAMS[s]['goals'].setdefault(pid, {'n': nm, 'g': 0, 'p': 0}); e['g'] += 1; e['p'] += 1 if kind == 'pen' else 0
+            e = TEAMS[s]['goals'].setdefault(CTXK(g), {}).setdefault(pid, {'n': nm, 'g': 0, 'p': 0}); e['g'] += 1; e['p'] += 1 if kind == 'pen' else 0
         for mn, tid, pid, nm, kind in g.get('c') or []:
             s = slug.get(tid)
             if not pid or not nm or s not in (h, a):
                 continue
-            e = TEAMS[s]['cards'].setdefault(pid, {'n': nm, 'y': 0, 'r': 0}); e[kind] += 1
+            e = TEAMS[s]['cards'].setdefault(CTXK(g), {}).setdefault(pid, {'n': nm, 'y': 0, 'r': 0}); e[kind] += 1
     elif g['st'] == 'pre':
         mk = g['lg'] if g['lg'] in CUPS else TEAMS[h]['lg']
         pr, ov, bt, lh, la = MODEL[mk](g['h'], g['a'])
@@ -212,8 +213,11 @@ for lg in LG:
             T.setdefault('axes', [0] * 6)[j] = p[T['id']]
 for T in TEAMS.values():
     T['games'].sort(key=lambda g: g['d'])
-    T['sc'] = sorted(({'n': v['n'], 'g': v['g'], 'p': v['p']} for v in T.pop('goals').values()), key=lambda x: (-x['g'], x['n']))[:12]
-    T['cd'] = sorted(({'n': v['n'], 'y': v['y'], 'r': v['r']} for v in T.pop('cards').values()), key=lambda x: (-x['r'], -x['y'], x['n']))[:8]
+    G, C_ = T.pop('goals'), T.pop('cards')
+    fs = lambda d: sorted(({'n': v['n'], 'g': v['g'], 'p': v['p']} for v in d.values()), key=lambda x: (-x['g'], x['n']))[:12]
+    fc = lambda d: sorted(({'n': v['n'], 'y': v['y'], 'r': v['r']} for v in d.values()), key=lambda x: (-x['r'], -x['y'], x['n']))[:8]
+    T['sc'] = fs(G.get(T['lg'] if T['lg'] in CUPS else 'l', {})); T['cd'] = fc(C_.get(T['lg'] if T['lg'] in CUPS else 'l', {}))
+    T['scx'] = {k: fs(G.get(k, {})) for k in CUPS if k in T['cups']}; T['cdx'] = {k: fc(C_.get(k, {})) for k in CUPS if k in T['cups']}
 
 # личные встречи прошлого сезона
 H2H = defaultdict(list)
@@ -230,9 +234,104 @@ for g in raw['games']:
 for v in H2H.values():
     v.sort(key=lambda x: x['d'])
 
+
+# ── Рейтинг Club Elo (clubelo.com: страницы стран, топ-25 каждой) и «сила» в контексте еврокубка ──
+import unicodedata as _u
+ELO = json.load(open(os.path.join(HERE, 'data', 'elo_raw.json'), encoding='utf-8'))
+EBN = {r['n']: r for r in ELO}
+ALIAS = {'Brighton & Hove Albion': 'Brighton', 'Leeds United': 'Leeds', 'Nottingham Forest': 'Forest', 'Borussia Mönchengladbach': 'Gladbach',
+         'FC Cologne': 'Köln', 'Paris Saint-Germain': 'Paris SG', 'Stade Rennais': 'Rennes', 'Dinamo Moscow': 'Dynamo Moskva',
+         'FC Baltika Kaliningrad': 'Baltika', 'Lokomotiv Moscow': 'Lok Moskva', 'Zenit St Petersburg': 'Zenit', 'AEK Athens': 'AEK',
+         'Club Brugge': 'Brugge', 'PSV Eindhoven': 'PSV', 'Slovan Bratislava': 'Slovan', 'AZ Alkmaar': 'AZ', 'Lech Poznan': 'Lech',
+         'Levski Sofia': 'Levski', 'OFI Crete': 'OFI', 'Omonia Nicosia': 'Omonia', 'Akhmat Grozny': 'Terek Grozny', 'Internazionale': 'Internazionale',
+         'Bayern Munich': 'Bayern München', 'Manchester City': 'Man City', 'Manchester United': 'Man United', 'Atlético Madrid': 'Atlético',
+         'Real Betis': 'Betis', 'AC Milan': 'Milan', 'AS Roma': 'Roma', 'Sporting CP': 'Sporting', 'FC Porto': 'Porto', 'Shakhtar Donetsk': 'Shakhtar',
+         'Olympiacos': 'Olympiakos', 'Fenerbahce': 'Fenerbahçe', 'Slavia Prague': 'Slavia Praha', 'Sparta Prague': 'Sparta Praha', 'CSKA Moscow': 'CSKA Moskva',
+         'Spartak Moscow': 'Spartak Moskva', 'Krasnodar': 'FC Krasnodar', 'Krylia Sovetov': 'Kryliya Sovetov', 'Rodina Moscow': 'Rodina Moskva',
+         'Gazovik Orenburg': 'Orenburg', 'Dynamo Makhachkala': 'Makhachkala', 'Feyenoord Rotterdam': 'Feyenoord', 'Bodo/Glimt': 'Bodø/Glimt',
+         'Viktoria Plzen': 'Viktoria Plzeň', 'Lillestrom': 'Lillestrøm', 'Jagiellonia Bialystok': 'Jagiellonia', 'NEC Nijmegen': 'Nijmegen',
+         'NK Celje': 'Celje', 'LASK Linz': 'LASK', 'Hull City': 'Hull', 'Coventry City': 'Coventry', 'Ipswich Town': 'Ipswich', 'Newcastle United': 'Newcastle',
+         'Tottenham Hotspur': 'Tottenham', 'AFC Bournemouth': 'Bournemouth', 'Alavés': 'Alaves', 'Celta Vigo': 'Celta', 'Deportivo': 'Depor',
+         'Racing Santander': 'Santander', 'Bayer Leverkusen': 'Leverkusen', 'Eintracht Frankfurt': 'Frankfurt', 'FC Augsburg': 'Augsburg',
+         'Hamburg SV': 'Hamburg', 'SC Freiburg': 'Freiburg', 'SC Paderborn 07': 'Paderborn', 'SV Elversberg': 'Elversberg', 'TSG Hoffenheim': 'Hoffenheim',
+         'VfB Stuttgart': 'Stuttgart', 'Werder Bremen': 'Werder', 'Borussia Dortmund': 'Dortmund', '1. FC Union Berlin': 'Union Berlin', 'AJ Auxerre': 'Auxerre',
+         'AS Monaco': 'Monaco', 'SK Sturm Graz': 'Sturm Graz', 'Viking FK': 'Viking', 'Schalke 04': 'Schalke', 'Le Havre AC': 'Le Havre', 'Borussia Dortmund ': 'Dortmund'}
+def _norm(x):
+    return _u.normalize('NFKD', x).encode('ascii', 'ignore').decode().lower()
+EBNORM = {_norm(r['n']): r for r in ELO}
+elo_of, ELO_EST = {}, set()
+for sl, T_ in TEAMS.items():
+    en = T_['en']
+    r = EBN.get(ALIAS.get(en, en)) or EBNORM.get(_norm(ALIAS.get(en, en)))
+    if r:
+        elo_of[sl] = r
+# среднее по странам (клубы высшего дивизиона из топ-25 страницы страны)
+CMEAN = {}
+for r in ELO:
+    if r.get('l') == 1:
+        CMEAN.setdefault(r['c'], []).append(r['e'])
+CMEAN = {k: sum(v) / len(v) for k, v in CMEAN.items() if len(v) >= 3}
+LGC = {'epl': 'ENG', 'laliga': 'ESP', 'seriea': 'ITA', 'bundesliga': 'GER', 'ligue1': 'FRA', 'rpl': 'RUS'}
+def country(sl):
+    r = elo_of.get(sl)
+    return r['c'] if r else LGC.get(TEAMS[sl]['lg'])
+# оценка для клубов, которых нет в рейтинге: среднее Elo их лиги + поправка по месту (+150 лидеру … −150 последнему)
+for sl, T_ in TEAMS.items():
+    if sl in elo_of:
+        continue
+    same = [elo_of[x]['e'] for x, t in TEAMS.items() if t['lg'] == T_['lg'] and x in elo_of]
+    base = sum(same) / len(same) if same else 1650
+    n = max(2, len([1 for t in TEAMS.values() if t['lg'] == T_['lg']]))
+    pl = T_['place'] or n // 2
+    elo_of[sl] = {'n': T_['en'], 'c': country(sl), 'l': 1, 'e': round(base + 150 * (1 - 2 * (pl - 1) / (n - 1)), 1)}
+    ELO_EST.add(sl)
+EVAL = sorted([r['e'] for r in ELO] + [elo_of[x]['e'] for x in ELO_EST], reverse=True)
+def erank(e):
+    return 1 + sum(1 for v in EVAL if v > e + 1e-9)
+def played_all(T_):
+    return [g for g in T_['games'] if 'gf' in g]
+AXC = ['Сила', 'Атака', 'Защита', 'Форма', 'Дома', 'В гостях']
+for cup in CUPS:
+    ids = [slug[i] for i in raw['leagues'][cup]['ids']]
+    ctry = {x: country(x) for x in ids}
+    cm = {x: CMEAN.get(ctry[x]) for x in ids}
+    known = [v for v in cm.values() if v]
+    avg_c = sum(known) / len(known) if known else 1700
+    coef = {x: (cm[x] / avg_c if cm[x] else 1.0) for x in ids}
+    # средние по лигам и в кубке — для усадки
+    cupg = [g for x in ids for g in TEAMS[x]['games'] if g.get('c') == cup and 'gf' in g]
+    cup_avg = sum(g['gf'] for g in cupg) / len(cupg) if cupg else 1.4
+    def lg_avg(lgk):
+        gs = [g for t in TEAMS.values() if t['lg'] == lgk for g in t['games'] if 'gf' in g and 'c' not in g]
+        return sum(g['gf'] for g in gs) / len(gs) if gs else 1.4
+    LA = {k: lg_avg(k) for k in LG if k not in CUPS}
+    raw_v = {}
+    for x in ids:
+        T_ = TEAMS[x]
+        dom = [g for g in T_['games'] if 'gf' in g and 'c' not in g]
+        cp = [g for g in T_['games'] if 'gf' in g and g.get('c') == cup]
+        la = LA.get(T_['lg'], cup_avg)
+        cgf = (sum(g['gf'] for g in cp) + 3 * cup_avg) / (len(cp) + 3)
+        cga = (sum(g['ga'] for g in cp) + 3 * cup_avg) / (len(cp) + 3)
+        if dom:
+            dgf = (sum(g['gf'] for g in dom) + 4 * la) / (len(dom) + 4) * coef[x]
+            dga = (sum(g['ga'] for g in dom) + 4 * la) / (len(dom) + 4) / coef[x]
+            att, dfn = .6 * dgf + .4 * cgf, .6 * dga + .4 * cga
+        else:
+            att, dfn = cgf, cga
+        allp = sorted(played_all(T_), key=lambda g: g['d'])
+        def wp(gs):
+            return sum((3 if g['gf'] > g['ga'] else 1 if g['gf'] == g['ga'] else 0) * (elo_of[g['o']]['e'] / 1800) for g in gs) / len(gs) if gs else 0
+        raw_v[x] = (elo_of[x]['e'], att, -dfn, wp(allp[-8:]), wp([g for g in allp if g['h']]), wp([g for g in allp if not g['h']]))
+    for j in range(6):
+        p = pct({x: raw_v[x][j] for x in ids})
+        for x in ids:
+            TEAMS[x].setdefault('cx', {}).setdefault(cup, {'axes': [0] * 6, 'e': round(elo_of[x]['e']), 'r': erank(elo_of[x]['e']), 'est': x in ELO_EST})['axes'][j] = p[x]
+    for x in ids:
+        TEAMS[x]['cx'][cup]['raw'] = [round(v, 2) for v in raw_v[x][1:3]]
 out = {'built': raw['built'], 'axes': AX, 'season': '2026/27',
        'leagues': {k: {'name': LG[k], 'full': FULL[k], 'ids': [slug[i] for i in raw['leagues'][k]['ids']], 'short': SHORT.get(k, LG[k]), 'cup': k in CUPS} for k in LG},
-       'tables': TABLES, 'teams': TEAMS, 'up': UP, 'h2h': H2H}
+       'tables': TABLES, 'axesCup': AXC, 'elo': {'date': raw['built'][:10], 'src': 'Club Elo (clubelo.com)', 'estimated': sorted(ELO_EST)}, 'teams': TEAMS, 'up': UP, 'h2h': H2H}
 js = json.dumps(out, ensure_ascii=False, separators=(',', ':'))
 open(os.path.join(HERE, 'data', 'football.json'), 'w', encoding='utf-8').write(js)
 open(os.path.join(HERE, 'data', 'football.js'), 'w', encoding='utf-8').write('window.JV_FOOT=' + js + ';')

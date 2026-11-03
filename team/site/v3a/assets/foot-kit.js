@@ -13,17 +13,18 @@ const crest=s=>`../assets/fc/${encodeURIComponent(s)}.webp`;
 const CI=(s,cls='')=>`<img class="em${cls?' '+cls:''}" src="${crest(s)}" alt="" loading="lazy" width="64" height="64">`;
 const LGI=k=>`../assets/lg/${encodeURIComponent(k)}.webp`;
 const LGP=k=>`<span class="lgp ${esc(k)}"><img src="${LGI(k)}" alt=""></span>`;
-const teamHref=s=>`team.html?id=${encodeURIComponent(s)}`;
+const CTXS=['league','ucl','uel'];
+const teamHref=(s,ctx)=>`team.html?id=${encodeURIComponent(s)}${ctx&&ctx!=='league'&&CTXS.includes(ctx)?'&ctx='+ctx:''}`;
 const MON=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'],WD=['вс','пн','вт','ср','чт','пт','сб'];
 const day=d=>{const [y,m,dd]=d.slice(0,10).split('-').map(Number),x=new Date(Date.UTC(y,m-1,dd));return {d:dd,mon:MON[m-1],wd:WD[x.getUTCDay()],tm:d.slice(11,16)}};
 const dd=t=>`${t.slice(8,10)}.${t.slice(5,7)}`;
 const played=g=>g.gf!=null&&g.ga!=null;
 const rOf=g=>g.gf>g.ga?'w':g.gf===g.ga?'d':'l';
 const RES={w:'В',d:'Н',l:'П'},RESF={w:'победа',d:'ничья',l:'поражение'};
-const gamesOf=s=>(T[s]?T[s].games:[]).filter(played).sort((x,y)=>x.d<y.d?1:-1);   // сыгранные, новые первыми
+const gamesOf=(s,fn)=>(T[s]?T[s].games:[]).filter(g=>played(g)&&(!fn||fn(g))).sort((x,y)=>x.d<y.d?1:-1);   // сыгранные, новые первыми
 const avg=(a,k)=>{const v=a.map(g=>k(g)).filter(x=>x!=null&&!isNaN(x));return v.length?v.reduce((p,q)=>p+q,0)/v.length:null};
 /* показатели клуба по сыгранным матчам сезона */
-function stats(s){const P=gamesOf(s),n=P.length;
+function stats(s,fn){const P=gamesOf(s,fn),n=P.length;
  const pts=P.reduce((a,g)=>a+(g.gf>g.ga?3:g.gf===g.ga?1:0),0);
  return {n,pts,ppg:n?pts/n:null,gf:avg(P,g=>g.gf),ga:avg(P,g=>g.ga),sh:avg(P,g=>g.x&&g.x.sh),sot:avg(P,g=>g.x&&g.x.sot),cor:avg(P,g=>g.x&&g.x.cor),pos:avg(P,g=>g.x&&g.x.pos),
   shA:avg(P,g=>g.y&&g.y.sh),sotA:avg(P,g=>g.y&&g.y.sot),corA:avg(P,g=>g.y&&g.y.cor),
@@ -53,7 +54,7 @@ function radar(series,ax){
 /* цвет клуба: светлеем тёмный, чтобы читался на тёмной шапке */
 function bright(h){const n=parseInt(String(h||'3ee08a').replace('#',''),16);let r=n>>16,g=n>>8&255,b=n&255;const l=(.2126*r+.7152*g+.0722*b)/255;
  if(l<.42){const k=(.42-l)/.42*.8+.2;r=Math.round(r+(255-r)*k);g=Math.round(g+(255-g)*k);b=Math.round(b+(255-b)*k)}return `rgb(${r},${g},${b})`}
-window.JVF={D,esc,fx,pc,plural,T,nm,crest,CI,LGI,LGP,teamHref,MON,WD,day,dd,played,rOf,RES,RESF,gamesOf,stats,h2h,dots,radar,bright};
+window.JVF={CTXS,D,esc,fx,pc,plural,T,nm,crest,CI,LGI,LGP,teamHref,MON,WD,day,dd,played,rOf,RES,RESF,gamesOf,stats,h2h,dots,radar,bright};
 })();
 /* палитра клуба для шапки страницы клуба: градиент из цветов ESPN, текст — светлый или тёмный по контрасту ≥ 4,5:1 */
 (()=>{

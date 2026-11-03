@@ -143,9 +143,9 @@ function pickLg(lg,anim=true){if(lg===curLg||!D.leagues[lg])return;curLg=lg;
  flags.querySelectorAll('.lgtab').forEach(b=>b.setAttribute('aria-selected',b.dataset.lg===lg));
  const L=D.leagues[lg],tb=D.tables[lg]||[],pl=Object.fromEntries(tb.map(r=>[r.id,r])),rows=L.ids.map(s=>({...T[s],...(pl[s]||{place:99,gp:0,w:0,d:0,l:0,gf:0,ga:0,pts:0})})).sort((a,b)=>a.place-b.place),z=ZONE(lg);
  const put=()=>{wallH.innerHTML=`${LGP(lg)}<span>${esc(L.name)}</span><span>${rows.length} ${plural(rows.length,'клуб','клуба','клубов')}</span>`;
-  wallEl.dataset.lg=lg;wallEl.innerHTML=rows.map((t,i)=>`<a class="crest" style="--i:${i}" href="${teamHref(t.id)}" title="${esc(t.n)} · ${esc(L.name)}: страница клуба">${CI(t.id)}<span>${esc(t.n)}</span></a>`).join('');
+  wallEl.dataset.lg=lg;wallEl.innerHTML=rows.map((t,i)=>`<a class="crest" style="--i:${i}" href="${teamHref(t.id,L.cup?lg:'')}" title="${esc(t.n)} · ${esc(L.name)}: страница клуба">${CI(t.id)}<span>${esc(t.n)}</span></a>`).join('');
   $('ltab').innerHTML=`<thead><tr><th>#</th><th>Клуб</th><th>И</th><th class="hm">В</th><th class="hm">Н</th><th class="hm">П</th><th>Мячи</th><th>О</th></tr></thead><tbody>${rows.map(t=>{const zc=(z.find(x=>t.place>=x[0]&&t.place<=x[1])||[])[2]||'';
-   return `<tr class="${zc}"><td>${t.place}</td><td><a href="${teamHref(t.id)}">${CI(t.id)}<span>${esc(t.n)}</span></a></td><td>${t.gp}</td><td class="hm">${t.w}</td><td class="hm">${t.d}</td><td class="hm">${t.l}</td><td>${t.gf}:${t.ga}</td><td>${t.pts}</td></tr>`}).join('')}</tbody>`;
+   return `<tr class="${zc}"><td>${t.place}</td><td><a href="${teamHref(t.id,L.cup?lg:'')}">${CI(t.id)}<span>${esc(t.n)}</span></a></td><td>${t.gp}</td><td class="hm">${t.w}</td><td class="hm">${t.d}</td><td class="hm">${t.l}</td><td>${t.gf}:${t.ga}</td><td>${t.pts}</td></tr>`}).join('')}</tbody>`;
   const seen=[];z.forEach(x=>{if(!seen.find(s=>s[3]===x[3]))seen.push(x)});
   $('lkey').innerHTML=seen.map(x=>`<li><i style="background:${{z1:'#0d7a48',z2:'#1c63c4',z3:'#d9822b',z4:'#c4303b'}[x[2]]}"></i>${esc(x[3])}</li>`).join('')+`<li>И — игры, О — очки; по данным ESPN на ${esc((D.built||'').slice(8,10))}.${esc((D.built||'').slice(5,7))}</li>`;
   if(anim&&!RM)wallEl.querySelectorAll('.crest').forEach((c,i)=>c.animate([{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'none'}],{duration:420,delay:Math.min(i,32)*18,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}))};
@@ -161,5 +161,5 @@ if(MODE&&$('resl')){const L=D.leagues[MODE],rows=[];
  L.ids.forEach(i=>T[i].games.forEach(g=>{if(g.c===MODE&&g.h&&played(g))rows.push({d:g.d,h:i,a:g.o,gf:g.gf,ga:g.ga})}));
  rows.sort((a,b)=>a.d<b.d?1:-1);const top=rows.length?rows[0].d.slice(0,10):'',lim=Date.parse(top)-4*864e5;
  const last=rows.filter(r=>Date.parse(r.d.slice(0,10))>=lim);
- $('resl').innerHTML=last.length?last.map(r=>{const t=day(r.d);return `<li><span class="d">${t.d} ${t.mon}<br>${esc(r.d.slice(11))}</span><a class="t" href="${teamHref(r.h)}">${CI(r.h)}<span class="${r.gf>r.ga?'w':''}">${esc(nm(r.h))}</span></a><span class="s num">${r.gf}:${r.ga}</span><a class="t a" href="${teamHref(r.a)}">${CI(r.a)}<span class="${r.ga>r.gf?'w':''}">${esc(nm(r.a))}</span></a></li>`}).join(''):'<li class="note">Сыгранных матчей пока нет.</li>'}
+ $('resl').innerHTML=last.length?last.map(r=>{const t=day(r.d);return `<li><span class="d">${t.d} ${t.mon}<br>${esc(r.d.slice(11))}</span><a class="t" href="${teamHref(r.h,MODE)}">${CI(r.h)}<span class="${r.gf>r.ga?'w':''}">${esc(nm(r.h))}</span></a><span class="s num">${r.gf}:${r.ga}</span><a class="t a" href="${teamHref(r.a,MODE)}">${CI(r.a)}<span class="${r.ga>r.gf?'w':''}">${esc(nm(r.a))}</span></a></li>`}).join(''):'<li class="note">Сыгранных матчей пока нет.</li>'}
 })();
