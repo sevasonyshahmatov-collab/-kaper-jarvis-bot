@@ -71,7 +71,7 @@ def parse(j):
             sb_in = bool(e.get('subbedIn')) if not isinstance(e.get('subbedIn'), dict) else True
             played = starter or sb_in or num(st.get('appearances')) > 0
             if not played: continue
-            names[aid] = [a.get('displayName') or a.get('fullName') or '', ((e.get('position') or a.get('position') or {}).get('abbreviation') or '')]
+            names[aid] = [a.get('displayName') or a.get('fullName') or '', (((e.get('position') or {}).get('abbreviation') or '') if starter else '')]
             mins = None
             if st.get('minutes') is not None: mins = int(num(st['minutes']))
             else:
