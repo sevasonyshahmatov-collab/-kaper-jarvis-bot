@@ -3,6 +3,11 @@
 const D=window.JV_PLAYERS,$=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const crest=s=>`../assets/fc/${encodeURIComponent(s)}.webp`;
+const photo=id=>`https://a.espncdn.com/i/headshots/soccer/players/full/${encodeURIComponent(id)}.png`;
+const ini=n=>n.split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+const col=T=>{const c=Array.isArray(T.c)?T.c[0]:T.c;return c?'#'+String(c).replace('#',''):'var(--paper-3)'};
+// фото игрока (ESPN); нет фото — инициалы на цвете клуба; эмблема — значком в углу
+const avatar=(p,T)=>`<div class="av" style="--c:${col(T)}"><span>${esc(ini(p.n))}</span><img class="ph" src="${photo(p.id)}" alt="" loading="lazy" onerror="this.remove()"><img class="bd" src="${crest(p.t)}" alt="" loading="lazy"></div>`;
 const LGN={...D.leagues};
 const st={m:'sg',lg:'',tm:'',ha:'',so:'rate',q:'',lim:30};
 $('season').textContent=D.season;
@@ -29,7 +34,7 @@ function render(){
     const nx=p.nx&&D.teams[p.nx.o];
     const sub=st.m==='cr'?`${p.y} жёлт.${p.r?` · ${p.r} красн.`:''}`:`${p.G} ${p.G%10===1&&p.G%100!==11?'гол':p.G%10>=2&&p.G%10<=4&&(p.G%100<12||p.G%100>14)?'гола':'голов'}${p.pen?` · ${p.pen} с пен.`:''}`;
     return `<article class="pr" role="listitem">
-      <span class="rk">${i+1}</span><img class="cr" src="${crest(p.t)}" alt="" loading="lazy">
+      <span class="rk">${i+1}</span>${avatar(p,T)}
       <div class="nm"><b>${esc(p.n)}</b><span>${esc(T.n||'')} · ${sub}</span></div>
       <div class="hit" aria-label="${h[0]} из ${h[1]} матчей"><b>${h[0]}<small>из ${h[1]}</small></b><div class="bar"><i style="width:${pc}%"></i></div></div>
       <div class="strip" aria-label="Последние 10 матчей">${strip}</div>
