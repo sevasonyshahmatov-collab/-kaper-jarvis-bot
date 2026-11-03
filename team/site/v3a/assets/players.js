@@ -3,9 +3,10 @@
 const D=window.JV_PLAYERS,$=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const crest=s=>`../assets/fc/${encodeURIComponent(s)}.webp`;
-// фото — Wikimedia Commons (свободные лицензии), карта ESPN id → файл: data/photos.json (players_photos_fetch.py)
+// портреты «как в НХЛ» (голова и плечи, без фона): data/ph/<id>.webp, список готовых — data/headshots.json (players_headshots.py);
+// нет портрета — инициалы (фото Commons напрямую больше не показываем)
 let PH={};
-const photo=id=>PH[id]?`https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(PH[id])}?width=200`:'';
+const photo=id=>PH[id]&&PH[id].ok?`data/ph/${encodeURIComponent(id)}.webp`:'';
 const ini=n=>n.split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
 const col=T=>{const c=Array.isArray(T.c)?T.c[0]:T.c;return c?'#'+String(c).replace('#',''):'var(--paper-3)'};
 // фото игрока (ESPN); нет фото — инициалы на цвете клуба; эмблема — значком в углу
@@ -56,5 +57,5 @@ $('so').onchange=e=>{st.so=e.target.value;render()};
 $('q').oninput=e=>{st.q=e.target.value;st.lim=30;render()};
 $('more').onclick=()=>{st.lim+=30;render()};
 teamOpts();render();
-fetch('data/photos.json').then(r=>r.ok?r.json():{}).then(j=>{PH=j||{};render()}).catch(()=>{});
+fetch('data/headshots.json').then(r=>r.ok?r.json():{}).then(j=>{PH=j||{};render()}).catch(()=>{});
 })();

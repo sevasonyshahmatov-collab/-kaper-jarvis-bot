@@ -23,6 +23,7 @@ body{background:var(--paper);color:var(--ink)}
 .av{position:relative;width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 50% 30%,color-mix(in srgb,var(--c) 85%,#fff),var(--c));display:grid;place-items:center;overflow:visible}
 .av span{font:800 18px/1 var(--display);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4)}
 .av .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 15%;border-radius:50%;background:var(--c)}
+[data-sport=football] .av .ph{object-position:50% 100%;object-fit:cover}
 .av .bd{position:absolute;right:-4px;bottom:-4px;width:22px;height:22px;object-fit:contain;background:var(--crest-bg,#fff);border-radius:50%;padding:2px;box-shadow:0 0 0 2px var(--card)}
 .pr .nm b{display:block;text-align:left;font:800 19px/1.1 var(--display);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pr .nm span{font:500 14px/1.3 var(--display);color:var(--ink-3)}
@@ -45,14 +46,15 @@ body{background:var(--paper);color:var(--ink)}
   .pr .strip{grid-area:st}.pr .ha{grid-area:ha}.pr .nx{grid-area:nx;justify-content:flex-end}
   .strip i{max-width:none}
 }
+/* хоккей и футбол: портреты одного размера и вида: клубный цвет, портрет снизу (владелец 03.11) */
 /* хоккей: портреты крупнее (владелец 03.11) */
-[data-sport=hockey] .pr{grid-template-columns:28px 84px minmax(0,1.6fr) 120px minmax(0,1.3fr) 108px minmax(0,1fr)}
-[data-sport=hockey] .av{width:76px;height:76px}
-[data-sport=hockey] .av span{font-size:24px}
-[data-sport=hockey] .av .bd{width:28px;height:28px}
+[data-sport] .pr{grid-template-columns:28px 84px minmax(0,1.6fr) 120px minmax(0,1.3fr) 108px minmax(0,1fr)}
+[data-sport] .av{width:76px;height:76px}
+[data-sport] .av span{font-size:24px}
+[data-sport] .av .bd{width:28px;height:28px}
 @media (max-width:900px){
-  [data-sport=hockey] .pr{grid-template-columns:20px 62px minmax(0,1fr) 78px;column-gap:10px}
-  [data-sport=hockey] .pr .av{width:58px;height:58px}
+  [data-sport] .pr{grid-template-columns:20px 62px minmax(0,1fr) 78px;column-gap:10px}
+  [data-sport] .pr .av{width:58px;height:58px}
   .pr .nm b{white-space:normal;font-size:18px}
 }
 /* форма: мини-график последних 10 матчей (вместо квадратиков, владелец 03.11) */
