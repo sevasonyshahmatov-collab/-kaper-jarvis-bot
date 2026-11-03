@@ -8,14 +8,27 @@ jobs = [('t%s' % i, 'https://a.espncdn.com/i/teamlogos/soccer/500/%s.png' % i) f
 for k, i in LG.items():
     jobs.append(('l%s' % k, 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/%d.png' % i))
     jobs.append(('l%s_light' % k, 'https://a.espncdn.com/i/leaguelogos/soccer/500/%d.png' % i))
+import io
+from PIL import Image
+tot = 0
 for n, u in jobs:
     try:
         r = S.get(u, timeout=60)
         ok = r.status_code == 200 and r.content[:4] == b'\x89PNG'
-        w = int.from_bytes(r.content[16:20], 'big') if ok else 0
-        print('FOOTIMGINFO', n, r.status_code, len(r.content), w, flush=True)
-        if ok:
-            print('FOOTPNG %s %s' % (n, base64.b64encode(r.content).decode()), flush=True)
+        im = Image.open(io.BytesIO(r.content)).convert('RGBA') if ok else None
+        print('FOOTIMGINFO', n, r.status_code, len(r.content), im.size if im else 0, flush=True)
+        if not ok:
+            continue
+        bb = im.getbbox(); im = im.crop(bb) if bb else im
+        w, h = im.size; m = max(w, h); sq = Image.new('RGBA', (m, m), (0, 0, 0, 0)); sq.paste(im, ((m - w) // 2, (m - h) // 2))
+        buf = io.BytesIO()
+        if n.startswith('t'):
+            sq.resize((384, 384), Image.LANCZOS).save(buf, 'WEBP', quality=90, method=6)
+        else:
+            sq.save(buf, 'WEBP', lossless=True, method=6)   # знаки лиг — без потерь, исходные 500 px (обрезка по содержимому)
+        b = base64.b64encode(buf.getvalue()).decode(); tot += len(b)
+        for i in range(0, len(b), 20000):
+            print('FOOTPNG %s %d %d %s' % (n, i // 20000, (len(b) + 19999) // 20000, b[i:i + 20000]), flush=True)
     except Exception as e:
         print('FOOTIMGINFO', n, 'ERR', repr(e)[:80], flush=True)
-print('FOOTEND', flush=True)
+print('FOOTEND', tot, flush=True)
