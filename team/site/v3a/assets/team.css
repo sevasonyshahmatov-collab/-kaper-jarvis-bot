@@ -339,3 +339,20 @@ body[class] .g.h2g,body .g.h2g{grid-template-columns:110px 32px minmax(0,1fr) au
  .g.h2g .hv{grid-area:o}
  .trd i{width:14px;height:14px}
 }
+
+/* история встреч — раскрывается внутри карточки «Следующий матч» (владелец 03.11) */
+.nmh2h{margin-top:14px;background:var(--card);border-radius:12px;box-shadow:0 0 0 2px var(--ink) inset;overflow:hidden}
+.nmh2h>summary{list-style:none;display:flex;align-items:center;gap:14px;padding:14px clamp(14px,2vw,24px);cursor:pointer}
+.nmh2h>summary::-webkit-details-marker{display:none}
+.nmh2h>summary:focus-visible{outline:2px solid var(--ink);outline-offset:-4px}
+.nmh2h .h2cr{display:flex;flex:none}
+.nmh2h .h2cr img{width:34px;height:34px;object-fit:contain}
+.nmh2h .h2cr img+img{margin-left:-8px}
+.nmh2h .h2st{display:grid;gap:3px;min-width:0;flex:1}
+.nmh2h .h2st b{font:800 18px/1.1 var(--display)}
+.nmh2h .h2st small{font:500 14px/1.2 var(--display);color:var(--ink-2)}
+.nmh2h .h2ar{font-size:18px;transition:transform .2s}
+.nmh2h[open] .h2ar{transform:rotate(180deg)}
+.nmh2h .h2in{padding:0 clamp(14px,2vw,24px) 16px}
+.nmh2h .h2in .note{margin:0 0 10px}
+@media (prefers-reduced-motion:reduce){.nmh2h .h2ar{transition:none}}

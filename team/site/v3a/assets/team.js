@@ -245,7 +245,8 @@ if(nextG){
     ${pick?`<div class="nmpick"><span class="sl">Наш прогноз</span><b>${esc(String(pick.pick||'').replace(/(\d)\.(\d)/g,'$1,$2'))}</b><small>кэф ${esc(pick.k)}</small></div>`:''}
     <a class="btn btn-line nmgo" href="../hockey/index.html${THEME?'?theme='+encodeURIComponent(THEME):''}#matches">Разбор матча</a>
    </div>
-  </article>`;
+  </article>
+  <details class="nmh2h" id="nmh2h" hidden></details>`;
  document.getElementById('next').hidden=false;
  const cdv=document.getElementById('nmcdv'),st0=startMs(nextG.d);
  const tick=()=>{const df=st0-Date.now();
@@ -304,12 +305,11 @@ if(nextG){
  const item=g=>{const t=day(g.d),r=rlab(g);return `<li class="g h2g ${g.h?'home':'away'}"><span class="gd"><b>${t.d} ${t.mon}</b><small>${t.wd} · ${SL(g.d)}</small></span>
   <span class="ha ${g.h?'h':'a'}" title="${g.h?'дома':'в гостях'}">${g.h?'Д':'В'}</span><span class="hv">${g.h?'Дома':'В гостях'}</span>
   <span class="sc num">${g.gf}:${g.ga}${g.x?`<small>${g.x}</small>`:''}</span><span class="rs ${r[1]}" title="${r[2]}">${r[0]}</span></li>`};
- document.getElementById('h2hBox').innerHTML=`
-  <div class="sec-head" data-rv><h2>Личные встречи</h2><p>${esc(T.name)} и ${esc(nm(o))}: ${hasOld?'текущий сезон и два прошлых':'только текущий сезон — прошлые сезоны пока не добавлены'}. Счёт — с точки зрения ${esc(T.name)}.</p></div>
-  <div class="h2top" data-rv><span class="h2cr">${em(ID)}${em(o)}</span>
-   ${all.length?`<div class="h2sum"><b class="num">${w}–${l}</b><span>${all.length} ${plural(all.length,'матч','матча','матчей')}, шайбы ${gf}:${ga}${hasOld?`, ${seasons} ${plural(seasons,'сезон','сезона','сезонов')}`:''}</span></div>`:''}</div>
-  ${all.length?`<ol class="gs h2l" data-rv>${all.map(item).join('')}</ol>`:`<p class="note" data-rv>В этих сезонах ${esc(T.name)} и ${esc(nm(o))} не встречались.</p>`}`;
- document.getElementById('h2h').hidden=false;
+ const dt=document.getElementById('nmh2h');
+ dt.innerHTML=`<summary><span class="h2cr">${em(ID)}${em(o)}</span><span class="h2st"><b>${esc(T.name)} — ${esc(nm(o))}: история встреч</b>
+   <small>${all.length?`${w}–${l} · ${all.length} ${plural(all.length,'матч','матча','матчей')}, шайбы ${gf}:${ga}${hasOld?`, ${seasons} ${plural(seasons,'сезон','сезона','сезонов')}`:''}`:'в этих сезонах не встречались'}</small></span><span class="h2ar" aria-hidden="true">▾</span></summary>
+  <div class="h2in">${all.length?`<p class="note">${hasOld?'Текущий сезон и два прошлых.':'Только текущий сезон.'} Счёт — с точки зрения ${esc(T.name)}.</p><ol class="gs h2l">${all.map(item).join('')}</ol>`:''}</div>`;
+ if(all.length)dt.hidden=false;
 }
 
 /* ── 3б. игроки: лидеры, вкладки «Полевые» / «Вратари», сортировка по клику на заголовок ── */
