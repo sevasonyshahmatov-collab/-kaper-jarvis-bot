@@ -24,11 +24,11 @@ jobs:
         with:
           path: ~/.u2net
           key: rembg-u2net-human-seg-v1
-      - run: pip install opencv-python-headless rembg onnxruntime pillow requests
+      - run: pip install "opencv-python-headless<5" rembg onnxruntime pillow requests
       - name: Один opencv (headless), без конфликта пакетов
         run: |
           pip uninstall -y opencv-python opencv-contrib-python opencv-contrib-python-headless opencv-python-headless
-          pip install opencv-python-headless
+          pip install "opencv-python-headless<5"
           python -c "import cv2,numpy;print('CV2',cv2.__version__,cv2.__file__,numpy.__version__,hasattr(cv2,'CascadeClassifier'))"
       - run: python team/site/v3a/football/players_headshots.py
         env:
