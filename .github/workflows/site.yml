@@ -67,8 +67,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ vars.SITE_REPO }}
-          token: ${{ secrets.SITE_TOKEN || github.token }}
           path: site
+          # безопасность 03.11: репозиторий сайта открытый — берём без токена; токен не остаётся в site/.git/config
+          # во время сборки, он нужен только шагу «Опубликовать»
+          persist-credentials: false
       - name: Прогнозы дня
         # без TG_BOT_TOKEN: список матчей владелец уже получает от конвейера шортсов.
         # 28.10: лёгкий запуск после полуночи (GitHub задержал его на 4 ч) начал новый день без матчей — на главной
@@ -142,15 +144,16 @@ jobs:
       - name: Опубликовать
         if: env.SITE_REPO != ''
         env:
-          HAS_TOKEN: ${{ secrets.SITE_TOKEN != '' }}
+          SITE_TOKEN: ${{ secrets.SITE_TOKEN }}
         run: |
-          [ "$HAS_TOKEN" = true ] || { echo "SITE_TOKEN не задан — сайт собран, но не опубликован"; exit 0; }
+          [ -n "$SITE_TOKEN" ] || { echo "SITE_TOKEN не задан — сайт собран, но не опубликован"; exit 0; }
           cd site
           git config user.name "jarvis-site-bot"; git config user.email "jarvis-site-bot@users.noreply.github.com"
           git add -A
           git diff --cached --quiet && { echo "на сайте ничего не изменилось"; exit 0; }
           git commit -q -m "Прогнозы и итоги ${{ steps.day.outputs.day }}"
-          git push -q
+          # токен — только здесь: через заголовок для одной команды, на диск (site/.git/config) не пишется
+          git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$SITE_TOKEN" | base64 -w0)" push -q origin HEAD
       - name: Сообщить Яндексу о новых страницах (IndexNow)
         if: env.SITE_REPO != ''
         env:
@@ -177,5 +180,5 @@ jobs:
           name: site
           path: site/
           retention-days: 3
-          # аудит 03.11: в site/.git лежит SITE_TOKEN (checkout его сохраняет) — скрытые файлы в артефакт не берём явно
+          # аудит 03.11: скрытые файлы (site/.git) в артефакт не берём
           include-hidden-files: false
