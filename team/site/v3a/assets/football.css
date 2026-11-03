@@ -23,13 +23,13 @@
 .lgtab[aria-selected="true"]{box-shadow:inset 0 -6px 0 var(--bar,#fff),0 0 0 3px var(--paper),0 0 0 6px var(--bar,#0d7a48)}
 .lgtab.epl{--bar:#00c96a}.lgtab.laliga{--bar:#ff4b44}.lgtab.seriea{--bar:#2fb8ff}.lgtab.bundesliga{--bar:#c8101e}.lgtab.ligue1{--bar:#1b3a7a}.lgtab.rpl{--bar:#e8452c}
 .leagues.six{grid-template-columns:repeat(3,minmax(0,1fr))}
-.lgtab .lgbg{height:140%;right:-6%;opacity:.28;transform:translateY(-50%)}
+.lgtab .lgbg{height:min(100%,230px);right:-4%;opacity:.28;transform:translateY(-50%)}
 .lgtab[aria-selected="true"] .lgbg{transform:translateY(-50%) scale(1.04);opacity:.34}
 @media (hover:hover) and (pointer:fine){.lgtab:hover .lgbg{transform:translateY(-50%) translateX(-10px)}}
 .lgtab{min-height:clamp(150px,13vw,190px)}
 .lgtab .lgn{font-size:clamp(40px,3.8vw,60px)}
 @media (max-width:900px){.leagues.six{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:620px){.lgtab{min-height:128px}.lgtab .lgn{font-size:34px}.lgtab .lgbg{height:120%;right:-18%}}
+@media (max-width:620px){.lgtab{min-height:128px}.lgtab .lgn{font-size:34px}.lgtab .lgbg{height:100%;right:-14%}}
 /* форма и результаты: ничья */
 .rs.d,.dots .d{background:#8a8f96}
 .rs.d{color:#fff}
@@ -70,7 +70,7 @@
 .match .qc{border-color:var(--rule)}
 .match .qc.fav{background:#0d7a48;border-color:#0d7a48;box-shadow:inset 0 -3px 0 #4be08a}
 .match .qc.fav small,.match .qc.fav em{color:rgba(255,255,255,.85)}.match .qc.fav b{color:#fff}
-.lgtab .lgbg{height:118%;right:-2%;opacity:.2}
+.lgtab .lgbg{height:min(100%,230px);right:-2%;opacity:.2}
 .lgtab[aria-selected="true"] .lgbg{opacity:.26}
 .tabscroll{max-width:1000px}
 /* страница клуба: ничья и «не проиграла» */

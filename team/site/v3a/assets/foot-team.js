@@ -24,18 +24,19 @@ if(CTX!=='league'&&!(T.cups||[]).includes(CTX))CTX='league';
 const CUP=CTX==='league'?null:CTX,EFF=CUP||lg,EL=D.leagues[EFF],EN=EL.name;
 const inCtx=g=>CUP?g.c===CUP:(cupOnly?true:!g.c);
 const oppCtx=g=>CUP?g.c===CUP:!g.c;
-{const dh=document.documentElement;if(CUP){dh.dataset.theme=CUP;document.body.classList.add('ctx-cup');const s1=document.createElement('script');s1.src='../assets/ucl-sky.js';document.body.appendChild(s1)}
+{const dh=document.documentElement;if(CUP){dh.dataset.theme=CUP;document.body.classList.add('ctx-cup');{const rh={table:'lt',trends:'lt',totals:'lt',next:'band',games:'lt'};Object.keys(rh).forEach(k=>{const e=document.getElementById(k);if(e)e.classList.add(rh[k])})}
+ if(CUP==='ucl'){const sg=document.querySelector('.seg');sg.querySelectorAll('a').forEach(x=>x.removeAttribute('aria-current'));sg.querySelector('.seg-ucl').setAttribute('aria-current','page')}const s1=document.createElement('script');s1.src='../assets/ucl-sky.js';document.body.appendChild(s1)}
  else if(dh.dataset.theme==='ucl'||dh.dataset.theme==='uel'){dh.dataset.theme='arena'}}
 const ctxHref=k=>k===lg?`team.html?id=${encodeURIComponent(ID)}`:`team.html?id=${encodeURIComponent(ID)}&ctx=${k}`;
 const RC=CUP?(D.tables[CUP]||[]).find(x=>x.id===ID)||{place:0,gp:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}:T;
 const CX=CUP?(T.cx||{})[CUP]:null;
 const AXS=CUP?D.axesCup:D.axes;
-const CP=CUP?(CUP==='ucl'?{stops:['#0b1a4a','#081340','#06102e'],text:'#ffffff',acc:'#9cc8ff',accL:'#9cc8ff',base:'#0b1a4a'}:{stops:['#2a1608','#150d06','#0a0704'],text:'#ffffff',acc:'#ffa04a',accL:'#ffa04a',base:'#2a1608'}):palette(clubColors(T)),acc=CP.acc;
+const CP=CUP?(CUP==='ucl'?{stops:['#0b1a4a','#081340','#06102e'],text:'#ffffff',acc:'#5fd8ff',accL:'#5fd8ff',base:'#0b1a4a'}:{stops:['#2a1608','#150d06','#0a0704'],text:'#ffffff',acc:'#ffa04a',accL:'#ffa04a',base:'#2a1608'}):palette(clubColors(T)),acc=CP.acc;
 document.title=`${T.n}${CUP?' · '+EN:''} — матчи сезона, место в таблице, сила команды · JARVIS`;
 {const st=document.body.style;[['--c1',CP.stops[0]],['--c2',CP.stops[1]],['--c3',CP.stops[2]],['--con',CP.text],['--cacc',CP.acc],['--team',CP.accL],['--cbase',CP.base]].forEach(([k,v])=>st.setProperty(k,v));
  document.body.classList.toggle('on-light',CP.text!=='#ffffff');
  const m=document.querySelector('meta[name=theme-color]');if(m)m.content=CP.stops[0];
- const wm=document.createElement('img');wm.className='tmwm';wm.src=crest(ID);wm.alt='';wm.setAttribute('aria-hidden','true');document.querySelector('.tmhero').prepend(wm)}
+}
 document.body.dataset.lg=lg;
 const all=T.games.slice().sort((a,b)=>a.d<b.d?1:-1).reverse();
 const ctxAll=all.filter(inCtx),real=ctxAll.filter(played),future=ctxAll.filter(g=>!played(g)),S=stats(ID,inCtx);
@@ -257,7 +258,7 @@ if(nextG){
  const C=cur.map(mine),Ol=old.map(mine);
  const rec=a=>[a.filter(g=>g.gf>g.ga).length,a.filter(g=>g.gf===g.ga).length,a.filter(g=>g.gf<g.ga).length];
  const [cw,cd,cl]=rec(C),[tw,td,tl_]=rec(C.concat(Ol)),tot=C.length+Ol.length;
- const c1=CUP?(CUP==='ucl'?'#5aa9ff':'#ff9a3c'):palette(clubColors(T)).accL,c2=CUP?'#e6ebf5':palette(clubColors(O)).accL;
+ const c1=CUP?(CUP==='ucl'?'#19c8ff':'#ff9a3c'):palette(clubColors(T)).accL,c2=CUP?(CUP==='ucl'?'#ff3fa4':'#e6ebf5'):palette(clubColors(O)).accL;
  const near=!CUP&&Math.hypot(...JVF.rgb(c1).map((v,i)=>v-JVF.rgb(c2)[i]))<110;
  const nT=esc(T.n),nO=esc(O.n);
  const sumCur=C.length?`в этом сезоне ${cw}–${cd}–${cl}`:'в этом сезоне ещё не встречались';
