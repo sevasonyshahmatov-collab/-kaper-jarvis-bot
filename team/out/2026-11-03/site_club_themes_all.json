@@ -1,0 +1,42 @@
+{
+ "day": "2026-11-03",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "out/2026-11-03/site_club_themes_all/collage_games_khl.jpg"
+   ],
+   "text": "Клубная тема — «Матчи»: Ак Барс, Северсталь, Амур, Локомотив. Своя тёмная полоса и кромка у каждого клуба."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "out/2026-11-03/site_club_themes_all/collage_players_motifs.jpg"
+   ],
+   "text": "«Игроки»: у каждого клуба свой мотив — тигр и хвойный лес (Амур), рельсы и шестерёнки (Локомотив), щупальца (Сиэтл), горы и снег (Колорадо)."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "out/2026-11-03/site_club_themes_all/collage_players_light.jpg"
+   ],
+   "text": "Светлые клубные цвета: Северсталь, Бостон (лапа), Лос-Анджелес (корона), Ак Барс (барс)."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "out/2026-11-03/site_club_themes_all/hero_streak_nhl_mtl.jpg"
+   ],
+   "text": "Серия в шапке: «Серия побед: 5» у Монреаля. Показывается от 3 матчей, победа и поражение — любые (ОТ и буллиты тоже)."
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Тема сделана для всех 54 клубов (24 мотива). Посмотреть:\nАк Барс — https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/2b6b08b6cd3c7a2d296e35eb5bc151379c7327b9/team/site/v3a/team/index.html?id=akbars\nАмур — https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/2b6b08b6cd3c7a2d296e35eb5bc151379c7327b9/team/site/v3a/team/index.html?id=amur\nСеверсталь — https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/2b6b08b6cd3c7a2d296e35eb5bc151379c7327b9/team/site/v3a/team/index.html?id=severstal\nМонреаль (серия побед 5) — https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/2b6b08b6cd3c7a2d296e35eb5bc151379c7327b9/team/site/v3a/team/index.html?id=nhl_mtl\nСиэтл — https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/2b6b08b6cd3c7a2d296e35eb5bc151379c7327b9/team/site/v3a/team/index.html?id=nhl_sea\nКолорадо — https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/2b6b08b6cd3c7a2d296e35eb5bc151379c7327b9/team/site/v3a/team/index.html?id=nhl_col\n\nОстальные клубы — замените id в ссылке. Какие клубы поправить?"
+  }
+ ]
+}
