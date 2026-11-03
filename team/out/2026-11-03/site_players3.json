@@ -1,0 +1,13 @@
+{
+ "day": "2026-11-03",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/players/khl_players.jpg"
+   ],
+   "text": "Игроки КХЛ — готово\n\n620 игроков, фото и данные из приложения КХЛ. «n из N»: очко, гол, передача (N — игры игрока). Форма 10 матчей, время на льду, дом/выезд, следующий соперник. Бросков по игрокам КХЛ не публикует — этого рынка нет.\n\nКХЛ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/335d1f59660ada3bce1befaf544a7bd3793d96eb/team/site/v3a/hockey/players_khl.html\nНХЛ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/335d1f59660ada3bce1befaf544a7bd3793d96eb/team/site/v3a/hockey/players.html\nФутбол: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/335d1f59660ada3bce1befaf544a7bd3793d96eb/team/site/v3a/football/players.html\n\nНа снимке фото не видно (облако их не грузит) — по ссылке будут фото."
+  }
+ ]
+}
