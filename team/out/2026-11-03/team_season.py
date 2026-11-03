@@ -89,7 +89,7 @@ def nhl_club(ab):
         h, a = g['homeTeam'], g['awayTeam']
         home = h.get('abbrev') == ab
         opp = a if home else h
-        row = {'d': datetime.fromisoformat(g['startTimeUTC'].replace('Z', '+00:00')).astimezone(MSK).strftime('%Y-%m-%d %H:%M'),
+        row = {'id': g.get('id'), 'd': datetime.fromisoformat(g['startTimeUTC'].replace('Z', '+00:00')).astimezone(MSK).strftime('%Y-%m-%d %H:%M'),
                'o': teams.NHL_RU.get(opp.get('abbrev'), opp.get('abbrev')), 'h': 1 if home else 0}
         if g.get('gameState') in ('OFF', 'FINAL') and h.get('score') is not None:
             row['gf'], row['ga'] = (h['score'], a['score']) if home else (a['score'], h['score'])
@@ -122,4 +122,9 @@ with ThreadPoolExecutor(4) as ex:
 res['built'] = datetime.now(MSK).strftime('%Y-%m-%d %H:%M')
 with open(os.path.join(OUT, 'season.mp4'), 'w', encoding='utf-8') as f:
     json.dump(res, f, ensure_ascii=False, separators=(',', ':'))
+import base64
+b = base64.b64encode(gzip.compress(open(os.path.join(OUT, 'season.mp4'), 'rb').read(), 9)).decode()
+CH = 3000
+for i in range(0, len(b), CH):   # в лог: артефакт из облака не скачать (blob закрыт) — читаем лог запуска
+    print('SEASONJSON %d %d %s' % (i // CH, (len(b) + CH - 1) // CH, b[i:i + CH]), flush=True)
 print('SEASONDONE', os.path.getsize(os.path.join(OUT, 'season.mp4')), 'байт; ошибок', len(res['err']), flush=True)
