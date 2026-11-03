@@ -1,0 +1,75 @@
+/* JARVIS v3a — футбол: зелёный акцент вместо ледяного, плашки лиг, таблица лиги, ничья в форме. Подключать после v3a.css. */
+[data-sport="football"]{--sport:var(--pitch);--sport-ink:#fff}
+[data-theme="arena"][data-sport="football"] .hero,[data-theme="arena"][data-sport="football"]:not(.lit) .hd{--ice:#4be08a;--sport:#4be08a}
+[data-theme="arena"][data-sport="football"] .hero .board{box-shadow:0 0 0 1px rgba(75,224,138,.3),0 0 0 6px rgba(75,224,138,.05),0 30px 90px -24px rgba(75,224,138,.32),0 40px 70px -30px #000}
+[data-theme="arena"][data-sport="football"] .hero .board::before{background:linear-gradient(90deg,transparent,rgba(75,224,138,.9),transparent)}
+[data-theme="arena"][data-sport="football"]{--ice:#0d7a48}
+[data-theme="arena"][data-sport="football"] .arena-bg .bm{background:linear-gradient(180deg,rgba(75,224,138,.20),transparent 70%)}
+[data-theme="arena"][data-sport="football"] #leagues::before{background:linear-gradient(100deg,rgba(61,25,91,.10) 0,rgba(214,17,26,.07) 22%,transparent 40%,transparent 56%,rgba(15,61,145,.08) 72%,rgba(13,122,72,.18) 100%)}
+[data-theme="arena"][data-sport="football"] #honest>.wrap{background:radial-gradient(60% 80% at 100% 0%,rgba(75,224,138,.12),transparent 60%),#0c1f19;--paper:#0c1f19;--paper-2:#143027;--paper-3:#1c4033;--card:#10281f;--rule:#1c4033;--rule-2:#2f6a53;--sport:#4be08a}
+[data-theme="arena"][data-sport="football"] .sub{background:#0a1a14}
+[data-theme="arena"][data-sport="football"] .hero{--lg:#4be08a}
+/* знаки лиг на цветных подложках */
+.lgp{--c1:#14161c;--c2:#4be08a;background:var(--c1);box-shadow:inset 0 -2px 0 var(--c2),0 0 0 1px rgba(255,255,255,.14)}
+.lgp.epl{--c1:#3d195b;--c2:#00ff85}.lgp.laliga{--c1:#1a1d26;--c2:#ff4b44}.lgp.seriea{--c1:#0f3d91;--c2:#2fb8ff}
+.lgp.bundesliga{--c1:#c8101e;--c2:#ffffff}.lgp.ligue1{--c1:#0b1d3f;--c2:#dae025}.lgp.rpl{--c1:#12306f;--c2:#e8452c}
+.lgtab.epl{background:radial-gradient(90% 120% at 100% 0%,rgba(255,255,255,.12),transparent 60%),linear-gradient(120deg,#2a0f42 0%,#3d195b 40%,#6a2a93 100%);box-shadow:inset 0 -6px 0 #00ff85}
+.lgtab.laliga{background:radial-gradient(90% 120% at 100% 0%,rgba(255,255,255,.12),transparent 60%),linear-gradient(120deg,#0e1016 0%,#1a1d26 40%,#3a2127 100%);box-shadow:inset 0 -6px 0 #ff4b44}
+.lgtab.seriea{background:radial-gradient(90% 120% at 100% 0%,rgba(255,255,255,.12),transparent 60%),linear-gradient(120deg,#08265e 0%,#0f3d91 45%,#1c63c4 100%);box-shadow:inset 0 -6px 0 #2fb8ff}
+.lgtab.bundesliga{background:radial-gradient(90% 120% at 100% 0%,rgba(255,255,255,.12),transparent 60%),linear-gradient(120deg,#7d0711 0%,#c8101e 45%,#e0343f 100%);box-shadow:inset 0 -6px 0 #fff}
+.lgtab.ligue1{background:radial-gradient(90% 120% at 100% 0%,rgba(255,255,255,.12),transparent 60%),linear-gradient(120deg,#06142e 0%,#0b1d3f 45%,#1b3a7a 100%);box-shadow:inset 0 -6px 0 #dae025}
+.lgtab.rpl{background:radial-gradient(90% 120% at 100% 0%,rgba(255,255,255,.12),transparent 60%),linear-gradient(120deg,#0a2053 0%,#12306f 45%,#1d4aa0 100%);box-shadow:inset 0 -6px 0 #e8452c}
+.lgtab::before{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.045) 0 36px,transparent 36px 72px)} /* фактура: полосы газона */
+.lgtab[aria-selected="true"]{box-shadow:inset 0 -6px 0 var(--bar,#fff),0 0 0 3px var(--paper),0 0 0 6px var(--bar,#0d7a48)}
+.lgtab.epl{--bar:#00c96a}.lgtab.laliga{--bar:#ff4b44}.lgtab.seriea{--bar:#2fb8ff}.lgtab.bundesliga{--bar:#c8101e}.lgtab.ligue1{--bar:#1b3a7a}.lgtab.rpl{--bar:#e8452c}
+.leagues.six{grid-template-columns:repeat(3,minmax(0,1fr))}
+.lgtab .lgbg{height:140%;right:-6%;opacity:.28;transform:translateY(-50%)}
+.lgtab[aria-selected="true"] .lgbg{transform:translateY(-50%) scale(1.04);opacity:.34}
+@media (hover:hover) and (pointer:fine){.lgtab:hover .lgbg{transform:translateY(-50%) translateX(-10px)}}
+.lgtab{min-height:clamp(150px,13vw,190px)}
+.lgtab .lgn{font-size:clamp(40px,3.8vw,60px)}
+@media (max-width:900px){.leagues.six{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){.lgtab{min-height:128px}.lgtab .lgn{font-size:34px}.lgtab .lgbg{height:120%;right:-18%}}
+/* форма и результаты: ничья */
+.rs.d,.dots .d{background:#8a8f96}
+.rs.d{color:#fff}
+/* таблица лиги */
+.ltab{width:100%;border-collapse:collapse;margin-top:18px;font:500 16px/1.2 var(--display);background:var(--card)}
+.ltab th{font:700 12px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);text-align:right;padding:10px 8px;border-bottom:2px solid var(--ink)}
+.ltab th:nth-child(2){text-align:left}
+.ltab td{padding:8px;text-align:right;border-top:1px solid var(--rule);font-variant-numeric:tabular-nums}
+.ltab td:first-child{width:36px;font-weight:800;color:var(--ink-3);text-align:center}
+.ltab td:nth-child(2){text-align:left}
+.ltab td a{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700}
+.ltab td a:hover{text-decoration:underline}
+.ltab .em{width:26px;height:26px;object-fit:contain;border-radius:0;background:none;padding:0}
+.ltab td:last-child{font-weight:800}
+.ltab tr.z1 td:first-child{box-shadow:inset 4px 0 0 #0d7a48}.ltab tr.z2 td:first-child{box-shadow:inset 4px 0 0 #1c63c4}
+.ltab tr.z3 td:first-child{box-shadow:inset 4px 0 0 #d9822b}.ltab tr.z4 td:first-child{box-shadow:inset 4px 0 0 #c4303b}
+.lkey{display:flex;flex-wrap:wrap;gap:6px 18px;margin:12px 0 0;padding:0;list-style:none;font:500 13px/1.2 var(--display);color:var(--ink-3)}
+.lkey i{display:inline-block;width:10px;height:10px;margin-right:6px;border-radius:2px;vertical-align:-1px}
+.tabscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media (max-width:620px){.ltab{font-size:14px}.ltab th,.ltab td{padding:8px 5px}.ltab .hm{display:none}.ltab .em{width:22px;height:22px}.ltab td a{gap:7px}}
+/* прогноз дня: три рынка */
+.mk3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}
+.mk3 span{display:grid;gap:3px;background:var(--flap);border-radius:6px;padding:8px 10px;font:500 12px/1.1 var(--display);color:#9d9a90;letter-spacing:.04em;text-transform:uppercase}
+.mk3 b{font:800 20px/1 var(--display);color:var(--flap-ink);letter-spacing:0;text-transform:none}
+.mk3 em{font-style:normal;font:500 13px/1.1 var(--display);color:#b9b6aa;text-transform:none;letter-spacing:0}
+.xg{font:600 13px/1.3 var(--display);color:var(--ink-3)}
+/* итоги: карточки */
+.hv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0}
+.hv>div{background:var(--card);border-radius:8px;padding:18px}
+.hv h3{font-size:18px;margin:0 0 8px;color:var(--ink-2)}
+.hv .q{font:800 44px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ink)}
+.hv .q small{font:600 .42em/1 var(--display);color:var(--ink-3)}
+.hv p{margin:8px 0 0;font-size:15px;color:var(--ink-2)}
+@media (max-width:760px){.hv{grid-template-columns:1fr}}
+.dayh{font:700 14px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);padding:18px 4px 8px}
+.more2{display:flex;justify-content:center;margin-top:14px}
+/* котировки: фаворит — зелёная плашка (у футбола нет .khl/.nhl) */
+.match .qc{border-color:var(--rule)}
+.match .qc.fav{background:#0d7a48;border-color:#0d7a48;box-shadow:inset 0 -3px 0 #4be08a}
+.match .qc.fav small,.match .qc.fav em{color:rgba(255,255,255,.85)}.match .qc.fav b{color:#fff}
+.lgtab .lgbg{height:118%;right:-2%;opacity:.2}
+.lgtab[aria-selected="true"] .lgbg{opacity:.26}
+.tabscroll{max-width:1000px}
