@@ -49,7 +49,7 @@
 @keyframes fla-drift{to{background-position:top,36px 0,0 0,0 0,0 0}}
 
 /* ── игроки: флоридский закат над водой, тени пальм справа, три следа когтей слева ── */
-.club-nhl_fla #players{--paper:#f7efe2;--paper-2:#ebe3d4;--paper-3:#ddd2bf;--card:#fffdf9;--card-hi:#fff;--ink-3:#57524a}
+.club-nhl_fla #players{padding-bottom:clamp(40px,4.5vw,64px);--paper:#f7efe2;--paper-2:#ebe3d4;--paper-3:#ddd2bf;--card:#fffdf9;--card-hi:#fff;--ink-3:#57524a}
 .club-nhl_fla #players::before{top:0;bottom:0;z-index:-2;
   background:
     radial-gradient(circle at 86% 15%,rgba(255,196,120,.55) 0 clamp(70px,9vw,140px),rgba(255,170,110,.18) calc(clamp(70px,9vw,140px) + 2px),transparent clamp(180px,22vw,340px)),
@@ -76,6 +76,6 @@
   .club-nhl_fla #table::after{background:linear-gradient(180deg,rgba(238,243,248,.9),rgba(238,243,248,.94)),
     url(../em/nhl_fla.webp) no-repeat right -38vw top 10% / 100vw auto,linear-gradient(180deg,#f6f9fc,#eef3f8)}
   .club-nhl_fla #players::after{background-size:92vw auto;background-position:right -10vw top 0;opacity:.09}
-  .club-nhl_fla #players>.wrap::before{left:-22px;top:-8px;width:120px}
+  .club-nhl_fla #players>.wrap::before{left:-22px;top:-8px;width:150px;opacity:.38}
   .club-nhl_fla #picks .pks,.club-nhl_fla #picks .pkempty{box-shadow:4px 4px 0 var(--fla-red),4px 4px 0 2px var(--fla-gold)}
 }

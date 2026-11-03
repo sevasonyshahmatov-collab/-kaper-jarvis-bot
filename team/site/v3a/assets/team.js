@@ -89,10 +89,20 @@ document.title=`${T.name} — матчи сезона, место в табли�
 document.body.dataset.lg=lg;
 /* ── клубная тема (03.11): у клуба из списка — свой фон каждой секции, файлы assets/club/<id>.css (+ .js при нужде) ── */
 const CLUB_THEMES={nhl_fla:{css:1}};
+const CS=(window.CLUB_SET||{})[ID];
 if(CLUB_THEMES[ID]){const th=CLUB_THEMES[ID];document.body.classList.add('club','club-'+ID);
  if(th.css){const l=document.createElement('link');l.rel='stylesheet';l.href=`../assets/club/${ID}.css`;document.head.appendChild(l)}
  if(th.js){const s=document.createElement('script');s.src=`../assets/club/${ID}.js`;document.head.appendChild(s)}}
+else if(CS){/* общий движок assets/club/theme.css: переменные клуба из assets/club/themes.js */
+ const b=document.body,u=p=>`url(${new URL('../assets/'+p,location.href).href})`;b.classList.add('club','club-g','club-'+ID);
+ [['--k-dk',CS.dk],['--k-a1',CS.a1],['--k-a2',CS.a2],['--k-ac',CS.ac],['--k-em',u('em/'+ID+'.webp')],['--k-mA',u('club/m/'+CS.m[0]+'.svg')],['--k-mB',u('club/m/'+(CS.m[1]||CS.m[0])+'.svg')]].forEach(([k,v])=>b.style.setProperty(k,v));
+ if(!CS.m[1])b.classList.add('nomB')}
 const played=T.games.filter(g=>g.gf!=null),future=T.games.filter(g=>g.gf==null);
+/* серия: от последнего сыгранного матча назад — победа (любая) или поражение (любое, в т.ч. ОТ/буллиты); показываем от 3 */
+const streak=(()=>{const a=played.slice().sort((x,y)=>String(x.d).localeCompare(String(y.d)));let n=0,w=null;
+ for(let i=a.length-1;i>=0;i--){const win=a[i].gf>a[i].ga;if(w===null)w=win;if(win!==w)break;n++}
+ return {n,win:w,last:a.slice(a.length-n).map(g=>g.gf>g.ga)}})();
+const streakHtml=streak.n>=3?`<p class="tmstreak ${streak.win?'w':'l'}" aria-label="${streak.win?'Серия побед':'Серия поражений'}: ${streak.n}"><span class="sk">${streak.win?'Серия побед':'Серия поражений'}:</span><b class="num">${streak.n}</b><span class="dots" aria-hidden="true">${streak.last.slice(-10).map(x=>`<i class="${x?'w':'l'}"></i>`).join('')}</span></p>`:'';
 const hasSample=T.games.some(g=>g.s||g.ks);
 const otl=Math.max(0,(T.pts||0)-2*(T.w||0));
 const confRows=Object.entries(D.teams).filter(([,x])=>x.lg===lg&&x.conf===conf).sort((a,b)=>a[1].place-b[1].place);
@@ -116,6 +126,7 @@ document.getElementById('hero').innerHTML=`
    <li><b class="num">${T.w}–${T.l}</b><span>победы–поражения${otl?`, из них ${otl} в ОТ`:''}</span></li>
    <li><b class="num">${T.gf}:${T.ga}</b><span>шайбы</span></li>
   </ul>
+  ${streakHtml}
   ${T.coach?`<p class="tmcoach">Главный тренер — ${esc(T.coach.split(' ').slice(0,2).reverse().join(' '))}</p>`:''}
  </header>
  <div class="tmpower" data-rv>
