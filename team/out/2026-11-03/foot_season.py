@@ -13,7 +13,9 @@ MSK = timezone(timedelta(hours=3))
 S = requests.Session(); S.headers['User-Agent'] = 'Mozilla/5.0'
 B = 'https://site.api.espn.com/apis/site/v2/sports/soccer/'
 LEAGUES = [('eng.1', 'epl', 'АПЛ'), ('esp.1', 'laliga', 'Ла Лига'), ('ita.1', 'seriea', 'Серия А'),
-           ('ger.1', 'bundesliga', 'Бундеслига'), ('fra.1', 'ligue1', 'Лига 1'), ('rus.1', 'rpl', 'РПЛ')]
+           ('ger.1', 'bundesliga', 'Бундеслига'), ('fra.1', 'ligue1', 'Лига 1'), ('rus.1', 'rpl', 'РПЛ'),
+           ('uefa.champions', 'ucl', 'Лига чемпионов'), ('uefa.europa', 'uel', 'Лига Европы')]
+CUPS = ('ucl', 'uel')
 CUR = ['202607', '202608', '202609', '202610', '202611', '202612']
 PRV = ['2025%02d' % m for m in range(7, 13)] + ['2026%02d' % m for m in range(1, 7)]
 res = {'leagues': {}, 'teams': {}, 'games': [], 'prev': [], 'table': {}, 'err': []}
@@ -108,6 +110,8 @@ for lg, key, ru in LEAGUES:
     for t in lgj['teams']:
         t = t['team']
         lgo = [x['href'] for x in t.get('logos') or [] if 'default' in (x.get('rel') or [])]
+        if key in CUPS and t['id'] in res['teams']:
+            res['leagues'][key]['ids'].append(t['id']); continue
         res['teams'][t['id']] = {'id': t['id'], 'slug': t.get('slug'), 'n': t.get('displayName'), 's': t.get('shortDisplayName'),
                                  'ab': t.get('abbreviation'), 'c': t.get('color'), 'c2': t.get('alternateColor'), 'lg': key,
                                  'logo': lgo[0] if lgo else t.get('logo')}
@@ -123,7 +127,7 @@ for lg, key, ru in LEAGUES:
     res['table'][key] = rows
     print('FOOTLG', lg, len(res['leagues'][key]['ids']), 'клубов,', len(rows), 'в таблице', flush=True)
 
-jobs = [(lg, m, True) for lg, _, _ in LEAGUES for m in CUR] + [(lg, m, False) for lg, _, _ in LEAGUES for m in PRV]
+jobs = [(lg, m, True) for lg, k, _ in LEAGUES for m in CUR + (['202701'] if k in CUPS else [])] + [(lg, m, False) for lg, k, _ in LEAGUES if k not in CUPS for m in PRV]
 with ThreadPoolExecutor(6) as ex:
     out = list(ex.map(month, jobs))
 for (lg, m, full), rows in zip(jobs, out):
@@ -152,7 +156,9 @@ print('FOOTDONE игр', len(res['games']), 'прошлый сезон', len(res
 # недостающие эмблемы (нет в render/emblems/football) и логотипы лиг — PNG 192 px через combiner ESPN
 HAVE = {f[:-4] for f in os.listdir('render/emblems/football') if f.endswith('.png')} if os.path.isdir('render/emblems/football') else set()
 need = [('t' + i, t['logo']) for i, t in res['teams'].items() if i not in HAVE and t.get('logo')]
-need += [('l' + k, v['logo']) for k, v in res['leagues'].items() if v.get('logo')]
+for k, ids in (('ucl', (2, 1)), ('uel', (2310, 2, 3))):
+    for i in ids:
+        need.append(('l%s_%d' % (k, i), 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/%d.png' % i))
 print('FOOTNEED', len(need), flush=True)
 
 
