@@ -65,7 +65,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
           <li><b class="num"><span data-count="71" id="fP">71</span>&thinsp;%</b><span id="fPl">зашло в октябре</span></li>
           <li><b class="num" data-count="2">2</b><span>лиги</span></li>
         </ul>
-        <ul class="chips" aria-label="Лиги"><li><a href="#lg-khl"><span class="lgp khl"><img src="../assets/lg/khl.webp" alt=""></span>КХЛ</a></li><li><a href="#lg-nhl"><span class="lgp nhl"><img src="../assets/lg/nhl.webp" alt=""></span>НХЛ</a></li></ul>
+        <ul class="chips" aria-label="Лиги"><li><a href="league.html?lg=khl" title="Страница лиги"><span class="lgp khl"><img src="../assets/lg/khl.webp" alt=""></span>КХЛ</a></li><li><a href="league.html?lg=nhl" title="Страница лиги"><span class="lgp nhl"><img src="../assets/lg/nhl.webp" alt=""></span>НХЛ</a></li></ul>
       </div>
     </div>
     <div class="bcol" data-rv>
@@ -442,7 +442,7 @@ flags.innerHTML=Object.entries(LG).map(([id,l])=>{const n=cnt(id);
  return `<button type="button" role="tab" class="lgtab ${id}" id="lg-${id}" data-lg="${id}" aria-selected="false" aria-controls="wallbox"><img class="lgbg" src="${LGI(id)}" alt=""><span class="lgtx"><span class="lgn">${l.name}</span><span class="lgf">${l.full}</span><span class="nt">Матчи ${l.when}</span><span class="cnt">${n} ${plural(n,'матч','матча','матчей')} сегодня</span></span></button>`}).join('');
 function pickLg(lg,anim=true){if(lg===curLg)return;curLg=lg;
  flags.querySelectorAll('.lgtab').forEach(b=>b.setAttribute('aria-selected',b.dataset.lg===lg));
- const list=CLUBS[lg],put=()=>{wallH.innerHTML=`${LGP(lg)}<span>${LG[lg].name}</span><span>${list.length} ${plural(list.length,'клуб','клуба','клубов')}</span>`;
+ const list=CLUBS[lg],put=()=>{wallH.innerHTML=`${LGP(lg)}<span>${LG[lg].name}</span><span>${list.length} ${plural(list.length,'клуб','клуба','клубов')}</span><a class="lglink" href="league.html?lg=${lg}${TQ}">Страница лиги →</a>`;
   wallEl.dataset.lg=lg;wallEl.innerHTML=list.map(([n,slug],i)=>`<a class="crest" style="--i:${i}" href="../team/index.html?id=${slug}${TQ}" title="${esc(n)} · ${LG[lg].name}: страница команды">${CI(n)}<span>${esc(n)}</span></a>`).join('');
   if(anim&&!RM)wallEl.querySelectorAll('.crest').forEach((c,i)=>c.animate([{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'none'}],{duration:420,delay:Math.min(i,32)*18,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}))};
  if(anim&&!RM&&wallEl.innerHTML){wallEl.animate([{opacity:1},{opacity:0,transform:'translateY(6px)'}],{duration:160,easing:'ease-in'}).finished.then(put)}else put()}

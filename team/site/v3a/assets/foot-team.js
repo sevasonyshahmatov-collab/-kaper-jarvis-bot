@@ -65,7 +65,7 @@ $('hero').innerHTML=`
  <header class="tmid" data-rv>
   <div class="tmtop"><a class="crumb" href="${CUP==='ucl'?'ucl.html':'index.html#lg-'+encodeURIComponent(EFF)}"><span aria-hidden="true">←</span> ${CUP==='ucl'?'Лига чемпионов':'Лиги и клубы · '+esc(EN)}</a>${followBtn('in-hero')}</div>
   <div class="tmrow"><span class="tmcrest">${CI(ID)}</span>
-   <div class="tmname">${swH||`<p class="tmlg">${LGP(EFF)}<span>${esc(EN)}</span><span class="dot">·</span><span>сезон ${esc(D.season)}</span></p>`}<h1>${esc(T.n)}</h1></div></div>
+   <div class="tmname">${swH?swH+`<p class="tmlg"><a class="lglnk" href="league.html?lg=${esc(EFF)}" title="Страница лиги">${esc(EN)}: страница лиги</a></p>`:`<p class="tmlg"><a class="lglnk" href="league.html?lg=${esc(EFF)}" title="Страница лиги">${LGP(EFF)}<span>${esc(EN)}</span></a><span class="dot">·</span><span>сезон ${esc(D.season)}</span></p>`}<h1>${esc(T.n)}</h1></div></div>
   <div class="tmplace"><b class="num">${RC.place}</b><span>-е место<br>${CUP?'в общем этапе':'в лиге'}: ${esc(EN)}</span></div>
   <ul class="tmpills" aria-label="Коротко о сезоне">
    <li><b class="num">${RC.pts}</b><span>${plural(RC.pts,'очко','очка','очков')}</span></li>

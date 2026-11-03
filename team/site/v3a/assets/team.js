@@ -125,7 +125,7 @@ document.getElementById('hero').innerHTML=`
   <div class="tmtop"><a class="crumb" href="${BACK(lg)}"><span aria-hidden="true">←</span> Лиги и клубы · ${L.name}</a>${followBtn('in-hero')}</div>
   <div class="tmrow">
    <span class="tmcrest">${em(ID)}</span>
-   <div class="tmname"><p class="tmlg">${lgp(lg)}<span>${L.name}</span><span class="dot">·</span><span>Конференция «${esc(conf)}»</span></p>
+   <div class="tmname"><p class="tmlg"><a class="lglnk" href="../hockey/league.html?lg=${lg}${tq}" title="Страница лиги">${lgp(lg)}<span>${L.name}</span></a><span class="dot">·</span><span>Конференция «${esc(conf)}»</span></p>
     <h1>${esc(T.name)}</h1></div>
   </div>
   <div class="tmplace"><b class="num">${T.place}</b><span>-е место<br>в конференции «${esc(conf)}»</span></div>

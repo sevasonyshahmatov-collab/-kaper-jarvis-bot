@@ -13,7 +13,7 @@ const mskDay=ms=>new Date(ms+3*3600e3).toISOString().slice(0,10);
 {const ids=MODE?D.leagues[MODE].ids:Object.keys(T);
  const gp=MODE?ids.reduce((a,i)=>a+T[i].games.filter(g=>played(g)&&g.c===MODE).length,0)/2:Object.values(T).reduce((a,t)=>a+t.games.filter(g=>played(g)&&!g.c).length,0)/2+Object.keys(D.leagues).filter(k=>D.leagues[k].cup).reduce((a,k)=>a+D.leagues[k].ids.reduce((b,i)=>b+T[i].games.filter(g=>played(g)&&g.c===k).length,0)/2,0);
  $('fN').textContent=ids.length;$('fG').textContent=Math.round(gp);$('fL').textContent=LGK.length;
- $('chips').innerHTML=LGK.map(k=>`<li><a href="#lg-${esc(k)}">${LGP(k)}${esc(D.leagues[k].name)}</a></li>`).join('')}
+ $('chips').innerHTML=LGK.map(k=>`<li><a href="league.html?lg=${esc(k)}" title="Страница лиги: ${esc(D.leagues[k].full)}">${LGP(k)}${esc(D.leagues[k].name)}</a></li>`).join('')}
 
 /* ── ближайшие матчи: с этого момента, первые 4 игровых дня ── */
 const now=Date.now();
@@ -142,7 +142,7 @@ const ZONE=lg=>({epl:[[1,4,'z1','Лига чемпионов'],[5,5,'z2','Лиг
 function pickLg(lg,anim=true){if(lg===curLg||!D.leagues[lg])return;curLg=lg;
  flags.querySelectorAll('.lgtab').forEach(b=>b.setAttribute('aria-selected',b.dataset.lg===lg));
  const L=D.leagues[lg],tb=D.tables[lg]||[],pl=Object.fromEntries(tb.map(r=>[r.id,r])),rows=L.ids.map(s=>({...T[s],...(pl[s]||{place:99,gp:0,w:0,d:0,l:0,gf:0,ga:0,pts:0})})).sort((a,b)=>a.place-b.place),z=ZONE(lg);
- const put=()=>{wallH.innerHTML=`${LGP(lg)}<span>${esc(L.name)}</span><span>${rows.length} ${plural(rows.length,'клуб','клуба','клубов')}</span>`;
+ const put=()=>{wallH.innerHTML=`${LGP(lg)}<span>${esc(L.name)}</span><span>${rows.length} ${plural(rows.length,'клуб','клуба','клубов')}</span><a class="lglink" href="league.html?lg=${esc(lg)}">Страница лиги →</a>`;
   wallEl.dataset.lg=lg;wallEl.innerHTML=rows.map((t,i)=>`<a class="crest" style="--i:${i}" href="${teamHref(t.id,L.cup?lg:'')}" title="${esc(t.n)} · ${esc(L.name)}: страница клуба">${CI(t.id)}<span>${esc(t.n)}</span></a>`).join('');
   $('ltab').innerHTML=`<thead><tr><th>#</th><th>Клуб</th><th>И</th><th class="hm">В</th><th class="hm">Н</th><th class="hm">П</th><th>Мячи</th><th>О</th></tr></thead><tbody>${rows.map(t=>{const zc=(z.find(x=>t.place>=x[0]&&t.place<=x[1])||[])[2]||'';
    return `<tr class="${zc}"><td>${t.place}</td><td><a href="${teamHref(t.id,L.cup?lg:'')}">${CI(t.id)}<span>${esc(t.n)}</span></a></td><td>${t.gp}</td><td class="hm">${t.w}</td><td class="hm">${t.d}</td><td class="hm">${t.l}</td><td>${t.gf}:${t.ga}</td><td>${t.pts}</td></tr>`}).join('')}</tbody>`;

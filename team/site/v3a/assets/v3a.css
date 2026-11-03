@@ -482,7 +482,7 @@ h3 .lgp{--s:18px;margin-right:8px;vertical-align:-2px}
 .leagues.two p{color:rgba(255,255,255,.82)}.leagues.two .nt{color:rgba(255,255,255,.9)}.leagues.two .cnt{color:#ffd54d}
 @media (hover:hover) and (pointer:fine){.leagues.two a:hover{background:rgba(255,255,255,.07)}}
 .wallh{display:flex;align-items:center;gap:12px;margin:clamp(30px,3.4vw,44px) 0 0;font:700 22px/1.1 var(--display)}
-.wallh .lgp{--s:24px}.wallh span:last-child{font:500 15px/1 var(--display);color:var(--ink-3)}
+.wallh .lgp{--s:24px}.wallh span:last-of-type{font:500 15px/1 var(--display);color:var(--ink-3)}
 .wallh+.wall{margin-top:14px}
 @media (max-width:560px){.wall{grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:6px}.crest img{width:44px;height:44px}.crest span{font-size:11.5px;overflow-wrap:normal;hyphens:manual}}
 .conf{font:800 15px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--conf-lo)}
@@ -932,3 +932,11 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 .h2l .sc{font:500 22px/1 var(--display);color:var(--ink-3)}
 .h2l .sc b{font-weight:500}.h2l .sc b.wn{font-weight:800;color:#1a7342}
 @media (max-width:560px){.h2l li{grid-template-columns:38px minmax(0,1fr) auto minmax(0,1fr);font-size:13px}.h2l .smp{display:none}.l3 li{font-size:13.5px}}
+
+/* ссылка «Страница лиги →» рядом с названием лиги (шапка стены клубов, шапка клуба) */
+.wallh .lglink{margin-left:auto;font:700 15px/1 var(--display);letter-spacing:.01em;text-decoration:none;color:var(--ink);padding:10px 16px;border-radius:999px;box-shadow:inset 0 0 0 2px var(--ink);white-space:nowrap;transition:background .2s ease,color .2s ease}
+.wallh .lglink:hover{background:var(--ink);color:var(--paper)}
+@media (max-width:620px){.wallh{flex-wrap:wrap}.wallh .lglink{margin-left:0}}
+.tmlg a.lglnk{display:inline-flex;align-items:center;gap:8px;color:inherit;text-decoration:none}
+.tmlg a.lglnk:hover span:not(.lgp){text-decoration:underline;text-underline-offset:3px}
+.tmlg a.lglnk::after{content:"\2192";font-weight:700}
