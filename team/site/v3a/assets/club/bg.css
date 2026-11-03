@@ -1,58 +1,24 @@
-/* JARVIS v3a — клуб с картинкой-фоном (assets/club/bg/<id>.webp, флаг bg:1 в team.js CLUB_THEMES / themes.js CLUB_SET).
-   Картинка — один fixed-слой на всю страницу (.clubscene, строит bg.js), секции — «стекло» поверх: шапка прозрачная,
-   карточки — тёмное стекло с тонкой клубной кромкой. Плоские мотивы секций (полосы, пальмы, когти, срезы) отключены.
-   Настройка клуба — переменные на body: --gl (r,g,b стекла), --ce/--ce2 (кромка/акцент), --bg-pos, --bg-pos-m (кадр картинки). */
-body.club-bg{--gl:4,30,66;--ce:var(--k-a2,#b9975b);--ce2:var(--k-a1,#c8102e);--bg-pos:50% 55%;--bg-pos-m:50% 50%;--shade:.18;
-  background:#050c1a;color:#f2f6fb}
-body.club-ska{--gl:7,20,50;--ce:#7f9fd6;--ce2:#e74045;--bg-pos:50% 50%;--bg-pos-m:36% 50%;--shade:.34}
-body.club-akbars{--gl:4,28,20;--ce:#4cb98a;--ce2:#e30613;--bg-pos:50% 50%;--bg-pos-m:40% 55%;--shade:.4}
-body.club-nhl_fla{--bg-pos:50% 62%;--bg-pos-m:30% 50%;--shade:.16}
-.club-bg .arena-bg{display:none!important}
-
-/* сцена */
-.clubscene{position:fixed;inset:0;height:100lvh;z-index:-2;overflow:hidden;pointer-events:none;background:#050c1a}
-.clubscene .cs-img{position:absolute;inset:-5%;background:var(--club-bg) var(--bg-pos)/cover no-repeat;filter:blur(.6px) saturate(1.06);
-  transform:translate3d(0,var(--py,0%),0) scale(var(--sc,1.03));transform-origin:50% 50%;will-change:transform}
-.clubscene .cs-shade{position:absolute;inset:0;background:
-  radial-gradient(130% 100% at 50% 45%,transparent 55%,rgba(2,6,16,.4)),
-  linear-gradient(180deg,rgba(2,6,16,calc(var(--shade) * .6)),rgba(2,6,16,var(--shade)) 55%,rgba(2,6,16,calc(var(--shade) + .22)))}
-.clubscene .cs-grain{position:absolute;inset:0;opacity:.12;mix-blend-mode:overlay;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 1.4 -.2'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E")}
-@media (max-width:620px){.clubscene .cs-img{background-position:var(--bg-pos-m)}}
-
-/* плоские мотивы выключены */
-.club-bg .tmsec::before,.club-bg .tmsec::after,.club-bg .tmwm,.club-bg .tmbg,.club-bg .tmhero.has-bg::after,
-.club-bg #players>.wrap::before{display:none!important}
-.club-bg #table,.club-bg #games{margin-top:0}
-.club-bg .tmsec{padding-top:clamp(48px,6vw,96px);padding-bottom:clamp(40px,5vw,80px)}
-.club-bg #players,.club-bg #picks{padding-bottom:clamp(40px,5vw,80px)}
-
-/* шапка-герой: сцена видна, снизу и слева затемнение под цифры */
-body.club-bg .tmhero.hero{background:
-  radial-gradient(75% 70% at 22% 45%,rgba(2,6,16,.36),transparent),
-  linear-gradient(180deg,transparent 40%,rgba(2,6,16,.45) 80%,transparent);
-  --card:rgba(var(--gl),.55);--card-hi:rgba(var(--gl),.7);padding-bottom:clamp(64px,8vw,120px);overflow:visible}
-body.club-bg .tmhero .tmpower,body.club-bg .tmhero .tmpills li,body.club-bg .tmhero .tmstreak{-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
-
-/* секции: тёмное стекло */
-body.club-bg .tmsec,body.club-bg #table,body.club-bg #games,body.club-bg #players,body.club-bg #picks,body.club-bg footer{
-  --paper:#071a36;--paper-2:#12315c;--paper-3:#1b3f72;--card:rgba(var(--gl),.76);--card-hi:rgba(22,52,100,.86);
-  --ink:#f3f7fc;--ink-2:#d0dbec;--ink-3:#aebcd3;--rule:rgba(255,255,255,.16);--rule-2:rgba(255,255,255,.26);--sep:rgba(255,255,255,.13);
-  --ice:#9cc3f7;--team:#9cc3f7;--sport:#9cc3f7;--sport-ink:#06142b;--red:#ff7480;--win:#38c97f;--win-ink:#04200f;--loss-ink:#2b0409;
-  color:var(--ink);color-scheme:dark}
-body.club-bg .sec-head h2,body.club-bg .sec-head p,body.club-bg .gh,body.club-bg .smpnote,body.club-bg .gfilter{text-shadow:0 1px 14px rgba(0,0,0,.7)}
-body.club-bg .tmtable,body.club-bg .stg,body.club-bg .formbox,body.club-bg .gsum,body.club-bg .g,body.club-bg .plead,body.club-bg .plwrap,
-body.club-bg .pks,body.club-bg .pkempty{border:1px solid color-mix(in srgb,var(--ce) 45%,transparent);border-top-color:color-mix(in srgb,var(--ce2) 75%,transparent);
-  -webkit-backdrop-filter:blur(12px) saturate(1.1);backdrop-filter:blur(12px) saturate(1.1);box-shadow:0 22px 44px -26px rgba(0,0,0,.7)}
-body.club-bg .stg{border-radius:8px;overflow:hidden}
-body.club-bg .tmtable{background:rgba(var(--gl),.76)}
-body.club-bg #players .plead li{border-top-color:var(--ce2)}
-body.club-bg #games .gsum li{border-top:3px solid var(--ce)}
-body.club-bg #games .gh::after{content:"";flex:1;align-self:center;height:2px;margin-left:6px;background:linear-gradient(90deg,var(--ce2),transparent)}
-body.club-bg #picks .pks,body.club-bg #picks .pkempty{border-width:1px;box-shadow:0 22px 44px -26px rgba(0,0,0,.7)}
-body.club-bg #picks .pks{background:var(--sep)}
-body.club-bg #picks .pksum::before{background:linear-gradient(90deg,var(--ce) 0 50%,var(--ce2) 0)}
-body.club-bg .tmtable tr.me td,body.club-bg .stand tr.me td{color:#fff}
-body.club-bg footer .plate{color:rgba(255,255,255,.9)}
-body.club-bg .g{border-color:rgba(255,255,255,.1);border-top-color:rgba(255,255,255,.1);margin-bottom:6px}
-html body.club-bg .hd{background:rgba(var(--gl),.88)!important;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
-  --paper:#0b1f40;--paper-2:#16315c;--paper-3:#1f3f72;--ink:#f3f7fc;--ink-2:#d0dbec;--ink-3:#aebcd3;color:#f3f7fc;border-bottom:1px solid color-mix(in srgb,var(--ce) 45%,transparent)}
+/* JARVIS v3a — клуб с картинкой в шапке (assets/club/bg/<id>.webp; флаг bg:1 в team.js CLUB_THEMES / themes.js CLUB_SET).
+   Картинка — только фон шапки-героя (.tmhero): слой .hbg (строит bg.js) + затемнение под текстом. Всё ниже шапки — обычная клубная тема.
+   Живой mesh-градиент (clubbg.js) и плоские «джерси»-полоски в шапке у таких клубов выключены.
+   Кадр: --bg-pos (компьютер), --bg-pos-m (телефон), глубина затемнения --shade. */
+body.club-bg{--bg-pos:50% 50%;--bg-pos-m:50% 50%;--shade:.16}
+body.club-ska{--bg-pos:50% 46%;--bg-pos-m:30% 50%;--shade:.14}
+body.club-akbars{--bg-pos:50% 42%;--bg-pos-m:38% 50%;--shade:.14}
+body.club-nhl_fla{--bg-pos:50% 56%;--bg-pos-m:16% 50%;--shade:.14}
+.club-bg .tmhero .tmbg,.club-bg .tmhero .tmwm{display:none!important}
+.club-bg .tmhero.hero{background:#07101f}
+.club-bg .tmhero.has-bg::after{display:none}
+.tmhero .hbg{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.tmhero .hbg .hb-img{position:absolute;inset:-7% 0;background:var(--club-bg) var(--bg-pos)/cover no-repeat;
+  transform:translate3d(0,var(--py,0px),0);will-change:transform}
+.tmhero .hbg .hb-shade{position:absolute;inset:0;background:
+  radial-gradient(70% 85% at 20% 52%,rgba(3,8,18,.62),rgba(3,8,18,.3) 62%,transparent),
+  linear-gradient(180deg,rgba(3,8,18,.32),rgba(3,8,18,var(--shade)) 32%,rgba(3,8,18,calc(var(--shade) + .2)) 100%)}
+.club-bg .tmhero .tmpower,.club-bg .tmhero .tmpills li,.club-bg .tmhero .tmstreak{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.club-bg .tmhero{--card:rgba(3,10,24,.55);--card-hi:rgba(3,10,24,.68);color:#f4f7fb;--ink:#f4f7fb;--ink-2:#dbe4f1;--ink-3:#c3cfe0}
+.club-bg .tmhero h1,.club-bg .tmhero .tmplace{text-shadow:0 2px 18px rgba(0,0,0,.55)}
+@media (max-width:620px){
+  .tmhero .hbg .hb-img{background-position:var(--bg-pos-m)}
+  .tmhero .hbg .hb-shade{background:linear-gradient(180deg,rgba(3,8,18,.2) 0,rgba(3,8,18,.36) 45%,rgba(3,8,18,.62) 100%)}
+}

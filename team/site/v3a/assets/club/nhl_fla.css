@@ -1,4 +1,81 @@
 /* JARVIS v3a — клубная тема «Флорида Пантерз» (nhl_fla). Включает team.js по списку CLUB_THEMES: body.club.club-nhl_fla.
-   С 03.11 фон — картинка assets/club/bg/nhl_fla.webp (флаг bg:1, стили сцены и стекла — assets/club/bg.css);
-   плоские секционные декоры (полосы, пальмы, когти, срезы) убраны. Здесь — только клубные цвета. */
-.club-nhl_fla{--fla-red:#c8102e;--fla-navy:#041e42;--fla-gold:#b9975b;--ce:#b9975b;--ce2:#c8102e}
+   Каждая секция со своим фоном: шапка — клубный градиент; таблица — светлый лёд с водяным знаком эмблемы у края;
+   матчи — тёмно-синяя полоса с красно-золотой «кромкой формы»; игроки — флоридский закат, пальмы и следы когтей;
+   ставки — спокойная бумага с клубной окантовкой. Цифры и таблицы — всегда на непрозрачных светлых карточках. */
+.club-nhl_fla{--fla-red:#c8102e;--fla-navy:#041e42;--fla-gold:#b9975b;--fla-sky:#e9f1f6;--fla-sand:#f7efe2;--fla-aqua:#dcefed}
+.club-nhl_fla main{overflow-x:clip}
+.club-nhl_fla .tmsec{position:relative;isolation:isolate;padding-bottom:clamp(72px,8vw,120px)}
+.club-nhl_fla .tmsec::before,.club-nhl_fla .tmsec::after{content:"";position:absolute;left:0;right:0;pointer-events:none;z-index:-1}
+
+/* ── шапка: тот же живой градиент, снизу — красная и золотая полосы наискосок ── */
+.club-nhl_fla .tmhero{padding-bottom:clamp(96px,11vw,170px)}
+
+/* ── таблица: светлый лёд, срез наискосок с золотой кромкой, эмблема-водяной знак уходит за правый край ── */
+.club-nhl_fla #table{margin-top:calc(-1 * clamp(40px,7vw,110px));padding-top:clamp(96px,11vw,170px);
+  --paper:#eef3f8;--paper-2:#dde6ef;--paper-3:#cbd8e5;--card:#fff;--card-hi:#f4f8fc;--ink-3:#4c5b6b}
+.club-nhl_fla #table::before{top:0;bottom:0;z-index:-2;
+  clip-path:polygon(0 clamp(40px,7vw,110px),100% 0,100% 100%,0 100%);
+  background:linear-gradient(var(--fla-gold),var(--fla-gold)) top/100% 100% no-repeat}
+.club-nhl_fla #table::after{top:8px;bottom:0;
+  clip-path:polygon(0 clamp(40px,7vw,110px),100% 0,100% 100%,0 100%);
+  background:linear-gradient(180deg,rgba(238,243,248,.9),rgba(238,243,248,.93) 60%,rgba(238,243,248,.96)),
+    url(../em/nhl_fla.webp) no-repeat right -16vw top 46% / min(62vw,900px) auto,
+    linear-gradient(180deg,#f6f9fc,#eef3f8)}
+.club-nhl_fla #table .tmtable,.club-nhl_fla #table .stg,.club-nhl_fla #table .formbox{box-shadow:0 1px 0 rgba(4,30,66,.06),0 18px 40px -28px rgba(4,30,66,.45)}
+.club-nhl_fla #table .tmtable{background:var(--card);border-radius:8px}
+
+/* ── матчи: тёмно-синяя полоса формы, красные/золотые кромки наискосок, снизу — рваный край льда ── */
+.club-nhl_fla #games{margin-top:calc(-1 * clamp(28px,5vw,80px));padding-top:clamp(100px,11vw,170px);
+  --paper:#f2f5f9;--paper-2:#dfe6ee;--paper-3:#cdd7e2;--card:#f7f9fc;--card-hi:#fff;--ink-3:#4a5868}
+.club-nhl_fla #games::before{top:0;bottom:0;
+  clip-path:polygon(0 0,100% clamp(28px,5vw,80px),100% 100%,0 100%);
+  background:
+    linear-gradient(176deg,transparent 0 clamp(14px,2.4vw,40px),var(--fla-red) 0 calc(clamp(14px,2.4vw,40px) + 10px),var(--fla-gold) 0 calc(clamp(14px,2.4vw,40px) + 14px),transparent 0) top/100% 220px no-repeat,
+    repeating-linear-gradient(135deg,rgba(255,255,255,.035) 0 2px,transparent 2px 18px),
+    radial-gradient(70% 50% at 100% 0,rgba(200,16,46,.28),transparent 70%),
+    radial-gradient(60% 40% at 0 100%,rgba(185,151,91,.14),transparent 70%),
+    var(--fla-navy)}
+/* рваный край льда снизу: светлый «зуб» следующей секции заходит в синюю полосу */
+.club-nhl_fla #games::after{bottom:-1px;height:clamp(26px,3.4vw,48px);z-index:0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 48' preserveAspectRatio='none'%3E%3Cpath fill='%23f7efe2' d='M0 48V20L35 26L64 8L96 20L125 30L164 8L195 26L247 8L288 8L341 8L374 14L403 30L454 8L494 8L528 20L580 14L613 30L658 30L695 8L733 20L765 30L795 30L824 30L863 26L916 38L962 26L1017 20L1062 14L1099 34L1140 8L1185 30L1200 22V48Z'/%3E%3C/svg%3E") bottom/100% 100% no-repeat}
+.club-nhl_fla #games .sec-head,.club-nhl_fla #games .gh,.club-nhl_fla #games .smpnote{--ink:#f4f7fb;--ink-2:#d3dcea;--ink-3:#aebbd0;color:var(--ink)}
+.club-nhl_fla #games .smpnote .sample{background:#1b3a66;color:#f4f7fb}
+.club-nhl_fla #games .gs,.club-nhl_fla #games .gsum{box-shadow:0 22px 44px -26px rgba(0,0,0,.7)}
+.club-nhl_fla #games .gsum li{border-top:3px solid var(--fla-gold)}
+.club-nhl_fla #games .gh::after{content:"";flex:1;align-self:center;height:2px;margin-left:6px;background:linear-gradient(90deg,var(--fla-red),transparent)}
+@media (prefers-reduced-motion:no-preference){
+  .club-nhl_fla #games::before{animation:fla-drift 40s linear infinite}
+}
+@keyframes fla-drift{to{background-position:top,36px 0,0 0,0 0,0 0}}
+
+/* ── игроки: флоридский закат над водой, тени пальм справа, три следа когтей слева ── */
+.club-nhl_fla #players{padding-bottom:clamp(40px,4.5vw,64px);--paper:#f7efe2;--paper-2:#ebe3d4;--paper-3:#ddd2bf;--card:#fffdf9;--card-hi:#fff;--ink-3:#57524a}
+.club-nhl_fla #players::before{top:0;bottom:0;z-index:-2;
+  background:
+    radial-gradient(circle at 86% 15%,rgba(255,196,120,.55) 0 clamp(70px,9vw,140px),rgba(255,170,110,.18) calc(clamp(70px,9vw,140px) + 2px),transparent clamp(180px,22vw,340px)),
+    repeating-linear-gradient(180deg,transparent 0 22px,rgba(18,120,130,.07) 22px 24px) bottom/100% 46% no-repeat,
+    linear-gradient(180deg,#f7efe2 0%,#fbe7d2 26%,#f4ecdf 52%,#e2f0ee 100%)}
+.club-nhl_fla #players::after{top:0;height:min(48vw,620px);
+  background:url(nhl_fla_palm.svg) no-repeat right -2vw top -1vw / min(56vw,760px) auto;opacity:.11}
+.club-nhl_fla #players>.wrap{position:relative}
+.club-nhl_fla #players>.wrap::before{content:"";position:absolute;z-index:-1;pointer-events:none;
+  left:calc(-1 * clamp(10px,4vw,70px));top:-3vw;width:clamp(150px,18vw,280px);aspect-ratio:280/360;
+  background:url(nhl_fla_claw.svg) no-repeat center/contain;opacity:.16}
+.club-nhl_fla #players .plead li{border-top-color:var(--fla-red)}
+.club-nhl_fla #players .plead,.club-nhl_fla #players .plwrap{box-shadow:0 20px 44px -30px rgba(4,30,66,.5)}
+
+/* ── наши ставки: спокойная бумага, плавный переход от бирюзы, окантовка в цветах клуба ── */
+.club-nhl_fla #picks{--paper:#f3f4f2;--card:#fff;--card-hi:#fff}
+.club-nhl_fla #picks::before{top:0;bottom:0;background:linear-gradient(180deg,#e2f0ee 0,#f3f4f2 clamp(120px,14vw,220px))}
+.club-nhl_fla #picks .pks,.club-nhl_fla #picks .pkempty{border:2px solid var(--fla-navy);box-shadow:6px 6px 0 var(--fla-red),6px 6px 0 2px var(--fla-gold)}
+.club-nhl_fla #picks .pks{gap:1px;background:color-mix(in srgb,var(--fla-navy) 22%,transparent)}
+.club-nhl_fla #picks .pksum::before{content:"";display:block;width:64px;height:6px;margin-bottom:6px;grid-column:1/-1;
+  background:linear-gradient(90deg,var(--fla-navy) 0 40%,var(--fla-red) 0 80%,var(--fla-gold) 0)}
+
+@media (max-width:620px){
+  .club-nhl_fla #table::after{background:linear-gradient(180deg,rgba(238,243,248,.9),rgba(238,243,248,.94)),
+    url(../em/nhl_fla.webp) no-repeat right -38vw top 10% / 100vw auto,linear-gradient(180deg,#f6f9fc,#eef3f8)}
+  .club-nhl_fla #players::after{background-size:92vw auto;background-position:right -10vw top 0;opacity:.09}
+  .club-nhl_fla #players>.wrap::before{left:-22px;top:-8px;width:150px;opacity:.38}
+  .club-nhl_fla #picks .pks,.club-nhl_fla #picks .pkempty{box-shadow:4px 4px 0 var(--fla-red),4px 4px 0 2px var(--fla-gold)}
+}
