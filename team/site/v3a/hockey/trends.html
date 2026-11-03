@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru" data-sport="hockey" data-theme="arena">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Тренды дня: хоккей — JARVIS (макет v3a)</title>
+<meta name="description" content="Сильные тренды клубов КХЛ и НХЛ перед ближайшими матчами: серии, тотал 5,5, овертаймы, победы дома и в гостях, очки и броски игроков. Только факты «n из N».">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#071225">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="stylesheet" href="../assets/v3a.css">
+<link rel="stylesheet" href="../assets/trends.css">
+</head>
+<body class="tr" data-field="hockey">
+<div class="arena-bg" id="arena" aria-hidden="true"><i class="bm"></i><i class="bm"></i><i class="bm"></i><i class="bm"></i><i class="sp"></i></div>
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="../index.html" aria-label="JARVIS, на главную">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="trends.html" aria-current="page">Хоккей</a>
+      <a href="../football/trends.html">Футбол</a>
+    </nav>
+    <nav class="nav" aria-label="Разделы">
+      <a href="index.html">Матчи и прогнозы</a><a href="trends.html" aria-current="page">Тренды дня</a>
+    </nav>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Telegram</span></a>
+  </div>
+</header>
+
+<main id="main">
+<section class="tr-top">
+  <div class="wrap">
+    <h1>Тренды дня:<br><span>КХЛ и НХЛ</span></h1>
+    <p class="lead">Что повторяется у клубов КХЛ и НХЛ из матча в матч. Берём ближайшие два дня. Каждая строка — простой факт «в 6 из 7 матчей», без прогноза и без коэффициентов.</p>
+    <ul class="tr-sw" aria-label="Вид спорта"><li><a href="../football/trends.html">Футбол</a></li><li><a href="trends.html" aria-current="page">Хоккей</a></li></ul>
+  </div>
+</section>
+
+<section aria-label="Тренды">
+  <div class="wrap">
+    <div class="tr-bar" id="bar">
+      <div class="row"><span class="tr-lbl">Лига</span><div class="tabs" id="fLg" role="group" aria-label="Фильтр по лигам"></div></div>
+      <div class="row"><span class="tr-lbl">Тип</span><div class="tabs" id="fType" role="group" aria-label="Фильтр по типу тренда"></div></div>
+      <div class="row wrapx"><div class="tabs">
+        <button type="button" class="tab str" id="fStrong" aria-pressed="false">Только сильные</button></div>
+        <div class="tr-tg" role="group" aria-label="Порядок"><span class="tr-lbl">Порядок</span>
+          <button type="button" class="tab" id="fSortP" aria-pressed="true">По силе</button>
+          <button type="button" class="tab" id="fSortM" aria-pressed="false">По матчам</button></div></div>
+    </div>
+    <div class="tr-sum" id="sum" aria-live="polite"></div>
+    <div id="plates"></div>
+    <ul class="tlist" id="tlist"><li class="tr-empty"><b>Считаем тренды…</b>Нужен включённый JavaScript.</li></ul>
+    <div class="tr-more"><button class="btn btn-line" type="button" id="more" hidden>Показать ещё</button></div>
+    <p class="tr-legal"><b>Как читать.</b> Тренд считается по матчам сезона, в списке — последние 8 матчей дома, в гостях или подряд (овертаймы — последние 10). Показываем от 70 % при минимум 5 матчах и серии от 4 матчей. «Сильный» — от 85 % при 6+ матчах, все матчи подряд или длинная серия. Игроки НХЛ — по сыгранным матчам; игроки КХЛ — только те, кто сыграл все матчи клуба: в данных нет списка, кто играл в каждом матче. Это статистика прошлых матчей, а не прогноз и не гарантия: повторится тренд или нет — неизвестно. 18+.</p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="plate" aria-hidden="true">Jarvis</p>
+    <div class="fcols">
+      <nav aria-label="Подвал"><a href="../index.html">Главная</a><a href="index.html">Хоккей</a><a href="../football/trends.html">Тренды: футбол</a><a href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a></nav>
+      <p>Макет v3a · © JARVIS, @jarvibet</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/data/teams.js"></script>
+<script src="../assets/trends.js"></script>
+</body>
+</html>
