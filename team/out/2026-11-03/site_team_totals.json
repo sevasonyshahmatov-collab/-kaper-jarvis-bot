@@ -1,0 +1,26 @@
+{
+ "day": "2026-11-03",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_team_totals/ska_desktop.jpg"
+   ],
+   "text": "Компьютер, СКА: раздел «Тоталы и дом/выезд» — три гистограммы (шайб в матче, забивает, пропускает) с линиями тотала и ИТБ, ниже карточки «Дома | В гостях»."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_team_totals/nhl_fla_phone.jpg"
+   ],
+   "text": "Телефон, Флорида: те же гистограммы, переключатели «Весь сезон / Последние 10» и «Все / Дома / В гостях»."
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Раздел «Тоталы и дом/выезд» на странице команды: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/37479c216743b65b083a849b5e5c5e0b6621db12/team/site/v3a/team/index.html?id=ska#totals\nТак?"
+  }
+ ]
+}
