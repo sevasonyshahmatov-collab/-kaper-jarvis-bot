@@ -1,0 +1,34 @@
+{
+ "day": "2026-11-03",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_team_players/ska_390_games.jpg"
+   ],
+   "text": "Телефон, СКА: «Матчи сезона» — сводка сверху, все 20 сыгранных матчей со счётом и итогом (В, П, ВО, ПО, ВБ, ПБ)."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_team_players/ska_1440_players.jpg"
+   ],
+   "text": "Компьютер, СКА: раздел «Игроки» — лучший бомбардир, снайпер и вратарь, ниже таблица (клик по заголовку — сортировка)."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_team_players/ska_390_players.jpg"
+   ],
+   "text": "Телефон: таблица листается вбок, номер и имя закреплены."
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Страница команды: история матчей сезона по-настоящему (с 5 сентября у КХЛ, с 30 сентября у НХЛ) и статистика игроков. Данные из приложения КХЛ и сайта НХЛ, есть у всех 54 клубов. Смотреть: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/89776bb569d5bc23aa61cc787cdaed23cdf1b767/team/site/v3a/team/index.html?id=ska\n\nТак?"
+  }
+ ]
+}
