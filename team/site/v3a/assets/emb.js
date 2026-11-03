@@ -1,6 +1,7 @@
-/* Анимация эмблемы клуба в шапке: ?emb=1|2|3|4 (по умолчанию — без анимации). Только transform/opacity. */
+/* Анимация эмблемы клуба в шапке. Владелец 03.11 выбрал вариант 3 «отблеск льда» — он по умолчанию; ?emb=1|2|4 — другие
+   варианты для сравнения, ?emb=0 — без анимации. Только transform/opacity. */
 (function(){
- var m=(location.search.match(/[?&]emb=([1-4])(?:&|$)/)||[])[1];if(!m)return;
+ var m=(location.search.match(/[?&]emb=([0-4])(?:&|$)/)||[])[1]||'3';if(m==='0')return;
  var crest=document.querySelector('.tmcrest'),img=crest&&crest.querySelector('img.em');if(!img)return;
  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  var css=document.createElement('style');
