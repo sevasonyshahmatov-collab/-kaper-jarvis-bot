@@ -1,4 +1,4 @@
-/* JARVIS v3a — картинка клуба, два варианта по ?bgv= (только hero|bottom, иначе hero; mode ставит team.js классом club-bgh / club-bgb):
+/* JARVIS v3a — картинка клуба, два варианта по ?bgv= (hero или bottom, иначе bottom; mode ставит team.js классом club-bgh / club-bgb):
    hero — размытый слой .hbg внутри .tmhero; bottom — блок .clubend перед подвалом. Стили — bg.css. Лёгкий параллакс только внутри
    блока, только transform и только без prefers-reduced-motion. Подключает team.js по флагу bg:1. */
 (()=>{const b=document.body,id=b.dataset.clubId,hero=document.querySelector('.tmhero'),ft=document.querySelector('footer');if(!id)return;

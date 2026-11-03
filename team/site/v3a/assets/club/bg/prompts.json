@@ -1,0 +1,308 @@
+[
+ {
+  "id": "avangard",
+  "name": "Авангард",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: two stylised wings frozen into the ice, outlined by fine red scratches on the ice; in the background the Irtysh river in Omsk at dusk, the golden-domed cathedral and low riverside skyline across the frozen water, heavy frost haze. Color palette: crimson red #c8102e, graphite black #282828, pale frosty silver #cfd6de. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "avtomobilist",
+  "name": "Автомобилист",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a long road with dashed lines and a faint gear scratched into the ice, tyre marks on the ice; in the background Yekaterinburg at dusk, the Iset river pond with high-rise glass towers, the Ural forest, red tail-lights streaking on a distant avenue. Color palette: racing red #e30613, jet black #141414, cold slate #5b6673. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "admiral",
+  "name": "Адмирал",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: rolling waves and a large faint ship anchor frozen into the ice, thin gold lines on the ice; in the background Vladivostok bay at dusk, the Golden Horn cable-stayed bridge, ships and hills across the water, sea fog. Color palette: antique gold #c8a96a, deep midnight navy #141828, sea grey-blue #5d7390. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "amur",
+  "name": "Амур",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: the elegant stripes of an Amur tiger pressed into the ice, with a faint paw-print trail on the ice; in the background Khabarovsk on the high bank of the frozen Amur river, a long railway bridge and taiga hills in the distance, orange sunrise through mist. Color palette: burnt orange #f26522, deep navy #1b2a4a, warm amber #f0a35a. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "barys",
+  "name": "Барыс",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: the spotted coat of a snow leopard and a faint mountain ridge line scratched into the ice on the ice; in the background Astana as a futuristic city in the steppe, glowing glass towers and a spire, a wide flat snowy steppe, deep blue twilight. Color palette: turquoise #2aa7b8, deep navy #142d50, silver white #e3eef2. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "dinamo_minsk",
+  "name": "Динамо Минск",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a faint hexagon grid and drifting snowflakes pressed into the ice on the ice; in the background Minsk at night, Victory Square and the Svisloch river, modern glass towers and the National Library crystal shape, light snow. Color palette: sky blue #4db2ec, midnight black-blue #0f141e, clean white #f2f6fb. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "dinamo_msk",
+  "name": "Динамо Москва",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a subtle chevron pattern and a faint hexagonal grid scratched into the ice, with a thin glowing blue line on the ice; in the background the Moscow skyline at blue hour, the Moskva river embankment, Stalinist high-rise spires and glowing windows, light snowfall. Color palette: royal blue #003da5, soft sky blue #78a0ff, cold steel grey #8fa0b8. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "lada",
+  "name": "Лада",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a straight open road and a faint chevron frozen into the ice, thin pale-blue light on the ice; in the background Togliatti on the wide Volga, the Zhiguli hills and a long reservoir shore, late afternoon autumn haze, a distant bridge. Color palette: deep blue #0f4c81, pale frosty blue #c8d2e1, warm sand haze #d9c9a8. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "lokomotiv",
+  "name": "Локомотив",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: railway tracks converging into the distance and a faint gear outline, scratched into the ice on the ice; in the background Yaroslavl at dusk, the Volga embankment with the historic churches of the Spasskiy monastery, a steam-like haze, a railway bridge. Color palette: signal red #e30613, railway blue #1b4da1, warm steel #8c96a5. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "metallurg",
+  "name": "Металлург",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: showers of orange sparks and glowing molten-metal veins running through the cracks of the ice, a faint gear on the ice; in the background Magnitogorsk at night, the giant steel works with chimneys and glowing furnaces, the Ural river and low Ural ridges, smoke lit orange from below. Color palette: molten amber #f5a623, midnight navy #1b2a5a, white-hot spark #fff1c9. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "neftekhimik",
+  "name": "Нефтехимик",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: drops of black oil and glossy petroleum swirls frozen into the ice, a faint gear on the ice; in the background Nizhnekamsk at dusk, the petrochemical plant with flares and chimneys, the wide Kama river, a bridge, cold industrial glow. Color palette: deep blue #1c3f6e, signal red #c82832, oil black with a teal sheen #14232e. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "salavat",
+  "name": "Салават Юлаев",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a stylised galloping horseman silhouette and a ring of stars frozen into the ice, thin gold lines on the ice; in the background Ufa above the Belaya river, the Salavat Yulaev monument on the cliff, green Bashkir hills and autumn-to-winter mist at golden hour. Color palette: antique gold #d4af37, deep indigo blue #2e3192, emerald green #289650. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "severstal",
+  "name": "Северсталь",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a steel gear and showers of metal sparks frozen into the ice, thin yellow lines on the ice; in the background Cherepovets steelworks at dusk, tall chimneys with smoke, the Sheksna river and a flat northern horizon, yellow light through heavy haze. Color palette: signal yellow #ffcc00, dark graphite #3c3c3c, cold steel grey #8b949e. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "sibir",
+  "name": "Сибирь",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: fine snowflake crystals and a pine-branch silhouette scratched into the ice on the ice; in the background Novosibirsk at winter dawn, a wide frozen Ob river, a long bridge and a distant Siberian pine forest, pink frost haze. Color palette: deep navy #1b325a, icy pale blue #b4c8e6, snow white #f2f6fb. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "sochi",
+  "name": "Сочи",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: palm fronds and gentle waves frozen into the ice, thin golden lines on the ice; in the background Sochi at dusk, the snow-capped Caucasus mountains above the Black Sea coast, palm trees and glowing lights, winter mist. Color palette: golden yellow #f5b400, deep navy blue #142850, sea teal #3a8fa0. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "spartak",
+  "name": "Спартак",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a stylised spartan shield with a faint hexagonal grid scratched into the ice, thin red glow in the cracks on the ice; in the background Moscow in the evening, Red Square with the colourful domes of St Basil's Cathedral, cold mist and soft snowfall. Color palette: scarlet red #d7141a, snow white #f0f0f0, dark wine #4a0a0d. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "torpedo",
+  "name": "Торпедо",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: flowing waves and a faint chevron frozen into the ice, like water caught under glass on the ice; in the background Nizhny Novgorod at dusk, the Kremlin on the hill above the confluence of the Volga and the Oka, wide frozen river, a long bridge. Color palette: cobalt blue #1e3a93, bright red #e30613, icy cyan #9fd0ea. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "traktor",
+  "name": "Трактор",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: tractor tyre tracks and a large faint gear frozen into the ice on the ice; in the background Chelyabinsk in winter, industrial chimneys and steel mills with steam on the horizon, Ural hills under a heavy grey sky, steely light. Color palette: steel silver #aaaaaa, coal black #1e1e1e, cold graphite blue #4a5666. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "cska",
+  "name": "ЦСКА",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a ring of stars and a subtle chevron frozen into the ice, thin red-lit scratches on the ice; in the background Moscow at night, red-lit Kremlin towers and the Moskva river, a dusting of snow, glowing city lights through haze. Color palette: army red #e30613, deep blue #1b3a8c, pale ice white #e6ecf5. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "shanghai",
+  "name": "Шанхайские Драконы",
+  "league": "КХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: coiling tongues of flame and faint dragon claw marks scratched into the ice, glowing orange in the cracks on the ice; in the background Beijing at dusk, the Forbidden City roofs with sweeping eaves and a red wall, distant modern towers, a warm smoky haze. Color palette: fiery orange #ff5a00, amber gold #ffaa00, imperial red #a5200f. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_nyi",
+  "name": "Айлендерс",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: rippling waves and a ring of stars frozen into the ice, thin orange glow on the ice; in the background Long Island shoreline at sunset, a lighthouse on the dunes, the far Manhattan skyline across the sound, calm cold water. Color palette: harbour blue #00539b, burnt orange #f47d30, sand pearl #d8d2c4. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_ana",
+  "name": "Анахайм",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a pair of wings and gentle waves frozen into the ice, thin orange glow on the ice; in the background Anaheim at golden hour, California palm trees silhouetted against an orange sunset, distant hills, a Pacific haze. Color palette: sunset orange #f47a38, antique gold #b9975b, dusk plum #4a2a3a. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_buf",
+  "name": "Баффало",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a faint chevron and a hexagonal pattern frozen into the ice, thin gold lines on the ice; in the background Buffalo in winter on the shore of Lake Erie, a heavy lake-effect snowstorm, the frozen harbour and old grain silos at dusk. Color palette: royal blue #003087, golden yellow #ffb81c, blizzard white #f0f4f8. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_bos",
+  "name": "Бостон",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a bear paw print and a faint chevron frozen into the ice, thin golden light on the ice; in the background Boston harbour at dawn, the skyline with the Zakim bridge and old brick waterfront, drifting sea fog, a lone lighthouse. Color palette: black gold #ffb81c, jet black #111111, harbour grey-blue #6a7a8c. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_van",
+  "name": "Ванкувер",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a faint mountain ridge and gentle waves frozen into the ice, thin green glow on the ice; in the background Vancouver at dawn, the skyline over the harbour with the North Shore mountains behind, a rain-mist over the Pacific, Stanley Park cedars. Color palette: pacific blue #003e82, forest green #00843d, misty silver #b6c4cc. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_wsh",
+  "name": "Вашингтон",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a ring of stars and a pair of eagle wings frozen into the ice, thin red lines on the ice; in the background Washington D.C. at dusk, the Capitol dome and the Washington Monument by the Potomac, cherry-blossom pink on the horizon, light mist. Color palette: patriot red #c8102e, navy blue #041e42, marble white #e8ecf2. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_vgk",
+  "name": "Вегас",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a subtle chevron and flying golden sparks frozen into the ice, thin gold glow on the ice; in the background the Las Vegas desert at dusk, the Strip glowing on the horizon, distant red-rock mountains, warm dusty haze. Color palette: vegas gold #b4975a, steel grey #333f42, desert violet dusk #5a4a78. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_wpg",
+  "name": "Виннипег",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a faint pair of wings and a drifting snow-swirl pattern scratched into the ice, a thin steely glow on the ice; in the background a Manitoba winter on the flat prairie, the small Winnipeg skyline at the junction of two frozen rivers, brilliant northern lights, long snow drifts. Color palette: aviator navy #16386e, steel silver #8c96a5, aurora green #5fe0a0. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "dallas",
+  "name": "Даллас",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a ring of stars and a faint chevron frozen into the ice, thin green glow on the ice; in the background the Dallas skyline at dusk, glowing glass towers with the Reunion Tower ball, a big Texas sky with long clouds, warm horizon. Color palette: victory green #00845a, silver #191919, prairie gold #d9a74a. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_det",
+  "name": "Детройт",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a pair of wings and a faint gear frozen into the ice, thin red lines on the ice; in the background Detroit at dusk, the Renaissance Center towers on the Detroit river, old factories and chimneys, smoky red sunset reflecting on the ice. Color palette: winged-wheel red #ce1126, pure white #ebebeb, industrial grey #5a606a. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_cgy",
+  "name": "Калгари",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: tongues of flame and a faint chevron scratched into the ice, thin red glow in the cracks on the ice; in the background Calgary at dusk, the skyline with the Calgary Tower below the snowy Canadian Rockies, a warm chinook wind arch of clouds. Color palette: flames red #d2001c, golden yellow #faaf19, rocky mountain blue #3a5a8a. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_car",
+  "name": "Каролина",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: surging waves and a faint lightning bolt frozen into the ice, like a hurricane's trail on the ice; in the background the Raleigh skyline at dusk after a storm, a low North Carolina coastline with pine trees, dramatic hurricane-grey clouds with a red sunset glow. Color palette: hurricane red #cc0000, jet black #191919, storm grey #6c7886. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_cbj",
+  "name": "Коламбус",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a ring of stars and a faint chevron frozen into the ice, thin red lines on the ice; in the background Columbus at dusk, the Scioto river and the Arena District skyline with a suspension bridge, soft Ohio mist, a cool red sunset. Color palette: union blue #143c82, bright red #ce1126, silver mist #b0bccc. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_col",
+  "name": "Колорадо",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a faint mountain ridge and fine snowflakes scratched into the ice, thin burgundy glow on the ice; in the background the Rocky Mountains near Denver at dawn, snow-covered peaks above the plains, the Denver skyline small in the distance, thin avalanche haze. Color palette: burgundy #822d48, steel blue #236192, alpine white #eef3f8. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_lak",
+  "name": "Лос-Анджелес",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a crown and a faint palm silhouette scratched into the ice, thin silver glow on the ice; in the background Los Angeles at dusk, the downtown skyline with palm trees and distant San Gabriel mountains, a hazy purple-orange sunset. Color palette: silver #828c91, jet black #191919, sunset magenta #c0607a. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "minnesota",
+  "name": "Миннесота",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a pine forest silhouette and fine snowflakes scratched into the ice, a faint wild-animal paw trail on the ice; in the background a frozen Minnesota lake at twilight, a dense northern pine forest on the shore, the distant Minneapolis skyline, falling snow. Color palette: forest green #1e6444, wine red #a6192e, wheat gold #d8c17a. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_mtl",
+  "name": "Монреаль",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a subtle chevron and a ring of stars frozen into the ice, thin red lines on the ice; in the background Montreal at night in the snow, the Mount Royal hill with the old town rooftops, the cathedral and the St Lawrence river, warm street lamps. Color palette: bleu-blanc-rouge red #af1e2d, navy blue #192168, soft snow white #eef2f8. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_njd",
+  "name": "Нью-Джерси",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: flames and a faint chevron scratched into the ice, thin red glow in the cracks on the ice; in the background New Jersey at dusk, the Newark skyline and Hudson river with a far glimpse of Manhattan, a foggy industrial shoreline, a red sunset. Color palette: devil red #ce1126, jet black #191919, ember orange #e8602a. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_nsh",
+  "name": "Нэшвилл",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a faint sabre-tooth claw mark and a chevron scratched into the ice, thin gold glow on the ice; in the background Nashville at night, the skyline with the Batman building over the Cumberland river, neon glow of Broadway, warm summer-evening haze. Color palette: gold #ffb81c, midnight navy #041e42, neon amber #f0a030. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_ott",
+  "name": "Оттава",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a red maple leaf and a faint chevron frozen into the ice, thin gold lines on the ice; in the background Ottawa in winter, the Parliament Hill gothic towers above the frozen Rideau canal, soft pink sunset. Color palette: senators red #c8102e, antique gold #c2912c, deep winter blue #2a3a5c. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_pit",
+  "name": "Питтсбург",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a steel gear and flying sparks frozen into the ice, thin gold lines on the ice; in the background Pittsburgh at dusk, three rivers meeting and many bridges, the skyline with steel-mill heritage, golden-hour haze. Color palette: steel gold #fcb514, coal black #191919, river haze #6a7480. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_nyr",
+  "name": "Рейнджерс",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a ring of stars and a small crown frozen into the ice, thin red lines on the ice; in the background Manhattan at night across the Hudson river, the Empire State Building and glittering skyscrapers, light snowfall, cold mist. Color palette: liberty blue #0038a8, bright red #ce1126, city silver #c8d0dc. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_sjs",
+  "name": "Сан-Хосе",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a shark fin cutting through ice and rippling waves, thin teal glow on the ice; in the background San Jose in the Silicon Valley at dusk, low hills above a glittering valley, a Pacific fog bank rolling in, warm sunset. Color palette: deep teal #006d75, burning orange #ea7200, pearl grey #c9d3d6. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_stl",
+  "name": "Сент-Луис",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a faint chevron and a ring of stars frozen into the ice, thin gold lines on the ice; in the background St. Louis at dusk, the Gateway Arch shining above the Mississippi river, the skyline and paddle-steamer silhouettes, warm haze. Color palette: blues blue #002f87, golden yellow #fcb514, river steel #5d7aa8. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_sea",
+  "name": "Сиэтл",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a faint tent-like canopy of arcs and gentle waves scratched into the ice, a glow in the cracks on the ice; in the background Seattle at dusk, the skyline with the Space Needle and Puget Sound, Mount Rainier looming in the haze, light drizzle. Color palette: deep sea blue #006080, pale aqua #99d9d9, evergreen mist #4a6b62. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_tbl",
+  "name": "Тампа-Бэй",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: forked lightning bolts and gentle waves frozen into the ice, a thin electric blue glow on the ice; in the background Tampa Bay at sunset, the city skyline across calm water, the Skyway bridge in the distance, warm storm clouds with lightning on the horizon. Color palette: electric blue #123e8c, pure white #ebebeb, sunset coral #f08a6e. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_tor",
+  "name": "Торонто",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a maple leaf and a ring of stars frozen into the ice, thin blue lines on the ice; in the background Toronto at night, the skyline with the CN Tower across frozen Lake Ontario, falling snow, glittering city lights. Color palette: royal blue #103c8c, clean white #ebebeb, cold night navy #0d2b66. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_phi",
+  "name": "Филадельфия",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: wings and a faint chevron frozen into the ice, thin orange glow on the ice; in the background Philadelphia at dusk, the skyline from the Schuylkill river, the old City Hall tower and rowing boathouses lit up, warm orange sky. Color palette: flyers orange #f74902, jet black #191919, brick red #8a3a24. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_chi",
+  "name": "Чикаго",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a pair of wings and a ring of stars frozen into the ice, thin red lines on the ice; in the background Chicago at night on the Lake Michigan shore, the skyline with the Willis Tower, a frozen lakefront, windy snow, warm lights. Color palette: blackhawks red #cf0a2c, jet black #191919, lake steel blue #4a6280. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_edm",
+  "name": "Эдмонтон",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: black drops of oil and a faint gear scratched into the ice, thin orange lines on the ice; in the background Edmonton at dusk, the North Saskatchewan river valley, oil derricks and refinery flares beyond the skyline, northern lights glow. Color palette: vivid orange #ff4c00, deep navy #041e42, aurora teal #4fd1b0. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ },
+ {
+  "id": "nhl_uta",
+  "name": "Юта",
+  "league": "НХЛ",
+  "prompt": "Use the attached image as a style reference: same cinematic composition, same dark glossy ice surface in the foreground with crack texture, same soft haze and volumetric light, same painterly premium quality. Change the scene: a faint ridge line of desert mountains and fine snow crystals scratched into the ice on the ice; in the background Salt Lake City at dawn, the snowy Wasatch mountains above the valley, the red-rock desert beyond, pale blue mist. Color palette: glacier blue #71afe5, near-black #141416, salmon sunrise #e8a58a. Keep large calm low-detail areas in the center. Wide 16:9 format. No text, no letters, no logos, no people."
+ }
+]

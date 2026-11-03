@@ -91,7 +91,7 @@ document.body.dataset.lg=lg;
 const CLUB_THEMES={nhl_fla:{css:1,bg:1}};
 const CS=(window.CLUB_SET||{})[ID];
 /* фон-картинка клуба (03.11): assets/club/bg/<id>.webp, сцена и «стекло» — assets/club/bg.css + bg.js; флаг bg:1 (CLUB_THEMES здесь или CLUB_SET в themes.js) */
-function clubBg(){const b=document.body,v=new URLSearchParams(location.search).get('bgv'),m=['hero','bottom'].includes(v)?v:'hero';b.classList.add('club-bg',m==='hero'?'club-bgh':'club-bgb');b.dataset.clubId=ID;
+function clubBg(){const b=document.body,v=new URLSearchParams(location.search).get('bgv'),m=v==='hero'?'hero':'bottom';b.classList.add('club-bg',m==='hero'?'club-bgh':'club-bgb');b.dataset.clubId=ID;
  const l=document.createElement('link');l.rel='stylesheet';l.href='../assets/club/bg.css';document.head.appendChild(l);
  const s=document.createElement('script');s.src='../assets/club/bg.js';document.head.appendChild(s)}
 if(CLUB_THEMES[ID]){const th=CLUB_THEMES[ID];document.body.classList.add('club','club-'+ID);
