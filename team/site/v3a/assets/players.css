@@ -68,3 +68,6 @@ body{background:var(--paper);color:var(--ink)}
 .strip small{font:600 13px/1.2 var(--display);color:var(--ink-3)} .strip small b{color:var(--ink)}
 @media (max-width:900px){.strip .bars i{max-width:none}}
 .strip .bars i.x{opacity:.45;min-height:2px}
+
+.av.lite span{color:#10161f;text-shadow:none}
+.av.lite{box-shadow:inset 0 0 0 1px rgba(16,22,31,.15)}

@@ -12,7 +12,9 @@ const photo=id=>PH[id]&&PH[id].ok?`data/ph/${encodeURIComponent(id)}.webp`:'';
 const ini=n=>n.split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
 const col=T=>{const c=Array.isArray(T.c)?T.c[0]:T.c;return c?'#'+String(c).replace('#',''):'var(--paper-3)'};
 // фото игрока (ESPN); нет фото — инициалы на цвете клуба; эмблема — значком в углу
-const avatar=(p,T)=>`<div class="av" style="--c:${col(T)}"><span>${esc(ini(p.n))}</span>${photo(p.id)?`<img class="ph" src="${photo(p.id)}" alt="" loading="lazy" onerror="this.remove()">`:''}<img class="bd" src="${crest(p.t)}" alt="" loading="lazy"></div>`;
+// светлый цвет клуба (белый «Осер» и т.п.) — инициалы тёмные
+const lite=h=>{const m=/^#([0-9a-f]{6})$/i.exec(h);if(!m)return false;const n=parseInt(m[1],16);return (0.299*(n>>16)+0.587*(n>>8&255)+0.114*(n&255))>170};
+const avatar=(p,T)=>`<div class="av${lite(col(T))?' lite':''}" style="--c:${col(T)}"><span>${esc(ini(p.n))}</span>${photo(p.id)?`<img class="ph" src="${photo(p.id)}" alt="" loading="lazy" onerror="this.remove()">`:''}<img class="bd" src="${crest(p.t)}" alt="" loading="lazy"></div>`;
 const LGN={...D.leagues};
 const URLT=new URLSearchParams(location.search).get('team')||'';
 const LU=!!D.lu;
