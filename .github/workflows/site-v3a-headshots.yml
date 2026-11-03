@@ -25,6 +25,11 @@ jobs:
           path: ~/.u2net
           key: rembg-u2net-human-seg-v1
       - run: pip install opencv-python-headless rembg onnxruntime pillow requests
+      - name: Один opencv (headless), без конфликта пакетов
+        run: |
+          pip uninstall -y opencv-python opencv-contrib-python opencv-contrib-python-headless opencv-python-headless
+          pip install opencv-python-headless
+          python -c "import cv2,numpy;print('CV2',cv2.__version__,cv2.__file__,numpy.__version__,hasattr(cv2,'CascadeClassifier'))"
       - run: python team/site/v3a/football/players_headshots.py
         env:
           HEADSHOTS_BUDGET: '2900'
@@ -33,7 +38,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A team/site/v3a/football/data/ph team/site/v3a/football/data/headshots.json team/site/v3a/football/data/headshots_skipped.json
+          git add -A team/site/v3a/football/data
           git diff --cached --quiet || git commit -m "Портреты футболистов v3a: обработанные фото"
           for i in 1 2 3 4 5; do
             git fetch -q --depth=50 origin "$GITHUB_REF_NAME" && git rebase -q FETCH_HEAD && git push && exit 0
