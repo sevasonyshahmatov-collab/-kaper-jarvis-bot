@@ -18,9 +18,11 @@ RU.update({'Akhmat Grozny': 'Ахмат', 'Akron Tolyatti': 'Акрон', 'CSKA 
 E2K = {v['espn']: k for k, v in raw['leagues'].items()}
 for _g in raw['games'] + raw['prev']:
     _g['lg'] = E2K.get(_g['lg'], _g['lg'])
-LG = {'epl': 'АПЛ', 'laliga': 'Ла Лига', 'seriea': 'Серия А', 'bundesliga': 'Бундеслига', 'ligue1': 'Лига 1', 'rpl': 'РПЛ'}
+LG = {'epl': 'АПЛ', 'laliga': 'Ла Лига', 'seriea': 'Серия А', 'bundesliga': 'Бундеслига', 'ligue1': 'Лига 1', 'rpl': 'РПЛ', 'ucl': 'Лига чемпионов', 'uel': 'Лига Европы'}
+CUPS = ('ucl', 'uel')
+SHORT = {'ucl': 'ЛЧ', 'uel': 'ЛЕ'}
 FULL = {'epl': 'Английская Премьер-лига', 'laliga': 'Чемпионат Испании', 'seriea': 'Чемпионат Италии', 'bundesliga': 'Чемпионат Германии',
-        'ligue1': 'Чемпионат Франции', 'rpl': 'Российская Премьер-лига'}
+        'ligue1': 'Чемпионат Франции', 'rpl': 'Российская Премьер-лига', 'ucl': 'Турнир УЕФА, общий этап', 'uel': 'Турнир УЕФА, общий этап'}
 
 # slug: из slug ESPN без префикса лиги
 slug, used = {}, set()
@@ -75,9 +77,11 @@ def model(lg):
             for me, gf, ga in ((g['h'], g['hs'], g['as']), (g['a'], g['as'], g['hs'])):
                 x = W[me]; x[0] += w; x[1] += w * gf; x[2] += w * ga
             hg += w * g['hs']; ag += w * g['as']; n += w
+    if not n:
+        return lambda h, a: ([.45, .27, .28], .5, .5, 1.4, 1.1)
     mh, ma = hg / n, ag / n
     avg = (mh + ma) / 2
-    K = 4
+    K = 10 if lg in CUPS else 4
 
     def st(i):
         w, gf, ga = W[i]
@@ -103,21 +107,41 @@ def model(lg):
 
 MODEL = {lg: model(lg) for lg in LG}
 TEAMS = {}
-for lg, L in raw['leagues'].items():
-    for i in L['ids']:
-        t = raw['teams'][i]
-        TEAMS[slug[i]] = {'id': slug[i], 'espn': i, 'n': ru(t), 'en': t['n'], 'ab': t['ab'], 'lg': lg, 'c': [t.get('c') or '1b2a44', t.get('c2') or '0b1220'],
-                          'games': [], 'goals': {}, 'cards': {}}
-for r in raw['table']:
-    pass
-tab = {}
+for cup_pass in (0, 1):
+    for lg, L in raw['leagues'].items():
+        if (lg in CUPS) != bool(cup_pass):
+            continue
+        for i in L['ids']:
+            if slug[i] in TEAMS:
+                continue
+            t = raw['teams'][i]
+            TEAMS[slug[i]] = {'id': slug[i], 'espn': i, 'n': ru(t), 'en': t['n'], 'ab': t['ab'], 'lg': lg, 'c': [t.get('c') or '1b2a44', t.get('c2') or '0b1220'],
+                              'games': [], 'goals': {}, 'cards': {}, 'cups': []}
+TABLES = {}
 for lg, rows in raw['table'].items():
+    TABLES[lg] = []
     for r in rows:
-        s = slug.get(r['id'])
-        if s in TEAMS:
-            T = TEAMS[s]
-            T.update(place=int(r['rank'] or 0), gp=int(r['gp'] or 0), w=int(r['w'] or 0), d=int(r['d'] or 0), l=int(r['l'] or 0),
-                     gf=int(r['gf'] or 0), ga=int(r['ga'] or 0), pts=int(r['pts'] or 0), note=r.get('note') or '')
+        s_ = slug.get(r['id'])
+        if s_ not in TEAMS:
+            continue
+        v = dict(id=s_, place=int(r['rank'] or 0), gp=int(r['gp'] or 0), w=int(r['w'] or 0), d=int(r['d'] or 0), l=int(r['l'] or 0),
+                 gf=int(r['gf'] or 0), ga=int(r['ga'] or 0), pts=int(r['pts'] or 0))
+        TABLES[lg].append(v)
+        if lg in CUPS:
+            if s_ not in [x for x in TEAMS[s_]['cups']]:
+                TEAMS[s_]['cups'].append(lg)
+            if TEAMS[s_]['lg'] == lg:
+                TEAMS[s_].update({k: v[k] for k in ('place', 'gp', 'w', 'd', 'l', 'gf', 'ga', 'pts')}, note=r.get('note') or '')
+        else:
+            TEAMS[s_].update({k: v[k] for k in ('place', 'gp', 'w', 'd', 'l', 'gf', 'ga', 'pts')}, note=r.get('note') or '')
+for lg in CUPS:   # клуб кубка без таблицы кубка (редко): всё равно отмечаем по составу
+    for i in raw['leagues'][lg]['ids']:
+        if lg not in TEAMS[slug[i]]['cups']:
+            TEAMS[slug[i]]['cups'].append(lg)
+for T_ in TEAMS.values():
+    for k in ('place', 'gp', 'w', 'd', 'l', 'gf', 'ga', 'pts'):
+        T_.setdefault(k, 0)
+    T_.setdefault('note', '')
 
 # матчи сезона и ближайшие
 UP = []
@@ -130,6 +154,8 @@ for g in sorted(raw['games'], key=lambda x: x['d']):
     played = g['st'] == 'post' and g.get('hs') is not None
     for me, op, home, gf, ga, mx, ox in ((h, a, 1, g.get('hs'), g.get('as'), g.get('hx'), g.get('ax')), (a, h, 0, g.get('as'), g.get('hs'), g.get('ax'), g.get('hx'))):
         row = {'d': g['d'], 'o': op, 'h': home}
+        if g['lg'] in CUPS:
+            row['c'] = g['lg']
         if played:
             row['gf'], row['ga'] = gf, ga
             if mx: row['x'] = {k: v for k, v in mx.items() if k in ('sh', 'sot', 'cor', 'pos')}
@@ -148,14 +174,15 @@ for g in sorted(raw['games'], key=lambda x: x['d']):
                 continue
             e = TEAMS[s]['cards'].setdefault(pid, {'n': nm, 'y': 0, 'r': 0}); e[kind] += 1
     elif g['st'] == 'pre':
-        pr, ov, bt, lh, la = MODEL[TEAMS[h]['lg']](g['h'], g['a'])
+        mk = g['lg'] if g['lg'] in CUPS else TEAMS[h]['lg']
+        pr, ov, bt, lh, la = MODEL[mk](g['h'], g['a'])
         k, t = odds(g.get('odds'))
-        m = {'lg': TEAMS[h]['lg'], 't': g['d'], 'h': h, 'a': a, 'pr': pr, 'ov': ov, 'bt': bt, 'xg': [lh, la]}
+        m = {'lg': mk, 't': g['d'], 'h': h, 'a': a, 'pr': pr, 'ov': ov, 'bt': bt, 'xg': [lh, la]}
         if k: m['k'] = k
         if t: m['tt'] = t
         UP.append(m)
-        TEAMS[h]['games'].append({'d': g['d'], 'o': a, 'h': 1, 'pr': pr, 'ov': ov, 'bt': bt, **({'k': k} if k else {}), **({'tt': t} if t else {})})
-        TEAMS[a]['games'].append({'d': g['d'], 'o': h, 'h': 0, 'pr': [pr[2], pr[1], pr[0]], 'ov': ov, 'bt': bt, **({'k': [k[2], k[1], k[0]]} if k else {}), **({'tt': t} if t else {})})
+        TEAMS[h]['games'].append({'d': g['d'], 'o': a, 'h': 1, **({'c': mk} if mk in CUPS else {}), 'pr': pr, 'ov': ov, 'bt': bt, **({'k': k} if k else {}), **({'tt': t} if t else {})})
+        TEAMS[a]['games'].append({'d': g['d'], 'o': h, 'h': 0, **({'c': mk} if mk in CUPS else {}), 'pr': [pr[2], pr[1], pr[0]], 'ov': ov, 'bt': bt, **({'k': [k[2], k[1], k[0]]} if k else {}), **({'tt': t} if t else {})})
 
 # оси «силы»: место среди клубов лиги, 0–100 (100 — лучший)
 def pct(vals):
@@ -173,7 +200,7 @@ for lg in LG:
     ts = [T for T in TEAMS.values() if T['lg'] == lg]
     base = {}
     for T in ts:
-        P = [g for g in T['games'] if 'gf' in g]
+        P = [g for g in T['games'] if 'gf' in g and ('c' not in g or T['lg'] in CUPS)]
         n = max(1, len(P))
         ppg = lambda gs: sum(3 if g['gf'] > g['ga'] else 1 if g['gf'] == g['ga'] else 0 for g in gs) / max(1, len(gs))
         H = [g for g in P if g['h']]; A = [g for g in P if not g['h']]
@@ -204,8 +231,8 @@ for v in H2H.values():
     v.sort(key=lambda x: x['d'])
 
 out = {'built': raw['built'], 'axes': AX, 'season': '2026/27',
-       'leagues': {k: {'name': LG[k], 'full': FULL[k], 'ids': [slug[i] for i in raw['leagues'][k]['ids']]} for k in LG},
-       'teams': TEAMS, 'up': UP, 'h2h': H2H}
+       'leagues': {k: {'name': LG[k], 'full': FULL[k], 'ids': [slug[i] for i in raw['leagues'][k]['ids']], 'short': SHORT.get(k, LG[k]), 'cup': k in CUPS} for k in LG},
+       'tables': TABLES, 'teams': TEAMS, 'up': UP, 'h2h': H2H}
 js = json.dumps(out, ensure_ascii=False, separators=(',', ':'))
 open(os.path.join(HERE, 'data', 'football.json'), 'w', encoding='utf-8').write(js)
 open(os.path.join(HERE, 'data', 'football.js'), 'w', encoding='utf-8').write('window.JV_FOOT=' + js + ';')

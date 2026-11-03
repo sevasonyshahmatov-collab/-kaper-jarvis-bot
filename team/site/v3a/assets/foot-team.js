@@ -31,7 +31,9 @@ const pts=g=>g.gf>g.ga?3:g.gf===g.ga?1:0;
 const TGICO='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.9.8 1.4.4l2.6-2.2 4.8 3.5c.6.4 1.4.1 1.6-.7l3.1-15.1c.2-1-.7-1.7-1.6-1.3z"/></svg>';
 const followBtn=(cls='')=>`<a class="follow ${cls}" href="https://t.me/jarvibet?start=follow_${encodeURIComponent(ID)}" target="_blank" rel="noopener" title="Прогноз и итог матча — в Telegram">${TGICO}<span>Получать прогнозы</span></a>`;
 const bd=(D.built||'').slice(0,10),bdd=bd?day(bd):null,asOf=bdd?`на ${bdd.d} ${bdd.mon}`:'';
-const leagueRows=L.ids.map(s=>TM[s]).sort((a,b)=>a.place-b.place);
+const tbl0=Object.fromEntries((D.tables[lg]||[]).map(r=>[r.id,r])),leagueRows=L.ids.map(s=>({...TM[s],...(tbl0[s]||{})})).sort((a,b)=>a.place-b.place);
+const cupLab=k=>(D.leagues[k]||{}).short||k;
+const cupRow=(T.cups||[]).filter(k=>k!==lg).map(k=>{const r=(D.tables[k]||[]).find(x=>x.id===ID);return `<span class="dot">·</span>${LGP(k)}<span>${esc(D.leagues[k].name)}${r?`, ${r.place}-е место`:''}</span>`}).join('');
 /* серия: победы, матчи без поражений или поражения — от 3 */
 const streak=(()=>{const a=real;const run=f=>{let n=0;for(let i=a.length-1;i>=0&&f(a[i]);i--)n++;return n};
  const w=run(g=>g.gf>g.ga),u=run(g=>g.gf>=g.ga),l=run(g=>g.gf<g.ga);
@@ -45,7 +47,7 @@ $('hero').innerHTML=`
  <header class="tmid" data-rv>
   <div class="tmtop"><a class="crumb" href="index.html#lg-${encodeURIComponent(lg)}"><span aria-hidden="true">←</span> Лиги и клубы · ${esc(LN)}</a>${followBtn('in-hero')}</div>
   <div class="tmrow"><span class="tmcrest">${CI(ID)}</span>
-   <div class="tmname"><p class="tmlg">${LGP(lg)}<span>${esc(LN)}</span><span class="dot">·</span><span>сезон ${esc(D.season)}</span></p><h1>${esc(T.n)}</h1></div></div>
+   <div class="tmname"><p class="tmlg">${LGP(lg)}<span>${esc(LN)}</span><span class="dot">·</span><span>сезон ${esc(D.season)}</span>${cupRow}</p><h1>${esc(T.n)}</h1></div></div>
   <div class="tmplace"><b class="num">${T.place}</b><span>-е место<br>в лиге: ${esc(LN)}</span></div>
   <ul class="tmpills" aria-label="Коротко о сезоне">
    <li><b class="num">${T.pts}</b><span>${plural(T.pts,'очко','очка','очков')}</span></li>
@@ -66,7 +68,7 @@ const A=T.axes,f2=v=>fx(v,2),f1=v=>fx(v,1);
 const tile=(lab,val,unit,i,sub)=>`<div class="st"><span class="sl">${lab}</span><b class="num">${val}<small>${unit}</small></b>
   ${i!=null&&A[i]!=null?`<span class="bar" aria-label="${A[i]} из 100"><i style="--w:${A[i]}%"></i></span><span class="ss">${esc(AX[i])} — <b>${A[i]}</b> из 100 в лиге: ${esc(LN)}</span>`:`<span class="ss">${sub||''}</span>`}</div>`;
 const ZONE={epl:[[1,4,'z1'],[5,5,'z2'],[18,20,'z4']],laliga:[[1,4,'z1'],[5,6,'z2'],[18,20,'z4']],seriea:[[1,4,'z1'],[5,6,'z2'],[18,20,'z4']],
- bundesliga:[[1,4,'z1'],[5,6,'z2'],[16,16,'z3'],[17,18,'z4']],ligue1:[[1,3,'z1'],[4,5,'z2'],[16,16,'z3'],[17,18,'z4']],rpl:[[1,3,'z1'],[15,16,'z4']]}[lg]||[];
+ bundesliga:[[1,4,'z1'],[5,6,'z2'],[16,16,'z3'],[17,18,'z4']],ligue1:[[1,3,'z1'],[4,5,'z2'],[16,16,'z3'],[17,18,'z4']],rpl:[[1,3,'z1'],[15,16,'z4']],ucl:[[1,8,'z1'],[9,24,'z2'],[25,36,'z4']],uel:[[1,8,'z1'],[9,24,'z2'],[25,36,'z4']]}[lg]||[];
 const zc=p=>(ZONE.find(x=>p>=x[0]&&p<=x[1])||[])[2]||'';
 const last5=real.slice(-5);
 const homeG=real.filter(g=>g.h),awayG=real.filter(g=>!g.h);
@@ -96,7 +98,8 @@ $('tableBox').innerHTML=`
 
 /* ── 3. матчи сезона ── */
 const kf=v=>v==null?'—':f2(v);
-const row=g=>{const t=day(g.d),opp=`<a class="op" href="${teamHref(g.o)}">${CI(g.o)}<span>${esc(nm(g.o))}</span></a>`;
+const cb=g=>g.c?`<span class="cupb ${esc(g.c)}" title="${esc(D.leagues[g.c].name)}">${esc(cupLab(g.c))}</span>`:'';
+const row=g=>{const t=day(g.d),opp=`<a class="op" href="${teamHref(g.o)}">${CI(g.o)}<span>${esc(nm(g.o))}</span>${cb(g)}</a>`;
  const when=`<span class="gd"><b>${t.d} ${t.mon}</b><small>${t.wd}${t.tm?' · '+t.tm:''}</small></span>`;
  const ha=`<span class="ha ${g.h?'h':'a'}" title="${g.h?'дома':'в гостях'}">${g.h?'Д':'В'}</span>`;
  if(played(g)){const r=rOf(g);return `<li class="g ${g.h?'home':'away'}">${when}${ha}${opp}<span class="sc num">${g.gf}:${g.ga}</span><span class="rs ${r}" title="${RESF[r]}">${RES[r]}</span></li>`}
@@ -132,7 +135,7 @@ if(nextG){
  const cr2=(sl,cls)=>`<span class="nmc ${cls}"><a href="${teamHref(sl)}"><span class="nmcr">${CI(sl)}</span><b>${esc(nm(sl))}</b></a></span>`;
  const mdl=nextG.pr?`<p class="mdl" aria-label="Расчёт модели"><span>1Х2: <b>${nextG.pr.map(v=>Math.round(v*100)).join(' · ')} %</b></span><span>тотал больше 2,5: <b>${Math.round(nextG.ov*100)} %</b></span><span>обе забьют: <b>${Math.round(nextG.bt*100)} %</b></span></p>`:'';
  $('nextBox').innerHTML=`
-  <div class="sec-head" data-rv><h2>Следующий матч</h2><p>${LGP(lg)}${esc(LN)} · ${oh?'дома':'в гостях'}, время московское.</p></div>
+  <div class="sec-head" data-rv><h2>Следующий матч</h2><p>${LGP(nextG.c||lg)}${esc(D.leagues[nextG.c||lg].name)} · ${oh?'дома':'в гостях'}, время московское.</p></div>
   <article class="nmatch" data-rv aria-label="${esc(T.n)} — ${esc(nm(o))}, ${t.d} ${t.mon}, ${t.tm} МСК">
    <div class="nmteams">${cr2(oh?ID:o,'a')}<span class="nmmid"><span class="nmdt"><b>${t.d} ${t.mon}</b><small>${t.wd}${t.tm?' · '+t.tm+' МСК':''}</small></span><span class="nmha ${oh?'h':'a'}">${oh?'Дома':'В гостях'}</span></span>${cr2(oh?o:ID,'b')}</div>
    <div class="nmside">

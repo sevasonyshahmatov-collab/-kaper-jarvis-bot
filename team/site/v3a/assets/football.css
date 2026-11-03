@@ -81,3 +81,33 @@
 .kx3{display:inline-flex;gap:6px;font:600 13px/1.1 var(--display);color:var(--ink-3)}
 .mdl{display:flex;flex-wrap:wrap;gap:6px 16px;margin:6px 0 0;font:600 14px/1.3 var(--display);color:var(--ink-2)}
 .mdl b{color:var(--ink);font-variant-numeric:tabular-nums}
+/* вкладка «Лига чемпионов» в переключателе видов спорта: только на футбольных страницах, при загрузке плавно выезжает */
+.seg .seg-ucl{display:inline-flex;align-items:center;overflow:hidden;white-space:nowrap;animation:ucl-in .5s cubic-bezier(.23,1,.32,1) both}
+.seg .seg-ucl .sh{display:none}
+@keyframes ucl-in{from{max-width:0;padding-left:0;padding-right:0;opacity:0}to{max-width:220px;opacity:1}}
+@media (prefers-reduced-motion:reduce){.seg .seg-ucl{animation:none}}
+@media (max-width:620px){.seg a{padding:9px 11px}.seg .seg-ucl .full{display:none}.seg .seg-ucl .sh{display:inline}}
+/* еврокубки: знак, плашки, зоны таблицы */
+.lgp.ucl{--c1:#06164a;--c2:#7fb2ff}.lgp.uel{--c1:#15110d;--c2:#ff8a1f}
+.lgtab.ucl{background:radial-gradient(1.5px 1.5px at 18% 30%,rgba(255,255,255,.7),transparent),radial-gradient(1.5px 1.5px at 62% 18%,rgba(255,255,255,.6),transparent),radial-gradient(1.5px 1.5px at 40% 74%,rgba(255,255,255,.5),transparent),radial-gradient(90% 120% at 100% 0%,rgba(127,178,255,.22),transparent 60%),linear-gradient(120deg,#030a26 0%,#071a5c 45%,#0f3399 100%);box-shadow:inset 0 -6px 0 #7fb2ff;--bar:#3b78e0}
+.lgtab.uel{background:radial-gradient(90% 120% at 100% 0%,rgba(255,150,40,.28),transparent 60%),linear-gradient(120deg,#0b0907 0%,#241407 40%,#d9590a 100%);box-shadow:inset 0 -6px 0 #ff8a1f;--bar:#ff8a1f}
+.leagues.six{grid-template-columns:repeat(4,minmax(0,1fr))}
+.leagues.six .lgtab .lgn{font-size:clamp(26px,2.5vw,40px);overflow-wrap:anywhere;hyphens:manual}
+.leagues.six .lgtab .lgf{font-size:clamp(15px,1.15vw,18px)}
+.leagues.six .lgtab .nt{font-size:clamp(15px,1.1vw,17px)}
+.leagues.six .lgtab .cnt{font-size:clamp(15px,1.15vw,18px)}
+@media (max-width:1100px){.leagues.six{grid-template-columns:repeat(2,minmax(0,1fr))}.leagues.six .lgtab .lgn{font-size:clamp(30px,5vw,44px)}}
+@media (max-width:620px){.leagues.six .lgtab .lgn{font-size:26px}}
+.cupb{display:inline-grid;place-items:center;min-width:30px;height:20px;padding:0 6px;border-radius:4px;font:800 11px/1 var(--display);letter-spacing:.04em;color:#fff;background:#0f3399;margin-left:8px;vertical-align:middle}
+.cupb.uel{background:#d9590a}
+.resl{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:6px}
+.resl li{display:grid;grid-template-columns:64px minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:10px;background:var(--card);border-radius:8px;padding:10px 14px;font:600 17px/1.2 var(--display)}
+.resl .d{font:600 13px/1.2 var(--display);color:var(--ink-3)}
+.resl .t{display:flex;align-items:center;gap:8px;min-width:0}.resl .t.a{flex-direction:row-reverse;text-align:right}
+.resl .t span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.resl .t .em{width:26px;height:26px;object-fit:contain;border-radius:0;background:none;padding:0;flex:none}
+.resl .s{font:800 22px/1 var(--display);font-variant-numeric:tabular-nums}
+.resl .w{font-weight:800}
+@media (max-width:620px){.resl li{grid-template-columns:44px minmax(0,1fr) auto minmax(0,1fr);gap:6px;padding:9px;font-size:14px}.resl .t .em{width:22px;height:22px}}
+.resl .t{text-decoration:none;color:inherit}.resl .t:hover span{text-decoration:underline}
+.leagues[hidden]{display:none!important}

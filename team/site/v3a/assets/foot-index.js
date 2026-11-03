@@ -4,21 +4,22 @@
 const {D,esc,fx,pc,plural,T,nm,CI,LGI,LGP,teamHref,day,dd,played,rOf,RES,RESF,gamesOf,stats,h2h,dots}=JVF;
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $=id=>document.getElementById(id);
-const LGK=Object.keys(D.leagues);
+const MODE=document.body.dataset.only||'',LGK=MODE?[MODE]:Object.keys(D.leagues);
 const chev='<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5l5 5 5-5"/></svg>';
 const k2=v=>v==null?'—':fx(v,2);
 const mskDay=ms=>new Date(ms+3*3600e3).toISOString().slice(0,10);
 
 /* ── цифры в первом экране ── */
-{const gp=Object.values(T).reduce((a,t)=>a+t.games.filter(played).length,0)/2;
- $('fN').textContent=Object.keys(T).length;$('fG').textContent=Math.round(gp);$('fL').textContent=LGK.length;
+{const ids=MODE?D.leagues[MODE].ids:Object.keys(T);
+ const gp=MODE?ids.reduce((a,i)=>a+T[i].games.filter(g=>played(g)&&g.c===MODE).length,0)/2:Object.values(T).reduce((a,t)=>a+t.games.filter(g=>played(g)&&!g.c).length,0)/2+Object.keys(D.leagues).filter(k=>D.leagues[k].cup).reduce((a,k)=>a+D.leagues[k].ids.reduce((b,i)=>b+T[i].games.filter(g=>played(g)&&g.c===k).length,0)/2,0);
+ $('fN').textContent=ids.length;$('fG').textContent=Math.round(gp);$('fL').textContent=LGK.length;
  $('chips').innerHTML=LGK.map(k=>`<li><a href="#lg-${esc(k)}">${LGP(k)}${esc(D.leagues[k].name)}</a></li>`).join('')}
 
 /* ── ближайшие матчи: с этого момента, первые 4 игровых дня ── */
 const now=Date.now();
-const FUT=D.up.filter(m=>JV.left(m.t)>-2*3600).sort((a,b)=>a.t<b.t?-1:1);
-const days=[...new Set(FUT.map(m=>m.t.slice(0,10)))].slice(0,4);
-const UP=FUT.filter(m=>days.includes(m.t.slice(0,10)));
+const FUT=D.up.filter(m=>LGK.includes(m.lg)&&JV.left(m.t)>-2*3600).sort((a,b)=>a.t<b.t?-1:1);
+const dayWin={};LGK.forEach(k=>{dayWin[k]=[...new Set(FUT.filter(m=>m.lg===k).map(m=>m.t.slice(0,10)))].slice(0,3)});
+const UP=FUT.filter(m=>(dayWin[m.lg]||[]).includes(m.t.slice(0,10)));
 const today=mskDay(now),isToday=UP.some(m=>m.t.slice(0,10)===today);
 {const f=UP[0];
  if(!UP.length){$('mh').textContent='Ближайшие матчи';$('mpt').textContent='Ближайшие матчи';$('mlead').textContent='Расписание обновится в начале следующего тура.'}
@@ -39,7 +40,7 @@ function best(m){const A=nm(m.h),B=nm(m.a),c=[{p:m.pr[0],t:`${A} — побед�
  const ck=c.filter(x=>x.k);return (ck.length?ck:c).sort((a,b)=>b.p-a.p)[0]}
 const pool=UP.filter(m=>JV.left(m.t)>0);
 const withK=pool.filter(m=>m.k);
-const picks=(withK.length>=3?withK:pool).map(m=>({m,b:best(m)})).sort((a,b)=>b.b.p-a.b.p).slice(0,4).sort((a,b)=>a.m.t<b.m.t?-1:1);
+const picks=MODE?pool.slice(0,4).map(m=>({m,b:best(m)})):(withK.length>=3?withK:pool).map(m=>({m,b:best(m)})).sort((a,b)=>b.b.p-a.b.p).slice(0,4).sort((a,b)=>a.m.t<b.m.t?-1:1);
 const mcard=$('mcard'),cdv=$('cdv'),boardEl=$('board'),pager=$('pager');
 const lvl=p=>p>=.6?'hi':p>=.5?'mid':'lo';
 const tm=(s,cls)=>{const n=nm(s);return `<div class="tm${n.length>10?' long':''}">${CI(s)}<small>${cls}</small><span>${esc(n)}</span></div>`};
@@ -67,7 +68,7 @@ else{
  pager.innerHTML=picks.map(({m},i)=>`<button type="button" aria-pressed="${i===0}" aria-label="${esc(nm(m.h))} — ${esc(nm(m.a))}"></button>`).join('');
  const show=i=>{const dir=i>=cur?1:-1;cur=i;const p=picks[i],m=p.m;
   $('blg').innerHTML=LGP(m.lg);$('bmeta').textContent=`${D.leagues[m.lg].name} · ${m.t.slice(11)} МСК`;
-  $('bhead').textContent=i===0?`Прогноз дня · 1 из ${picks.length}`:`Прогноз ${i+1} из ${picks.length}`;
+  const near=JV.left(m.t)<48*3600;$('bhead').textContent=i===0?`${near?'Прогноз дня':'Ближайший матч'} · 1 из ${picks.length}`:`${near?'Прогноз':'Матч'} ${i+1} из ${picks.length}`;
   pager.querySelectorAll('button').forEach((b,j)=>b.setAttribute('aria-pressed',j===i));
   swap(p,shown?dir:1);shown=true;cdSet(JV.left(m.t));const d=day(m.t);$('bdate').textContent=`${d.d} ${d.mon}`};
  {let sx=null,sy=0;const z=$('mstage');
@@ -136,10 +137,11 @@ flags.innerHTML=LGK.map(k=>{const l=D.leagues[k],n=cntL(k);
  return `<button type="button" role="tab" class="lgtab ${esc(k)}" id="lg-${esc(k)}" data-lg="${esc(k)}" aria-selected="false" aria-controls="wallbox"><img class="lgbg" src="${LGI(k)}" alt=""><span class="lgtx"><span class="lgn">${esc(l.name)}</span><span class="lgf">${esc(l.full)}</span><span class="nt">${l.ids.length} ${plural(l.ids.length,'клуб','клуба','клубов')}</span><span class="cnt">${n?`${n} ${plural(n,'матч','матча','матчей')} в ближайший тур`:'туров нет в расписании'}</span></span></button>`}).join('');
 const ZONE=lg=>({epl:[[1,4,'z1','Лига чемпионов'],[5,5,'z2','Лига Европы'],[18,20,'z4','Вылет']],laliga:[[1,4,'z1','Лига чемпионов'],[5,6,'z2','Лига Европы'],[18,20,'z4','Вылет']],
  seriea:[[1,4,'z1','Лига чемпионов'],[5,6,'z2','Лига Европы'],[18,20,'z4','Вылет']],bundesliga:[[1,4,'z1','Лига чемпионов'],[5,6,'z2','Лига Европы'],[16,16,'z3','Стыковые матчи'],[17,18,'z4','Вылет']],
- ligue1:[[1,3,'z1','Лига чемпионов'],[4,5,'z2','Лига Европы'],[16,16,'z3','Стыковые матчи'],[17,18,'z4','Вылет']],rpl:[[1,3,'z1','Еврокубки по рейтингу'],[15,16,'z4','Вылет']]})[lg]||[];
+ ligue1:[[1,3,'z1','Лига чемпионов'],[4,5,'z2','Лига Европы'],[16,16,'z3','Стыковые матчи'],[17,18,'z4','Вылет']],rpl:[[1,3,'z1','Еврокубки по рейтингу'],[15,16,'z4','Вылет']],
+ ucl:[[1,8,'z1','Сразу в 1/8 финала'],[9,24,'z2','Плей-офф'],[25,36,'z4','Выбыли']],uel:[[1,8,'z1','Сразу в 1/8 финала'],[9,24,'z2','Плей-офф'],[25,36,'z4','Выбыли']]})[lg]||[];
 function pickLg(lg,anim=true){if(lg===curLg||!D.leagues[lg])return;curLg=lg;
  flags.querySelectorAll('.lgtab').forEach(b=>b.setAttribute('aria-selected',b.dataset.lg===lg));
- const L=D.leagues[lg],rows=L.ids.map(s=>T[s]).sort((a,b)=>a.place-b.place),z=ZONE(lg);
+ const L=D.leagues[lg],tb=D.tables[lg]||[],pl=Object.fromEntries(tb.map(r=>[r.id,r])),rows=L.ids.map(s=>({...T[s],...(pl[s]||{place:99,gp:0,w:0,d:0,l:0,gf:0,ga:0,pts:0})})).sort((a,b)=>a.place-b.place),z=ZONE(lg);
  const put=()=>{wallH.innerHTML=`${LGP(lg)}<span>${esc(L.name)}</span><span>${rows.length} ${plural(rows.length,'клуб','клуба','клубов')}</span>`;
   wallEl.dataset.lg=lg;wallEl.innerHTML=rows.map((t,i)=>`<a class="crest" style="--i:${i}" href="${teamHref(t.id)}" title="${esc(t.n)} · ${esc(L.name)}: страница клуба">${CI(t.id)}<span>${esc(t.n)}</span></a>`).join('');
   $('ltab').innerHTML=`<thead><tr><th>#</th><th>Клуб</th><th>И</th><th class="hm">В</th><th class="hm">Н</th><th class="hm">П</th><th>Мячи</th><th>О</th></tr></thead><tbody>${rows.map(t=>{const zc=(z.find(x=>t.place>=x[0]&&t.place<=x[1])||[])[2]||'';
@@ -150,6 +152,14 @@ function pickLg(lg,anim=true){if(lg===curLg||!D.leagues[lg])return;curLg=lg;
  if(anim&&!RM&&wallEl.innerHTML){wallEl.animate([{opacity:1},{opacity:0,transform:'translateY(6px)'}],{duration:160,easing:'ease-in'}).finished.then(put).catch(put)}else put()}
 flags.addEventListener('click',e=>{const b=e.target.closest('.lgtab');if(b)pickLg(b.dataset.lg)});
 flags.addEventListener('keydown',e=>{if(!/Arrow(Left|Right)/.test(e.key))return;const t=[...flags.querySelectorAll('.lgtab')],i=t.findIndex(b=>b.dataset.lg===curLg),n=t[(i+(e.key==='ArrowRight'?1:t.length-1))%t.length];n.focus();pickLg(n.dataset.lg)});
-pickLg(/^#lg-/.test(location.hash)&&D.leagues[location.hash.slice(4)]?location.hash.slice(4):LGK[0],false);
+pickLg(MODE||(/^#lg-/.test(location.hash)&&D.leagues[location.hash.slice(4)]?location.hash.slice(4):LGK[0]),false);
+if(MODE)flags.hidden=true;
 document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#lg-"]');if(!a)return;pickLg(a.getAttribute('href').slice(4))});
+
+/* последний тур турнира (страница турнира): результаты последних сыгранных матчей */
+if(MODE&&$('resl')){const L=D.leagues[MODE],rows=[];
+ L.ids.forEach(i=>T[i].games.forEach(g=>{if(g.c===MODE&&g.h&&played(g))rows.push({d:g.d,h:i,a:g.o,gf:g.gf,ga:g.ga})}));
+ rows.sort((a,b)=>a.d<b.d?1:-1);const top=rows.length?rows[0].d.slice(0,10):'',lim=Date.parse(top)-4*864e5;
+ const last=rows.filter(r=>Date.parse(r.d.slice(0,10))>=lim);
+ $('resl').innerHTML=last.length?last.map(r=>{const t=day(r.d);return `<li><span class="d">${t.d} ${t.mon}<br>${esc(r.d.slice(11))}</span><a class="t" href="${teamHref(r.h)}">${CI(r.h)}<span class="${r.gf>r.ga?'w':''}">${esc(nm(r.h))}</span></a><span class="s num">${r.gf}:${r.ga}</span><a class="t a" href="${teamHref(r.a)}">${CI(r.a)}<span class="${r.ga>r.gf?'w':''}">${esc(nm(r.a))}</span></a></li>`}).join(''):'<li class="note">Сыгранных матчей пока нет.</li>'}
 })();

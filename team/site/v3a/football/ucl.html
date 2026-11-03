@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ru" data-sport="football" data-theme="arena">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Лига чемпионов — JARVIS (макет v3a)</title>
+<meta name="description" content="Прогнозы на футбол: АПЛ, Ла Лига, Серия А, Бундеслига, Лига 1 и РПЛ. Ближайшие матчи с линией и расчётом модели, таблицы лиг, страница каждого клуба, честные цифры проверки модели.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#071225">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js">
+<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js">
+<link rel="stylesheet" href="../assets/v3a.css">
+<link rel="stylesheet" href="../assets/football.css">
+</head>
+<body data-field="football" data-only="ucl">
+<div class="arena-bg" id="arena" aria-hidden="true"><i class="bm"></i><i class="bm"></i><i class="bm"></i><i class="bm"></i><i class="sp"></i></div>
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="../index.html" aria-label="JARVIS, на главную">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="../hockey/index.html">Хоккей</a>
+      <a href="index.html">Футбол</a>
+      <a class="seg-ucl" href="ucl.html" aria-current="page"><span class="full">Лига чемпионов</span><span class="sh" aria-label="Лига чемпионов">ЛЧ</span></a>
+    </nav>
+    <nav class="nav" aria-label="Разделы">
+      <a href="#matches">Матчи</a><a href="#leagues">Лиги</a><a href="#faq">Вопросы</a>
+    </nav>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Telegram</span></a>
+  </div>
+</header>
+<div class="ticker" id="ticker" aria-label="Ближайшие матчи, бегущая строка"></div>
+
+<main id="main">
+<section class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <h1><span class="ln"><span>Лига</span></span> <span class="ln" style="--i:1"><span>чемпионов</span></span></h1>
+      <div data-rv>
+        <p class="lead">Общий этап на 36 клубов: ближайшие матчи, расчёт модели, таблица с зонами и эмблемы всех участников со ссылками на страницы клубов.</p>
+        <div class="hero-cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть @jarvibet</a><a class="btn btn-line" href="#matches">Ближайшие матчи</a></div>
+        <ul class="facts" aria-label="Коротко">
+          <li><b class="num" id="fN">112</b><span>клуба в общем этапе</span></li>
+          <li><b class="num" id="fG">0</b><span id="fGl">матчей сезона разобрано</span></li>
+          <li><b class="num" id="fL">6</b><span>турнир</span></li>
+        </ul>
+        <ul class="chips" aria-label="Лиги" id="chips"></ul>
+      </div>
+    </div>
+    <div class="bcol" data-rv>
+      <div class="board" id="board" aria-label="Табло: прогноз дня">
+        <div class="board-top"><span class="bmeta"><span id="blg"></span><b id="bmeta"></b></span><span class="bwhen"><i class="lamp"></i><span id="bhead">Прогноз дня</span><span class="bdot">·</span><span id="bdate"></span></span></div>
+        <div class="mstage" id="mstage" aria-live="polite"><div class="mcard" id="mcard"></div></div>
+        <div class="cdown" role="timer" aria-label="До матча"><span class="cdl">До матча</span><span class="cdv num" id="cdv"></span></div>
+        <div class="board-foot"><p class="note">Расчёт по голам сезона. В канале — ставки на 1Х2 и тотал 2,5, когда они проходят порог.</p><div class="pager" id="pager" aria-label="Другие прогнозы дня"></div></div>
+      </div>
+      <a class="btn btn-tg get8" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>Получать прогнозы</a>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="matches" data-zone="p1">
+  <div class="wrap">
+    <div class="period" data-rv><p><span class="pn">1</span><span class="pw">-й тайм</span><span class="pt" id="mpt">Сегодня на поле</span><span class="pc num" id="mpc"></span></p></div>
+    <div class="sec-head" data-rv><h2 id="mh">Сегодня на поле</h2><p id="mlead">Нажми на строку: форма, последние матчи и личные встречи сезона.</p></div>
+    <div class="tabs" role="tablist" id="ltabs" aria-label="Фильтр по лигам"></div>
+    <ul class="mlist" id="mlist"></ul>
+    <div class="more2"><button class="btn btn-line" type="button" id="moreM" hidden>Показать ещё</button></div>
+    <a class="btn btn-ink more" href="https://t.me/jarvibet" target="_blank" rel="noopener">Ставки дня — в канале</a>
+    <div class="sec-head" data-rv style="margin-top:34px"><h2>Последний тур</h2><p>Результаты последних сыгранных матчей турнира.</p></div><ul class="resl" id="resl"></ul>
+  </div>
+</section>
+
+<section class="sec" id="leagues" data-zone="p2">
+  <div class="wrap">
+    <div class="period" data-rv><p><span class="pn">2</span><span class="pw">-й тайм</span><span class="pt">Таблица и клубы</span><span class="pc num" id="lpc"></span></p></div>
+    <div class="sec-head" data-rv><h2>Таблица и клубы</h2><p>Общий этап: 1–8 места идут сразу в 1/8 финала, 9–24 играют плей-офф, 25–36 выбывают. Эмблема ведёт на страницу клуба.</p></div>
+    <div class="leagues two six" id="flags" role="tablist" aria-label="Выбор лиги" data-rv></div>
+    <div id="wallbox" role="tabpanel" aria-live="polite"><h3 class="wallh" id="wallh"></h3><div class="wall" id="wall"></div>
+      <div class="tabscroll"><table class="ltab" id="ltab"></table></div><ul class="lkey" id="lkey"></ul></div>
+    <p class="note">Эмблемы и знаки лиг — собственность клубов и лиг, показаны для навигации. Данные — ESPN.</p>
+  </div>
+</section>
+
+<section class="sub" id="subscribe">
+  <div class="wrap" data-rv>
+    <div><h2>Все прогнозы&nbsp;— в Telegram</h2>
+      <div class="cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Подписаться на @jarvibet</a><a class="btn btn-line" href="https://t.me/jarvibet" target="_blank" rel="noopener">Мини-приложение</a></div></div>
+    <ul>
+      <li><b>Пост на матч</b><span>Ставка, кэф и вероятность по модели — в канале каждый день.</span></li>
+      <li><b>Ровные цифры</b><span>Порог «ВЫБОР» — от 60 % и кэф от 1,6. Нет такой ставки — нет и поста.</span></li>
+      <li><b>Хоккей рядом</b><span>КХЛ и НХЛ — тот же канал и те же честные итоги.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="sec" id="faq">
+  <div class="wrap faq">
+    <div data-rv><h2>Вопросы</h2>
+      <div class="swap"><p>Хоккей — КХЛ и НХЛ, та же модель и те же честные итоги.</p><a class="btn btn-ink" href="../hockey/index.html">Прогнозы на хоккей</a></div></div>
+    <div data-rv>
+      <details><summary>Это платно?</summary><p>Нет. Прогнозы, итоги и ролики в Telegram-канале @jarvibet бесплатные.</p></details>
+      <details><summary>Какие лиги?</summary><p>Английская Премьер-лига, Ла Лига, Серия А, Бундеслига, Лига 1 и Российская Премьер-лига, а ещё Лига чемпионов и Лига Европы: на сайте у них таблица общего этапа и страницы клубов.</p></details>
+      <details><summary>Откуда цифры на сайте?</summary><p>Расписание, счёт и таблицы — ESPN. Силу атаки и защиты клубов модель считает сама по голам сезона 2026/27 и прошлого сезона.</p></details>
+      <details><summary>Что такое «ВЫБОР»?</summary><p>Ставка, у которой вероятность от 60 % при кэфе от 1,6. Рынки — исход матча и тотал 2,5.</p></details>
+      <details><summary>Почему на сайте нет ставки на каждый матч?</summary><p>Расчёт модели есть на каждый матч, а ставка канала — только когда выполнены оба условия. Остальные матчи — разбор без выбора.</p></details>
+      <p class="legal">18+. Аналитика, а не призыв делать ставки.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="plate" aria-hidden="true">Jarvis</p>
+    <div class="fcols">
+      <nav aria-label="Подвал"><a href="../index.html">Главная</a><a href="../hockey/index.html">Хоккей</a><a href="#matches">Матчи</a><a href="#leagues">Лиги</a><a href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a></nav>
+      <p>Макет v3a · © JARVIS, @jarvibet</p>
+    </div>
+  </div>
+</footer>
+<a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Получать прогнозы — @jarvibet</span><span aria-hidden="true">›</span></a>
+
+<script src="../assets/v3a.js"></script>
+<script src="../assets/particles.js" defer></script>
+<script src="../assets/titles.js" defer></script>
+<script src="data/football.js"></script>
+<script src="../assets/foot-kit.js"></script>
+<script src="../assets/foot-index.js"></script>
+</body>
+</html>
