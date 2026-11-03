@@ -1,0 +1,42 @@
+{
+ "day": "2026-11-03",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_football_ctx/ctx_barcelona.jpg"
+   ],
+   "text": "Барселона: сверху контекст «Ла Лига», снизу «Лига чемпионов». Переключатель — две плашки в шапке клуба"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_football_ctx/ucl_page2.jpg"
+   ],
+   "text": "Страница «Лига чемпионов» в новом фирменном оформлении: ночной синий, серебро, звёзды, знак турнира на фоне"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_football_ctx/ctx_compare.jpg"
+   ],
+   "text": "Сравнение шестиугольников в ЛЧ (Барселона и Астон Вилла): оси сравнимы между лигами, сила — рейтинг Club Elo"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_football_ctx/ctx_phone.jpg"
+   ],
+   "text": "Клуб в контексте ЛЧ на телефоне"
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Готово. В Лиге чемпионов сила клубов теперь сравнима между лигами: рейтинг Club Elo, перцентиль среди 36 участников (у Бетиса «Сила» 51, у Шахтёра 14). У клуба-участника в шапке две плашки: лига и ЛЧ/ЛЕ; в контексте турнира вся страница считается по его матчам. Оформление ЛЧ — ночное, ЛЕ — оранжево-чёрное. Рейтинг есть не у всех клубов, у Малаги, Юнион СЖ и Хапоэля Беэр-Шева Elo оценён и помечен.\n\nЛига чемпионов: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/283d1cf790991aacb6ed0e89f7fdc2ed569efa99/team/site/v3a/football/ucl.html\nБарселона в ЛЧ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/283d1cf790991aacb6ed0e89f7fdc2ed569efa99/team/site/v3a/football/team.html?id=barcelona&ctx=ucl\nБарселона в лиге: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/283d1cf790991aacb6ed0e89f7fdc2ed569efa99/team/site/v3a/football/team.html?id=barcelona\nБетис в ЛЧ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/283d1cf790991aacb6ed0e89f7fdc2ed569efa99/team/site/v3a/football/team.html?id=betis&ctx=ucl\n\nТак?"
+  }
+ ]
+}
