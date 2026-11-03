@@ -87,6 +87,11 @@ document.title=`${T.name} — матчи сезона, место в табли�
  const m=document.querySelector('meta[name=theme-color]');if(m)m.content=CP.stops[0];
  const wm=document.createElement('img');wm.className='tmwm';wm.src=`../assets/em/${ID}.webp`;wm.alt='';wm.setAttribute('aria-hidden','true');document.querySelector('.tmhero').prepend(wm)}
 document.body.dataset.lg=lg;
+/* ── клубная тема (03.11): у клуба из списка — свой фон каждой секции, файлы assets/club/<id>.css (+ .js при нужде) ── */
+const CLUB_THEMES={nhl_fla:{css:1}};
+if(CLUB_THEMES[ID]){const th=CLUB_THEMES[ID];document.body.classList.add('club','club-'+ID);
+ if(th.css){const l=document.createElement('link');l.rel='stylesheet';l.href=`../assets/club/${ID}.css`;document.head.appendChild(l)}
+ if(th.js){const s=document.createElement('script');s.src=`../assets/club/${ID}.js`;document.head.appendChild(s)}}
 const played=T.games.filter(g=>g.gf!=null),future=T.games.filter(g=>g.gf==null);
 const hasSample=T.games.some(g=>g.s||g.ks);
 const otl=Math.max(0,(T.pts||0)-2*(T.w||0));
