@@ -1,24 +1,35 @@
-/* JARVIS v3a — клуб с картинкой в шапке (assets/club/bg/<id>.webp; флаг bg:1 в team.js CLUB_THEMES / themes.js CLUB_SET).
-   Картинка — только фон шапки-героя (.tmhero): слой .hbg (строит bg.js) + затемнение под текстом. Всё ниже шапки — обычная клубная тема.
-   Живой mesh-градиент (clubbg.js) и плоские «джерси»-полоски в шапке у таких клубов выключены.
-   Кадр: --bg-pos (компьютер), --bg-pos-m (телефон), глубина затемнения --shade. */
-body.club-bg{--bg-pos:50% 50%;--bg-pos-m:50% 50%;--shade:.16}
-body.club-ska{--bg-pos:50% 46%;--bg-pos-m:30% 50%;--shade:.14}
-body.club-akbars{--bg-pos:50% 42%;--bg-pos-m:38% 50%;--shade:.14}
-body.club-nhl_fla{--bg-pos:50% 56%;--bg-pos-m:16% 50%;--shade:.14}
-.club-bg .tmhero .tmbg,.club-bg .tmhero .tmwm{display:none!important}
-.club-bg .tmhero.hero{background:#07101f}
-.club-bg .tmhero.has-bg::after{display:none}
+/* JARVIS v3a — клуб с картинкой. Два варианта (?bgv=hero — по умолчанию, ?bgv=bottom): hero — размытая картинка в шапке, bottom — блок в конце страницы.
+   Блок в конце страницы (assets/club/bg/<id>.webp; флаг bg:1 в team.js CLUB_THEMES / themes.js CLUB_SET).
+   Широкий блок-«сцена» .clubend перед подвалом (строит bg.js): картинка cover на всю ширину, сверху плавный переход от страницы,
+   снизу затемнение к подвалу. Текста поверх нет. Всё остальное на странице — обычная клубная тема.
+   Кадр: --bg-pos (компьютер), --bg-pos-m (телефон). */
+body.club-bg{--bg-pos:50% 50%;--bg-pos-m:50% 50%}
+body.club-ska{--bg-pos:50% 40%;--bg-pos-m:30% 50%}
+body.club-akbars{--bg-pos:50% 55%;--bg-pos-m:42% 50%}
+body.club-nhl_fla{--bg-pos:50% 60%;--bg-pos-m:20% 50%}
+.clubend{position:relative;height:66vh;min-height:360px;max-height:760px;overflow:hidden;background:#050c1a;isolation:isolate}
+.clubend .ce-img{position:absolute;inset:-8% 0;background:var(--club-bg) var(--bg-pos)/cover no-repeat;transform:translate3d(0,var(--py,0px),0);will-change:transform}
+.clubend .ce-top{position:absolute;left:0;right:0;top:0;height:42%;background:linear-gradient(180deg,var(--ce-page,#eef2f7) 0,color-mix(in srgb,var(--ce-page,#eef2f7) 55%,transparent) 38%,transparent)}
+.clubend .ce-bot{position:absolute;left:0;right:0;bottom:0;height:30%;background:linear-gradient(180deg,transparent,rgba(5,12,26,.78))}
+@media (max-width:620px){.clubend{height:50vh;min-height:300px}.clubend .ce-img{background-position:var(--bg-pos-m)}.clubend .ce-top{height:34%}}
+
+/* вариант hero: размытая картинка фоном шапки (.hbg внутри .tmhero), mesh-градиент выключен */
+.club-bgh .tmhero .tmbg,.club-bgh .tmhero .tmwm{display:none!important}
+.club-bgh .tmhero.hero{background:#07101f}
+.club-bgh .tmhero.has-bg::after{display:none}
 .tmhero .hbg{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
-.tmhero .hbg .hb-img{position:absolute;inset:-7% 0;background:var(--club-bg) var(--bg-pos)/cover no-repeat;
+.tmhero .hbg .hb-img{position:absolute;inset:-9% -4%;background:var(--club-bg) var(--bg-pos)/cover no-repeat;filter:blur(8px) saturate(1.08);
   transform:translate3d(0,var(--py,0px),0);will-change:transform}
 .tmhero .hbg .hb-shade{position:absolute;inset:0;background:
   radial-gradient(70% 85% at 20% 52%,rgba(3,8,18,.62),rgba(3,8,18,.3) 62%,transparent),
-  linear-gradient(180deg,rgba(3,8,18,.32),rgba(3,8,18,var(--shade)) 32%,rgba(3,8,18,calc(var(--shade) + .2)) 100%)}
-.club-bg .tmhero .tmpower,.club-bg .tmhero .tmpills li,.club-bg .tmhero .tmstreak{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-.club-bg .tmhero{--card:rgba(3,10,24,.55);--card-hi:rgba(3,10,24,.68);color:#f4f7fb;--ink:#f4f7fb;--ink-2:#dbe4f1;--ink-3:#c3cfe0}
-.club-bg .tmhero h1,.club-bg .tmhero .tmplace{text-shadow:0 2px 18px rgba(0,0,0,.55)}
+  linear-gradient(180deg,rgba(3,8,18,.32),rgba(3,8,18,.2) 32%,rgba(3,8,18,.4) 100%)}
+.club-bgh .tmhero{--card:rgba(3,10,24,.55);--card-hi:rgba(3,10,24,.68);color:#f4f7fb;--ink:#f4f7fb;--ink-2:#dbe4f1;--ink-3:#c3cfe0}
+.club-bgh .tmhero .tmpower,.club-bgh .tmhero .tmpills li,.club-bgh .tmhero .tmstreak{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.club-bgh .tmhero h1,.club-bgh .tmhero .tmplace{text-shadow:0 2px 18px rgba(0,0,0,.55)}
 @media (max-width:620px){
-  .tmhero .hbg .hb-img{background-position:var(--bg-pos-m)}
+  .tmhero .hbg .hb-img{background-position:var(--bg-pos-m);filter:blur(6px) saturate(1.08)}
   .tmhero .hbg .hb-shade{background:linear-gradient(180deg,rgba(3,8,18,.2) 0,rgba(3,8,18,.36) 45%,rgba(3,8,18,.62) 100%)}
 }
+body.club-bgh.club-nhl_fla{--bg-pos:50% 56%;--bg-pos-m:16% 50%}
+body.club-bgh.club-ska{--bg-pos:50% 46%;--bg-pos-m:30% 50%}
+body.club-bgh.club-akbars{--bg-pos:50% 42%;--bg-pos-m:38% 50%}
