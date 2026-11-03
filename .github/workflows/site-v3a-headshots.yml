@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   headshots:
@@ -45,3 +46,11 @@ jobs:
             git rebase --abort 2>/dev/null; sleep 10
           done
           exit 1
+      - name: Продолжить, если обработаны не все (цепочка запусков)
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          left=$(python3 -c "import json;d='team/site/v3a/football/data/';p=json.load(open(d+'photos.json'));h=json.load(open(d+'headshots.json'));s=json.load(open(d+'headshots_skipped.json'));print(len([i for i in p if i not in h and i not in s]))")
+          echo "осталось $left"
+          if [ "$left" -gt 0 ]; then gh workflow run site-v3a-headshots.yml --ref "$GITHUB_REF_NAME"; fi
