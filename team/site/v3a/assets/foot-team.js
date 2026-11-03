@@ -81,6 +81,14 @@ $('hero').innerHTML=`
   ${CUP?`<p class="note">Балл — место клуба среди ${EL.ids.length} участников турнира: 100 — лучший, 0 — худший, цифры сравнимы между лигами. Сила — рейтинг Club Elo. Атака и защита — мячи за игру во внутреннем чемпионате с поправкой на силу лиги (60 %) и в турнире (40 %). Форма — очки в последних 8 матчах всех турниров с поправкой на силу соперников. Дома и в гостях — очки за игру на своём и чужом поле во всех турнирах с той же поправкой.</p>`:`<p class="note">Балл — место клуба среди клубов своей лиги по показателю: 100 — лучший, 0 — худший. Атака и защита — мячи за игру, форма — очки в последних 5 матчах, дома и в гостях — очки за игру на своём и чужом поле, очки — за все матчи сезона.</p>`}
  </div>`;
 
+/* ── плашка «Игроки команды» под формой → football/players.html?team=<id> (владелец 03.11) ── */
+const plTop=(T.sc||[]).slice(0,3);
+const plIni=n=>String(n).split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+const plCard=()=>`<a class="plcard" href="players.html?team=${encodeURIComponent(ID)}" aria-label="Все игроки ${esc(T.n)}: голы и карточки «n из N»">
+  <span class="sl">Игроки: ${esc(T.n)}</span>
+  ${plTop.length?`<ol class="pltop">${plTop.map(x=>`<li><i class="pav">${esc(plIni(x.n))}</i><b>${esc(x.n)}</b><span><em>${x.g}</em> ${plural(x.g,'гол','гола','голов')}</span></li>`).join('')}</ol>`:''}
+  <span class="plgo">Все игроки, фото и «n из N»: забьёт, карточка <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>`;
+
 /* ── 2. место в таблице и статистика ── */
 const A=CUP?CX.axes:T.axes,AXT=CUP?D.axesCup:AX,f2=v=>fx(v,2),f1=v=>fx(v,1);
 const tile=(lab,val,unit,i,sub)=>`<div class="st"><span class="sl">${lab}</span><b class="num">${val}<small>${unit}</small></b>
@@ -112,6 +120,7 @@ $('tableBox').innerHTML=`
    <div class="formbox"><span class="sl">Форма — последние 5 игр</span>
     <ol class="frm" aria-label="Последние 5 игр, слева раньше">${last5.map(g=>{const r=rOf(g),t=`${RESF[r]}: ${nm(g.o)} ${g.gf}:${g.ga}`;return `<li class="${r}" title="${esc(t)}" aria-label="${esc(t)}"><b><img src="${crest(g.o)}" alt="" loading="lazy"></b><span>${g.gf}:${g.ga}</span></li>`}).join('')}</ol>
     <p class="ss">Слева — раньше, справа — последняя игра. В кружке — соперник: зелёный — победа, серый — ничья, красный — поражение. За 5 игр — <b>${last5.reduce((s,g)=>s+pts(g),0)} ${plural(last5.reduce((s,g)=>s+pts(g),0),'очко','очка','очков')}</b>.</p></div>
+   ${plCard()}
   </div>
  </div>`;
 

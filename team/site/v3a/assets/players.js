@@ -11,12 +11,13 @@ const col=T=>{const c=Array.isArray(T.c)?T.c[0]:T.c;return c?'#'+String(c).repla
 // фото игрока (ESPN); нет фото — инициалы на цвете клуба; эмблема — значком в углу
 const avatar=(p,T)=>`<div class="av" style="--c:${col(T)}"><span>${esc(ini(p.n))}</span>${photo(p.id)?`<img class="ph" src="${photo(p.id)}" alt="" loading="lazy" onerror="this.remove()">`:''}<img class="bd" src="${crest(p.t)}" alt="" loading="lazy"></div>`;
 const LGN={...D.leagues};
-const st={m:'sg',lg:'',tm:'',ha:'',so:'rate',q:'',lim:30};
+const URLT=new URLSearchParams(location.search).get('team')||'';
+const st={m:'sg',lg:'',tm:D.teams[URLT]?URLT:'',ha:'',so:'rate',q:'',lim:30};
 $('season').textContent=D.season;
 const lgs=['',...Object.keys(LGN).filter(k=>D.players.some(p=>p.lg===k))];
 $('lg').innerHTML=lgs.map(k=>`<button type="button" data-l="${k}" aria-pressed="${!k}">${k?esc(LGN[k]):'Все лиги'}</button>`).join('');
 function teamOpts(){const ts=Object.entries(D.teams).filter(([s,t])=>!st.lg||t.lg===st.lg).sort((a,b)=>a[1].n.localeCompare(b[1].n,'ru'));
-  $('tm').innerHTML='<option value="">Все</option>'+ts.map(([s,t])=>`<option value="${s}">${esc(t.n)}</option>`).join('')}
+  $('tm').innerHTML='<option value="">Все</option>'+ts.map(([s,t])=>`<option value="${s}"${s===st.tm?' selected':''}>${esc(t.n)}</option>`).join('')}
 // n из N для текущего рынка и места
 function hit(p){
   if(st.m==='cr'){if(!st.ha)return p.cr;return null}

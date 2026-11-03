@@ -145,6 +145,16 @@ document.getElementById('hero').innerHTML=`
   <p class="note">Балл — место команды в своей лиге по показателю: 100 — лучшая, 10 — худшая. ${lg==='khl'?'Большинство и меньшинство — голы в большинстве и пропущенные в меньшинстве за игру.':'Большинство и меньшинство — реализация и нейтрализация по данным НХЛ.'} Форма — очки за последние 10 игр.</p>
  </div>`;
 
+/* ── плашка «Игроки команды» под формой → раздел «Игроки» с фильтром по этой команде (владелец 03.11) ── */
+const PLCODE=T.lg==='nhl'?(ID==='minnesota'?'MIN':ID==='dallas'?'DAL':ID.replace(/^nhl_/,'').toUpperCase()):ID;
+const PLURL=T.lg==='nhl'?`../hockey/players.html?team=${PLCODE}`:`../hockey/players_khl.html?team=${encodeURIComponent(ID)}`;
+const plTop=((T.pl&&T.pl.sk)||[]).slice().sort((a,b)=>(b.pts||0)-(a.pts||0)||(b.g||0)-(a.g||0)).slice(0,3);
+const plIni=n=>String(n).split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+const plCard=()=>`<a class="plcard" href="${PLURL}" aria-label="Все игроки ${esc(T.name)}: очки, голы, передачи «n из N»">
+  <span class="sl">Игроки: ${esc(T.name)}</span>
+  ${plTop.length?`<ol class="pltop">${plTop.map(x=>`<li><i class="pav" data-n="${esc(x.n)}">${esc(plIni(x.n))}</i><b>${esc(x.n)}</b><span>${x.g||0}+${x.a||0}=<em>${x.pts||0}</em></span></li>`).join('')}</ol>`:''}
+  <span class="plgo">Все игроки, фото и «n из N» по рынкам <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>`;
+
 /* ── 2. место в таблице и статистика ── */
 const last5=played.slice(-5);
 const raw=T.raw||[],A=T.axes||[];
@@ -173,6 +183,7 @@ document.getElementById('tableBox').innerHTML=`
    <div class="formbox"><span class="sl">Форма — последние 5 игр</span>
     <ol class="frm" aria-label="Последние 5 игр, слева раньше">${last5.map(g=>{const t=formTitle(g);return `<li class="${RL[res(g)][1]}" title="${esc(t)}" aria-label="${esc(t)}"><b><img src="../assets/em/${esc(g.o)}.webp" alt="" loading="lazy"></b><span>${g.gf}:${g.ga}${g.x?' '+g.x:''}</span></li>`}).join('')}</ol>
     <p class="ss">Слева — раньше, справа — последняя игра. В кружке — соперник: зелёный — победа, красный — поражение, серый — поражение в овертайме или по буллитам. За 10 игр — <b>${T.l10s||T.l10+' '+plural(T.l10,'очко','очка','очков')}</b>.</p></div>
+   ${plCard()}
   </div>
  </div>`;
 
@@ -450,4 +461,8 @@ else{
 document.getElementById('foot').textContent=`Макет v3a · данные ${asOf}${hasSample?', часть — пример':''} · © JARVIS, @jarvibet`;
 // v3a.js (keepTheme) при ?theme= обрезает «?id=» у ссылок на index.html — возвращаем после него
 document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('a[data-href]').forEach(a=>a.setAttribute('href',a.dataset.href)));
+/* фото лидеров в плашке «Игроки» — из данных раздела «Игроки» (подгружаются после страницы) */
+fetch(T.lg==='nhl'?'../hockey/data/nhl_players.json':'../hockey/data/khl_players.json').then(r=>r.ok?r.json():null).then(j=>{if(!j)return;
+ const by={};j.players.forEach(p=>{by[p.n]=p});
+ document.querySelectorAll('.plcard .pav').forEach(el=>{const p=by[el.dataset.n];if(p&&p.img){const im=new Image();im.alt='';im.onload=()=>{el.textContent='';el.appendChild(im)};im.src=p.img}})}).catch(()=>{});
 })();

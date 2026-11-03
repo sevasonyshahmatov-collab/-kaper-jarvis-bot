@@ -441,3 +441,17 @@ body .g.h2g.nx{grid-template-columns:110px 32px minmax(0,1fr) auto}
  .hx span{font-size:12px}
  .dvc dt{font-size:15px}
 }
+
+/* плашка «Игроки команды» под формой (владелец 03.11) */
+.plcard{margin-top:16px;display:grid;gap:12px;background:var(--card);border-radius:8px;padding:16px;text-decoration:none;color:var(--ink);
+  border:1px solid transparent;transition:border-color .2s ease,transform .2s var(--out),box-shadow .2s ease}
+.plcard:hover{border-color:var(--sport);box-shadow:0 10px 28px -16px var(--shadow);transform:translateY(-2px)}
+.plcard:active{transform:scale(.99)}
+.pltop{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.pltop li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:12px}
+.pltop .pav{width:44px;height:44px;border-radius:50%;background:var(--paper-3);display:grid;place-items:center;overflow:hidden;font:800 15px/1 var(--display);font-style:normal;color:var(--ink-2)}
+.pltop .pav img{width:100%;height:100%;object-fit:cover;object-position:50% 15%}
+.pltop b{font:700 17px/1.15 var(--display);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pltop span{font:600 15px/1 var(--display);color:var(--ink-3)} .pltop em{font-style:normal;font-weight:800;color:var(--ink);font-size:19px}
+.plgo{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:10px;border-top:1px solid var(--rule-2);font:700 16px/1.2 var(--display);color:var(--sport)}
+.plgo svg{width:22px;height:22px;flex:none;transition:transform .2s var(--out)} .plcard:hover .plgo svg{transform:translateX(4px)}

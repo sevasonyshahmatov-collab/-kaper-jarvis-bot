@@ -7,18 +7,19 @@ const TMN={"CAR":["Каролина","#cc0000"],"EDM":["Эдмонтон","#ff4c
 const TM=LG==='khl'?TMK:TMN;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const em=ab=>LG==='khl'?`../assets/em/${ab}.webp`:`../assets/em/nhl_${ab.toLowerCase()}.webp`;
+const em=ab=>LG==='khl'?`../assets/em/${ab}.webp`:ab==='MIN'?'../assets/em/minnesota.webp':ab==='DAL'?'../assets/em/dallas.webp':`../assets/em/nhl_${ab.toLowerCase()}.webp`;
 const ini=n=>n.split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
 const tn=ab=>(TM[ab]||[ab])[0];
 const MK={pt:{f:r=>r[4]+r[5]>0,v:r=>r[4]+r[5],w:'набирал очко'},g:{f:r=>r[4]>0,v:r=>r[4],w:'забивал'},a:{f:r=>r[5]>0,v:r=>r[5],w:'отдавал передачу'},s3:{f:r=>r[6]>=3,v:r=>r[6],w:'бросал 3+ раза в створ'}};
 const POS={'':'Все',F:'Нападающие',D:'Защитники'};
-const st={m:'pt',pos:'',tm:'',ha:'',so:'rate',q:'',lim:30};
+const URLT=new URLSearchParams(location.search).get('team')||'';
+const st={m:'pt',pos:'',tm:URLT in TM?URLT:'',ha:'',so:'rate',q:'',lim:30};
 const mmss=s=>`${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
 const pl=(n,a,b,c)=>{n=Math.abs(n)%100;const k=n%10;return n>10&&n<20?c:k===1?a:k>1&&k<5?b:c};
 fetch(`data/${LG}_players.json`).then(r=>r.json()).then(D=>{
  $('season').textContent=D.season;
  $('lg').innerHTML=Object.entries(POS).map(([k,v])=>`<button type="button" data-l="${k}" aria-pressed="${!k}">${v}</button>`).join('');
- $('tm').innerHTML='<option value="">Все</option>'+Object.keys(TM).sort((a,b)=>tn(a).localeCompare(tn(b),'ru')).map(a=>`<option value="${a}">${esc(tn(a))}</option>`).join('');
+ $('tm').innerHTML='<option value="">Все</option>'+Object.keys(TM).sort((a,b)=>tn(a).localeCompare(tn(b),'ru')).map(a=>`<option value="${a}"${a===st.tm?' selected':''}>${esc(tn(a))}</option>`).join('');
  const P=D.players.map(p=>{const L=p.log,n=L.length;return{...p,gp:n,G:L.reduce((s,r)=>s+r[4],0),A:L.reduce((s,r)=>s+r[5],0),S:L.reduce((s,r)=>s+r[6],0),toi:p.toi_avg!=null?p.toi_avg*60:(n?L.reduce((s,r)=>s+(r[7]||0),0)/n:0)}});
  function render(){
   const M=MK[st.m],q=st.q.trim().toLowerCase();
