@@ -1,0 +1,4 @@
+{"day":"2026-11-03","messages":[
+{"to":"owner","type":"photo","files":["team/out/2026-11-03/site_team_compare/desktop.jpg"],"text":"Сравнение СКА — Северсталь, компьютер"},
+{"to":"owner","type":"photo","files":["team/out/2026-11-03/site_team_compare/mobile.jpg"],"text":"То же на телефоне"},
+{"to":"owner","type":"text","text":"Макет: в «Следующем матче» раскрывается «Сравнение» — наложенный шестиугольник силы двух клубов, статистика бок о бок и матчи этого сезона вместо длинного списка. https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/40c3ce497e239bc85033f19a7e4b599f558200ed/team/site/v3a/team/index.html?id=ska#next Так?"}]}
