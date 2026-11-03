@@ -17,15 +17,15 @@ err = []
 
 
 def get(path):
-    for k in range(3):
+    for k in range(4):
         try:
-            r = S.get(W + path, timeout=30)
+            r = S.get(W + path, timeout=45)
             if r.status_code == 200:
                 return r.json()
             if r.status_code == 404:
                 return None
         except Exception as e:  # noqa: BLE001
-            if k == 2:
+            if k == 3:
                 err.append('%s %r' % (path, e))
         time.sleep(1 + k)
     return None
@@ -66,7 +66,7 @@ with ThreadPoolExecutor(6) as ex:
                 nxt[ab] = {'t': g['startTimeUTC'], 'd': msk(g['startTimeUTC']), 'o': a if h == ab else h, 'h': int(h == ab)}
         for k in ('forwards', 'defensemen', 'goalies'):
             for p in ro.get(k) or []:
-                roster[p['id']] = {'t': ab, 'img': p.get('headshot'), 'no': p.get('sweaterNumber'), 'pos': p.get('positionCode')}
+                roster[p['id']] = {'n': '%s %s' % ((p.get('firstName') or {}).get('default', ''), (p.get('lastName') or {}).get('default', '')), 't': ab, 'img': p.get('headshot'), 'no': p.get('sweaterNumber'), 'pos': p.get('positionCode')}
 print('NHLP games', len(games), 'roster', len(roster), flush=True)
 
 
@@ -96,7 +96,7 @@ for pid, r in P.items():
     r['log'].sort()
     ro = roster.get(pid, {})
     r['t'] = ro.get('t') or r['log'][-1][1]
-    r['img'] = ro.get('img'); r['no'] = ro.get('no'); r['pos'] = ro.get('pos') or r['pos']
+    r['img'] = ro.get('img'); r['n'] = ro.get('n') or r['n']; r['no'] = ro.get('no'); r['pos'] = ro.get('pos') or r['pos']
     out.append(r)
 res = {'built': datetime.now(MSK).strftime('%Y-%m-%d %H:%M'), 'season': '2026/27', 'next': nxt, 'players': out, 'err': err[:30],
        'cols': ['d', 'team', 'opp', 'home', 'g', 'a', 'sog', 'toi_sec', 'pim']}
