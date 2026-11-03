@@ -88,15 +88,21 @@ document.title=`${T.name} — матчи сезона, место в табли�
  const wm=document.createElement('img');wm.className='tmwm';wm.src=`../assets/em/${ID}.webp`;wm.alt='';wm.setAttribute('aria-hidden','true');document.querySelector('.tmhero').prepend(wm)}
 document.body.dataset.lg=lg;
 /* ── клубная тема (03.11): у клуба из списка — свой фон каждой секции, файлы assets/club/<id>.css (+ .js при нужде) ── */
-const CLUB_THEMES={nhl_fla:{css:1}};
+const CLUB_THEMES={nhl_fla:{css:1,bg:1}};
 const CS=(window.CLUB_SET||{})[ID];
+/* фон-картинка клуба (03.11): assets/club/bg/<id>.webp, сцена и «стекло» — assets/club/bg.css + bg.js; флаг bg:1 (CLUB_THEMES здесь или CLUB_SET в themes.js) */
+function clubBg(){const b=document.body;b.classList.add('club-bg');b.dataset.clubId=ID;
+ const l=document.createElement('link');l.rel='stylesheet';l.href='../assets/club/bg.css';document.head.appendChild(l);
+ const s=document.createElement('script');s.src='../assets/club/bg.js';document.head.appendChild(s)}
 if(CLUB_THEMES[ID]){const th=CLUB_THEMES[ID];document.body.classList.add('club','club-'+ID);
  if(th.css){const l=document.createElement('link');l.rel='stylesheet';l.href=`../assets/club/${ID}.css`;document.head.appendChild(l)}
- if(th.js){const s=document.createElement('script');s.src=`../assets/club/${ID}.js`;document.head.appendChild(s)}}
+ if(th.js){const s=document.createElement('script');s.src=`../assets/club/${ID}.js`;document.head.appendChild(s)}
+ if(th.bg)clubBg()}
 else if(CS){/* общий движок assets/club/theme.css: переменные клуба из assets/club/themes.js */
  const b=document.body,u=p=>`url(${new URL('../assets/'+p,location.href).href})`;b.classList.add('club','club-g','club-'+ID);
  [['--k-dk',CS.dk],['--k-a1',CS.a1],['--k-a2',CS.a2],['--k-ac',CS.ac],['--k-em',u('em/'+ID+'.webp')],['--k-mA',u('club/m/'+CS.m[0]+'.svg')],['--k-mB',u('club/m/'+(CS.m[1]||CS.m[0])+'.svg')]].forEach(([k,v])=>b.style.setProperty(k,v));
- if(!CS.m[1])b.classList.add('nomB')}
+ if(!CS.m[1])b.classList.add('nomB');
+ if(CS.bg)clubBg()}
 const played=T.games.filter(g=>g.gf!=null),future=T.games.filter(g=>g.gf==null);
 /* серия: от последнего сыгранного матча назад — победа (любая) или поражение (любое, в т.ч. ОТ/буллиты); показываем от 3 */
 const streak=(()=>{const a=played.slice().sort((x,y)=>String(x.d).localeCompare(String(y.d)));let n=0,w=null;

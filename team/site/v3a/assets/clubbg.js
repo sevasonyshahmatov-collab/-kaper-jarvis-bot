@@ -7,7 +7,7 @@
    prefers-reduced-motion — статичный кадр; нет WebGL — остаётся прежний CSS-градиент. Без реакции на курсор. */
 (()=>{
 'use strict';
-const hero=document.querySelector('.tmhero');if(!hero)return;
+const hero=document.querySelector('.tmhero');if(!hero||document.body.classList.contains('club-bg'))return;
 const cs=getComputedStyle(document.body),v=n=>cs.getPropertyValue(n).trim();
 const C1=v('--c1'),C2=v('--c2'),C3=v('--c3'),ACC=v('--cacc'),TXT=v('--con')||'#ffffff';
 if(!C1||!C3)return;
