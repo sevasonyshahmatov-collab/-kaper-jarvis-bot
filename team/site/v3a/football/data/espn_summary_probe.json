@@ -1,0 +1,833 @@
+{
+ "event": "401879301",
+ "top_keys": [
+  "article",
+  "boxscore",
+  "broadcasts",
+  "commentary",
+  "format",
+  "gameInfo",
+  "hasOdds",
+  "header",
+  "keyEvents",
+  "lastFiveGames",
+  "leaders",
+  "meta",
+  "news",
+  "odds",
+  "pickcenter",
+  "rosters",
+  "seasonseries",
+  "standings",
+  "videos",
+  "wallclockAvailable"
+ ],
+ "roster_keys": [
+  "formation",
+  "homeAway",
+  "roster",
+  "team",
+  "uniform",
+  "winner"
+ ],
+ "roster0": {
+  "active": true,
+  "starter": true,
+  "jersey": "1",
+  "athlete": {
+   "id": "196176",
+   "uid": "s:600~a:196176",
+   "guid": "917afc98-2d15-9b9d-6d92-1d4ca9c6f1ae",
+   "lastName": "Raya",
+   "fullName": "David Raya",
+   "displayName": "David Raya",
+   "shortName": "D. Raya",
+   "links": [
+    {
+     "language": "en-US",
+     "rel": [
+      "playercard",
+      "desktop",
+      "athlete"
+     ],
+     "href": "https://www.espn.com/soccer/player/_/id/196176/david-raya",
+     "text": "Player Card",
+     "shortText": "Player Card",
+     "isExternal": false,
+     "isPremium": false
+    }
+   ],
+   "jerseyImages": [
+    {
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879301/athletes/196176/jersey.png?darkMode=false",
+     "rel": [
+      "full",
+      "default"
+     ],
+     "width": 1440,
+     "height": 1440
+    },
+    {
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879301/athletes/196176/jersey.png?darkMode=true",
+     "rel": [
+      "full",
+      "dark"
+     ],
+     "width": 1440,
+     "height": 1440
+    }
+   ]
+  },
+  "position": {
+   "name": "Goalkeeper",
+   "displayName": "Goalkeeper",
+   "abbreviation": "G"
+  },
+  "subbedIn": false,
+  "subbedOut": false,
+  "formationPlace": "1",
+  "media": {},
+  "stats": [
+   {
+    "name": "appearances",
+    "displayName": "Appearances",
+    "shortDisplayName": "APP",
+    "description": "The number of times a player has made an appearance in a match.",
+    "abbreviation": "APP",
+    "value": 1.0,
+    "displayValue": "1"
+   },
+   {
+    "name": "foulsCommitted",
+    "displayName": "Fouls Committed",
+    "shortDisplayName": "FC",
+    "description": "The number of fouls comitted by a player or team.",
+    "abbreviation": "FC",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "foulsSuffered",
+    "displayName": "Fouls Suffered",
+    "shortDisplayName": "FA",
+    "description": "The number of fouls suffered by a player or team.",
+    "abbreviation": "FA",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "ownGoals",
+    "displayName": "Own Goals",
+    "shortDisplayName": "OG",
+    "description": "The number of own goals conceded.",
+    "abbreviation": "OG",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "redCards",
+    "displayName": "Red Cards",
+    "shortDisplayName": "RC",
+    "description": "The number of red cards that have been issued.",
+    "abbreviation": "RC",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "subIns",
+    "displayName": "Substitute Appearances",
+    "shortDisplayName": "SUBIN",
+    "description": "The number of times a player has come on a sub in a match.",
+    "abbreviation": "SUB",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "yellowCards",
+    "displayName": "Yellow Cards",
+    "shortDisplayName": "YC",
+    "description": "The number of yellow cards accumulated.",
+    "abbreviation": "YC",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "goalsConceded",
+    "displayName": "Goals Against",
+    "shortDisplayName": "GA",
+    "description": "The number of goals allowed by the goalkeeper.",
+    "abbreviation": "GA",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "saves",
+    "displayName": "Saves",
+    "shortDisplayName": "SV",
+    "description": "The number of times a goalkeeper makes a save.",
+    "abbreviation": "SV",
+    "value": 1.0,
+    "displayValue": "1"
+   },
+   {
+    "name": "shotsFaced",
+    "displayName": "Shots Faced",
+    "shortDisplayName": "SHF",
+    "description": "The number of shots on target a goalkeeper has faced.",
+    "abbreviation": "SHF",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "goalAssists",
+    "displayName": "Assists",
+    "shortDisplayName": "A",
+    "description": "The number of assists.",
+    "abbreviation": "A",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "shotsOnTarget",
+    "displayName": "Shots On Goal",
+    "shortDisplayName": "SOG",
+    "description": "The number of shots that are on goal.",
+    "abbreviation": "SOG",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "totalGoals",
+    "displayName": "Total Goals",
+    "shortDisplayName": "G",
+    "description": "The number of goals scored against the opposing team.",
+    "abbreviation": "G",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "totalShots",
+    "displayName": "Shots",
+    "shortDisplayName": "SHOT",
+    "description": "The number of shots attempted.",
+    "abbreviation": "SHOT",
+    "value": 0.0,
+    "displayValue": "0"
+   }
+  ]
+ },
+ "roster_sub": {
+  "active": true,
+  "starter": false,
+  "jersey": "20",
+  "athlete": {
+   "id": "293236",
+   "uid": "s:600~a:293236",
+   "guid": "e8393d3a-a2e5-b262-f720-eccb7252e525",
+   "lastName": "Madueke",
+   "fullName": "Noni Madueke",
+   "displayName": "Noni Madueke",
+   "shortName": "N. Madueke",
+   "links": [
+    {
+     "language": "en-US",
+     "rel": [
+      "playercard",
+      "desktop",
+      "athlete"
+     ],
+     "href": "https://www.espn.com/soccer/player/_/id/293236/noni-madueke",
+     "text": "Player Card",
+     "shortText": "Player Card",
+     "isExternal": false,
+     "isPremium": false
+    }
+   ],
+   "headshot": {
+    "href": "https://a.espncdn.com/i/headshots/soccer/players/full/293236.png",
+    "alt": "Noni Madueke"
+   },
+   "jerseyImages": [
+    {
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879301/athletes/293236/jersey.png?darkMode=false",
+     "rel": [
+      "full",
+      "default"
+     ],
+     "width": 1440,
+     "height": 1440
+    },
+    {
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879301/athletes/293236/jersey.png?darkMode=true",
+     "rel": [
+      "full",
+      "dark"
+     ],
+     "width": 1440,
+     "height": 1440
+    }
+   ]
+  },
+  "position": {
+   "name": "Substitute",
+   "displayName": "Substitute",
+   "abbreviation": "SUB"
+  },
+  "subbedIn": true,
+  "subbedOut": false,
+  "formationPlace": "0",
+  "media": {},
+  "stats": [
+   {
+    "name": "appearances",
+    "displayName": "Appearances",
+    "shortDisplayName": "APP",
+    "description": "The number of times a player has made an appearance in a match.",
+    "abbreviation": "APP",
+    "value": 1.0,
+    "displayValue": "1"
+   },
+   {
+    "name": "foulsCommitted",
+    "displayName": "Fouls Committed",
+    "shortDisplayName": "FC",
+    "description": "The number of fouls comitted by a player or team.",
+    "abbreviation": "FC",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "foulsSuffered",
+    "displayName": "Fouls Suffered",
+    "shortDisplayName": "FA",
+    "description": "The number of fouls suffered by a player or team.",
+    "abbreviation": "FA",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "ownGoals",
+    "displayName": "Own Goals",
+    "shortDisplayName": "OG",
+    "description": "The number of own goals conceded.",
+    "abbreviation": "OG",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "redCards",
+    "displayName": "Red Cards",
+    "shortDisplayName": "RC",
+    "description": "The number of red cards that have been issued.",
+    "abbreviation": "RC",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "subIns",
+    "displayName": "Substitute Appearances",
+    "shortDisplayName": "SUBIN",
+    "description": "The number of times a player has come on a sub in a match.",
+    "abbreviation": "SUB",
+    "value": 1.0,
+    "displayValue": "1"
+   },
+   {
+    "name": "yellowCards",
+    "displayName": "Yellow Cards",
+    "shortDisplayName": "YC",
+    "description": "The number of yellow cards accumulated.",
+    "abbreviation": "YC",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "goalsConceded",
+    "displayName": "Goals Against",
+    "shortDisplayName": "GA",
+    "description": "The number of goals allowed by the goalkeeper.",
+    "abbreviation": "GA",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "shotsFaced",
+    "displayName": "Shots Faced",
+    "shortDisplayName": "SHF",
+    "description": "The number of shots on target a goalkeeper has faced.",
+    "abbreviation": "SHF",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "goalAssists",
+    "displayName": "Assists",
+    "shortDisplayName": "A",
+    "description": "The number of assists.",
+    "abbreviation": "A",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "offsides",
+    "displayName": "Offsides",
+    "shortDisplayName": "OFF",
+    "description": "The number of times a player or team gets caught offside.",
+    "abbreviation": "OFF",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "shotsOnTarget",
+    "displayName": "Shots On Goal",
+    "shortDisplayName": "SOG",
+    "description": "The number of shots that are on goal.",
+    "abbreviation": "SOG",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "totalGoals",
+    "displayName": "Total Goals",
+    "shortDisplayName": "G",
+    "description": "The number of goals scored against the opposing team.",
+    "abbreviation": "G",
+    "value": 0.0,
+    "displayValue": "0"
+   },
+   {
+    "name": "totalShots",
+    "displayName": "Shots",
+    "shortDisplayName": "SHOT",
+    "description": "The number of shots attempted.",
+    "abbreviation": "SHOT",
+    "value": 0.0,
+    "displayValue": "0"
+   }
+  ],
+  "subbedInFor": {
+   "jersey": "7",
+   "athlete": {
+    "id": "280555",
+    "displayName": "Bukayo Saka",
+    "links": [
+     {
+      "language": "en-US",
+      "rel": [
+       "playercard",
+       "desktop",
+       "athlete"
+      ],
+      "href": "https://www.espn.com/soccer/player/_/id/280555/bukayo-saka",
+      "text": "Player Card",
+      "shortText": "Player Card",
+      "isExternal": false,
+      "isPremium": false
+     }
+    ]
+   }
+  },
+  "plays": [
+   {
+    "clock": {
+     "displayValue": "68'"
+    },
+    "scoringPlay": false,
+    "substitution": true,
+    "redCard": false,
+    "yellowCard": false,
+    "penaltyKick": false,
+    "ownGoal": false
+   }
+  ]
+ },
+ "keyEvent_sub": {
+  "id": "51200025",
+  "type": {
+   "id": "76",
+   "text": "Substitution",
+   "type": "substitution"
+  },
+  "text": "Substitution, Coventry City. Victor Torp replaces Caleb Yirenkyi.",
+  "shortText": "Victor Torp Substitution",
+  "period": {
+   "number": 2
+  },
+  "clock": {
+   "value": 3711.0,
+   "displayValue": "62'"
+  },
+  "scoringPlay": false,
+  "team": {
+   "id": "388",
+   "displayName": "Coventry City"
+  },
+  "participants": [
+   {
+    "athlete": {
+     "id": "256015",
+     "displayName": "Victor Torp"
+    }
+   },
+   {
+    "athlete": {
+     "id": "387659",
+     "displayName": "Caleb Yirenkyi"
+    }
+   }
+  ],
+  "source": {
+   "id": "38",
+   "description": "SA.ENVOY"
+  },
+  "wallclock": "2026-08-21T20:19:19Z",
+  "shootout": false
+ },
+ "parsed": {
+  "359": [
+   [
+    "196176",
+    1,
+    95,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "236322",
+    1,
+    95,
+    1,
+    0,
+    0,
+    2,
+    1,
+    0
+   ],
+   [
+    "328497",
+    1,
+    95,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "298329",
+    1,
+    81,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0
+   ],
+   [
+    "241077",
+    1,
+    95,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0
+   ],
+   [
+    "203669",
+    1,
+    76,
+    3,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "238262",
+    1,
+    68,
+    2,
+    0,
+    0,
+    2,
+    0,
+    0
+   ],
+   [
+    "352758",
+    1,
+    95,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "231182",
+    1,
+    95,
+    1,
+    1,
+    0,
+    2,
+    0,
+    0
+   ],
+   [
+    "303793",
+    1,
+    76,
+    4,
+    2,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "280555",
+    1,
+    68,
+    3,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "293236",
+    0,
+    27,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "209581",
+    0,
+    19,
+    2,
+    1,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "292062",
+    0,
+    14,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "251400",
+    0,
+    19,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "287266",
+    0,
+    27,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  ],
+  "388": [
+   [
+    "307069",
+    1,
+    95,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "319404",
+    1,
+    95,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "303931",
+    1,
+    95,
+    1,
+    0,
+    0,
+    2,
+    0,
+    0
+   ],
+   [
+    "191337",
+    1,
+    95,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "206172",
+    1,
+    95,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "281139",
+    1,
+    95,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0
+   ],
+   [
+    "258491",
+    1,
+    95,
+    0,
+    0,
+    0,
+    3,
+    0,
+    0
+   ],
+   [
+    "387659",
+    1,
+    62,
+    0,
+    0,
+    0,
+    2,
+    1,
+    0
+   ],
+   [
+    "240495",
+    1,
+    70,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "324541",
+    1,
+    82,
+    2,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "282647",
+    1,
+    70,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0
+   ],
+   [
+    "256015",
+    0,
+    33,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "236912",
+    0,
+    13,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "286967",
+    0,
+    25,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "194686",
+    0,
+    25,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  ]
+ }
+}
