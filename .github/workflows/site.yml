@@ -114,6 +114,8 @@ jobs:
         env:
           SITE_URL: ${{ steps.day.outputs.url }}
           GOOGLE_VERIFICATION: ${{ vars.GOOGLE_VERIFICATION }}   # код Search Console (только content из мета-тега)
+          # безопасность 03.11: прогнозы модели без поста в канале — в site/data/*.json только зашифрованными (build.py seal_public)
+          SITE_SEAL_KEY: ${{ secrets.SITE_SEAL_KEY || secrets.SITE_TOKEN }}
         run: |
           mkdir -p site
           python team/site/build.py site $(ls out/reels_daily/*-"${{ steps.day.outputs.day }}"/plan.json 2>/dev/null)

@@ -14,7 +14,9 @@
     python team/site/build.py <папка сайта> --no-settle …       # без загрузки счёта (проверка без сети)
 """
 import glob
+import base64
 import hashlib
+import hmac
 import html
 import json
 import os
@@ -129,13 +131,81 @@ def save(path, obj):
 
 def days(site):
     lim = (today() - timedelta(days=KEEP_DAYS)).isoformat()
+    key = seal_key()
     out = []
     for path in sorted(glob.glob(os.path.join(site, 'data', '*.json'))):
         P = load(path)
         if P and P['day'] >= lim:
+            for m in P['matches']:                 # закрытые поля модели (seal_public) — обратно для сборки
+                z = m.pop('_z', None)
+                if z and key:
+                    m.update(unseal(z, key) or {})
             P['_path'] = path
             out.append(P)
     return out
+
+
+# ---------------------------------------------------------------- закрытые данные модели
+# Безопасность 03.11: site/data/*.json лежат в открытом репозитории сайта. Ставка, кэф, вероятность и розыгрыши модели
+# по матчам без поста в канале (или с постом о другой ставке) — неопубликованный прогноз: в файле они только
+# зашифрованными (поле _z, ключ — секрет SITE_SEAL_KEY в site.yml). Нет ключа — поля просто удаляются.
+SEAL = ('pick', 'odds', 'p', 'sim', 'fact', 'res', 'score')
+
+
+def seal_key():
+    s = os.environ.get('SITE_SEAL_KEY') or ''
+    return hashlib.sha256(b'jarvis-site-seal|' + s.encode()).digest() if s else None
+
+
+def _ks(key, nonce, n):
+    out, i = b'', 0
+    while len(out) < n:
+        out += hmac.new(key, nonce + i.to_bytes(4, 'big'), hashlib.sha256).digest()
+        i += 1
+    return out[:n]
+
+
+def seal(obj, key):
+    raw = json.dumps(obj, ensure_ascii=False, sort_keys=True).encode()
+    ek, mk = (hmac.new(key, t, hashlib.sha256).digest() for t in (b'enc', b'mac'))
+    nonce = hmac.new(mk, raw, hashlib.sha256).digest()[:16]      # тот же текст — тот же шифр: без лишних коммитов сайта
+    ct = bytes(a ^ b for a, b in zip(raw, _ks(ek, nonce, len(raw))))
+    return base64.b64encode(nonce + hmac.new(mk, nonce + ct, hashlib.sha256).digest()[:16] + ct).decode()
+
+
+def unseal(s, key):
+    try:
+        b = base64.b64decode(s)
+        nonce, tag, ct = b[:16], b[16:32], b[32:]
+        ek, mk = (hmac.new(key, t, hashlib.sha256).digest() for t in (b'enc', b'mac'))
+        if not hmac.compare_digest(tag, hmac.new(mk, nonce + ct, hashlib.sha256).digest()[:16]):
+            return None
+        return json.loads(bytes(a ^ b for a, b in zip(ct, _ks(ek, nonce, len(ct)))).decode())
+    except (ValueError, TypeError):
+        return None
+
+
+def seal_public(site):
+    """Перед публикацией: в site/data/*.json открыто только то, что вышло в канал (ставка поста = ставка модели)."""
+    pub = load(os.path.join(site, 'stats', 'published.json')) or []
+    posts = {(x['lg'], _norm(x['h']), _norm(x['a']), x['d'][:10]): _norm(x['bet']) for x in pub}
+    key, n = seal_key(), 0
+    for path in glob.glob(os.path.join(site, 'data', '*.json')):
+        P = load(path)
+        if not P:
+            continue
+        hit = False
+        for m in P.get('matches') or []:
+            bet = posts.get((P.get('league'), _norm(m.get('h')), _norm(m.get('a')), str(m.get('d'))[:10]))
+            if m.get('pick') is None or (bet is not None and bet == _norm(m['pick'])):
+                continue
+            z = {k: m.pop(k) for k in SEAL if k in m}
+            if key:
+                m['_z'] = seal(z, key)
+            hit, n = True, n + 1
+        if hit:
+            save(path, P)
+    print('SITE закрыто прогнозов модели без поста: %d%s' % (n, '' if key else ' (нет SITE_SEAL_KEY — удалены)'), flush=True)
 
 
 def settle_all(D):
@@ -147,7 +217,7 @@ def settle_all(D):
     for P in D:
         for m in P['matches']:
             st = dt_of(m).replace(tzinfo=MSK)
-            if not m.get('res') and st < now - timedelta(hours=3):
+            if m.get('pick') and not m.get('res') and st < now - timedelta(hours=3):
                 todo.append((P, m, dict(league=P['league'].upper(), home=m['h'], away=m['a'], start=st, bet=m['pick'],
                                         kef=m.get('odds'))))
     if not todo:
@@ -573,8 +643,8 @@ def channel_view(site, D):
             if not x:
                 continue
             used.add(k)
-            same = _norm(x['bet']) == _norm(m['pick'])
-            m2 = dict(m, pick=x['bet'], odds=x.get('kef') or (m['odds'] if same else None), post=x['id'])
+            same = _norm(x['bet']) == _norm(m.get('pick'))
+            m2 = dict(m, pick=x['bet'], odds=x.get('kef') or (m.get('odds') if same else None), post=x['id'])
             if not same:
                 m2.update(p=None, sim=None, fact=None)
             if x.get('r'):
@@ -611,6 +681,13 @@ def not_found(base):
 
 
 def build(site, plans, do_settle=True):
+    try:
+        return _build(site, plans, do_settle)
+    finally:
+        seal_public(site)                          # даже если сборка упала — неопубликованное в открытый репозиторий не уходит
+
+
+def _build(site, plans, do_settle=True):
     base = site_url()
     store(site, plans)
     D = days(site)
