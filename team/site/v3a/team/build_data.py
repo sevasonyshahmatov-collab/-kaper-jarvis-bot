@@ -219,6 +219,13 @@ for slug, t in teams.items():
     t2['picks'] = [{**p, 'h': by_name[p['h']], 'a': by_name[p['a']]} for p in tp]
     out_teams[slug] = t2
 
+_h2h = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'h2h.json')   # личные встречи прошлых сезонов (h2h_from_log.py)
+if os.path.exists(_h2h):
+    H2H = json.load(open(_h2h, encoding='utf-8'))
+    for s_, t_ in out_teams.items():
+        if s_ in H2H:
+            t_['h2h'] = H2H[s_]
+
 names = {s: t['name'] for s, t in teams.items()}
 json.dump({'built': db.get('built'), 'axes': db.get('axes'), 'names': names, 'teams': out_teams},
           open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))

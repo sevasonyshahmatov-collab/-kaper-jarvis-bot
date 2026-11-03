@@ -109,6 +109,9 @@ const streak=(()=>{const a=played.slice().sort((x,y)=>String(x.d).localeCompare(
  for(let i=a.length-1;i>=0;i--){const win=a[i].gf>a[i].ga;if(w===null)w=win;if(win!==w)break;n++}
  return {n,win:w,last:a.slice(a.length-n).map(g=>g.gf>g.ga)}})();
 const streakHtml=streak.n>=3?`<p class="tmstreak ${streak.win?'w':'l'}" aria-label="${streak.win?'Серия побед':'Серия поражений'}: ${streak.n}"><span class="sk">${streak.win?'Серия побед':'Серия поражений'}:</span><b class="num">${streak.n}</b><span class="dots" aria-hidden="true">${streak.last.slice(-10).map(x=>`<i class="${x?'w':'l'}"></i>`).join('')}</span></p>`:'';
+const TGICO='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.9.8 1.4.4l2.6-2.2 4.8 3.5c.6.4 1.4.1 1.6-.7l3.1-15.1c.2-1-.7-1.7-1.6-1.3z"/></svg>';
+/* «Следить за командой»: старт бота с параметром follow_<id> (подписку на команду в боте делают отдельно) */
+const followBtn=(cls='')=>`<a class="follow ${cls}" href="https://t.me/jarvibet?start=follow_${esc(ID)}" target="_blank" rel="noopener">${TGICO}<span class="ft"><b>Следить за командой</b><small>прогноз и итог матча — в Telegram</small></span></a>`;
 const hasSample=T.games.some(g=>g.s||g.ks);
 const otl=Math.max(0,(T.pts||0)-2*(T.w||0));
 const confRows=Object.entries(D.teams).filter(([,x])=>x.lg===lg&&x.conf===conf).sort((a,b)=>a[1].place-b[1].place);
@@ -123,7 +126,7 @@ document.getElementById('hero').innerHTML=`
   <div class="tmrow">
    <span class="tmcrest">${em(ID)}</span>
    <div class="tmname"><p class="tmlg">${lgp(lg)}<span>${L.name}</span><span class="dot">·</span><span>Конференция «${esc(conf)}»</span></p>
-    <h1>${esc(T.name)}</h1></div>
+    <h1>${esc(T.name)}</h1>${followBtn('in-hero')}</div>
   </div>
   <div class="tmplace"><b class="num">${T.place}</b><span>-е место<br>в конференции «${esc(conf)}»</span></div>
   <ul class="tmpills" aria-label="Коротко о сезоне">
@@ -216,7 +219,98 @@ document.getElementById('picksBox').innerHTML=`
    <span class="pm">${em(p.h)}<span>${esc(nm(p.h))} — ${esc(nm(p.a))}</span>${em(p.a)}</span>
    <span class="pt"><strong>${esc(String(p.pick||'').replace(/(\d)\.(\d)/g,'$1,$2'))}</strong><small>кэф ${esc(p.k)} · счёт ${esc(p.sc)}</small></span>
    <span class="pr" title="${ok?'прогноз зашёл':'прогноз не зашёл'}">${ok?'✓':'✕'}</span></li>`}).join('')}</ol></div>`
- :`<div class="pkempty" data-rv><p>На матчи ${esc(T.name)} прогнозов пока не было. Как только модель найдёт ставку — она появится здесь и в канале.</p><a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть @jarvibet</a></div>`}`;
+ :`<div class="pkempty" data-rv><p>На матчи ${esc(T.name)} прогнозов пока не было. Как только модель найдёт ставку — она появится здесь и в канале.</p><a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть @jarvibet</a></div>`}
+ <div class="pkfollow" data-rv>${followBtn('in-picks')}</div>`;
+
+
+/* ── 2а. следующий матч: крупная карточка сразу под шапкой ── */
+const real=played.filter(g=>!g.s).slice().sort((a,b)=>String(a.d).localeCompare(String(b.d)));
+const startMs=d=>Date.parse(d.slice(0,10)+'T'+(d.slice(11,16)||'00:00')+':00+03:00');
+const fsort=future.slice().sort((a,b)=>String(a.d).localeCompare(String(b.d)));
+const nextG=fsort.find(g=>startMs(g.d)>Date.now()-3*36e5)||fsort[0];   // матч, начавшийся больше 3 часов назад, но ещё без счёта в данных — пропускаем
+if(nextG){
+ const t=day(nextG.d),oh=nextG.h,k=nextG.k,sm=nextG.s||nextG.ks;
+ const pick=(T.picks||[]).find(p=>p.d.slice(0,10)===nextG.d.slice(0,10)&&(p.h===nextG.o||p.a===nextG.o));
+ const kl=['П1','Х','П2'];
+ const crest=(sl,cls)=>`<span class="nmc ${cls}">${tl(sl,`<span class="nmcr">${em(sl)}</span><b>${esc(nm(sl))}</b>`)}</span>`;
+ document.getElementById('nextBox').innerHTML=`
+  <div class="sec-head" data-rv><h2>Следующий матч</h2><p>${lgp(lg)}${L.name} · ${oh?'дома':'в гостях'}, время московское.</p></div>
+  <article class="nmatch" data-rv aria-label="${esc(T.name)} — ${esc(nm(nextG.o))}, ${t.d} ${t.mon}, ${t.tm} МСК">
+   <div class="nmteams">${crest(oh?ID:nextG.o,'a')}<span class="nmmid"><span class="nmdt"><b>${t.d} ${t.mon}</b><small>${t.wd}${t.tm?' · '+t.tm+' МСК':''}</small></span><span class="nmha ${oh?'h':'a'}">${oh?'Дома':'В гостях'}</span></span>${crest(oh?nextG.o:ID,'b')}</div>
+   <div class="nmside">
+    ${k?`<div class="nmline"><span class="sl">Линия на матч${sm?' · <em class="smp">пример</em>':''}</span>
+      <ol class="kx" aria-label="Линия: ${esc(T.name)} ${kf(k[0])}, ничья ${kf(k[1])}, ${esc(nm(nextG.o))} ${kf(k[2])}">${k.map((v,i)=>`<li><b class="num">${kf(v)}</b><small>${kl[i]}</small></li>`).join('')}</ol></div>`
+     :`<div class="nmline"><span class="sl">Линия появится ближе к матчу</span></div>`}
+    <div class="nmcd" id="nmcd"><span class="sl">До начала</span><b class="num" id="nmcdv">—</b></div>
+    ${pick?`<div class="nmpick"><span class="sl">Наш прогноз</span><b>${esc(String(pick.pick||'').replace(/(\d)\.(\d)/g,'$1,$2'))}</b><small>кэф ${esc(pick.k)}</small></div>`:''}
+    <a class="btn btn-line nmgo" href="../hockey/index.html${THEME?'?theme='+encodeURIComponent(THEME):''}#matches">Разбор матча</a>
+   </div>
+  </article>`;
+ document.getElementById('next').hidden=false;
+ const cdv=document.getElementById('nmcdv'),st0=startMs(nextG.d);
+ const tick=()=>{const df=st0-Date.now();
+  if(isNaN(st0)||df<=0){cdv.textContent=isNaN(st0)?'—':'матч начался';return}
+  const m=Math.floor(df/6e4),dd=Math.floor(m/1440),hh=Math.floor(m%1440/60),mm=m%60;
+  cdv.innerHTML=(dd?`${dd}<small>${plural(dd,'день','дня','дней')}</small> `:'')+`${hh}<small>ч</small> ${mm}<small>мин</small>`};
+ tick();setInterval(tick,30000);
+}
+
+/* ── 2б. тренды: «n из N» по сыгранным матчам сезона (без примера), последние 10 / весь сезон, все / дома / в гостях ── */
+{const box=document.getElementById('trendsBox'),st={per:'l10',ven:'all'};
+ const prevLoss=new Map();real.forEach((g,i)=>prevLoss.set(g,i>0&&real[i-1].gf<real[i-1].ga));
+ const DEF=[
+  {id:'t45',t:'Тотал больше 4,5',ok:g=>g.gf+g.ga>4.5},
+  {id:'t55',t:'Тотал больше 5,5',ok:g=>g.gf+g.ga>5.5,keep:1},
+  {id:'t65',t:'Тотал больше 6,5',ok:g=>g.gf+g.ga>6.5},
+  {id:'win',t:'Победа в основное время',ok:g=>g.gf>g.ga&&!g.x},
+  {id:'ot',t:'Матч дошёл до ОТ или буллитов',ok:g=>!!g.x},
+  {id:'btts',t:'Обе команды забили',ok:g=>g.gf>0&&g.ga>0},
+  {id:'sc3',t:'Забила 3 и больше',ok:g=>g.gf>=3},
+  {id:'ga3',t:'Пропустила 3 и больше',ok:g=>g.ga>=3},
+  {id:'bounce',t:'Победа после поражения',ok:g=>g.gf>g.ga,pre:g=>prevLoss.get(g)}];
+ const calc=()=>{let a=real.filter(g=>st.ven==='all'||(st.ven==='home'?g.h:!g.h));if(st.per==='l10')a=a.slice(-10);
+  let r=DEF.map(d=>{const s=d.pre?a.filter(d.pre):a;return {...d,N:s.length,n:s.filter(d.ok).length,seq:s.map(d.ok)}}).filter(x=>x.N>=5);
+  // из линий тотала оставляем 5,5 и ту из двух других, что дальше от 50 %
+  const tot=r.filter(x=>/^t[46]5$/.test(x.id)).sort((x,y)=>Math.abs(y.n/y.N-.5)-Math.abs(x.n/x.N-.5));
+  const drop=new Set(tot.slice(1).map(x=>x.id));r=r.filter(x=>!drop.has(x.id)||x.keep);
+  return {a,r:r.sort((x,y)=>Math.abs(y.n/y.N-.5)-Math.abs(x.n/x.N-.5)).slice(0,8)}};
+ const unit={all:'',home:' домашних',away:' гостевых'};
+ const draw=()=>{const {a,r}=calc(),scope=st.per==='l10'?`последних${unit[st.ven]}`:`${unit[st.ven]?unit[st.ven].trim()+' ':''}матчей сезона`;
+  document.getElementById('trList').innerHTML=r.length?r.map(x=>{const txt=`${x.t} — ${x.n} из ${x.N} ${scope}`;
+   return `<li class="tr" aria-label="${esc(txt)}"><span class="trt">${esc(x.t)}</span>
+   <span class="trd" aria-hidden="true">${x.seq.map(v=>`<i class="${v?'y':'n'}"></i>`).join('')}</span>
+   <span class="trn"><b class="num">${x.n} из ${x.N}</b><small>${esc(scope)}</small></span></li>`}).join('')
+   :`<li class="tr none">Для такого среза мало сыгранных матчей — нужно хотя бы 5.</li>`};
+ if(real.length>=5){
+  box.innerHTML=`<div class="sec-head" data-rv><h2>Тренды</h2><p>Что чаще всего случается в матчах ${esc(T.name)} в этом сезоне. Кружок — один матч: заполнен, если тренд сошёлся; справа — свежие.</p></div>
+   <div class="trctl" data-rv><div class="gfilter"><div class="seg" id="trPer" role="group" aria-label="Период"><button type="button" aria-pressed="true" data-v="l10">Последние 10</button><button type="button" aria-pressed="false" data-v="all">Весь сезон</button></div></div>
+    <div class="gfilter"><div class="seg" id="trVen" role="group" aria-label="Где играли"><button type="button" aria-pressed="true" data-v="all">Все</button><button type="button" aria-pressed="false" data-v="home">Дома</button><button type="button" aria-pressed="false" data-v="away">В гостях</button></div></div></div>
+   <ol class="trs" id="trList" data-rv></ol>`;
+  document.getElementById('trends').hidden=false;
+  for(const [id,key] of [['trPer','per'],['trVen','ven']])document.getElementById(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+   st[key]=b.dataset.v;document.querySelectorAll('#'+id+' button').forEach(x=>x.setAttribute('aria-pressed',x===b));draw()});
+  draw();
+ }}
+
+/* ── 2в. личные встречи с соперником следующего матча: текущий сезон + два прошлых (h2h из teams.json) ── */
+if(nextG){
+ const o=nextG.o,SL=d=>d<'2025-07-01'?'2024/25':d<'2026-07-01'?'2025/26':'2026/27';
+ const old=((T.h2h||{})[o]||[]).map(r=>({d:r[0],h:r[1],gf:r[2],ga:r[3],x:r[4]||''}));
+ const cur=real.filter(g=>g.o===o);
+ const all=old.concat(cur.map(g=>({d:g.d.slice(0,10),h:g.h,gf:g.gf,ga:g.ga,x:g.x||''}))).sort((a,b)=>b.d.localeCompare(a.d));
+ const hasOld=!!T.h2h;
+ const w=all.filter(g=>g.gf>g.ga).length,l=all.length-w,gf=all.reduce((s,g)=>s+g.gf,0),ga=all.reduce((s,g)=>s+g.ga,0);
+ const seasons=new Set(all.map(g=>SL(g.d))).size;
+ const item=g=>{const t=day(g.d),r=rlab(g);return `<li class="g h2g ${g.h?'home':'away'}"><span class="gd"><b>${t.d} ${t.mon}</b><small>${t.wd} · ${SL(g.d)}</small></span>
+  <span class="ha ${g.h?'h':'a'}" title="${g.h?'дома':'в гостях'}">${g.h?'Д':'В'}</span><span class="hv">${g.h?'Дома':'В гостях'}</span>
+  <span class="sc num">${g.gf}:${g.ga}${g.x?`<small>${g.x}</small>`:''}</span><span class="rs ${r[1]}" title="${r[2]}">${r[0]}</span></li>`};
+ document.getElementById('h2hBox').innerHTML=`
+  <div class="sec-head" data-rv><h2>Личные встречи</h2><p>${esc(T.name)} и ${esc(nm(o))}: ${hasOld?'текущий сезон и два прошлых':'только текущий сезон — прошлые сезоны пока не добавлены'}. Счёт — с точки зрения ${esc(T.name)}.</p></div>
+  <div class="h2top" data-rv><span class="h2cr">${em(ID)}${em(o)}</span>
+   ${all.length?`<div class="h2sum"><b class="num">${w}–${l}</b><span>${all.length} ${plural(all.length,'матч','матча','матчей')}, шайбы ${gf}:${ga}${hasOld?`, ${seasons} ${plural(seasons,'сезон','сезона','сезонов')}`:''}</span></div>`:''}</div>
+  ${all.length?`<ol class="gs h2l" data-rv>${all.map(item).join('')}</ol>`:`<p class="note" data-rv>В этих сезонах ${esc(T.name)} и ${esc(nm(o))} не встречались.</p>`}`;
+ document.getElementById('h2h').hidden=false;
+}
 
 /* ── 3б. игроки: лидеры, вкладки «Полевые» / «Вратари», сортировка по клику на заголовок ── */
 const PL=T.pl,mmss=v=>v?`${Math.floor(v/60)}:${String(Math.round(v%60)).padStart(2,'0')}`:'—';
