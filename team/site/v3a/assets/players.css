@@ -45,3 +45,13 @@ body{background:var(--paper);color:var(--ink)}
   .pr .strip{grid-area:st}.pr .ha{grid-area:ha}.pr .nx{grid-area:nx;justify-content:flex-end}
   .strip i{max-width:none}
 }
+/* хоккей: портреты крупнее (владелец 03.11) */
+[data-sport=hockey] .pr{grid-template-columns:28px 84px minmax(0,1.6fr) 120px minmax(0,1.3fr) 108px minmax(0,1fr)}
+[data-sport=hockey] .av{width:76px;height:76px}
+[data-sport=hockey] .av span{font-size:24px}
+[data-sport=hockey] .av .bd{width:28px;height:28px}
+@media (max-width:900px){
+  [data-sport=hockey] .pr{grid-template-columns:20px 62px minmax(0,1fr) 78px;column-gap:10px}
+  [data-sport=hockey] .pr .av{width:58px;height:58px}
+  .pr .nm b{white-space:normal;font-size:18px}
+}

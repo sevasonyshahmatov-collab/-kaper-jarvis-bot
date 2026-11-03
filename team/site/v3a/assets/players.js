@@ -3,11 +3,13 @@
 const D=window.JV_PLAYERS,$=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const crest=s=>`../assets/fc/${encodeURIComponent(s)}.webp`;
-const photo=id=>`https://a.espncdn.com/i/headshots/soccer/players/full/${encodeURIComponent(id)}.png`;
+// фото — Wikimedia Commons (свободные лицензии), карта ESPN id → файл: data/photos.json (players_photos_fetch.py)
+let PH={};
+const photo=id=>PH[id]?`https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(PH[id])}?width=200`:'';
 const ini=n=>n.split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
 const col=T=>{const c=Array.isArray(T.c)?T.c[0]:T.c;return c?'#'+String(c).replace('#',''):'var(--paper-3)'};
 // фото игрока (ESPN); нет фото — инициалы на цвете клуба; эмблема — значком в углу
-const avatar=(p,T)=>`<div class="av" style="--c:${col(T)}"><span>${esc(ini(p.n))}</span><img class="ph" src="${photo(p.id)}" alt="" loading="lazy" onerror="this.remove()"><img class="bd" src="${crest(p.t)}" alt="" loading="lazy"></div>`;
+const avatar=(p,T)=>`<div class="av" style="--c:${col(T)}"><span>${esc(ini(p.n))}</span>${photo(p.id)?`<img class="ph" src="${photo(p.id)}" alt="" loading="lazy" onerror="this.remove()">`:''}<img class="bd" src="${crest(p.t)}" alt="" loading="lazy"></div>`;
 const LGN={...D.leagues};
 const st={m:'sg',lg:'',tm:'',ha:'',so:'rate',q:'',lim:30};
 $('season').textContent=D.season;
@@ -52,4 +54,5 @@ $('so').onchange=e=>{st.so=e.target.value;render()};
 $('q').oninput=e=>{st.q=e.target.value;st.lim=30;render()};
 $('more').onclick=()=>{st.lim+=30;render()};
 teamOpts();render();
+fetch('data/photos.json').then(r=>r.ok?r.json():{}).then(j=>{PH=j||{};render()}).catch(()=>{});
 })();
