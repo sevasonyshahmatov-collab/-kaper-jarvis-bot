@@ -1,0 +1,79 @@
+# Безопасность 03.11 (решение владельца «да» в чате «Сайт»): переписать историю открытого репозитория сайта —
+# во всех коммитах data/*.json без полей модели у матчей без поста в канале, личная почта в авторе → noreply.
+# Перед этим — резервная копия всей истории (git bundle) в ветку backup/site-history-<день> этого ЗАКРЫТОГО
+# репозитория и в артефакт на 90 дней. Запуск только вручную, с подтверждением. Скрипт — team/site/security/scrub_history.py.
+name: Сайт — чистка истории
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Напиши «переписать», чтобы force-push в репозиторий сайта (иначе — пробный прогон без записи)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write          # только для ветки с резервной копией в этом репозитории
+
+concurrency:
+  group: site              # общий с site.yml: сборка сайта не пишет в репозиторий во время чистки
+  cancel-in-progress: false
+
+jobs:
+  scrub:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SITE_REPO: ${{ vars.SITE_REPO || 'sevasonyshahmatov-collab/sevasonyshahmatov-collab.github.io' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install git-filter-repo==2.47.0
+      - name: Взять сайт со всей историей
+        run: |
+          git clone -q --no-local "https://github.com/$SITE_REPO.git" site
+          cd site
+          echo "BRANCH=$(git symbolic-ref --short HEAD)" >> "$GITHUB_ENV"
+          echo "OLD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "OLD_TREE=$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_ENV"
+          echo "коммитов: $(git rev-list --all --count), ветки: $(git branch -a | tr -d ' *' | tr '\n' ' ')"
+      - name: Резервная копия
+        run: |
+          d=$(TZ=Europe/Moscow date +%Y%m%d-%H%M)
+          git -C site bundle create "$GITHUB_WORKSPACE/site-before.bundle" --all
+          git bundle verify site-before.bundle >/dev/null && echo "bundle ok: $(du -h site-before.bundle | cut -f1)"
+          mkdir bk && cd bk && git init -q -b main && cp ../site-before.bundle .
+          printf 'Резервная копия истории %s до чистки 03.11 (head %s).\nВосстановить: git clone site-before.bundle\n' "$SITE_REPO" "$OLD" > README.txt
+          git add . && git -c user.name=jarvis-site-bot -c user.email=jarvis-site-bot@users.noreply.github.com commit -qm "Резервная копия сайта до чистки истории ($OLD)"
+          git push -q "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "main:refs/heads/backup/site-history-$d"
+          echo "резервная копия: ветка backup/site-history-$d"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site-before-bundle
+          path: site-before.bundle
+          retention-days: 90
+      - name: Почистить историю
+        run: |
+          python team/site/security/scrub_history.py site --check || true
+          python team/site/security/scrub_history.py site
+          python team/site/security/scrub_history.py site --check
+          new_tree=$(git -C site rev-parse 'HEAD^{tree}')
+          [ "$new_tree" = "$OLD_TREE" ] && echo "SCRUB последний коммит: файлы сайта не изменились" || {
+            echo "SCRUB последний коммит: файлы изменились (сайт ещё не пересобран кодом #138?):"; git -C site diff --stat "$OLD_TREE" "$new_tree" | tail -5; }
+          echo "коммитов после: $(git -C site rev-list --all --count)"
+      - name: Записать в репозиторий сайта
+        if: github.event.inputs.confirm == 'переписать'
+        env:
+          SITE_TOKEN: ${{ secrets.SITE_TOKEN }}
+        run: |
+          [ -n "$SITE_TOKEN" ] || { echo "SITE_TOKEN не задан"; exit 1; }
+          cd site
+          # --force-with-lease: если site.yml успел опубликовать новый коммит — не затираем, запуск падает
+          git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$SITE_TOKEN" | base64 -w0)" \
+            push --force-with-lease="$BRANCH:$OLD" "https://github.com/$SITE_REPO.git" "HEAD:$BRANCH"
+          echo "SCRUB история переписана: $OLD → $(git rev-parse HEAD)"
+      - name: Пробный прогон
+        if: github.event.inputs.confirm != 'переписать'
+        run: echo "Пробный прогон — в репозиторий сайта ничего не записано (confirm ≠ «переписать»)."
