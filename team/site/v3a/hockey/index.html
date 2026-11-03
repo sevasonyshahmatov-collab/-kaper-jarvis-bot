@@ -16,6 +16,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js">
 <link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js">
 <link rel="stylesheet" href="../assets/v3a.css">
+<link rel="stylesheet" href="../assets/nav.css">
 <style>
 .trends{margin-top:2px}
 .trends b{display:block;font:800 clamp(44px,4.4vw,68px)/.9 var(--display);color:var(--sport);font-variant-numeric:tabular-nums;margin-bottom:8px}
@@ -45,7 +46,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
       <a href="../football/index.html">Футбол</a>
     </nav>
     <nav class="nav" aria-label="Разделы">
-      <a href="#matches">Матчи</a><a href="#leagues">Лиги</a><a href="#table">Таблица</a><a href="#model">Модель</a><a href="#honest">Итоги</a><a href="#faq">Вопросы</a>
+      <a href="#matches">Матчи</a><a href="#leagues">Лиги и клубы</a><a href="#table">Аналитика</a><a href="#model">Модель</a><a href="#honest">Итоги</a><a href="#faq">Вопросы</a>
     </nav>
     <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Telegram</span></a>
   </div>
@@ -254,6 +255,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 </footer>
 <a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Получать прогноз в 08:00 — @jarvibet</span><span aria-hidden="true">›</span></a>
 
+<script src="../assets/nav.js"></script>
 <script src="../assets/v3a.js"></script>
 <script src="../assets/particles.js" defer></script>
 <script src="../assets/titles.js" defer></script>
@@ -350,7 +352,7 @@ const card=m=>`<div class="face">${tm(m.a,'хозяева')}<div class="vs"><spa
 cdv.innerHTML=['h','m','s'].map((u,i)=>`<span class="cu" data-u="${u}"><b></b><small>${['ч','мин','с'][i]}</small></span>`).join('');
 const cu=[...cdv.querySelectorAll('.cu b')],cdWord=document.createElement('b');cdWord.className='cdw';cdv.appendChild(cdWord);
 function cdSet(sec){const on=sec>0;cdv.classList.toggle('over',!on);
- if(!on){cdWord.textContent=sec>-7200?'идёт':'завершён';return}
+ if(!on){cdWord.textContent=JV.over(sec);return}
  const v=[Math.floor(sec/3600),Math.floor(sec%3600/60),sec%60].map(n=>String(n).padStart(2,'0'));
  v.forEach((x,i)=>{const el=cu[i];if(el.textContent===x)return;const first=!el.textContent;el.textContent=x;
   if(!first&&!RM&&el.animate)el.animate([{opacity:0,transform:'translateY(-35%)'},{opacity:1,transform:'none'}],{duration:260,easing:'cubic-bezier(.23,1,.32,1)'})})}

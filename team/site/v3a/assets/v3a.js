@@ -12,7 +12,9 @@ JV.plural=(n,a,b,c)=>{const k=n%100,j=n%10;return k>10&&k<20?c:j===1?a:j>1&&j<5?
 JV.atMs=t=>Date.parse(t.replace(' ','T')+':00+03:00');
 JV.left=t=>{const s=Math.round((JV.atMs(t)-Date.now())/1000);return s};
 JV.hms=s=>s>0?`${JV.two(Math.floor(s/3600))}:${JV.two(Math.floor(s%3600/60))}:${JV.two(s%60)}`:(s>-7200?'ИДЁТ':'ФИНАЛ');
-JV.inMin=s=>{const m=Math.floor(s/60);return s<=0?(s>-7200?'идёт':'завершён'):m<60?`через ${m} мин`:`через ${Math.floor(m/60)} ч ${m%60} мин`};
+/* статус по времени: до 2 ч после старта — «идёт», до суток — «завершён», дальше — дата матча (устаревшие примеры не выдаём за «только что завершён») */
+JV.over=s=>{if(s>-7200)return 'идёт';if(s>-86400)return 'завершён';const d=new Date(Date.now()+s*1000+3*3600e3).toISOString();return 'матч '+d.slice(8,10)+'.'+d.slice(5,7)};
+JV.inMin=s=>{const m=Math.floor(s/60);return s<=0?JV.over(s):m<60?`через ${m} мин`:`через ${Math.floor(m/60)} ч ${m%60} мин`};
 
 /* ── split-flap ─────────────────────────────────────────────── */
 const CH='АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЭЮЯ0123456789';

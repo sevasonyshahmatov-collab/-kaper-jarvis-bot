@@ -53,7 +53,7 @@ const card=({m,b})=>{const A=T[m.h],B=T[m.a];
 cdv.innerHTML=['h','m','s'].map((u,i)=>`<span class="cu" data-u="${u}"><b></b><small>${['ч','мин','с'][i]}</small></span>`).join('');
 const cu=[...cdv.querySelectorAll('.cu b')],cdWord=document.createElement('b');cdWord.className='cdw';cdv.appendChild(cdWord);
 function cdSet(sec){const on=sec>0;cdv.classList.toggle('over',!on);
- if(!on){cdWord.textContent=sec>-7200?'идёт':'завершён';return}
+ if(!on){cdWord.textContent=JV.over(sec);return}
  const v=[Math.floor(sec/3600),Math.floor(sec%3600/60),sec%60].map(n=>String(n).padStart(2,'0'));
  v.forEach((x,i)=>{const el=cu[i];if(el.textContent===x)return;const first=!el.textContent;el.textContent=x;
   if(!first&&!RM&&el.animate)el.animate([{opacity:0,transform:'translateY(-35%)'},{opacity:1,transform:'none'}],{duration:260,easing:'cubic-bezier(.23,1,.32,1)'})})}

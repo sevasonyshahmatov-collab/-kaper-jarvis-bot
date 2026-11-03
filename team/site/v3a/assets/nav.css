@@ -1,0 +1,64 @@
+/* JARVIS v3a — общая шапка (assets/nav.js) */
+.hd .wrap.hdrow{display:flex;align-items:center;gap:clamp(10px,1.8vw,24px);height:64px}
+.hd .logo{min-height:44px}
+.gnav{display:flex;gap:2px;margin-left:auto;align-items:center}
+.gnav-sp{margin-left:auto}
+.gnav a{font:600 16px/1 var(--display);text-decoration:none;color:var(--ink-2);padding:14px 10px;border-radius:999px;white-space:nowrap;position:relative;transition:color .2s ease}
+.gnav a:hover{color:var(--ink)}
+.gnav a[aria-current]{color:var(--ink)}
+.gnav a[aria-current]::after{content:"";position:absolute;left:10px;right:10px;bottom:6px;height:3px;border-radius:2px;background:var(--sport)}
+.hd .btn-tg{flex:none}
+.mbtn{display:none;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:999px;border:0;cursor:pointer;
+  background:var(--paper-2);color:var(--ink);font:700 15px/1 var(--display);letter-spacing:.01em}
+.mbtn .mi{width:18px;height:12px;background:linear-gradient(currentColor 0 0) 0 0/100% 2px,linear-gradient(currentColor 0 0) 0 5px/100% 2px,linear-gradient(currentColor 0 0) 0 10px/100% 2px;background-repeat:no-repeat}
+.mpanel{position:absolute;left:0;right:0;top:100%;background:var(--paper);color:var(--ink);box-shadow:0 18px 30px -18px var(--shadow);
+  padding:8px max(16px,env(safe-area-inset-left)) 16px;max-height:calc(100vh - 80px);overflow:auto;border-top:1px solid var(--rule)}
+.mpanel[hidden]{display:none}
+.mgrp{display:flex;flex-direction:column}
+.mgrp b{font:800 13px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);padding:14px 0 4px}
+.mpanel a{display:flex;align-items:center;min-height:48px;padding:0 4px;font:700 19px/1 var(--display);text-decoration:none;color:var(--ink);border-bottom:1px solid var(--rule)}
+.mpanel a[aria-current]{color:var(--ink);box-shadow:inset 3px 0 0 var(--sport)}
+.mpanel .mtg{margin-top:12px;gap:10px;border:0;border-radius:999px;justify-content:center;background:var(--signal);color:var(--signal-ink)}
+.mpanel .mtg svg{width:18px;height:18px}
+.hd{position:sticky}
+/* вторая полоса: якоря страницы */
+.subbar{border-top:1px solid color-mix(in srgb,var(--rule) 70%,transparent)}
+.subbar[hidden]{display:none}
+.subbar .wrap{display:block;height:auto}
+.subbar .nav{display:flex;margin-left:0;gap:2px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.subbar .nav::-webkit-scrollbar{display:none}
+.subbar .nav a{flex:none;font:600 15px/1 var(--display);padding:15px 12px;white-space:nowrap}
+.subbar .nav a[hidden]{display:none}
+.subbar .nav .bar{bottom:4px}
+@media (max-width:1100px){
+  .gnav{display:none}.mbtn{display:inline-flex}.hd .btn-tg{margin-left:auto}.hd .btn-tg span{display:none}.hd .btn-tg{padding:0;width:44px;height:44px;justify-content:center}
+  .hd .btn-tg + .mbtn{margin-left:0}
+}
+@media (max-width:760px){
+  .hd .wrap.hdrow{gap:8px}
+  .hd .seg a{min-height:44px;display:inline-flex;align-items:center;padding:0 12px}
+  .hd .seg{padding:2px}
+  .subbar .nav a{min-height:44px;display:inline-flex;align-items:center;padding:0 14px}
+}
+@media (max-width:480px){.hd .btn-tg{display:none}.mbtn{margin-left:auto}}
+@media (max-width:420px){
+  .hd .logo{font-size:26px}.hd .logo i{width:19px;height:25px;font-size:17px}
+  .hd .seg a{padding:0 9px;font-size:14px}.mbtn{padding:0 10px}.mbtn .mt{font-size:14px}
+}
+/* страница не шире экрана (метки времени, подложки арены), якоря не прячутся под двухстрочной шапкой */
+html{scroll-padding-top:116px}
+.arena-bg{overflow:hidden}
+/* телефон: цели нажатия не меньше 44 px */
+@media (max-width:760px){
+  .tab,.tstep,.lglink,.lglnk,.crumb,.follow,a.op,a.cl,.pl-more,.tr-em,.chips a,.skip:focus{min-height:44px}
+  .tab,.tstep,.lglink,.lglnk,.crumb,.follow,a.op,a.cl,.tr-em,.chips a{display:inline-flex;align-items:center}
+  .seg button,.tmtop .follow{min-height:44px}
+  nav[aria-label="Подвал"] a{display:inline-flex;align-items:center;min-height:44px}
+  /* ссылки в ячейках таблиц и мелкие кнопки: зона нажатия шире видимой */
+  td>a,.tr-t>a,.pager button{position:relative}
+  td>a::after,.tr-t>a::after,.pager button::after{content:"";position:absolute;left:-6px;right:-6px;top:50%;height:44px;transform:translateY(-50%)}
+  main.pl button{min-height:44px}
+  select,input[type=search],input[type=text]{min-height:44px}
+}
+/* резерв высоты под списки, которые строятся после загрузки данных (CLS) */
+.pl-list:empty{min-height:70vh}
