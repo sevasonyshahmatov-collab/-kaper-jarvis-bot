@@ -1,0 +1,21 @@
+{
+ "day": "2026-11-03",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/players/nhl_players.jpg"
+   ],
+   "text": "Игроки НХЛ — готово\n\nВсе 743 игрока, данные и фото с сайта НХЛ, по каждому матчу. Рынки «n из N»: очко, гол, передача, 3+ броска. В полосе — сколько набрал в каждом из 10 последних матчей. Время на льду, дом/выезд, следующий соперник, фильтр по позиции и команде.\n\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/9dd8ef889e8d71b9f37206d78e0484962c50a2c8/team/site/v3a/hockey/players.html"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/players/foot_players.jpg"
+   ],
+   "text": "Игроки футбол — добавлены фото (ESPN). На снимке из облака фото не грузятся, поэтому инициалы; у тебя в браузере будут фото, у кого их нет — инициалы на цвете клуба.\n\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/9dd8ef889e8d71b9f37206d78e0484962c50a2c8/team/site/v3a/football/players.html\n\nДальше — КХЛ (смотрю, что отдаёт приложение КХЛ)."
+  }
+ ]
+}
