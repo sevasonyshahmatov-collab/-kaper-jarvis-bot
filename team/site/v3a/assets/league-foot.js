@@ -151,3 +151,6 @@ Promise.all([loadJS('data/players.js'),fetch('data/photos.json').then(r=>r.json(
  pbox.insertAdjacentHTML('beforeend',`<a class="btn btn-ink lgall" href="players.html">Все игроки лиги →</a>`);
 }).catch(()=>{$('plCols').innerHTML='<p class="lgempty">Игроков загрузить не удалось.</p>';pbox.insertAdjacentHTML('beforeend',`<a class="btn btn-ink lgall" href="players.html">Все игроки лиги →</a>`)});
 })();
+
+/* пересчитать «свет арены» после отрисовки (иначе герой бледный до первой прокрутки) */
+for(const t of [50,400,1200])setTimeout(()=>{dispatchEvent(new Event("resize"));dispatchEvent(new Event("scroll"))},t);

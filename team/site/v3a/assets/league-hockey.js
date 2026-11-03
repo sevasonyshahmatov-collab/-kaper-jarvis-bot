@@ -136,3 +136,6 @@ function build(SE,PL){
 Promise.all([fetch('../team/season.json').then(r=>r.json()),fetch('data/'+L.json).then(r=>r.json()).catch(()=>({players:[]}))]).then(([se,pl])=>build(se,pl))
  .catch(e=>{console.error(e);$('hero').innerHTML='<p class="lgempty">Данные загрузить не удалось.</p>'});
 })();
+
+/* пересчитать «свет арены» после отрисовки (иначе герой бледный до первой прокрутки) */
+for(const t of [50,400,1200])setTimeout(()=>{dispatchEvent(new Event("resize"));dispatchEvent(new Event("scroll"))},t);
