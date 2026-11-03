@@ -1,0 +1,34 @@
+{
+ "day": "2026-11-03",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_football_ucl2/ucl_full_1.jpg"
+   ],
+   "text": "Лига чемпионов, верх страницы: тёмно-синий первый экран с цианом и маджентой, дальше белая секция матчей"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_football_ucl2/ucl_full_2.jpg"
+   ],
+   "text": "Лига чемпионов, низ страницы: белая таблица с зонами, полоса синий-маджента, тёмный финал"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-03/site_football_ucl2/ctx_bc.jpg"
+   ],
+   "text": "Барселона в ЛЧ: тёмная шапка, ниже белые секции; вкладка «Лига чемпионов» подсвечена"
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Переделал ЛЧ: синяя гамма с акцентами маджента и циан, ритм тёмный-белый-цветная полоса-тёмный (Лига Европы так же, в оранжево-чёрном). Размытый логотип на фоне заменён на свой векторный звёздный мяч. Все эмблемы клубов и знаки лиг перекачаны крупнее, теперь резкие. В ЛЧ подсвечивается вкладка «Лига чемпионов».\n\nЛига чемпионов: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/0e96c5cdd94b41f69cd86ac090ad2905fa9281c4/team/site/v3a/football/ucl.html\nБарселона в ЛЧ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/0e96c5cdd94b41f69cd86ac090ad2905fa9281c4/team/site/v3a/football/team.html?id=barcelona&ctx=ucl\n\nТак?"
+  }
+ ]
+}
