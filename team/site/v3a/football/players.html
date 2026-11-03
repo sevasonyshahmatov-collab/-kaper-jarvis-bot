@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ru" data-sport="football" data-theme="a">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Игроки — голы и карточки · JARVIS (макет v3a)</title>
+<meta name="description" content="Игроки топ-лиг: голы, «забил в n из N», карточки, форма последних 10 матчей, дом и выезд, следующий соперник.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#071225">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="stylesheet" href="../assets/v3a.css">
+<link rel="stylesheet" href="../assets/football.css">
+<link rel="stylesheet" href="../assets/players.css">
+</head>
+<body data-field="football">
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="../index.html" aria-label="JARVIS, на главную">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="../hockey/index.html">Хоккей</a>
+      <a href="index.html">Футбол</a>
+      <a href="players.html" aria-current="page">Игроки</a>
+    </nav>
+  </div>
+</header>
+<main id="main" class="wrap pl">
+  <section class="pl-hero">
+    <p class="pl-kicker">Футбол · сезон <span id="season"></span></p>
+    <h1>Игроки</h1>
+    <p class="pl-lead">Кто забивает и кто получает карточки: «n из N» — в скольких матчах команды это случилось (в списке — от 6 матчей). Форма — последние 10 матчей, дом и выезд, следующий соперник.</p>
+  </section>
+  <section class="pl-ctrl" aria-label="Фильтры">
+    <div class="pl-tabs" role="group" aria-label="Рынок" id="mk">
+      <button type="button" data-m="sg" aria-pressed="true">Забьёт</button>
+      <button type="button" data-m="cr" aria-pressed="false">Карточка</button>
+    </div>
+    <div class="pl-chips" role="group" aria-label="Лига" id="lg"></div>
+    <div class="pl-row">
+      <label>Команда <select id="tm"><option value="">Все</option></select></label>
+      <label>Где <select id="ha"><option value="">Все матчи</option><option value="home">Дома</option><option value="away">В гостях</option></select></label>
+      <label>Сортировка <select id="so"><option value="rate">Доля матчей</option><option value="n">Число матчей</option><option value="G">Голы / карточки</option></select></label>
+      <label class="pl-q">Игрок <input id="q" type="search" placeholder="Имя"></label>
+    </div>
+  </section>
+  <p class="pl-meta" id="meta"></p>
+  <div class="pl-list" id="list" role="list"></div>
+  <button type="button" class="pl-more" id="more">Показать ещё</button>
+  <p class="pl-note">Данные — ESPN, обновление после каждого игрового дня. Прототип: N — матчи команды; минуты и составы, удары и удары в створ добавим следующим шагом.</p>
+</main>
+<script src="data/players.js"></script>
+<script src="../assets/players.js"></script>
+</body>
+</html>
