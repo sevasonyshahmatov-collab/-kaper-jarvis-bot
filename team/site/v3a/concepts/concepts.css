@@ -1,3 +1,8 @@
+/* цифры — Roboto Condensed (владелец 03.11: «поменяем шрифт на цифры»); буквы остаются Fira Sans Extra Condensed.
+   Свой @font-face с unicode-range: из этого шрифта берутся только цифры и знаки при них (, . : % + − –). */
+@font-face{font-family:"JV Digits";font-style:normal;font-weight:100 900;font-display:swap;
+  src:url(https://fonts.gstatic.com/s/robotocondensed/v31/ieVl2ZhZI2eCN5jzbjEETS9weq8-19K7DQ.woff2) format("woff2");
+  unicode-range:U+0030-0039,U+0025,U+002B,U+002C,U+002E,U+003A,U+2013,U+2212}
 /* JARVIS — концепты v3a: арена → светлая «газета». Системные шрифты, без анимаций. */
 :root{
   --paper:#eceee8; --paper-2:#e0e3db; --paper-3:#d3d7cd; --card:#f6f7f3;
@@ -5,7 +10,7 @@
   --arena:#0b1a36; --arena-2:#12284f; --arena-3:#1d3a6e;
   --khl:#1146b8; --khl-2:#d72b3a; --nhl:#0c0e12; --nhl-2:#c3ccd6;
   --signal:#ffc21a; --win:#1d7a45; --loss:#c4303b; --push:#7a828c; --ice:#1462a8; --pitch:#16704a;
-  --display:"Fira Sans Extra Condensed","Arial Narrow","Roboto Condensed","Liberation Sans Narrow",Impact,sans-serif;
+  --display:"JV Digits","Fira Sans Extra Condensed","Arial Narrow","Roboto Condensed","Liberation Sans Narrow",Impact,sans-serif;
   --sans:"Helvetica Neue",Arial,"Liberation Sans",sans-serif;
   --text:Georgia,"Times New Roman","Liberation Serif",serif;
   --mono:ui-monospace,"SF Mono","DejaVu Sans Mono",Menlo,monospace;
