@@ -31,7 +31,12 @@ LG = {'НХЛ': 'NHL', 'КХЛ': 'KHL', 'NHL': 'NHL', 'KHL': 'KHL'}
 
 def _lg(it):
     """Лига ноги для эмблем: НХЛ / КХЛ; футбол и неизвестное — 'FOOT' (серая панель и круг с аббревиатурой)."""
-    return LG.get(str(it.get('league') or 'НХЛ'), 'FOOT')
+    lg = str(it.get('league') or 'НХЛ')
+    if lg in ('Футбол', 'FOOT', 'FOOT-RU'):          # владелец 03.11: экспресс по футболу — с эмблемами клубов
+        import football
+        football.register()
+        return 'FOOT-RU'
+    return LG.get(lg, 'FOOT')
 
 
 def _leg(img, it, y0, R, acc, i, F):
@@ -97,8 +102,11 @@ def draw(legs, title='ЭКСПРЕСС', date_title='', total=None, chance=None,
     для анимации)."""
     nhl.register()
     lgs = {_lg(it) for it in legs}
-    brand = 'NHL' if lgs == {'NHL'} else 'KHL' if lgs == {'KHL'} else 'KHL+NHL'
+    brand = 'NHL' if lgs == {'NHL'} else 'KHL' if lgs == {'KHL'} else 'FOOT-RU' if lgs == {'FOOT-RU'} else 'KHL+NHL'
     acc = nhl.ICE if brand != 'KHL' else mv.poster.ACC
+    if brand == 'FOOT-RU':
+        import football
+        acc = football.ACC
     story = fmt == 'story'
     H = 1920 if story else 1350
     head = 330 if story else 236            # сторис: сверху ~250 px под полоску и имя профиля
