@@ -111,7 +111,7 @@ const streak=(()=>{const a=played.slice().sort((x,y)=>String(x.d).localeCompare(
 const streakHtml=streak.n>=3?`<p class="tmstreak ${streak.win?'w':'l'}" aria-label="${streak.win?'Серия побед':'Серия поражений'}: ${streak.n}"><span class="sk">${streak.win?'Серия побед':'Серия поражений'}:</span><b class="num">${streak.n}</b><span class="dots" aria-hidden="true">${streak.last.slice(-10).map(x=>`<i class="${x?'w':'l'}"></i>`).join('')}</span></p>`:'';
 const TGICO='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.9.8 1.4.4l2.6-2.2 4.8 3.5c.6.4 1.4.1 1.6-.7l3.1-15.1c.2-1-.7-1.7-1.6-1.3z"/></svg>';
 /* «Следить за командой»: старт бота с параметром follow_<id> (подписку на команду в боте делают отдельно) */
-const followBtn=(cls='')=>`<a class="follow ${cls}" href="https://t.me/jarvibet?start=follow_${esc(ID)}" target="_blank" rel="noopener">${TGICO}<span class="ft"><b>Следить за командой</b><small>прогноз и итог матча — в Telegram</small></span></a>`;
+const followBtn=(cls='')=>`<a class="follow ${cls}" href="https://t.me/jarvibet?start=follow_${esc(ID)}" target="_blank" rel="noopener" title="Прогноз и итог матча — в Telegram">${TGICO}<span>Следить за командой</span></a>`;
 const hasSample=T.games.some(g=>g.s||g.ks);
 const otl=Math.max(0,(T.pts||0)-2*(T.w||0));
 const confRows=Object.entries(D.teams).filter(([,x])=>x.lg===lg&&x.conf===conf).sort((a,b)=>a[1].place-b[1].place);
@@ -122,11 +122,11 @@ const asOf=bd?`на ${bd.d} ${bd.mon}`:'';
 const ax=D.axes||[];
 document.getElementById('hero').innerHTML=`
  <header class="tmid" data-rv>
-  <a class="crumb" href="${BACK(lg)}"><span aria-hidden="true">←</span> Лиги и клубы · ${L.name}</a>
+  <div class="tmtop"><a class="crumb" href="${BACK(lg)}"><span aria-hidden="true">←</span> Лиги и клубы · ${L.name}</a>${followBtn('in-hero')}</div>
   <div class="tmrow">
    <span class="tmcrest">${em(ID)}</span>
    <div class="tmname"><p class="tmlg">${lgp(lg)}<span>${L.name}</span><span class="dot">·</span><span>Конференция «${esc(conf)}»</span></p>
-    <h1>${esc(T.name)}</h1>${followBtn('in-hero')}</div>
+    <h1>${esc(T.name)}</h1></div>
   </div>
   <div class="tmplace"><b class="num">${T.place}</b><span>-е место<br>в конференции «${esc(conf)}»</span></div>
   <ul class="tmpills" aria-label="Коротко о сезоне">
@@ -220,7 +220,7 @@ document.getElementById('picksBox').innerHTML=`
    <span class="pt"><strong>${esc(String(p.pick||'').replace(/(\d)\.(\d)/g,'$1,$2'))}</strong><small>кэф ${esc(p.k)} · счёт ${esc(p.sc)}</small></span>
    <span class="pr" title="${ok?'прогноз зашёл':'прогноз не зашёл'}">${ok?'✓':'✕'}</span></li>`}).join('')}</ol></div>`
  :`<div class="pkempty" data-rv><p>На матчи ${esc(T.name)} прогнозов пока не было. Как только модель найдёт ставку — она появится здесь и в канале.</p><a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть @jarvibet</a></div>`}
- <div class="pkfollow" data-rv>${followBtn('in-picks')}</div>`;
+`;
 
 
 /* ── 2а. следующий матч: крупная карточка сразу под шапкой ── */
