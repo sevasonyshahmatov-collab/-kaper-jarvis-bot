@@ -5,7 +5,7 @@
    "to": "owner",
    "type": "photo",
    "files": [
-    "out/2026-11-03/site_club_themes_all/collage_games_khl.jpg"
+    "team/out/2026-11-03/site_club_themes_all/collage_games_khl.jpg"
    ],
    "text": "Клубная тема — «Матчи»: Ак Барс, Северсталь, Амур, Локомотив. Своя тёмная полоса и кромка у каждого клуба."
   },
@@ -13,7 +13,7 @@
    "to": "owner",
    "type": "photo",
    "files": [
-    "out/2026-11-03/site_club_themes_all/collage_players_motifs.jpg"
+    "team/out/2026-11-03/site_club_themes_all/collage_players_motifs.jpg"
    ],
    "text": "«Игроки»: у каждого клуба свой мотив — тигр и хвойный лес (Амур), рельсы и шестерёнки (Локомотив), щупальца (Сиэтл), горы и снег (Колорадо)."
   },
@@ -21,7 +21,7 @@
    "to": "owner",
    "type": "photo",
    "files": [
-    "out/2026-11-03/site_club_themes_all/collage_players_light.jpg"
+    "team/out/2026-11-03/site_club_themes_all/collage_players_light.jpg"
    ],
    "text": "Светлые клубные цвета: Северсталь, Бостон (лапа), Лос-Анджелес (корона), Ак Барс (барс)."
   },
@@ -29,7 +29,7 @@
    "to": "owner",
    "type": "photo",
    "files": [
-    "out/2026-11-03/site_club_themes_all/hero_streak_nhl_mtl.jpg"
+    "team/out/2026-11-03/site_club_themes_all/hero_streak_nhl_mtl.jpg"
    ],
    "text": "Серия в шапке: «Серия побед: 5» у Монреаля. Показывается от 3 матчей, победа и поражение — любые (ОТ и буллиты тоже)."
   },
