@@ -55,3 +55,29 @@ function bright(h){const n=parseInt(String(h||'3ee08a').replace('#',''),16);let 
  if(l<.42){const k=(.42-l)/.42*.8+.2;r=Math.round(r+(255-r)*k);g=Math.round(g+(255-g)*k);b=Math.round(b+(255-b)*k)}return `rgb(${r},${g},${b})`}
 window.JVF={D,esc,fx,pc,plural,T,nm,crest,CI,LGI,LGP,teamHref,MON,WD,day,dd,played,rOf,RES,RESF,gamesOf,stats,h2h,dots,radar,bright};
 })();
+/* палитра клуба для шапки страницы клуба: градиент из цветов ESPN, текст — светлый или тёмный по контрасту ≥ 4,5:1 */
+(()=>{
+const rgb=h=>{const n=parseInt(String(h).replace('#','').replace(/^(.)(.)(.)$/,'$1$1$2$2$3$3'),16);return [n>>16,n>>8&255,n&255]};
+const hex=a=>'#'+a.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');
+const mix=(a,b,t)=>hex(rgb(a).map((v,i)=>v+(rgb(b)[i]-v)*t));
+const lum=h=>{const c=rgb(h).map(v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4});return .2126*c[0]+.7152*c[1]+.0722*c[2]};
+const cr=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+const sat=h=>{const [r,g,b]=rgb(h),mx=Math.max(r,g,b),mn=Math.min(r,g,b);return mx?(mx-mn)/mx:0};
+function palette(c){
+ let stops=[c[0],mix(c[0],c[1],.5),c[1]],acc=c[2];
+ const ok=t=>stops.every(s=>cr(t,s)>=4.5&&cr(mix(t,s,.25),s)>=4.5);
+ let text=null;
+ for(let k=0;k<14&&!text;k++){if(ok('#ffffff'))text='#ffffff';else if(ok('#0b0f16'))text='#0b0f16';else stops=stops.map(s=>mix(s,'#000000',.1))}
+ text=text||'#ffffff';
+ for(let k=0;k<10&&stops.some(s=>cr(acc,s)<3);k++)acc=mix(acc,text,.18);
+ let accL=c[2];for(let k=0;k<12&&cr(accL,'#eceee8')<3;k++)accL=mix(accL,'#000000',.12);
+ return {stops,text,acc,accL,base:stops[0]};
+}
+/* ESPN отдаёт два цвета клуба (основной и запасной): шапка — основной, затемнённый; акцент — более насыщенный из двух */
+function clubColors(t){const cc=t.c||[],a='#'+(cc[0]||'1b2a44'),b='#'+(cc[1]||'0b1220');
+ const dark=x=>lum(x)<.55?x:mix(x,'#000000',.45);
+ const c0=dark(a),c1=mix(c0,'#000000',.5);
+ const okc=x=>lum(x)<.85&&lum(x)>.02&&sat(x)>.25,acc=okc(a)||!okc(b)?a:b;
+ return [c0,c1,acc==='#ffffff'||lum(acc)>.92?'#e8edf4':acc]}
+Object.assign(window.JVF,{rgb,hex,mix,lum,cr,palette,clubColors});
+})();

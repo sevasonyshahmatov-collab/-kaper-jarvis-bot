@@ -134,7 +134,8 @@ for g in sorted(raw['games'], key=lambda x: x['d']):
             row['gf'], row['ga'] = gf, ga
             if mx: row['x'] = {k: v for k, v in mx.items() if k in ('sh', 'sot', 'cor', 'pos')}
             if ox: row['y'] = {k: v for k, v in ox.items() if k in ('sh', 'sot', 'cor', 'pos')}
-        TEAMS[me]['games'].append(row)
+        if played:
+            TEAMS[me]['games'].append(row)
     if played:
         for mn, tid, pid, nm, kind in g.get('g') or []:
             s = slug.get(tid)
