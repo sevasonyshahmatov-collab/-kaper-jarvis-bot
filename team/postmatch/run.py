@@ -151,6 +151,7 @@ def channel_post(p):
     """Лента канала (t.me/s/jarvibet, team/daily/channel.py) → (номер поста прогноза или None, обоснование из него,
     тексты последних послематчевых постов — чтобы новый их не повторял)."""
     msg_id, why, recent = None, '', []
+    p['ch_pick'] = None
     try:
         import channel
         from datetime import timedelta
@@ -164,6 +165,7 @@ def channel_post(p):
             if q and q['league'] == p['league'] and q['home'] == p['home'] and q['away'] == p['away'] \
                     and abs((q['start'] - p['start']).total_seconds()) <= 60:
                 msg_id = q['msg_id']
+                p['ch_pick'] = (q['bet'], q['kef'])       # ставка/кэф из поста в канале как он стоит сейчас (с правками)
                 k = next((i for i, t in enumerate(lines) if re.match(r'(?i)\s*к[эе]ф', t)), 2)
                 why = '\n'.join(t for t in lines[k + 1:] if not t.startswith('#'))
         if msg_id:
@@ -547,10 +549,17 @@ def main():
     if not g:
         print('POSTMATCHERR матч ещё не закончен — поста нет', flush=True)
         return 0
+    ch_num, pick_why, recent = channel_post(p)
+    # владелец 03.11: перед итогом сверяемся с тем, какая ставка выложена в канале СЕЙЧАС (правка в канале бот мог не увидеть)
+    cp = p.get('ch_pick')
+    if cp and cp[0] and cp[0].strip().lower() != p['pick'].strip().lower():
+        print('POSTMATCH ставка в канале другая: «%s» @%s вместо «%s» @%s — беру канальную' % (cp[0], cp[1], p['pick'], p['kef']), flush=True)
+        p['pick'] = cp[0].strip()
+        if cp[1]:
+            p['kef'] = float(cp[1])
     res, legs, why = settle.settle(p['pick'], p['home'], p['away'], g)
     res_legs = [settle.settle_leg(l_, g) for l_ in legs]
     goals = goals_of(p, g)
-    ch_num, pick_why, recent = channel_post(p)
     ch = p['ch'] if str(p.get('ch') or '').isdigit() else ch_num
     import chronicle
     import writer
