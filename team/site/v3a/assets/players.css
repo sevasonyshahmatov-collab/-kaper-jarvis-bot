@@ -67,3 +67,4 @@ body{background:var(--paper);color:var(--ink)}
 .strip .bars i.g b{color:var(--ink)}
 .strip small{font:600 13px/1.2 var(--display);color:var(--ink-3)} .strip small b{color:var(--ink)}
 @media (max-width:900px){.strip .bars i{max-width:none}}
+.strip .bars i.x{opacity:.45;min-height:2px}

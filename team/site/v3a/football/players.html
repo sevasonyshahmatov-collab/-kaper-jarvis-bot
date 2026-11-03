@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Игроки — голы и карточки · JARVIS (макет v3a)</title>
-<meta name="description" content="Игроки топ-лиг: голы, «забил в n из N», карточки, форма последних 10 матчей, дом и выезд, следующий соперник.">
+<title>Игроки — голы, удары, карточки · JARVIS (макет v3a)</title>
+<meta name="description" content="Игроки топ-лиг: голы, удары в створ, ассисты, карточки, «n из N» по матчам игрока, форма последних 10 матчей, дом и выезд, следующий соперник.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#071225">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,25 +30,28 @@
   <section class="pl-hero">
     <p class="pl-kicker">Футбол · сезон <span id="season"></span></p>
     <h1>Игроки</h1>
-    <p class="pl-lead">Кто забивает и кто получает карточки: «n из N» — в скольких матчах команды это случилось (в списке — от 6 матчей). Форма — последние 10 матчей, дом и выезд, следующий соперник.</p>
+    <p class="pl-lead" id="lead">Кто забивает, бьёт в створ, отдаёт пасы и получает карточки: «n из N» — в скольких матчах игрока это случилось. Форма, минуты, дом и выезд, следующий соперник.</p>
   </section>
   <section class="pl-ctrl" aria-label="Фильтры">
     <div class="pl-tabs" role="group" aria-label="Рынок" id="mk">
       <button type="button" data-m="sg" aria-pressed="true">Забьёт</button>
+      <button type="button" data-m="st" aria-pressed="false">1+ в створ</button>
+      <button type="button" data-m="s2" aria-pressed="false">2+ удара</button>
+      <button type="button" data-m="ga" aria-pressed="false">Гол+пас</button>
       <button type="button" data-m="cr" aria-pressed="false">Карточка</button>
     </div>
     <div class="pl-chips" role="group" aria-label="Лига" id="lg"></div>
     <div class="pl-row">
       <label>Команда <select id="tm"><option value="">Все</option></select></label>
       <label>Где <select id="ha"><option value="">Все матчи</option><option value="home">Дома</option><option value="away">В гостях</option></select></label>
-      <label>Сортировка <select id="so"><option value="rate">Доля матчей</option><option value="n">Число матчей</option><option value="G">Голы / карточки</option></select></label>
+      <label>Сортировка <select id="so"><option value="rate">Доля матчей</option><option value="n">Число матчей</option><option value="G">Голы / удары / карточки</option></select></label>
       <label class="pl-q">Игрок <input id="q" type="search" placeholder="Имя"></label>
     </div>
   </section>
   <p class="pl-meta" id="meta"></p>
   <div class="pl-list" id="list" role="list"></div>
   <button type="button" class="pl-more" id="more">Показать ещё</button>
-  <p class="pl-note">Данные — ESPN, обновление после каждого игрового дня. Фото — <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a> (CC BY-SA и др.), обработаны: обрезка и удаление фона; <a href="photo-credits.html">авторы фото</a>. У кого фото нет — инициалы. Прототип: N — матчи команды; минуты и составы, удары и удары в створ добавим следующим шагом.</p>
+  <p class="pl-note" id="note">Данные — ESPN, обновление после каждого игрового дня. Фото — <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a> (CC BY-SA и др.), обработаны: обрезка и удаление фона; <a href="photo-credits.html">авторы фото</a>. У кого фото нет — инициалы. Прототип: N — матчи команды; минуты и составы, удары и удары в створ добавим следующим шагом.</p>
 </main>
 <script src="data/players.js"></script>
 <script src="../assets/players.js"></script>
