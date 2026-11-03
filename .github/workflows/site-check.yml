@@ -21,6 +21,7 @@ jobs:
         with:
           repository: ${{ vars.SITE_REPO || 'sevasonyshahmatov-collab/sevasonyshahmatov-collab.github.io' }}
           path: site
+          persist-credentials: false     # безопасность 03.11: открытый репозиторий, токен в site/.git не нужен
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
