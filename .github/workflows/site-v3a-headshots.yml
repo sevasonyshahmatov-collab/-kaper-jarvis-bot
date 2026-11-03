@@ -15,7 +15,7 @@ permissions:
 jobs:
   headshots:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 80
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -33,7 +33,7 @@ jobs:
           python -c "import cv2,numpy;print('CV2',cv2.__version__,cv2.__file__,numpy.__version__,hasattr(cv2,'CascadeClassifier'))"
       - run: python team/site/v3a/football/players_headshots.py
         env:
-          HEADSHOTS_BUDGET: '2900'
+          HEADSHOTS_BUDGET: '2100'
       - name: Закоммитить портреты
         if: always()
         run: |

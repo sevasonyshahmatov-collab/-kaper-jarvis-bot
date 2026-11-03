@@ -48,7 +48,7 @@ casc = cv2.CascadeClassifier(os.path.join(cv2.data.haarcascades, 'haarcascade_fr
 
 
 def fetch(fn):
-    url = 'https://commons.wikimedia.org/wiki/Special:FilePath/' + requests.utils.quote(fn) + '?width=800'
+    url = 'https://commons.wikimedia.org/wiki/Special:FilePath/' + requests.utils.quote(fn) + '?width=960'  # стандартный размер миниатюры Wikimedia (нестандартные — медленно и 429)
     for k in range(5):
         try:
             r = S.get(url, timeout=60)
@@ -106,6 +106,9 @@ def make(raw):
     return cut.resize((256, 256), Image.LANCZOS), None
 
 
+for i in ids:
+    if i not in done and os.path.exists(os.path.join(OUT, i + '.webp')):
+        done[i] = {'f': photos[i], 'ok': 1}
 n_ok = n_new = n_skip = 0
 for i in ids:
     fn = photos[i]
@@ -138,8 +141,9 @@ for i in ids:
         skipped[i] = {'f': fn, 'why': why}
         n_skip += 1
         print('HS skip', i, fn, why, flush=True)
-    if (n_new + n_skip) % 20 == 0:
+    if (n_new + n_skip) % 5 == 0:  # сохранять часто: запуск может оборваться по лимиту времени
         json.dump(done, open(os.path.join(D, 'headshots.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
+        json.dump(skipped, open(os.path.join(D, 'headshots_skipped.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
 
 json.dump(done, open(os.path.join(D, 'headshots.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 json.dump(skipped, open(os.path.join(D, 'headshots_skipped.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
