@@ -11,7 +11,8 @@ const hero=document.querySelector('.tmhero');if(!hero||document.body.classList.c
 const cs=getComputedStyle(document.body),v=n=>cs.getPropertyValue(n).trim();
 const C1=v('--c1'),C2=v('--c2'),C3=v('--c3'),ACC=v('--cacc'),TXT=v('--con')||'#ffffff';
 if(!C1||!C3)return;
-const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* телефон (малый экран + касание) — как при prefers-reduced-motion: один статичный кадр, без постоянной анимации (04.11, скорость) */
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches||(Math.min(innerWidth,innerHeight)<620&&matchMedia('(pointer: coarse)').matches);
 const rgb=h=>{h=h.replace('#','');if(h.length===3)h=h.replace(/(.)/g,'$1$1');const n=parseInt(h,16);return [n>>16&255,n>>8&255,n&255]};
 const mix=(a,b,t)=>a.map((x,i)=>x+(b[i]-x)*t);
 const lum=c=>{const l=c.map(x=>{x/=255;return x<=.03928?x/12.92:((x+.055)/1.055)**2.4});return .2126*l[0]+.7152*l[1]+.0722*l[2]};

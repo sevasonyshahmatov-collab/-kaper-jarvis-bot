@@ -465,7 +465,6 @@ document.getElementById('foot').textContent=`Макет v3a · данные ${as
 // v3a.js (keepTheme) при ?theme= обрезает «?id=» у ссылок на index.html — возвращаем после него
 document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('a[data-href]').forEach(a=>a.setAttribute('href',a.dataset.href)));
 /* фото лидеров в плашке «Игроки» — из данных раздела «Игроки» (подгружаются после страницы) */
-fetch(T.lg==='nhl'?'../hockey/data/nhl_players.json':'../hockey/data/khl_players.json').then(r=>r.ok?r.json():null).then(j=>{if(!j)return;
- const by={};j.players.forEach(p=>{by[p.n]=p});
- document.querySelectorAll('.plcard .pav').forEach(el=>{const p=by[el.dataset.n];if(p&&p.img){const im=new Image();im.alt='';im.onload=()=>{el.textContent='';el.appendChild(im)};im.src=p.img}})}).catch(()=>{});
+fetch('../hockey/data/players/'+encodeURIComponent(ID)+'.json').then(r=>r.ok?r.json():null).then(by=>{if(!by)return;
+ document.querySelectorAll('.plcard .pav').forEach(el=>{const u=by[el.dataset.n];if(u){const im=new Image();im.alt='';im.onload=()=>{el.textContent='';el.appendChild(im)};im.src=u}})}).catch(()=>{});
 })();

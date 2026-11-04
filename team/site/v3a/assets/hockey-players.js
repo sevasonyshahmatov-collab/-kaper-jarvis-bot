@@ -17,11 +17,11 @@ const URLQ=(new URLSearchParams(location.search).get('q')||'').slice(0,60);
 const st={m:'pt',pos:'',tm:URLT in TM?URLT:'',ha:'',so:'rate',q:URLQ,lim:30};
 const mmss=s=>`${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
 const pl=(n,a,b,c)=>{n=Math.abs(n)%100;const k=n%10;return n>10&&n<20?c:k===1?a:k>1&&k<5?b:c};
-fetch(`data/${LG}_players.json`).then(r=>r.json()).then(D=>{
+fetch(`data/plite_${LG}.json`).then(r=>r.json()).then(D=>{
  $('season').textContent=D.season;
  $('lg').innerHTML=Object.entries(POS).map(([k,v])=>`<button type="button" data-l="${k}" aria-pressed="${!k}">${v}</button>`).join('');
  $('tm').innerHTML='<option value="">Все</option>'+Object.keys(TM).sort((a,b)=>tn(a).localeCompare(tn(b),'ru')).map(a=>`<option value="${a}"${a===st.tm?' selected':''}>${esc(tn(a))}</option>`).join('');
- const P=D.players.map(p=>{const L=p.log,n=L.length;return{...p,gp:n,G:L.reduce((s,r)=>s+r[4],0),A:L.reduce((s,r)=>s+r[5],0),S:L.reduce((s,r)=>s+r[6],0),toi:p.toi_avg!=null?p.toi_avg*60:(n?L.reduce((s,r)=>s+(r[7]||0),0)/n:0)}});
+ const P=D.players.map(p=>{const L=p.log=p.log.map(r=>[r[0],'',r[1],r[2],r[3],r[4],r[5],r[6]]),n=L.length;return{...p,gp:n,G:L.reduce((s,r)=>s+r[4],0),A:L.reduce((s,r)=>s+r[5],0),S:L.reduce((s,r)=>s+r[6],0),toi:p.ts!=null?p.ts:(n?L.reduce((s,r)=>s+(r[7]||0),0)/n:0)}});
  function render(){
   const M=MK[st.m],q=st.q.trim().toLowerCase();
   let L=P.filter(p=>(!st.pos||(st.pos==='D'?p.pos==='D':p.pos!=='D'))&&(!st.tm||p.t===st.tm)&&(!q||p.n.toLowerCase().includes(q)));

@@ -14,6 +14,7 @@
   nhl_players, khl_players  игроки лиг → hockey/data/*.json
   lines_model   линии и вероятности модели → data/lines.json, model.json, today.json
   teams_build   team/build_data.py → assets/data/teams.json/js (без примеров, где есть настоящие данные; линии из lines.json)
+  split         daily/split.py: нарезка тяжёлых данных на лёгкие файлы (teams-lite, club/<slug>, football-lite, games, pl/*, plite_*) — для скорости на телефоне
   search        search/build_index.py (без сети, после пересборки данных) → data/search.json
   check         сводка и data/daily_log.json
 """
@@ -141,6 +142,11 @@ def step_teams_build():
                    lambda: sh([PY, os.path.join(C.V3A, 'team', 'build_data.py'), C.LIVE], cwd=C.REPO).strip().split('\n')[-1], 0.7)
 
 
+def step_split():
+    import split
+    return split.main()
+
+
 def step_search():
     return sh([PY, os.path.join(C.V3A, 'search', 'build_index.py')], cwd=C.REPO).strip().split('\n')[-1]
 
@@ -165,7 +171,7 @@ def step_check():
 STEPS = [('teamcode', step_teamcode), ('live', step_live), ('hockey_season', step_hockey_season), ('foot_raw', step_foot_raw),
          ('foot_build', step_foot_build), ('foot_lineups', step_foot_lineups), ('foot_photos', step_foot_photos),
          ('foot_players', step_foot_players), ('foot_trends', step_foot_trends), ('nhl_players', step_nhl_players),
-         ('khl_players', step_khl_players), ('lines_model', step_lines_model), ('teams_build', step_teams_build), ('search', step_search), ('check', step_check)]
+         ('khl_players', step_khl_players), ('lines_model', step_lines_model), ('teams_build', step_teams_build), ('split', step_split), ('search', step_search), ('check', step_check)]
 
 
 def write_log():

@@ -16,8 +16,10 @@ cv.style.cssText='position:fixed;inset:0;width:100vw;height:100lvh;z-index:-1;po
 const gl=cv.getContext('webgl2',{alpha:true,antialias:false,premultipliedAlpha:true,powerPreference:'high-performance'});
 if(!gl)return;
 const small=Math.min(innerWidth,innerHeight)<620;
-const DPR=Math.min(devicePixelRatio||1,1.5);
-const N_DUST=small?1100:4200,N_RIB=small?1100:4200,N_BOKEH=small?14:36;   // на ленту
+/* телефон (малый экран + касание): вдвое меньше частиц, пикселей 1:1, ~30 к/с, первый кадр — после загрузки страницы (04.11, скорость) */
+const LOW=small&&matchMedia('(pointer: coarse)').matches;
+const DPR=LOW?1:Math.min(devicePixelRatio||1,1.5);
+const N_DUST=LOW?450:small?1100:4200,N_RIB=LOW?450:small?1100:4200,N_BOKEH=LOW?8:small?14:36;   // на ленту
 
 const VS=`#version 300 es
 precision highp float;
@@ -129,7 +131,7 @@ function frame(now){
 // приблизительный замер к/с (для проверки): window.__snowFps
 let fc=0,ft=0;function fps(now){fc++;if(!ft)ft=now;if(now-ft>=1000){window.__snowFps=Math.round(fc*1000/(now-ft));fc=0;ft=now}}
 const want=()=>!document.hidden&&(heroVis||lit()<.98);
-function loop(now){raf=0;frame(now);if(want())raf=requestAnimationFrame(loop)}
+function loop(now){raf=0;if(LOW&&now-last<30){if(want())raf=requestAnimationFrame(loop);return}frame(now);if(want())raf=requestAnimationFrame(loop)}
 function kick(){if(!RM&&!raf&&want()){last=performance.now();raf=requestAnimationFrame(loop)}}
 document.addEventListener('visibilitychange',kick);
 addEventListener('scroll',()=>{if(RM)frame(performance.now());else kick()},{passive:true});
@@ -138,5 +140,6 @@ if(board)new MutationObserver(()=>{if(RM)frame(performance.now());else kick()}).
 cv.addEventListener('webglcontextlost',e=>{e.preventDefault();cancelAnimationFrame(raf);raf=0;cv.remove()});
 const arena=document.getElementById('arena')||document.querySelector('.arena-bg');
 (arena&&arena.parentNode?arena.after(cv):document.body.prepend(cv));
-requestAnimationFrame(()=>{cv.style.opacity='1';if(RM)frame(performance.now());else kick()});
+const go=()=>requestAnimationFrame(()=>{cv.style.opacity='1';if(RM)frame(performance.now());else kick()});
+if(LOW&&document.readyState!=='complete')addEventListener('load',()=>setTimeout(go,300),{once:true});else go();
 })();

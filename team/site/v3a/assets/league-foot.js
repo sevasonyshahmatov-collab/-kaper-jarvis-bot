@@ -137,7 +137,7 @@ pbox.innerHTML=`<div class="period" data-rv><p><span class="pn">2</span><span cl
  <div class="lgcard" id="plCols"><div><h3>Бомбардиры</h3><p class="lgempty">Загружаем игроков…</p></div></div>`;
 const ini=n=>{const w=String(n).replace(/[^\p{L}\s'-]/gu,'').split(/[\s-]+/).filter(Boolean);return ((w[0]||'')[0]||'').toUpperCase()+((w.length>1?w[w.length-1]:'')[0]||'').toUpperCase()};
 const loadJS=src=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.body.appendChild(s)});
-Promise.all([loadJS('data/players.js'),fetch('data/photos.json').then(r=>r.json()).catch(()=>({}))]).then(([,ph])=>{
+Promise.all([loadJS('data/pl/'+LG+'.js'),fetch('data/photos.json').then(r=>r.json()).catch(()=>({}))]).then(([,ph])=>{
  const all=(window.JV_PLAYERS&&JV_PLAYERS.players||[]).filter(p=>p.lg===LG);
  const photo=p=>ph[p.id]?`<img src="https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(ph[p.id])}?width=200" alt="" loading="lazy" referrerpolicy="no-referrer">`:'';
  const who=p=>`<span class="av">${esc(ini(p.n))}${photo(p)}</span><span class="who"><b>${esc(p.n)}</b><a href="${tref(p.t)}">${CI(p.t)}<span>${esc(nm(p.t))}</span></a></span>`;

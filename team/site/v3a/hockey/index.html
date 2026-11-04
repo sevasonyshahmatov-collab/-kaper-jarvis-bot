@@ -13,8 +13,8 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
-<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js">
-<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js">
+<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" media="(min-width: 621px)">
+<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js" media="(min-width: 621px)">
 <link rel="stylesheet" href="../assets/v3a.css">
 <link rel="stylesheet" href="../assets/nav.css">
 <link rel="stylesheet" href="../assets/lines.css">
@@ -236,7 +236,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <script src="../assets/v3a.js"></script>
 <script src="../assets/particles.js" defer></script>
 <script src="../assets/titles.js" defer></script>
-<script src="../assets/data/teams.js"></script>
+<script src="../assets/data/teams-lite.js"></script>
 <script src="../data/today.js"></script>
 <script src="../data/lines.js"></script>
 <script src="../data/model.js"></script>
@@ -263,10 +263,10 @@ const CLUB_LG=Object.fromEntries([...KHL_CLUBS.map(([n])=>[n,'khl']),...NHL_CLUB
 const ALIAS={'Шанхай':'Шанхайские Драконы','Динамо М':'Динамо Москва','Динамо Мск':'Динамо Москва','Салават':'Салават Юлаев','Тампа':'Тампа-Бэй','Юта Мамонт':'Юта'};
 const club=n=>ALIAS[n]||n;
 const crest=n=>{const k=club(n);if(EM[k])return `../assets/em/${EM[k]}.webp`;console.warn('нет эмблемы:',n);return LGI(CLUB_LG[k]||'khl')};
-const CI=(n,cls='')=>`<img class="em${cls?' '+cls:''}" src="${crest(n)}" alt="" loading="lazy">`;
+const CI=(n,cls='')=>`<img class="em${cls?' '+cls:''}" src="${crest(n)}" alt="" loading="lazy" width="64" height="64">`;
 document.querySelectorAll('img[data-crest]').forEach(i=>i.src=crest(i.dataset.crest));
 const {TD:TDY,L:LN,M:MDL}=JVL;
-const CS=(slug,cls='')=>`<img class="em${cls?' '+cls:''}" src="../assets/em/${esc(slug)}.webp" alt="" loading="lazy">`;
+const CS=(slug,cls='')=>`<img class="em${cls?' '+cls:''}" src="../assets/em/${esc(slug)}.webp" alt="" loading="lazy" width="64" height="64">`;
 const NMS=(window.JV_TEAMS||{}).names||{};
 const nmS=s=>NMS[s]||s;
 const MONN=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'],WDN=['вс','пн','вт','ср','чт','пт','сб'];

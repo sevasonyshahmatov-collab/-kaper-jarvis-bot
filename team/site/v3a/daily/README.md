@@ -15,6 +15,7 @@
 | nhl_players / khl_players | api-web.nhle.com, приложение КХЛ | `hockey/data/*_players.json` |
 | lines_model | см. ниже | `data/lines.json`, `data/model.json`, `data/today.json` (+ `.js`) |
 | teams_build | `team/build_data.py` | `assets/data/teams.json/js` — без примеров (`s:1`), где есть настоящие матчи сезона |
+| split | `daily/split.py` (без сети) | лёгкие файлы для страниц: `assets/data/teams-lite.js` + `club/<slug>.js`, `football/data/football-lite.js` + `games.js` + `club/<id>.js` + `pl/*.js`, `hockey/data/plite_{khl,nhl}.json` + `players/<slug>.json`. Последний шаг перед `search`; полные файлы остаются (их читают сборщики и поиск), страницы грузят только лёгкие |
 
 Если новый файл заметно меньше прежнего (источник вернул пусто) — прежний возвращается, шаг помечается ошибкой в `daily_log.json`.
 

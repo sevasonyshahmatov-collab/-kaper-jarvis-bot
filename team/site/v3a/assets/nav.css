@@ -45,6 +45,11 @@
   .hd .logo{font-size:26px}.hd .logo i{width:19px;height:25px;font-size:17px}
   .hd .seg a{padding:0 9px;font-size:14px}.mbtn{padding:0 10px}.mbtn .mt{font-size:14px}
 }
+/* узкий телефон: «Меню» — только значок (подпись остаётся для скринридера), иначе шапка шире экрана и появляется горизонтальная прокрутка (04.11) */
+@media (max-width:430px){
+  .hd .mbtn{gap:0;padding:0;width:44px;justify-content:center}
+  .hd .mbtn .mt{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+}
 /* страница не шире экрана (метки времени, подложки арены), якоря не прячутся под двухстрочной шапкой */
 html{scroll-padding-top:116px}
 .arena-bg{overflow:hidden}
@@ -62,3 +67,4 @@ html{scroll-padding-top:116px}
 }
 /* резерв высоты под списки, которые строятся после загрузки данных (CLS) */
 .pl-list:empty{min-height:70vh}
+@media (max-width:350px){.hd .logo{font-size:22px}.hd .logo i{display:none}.hd .seg a{padding:0 7px;font-size:13px}.hd .wrap.hdrow{gap:6px}}

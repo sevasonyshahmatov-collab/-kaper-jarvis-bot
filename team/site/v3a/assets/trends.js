@@ -304,8 +304,8 @@ if(!FB){   // игроков хоккея читаем отдельно: фай�
   const ab=s=>({minnesota:'MIN',dallas:'DAL'})[s]||s.replace('nhl_','').toUpperCase();
   S.abbr={};Object.keys(S.teams).forEach(s=>{if(S.teams[s].lg==='nhl')S.abbr[ab(s)]=s});
   // S.abbr: аббревиатура → slug; в игроках НХЛ p.t — аббревиатура, поэтому для byTeam нужен обратный поиск
-  const get=u=>fetch(u).then(r=>r.ok?r.json():Promise.reject()).then(j=>j.players);
-  Promise.allSettled([get('data/nhl_players.json'),get('data/khl_players.json')]).then(([n,k])=>{
+  const get=u=>fetch(u).then(r=>r.ok?r.json():Promise.reject()).then(j=>j.players.map(p=>(p.log=p.log.map(r=>[r[0],'',r[1],r[2],r[3],r[4],r[5],r[6]]),p)));
+  Promise.allSettled([get('data/plite_nhl.json'),get('data/plite_khl.json')]).then(([n,k])=>{
     if(n.status==='fulfilled')S.nhl=n.value;if(k.status==='fulfilled')S.khl=k.value;
     if(S.nhl||S.khl){build();render()}
   });

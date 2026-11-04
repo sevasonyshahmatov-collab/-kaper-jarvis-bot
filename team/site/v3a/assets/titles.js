@@ -8,6 +8,7 @@
 'use strict';
 const doc=document.documentElement;
 if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+if(matchMedia('(max-width: 620px) and (pointer: coarse)').matches)return;   // телефон: без GSAP (≈100 КБ) и без задержки показа заголовка (04.11, скорость)
 const FIRST=[...document.querySelectorAll('.hero h1, .tmname h1')];
 const REST=[...document.querySelectorAll('.sec-head h2, .sub h2, .faq h2')].filter(h=>!FIRST.includes(h));
 if(!FIRST.length&&!REST.length)return;
