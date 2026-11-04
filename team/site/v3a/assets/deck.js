@@ -110,6 +110,8 @@ function counts(){const h=ALL.filter(isH).length,f=ALL.length-h;
     b.setAttribute('aria-pressed',String(k===filter))})}
 
 /* ── колонка «О встрече» ── */
+/* знак лиги водяным знаком в шапке блока (владелец 04.11): НХЛ, КХЛ, ЛЧ, АПЛ… */
+const LGLOGO={khl:'khl.svg',nhl:'nhl.svg',epl:'epl.svg',laliga:'laliga.svg',seriea:'seriea.svg',bundesliga:'bundesliga.svg',ligue1:'ligue1.svg',ucl:'ucl.svg',rpl:'rpl.webp',uel:'uel.webp'};
 const formOf=(m,s)=>{const T=team(m,s);if(!T)return null;
   const g=(T.games||[]).filter(x=>typeof x.gf==='number'&&typeof x.ga==='number').slice(-5);
   if(!g.length)return null;return g.map(x=>({d:x.d,o:x.o,h:x.h,gf:x.gf,ga:x.ga,x:x.x,r:x.gf>x.ga?'w':x.gf<x.ga?'l':'d'}))};
@@ -133,7 +135,7 @@ function pl(n,f){n=Math.abs(n)%100;const a=n%10;return n>10&&n<20?f[2]:a>1&&a<5?
 
 function infoHtml(m){const {ln,md}=info(m);let h='';
   const t=String(m.t||'');
-  h+=`<p class="dk-ik">О встрече</p><h2 class="dk-ih">${esc(m.hn)} — ${esc(m.an)}<small>${esc(lgFull(m))} · ${esc(dayLabel(t))}, ${esc(t.slice(11,16))} МСК${m.arena&&m.arena.name?' · '+esc(m.arena.name)+(m.arena.city?', '+esc(m.arena.city):''):''}</small></h2>`;
+  h+=`<div class="dk-ihead"><img class="dk-lgwm" src="assets/lg/${LGLOGO[m.lg]||m.lg+'.webp'}" alt="" aria-hidden="true" onerror="this.remove()"><p class="dk-ik">О встрече</p><h2 class="dk-ih">${esc(m.hn)} — ${esc(m.an)}<small>${esc(lgFull(m))} · ${esc(dayLabel(t))}, ${esc(t.slice(11,16))} МСК${m.arena&&m.arena.name?' · '+esc(m.arena.name)+(m.arena.city?', '+esc(m.arena.city):''):''}</small></h2></div>`;
   h+=`<div class="dk-blk"><h3>Таблица и форма</h3>${teamRow(m,m.h,m.hn)}${teamRow(m,m.a,m.an)}<p class="dk-note">Форма — последние 5 матчей, слева раньше: зелёный — победа, красный — поражение.</p></div>`;
   if(md){
     const rows=[[md.p1,'П1 · '+m.hn],[md.x,isH(m)?'Х · ничья в осн. время':'Х · ничья'],[md.p2,'П2 · '+m.an]].filter(r=>r[0]!=null),mx=Math.max(...rows.map(r=>r[0]));
