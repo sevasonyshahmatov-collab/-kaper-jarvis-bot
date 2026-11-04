@@ -32,6 +32,10 @@ function active(){
   return '';
 }
 const act=active();
+/* логотип «JARVIS | раздел» как на баннерах Telegram (выбор владельца 04.11): NHL, КХЛ, ХОККЕЙ, ФУТБОЛ, ЛЧ */
+const LSEC=(()=>{if(!sport)return null;
+  if(act==='nhl')return ['NHL','nhl'];if(act==='khl')return ['КХЛ','khl'];if(act==='ucl')return ['ЛЧ','ucl'];
+  return sport==='hockey'?['ХОККЕЙ','h']:['ФУТБОЛ','f']})();
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 const home=(file==='index.html'&&!sport&&dir!=='hockey'&&dir!=='football');
 const link=(s,cur)=>`<a href="${esc(U(s[2]))}"${cur===s[0]?' aria-current="page"':''}>${esc(s[1])}</a>`;
@@ -47,7 +51,7 @@ const panel=(sec?[sec]:[SECTIONS.hockey,SECTIONS.football]).map((list,i)=>{
   return `<div class="mgrp">${name?`<b>${name}</b>`:''}${list.map(s=>link(s,sec?act:'')).join('')}</div>`}).join('');
 
 hd.innerHTML=`<div class="wrap hdrow">
-  <a class="logo" href="${esc(U('index.html'))}" aria-label="JARVIS, на главную">JAR<i>V</i>IS</a>
+  <a class="logo lg2" href="${esc(U('index.html'))}" aria-label="JARVIS, на главную"><span class="lw">JARVIS</span>${LSEC?`<s aria-hidden="true">|</s><em class="ls-${LSEC[1]}">${esc(LSEC[0])}</em>`:''}</a>
   <nav class="seg" aria-label="Вид спорта">
     <a href="${esc(U('hockey/index.html'))}"${sport==='hockey'?' aria-current="true"':''}>Хоккей</a>
     <a href="${esc(U('football/index.html'))}"${sport==='football'?' aria-current="true"':''}>Футбол</a>

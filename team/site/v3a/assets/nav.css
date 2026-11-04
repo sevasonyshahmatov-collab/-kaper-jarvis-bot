@@ -68,3 +68,12 @@ html{scroll-padding-top:116px}
 /* резерв высоты под списки, которые строятся после загрузки данных (CLS) */
 .pl-list:empty{min-height:70vh}
 @media (max-width:350px){.hd .logo{font-size:22px}.hd .logo i{display:none}.hd .seg a{padding:0 7px;font-size:13px}.hd .wrap.hdrow{gap:6px}}
+
+/* логотип «JARVIS | раздел» — как на баннерах Telegram (владелец 04.11) */
+.hd .logo.lg2{display:inline-flex;align-items:center;gap:0;font:800 22px/1 var(--display);letter-spacing:.2em;text-transform:uppercase;color:var(--ink);white-space:nowrap}
+.hd .logo.lg2 .lw{letter-spacing:.2em;margin-right:-.2em}
+.hd .logo.lg2 s{text-decoration:none;font-weight:300;opacity:.35;margin:0 .55em 0 .6em;letter-spacing:0}
+.hd .logo.lg2 em{font-style:normal;letter-spacing:.16em;margin-right:-.16em;color:#5ab8ff}
+.hd .logo.lg2 em.ls-khl{color:#ffc21a}.hd .logo.lg2 em.ls-f,.hd .logo.lg2 em.ls-ucl{color:#3dd68c}.hd .logo.lg2 em.ls-ucl{color:#7aa7ff}
+@media (max-width:1180px){.hd .logo.lg2{font-size:19px}}
+@media (max-width:560px){.hd .logo.lg2{font-size:17px;letter-spacing:.14em}.hd .logo.lg2 .lw{letter-spacing:.14em;margin-right:-.14em}.hd .logo.lg2 s,.hd .logo.lg2 em{display:none}}
