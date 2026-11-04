@@ -1,0 +1,21 @@
+# Расписание для ежедневного обновления данных макета сайта v3a (владелец 04.11). Cron GitHub срабатывает только из главной
+# ветки, поэтому здесь только запуск: код и данные — в ветке макета claude/team-dev-site-v3a (site-v3a-daily.yml, по образцу learn-weekly.yml).
+name: Данные v3a — расписание
+
+on:
+  schedule:
+    - cron: '23 3 * * *'     # 06:23 МСК
+    - cron: '47 20 * * *'    # 23:47 МСК
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run site-v3a-daily.yml --repo "$GITHUB_REPOSITORY" --ref claude/team-dev-site-v3a
