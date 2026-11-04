@@ -9,6 +9,8 @@
     assets/data/club/<slug>.js       pl / h2h / picks одного клуба: дописывает их в JV_TEAMS.teams[slug] (страница клуба)
     hockey/data/plite_khl.json, plite_nhl.json   игроки для hockey/players*.html и трендов: короткий лог [дата, соперник, дома, г, п, б, toi]
     hockey/data/players/<slug>.json  {имя: фото} игроков клуба (плашка «Игроки» на странице клуба)
+    hockey/data/pid/<slug>.json      {имя: id} игроков клуба (ссылки на профиль из таблицы клуба)
+    hockey/data/pp/<лига>/<id>.json  профиль одного игрока (hockey/player.html, 1–4 КБ): шапка, итоги, полный лог сезона, следующий матч
   Футбол
     football/data/football-lite.js   JV_FOOT без games / sc / cd / scx / cdx / cx у клубов и без h2h (таблицы, клубы, лиги, up)
     football/data/games.js           games всех клубов + личные встречи только для пар из «ближайших матчей» (главная, ЦЛ, лиги)
@@ -48,6 +50,31 @@ def nhl_abbr(slug):
 
 
 # ───────────────────────────── хоккей ─────────────────────────────
+def write_profile(ppdir, lg, p, slug, sl, nx, tpl):
+    """Профиль одного игрока: hockey/data/pp/<лига>/<id>.json.
+    log: [дата, соперник(slug), дома, г, п, броски, toi сек, штраф]; итоги +/-, штраф, броски — из таблицы клуба (teams.json pl.sk),
+    если игрок там найден по имени (иначе считаются по логу, +/- тогда нет)."""
+    log = [[r[0][:10], sl(r[2]), r[3], r[4], r[5], r[6], r[7], r[8] if len(r) > 8 else 0] for r in p.get('log', [])]
+    q = {'n': p['n'], 't': slug, 'pos': p.get('pos'), 'log': log}
+    for k in ('no', 'img', 'gp'):
+        if p.get(k) not in (None, ''):
+            q[k] = p[k]
+    if p.get('toi_avg') is not None:
+        q['ts'] = int(round(p['toi_avg'] * 60))
+    for x in (tpl or {}).get('sk', []):
+        if x.get('n') == p['n']:
+            for k in ('pm', 'pim', 'sog'):
+                if x.get(k) is not None:
+                    q['s' + k] = x[k]
+            if x.get('gp') is not None:
+                q['sgp'] = x['gp']
+            break
+    if nx:
+        q['nx'] = {'o': sl(nx['o']), 'h': nx['h'], 'd': nx['d'][:16]}
+    write(os.path.join(ppdir, lg, '%s.json' % p['id']), jd(q))
+    return 1
+
+
 def hockey():
     d = load(os.path.join(V3A, 'assets', 'data', 'teams.json'))
     heavy = ('pl', 'h2h', 'picks')
@@ -68,16 +95,25 @@ def hockey():
             slug_of[nhl_abbr(s)] = s
     pdir = os.path.join(hd, 'players')
     fresh(pdir)
+    iddir = os.path.join(hd, 'pid')
+    fresh(iddir)
+    ppdir = os.path.join(hd, 'pp')
+    fresh(ppdir)
+    ppn = 0
     tot = 0
     for lg in ('khl', 'nhl'):
         src = os.path.join(hd, lg + '_players.json')
         if not os.path.exists(src):
             continue
         j = load(src)
-        out, byteam = [], {}
+        out, byteam, idteam = [], {}, {}
+        sl = (lambda a: slug_of.get(a, a)) if lg == 'nhl' else (lambda a: a)
+        nxt = j.get('next', {})
         for p in j.get('players', []):
             log = [[r[0][:10], r[2], r[3], r[4], r[5], r[6], r[7]] for r in p.get('log', [])]
             q = {'n': p['n'], 't': p['t'], 'pos': p.get('pos'), 'log': log}
+            if p.get('id') is not None:
+                q['id'] = p['id']
             for k in ('no', 'img', 'gp'):
                 if p.get(k) not in (None, ''):
                     q[k] = p[k]
@@ -87,12 +123,17 @@ def hockey():
             slug = p['t'] if lg == 'khl' else slug_of.get(p['t'])
             if slug and p.get('img'):
                 byteam.setdefault(slug, {})[p['n']] = p['img']
+            if slug and p.get('id') is not None:
+                idteam.setdefault(slug, {})[p['n']] = p['id']
+                ppn += write_profile(ppdir, lg, p, slug, sl, nxt.get(p['t']), d['teams'].get(slug, {}).get('pl'))
         lj = {'built': j.get('built'), 'season': j.get('season'), 'next': j.get('next', {}), 'players': out}
         write(os.path.join(hd, 'plite_%s.json' % lg), jd(lj))
         for slug, m in byteam.items():
             write(os.path.join(pdir, slug + '.json'), jd(m))
+        for slug, m in idteam.items():
+            write(os.path.join(iddir, slug + '.json'), jd(m))
         tot += len(out)
-    return 'хоккей: клубов %d, игроков %d' % (len(d['teams']), tot)
+    return 'хоккей: клубов %d, игроков %d, профилей %d' % (len(d['teams']), tot, ppn)
 
 
 # ───────────────────────────── футбол ─────────────────────────────

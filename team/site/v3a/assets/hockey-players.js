@@ -37,7 +37,7 @@ fetch(`data/plite_${LG}.json`).then(r=>r.json()).then(D=>{
    const nx=D.next[p.t];
    return `<article class="pr" role="listitem"><span class="rk">${i+1}</span>
     <div class="av" style="--c:${c}"><span>${esc(ini(p.n))}</span>${p.img?`<img class="ph" src="${esc(p.img)}" alt="" loading="lazy" onerror="this.remove()">`:''}<img class="bd" src="${em(p.t)}" alt="" loading="lazy" onerror="this.remove()"></div>
-    <div class="nm"><b>${esc(p.n)}</b><span>${esc(tn(p.t))} · ${p.pos==='D'?'защ.':'нап.'}${p.no?' · №'+p.no:''} · ${p.G}+${p.A}=${p.G+p.A}${LG==='khl'?`, игр ${p.gp}`:`, бросков ${p.S}`} · ${mmss(p.toi)} за игру</span></div>
+    <div class="nm"><b>${p.id!=null?`<a href="player.html?lg=${LG}&id=${p.id}" title="Профиль игрока">${esc(p.n)}</a>`:esc(p.n)}</b><span>${esc(tn(p.t))} · ${p.pos==='D'?'защ.':'нап.'}${p.no?' · №'+p.no:''} · ${p.G}+${p.A}=${p.G+p.A}${LG==='khl'?`, игр ${p.gp}`:`, бросков ${p.S}`} · ${mmss(p.toi)} за игру</span></div>
     <div class="hit" aria-label="${h[0]} из ${h[1]} матчей"><b>${h[0]}<small>из ${h[1]}</small></b><div class="bar"><i style="width:${pc}%"></i></div></div>
     <div class="strip" aria-label="Последние 10 матчей">${strip}</div>
     <div class="ha">Дома <b>${sp(1)}</b> · В гостях <b>${sp(0)}</b></div>

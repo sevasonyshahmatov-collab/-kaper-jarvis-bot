@@ -48,7 +48,7 @@ function load(){
     const C={};const clubs=D.c.map(r=>{const c={id:r[0],s:r[1],lg:r[2],ru:r[3],en:r[4],w:W(r[3],r[4],r[5])};C[r[1]+r[0]]=c;return c});
     const leagues=D.l.map(r=>({s:r[0],id:r[1],ru:r[2],en:r[3],url:r[5],w:W(r[2],r[3],r[4])}));
     const matches=D.m.map(r=>{const h=C[r[1]+r[2]],a=C[r[1]+r[3]];return h&&a?{d:r[0],s:r[1],h,a,sc:r[4]||'',cup:r[5]||'',w:h.w.concat(a.w)}:null}).filter(Boolean);
-    const players=D.p.map((r,i)=>{const c=C['h'+r[2]];/* НХЛ: «Имя Фамилия» — ищем сначала по фамилии */return{n:r[0],lg:r[1],c,i,w:W(r[1]==='nhl'?r[0].split(/\s+/).reverse().join(' '):r[0],'','')}});
+    const players=D.p.map((r,i)=>{const c=C['h'+r[2]];/* НХЛ: «Имя Фамилия» — ищем сначала по фамилии */return{n:r[0],lg:r[1],c,i,id:r[4],w:W(r[1]==='nhl'?r[0].split(/\s+/).reverse().join(' '):r[0],'','')}});
     return IDX={built:D.built,clubs,leagues,matches,players};
   });
   loading.catch(()=>{loading=null});return loading;
@@ -111,7 +111,7 @@ function draw(r){
   const out=g('Клубы',r.clubs,c=>li(U(pg(c)),`${img(c)}<span class="sp-t"><b>${esc(c.ru)}</b><small>${esc(c.en&&c.en!==c.ru?c.en+' · ':'')}${SP[c.s]} · ${esc(LGN[c.lg]||c.lg)}</small></span>`))
    +g('Матчи',r.matches,m=>li(U(pg(m.h)),`<span class="sp-vs">${img(m.h)}${img(m.a)}</span><span class="sp-t"><b>${esc(m.h.ru)} — ${esc(m.a.ru)}</b><small>${esc(dt(m.d))} МСК${m.sc?' · '+esc(m.sc):''}${m.cup?' · '+esc(LGN[m.cup]||m.cup):''} · ${SP[m.s]}</small></span>`))
    +g('Лиги',r.leagues,l=>li(U(l.url),`<span class="sp-lg">${l.s==='h'?'ХК':'ФК'}</span><span class="sp-t"><b>${esc(l.ru)}</b><small>${SP[l.s]} · таблица и матчи</small></span>`))
-   +g('Игроки',r.players,p=>li(U((p.lg==='nhl'?'hockey/players.html':'hockey/players_khl.html')+'?team='+encodeURIComponent(tcode(p))+'&q='+encodeURIComponent(p.n)),`<span class="sp-lg">${esc(p.n.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase())}</span><span class="sp-t"><b>${esc(p.n)}</b><small>${esc(p.c?p.c.ru:'')} · ${p.lg==='nhl'?'НХЛ':'КХЛ'}</small></span>`));
+   +g('Игроки',r.players,p=>li(U(p.id!=null?'hockey/player.html?lg='+p.lg+'&id='+encodeURIComponent(p.id):(p.lg==='nhl'?'hockey/players.html':'hockey/players_khl.html')+'?team='+encodeURIComponent(tcode(p))+'&q='+encodeURIComponent(p.n)),`<span class="sp-lg">${esc(p.n.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase())}</span><span class="sp-t"><b>${esc(p.n)}</b><small>${esc(p.c?p.c.ru:'')} · ${p.lg==='nhl'?'НХЛ':'КХЛ'}</small></span>`));
   res.innerHTML=out||`<p class="sp-empty">Ничего не нашли по «${esc(inp.value.trim())}». Попробуйте название клуба или лиги.</p>`;
 }
 function idle(){

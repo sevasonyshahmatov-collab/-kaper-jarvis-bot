@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru" data-sport="hockey" data-theme="a">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Профиль хоккеиста · JARVIS (макет v3a)</title>
+<meta name="description" content="Профиль хоккеиста КХЛ и НХЛ: сезон, «n из N» по очку, голу, передаче и броскам, форма, все матчи, следующий матч.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#071225">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="stylesheet" href="../assets/v3a.css">
+<link rel="stylesheet" href="../assets/nav.css">
+<link rel="stylesheet" href="../assets/player.css">
+</head>
+<body data-field="hockey">
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="../index.html" aria-label="JARVIS, на главную">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="index.html">Хоккей</a>
+      <a href="../football/index.html">Футбол</a>
+      <a href="players.html">НХЛ</a><a href="players_khl.html">КХЛ</a>
+    </nav>
+  </div>
+</header>
+<main id="main" class="wrap pp" aria-live="polite">
+  <p class="pp-load" id="load">Загружаем профиль…</p>
+</main>
+<script src="../assets/data/teams-lite.js"></script>
+<script src="../assets/nav.js"></script>
+<script src="../assets/player.js"></script>
+</body>
+</html>

@@ -133,7 +133,7 @@ def main():
 
     leagues = [[s, lg, ru, en, al, url] for s, lg, ru, en, al, url in LEAGUES]
 
-    # хоккеисты: [имя, хоккейная лига, slug клуба, очки за сезон]; лучшие по очкам первыми
+    # хоккеисты: [имя, хоккейная лига, slug клуба, очки за сезон, id игрока (профиль hockey/player.html)]; лучшие по очкам первыми
     players = []
     for lg, fn in (('nhl', 'nhl_players.json'), ('khl', 'khl_players.json')):
         p = os.path.join(ROOT, 'hockey/data', fn)
@@ -143,7 +143,7 @@ def main():
             t = pl.get('t', '')
             slug = NHL[t][0] if lg == 'nhl' and t in NHL else t
             pts = sum((r[4] or 0) + (r[5] or 0) for r in pl.get('log', []))
-            players.append([pl['n'], lg, slug, pts])
+            players.append([pl['n'], lg, slug, pts, pl['id']] if pl.get('id') is not None else [pl['n'], lg, slug, pts])
     players.sort(key=lambda x: -x[3])
 
     out = {'built': now.strftime('%Y-%m-%d %H:%M'), 'c': clubs, 'l': leagues, 'm': matches, 'p': players}

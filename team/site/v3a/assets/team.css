@@ -461,3 +461,4 @@ body .g.h2g.nx{grid-template-columns:110px 32px minmax(0,1fr) auto}
 .kn.est{font-weight:700;color:var(--ink-2)}
 .nmline .mdl{margin:6px 0 0;font:500 15px/1.4 var(--display);color:var(--ink-2)}
 @media (max-width:760px){.g.fut{grid-template-areas:"d h o o" "k k k k"}.g.fut .kxw{grid-area:k;justify-self:stretch;justify-items:stretch}.g.fut .kn{text-align:left}}
+.pla{color:inherit;text-decoration:none}.pla:hover,.pla:focus-visible{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}

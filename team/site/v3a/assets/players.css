@@ -71,3 +71,4 @@ body{background:var(--paper);color:var(--ink)}
 
 .av.lite span{color:#10161f;text-shadow:none}
 .av.lite{box-shadow:inset 0 0 0 1px rgba(16,22,31,.15)}
+.pr .nm b a{color:inherit;text-decoration:none}.pr .nm b a:hover,.pr .nm b a:focus-visible{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
