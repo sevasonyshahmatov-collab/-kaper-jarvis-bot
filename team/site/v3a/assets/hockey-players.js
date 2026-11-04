@@ -7,7 +7,7 @@ const TMN={"CAR":["Каролина","#cc0000"],"EDM":["Эдмонтон","#ff4c
 const TM=LG==='khl'?TMK:TMN;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const em=ab=>LG==='khl'?`../assets/em/${ab}.webp`:ab==='MIN'?'../assets/em/minnesota.webp':ab==='DAL'?'../assets/em/dallas.webp':`../assets/em/nhl_${ab.toLowerCase()}.webp`;
+const em=ab=>(ab=String(ab??'').replace(/[^\w-]/g,''),LG==='khl'?`../assets/em/${ab}.webp`:ab==='MIN'?'../assets/em/minnesota.webp':ab==='DAL'?'../assets/em/dallas.webp':`../assets/em/nhl_${ab.toLowerCase()}.webp`);
 const ini=n=>n.split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
 const tn=ab=>(TM[ab]||[ab])[0];
 const MK={pt:{f:r=>r[4]+r[5]>0,v:r=>r[4]+r[5],w:'набирал очко'},g:{f:r=>r[4]>0,v:r=>r[4],w:'забивал'},a:{f:r=>r[5]>0,v:r=>r[5],w:'отдавал передачу'},s3:{f:r=>r[6]>=3,v:r=>r[6],w:'бросал 3+ раза в створ'}};

@@ -5,7 +5,7 @@
 'use strict';
 const D=window.JV_TEAMS||{teams:{},names:{},axes:[]};
 const P=new URLSearchParams(location.search),ID=(P.get('id')||'').toLowerCase(),THEME=P.get('theme');
-const T=D.teams[ID];
+const T=Object.hasOwn(D.teams,ID)?D.teams[ID]:undefined;
 const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 const f=(v,d=2)=>(+v).toFixed(d).replace('.',',');
 const plural=(n,a,b,c)=>{const k=n%100,j=n%10;return k>10&&k<20?c:j===1?a:j>1&&j<5?b:c};
@@ -182,7 +182,7 @@ document.getElementById('tableBox').innerHTML=`
    </div>
    <div class="formbox"><span class="sl">Форма — последние 5 игр</span>
     <ol class="frm" aria-label="Последние 5 игр, слева раньше">${last5.map(g=>{const t=formTitle(g);return `<li class="${RL[res(g)][1]}" title="${esc(t)}" aria-label="${esc(t)}"><b><img src="../assets/em/${esc(g.o)}.webp" alt="" loading="lazy"></b><span>${g.gf}:${g.ga}${g.x?' '+g.x:''}</span></li>`}).join('')}</ol>
-    <p class="ss">Слева — раньше, справа — последняя игра. В кружке — соперник: зелёный — победа, красный — поражение, серый — поражение в овертайме или по буллитам. За 10 игр — <b>${T.l10s||T.l10+' '+plural(T.l10,'очко','очка','очков')}</b>.</p></div>
+    <p class="ss">Слева — раньше, справа — последняя игра. В кружке — соперник: зелёный — победа, красный — поражение, серый — поражение в овертайме или по буллитам. За 10 игр — <b>${esc(T.l10s||T.l10+' '+plural(T.l10,'очко','очка','очков'))}</b>.</p></div>
    ${plCard()}
   </div>
  </div>`;
@@ -197,7 +197,7 @@ const row=g=>{const t=day(g.d),opp=tl(g.o,`${em(g.o)}<span>${esc(nm(g.o))}</span
  const ha=`<span class="ha ${g.h?'h':'a'}" title="${g.h?'дома':'в гостях'}">${g.h?'Д':'В'}</span>`;
  const smp=g.s?'<span class="smp">пример</span>':'';
  if(g.gf!=null){const r=rlab(g);
-  return `<li class="g ${g.h?'home':'away'}${g.s?' is-s':''}">${when}${ha}${opp}<span class="sc num">${g.gf}:${g.ga}${g.x?`<small>${g.x}</small>`:''}</span><span class="rs ${r[1]}" title="${r[2]}">${r[0]}</span>${smp}</li>`}
+  return `<li class="g ${g.h?'home':'away'}${g.s?' is-s':''}">${when}${ha}${opp}<span class="sc num">${g.gf}:${g.ga}${g.x?`<small>${esc(g.x)}</small>`:''}</span><span class="rs ${r[1]}" title="${r[2]}">${r[0]}</span>${smp}</li>`}
  return `<li class="g fut ${g.h?'home':'away'}${g.s?' is-s':''}">${when}${ha}${opp}<span class="kxw"><span class="kx num" aria-label="${g.ks?'Оценка модели':'Линия'}: победа команды ${esc(T.name)} ${kf(g.k[0])}, ничья ${kf(g.k[1])}, победа соперника ${kf(g.k[2])}"><span><small>П</small>${kf(g.k[0])}</span><span><small>Х</small>${kf(g.k[1])}</span><span><small>П</small>${kf(g.k[2])}</span></span><small class="kn${g.ks?' est':''}">${kNote(g)}</small></span></li>`};
 const wins=played.filter(g=>res(g)==='W').length;
 const lossReg=played.filter(g=>res(g)==='L').length,lossOt=played.length-wins-lossReg;
