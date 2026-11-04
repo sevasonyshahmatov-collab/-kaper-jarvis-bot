@@ -41,21 +41,35 @@ const applyFilter=()=>{list=ALL.filter(m=>filter==='all'||(filter==='hockey')===
 /* ── карточка ── */
 const pick=(m,md)=>{if(!md)return null;const a=[[md.p1,'Победа: '+m.hn],[md.x,isH(m)?'Ничья в основное время':'Ничья'],[md.p2,'Победа: '+m.an]].filter(x=>x[0]!=null);
   if(!a.length)return null;return a.sort((x,y)=>y[0]-x[0])[0]};
+/* рисунок поля для варианта «Стекло»: лёд (синие и красная линии, круги вбрасывания) или футбольная разметка; едва заметный */
+const RINK='<svg class="dk-field" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect x="3" y="3" width="194" height="94" rx="28" fill="none" stroke="currentColor" stroke-width="1.2"/><line x1="100" y1="3" x2="100" y2="97" stroke="#ff5d6c" stroke-width="1.6"/><line x1="70" y1="3" x2="70" y2="97" stroke="#4cc2ff" stroke-width="1.4"/><line x1="130" y1="3" x2="130" y2="97" stroke="#4cc2ff" stroke-width="1.4"/><circle cx="100" cy="50" r="14" fill="none" stroke="#4cc2ff" stroke-width="1.2"/><circle cx="42" cy="28" r="9" fill="none" stroke="#ff5d6c" stroke-width="1"/><circle cx="42" cy="72" r="9" fill="none" stroke="#ff5d6c" stroke-width="1"/><circle cx="158" cy="28" r="9" fill="none" stroke="#ff5d6c" stroke-width="1"/><circle cx="158" cy="72" r="9" fill="none" stroke="#ff5d6c" stroke-width="1"/><line x1="16" y1="3" x2="16" y2="97" stroke="#ff5d6c" stroke-width="1"/><line x1="184" y1="3" x2="184" y2="97" stroke="#ff5d6c" stroke-width="1"/></svg>';
+const PITCH='<svg class="dk-field" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.2"><rect x="4" y="4" width="192" height="92"/><line x1="100" y1="4" x2="100" y2="96"/><circle cx="100" cy="50" r="15"/><rect x="4" y="24" width="30" height="52"/><rect x="166" y="24" width="30" height="52"/><rect x="4" y="38" width="11" height="24"/><rect x="185" y="38" width="11" height="24"/><path d="M34 40a15 15 0 0 1 0 20M166 40a15 15 0 0 0 0 20"/></g></svg>';
+/* цвета клубов для карточки: те же, что у фона матча (data/deckbg/index.json), пока индекс не загрузился — расчёт pickPair */
+function cardCols(m){const e=BGIDX&&BGIDX[m.key];if(e&&e.c)return e.c;const [a,b]=pickPair(m);return [hsl2css(a[0],a[1],a[2]),hsl2css(b[0],b[1],b[2])]}
+const cardVars=(el,m)=>{const [c1,c2]=cardCols(m);el.style.setProperty('--h1',c1);el.style.setProperty('--h2',c2)};
 function cardHtml(m,i,n){const {ln,md}=info(m),pk=pick(m,md),fl=J.fair(ln),mx=fl?Math.max(...fl):0;
+  /* выделяем исход, который выбрала модель (нет модели — фаворит линии) */
+  const mo=md?[md.p1,md.x,md.p2]:null,mm=mo?Math.max(...mo.filter(v=>v!=null)):0;
   let ql='';
   if(ln){const hasX=!!ln.x,cells=[['П1',ln.p1,0]].concat(hasX?[['Х',ln.x,1]]:[],[['П2',ln.p2,2]]);
-   ql=`<div class="dk-ql${hasX?'':' two'}">${cells.map(c=>`<span class="${fl&&fl[c[2]]===mx?'fav':''}"><small>${c[0]}</small><b>${f2(c[1])}</b></span>`).join('')}</div>
+   ql=`<div class="dk-ql${hasX?'':' two'}">${cells.map(c=>`<span class="${(mo?mo[c[2]]===mm:fl&&fl[c[2]]===mx)?'fav':''}"><small>${c[0]}</small><b>${f2(c[1])}</b></span>`).join('')}</div>
    <p class="dk-src">Линия: ${esc(J.srcLabel(ln))} МСК</p>`}
   else ql=`<p class="dk-src">Линии на этот матч пока нет</p>`;
   const t=String(m.t||'');
   return `<div class="dk-cf">
-  <div class="dk-ct"><span class="dk-lg"><img src="${lgIcon(m)}" alt="" onerror="this.remove()">${esc(lgName(m))}</span><span class="dk-dt"><b>${esc(dayLabel(t))}</b> · ${esc(t.slice(11,16))} МСК</span></div>
-  <div class="dk-cm">
-   <div class="dk-tm"><span class="dk-em">${emImg(m,m.h,m.hn)}</span><b>${esc(m.hn)}</b><i>дома</i></div>
-   <span class="dk-vs">—</span>
-   <div class="dk-tm"><span class="dk-em">${emImg(m,m.a,m.an)}</span><b>${esc(m.an)}</b><i>в гостях</i></div>
-  </div>${ql}
-  ${pk?`<p class="dk-pick">Самый вероятный исход по модели<b>${esc(pk[1])} · <em>${p0(pk[0])} %</em></b></p>`:''}
+  <div class="dk-ctop">
+   ${isH(m)?RINK:PITCH}
+   <span class="dk-wm l">${emImg(m,m.h,m.hn)}</span><span class="dk-wm r">${emImg(m,m.a,m.an)}</span>
+   <span class="dk-no" aria-hidden="true">№ ${D2(i+1)}</span>
+   <div class="dk-ct"><span class="dk-lg"><img src="${lgIcon(m)}" alt="" onerror="this.remove()">${esc(lgName(m))}</span><span class="dk-dt"><b>${esc(dayLabel(t))}</b> · ${esc(t.slice(11,16))} МСК</span></div>
+   <div class="dk-cm">
+    <div class="dk-tm"><span class="dk-em">${emImg(m,m.h,m.hn)}</span><b>${esc(m.hn)}</b><i>дома</i></div>
+    <span class="dk-vs">—</span>
+    <div class="dk-tm"><span class="dk-em">${emImg(m,m.a,m.an)}</span><b>${esc(m.an)}</b><i>в гостях</i></div>
+   </div>
+  </div>
+  <div class="dk-cbot">${ql}
+  ${pk?`<p class="dk-pick">Самый вероятный исход по модели<b>${esc(pk[1])} · <em>${p0(pk[0])} %</em></b></p>`:''}</div>
   </div>`}
 
 const deck=$('dk-deck'),stage=$('dk-stage');
@@ -86,6 +100,7 @@ function layout(){
 function build(){
   measure();
   deck.innerHTML=list.map((m,i)=>`<li class="dk-card" data-sp="${isH(m)?'hockey':'football'}" data-i="${i}" aria-label="Матч ${i+1} из ${list.length}: ${esc(m.hn)} — ${esc(m.an)}">${cardHtml(m,i,list.length)}</li>`).join('');
+  deck.querySelectorAll('.dk-card').forEach((el,k)=>cardVars(el,list[k]));
   layout();
 }
 function counts(){const h=ALL.filter(isH).length,f=ALL.length-h;
@@ -191,7 +206,7 @@ function applyBg(dir){const m=list[cur];if(!m||m.key===bgKey)return;bgKey=m.key;
     bgCur=(bgCur+1)%2;
     bgPre(cur+1);bgPre(cur-1)};
   if(url){const im=new Image();im.onload=()=>show(url);im.onerror=()=>show(null);im.src=url}else show(null)}
-try{fetch('data/deckbg/index.json').then(r=>r.ok?r.json():null).then(j=>{if(j&&j.bg){BGIDX=j.bg;bgKey='';applyBg(0)}}).catch(()=>{})}catch(e){}
+try{fetch('data/deckbg/index.json').then(r=>r.ok?r.json():null).then(j=>{if(j&&j.bg){BGIDX=j.bg;bgKey='';applyBg(0);deck.querySelectorAll('.dk-card').forEach((el,k)=>list[k]&&cardVars(el,list[k]))}}).catch(()=>{})}catch(e){}
 
 /* ── переключение ── */
 let lockUntil=0;
@@ -334,6 +349,13 @@ function lastHtml(m){const fa=formOf(m,m.h),fb=formOf(m,m.a);if(!fa&&!fb)return 
 function linksHtml(m){return `<section class="dk-sec"><h3>Страницы сайта</h3><div class="dk-links">
   <a href="${clubHref(m,m.h)}">${esc(m.hn)}</a><a href="${clubHref(m,m.a)}">${esc(m.an)}</a><a href="${lgHref(m)}">${esc(lgFull(m))}</a></div></section>`}
 function detailHtml(m,d){return radarHtml(m)+h2hHtml(m)+leadersHtml(m,d)+lastHtml(m)+linksHtml(m)}
+
+/* ── оформление карточки: ?card=1|2|3 (1 «Цвета клубов» — по умолчанию, 2 «Стекло», 3 «Билет») ── */
+{let c=q.get('card');if(!/^[123]$/.test(c||''))c='1';root.dataset.card=c;
+ const sw=document.getElementById('dk-cards');
+ const mark=()=>sw&&sw.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.c===root.dataset.card)));
+ if(sw){mark();sw.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;root.dataset.card=b.dataset.c;mark();
+   try{const u=new URL(location.href);u.searchParams.set('card',b.dataset.c);history.replaceState(null,'',u)}catch(_){}})}}
 
 /* ── запуск ── */
 function init(){

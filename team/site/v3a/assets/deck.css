@@ -251,3 +251,81 @@
 .dk-info{background:rgba(5,9,18,.64)}
 .dk.rm .dk-bg.img{animation:none}
 @media (prefers-reduced-motion:reduce){.dk-bg.img{animation:none!important}}
+
+/* ═══ оформление карточки: .dk[data-card="1|2|3"] ═══ */
+.dk{--grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.dk-cf{padding:0}
+.dk-ctop{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;padding:clamp(14px,1.5vw,20px) clamp(14px,1.5vw,20px) 6px;overflow:hidden}
+.dk-cbot{position:relative;padding:4px clamp(14px,1.5vw,20px) clamp(14px,1.5vw,18px)}
+.dk-ctop>*{position:relative;z-index:2}
+.dk-ctop>.dk-field,.dk-ctop>.dk-wm,.dk-ctop>.dk-no{display:none}
+.dk-cm{flex:1}
+.dk-ql span.fav{border-color:var(--signal);background:color-mix(in srgb,var(--signal) 18%,transparent);box-shadow:0 0 0 1px var(--signal),0 6px 18px -8px var(--signal)}
+.dk-ql span.fav small{color:var(--signal)}
+.dk-pick{border-top-color:rgba(255,255,255,.14)}
+@keyframes dkcf{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.dk-cf{animation:dkcf .55s var(--e) both}
+.dk-card:nth-child(2) .dk-cf{animation-delay:.06s}.dk-card:nth-child(3) .dk-cf{animation-delay:.12s}.dk-card:nth-child(n+4) .dk-cf{animation-delay:.18s}
+.dk.rm .dk-cf{animation:none}
+@media (prefers-reduced-motion:reduce){.dk-cf{animation:none}}
+
+/* 1 · «Цвета клубов»: верх — слева хозяева, справа гости, свечение за эмблемами, эмблемы-водяные знаки */
+[data-card="1"] .dk-cf{background:linear-gradient(180deg,#0f1a2e,#0a1220);border-color:color-mix(in srgb,var(--h1) 30%,var(--h2) 30%)}
+[data-card="1"] .dk-ctop{background:
+  linear-gradient(180deg,rgba(4,8,18,.42),rgba(4,8,18,.58)),
+  linear-gradient(104deg,var(--h1) 0%,var(--h1) 30%,color-mix(in srgb,var(--h1) 50%,var(--h2)) 50%,var(--h2) 70%,var(--h2) 100%)}
+[data-card="1"] .dk-ctop::after{content:"";position:absolute;inset:0;z-index:1;opacity:.16;mix-blend-mode:overlay;background-image:var(--grain);pointer-events:none}
+[data-card="1"] .dk-ctop>.dk-wm{display:block;position:absolute;z-index:1;top:50%;width:78%;aspect-ratio:1;margin-top:-39%;opacity:.17;filter:saturate(.6) brightness(1.2);pointer-events:none}
+[data-card="1"] .dk-wm.l{left:-42%}[data-card="1"] .dk-wm.r{right:-42%}
+.dk-wm img{width:100%;height:100%;object-fit:contain;display:block}
+.dk-wm span{display:none}
+[data-card="1"] .dk-em{box-shadow:0 0 0 3px rgba(255,255,255,.18),0 0 44px 6px color-mix(in srgb,var(--g) 70%,transparent),0 10px 20px -8px #000}
+[data-card="1"] .dk-tm:first-child .dk-em{--g:var(--h1)}[data-card="1"] .dk-tm:last-child .dk-em{--g:var(--h2)}
+[data-card="1"] .dk-tm b,[data-card="1"] .dk-dt,[data-card="1"] .dk-dt b{text-shadow:0 1px 8px rgba(0,0,0,.55)}
+[data-card="1"] .dk-tm i,[data-card="1"] .dk-vs,[data-card="1"] .dk-lg{color:#f1f5fb}
+[data-card="1"] .dk-dt{color:#fff}
+[data-card="1"] .dk-lg{color:#fff}
+
+/* 2 · «Стекло»: полупрозрачная карточка, кромка и блик, рисунок поля сверху */
+[data-card="2"] .dk-cf{background:linear-gradient(160deg,rgba(14,22,40,.5),rgba(6,10,20,.66));border:1px solid rgba(255,255,255,.3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 0 36px rgba(255,255,255,.05),0 30px 50px -24px rgba(0,0,0,.7)}
+[data-card="2"] .dk-card.on .dk-cf{backdrop-filter:blur(14px) saturate(1.35);-webkit-backdrop-filter:blur(14px) saturate(1.35);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 0 40px rgba(255,255,255,.06),0 0 0 1px color-mix(in srgb,var(--h1) 40%,var(--h2)),0 0 46px -12px color-mix(in srgb,var(--h1) 60%,var(--h2)),0 40px 60px -28px rgba(0,0,0,.8)}
+[data-card="2"] .dk-card:not(.on) .dk-cf{background:linear-gradient(160deg,color-mix(in srgb,var(--h1) 32%,#0a1020),color-mix(in srgb,var(--h2) 32%,#0a1020))}
+[data-card="2"] .dk-cf::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(118deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,.06) 22%,transparent 38%)}
+[data-card="2"] .dk-ctop>.dk-field{display:block;position:absolute;z-index:1;inset:0;width:100%;height:100%;color:rgba(255,255,255,.9);opacity:.2;pointer-events:none}
+[data-card="2"] .dk-em{box-shadow:0 0 0 2px rgba(255,255,255,.35),0 10px 24px -10px #000}
+
+/* 3 · «Билет»: фактура холста в цветах клубов, перфорация, корешок */
+[data-card="3"] .dk-card{--cut:63%}
+[data-card="3"] .dk-cf{border:0;border-radius:16px;background:#0d1526;
+  -webkit-mask-image:radial-gradient(circle 12px at 0 var(--cut),#0000 11.5px,#000 12px),radial-gradient(circle 12px at 100% var(--cut),#0000 11.5px,#000 12px);
+  -webkit-mask-composite:source-in;mask-image:radial-gradient(circle 12px at 0 var(--cut),#0000 11.5px,#000 12px),radial-gradient(circle 12px at 100% var(--cut),#0000 11.5px,#000 12px);mask-composite:intersect;box-shadow:none}
+[data-card="3"] .dk-card{filter:drop-shadow(0 22px 22px rgba(0,0,0,.55))}
+[data-card="3"] .dk-card::after{border-radius:16px}
+[data-card="3"] .dk-ctop{flex:0 0 var(--cut);background:
+  linear-gradient(180deg,rgba(4,8,18,.4),rgba(4,8,18,.56)),
+  repeating-linear-gradient(45deg,rgba(255,255,255,.05) 0 1px,transparent 1px 3px),
+  repeating-linear-gradient(-45deg,rgba(0,0,0,.12) 0 1px,transparent 1px 3px),
+  linear-gradient(100deg,var(--h1) 0%,color-mix(in srgb,var(--h1) 50%,var(--h2)) 50%,var(--h2) 100%);padding-bottom:12px}
+[data-card="3"] .dk-ctop::after{content:"";position:absolute;inset:0;z-index:1;opacity:.2;mix-blend-mode:overlay;background-image:var(--grain);pointer-events:none}
+[data-card="3"] .dk-cbot{flex:1;display:flex;flex-direction:column;justify-content:center;padding-top:12px;border-top:2px dashed rgba(255,255,255,.42);margin-top:0;
+  background:linear-gradient(180deg,#121c33,#0b1322)}
+[data-card="3"] .dk-ctop>.dk-no{display:block;position:absolute;z-index:2;left:50%;bottom:6px;transform:translateX(-50%);font:800 11px/1 var(--display);letter-spacing:.2em;color:rgba(255,255,255,.9);padding:5px 10px;border-radius:999px;background:rgba(5,9,18,.45)}
+[data-card="3"] .dk-ql span b{font-size:clamp(19px,1.7vw,24px)}
+[data-card="3"] .dk-tm b,[data-card="3"] .dk-dt,[data-card="3"] .dk-lg,[data-card="3"] .dk-tm i,[data-card="3"] .dk-vs{color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+[data-card="3"] .dk-ct{flex:none}
+[data-card="3"] .dk-pick{margin-top:8px;padding-top:8px}
+[data-card="3"] .dk-em{width:calc(var(--W) * .26);height:calc(var(--W) * .26)}
+
+/* переключатель вариантов (макет) */
+.dk-side{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.dk-cards span{font:700 12px/1 var(--display);color:var(--ink-3);padding:0 8px 0 10px;align-self:center;letter-spacing:.06em;text-transform:uppercase}
+@media (max-width:560px){.dk-side{width:100%}.dk-cards{width:100%}.dk-cards span{display:none}}
+/* телефон: без тяжёлых эффектов (размытие, большие тени) */
+@media (max-width:980px){[data-card="2"] .dk-card.on .dk-cf{backdrop-filter:none;-webkit-backdrop-filter:none;background:linear-gradient(160deg,rgba(14,22,40,.72),rgba(6,10,20,.82))}
+  [data-card="3"] .dk-card{filter:none}}
+
+/* стекло: содержимое задних карточек скрыто (иначе просвечивает), остаётся тонировка в цветах их клубов */
+[data-card="2"] .dk-card:not(.on) .dk-cf>*{opacity:0}
