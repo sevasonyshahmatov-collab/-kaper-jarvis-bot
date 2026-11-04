@@ -1,0 +1,26 @@
+/* единый подвал (assets/footer.js) */
+footer.jvf{margin-top:clamp(64px,9vw,130px);padding:clamp(28px,4vw,44px) 0 calc(36px + env(safe-area-inset-bottom,0px));border-top:2px solid var(--rule-2,#2c3b5a);color:var(--ink,#eaf1fb);font-family:var(--display,"Inter",Arial,sans-serif)}
+.jvf-top{display:grid;grid-template-columns:minmax(220px,1.1fr) 2.4fr;gap:28px clamp(24px,5vw,72px);align-items:start}
+.jvf-logo{display:inline-block;font:800 22px/1 var(--display,"Inter",Arial,sans-serif);letter-spacing:.2em;text-transform:uppercase;text-decoration:none;color:inherit;margin-bottom:14px}
+.jvf-logo span::after{content:"";display:block;width:34px;height:4px;border-radius:2px;background:#ffc21a;margin-top:10px}
+.jvf-brand p{margin:0 0 16px;max-width:30ch;font-size:15px;line-height:1.45;color:var(--ink-2,#b9c5d9)}
+.jvf-tg{display:inline-flex;align-items:center;gap:8px;font:700 15px/1 var(--display,"Inter",Arial,sans-serif);text-decoration:none;color:inherit;padding:10px 14px;border:1px solid var(--rule-2,#2c3b5a);border-radius:999px}
+.jvf-tg svg{width:18px;height:18px;color:#5ab8ff}
+.jvf-tg:hover{border-color:currentColor}
+.jvf-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.jvf-cols div{display:flex;flex-direction:column;gap:11px;min-width:0}
+.jvf-cols b{font:800 12px/1 var(--display,"Inter",Arial,sans-serif);letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3,#8f9cb4);margin-bottom:3px}
+.jvf-cols a{font:600 16px/1.2 var(--display,"Inter",Arial,sans-serif);text-decoration:none;color:inherit;width:fit-content}
+.jvf-cols a:hover{text-decoration:underline;text-underline-offset:3px}
+.jvf-cols div:nth-child(1) b{color:#5ab8ff}.jvf-cols div:nth-child(2) b{color:#3dd68c}.jvf-cols div:nth-child(3) b{color:#ffc21a}
+.jvf-bot{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;margin-top:clamp(24px,3vw,36px);padding-top:18px;border-top:1px solid var(--rule,#1c2840)}
+.jvf-bot p,.jvf-note{margin:0;font-size:13.5px;line-height:1.4;color:var(--ink-3,#8f9cb4)}
+.jvf-slot{flex:1 1 0}
+.jvf-note{flex:1 1 auto;order:2}
+.jvf-age{margin-left:auto;order:3;font:800 13px/1 var(--display,"Inter",Arial,sans-serif);letter-spacing:.06em;border:1.5px solid var(--ink-3,#8f9cb4);color:var(--ink-3,#8f9cb4);border-radius:6px;padding:5px 8px}
+@media (max-width:760px){
+ .jvf-top{grid-template-columns:1fr}
+ .jvf-cols{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .jvf-cols div:nth-child(3){grid-column:1/-1}
+ footer.jvf{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))} /* место под плавающую кнопку Telegram */
+}

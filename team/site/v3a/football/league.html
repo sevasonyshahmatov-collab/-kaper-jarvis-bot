@@ -18,6 +18,15 @@
 <link rel="stylesheet" href="../assets/football.css">
 <link rel="stylesheet" href="../assets/league.css">
 <link rel="stylesheet" href="../assets/ucl.css">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:site_name" content="JARVIS"><meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Лига — таблица, матчи, бомбардиры · JARVIS (макет v3a)"><meta property="og:description" content="Страница лиги: полная таблица, матчи ближайшего тура, последние результаты, бомбардиры, карточки и статистика сезона.">
+<!-- TODO(домен): og:image должен быть абсолютным URL (https://<домен>/assets/og/…); пока относительный, добавить og:url -->
+<meta property="og:image" content="../assets/og/og-football.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Лига — таблица, матчи, бомбардиры · JARVIS (макет v3a)"><meta name="twitter:description" content="Страница лиги: полная таблица, матчи ближайшего тура, последние результаты, бомбардиры, карточки и статистика сезона."><meta name="twitter:image" content="../assets/og/og-football.png">
 </head>
 <body data-field="football">
 <div class="arena-bg" aria-hidden="true"><i class="bm"></i><i class="bm"></i><i class="bm"></i><i class="bm"></i><i class="sp"></i></div>
@@ -59,20 +68,12 @@
 </section>
 </main>
 
-<footer>
-  <div class="wrap">
-    <p class="plate" aria-hidden="true">Jarvis</p>
-    <div class="fcols">
-      <nav aria-label="Подвал"><a href="../index.html">Главная</a><a href="../hockey/index.html">Хоккей</a><a href="index.html#leagues">Лиги и клубы</a><a href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a></nav>
-      <p>Макет v3a · © JARVIS, @jarvibet</p>
-    </div>
-  </div>
-</footer>
 <a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Получать прогнозы — бесплатно</span><span aria-hidden="true">›</span></a>
 
 <script src="data/football-lite.js"></script>
 <script src="data/games.js"></script>
 <script src="../assets/nav.js"></script>
+<script src="../assets/footer.js"></script>
 <script src="../assets/v3a.js"></script>
 <script src="../assets/foot-kit.js"></script>
 <script src="../assets/league-foot.js"></script>

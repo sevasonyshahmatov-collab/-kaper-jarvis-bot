@@ -15,6 +15,15 @@
 <link rel="stylesheet" href="../assets/football.css">
 <link rel="stylesheet" href="../assets/players.css">
 <style>.cr-l{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:0;max-width:900px}.cr-l li{display:flex;gap:12px;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--rule-2);font:500 16px/1.35 var(--display)}.cr-l a{color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.cr-l b{font-weight:800;white-space:nowrap}</style>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:site_name" content="JARVIS"><meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Авторы фото игроков · JARVIS (макет v3a)"><meta property="og:description" content="Откуда фотографии футболистов: файлы Wikimedia Commons и ссылки на страницы авторов.">
+<!-- TODO(домен): og:image должен быть абсолютным URL (https://<домен>/assets/og/…); пока относительный, добавить og:url -->
+<meta property="og:image" content="../assets/og/og-football.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Авторы фото игроков · JARVIS (макет v3a)"><meta name="twitter:description" content="Откуда фотографии футболистов: файлы Wikimedia Commons и ссылки на страницы авторов."><meta name="twitter:image" content="../assets/og/og-football.png">
 </head>
 <body data-field="football">
 <a class="skip" href="#main">К содержанию</a>
@@ -40,6 +49,7 @@
 </main>
 <script src="data/players.js"></script>
 <script src="../assets/nav.js"></script>
+<script src="../assets/footer.js"></script>
 <script>
 (()=>{
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));

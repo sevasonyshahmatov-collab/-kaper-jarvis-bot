@@ -20,6 +20,15 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <link rel="stylesheet" href="../assets/nav.css">
 <link rel="stylesheet" href="../assets/team.css">
 <link rel="stylesheet" href="../assets/club/theme.css">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:site_name" content="JARVIS"><meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Команда — матчи, таблица, сила · JARVIS (макет v3a)"><meta property="og:description" content="Страница клуба КХЛ и НХЛ: все матчи сезона, место в таблице, шестиугольник силы, статистика и наши прогнозы на команду.">
+<!-- TODO(домен): og:image должен быть абсолютным URL (https://<домен>/assets/og/…); пока относительный, добавить og:url -->
+<meta property="og:image" content="../assets/og/og-hockey.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Команда — матчи, таблица, сила · JARVIS (макет v3a)"><meta name="twitter:description" content="Страница клуба КХЛ и НХЛ: все матчи сезона, место в таблице, шестиугольник силы, статистика и наши прогнозы на команду."><meta name="twitter:image" content="../assets/og/og-hockey.png">
 </head>
 <body data-field="hockey">
 <div class="arena-bg" aria-hidden="true"><i class="bm"></i><i class="bm"></i><i class="bm"></i><i class="bm"></i><i class="sp"></i></div>
@@ -72,15 +81,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 </section>
 </main>
 
-<footer>
-  <div class="wrap">
-    <p class="plate" aria-hidden="true">Jarvis</p>
-    <div class="fcols">
-      <nav aria-label="Подвал"><a href="../index.html">Главная</a><a href="../hockey/index.html#leagues">Лиги и клубы</a><a href="../football/index.html">Футбол</a><a href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a></nav>
-      <p id="foot">Макет v3a · © JARVIS, @jarvibet</p>
-    </div>
-  </div>
-</footer>
+<footer><p id="foot"></p></footer>
 <a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Получать прогнозы — бесплатно</span><span aria-hidden="true">›</span></a>
 
 <script src="../assets/data/teams-lite.js"></script>
@@ -88,6 +89,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <script src="../assets/data/clubs.js"></script>
 <script src="../assets/club/themes.js"></script>
 <script src="../assets/nav.js"></script>
+<script src="../assets/footer.js"></script>
 <script src="../assets/v3a.js"></script>
 <script src="../assets/team.js"></script>
 <script src="../assets/emb.js" defer></script>

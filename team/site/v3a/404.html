@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ru" data-theme="a">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Такой страницы нет — JARVIS</title>
+<meta name="description" content="Страница не найдена. Матчи дня, хоккей и футбол — на главных разделах JARVIS.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0a1220">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<!-- на GitHub Pages 404.html открывается по любому адресу: пути к файлам абсолютные от корня проекта (<base> задаётся ниже) -->
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:site_name" content="JARVIS"><meta property="og:title" content="JARVIS — прогнозы на хоккей и футбол"><meta property="og:description" content="Прогнозы по расчёту, а не наугад.">
+<!-- TODO(домен): абсолютный URL -->
+<meta property="og:image" content="assets/og/og-home.png"><meta name="twitter:card" content="summary_large_image">
+<script>(()=>{const m=location.pathname.match(/^(\/[^\/]+\/)(?:.*)$/),h=location.hostname;
+ /* проектный сайт github.io/<репо>/…: корень — первый сегмент; своё доменное имя или локальный сервер — корень '/' */
+ const root=/\.github\.io$/.test(h)&&m?m[1]:'/';document.write('<base href="'+root+'">')})();</script>
+<link rel="stylesheet" href="assets/v3a.css">
+<link rel="stylesheet" href="assets/nav.css">
+<style>
+.nf{padding-top:clamp(56px,10vw,130px);min-height:56vh}
+.nf small{display:block;font:800 13px/1 var(--display);letter-spacing:.2em;text-transform:uppercase;color:#ffc21a;margin-bottom:18px}
+.nf h1{font:900 clamp(44px,8vw,104px)/.95 var(--display);letter-spacing:-.01em;margin:0 0 18px}
+.nf p{margin:0 0 30px;max-width:44ch;color:var(--ink-2);font-size:18px;line-height:1.5}
+.nf-links{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:30px}
+.nf-links a{font:700 17px/1 var(--display);text-decoration:none;padding:14px 20px;border:1.5px solid var(--rule-2);border-radius:999px;color:var(--ink)}
+.nf-links a:hover{border-color:currentColor}
+.nf-links a:nth-child(2){border-color:#5ab8ff}.nf-links a:nth-child(3){border-color:#3dd68c}.nf-links a:nth-child(1){border-color:#ffc21a}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd"><div class="wrap"></div></header>
+<main id="main" class="wrap nf">
+  <small>Ошибка 404</small>
+  <h1>Такой страницы нет</h1>
+  <p>Ссылка устарела или в адресе опечатка. Вернитесь к матчам или выберите раздел.</p>
+  <div class="nf-links"><a href="matches.html">Матчи дня</a><a href="hockey/index.html">Хоккей</a><a href="football/index.html">Футбол</a></div>
+  <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a>
+</main>
+<script src="assets/nav.js"></script>
+<script src="assets/footer.js"></script>
+</body>
+</html>
