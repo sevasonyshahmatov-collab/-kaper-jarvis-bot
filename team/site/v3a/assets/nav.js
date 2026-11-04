@@ -13,9 +13,9 @@ const sport=document.documentElement.dataset.sport||'';
 
 const SECTIONS={
  hockey:[['m','Матчи','hockey/index.html'],['deck','Матчи дня','matches.html?s=h'],['khl','КХЛ','hockey/league.html?lg=khl'],['nhl','НХЛ','hockey/league.html?lg=nhl'],
-         ['pl','Игроки','hockey/players.html'],['tr','Тренды','hockey/trends.html'],['mod','Модель','hockey/index.html#model']],
+         ['pl','Игроки','hockey/players.html'],['tr','Тренды','hockey/trends.html'],['mod','Модель','model.html?s=h']],
  football:[['m','Матчи','football/index.html'],['deck','Матчи дня','matches.html?s=f'],['lg','Лиги','football/league.html?lg=epl'],['ucl','Лига чемпионов','football/ucl.html'],
-         /* ['pl','Игроки','football/players.html'], — скрыто до готовности портретов (владелец 04.11) */['tr','Тренды','football/trends.html'],['mod','Модель','index.html#model']]
+         /* ['pl','Игроки','football/players.html'], — скрыто до готовности портретов (владелец 04.11) */['tr','Тренды','football/trends.html'],['mod','Модель','model.html?s=f']]
 };
 /* какой пункт активен */
 function active(){
@@ -29,6 +29,7 @@ function active(){
   if(file==='league.html'){const l=q.get('lg')||'';return sport==='hockey'?(l==='nhl'?'nhl':'khl'):(l==='ucl'?'ucl':'lg')}
   if(/^players/.test(file)||file==='photo-credits.html')return 'pl';
   if(file==='trends.html')return 'tr';
+  if(file==='model.html')return 'mod';
   return '';
 }
 const act=active();
