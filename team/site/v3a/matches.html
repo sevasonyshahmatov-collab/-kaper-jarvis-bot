@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ru" data-theme="a" data-v="1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Колода матчей — JARVIS (макет v3a)</title>
+<meta name="description" content="Матчи КХЛ, НХЛ и футбола листаются как вещи на вешалке: карточка с линией и выводом модели, справа — о встрече и подробная статистика.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0a1220">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="assets/v3a.css">
+<link rel="stylesheet" href="assets/nav.css">
+<link rel="stylesheet" href="assets/home.css">
+<link rel="stylesheet" href="assets/deck.css">
+</head>
+<body class="dk-page">
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="index.html" aria-label="JARVIS, главная">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="hockey/index.html">Хоккей</a>
+      <a href="football/index.html">Футбол</a>
+    </nav>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Telegram</span></a>
+  </div>
+</header>
+
+<main id="main" class="dk">
+  <div class="hm-bg" aria-hidden="true"><i class="hb hb1"></i><i class="hb hb2"></i><i class="hb hb3"></i><i class="hg hg1"></i><i class="hg hg2"></i><i class="hd"></i><i class="hd hd2"></i></div>
+  <div class="wrap dk-wrap">
+    <div class="dk-top">
+      <div>
+        <h1 class="dk-h1">Матчи дня</h1>
+        <p class="dk-sub" id="dk-sub"></p>
+      </div>
+      <div class="dk-filter" role="group" aria-label="Вид спорта" id="dk-filter">
+        <button type="button" data-f="all" aria-pressed="true">Все <small></small></button>
+        <button type="button" data-f="hockey" aria-pressed="false">Хоккей <small></small></button>
+        <button type="button" data-f="football" aria-pressed="false">Футбол <small></small></button>
+      </div>
+    </div>
+
+    <div class="dk-grid">
+      <section class="dk-main" id="dk-main" aria-label="Колода матчей">
+        <div class="dk-stage" id="dk-stage" tabindex="0" aria-roledescription="карусель" aria-label="Матчи: листайте колесом мыши, свайпом или стрелками ← →">
+          <ol class="dk-deck" id="dk-deck"></ol>
+        </div>
+      </section>
+      <aside class="dk-info" id="dk-info" aria-live="polite" aria-label="О встрече"></aside>
+    </div>
+
+    <div class="dk-ctl" id="dk-ctl">
+      <button type="button" class="dk-arr" id="dk-prev" aria-label="Предыдущий матч"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5m6-6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="dk-count" aria-live="polite"><b id="dk-cur">01</b><span> / </span><span id="dk-tot">01</span></div>
+      <button type="button" class="dk-arr" id="dk-next" aria-label="Следующий матч"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="dk-prog" aria-hidden="true"><i id="dk-bar"></i></div>
+      <p class="dk-hint">Колесо мыши, свайп или ← →</p>
+    </div>
+  </div>
+</main>
+
+<div class="dk-scrim" id="dk-scrim" hidden></div>
+<aside class="dk-drawer" id="dk-drawer" role="dialog" aria-modal="true" aria-labelledby="dk-dh" inert>
+  <header class="dk-dhead">
+    <div><p class="dk-dk">Подробная статистика</p><h2 id="dk-dh"></h2></div>
+    <button type="button" class="dk-x" id="dk-x" aria-label="Закрыть"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+  </header>
+  <div class="dk-dbody" id="dk-dbody"></div>
+</aside>
+
+<script src="assets/nav.js"></script>
+<script src="data/today.js"></script>
+<script src="data/lines.js"></script>
+<script src="data/model.js"></script>
+<script src="assets/lines.js"></script>
+<script src="assets/data/teams-lite.js"></script>
+<script src="football/data/football-lite.js"></script>
+<script src="assets/deck.js"></script>
+</body>
+</html>
