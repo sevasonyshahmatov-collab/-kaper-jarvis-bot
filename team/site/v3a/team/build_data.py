@@ -18,7 +18,19 @@ from datetime import date, datetime, timedelta
 
 LIVE = sys.argv[1] if len(sys.argv) > 1 else '/tmp/live'
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets', 'data', 'teams.json')
-TODAY = date(2026, 11, 3)
+from datetime import timezone
+TODAY = (datetime.now(timezone.utc) + timedelta(hours=3)).date()        # сегодня по Москве (ежедневный конвейер daily/run.py)
+DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
+
+
+def _load(name):
+    try:
+        return json.load(open(os.path.join(DATA, name), encoding='utf-8'))
+    except (OSError, ValueError):
+        return {}
+
+
+LINES, MODEL = _load('lines.json'), _load('model.json')      # линии и вероятности модели (daily/lines_model.py), ключ — daily/README.md
 SEASON = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'season.json'), encoding='utf-8'))
 START = {'khl': date(2026, 9, 5), 'nhl': date(2026, 10, 7)}
 
@@ -142,7 +154,7 @@ for slug, t in teams.items():
         have = {(r['d'][:10], r['o']) for r in fut}
         nxt = [g for g in real.get('games') or [] if g.get('gf') is None and g.get('o') in by_name
                and g['d'][:10] >= f'{TODAY:%Y-%m-%d}' and (g['d'][:10], by_name[g['o']]) not in have]
-        for g in nxt[:max(0, 4 - len(fut))]:
+        for g in nxt[:max(0, 6 - len(fut))]:
             rows.append({'d': g['d'], 'o': by_name[g['o']], 'h': g['h']})
     played = [r for r in rows if 'gf' in r]
     real_ok = bool(rg) and len(rg) >= (t['gp'] or 0) - 1
@@ -202,9 +214,20 @@ for slug, t in teams.items():
         m = 1.07
         return [round(1 / (pw * m), 2), round(1 / (pd * m), 2), round(1 / (pl * m), 2)]
     for r in future:
+        hs, as_ = (slug, r['o']) if r['h'] else (r['o'], slug)
+        key = '%s|%s|%s|%s' % (lg, r['d'][:10], hs, as_)
+        ln, md = LINES.get(key), MODEL.get(key)
+        if ln and ln.get('p1') and ln.get('p2'):          # настоящая линия (daily/lines_model.py)
+            x = [ln['p1'], ln.get('x') or 0, ln['p2']]
+            r['k'] = [x[0], x[1], x[2]] if r['h'] else [x[2], x[1], x[0]]   # [победа команды, ничья, победа соперника]
+            r['ksrc'] = ln.get('src')
+            r.pop('ks', None)
+        if md and md.get('p1') is not None:
+            x = [md['p1'], md.get('x') or 0, md['p2']]
+            r['pm'] = [x[0], x[1], x[2]] if r['h'] else [x[2], x[1], x[0]]
         if 'k' not in r:
             r['k'] = line(slug, r['o'], r['h']); r['ks'] = 1     # линии ещё нет — оценка-пример
-    for i in range(max(0, 4 - len(future))):
+    for i in range(0 if real_ok else max(0, 4 - len(future))):
         last += timedelta(days=rnd.choice([2, 2, 3]))
         o = rnd.choice(opps)
         hm = rnd.choice([0, 1])

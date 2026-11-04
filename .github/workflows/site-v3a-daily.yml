@@ -1,0 +1,45 @@
+# Ежедневное обновление данных макета сайта v3a (владелец 04.11): хоккей (сезон, таблицы, матчи, игроки), футбол (ESPN: матчи,
+# таблицы, составы, тренды), линии (Фонбет / Pinnacle / приложение КХЛ / ESPN) и вероятности модели на ближайшие 2 дня.
+# Код — team/site/v3a/daily/run.py (описание и формат ключей — daily/README.md); данные коммитятся в ту же ветку.
+# Запуск: вручную, по изменению team/site/v3a/daily/run.txt и по расписанию — cron из main (site-v3a-daily-cron.yml, ветка
+# claude/site-v3a-daily-cron): cron из не-главной ветки GitHub не запускает.
+name: Данные v3a — ежедневное обновление
+
+on:
+  push:
+    branches: ['claude/team-dev-**']
+    paths: ['team/site/v3a/daily/run.txt']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site-v3a-daily
+  cancel-in-progress: false
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests numpy brotli
+      - name: Конвейер данных
+        run: python team/site/v3a/daily/run.py
+      - name: Закоммитить данные
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A team/site/v3a/data team/site/v3a/assets/data team/site/v3a/team/season.json team/site/v3a/football/data team/site/v3a/hockey/data
+          git diff --cached --quiet && { echo "данные не изменились"; exit 0; }
+          git commit -q -m "Данные v3a: ежедневное обновление $(TZ=Europe/Moscow date '+%d.%m %H:%M') МСК (run ${{ github.run_number }})"
+          for i in 1 2 3 4 5; do
+            git fetch -q --depth=50 origin "$GITHUB_REF_NAME" && git rebase -q FETCH_HEAD && git push && exit 0
+            git rebase --abort 2>/dev/null; sleep 10
+          done
+          exit 1
