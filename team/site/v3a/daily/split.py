@@ -35,6 +35,9 @@ def load(p):
 
 
 def write(p, s):
+    # имена файлов берутся из данных (slug клуба и т. п.): выйти из папки макета нельзя (защита от ../ во внешних данных)
+    if os.path.commonpath([V3A, os.path.abspath(p)]) != V3A:
+        raise ValueError('запись вне папки макета: %r' % p)
     os.makedirs(os.path.dirname(p), exist_ok=True)
     with open(p, 'w', encoding='utf-8') as f:
         f.write(s)

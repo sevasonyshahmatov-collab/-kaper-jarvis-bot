@@ -26,7 +26,7 @@ const team=(m,s)=>isH(m)?TH[s]:FB.teams[s];
 const emUrl=(m,s)=>isH(m)?`assets/em/${encodeURIComponent(s)}.webp`:`assets/fc/${encodeURIComponent(s)}.webp`;
 const lgIcon=m=>`assets/lg/${encodeURIComponent(m.lg)}.webp`;
 const clubHref=(m,s)=>isH(m)?`team/index.html?id=${encodeURIComponent(s)}`:`football/team.html?id=${encodeURIComponent(s)}`;
-const lgHref=m=>isH(m)?`hockey/league.html?lg=${m.lg}`:(m.lg==='ucl'?'football/ucl.html':`football/league.html?lg=${encodeURIComponent(m.lg)}`);
+const lgHref=m=>isH(m)?`hockey/league.html?lg=${encodeURIComponent(m.lg)}`:(m.lg==='ucl'?'football/ucl.html':`football/league.html?lg=${encodeURIComponent(m.lg)}`);
 const emImg=(m,s,n)=>`<img src="${emUrl(m,s)}" alt="" loading="lazy" decoding="async" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:this.dataset.i}))" data-i="${esc((n||s).slice(0,2).toUpperCase())}">`;
 const D2=n=>String(n).padStart(2,'0');
 const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
@@ -135,7 +135,7 @@ function pl(n,f){n=Math.abs(n)%100;const a=n%10;return n>10&&n<20?f[2]:a>1&&a<5?
 
 function infoHtml(m){const {ln,md}=info(m);let h='';
   const t=String(m.t||'');
-  h+=`<div class="dk-ihead"><img class="dk-lgwm" src="assets/lg/${LGLOGO[m.lg]||m.lg+'.webp'}" alt="" aria-hidden="true" onerror="this.remove()"><p class="dk-ik">О встрече</p><h2 class="dk-ih">${esc(m.hn)} — ${esc(m.an)}<small>${esc(lgFull(m))} · ${esc(dayLabel(t))}, ${esc(t.slice(11,16))} МСК${m.arena&&m.arena.name?' · '+esc(m.arena.name)+(m.arena.city?', '+esc(m.arena.city):''):''}</small></h2></div>`;
+  h+=`<div class="dk-ihead"><img class="dk-lgwm" src="assets/lg/${esc(LGLOGO[m.lg]||m.lg+'.webp')}" alt="" aria-hidden="true" onerror="this.remove()"><p class="dk-ik">О встрече</p><h2 class="dk-ih">${esc(m.hn)} — ${esc(m.an)}<small>${esc(lgFull(m))} · ${esc(dayLabel(t))}, ${esc(t.slice(11,16))} МСК${m.arena&&m.arena.name?' · '+esc(m.arena.name)+(m.arena.city?', '+esc(m.arena.city):''):''}</small></h2></div>`;
   h+=`<div class="dk-blk"><h3>Таблица и форма</h3>${teamRow(m,m.h,m.hn)}${teamRow(m,m.a,m.an)}<p class="dk-note">Форма — последние 5 матчей, слева раньше: зелёный — победа, красный — поражение.</p></div>`;
   if(md){
     const rows=[[md.p1,'П1 · '+m.hn],[md.x,isH(m)?'Х · ничья в осн. время':'Х · ничья'],[md.p2,'П2 · '+m.an]].filter(r=>r[0]!=null),mx=Math.max(...rows.map(r=>r[0]));

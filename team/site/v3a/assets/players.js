@@ -45,7 +45,7 @@ function render(){
     const strip=`<div class="bars">${F.map((c,j)=>{const o=D.teams[p.fo[j]];const t=(o?o.n:'')+(c==='x'?' — не играл':ok(c)?' — '+(MN[st.m]).replace(/^\S+/,'да'):' — нет');
       return `<i class="${ok(c)?'g':c==='x'?'x':''}" style="--h:${ok(c)?1:c==='x'?.04:.08}" title="${esc(t)}"></i>`}).join('')}</div><small>5 матчей: <b>${F5.filter(ok).length}/${F5.length}</b> · 10: <b>${F.filter(ok).length}/${LU?pl_:F.length}</b></small>`;
     const nx=p.nx&&D.teams[p.nx.o];
-    const sub=LU?`${p.pos?p.pos+' · ':''}${p.N} матч.${p.mn?` · ${p.mn} мин`:''} · ${st.m==='cr'?`${p.y} жёлт.${p.r?` · ${p.r} красн.`:''}`:st.m==='st'?`${p.SoT} в створ из ${p.S}`:st.m==='s2'?`${p.S} ударов`:st.m==='ga'?`${p.G} гол. + ${p.A} пас.`:`${p.G} гол.`}`:st.m==='cr'?`${p.y} жёлт.${p.r?` · ${p.r} красн.`:''}`:`${p.G} ${p.G%10===1&&p.G%100!==11?'гол':p.G%10>=2&&p.G%10<=4&&(p.G%100<12||p.G%100>14)?'гола':'голов'}${p.pen?` · ${p.pen} с пен.`:''}`;
+    const sub=LU?`${p.pos?esc(p.pos)+' · ':''}${p.N} матч.${p.mn?` · ${p.mn} мин`:''} · ${st.m==='cr'?`${p.y} жёлт.${p.r?` · ${p.r} красн.`:''}`:st.m==='st'?`${p.SoT} в створ из ${p.S}`:st.m==='s2'?`${p.S} ударов`:st.m==='ga'?`${p.G} гол. + ${p.A} пас.`:`${p.G} гол.`}`:st.m==='cr'?`${p.y} жёлт.${p.r?` · ${p.r} красн.`:''}`:`${p.G} ${p.G%10===1&&p.G%100!==11?'гол':p.G%10>=2&&p.G%10<=4&&(p.G%100<12||p.G%100>14)?'гола':'голов'}${p.pen?` · ${p.pen} с пен.`:''}`;
     return `<article class="pr" role="listitem">
       <span class="rk">${i+1}</span>${avatar(p,T)}
       <div class="nm"><b>${esc(p.n)}</b><span>${esc(T.n||'')} · ${sub}</span></div>

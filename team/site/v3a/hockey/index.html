@@ -305,9 +305,9 @@ const chev='<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-wi
 
 /* бегущая строка: ближайшие матчи — время, лига, клубы, кэфы П1 · Х · П2 линии (если линии нет — вероятности модели) */
 {const up=D.filter(m=>JV.left(m.t)>0&&JV.left(m.t)<48*3600),L=(up.length?up:D.filter(m=>JV.left(m.t)>0)).slice(0,10);
- if(L.length)JV.ticker(document.getElementById('ticker'),L.map(m=>{const day=m.t.slice(0,10),tag=day===todayD?'':day===tmrD?'<span class="tm2">завтра</span>':`<span class="tm2">${day.slice(8)}.${day.slice(5,7)}</span>`;
+ if(L.length)JV.ticker(document.getElementById('ticker'),L.map(m=>{const day=m.t.slice(0,10),tag=day===todayD?'':day===tmrD?'<span class="tm2">завтра</span>':`<span class="tm2">${esc(day.slice(8))}.${esc(day.slice(5,7))}</span>`;
   const q=m.ln?[m.ln.p1,m.ln.x,m.ln.p2].filter(Boolean).map(v=>f1(v,2)).join(' · '):m.md?[m.md.p1,m.md.x,m.md.p2].map(v=>Math.round(v*100)).join(' · ')+' %':'';
-  return `${tag}<time>${m.t.slice(11)}</time>${LGP(m.lg)}${CS(m.h,'tc')}${esc(m.hn)} — ${esc(m.an)}${CS(m.a,'tc')}${q?`<span class="kq">${q}</span>`:''}`}));
+  return `${tag}<time>${esc(m.t.slice(11))}</time>${LGP(m.lg)}${CS(m.h,'tc')}${esc(m.hn)} — ${esc(m.an)}${CS(m.a,'tc')}${q?`<span class="kq">${q}</span>`:''}`}));
  else document.getElementById('ticker').hidden=true}
 
 /* карточка на табло: ближайшие матчи — эмблемы, исход, который модель считает самым вероятным, линия и ожидаемые голы.
@@ -321,7 +321,7 @@ const card=m=>{const md=m.md,ln=m.ln,mo=md?[md.p1,md.x,md.p2]:null,i=mo?mo.index
  const why=[];
  if(ln)why.push(`Линия (${JVL.srcLabel(ln)}): П1 ${f1(ln.p1,2)}${ln.x?` · Х ${f1(ln.x,2)}`:''} · П2 ${f1(ln.p2,2)}.`);else why.push('Линии на матч пока нет.');
  if(md&&md.lam)why.push(`Ожидаемые голы: ${f1(md.lam[0],1)} : ${f1(md.lam[1],1)}.`);
- return `<div class="face">${tm(m.h,m.hn,'хозяева')}<div class="vs"><span aria-hidden="true">—</span><time>${m.t.slice(11)}</time></div>${tm(m.a,m.an,'гости')}</div>
+ return `<div class="face">${tm(m.h,m.hn,'хозяева')}<div class="vs"><span aria-hidden="true">—</span><time>${esc(m.t.slice(11))}</time></div>${tm(m.a,m.an,'гости')}</div>
  ${md?`<div class="bet lv-${lvl(p)}"><span class="bl">Расчёт модели</span><strong>${esc(word)}</strong><span class="k num" aria-label="${kk?'кэф линии':'линии нет'}">${kk?f1(kk,2):'—'}</span>
   <span class="pm"><em><i style="--w:${Math.round(p*100)}%"></i></em><b class="num">${Math.round(p*100)} % по модели</b></span></div>`:'<div class="bet lv-lo"><span class="bl">Расчёт модели</span><strong>Расчёта на этот матч пока нет</strong></div>'}
  <p class="why">${esc(why.join(' '))}</p>`};
@@ -369,7 +369,7 @@ ltabs.innerHTML=`<button class="tab" role="tab" aria-selected="true" data-l="all
  Object.entries(LG).map(([id,l])=>`<button class="tab" role="tab" aria-selected="false" data-l="${id}">${LGP(id)}${l.name} <span class="c">${cnt(id)}</span></button>`).join('');
 /* раскрытая карточка — из assets/data/teams.js (матчи сезона) */
 const TD=(window.JV_TEAMS||{}).teams||{};
-const dd=t=>`${t.slice(8,10)}.${t.slice(5,7)}`;
+const dd=t=>`${esc(t.slice(8,10))}.${esc(t.slice(5,7))}`;
 const played=g=>g.gf!=null&&g.ga!=null;
 const rOf=g=>g.gf>g.ga?'w':g.x?'o':'l';
 const RES={w:'В',l:'П',o:'ОТ'},RESF={w:'победа',l:'поражение',o:'поражение в овертайме или по буллитам'};
@@ -395,7 +395,7 @@ function back(m){const {A,B,h2h}=det(m);
   <p class="note xn">Линия и расчёт модели — по данным на ${upd||'последнее обновление'}; матчи и статистика — по данным сезона.</p></div>`}
 function row(m){const L=LG[m.lg];
  return `<li class="match ${m.lg}"><button class="mhead" type="button" aria-expanded="false">
-  <div class="mt"><time>${m.t.slice(11)}</time><span class="cd" data-t="${m.t}"></span></div>
+  <div class="mt"><time>${esc(m.t.slice(11))}</time><span class="cd" data-t="${esc(m.t)}"></span></div>
   <div><div class="lgline">${LGP(m.lg)}${L.name}</div><div class="teams"><div class="team">${CS(m.h)}<span>${esc(m.hn)}</span></div><div class="team">${CS(m.a)}<span>${esc(m.an)}</span></div></div></div>
   <div class="quotes">${JVL.quotes(m)}</div>
   <span class="chev">${chev}</span></button>
@@ -465,12 +465,12 @@ if(/^#lg-(khl|nhl)$/.test(location.hash))pickLg(location.hash.slice(4),false);
  {const T5=D.filter(m=>m.md&&m.ln).slice(0,5);
   document.getElementById('gtbl').innerHTML=T5.length?'<tr><th>Время</th><th>Матч</th><th>Исход</th><th>Кэф</th><th>Вер.</th></tr>'+T5.map(m=>{const mo=[m.md.p1,m.md.x,m.md.p2],i=mo.indexOf(Math.max(...mo)),kk=[m.ln.p1,m.ln.x,m.ln.p2][i];
    return `<tr><td>${m.t.slice(11)}</td><td>${esc(m.hn)} — ${esc(m.an)}</td><td>${['П1','Х','П2'][i]}</td><td class="k">${kk?f1(kk,2):'—'}</td><td><i class="pb" style="--w:${Math.round(mo[i]*100)}%"></i>${Math.round(mo[i]*100)}%</td></tr>`}).join(''):'<tr><td>Расчёт появится после обновления данных</td></tr>';
-  const gm=m=>`<div class="gm"><time>${m.t.slice(11)}</time>${CS(m.h)}<span>${esc(m.hn)} — ${esc(m.an)}</span>${CS(m.a)}</div>`;
+  const gm=m=>`<div class="gm"><time>${esc(m.t.slice(11))}</time>${CS(m.h)}<span>${esc(m.hn)} — ${esc(m.an)}</span>${CS(m.a)}</div>`;
   let cal='',pd='';D.slice(0,5).forEach(m=>{const d=m.t.slice(0,10);if(d!==pd){pd=d;cal+=`<div class="day">${d===todayD?'Сегодня':d===tmrD?'Завтра':dd(d)}</div>`}cal+=gm(m)});
   /* последние сыгранные матчи — из данных сезона (assets/data/teams.js), по одному разу: берём запись хозяев */
   const done=[];Object.entries(TD).forEach(([sl,T])=>T.games.forEach(g=>{if(g.h===1&&played(g))done.push({d:g.d,h:sl,a:g.o,gf:g.gf,ga:g.ga,x:g.x})}));
   done.sort((a,b)=>a.d<b.d?1:-1);const ld=done.length?done[0].d.slice(0,10):'';
-  if(ld){cal+=`<div class="day">Сыграно ${dd(ld)}</div>`;done.filter(g=>g.d.slice(0,10)===ld).slice(0,4).forEach(g=>{cal+=`<div class="gm done"><time>${g.gf}:${g.ga}${g.x?' '+g.x:''}</time>${CS(g.h)}<span>${esc(nmS(g.h))} — ${esc(nmS(g.a))}</span>${CS(g.a)}</div>`})}
+  if(ld){cal+=`<div class="day">Сыграно ${dd(ld)}</div>`;done.filter(g=>g.d.slice(0,10)===ld).slice(0,4).forEach(g=>{cal+=`<div class="gm done"><time>${esc(g.gf)}:${esc(g.ga)}${g.x?' '+esc(g.x):''}</time>${CS(g.h)}<span>${esc(nmS(g.h))} — ${esc(nmS(g.a))}</span>${CS(g.a)}</div>`})}
   document.getElementById('calbox').innerHTML=cal||'<div class="day">Расписание появится после обновления данных</div>'}
  tour.querySelectorAll('img[data-crest]').forEach(i=>{i.src=crest(i.dataset.crest);i.className='em'});
  go(0);}

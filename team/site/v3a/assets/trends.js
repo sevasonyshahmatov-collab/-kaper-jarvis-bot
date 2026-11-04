@@ -250,7 +250,7 @@ function render(){
     `<span>время московское</span>`+(S.built?`<span>данные на ${esc(String(S.built).slice(0,16))}</span>`:'');
   /* плашки: лиги без матчей и лиги с запасным окном */
   const plates=[];
-  const nm=id=>S.lgInfo[id].name;
+  const nm=id=>esc(S.lgInfo[id].name);
   const fb=S.fallback.filter(id=>ST.lg==='all'||ST.lg===id),em=S.empty.filter(id=>ST.lg==='all'||ST.lg===id);
   if(fb.length)plates.push(`<b>${fb.map(nm).join(', ')}:</b> в ближайшие 2 дня матчей нет, показаны ближайшие 10 матчей лиги.`);
   if(em.length)plates.push(`<b>${em.map(nm).join(', ')}:</b> будущих матчей в данных нет — тренды появятся, когда выйдет расписание.`);

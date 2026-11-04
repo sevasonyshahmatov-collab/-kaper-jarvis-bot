@@ -37,7 +37,7 @@ try:
     limit = int(m.group(1)) if m else 0
 except Exception:  # noqa: BLE001
     pass
-ids = sorted(photos, key=lambda i: -goals.get(i, 0))
+ids = sorted((i for i in photos if re.fullmatch(r'[0-9]{1,12}', str(i))), key=lambda i: -goals.get(i, 0))   # id попадает в имя файла ph/<id>.webp: только цифры (защита от ../ из внешних данных)
 if limit:
     ids = ids[:limit]
 print('HS players', len(ids), 'limit', limit, flush=True)
