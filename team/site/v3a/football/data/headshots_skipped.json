@@ -209,11 +209,7 @@
 },
 "387204": {
 "f": "Rodrigo Mora.jpg",
-"why": "ошибка загрузки"
-},
-"383160": {
-"f": "Viktor Okishor 2025.jpg",
-"why": "ошибка загрузки"
+"why": "нет лица"
 },
 "304242": {
 "f": "Yasin Ayari - Sweden - Greece20 (cropped).jpg",
@@ -223,21 +219,9 @@
 "f": "Kevin Schade 02082025 (1).jpg",
 "why": "нет лица"
 },
-"253991": {
-"f": "FC Salzburg vs. Ferencváros Budapest (2025-10-23 UEFA Euroleague) 33 (Kristoffer Zachariassen).jpg",
-"why": "ошибка загрузки"
-},
-"325053": {
-"f": "Nikita Krivtsov 2022.jpg",
-"why": "ошибка загрузки"
-},
 "255889": {
 "f": "Pape Gueye France v Senegal 16 June 2026-359 (cropped).jpg",
 "why": "нет лица"
-},
-"265993": {
-"f": "Sergio-Gomez-2023.jpg",
-"why": "ошибка загрузки"
 },
 "282229": {
 "f": "GAE - Ajax - 52788469380 (Brobbey).jpg",
@@ -247,10 +231,6 @@
 "f": "Alphonso Davies Canada v Qatar 18 June 2026-007 (cropped).jpg",
 "why": "лицо у края кадра"
 },
-"283941": {
-"f": "Ander Barrenetxea 2018.jpg",
-"why": "ошибка загрузки"
-},
 "307515": {
 "f": "U19 DFB Perspektivteam, Duisburg-Wedau.jpg",
 "why": "нет лица"
@@ -259,17 +239,13 @@
 "f": "AitorParedes2022.jpg",
 "why": "нет лица"
 },
-"297371": {
-"f": "SD Negreira - Real Sociedad, Copa do Rei 2025-26 12 (Turrientes).jpg",
-"why": "ошибка загрузки"
-},
 "173817": {
 "f": "Domenico Berardi, Palazzo Chigi, 2021.jpg",
-"why": "ошибка загрузки"
+"why": "лицо у края кадра"
 },
 "174617": {
 "f": "2022128153308 2022-05-08 Fussball Eintracht Frankfurt vs Borussia Mönchengladbach - Sven - 1D X MK II - 0729 - B70I6840 (cropped) (cropped).jpg",
-"why": "ошибка загрузки"
+"why": "нет лица"
 },
 "189974": {
 "f": "Giovanni Simeone 2016-17.jpg",
@@ -294,5 +270,37 @@
 "241173": {
 "f": "1189124 sPICT (cropped).jpg",
 "why": "ошибка загрузки"
+},
+"225564": {
+"f": "Vitaly Janelt 29112025 (2).jpg",
+"why": "ошибка загрузки"
+},
+"259902": {
+"f": "Matheus Cunha Brazil V Morocco 13 June 2026-178 (cropped).jpg",
+"why": "нет лица"
+},
+"259517": {
+"f": "1 joe willock 2018.jpg",
+"why": "нет лица"
+},
+"271352": {
+"f": "Shūto Machino 20221208.jpg",
+"why": "ошибка загрузки"
+},
+"270821": {
+"f": "FC Red Bull Salzburg gegen CF Barcelona (Testspiel 4. August 2021) 45 (cropped).jpg",
+"why": "нет лица"
+},
+"290811": {
+"f": "Jamie Leweling Ecuador v Germany 25 June 2026-162.jpg",
+"why": "несколько лиц"
+},
+"279790": {
+"f": "Troy Parrott 2025.png",
+"why": "ошибка загрузки"
+},
+"261054": {
+"f": "Junior Messias.jpg",
+"why": "нет лица"
 }
 }
