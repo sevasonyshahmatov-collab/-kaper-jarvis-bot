@@ -4,7 +4,7 @@
 .hm-grid{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,1fr);gap:clamp(24px,4vw,64px);align-items:start}
 .hm-date{margin:0;font:700 15px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
 .hm-date span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--signal);margin-right:10px;vertical-align:1px}
-.hm h1{font-size:clamp(46px,6.2vw,96px);line-height:.92;margin:clamp(14px,2vw,24px) 0 0;max-width:11ch;text-transform:uppercase}
+.hm h1{font-size:clamp(40px,4.6vw,72px);line-height:.95;margin:clamp(14px,2vw,24px) 0 0;max-width:15ch;text-transform:uppercase}
 .hm-sub{margin:clamp(14px,1.8vw,22px) 0 0;font-size:clamp(17px,1.5vw,20px);color:var(--ink-2);max-width:44ch}
 .hm-doors{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:clamp(20px,2.6vw,32px)}
 .hm-door{position:relative;display:grid;grid-template-columns:1fr auto;grid-template-areas:"n a" "c a";align-items:center;gap:4px 10px;padding:16px 18px 15px;border-radius:14px;text-decoration:none;
@@ -14,7 +14,14 @@
 .hm-dc{grid-area:c;font:700 15px/1.2 var(--display);letter-spacing:.02em;opacity:.92}
 .hm-door svg{grid-area:a;width:26px;height:26px;transition:transform .35s var(--out)}
 @media (hover:hover) and (pointer:fine){.hm-door:hover{transform:translateY(-3px);box-shadow:0 12px 30px -10px color-mix(in srgb,var(--sport) 70%,transparent);filter:brightness(1.06)}.hm-door:hover svg{transform:translateX(5px)}}
-.hm-tg{margin-top:12px;font-size:18px;padding:16px 24px}
+.hm-tg{font-size:19px;padding:17px 26px}
+.hm-proof{list-style:none;margin:clamp(14px,1.8vw,20px) 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.hm-proof li{font:700 14px/1 var(--display);letter-spacing:.02em;color:var(--ink);padding:8px 12px 8px 28px;border-radius:999px;position:relative;background:color-mix(in srgb,var(--card) 80%,transparent);border:1px solid var(--rule-2)}
+.hm-proof li::before{content:"";position:absolute;left:11px;top:50%;width:6px;height:10px;border-right:2.5px solid var(--pitch);border-bottom:2.5px solid var(--pitch);transform:translateY(-62%) rotate(45deg)}
+.hm-act{margin-top:clamp(18px,2.2vw,26px)}
+.hm-micro{margin:10px 0 0;font:600 14px/1.4 var(--display);color:var(--ink-2);letter-spacing:.02em}
+.hm-micro a{color:var(--ink);text-underline-offset:3px}
+.hm-doors{margin-top:clamp(18px,2.2vw,26px)}
 .hm-today{background:color-mix(in srgb,var(--card) 86%,transparent);border:1px solid var(--rule-2);border-radius:18px;padding:clamp(16px,2vw,24px);backdrop-filter:blur(6px)}
 .hm-th{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
 .hm-th h2{font-size:clamp(26px,2.4vw,34px);text-transform:uppercase}
@@ -81,12 +88,13 @@
 @media (max-width:980px){.hm-grid{grid-template-columns:1fr}[data-v="2"] .hm-grid{grid-template-columns:1fr}.hm h1{max-width:none}}
 @media (max-width:560px){
  .hm{padding-top:20px}
- .hm h1{font-size:clamp(40px,12.5vw,54px)}
+ .hm h1{font-size:clamp(33px,9.6vw,44px)}
+ .hm-micro{font-size:13px}.hm-proof li{font-size:13px;padding:7px 10px 7px 26px}
  .hm-sub{font-size:16px}
  .hm-doors{gap:10px}
  .hm-door{padding:12px 14px;min-height:72px}
  .hm-dn{font-size:28px}.hm-dc{font-size:13px}.hm-door svg{width:20px;height:20px}
- .hm-tg{width:100%;justify-content:center;font-size:17px;padding:14px 16px}
+ .hm-tg{width:100%;justify-content:center;font-size:17px;padding:15px 14px}
  .hm-row{grid-template-columns:52px minmax(0,1fr);padding:11px 2px}
  .hm-t{font-size:20px}
  .hm-q{grid-column:2;justify-content:flex-start}

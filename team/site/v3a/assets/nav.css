@@ -31,7 +31,7 @@
 .subbar .nav a[hidden]{display:none}
 .subbar .nav .bar{bottom:4px}
 @media (max-width:1100px){
-  .gnav{display:none}.mbtn{display:inline-flex}.hd .btn-tg{margin-left:auto}.hd .btn-tg span{display:none}.hd .btn-tg{padding:0;width:44px;height:44px;justify-content:center}
+  .gnav{display:none}.mbtn{display:inline-flex}.hd .btn-tg{margin-left:auto}
   .hd .btn-tg + .mbtn{margin-left:0}
 }
 @media (max-width:760px){
@@ -40,7 +40,20 @@
   .hd .seg{padding:2px}
   .subbar .nav a{min-height:44px;display:inline-flex;align-items:center;padding:0 14px}
 }
-@media (max-width:480px){.hd .btn-tg{display:none}.mbtn{margin-left:auto}}
+/* кнопка подписки в шапке: полная подпись только на широком экране, иначе «Получать прогнозы» */
+.hd .btn-tg{white-space:nowrap}.hd .btn-tg span{display:inline}
+@media (max-width:1600px){.hd .btn-tg .tl{display:none}.hd .btn-tg{padding:11px 14px;gap:8px;font-size:15px}.hd .btn-tg svg{width:18px;height:18px}.hd .wrap.hdrow{gap:14px}}
+.mseg,.msearch{display:none}
+/* телефон: в шапке — логотип, кнопка подписки и меню; переключатель Хоккей/Футбол и поиск — в меню */
+@media (max-width:480px){
+  .hd .seg,.hd .sbtn{display:none!important}
+  .hd .btn-tg{margin-left:auto;min-height:44px;padding:0 12px;gap:7px;font-size:14px}
+  .hd .mbtn{flex:none}.hd .wrap.hdrow{gap:8px}.gnav-sp{display:none}
+  .hd .btn-tg svg{width:18px;height:18px}
+  .mseg{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 0 4px}
+  .mpanel .mseg a{justify-content:center;border:0;border-radius:12px;background:var(--paper-2);font-size:18px}
+  .msearch{display:flex;align-items:center;width:100%;min-height:48px;padding:0 4px;border:0;border-bottom:1px solid var(--rule);background:none;color:var(--ink);font:700 19px/1 var(--display);text-align:left;cursor:pointer}
+}
 @media (max-width:420px){
   .hd .logo{font-size:26px}.hd .logo i{width:19px;height:25px;font-size:17px}
   .hd .seg a{padding:0 9px;font-size:14px}.mbtn{padding:0 10px}.mbtn .mt{font-size:14px}

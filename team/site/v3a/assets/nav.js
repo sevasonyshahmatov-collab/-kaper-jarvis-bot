@@ -46,6 +46,7 @@ const local=hd.querySelector('.nav');
 if(local)local.remove();
 
 const sec=SECTIONS[sport]||null;
+const mseg=`<div class="mgrp mseg"><a href="${esc(U('hockey/index.html'))}"${sport==='hockey'?' aria-current="true"':''}>Хоккей</a><a href="${esc(U('football/index.html'))}"${sport==='football'?' aria-current="true"':''}>Футбол</a></div>`;
 const panel=(sec?[sec]:[SECTIONS.hockey,SECTIONS.football]).map((list,i)=>{
   const name=sec?'':(i?'Футбол':'Хоккей');
   return `<div class="mgrp">${name?`<b>${name}</b>`:''}${list.map(s=>link(s,sec?act:'')).join('')}</div>`}).join('');
@@ -57,10 +58,12 @@ hd.innerHTML=`<div class="wrap hdrow">
     <a href="${esc(U('football/index.html'))}"${sport==='football'?' aria-current="true"':''}>Футбол</a>
   </nav>
   ${sec?`<nav class="gnav" aria-label="Разделы сайта">${sec.map(s=>link(s,act)).join('')}</nav>`:'<span class="gnav-sp"></span>'}
-  <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener" aria-label="Telegram @jarvibet">${TG}<span>Telegram</span></a>
+  <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener" aria-label="Получать прогнозы в Telegram — бесплатно">${TG}<span>Получать прогнозы<span class="tl"> — бесплатно</span></span></a>
   <button type="button" class="mbtn" id="mbtn" aria-expanded="false" aria-controls="mpanel"><span class="mi" aria-hidden="true"></span><span class="mt">Меню</span></button>
 </div>
-<div class="mpanel" id="mpanel" hidden>${panel}<a class="mtg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Telegram @jarvibet</span></a></div>`;
+<div class="mpanel" id="mpanel" hidden>${mseg}${panel}<button type="button" class="msearch" id="msearch">Поиск по сайту</button><a class="mtg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Получать прогнозы — бесплатно</span></a></div>`;
+/* на телефоне в шапке место отдано кнопке подписки: переключатель спорта и поиск живут в меню */
+{const ms=document.getElementById('msearch');if(ms)ms.addEventListener('click',()=>{const sb=hd.querySelector('.sbtn');if(sb){document.getElementById('mbtn').click();sb.click()}})}
 
 /* поиск (assets/search.js + search.css) — единственная точка подключения */
 try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('search.css',SRC).href;document.head.appendChild(l);

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Хоккей — прогнозы JARVIS (макет v3a)</title>
-<meta name="description" content="Прогнозы на КХЛ и НХЛ по собственной модели: пост на каждый матч, итоги по месяцам — все, и минусы. Линия и расчёт модели обновляются дважды в день.">
+<meta name="description" content="Прогнозы на КХЛ и НХЛ по собственной модели: пост на каждый матч, линия с источником у каждого матча. Линия и расчёт модели обновляются дважды в день.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#071225">
 <script>/* палитра: ?theme=arena (по умолчанию: «Трансляция с арены» — тёмная арена, при прокрутке включают свет) | a «ночной лёд» | b кобальт | c светлый лёд */
@@ -17,6 +17,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js" media="(min-width: 621px)">
 <link rel="stylesheet" href="../assets/v3a.css">
 <link rel="stylesheet" href="../assets/nav.css">
+<link rel="stylesheet" href="../assets/obj.css">
 <link rel="stylesheet" href="../assets/lines.css">
 <style>
 .trends{margin-top:2px}
@@ -49,7 +50,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
     <nav class="nav" aria-label="Разделы">
       <a href="#matches">Матчи</a><a href="#leagues">Лиги и клубы</a><a href="#table">Аналитика</a><a href="#model">Модель</a><a href="#honest">Итоги</a><a href="#faq">Вопросы</a>
     </nav>
-    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Telegram</span></a>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Получать прогнозы — бесплатно</span></a>
   </div>
 </header>
 <div class="ticker" id="ticker" aria-label="Матчи и итоги, бегущая строка"></div>
@@ -60,8 +61,8 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
     <div>
       <h1><span class="ln"><span>Хоккей:</span></span> <span class="ln" style="--i:1"><span>КХЛ и НХЛ</span></span></h1>
       <div data-rv>
-        <p class="lead">Прогноз на каждый матч от собственной модели. КХЛ днём, НХЛ ночью по Москве. Итоги — все, и минусы.</p>
-        <div class="hero-cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть @jarvibet</a><a class="btn btn-line" href="#matches">Матчи дня</a></div>
+        <p class="lead">Прогноз на каждый матч от собственной модели. КХЛ днём, НХЛ ночью по Москве. Бесплатно, без VIP.</p>
+        <div class="hero-cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a><a class="btn btn-line" href="#matches">Матчи дня</a></div>
         <ul class="facts" aria-label="Коротко">
           <li><b class="num" data-count="0" id="fN">0</b><span id="fNl">матчей в ближайшие дни</span></li>
           <li><b class="num" data-count="0" id="fP">0</b><span id="fPl">с линией и расчётом модели</span></li>
@@ -77,7 +78,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
         <div class="cdown" role="timer" aria-label="До матча"><span class="cdl">До матча</span><span class="cdv num" id="cdv"></span></div>
         <div class="board-foot"><p class="note" id="boardnote">Посты с прогнозами выходят в канале: КХЛ — до 08:00 МСК, НХЛ — до 14:00.</p><div class="pager" id="pager" aria-label="Другие прогнозы дня"></div></div>
       </div>
-      <a class="btn btn-tg get8" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>Получать прогноз в 08:00</a>
+      <a class="btn btn-tg get8" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>Получать прогнозы — бесплатно</a>
     </div>
   </div>
 </section>
@@ -89,7 +90,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
     <p class="note dayinfo" id="daynote" aria-live="polite"></p>
     <div class="tabs" role="tablist" id="ltabs" aria-label="Фильтр по лигам"></div>
     <ul class="mlist" id="mlist"></ul>
-    <a class="btn btn-ink more" href="https://t.me/jarvibet" target="_blank" rel="noopener">Прогнозы и ставки дня — в канале</a>
+    <a class="btn btn-ink more" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a>
   </div>
 </section>
 
@@ -189,14 +190,26 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <section class="sec" id="honest" data-zone="p3">
   <div class="wrap">
     <div class="sec-head" data-rv><h2>Честные итоги</h2><p>Каждое утро в канале — итоги вчерашних матчей, и зашедшие, и нет. У каждого прогноза номер поста: любой можно проверить.</p></div>
-    <div class="soon honest-soon" data-rv><b>Скоро</b><span>Итоги по месяцам появятся на сайте, когда мы подключим его к базе итогов. Пока цифр здесь нет, чтобы не показывать примерные.</span><a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Итоги — в канале @jarvibet</a></div>
+    <div class="soon honest-soon" data-rv><b>Скоро</b><span>Итоги по месяцам появятся на сайте, когда мы подключим его к базе итогов. Пока цифр здесь нет, чтобы не показывать примерные.</span><a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a></div>
+  </div>
+</section>
+
+<section class="sec obj" id="doubts" data-zone="p3">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Частые сомнения</h2><p>Коротко о главном.</p></div>
+    <div class="obj-grid" data-rv>
+      <details open><summary>Это бесплатно?</summary><p>Да. Канал @jarvibet бесплатный, прогнозы выходят до начала матча. Без VIP, без предоплаты, без «верняков».</p></details>
+      <details><summary>Почему верить?</summary><p>Верить на слово не нужно: собственная модель, а не чужие скриншоты. У каждого прогноза вероятность модели и линия: Фонбет, Pinnacle или приложение КХЛ, источник и время публикации указаны. Блок «Итоги» на сайте скоро. <a href="#model">Как считает модель</a></p></details>
+      <details><summary>Чем вы отличаетесь?</summary><p>Мы считаем, а не угадываем: объясняем, откуда цифра, а не просто «ставь». На каждый матч вероятность модели и реальная линия. Без промокодов и рекламы букмекеров.</p></details>
+      <details><summary>А если не сработает?</summary><p>Гарантий нет: прогноз — оценка вероятности, и у любой модели бывают плохие серии. Поэтому цифры и линия всегда рядом, а решать вам.</p></details>
+    </div>
   </div>
 </section>
 
 <section class="sub" id="subscribe">
   <div class="wrap" data-rv>
     <div><h2>Все прогнозы&nbsp;— в Telegram</h2>
-      <div class="cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Подписаться на @jarvibet</a><a class="btn btn-line" href="https://t.me/jarvibet" target="_blank" rel="noopener">Мини-приложение</a></div></div>
+      <div class="cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a></div></div>
     <ul>
       <li><b>Пост на каждый матч</b><span>КХЛ — до 08:00 МСК, НХЛ — до 14:00, с кэфом и вероятностью.</span></li>
       <li><b>Ролики и тренды</b><span>Матчи дня, сила команд и тренды — прямо в Telegram, без установки.</span></li>
@@ -210,7 +223,6 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
     <div data-rv><h2>Вопросы</h2>
       <div class="swap"><p>Футбол — топ-лиги Европы и Лига чемпионов, та же модель и те же честные итоги.</p><a class="btn btn-ink" href="../football/index.html">Прогнозы на футбол</a></div></div>
     <div data-rv>
-      <details><summary>Это платно?</summary><p>Нет. Прогнозы, итоги и ролики в Telegram-канале @jarvibet бесплатные.</p></details>
       <details><summary>Где посмотреть итоги?</summary><p>Каждое утро в канале и на сайте в разделе «Итоги»: все прогнозы подряд, с номером поста и счётом.</p></details>
       <details><summary>Что такое «ВЫБОР»?</summary><p>Ставка, у которой модель даёт от 60 % при кэфе от 1,6. Остальные матчи — разбор без выбора.</p></details>
       <details><summary>Почему кэф 1,6–2,3?</summary><p>Ниже — мало смысла рисковать, выше — больше случайности, чем расчёта.</p></details>
@@ -230,7 +242,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
     </div>
   </div>
 </footer>
-<a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Получать прогноз в 08:00 — @jarvibet</span><span aria-hidden="true">›</span></a>
+<a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Получать прогнозы — бесплатно</span><span aria-hidden="true">›</span></a>
 
 <script src="../assets/nav.js"></script>
 <script src="../assets/v3a.js"></script>
