@@ -5,6 +5,9 @@ const hd=document.getElementById('hd');if(!hd||window.JV_SEARCH)return;window.JV
 const SRC=(document.currentScript&&document.currentScript.src)||new URL('assets/search.js',location.href).href;
 const U=p=>new URL('../'+p,SRC).href;
 const sport=document.documentElement.dataset.sport||'';
+// раздел сайта: на хоккейных страницах ищем только хоккей, на футбольных — только футбол, на главной — всё (владелец 04.11)
+const ZONE=sport==='hockey'?'h':sport==='football'?'f':'';
+const mine=x=>!ZONE||x.s===ZONE;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 
 /* ---- нормализация: латиница и кириллица сводятся к одному «скелету» ---- */
@@ -68,13 +71,13 @@ function search1(raw){
   const qs=words(raw);if(!qs.length||!IDX)return null;
   const pick=(arr,f,lim,cmp)=>{const o=[];for(const x of arr){const s=score(f(x),qs);if(s>-90)o.push([s,x])}o.sort(cmp||((a,b)=>a[0]-b[0]));return o.slice(0,lim).map(a=>a[1])};
   const boost=c=>c.s===sport?-.3:0;
-  const clubs=pick(IDX.clubs,c=>c.w,6,(a,b)=>(a[0]+boost(a[1]))-(b[0]+boost(b[1])));
+  const clubs=pick(IDX.clubs.filter(mine),c=>c.w,6,(a,b)=>(a[0]+boost(a[1]))-(b[0]+boost(b[1])));
   const now=NOW();
-  const ms=pick(IDX.matches,m=>m.w,40,(a,b)=>a[0]-b[0]);
+  const ms=pick(IDX.matches.filter(mine),m=>m.w,40,(a,b)=>a[0]-b[0]);
   const up=ms.filter(a=>a.d>=now).sort((a,b)=>a.d<b.d?-1:1),old=ms.filter(a=>a.d<now).sort((a,b)=>a.d<b.d?1:-1);
   const matches=up.concat(old).slice(0,5);
-  const leagues=pick(IDX.leagues,l=>l.w,4,(a,b)=>(a[0]+(a[1].s===sport?-.3:0))-(b[0]+(b[1].s===sport?-.3:0)));
-  const players=pick(IDX.players,p=>p.w,6,(a,b)=>a[0]-b[0]||a[1].i-b[1].i);
+  const leagues=pick(IDX.leagues.filter(mine),l=>l.w,4,(a,b)=>(a[0]+(a[1].s===sport?-.3:0))-(b[0]+(b[1].s===sport?-.3:0)));
+  const players=ZONE==='f'?[]:pick(IDX.players,p=>p.w,6,(a,b)=>a[0]-b[0]||a[1].i-b[1].i);
   return{clubs,matches,leagues,players};
 }
 
@@ -86,7 +89,7 @@ sb.innerHTML=LUPA+'<kbd aria-hidden="true">/</kbd>';
 const anchor=row.querySelector('.btn-tg')||row.querySelector('.mbtn');row.insertBefore(sb,anchor);
 
 const box=document.createElement('div');box.className='jsq';box.hidden=true;box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');box.setAttribute('aria-label','Поиск');
-box.innerHTML=`<div class="sp-bg" data-x></div><div class="sp-pn"><form class="sp-top" role="search" autocomplete="off">${LUPA}<input id="sp-q" type="search" inputmode="search" enterkeyhint="search" placeholder="Клуб, матч, лига или игрок" aria-label="Запрос" aria-controls="sp-res" autocapitalize="off" autocorrect="off" spellcheck="false"><button type="button" class="sp-x" data-x aria-label="Закрыть поиск">Закрыть</button></form><div class="sp-res" id="sp-res" role="listbox" aria-label="Результаты"></div></div>`;
+box.innerHTML=`<div class="sp-bg" data-x></div><div class="sp-pn"><form class="sp-top" role="search" autocomplete="off">${LUPA}<input id="sp-q" type="search" inputmode="search" enterkeyhint="search" placeholder="${ZONE==='h'?'Хоккей: клуб, матч, лига или игрок':ZONE==='f'?'Футбол: клуб, матч или лига':'Клуб, матч, лига или игрок'}" aria-label="Запрос" aria-controls="sp-res" autocapitalize="off" autocorrect="off" spellcheck="false"><button type="button" class="sp-x" data-x aria-label="Закрыть поиск">Закрыть</button></form><div class="sp-res" id="sp-res" role="listbox" aria-label="Результаты"></div></div>`;
 document.body.appendChild(box);
 const inp=box.querySelector('#sp-q'),res=box.querySelector('#sp-res');
 let items=[],cur=-1,opener=null;
