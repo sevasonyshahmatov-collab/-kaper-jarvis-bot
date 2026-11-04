@@ -329,3 +329,10 @@
 
 /* стекло: содержимое задних карточек скрыто (иначе просвечивает), остаётся тонировка в цветах их клубов */
 [data-card="2"] .dk-card:not(.on) .dk-cf>*{opacity:0}
+
+/* задние карточки колоды: только цветная «рубашка», без текста — иначе снизу просвечивают строки других матчей (04.11) */
+.dk-card:not(.on) .dk-cf>*{opacity:0}
+/* шапка на узких телефонах ≤ 380 px: кнопка меню не обрезается */
+@media (max-width:380px){.hd .wrap.hdrow{gap:6px}.hd .logo{font-size:22px}.hd .seg a{padding:0 8px;font-size:13px}html .hd .sbtn{min-width:40px;width:40px;padding:0}html .hd .sbtn kbd{display:none}}
+/* узкие телефоны: карточка выше, чтобы строка «Самый вероятный исход» не обрезалась */
+@media (max-width:380px){.dk-card{height:calc(var(--W) * 1.52)}}

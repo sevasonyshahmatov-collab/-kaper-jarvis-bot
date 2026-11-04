@@ -15,7 +15,9 @@ if(mqRM.addEventListener)mqRM.addEventListener('change',syncRM);
 
 /* ── данные матчей ── */
 const TD=J.TD||{matches:[],days:[]};
-const ALL=(TD.matches||[]).filter(m=>m&&m.key&&m.h&&m.a).slice().sort((a,b)=>String(a.t).localeCompare(String(b.t))||a.key.localeCompare(b.key));
+/* начавшиеся матчи не показываем: после стартового свистка линия уже лайв (1,05 / 15 / 46) */
+const NOWMSK=(()=>{const d=new Date(Date.now()+(new Date().getTimezoneOffset()+180)*6e4),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())})();
+const ALL=(TD.matches||[]).filter(m=>m&&m.key&&m.h&&m.a&&!(m.t&&String(m.t).slice(0,16)<=NOWMSK)).slice().sort((a,b)=>String(a.t).localeCompare(String(b.t))||a.key.localeCompare(b.key));
 const isH=m=>m.lg==='khl'||m.lg==='nhl';
 const LGN={khl:'КХЛ',nhl:'НХЛ'};
 const lgName=m=>isH(m)?LGN[m.lg]:((FB.leagues[m.lg]||{}).short||(FB.leagues[m.lg]||{}).name||m.lg.toUpperCase());
@@ -351,7 +353,7 @@ function linksHtml(m){return `<section class="dk-sec"><h3>Страницы са�
 function detailHtml(m,d){return radarHtml(m)+h2hHtml(m)+leadersHtml(m,d)+lastHtml(m)+linksHtml(m)}
 
 /* ── оформление карточки: ?card=1|2|3 (1 «Цвета клубов» — по умолчанию, 2 «Стекло», 3 «Билет») ── */
-{let c=q.get('card');if(!/^[123]$/.test(c||''))c='1';root.dataset.card=c;
+{let c=q.get('card');if(!/^[123]$/.test(c||''))c='3'; /* выбор владельца 04.11 — «Билет»; ?card=1|2 — для сравнения */root.dataset.card=c;
  const sw=document.getElementById('dk-cards');
  const mark=()=>sw&&sw.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.c===root.dataset.card)));
  if(sw){mark();sw.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;root.dataset.card=b.dataset.c;mark();
