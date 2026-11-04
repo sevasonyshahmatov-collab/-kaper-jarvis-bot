@@ -12,9 +12,9 @@ legs = [dict(home='Вильярреал', away='ПСЖ', time='23:00', bet='ИТ
 print(ec.render(legs, os.path.join(OUT, 'e6_result.jpg'), fmt='feed', title='ИТОГ ЭКСПРЕССА', date_title='3 ноября', total=2.54))
 import football
 football.register()
-R = [('FOOT', 'Будё-Глимт', 'Лилль', 0, 0, 'push', 'фора 0 Будё-Глимт', 1.64),
+R = [('FOOT', 'Будё-Глимт', 'Лилль', 0, 0, 'win', 'фора 0 Будё-Глимт', 1.64),
      ('FOOT', 'Вильярреал', 'ПСЖ', 0, 6, 'win', 'тотал ударов ПСЖ больше 7', 1.74),
      ('FOOT', 'Атлетико', 'Бавария', 0, 2, 'loss', 'Атлетико не проиграет + тотал меньше 4,5', 2.01),
      ('FOOT', 'Барселона', 'Астон Вилла', 3, 0, 'loss', 'удары в створ Виллы больше 3,5', 1.80)]
 rows = [dict(league=lg, home=h, away=a, g=dict(hg=hg, ag=ag, end=''), res=res, bet=bet, kef=k) for lg, h, a, hg, ag, res, bet, k in R]
-print(banner.render(rows, OUT, '3 ноября · зашло 1 из 4'))
+print(banner.render(rows, OUT, '3 ноября · зашло 2 из 4'))
