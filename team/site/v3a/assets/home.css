@@ -53,7 +53,7 @@
    conic-gradient(from 168deg at 14% -12%,transparent 0 6deg,color-mix(in srgb,var(--ice) 15%,transparent) 11deg,transparent 21deg),
    conic-gradient(from 190deg at 38% -14%,transparent 0 4deg,rgba(255,255,255,.07) 9deg,transparent 17deg),
    conic-gradient(from 160deg at 92% -12%,transparent 0 6deg,color-mix(in srgb,var(--signal) 12%,transparent) 11deg,transparent 20deg);
-  animation:hm-beam 18s ease-in-out infinite alternate;transform-origin:50% 0}
+  opacity:0}
 @keyframes hm-beam{from{transform:rotate(-1.6deg)}to{transform:rotate(1.6deg)}}
 [data-v="1"] .hm h1{color:var(--ink)}
 [data-v="1"] .hm h1::first-line{color:var(--ink)}
@@ -95,3 +95,37 @@
 }
 @media (prefers-reduced-motion:reduce){.hm-bg::after{animation:none}.hm-door,.hm-door svg{transition:none}}
 @media (min-width:981px){[data-v="2"] .hm{padding-top:28px}[data-v="2"] .hm-row{padding:8px 4px}[data-v="2"] .hm-note{display:none}}
+
+/* ── вариант 1: живой фон (владелец 04.11 «слегка анимировать») — только transform/opacity, дёшево для телефона ── */
+.hm-bg .hb,.hm-bg .hg,.hm-bg .hd{position:absolute;display:block;pointer-events:none}
+[data-v="2"] .hm-bg .hb,[data-v="2"] .hm-bg .hg,[data-v="2"] .hm-bg .hd{display:none}
+/* три прожектора: каждый качается сам по себе, с разной скоростью */
+.hm-bg .hb{top:-30%;width:46vw;height:150%;transform-origin:50% 0;filter:blur(2px);mix-blend-mode:screen}
+.hm-bg .hb1{left:-6vw;background:linear-gradient(180deg,color-mix(in srgb,var(--ice) 34%,transparent),transparent 72%);
+  clip-path:polygon(46% 0,54% 0,100% 100%,0 100%);opacity:.7;animation:hm-sw1 13s ease-in-out infinite alternate}
+.hm-bg .hb2{left:26vw;background:linear-gradient(180deg,rgba(255,255,255,.22),transparent 68%);
+  clip-path:polygon(47% 0,53% 0,86% 100%,14% 100%);opacity:.45;animation:hm-sw2 17s ease-in-out infinite alternate}
+.hm-bg .hb3{right:-8vw;background:linear-gradient(180deg,color-mix(in srgb,var(--signal) 30%,transparent),transparent 70%);
+  clip-path:polygon(46% 0,54% 0,100% 100%,0 100%);opacity:.55;animation:hm-sw3 15s ease-in-out infinite alternate}
+@keyframes hm-sw1{0%{transform:rotate(-14deg)}100%{transform:rotate(6deg)}}
+@keyframes hm-sw2{0%{transform:rotate(9deg)}100%{transform:rotate(-9deg)}}
+@keyframes hm-sw3{0%{transform:rotate(12deg)}100%{transform:rotate(-5deg)}}
+/* мягкие цветные пятна света медленно плывут */
+.hm-bg .hg{width:60vw;height:60vw;border-radius:50%;filter:blur(60px);opacity:.32}
+.hm-bg .hg1{left:-15vw;bottom:-25vw;background:var(--pitch);animation:hm-fl1 24s ease-in-out infinite alternate}
+.hm-bg .hg2{right:-20vw;top:-30vw;background:var(--ice);opacity:.24;animation:hm-fl2 28s ease-in-out infinite alternate}
+@keyframes hm-fl1{0%{transform:translate(0,0) scale(1)}100%{transform:translate(18vw,-8vw) scale(1.15)}}
+@keyframes hm-fl2{0%{transform:translate(0,0) scale(1.1)}100%{transform:translate(-16vw,10vw) scale(.95)}}
+/* пыль в лучах: редкие светящиеся точки медленно поднимаются */
+.hm-bg .hd{inset:0;opacity:.55;
+  background-image:radial-gradient(1.6px 1.6px at 12% 78%,rgba(255,255,255,.9),transparent 60%),radial-gradient(1.2px 1.2px at 27% 34%,rgba(255,255,255,.7),transparent 60%),
+   radial-gradient(1.4px 1.4px at 44% 62%,rgba(255,255,255,.8),transparent 60%),radial-gradient(1px 1px at 58% 22%,rgba(255,255,255,.7),transparent 60%),
+   radial-gradient(1.6px 1.6px at 71% 70%,rgba(255,220,120,.9),transparent 60%),radial-gradient(1.2px 1.2px at 86% 40%,rgba(255,255,255,.7),transparent 60%),
+   radial-gradient(1px 1px at 93% 84%,rgba(160,220,255,.9),transparent 60%),radial-gradient(1.3px 1.3px at 5% 46%,rgba(160,220,255,.8),transparent 60%);
+  background-size:100% 50%;animation:hm-dust 30s linear infinite}
+.hm-bg .hd2{opacity:.35;background-size:70% 40%;background-position:30% 0;animation-duration:44s}
+@keyframes hm-dust{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+.hm-bg{overflow:hidden}
+.hm-bg .hd{height:200%}
+@media (max-width:760px){.hm-bg .hb{width:80vw}.hm-bg .hb2{left:10vw}.hm-bg .hg{filter:blur(40px)}.hm-bg .hd2{display:none}}
+@media (prefers-reduced-motion:reduce){.hm-bg .hb,.hm-bg .hg,.hm-bg .hd{animation:none}}
