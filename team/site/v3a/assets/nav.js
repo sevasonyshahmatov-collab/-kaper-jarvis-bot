@@ -57,6 +57,10 @@ hd.innerHTML=`<div class="wrap hdrow">
 </div>
 <div class="mpanel" id="mpanel" hidden>${panel}<a class="mtg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Telegram @jarvibet</span></a></div>`;
 
+/* поиск (assets/search.js + search.css) — единственная точка подключения */
+try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('search.css',SRC).href;document.head.appendChild(l);
+  const s=document.createElement('script');s.src=new URL('search.js',SRC).href;s.defer=true;document.head.appendChild(s)}catch(e){}
+
 /* вторая полоса — якоря страницы */
 let sub=null;
 if(local){

@@ -13,7 +13,8 @@ const tn=ab=>(TM[ab]||[ab])[0];
 const MK={pt:{f:r=>r[4]+r[5]>0,v:r=>r[4]+r[5],w:'набирал очко'},g:{f:r=>r[4]>0,v:r=>r[4],w:'забивал'},a:{f:r=>r[5]>0,v:r=>r[5],w:'отдавал передачу'},s3:{f:r=>r[6]>=3,v:r=>r[6],w:'бросал 3+ раза в створ'}};
 const POS={'':'Все',F:'Нападающие',D:'Защитники'};
 const URLT=new URLSearchParams(location.search).get('team')||'';
-const st={m:'pt',pos:'',tm:URLT in TM?URLT:'',ha:'',so:'rate',q:'',lim:30};
+const URLQ=(new URLSearchParams(location.search).get('q')||'').slice(0,60);
+const st={m:'pt',pos:'',tm:URLT in TM?URLT:'',ha:'',so:'rate',q:URLQ,lim:30};
 const mmss=s=>`${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
 const pl=(n,a,b,c)=>{n=Math.abs(n)%100;const k=n%10;return n>10&&n<20?c:k===1?a:k>1&&k<5?b:c};
 fetch(`data/${LG}_players.json`).then(r=>r.json()).then(D=>{
@@ -50,6 +51,7 @@ fetch(`data/${LG}_players.json`).then(r=>r.json()).then(D=>{
  $('so').onchange=e=>{st.so=e.target.value;render()};
  $('q').oninput=e=>{st.q=e.target.value;st.lim=30;render()};
  $('more').onclick=()=>{st.lim+=30;render()};
+ $('q').value=st.q;
  if(LG==='khl'){const b=document.querySelector('[data-m=s3]');if(b)b.remove()}
  render();
 }).catch(()=>{$('meta').textContent='Данные игроков ещё не собраны.'});
