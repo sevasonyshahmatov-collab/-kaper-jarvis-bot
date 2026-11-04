@@ -111,7 +111,7 @@ function counts(){const h=ALL.filter(isH).length,f=ALL.length-h;
 
 /* ── колонка «О встрече» ── */
 /* знак лиги водяным знаком в шапке блока (владелец 04.11): НХЛ, КХЛ, ЛЧ, АПЛ… */
-const LGLOGO={khl:'khl.svg',nhl:'nhl.svg',epl:'epl.svg',laliga:'laliga.svg',seriea:'seriea.svg',bundesliga:'bundesliga.svg',ligue1:'ligue1.svg',ucl:'ucl.svg',rpl:'rpl.webp',uel:'uel.webp'};
+const LGLOGO={}; /* официальные логотипы лиг — assets/lg/<лига>.webp (владелец 04.11) */
 const formOf=(m,s)=>{const T=team(m,s);if(!T)return null;
   const g=(T.games||[]).filter(x=>typeof x.gf==='number'&&typeof x.ga==='number').slice(-5);
   if(!g.length)return null;return g.map(x=>({d:x.d,o:x.o,h:x.h,gf:x.gf,ga:x.ga,x:x.x,r:x.gf>x.ga?'w':x.gf<x.ga?'l':'d'}))};

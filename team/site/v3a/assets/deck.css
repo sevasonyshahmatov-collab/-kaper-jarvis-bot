@@ -340,5 +340,5 @@
 /* знак лиги на фоне шапки «О встрече» */
 .dk-ihead{position:relative;isolation:isolate;overflow:hidden;margin:-6px -6px 0;padding:6px 6px 0;border-radius:14px}
 .dk-lgwm{position:absolute;z-index:-1;right:-14px;top:50%;height:150%;max-height:150px;width:auto;transform:translateY(-50%) rotate(-8deg);
-  opacity:.16;filter:grayscale(1) brightness(2.2) contrast(.9);pointer-events:none;user-select:none}
+  opacity:.3;pointer-events:none;user-select:none}
 @media (max-width:560px){.dk-lgwm{height:120%;max-height:110px;right:-8px}}
