@@ -1,7 +1,7 @@
 /* JARVIS v3a — «Колода матчей» (matches.html). Механика: карточки веером в перспективе, выбранная впереди, справа колонка «О встрече» и панель статистики.
    Тёмная арена: фон — .hm-bg из home.css (вариант 1). Шрифт — --display (Inter). Анимация только transform/opacity. */
 .dk-page{font-family:var(--display);overflow-x:hidden}
-.dk{position:relative;isolation:isolate;overflow:hidden;min-height:calc(100dvh - 64px);--e:cubic-bezier(.22,.8,.22,1);--dur:520ms;--W:340px;--sp:#4cc2ff}
+.dk{position:relative;isolation:isolate;overflow:hidden;min-height:calc(100dvh - 64px);--e:cubic-bezier(.22,.8,.22,1);--spr:cubic-bezier(.3,1.25,.5,1);--dur:480ms;--W:340px;--sp:#4cc2ff}
 .dk-wrap{display:flex;flex-direction:column;gap:clamp(10px,1.6vh,22px);padding-top:clamp(14px,2.4vh,28px);padding-bottom:clamp(14px,2.4vh,26px);min-height:calc(100dvh - 64px)}
 
 /* верх: заголовок и переключатель */
@@ -18,13 +18,13 @@
 /* сетка: колода слева, колонка справа */
 .dk-grid{flex:1;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:clamp(20px,3vw,56px);align-items:center;min-height:0}
 .dk-main{min-width:0}
-.dk-stage{position:relative;height:calc(var(--W) * 1.4 + 30px);perspective:1700px;perspective-origin:22% 46%;outline:none;touch-action:pan-y;cursor:default;-webkit-user-select:none;user-select:none}
+.dk-stage{position:relative;height:calc(var(--W) * 1.4 * 1.17 + 40px);outline:none;touch-action:pan-y;cursor:grab;-webkit-user-select:none;user-select:none}
 .dk-stage:focus-visible{outline:2px solid color-mix(in srgb,var(--signal) 70%,transparent);outline-offset:6px;border-radius:12px}
 .dk-deck{list-style:none;margin:0;padding:0;position:absolute;inset:0;transform-style:preserve-3d}
 
 /* карточка матча */
-.dk-card{position:absolute;left:0;top:50%;width:var(--W);height:calc(var(--W) * 1.4);margin-top:calc(var(--W) * -.7);transform-origin:0 50%;will-change:transform,opacity;
-  transition:transform var(--dur) var(--e),opacity var(--dur) var(--e),filter var(--dur) var(--e);cursor:pointer;
+.dk-card{position:absolute;left:50%;top:6px;width:var(--W);height:calc(var(--W) * 1.4);margin-left:calc(var(--W) * -.5);transform-origin:50% 0;will-change:transform,opacity;
+  transition:transform var(--dur) var(--spr),opacity calc(var(--dur) * .8) ease-out;cursor:pointer;
   --a:var(--ice);border-radius:20px}
 .dk-card[data-sp=football]{--a:var(--pitch)}
 .dk-cf{position:absolute;inset:0;display:flex;flex-direction:column;padding:clamp(16px,1.7vw,22px);border-radius:20px;overflow:hidden;
@@ -33,6 +33,7 @@
    linear-gradient(165deg,#18253e,#0d1627 70%);
   border:1px solid color-mix(in srgb,var(--a) 28%,var(--rule-2));
   box-shadow:0 30px 50px -26px rgba(0,0,0,.85),0 6px 16px -8px rgba(0,0,0,.6);transition:box-shadow var(--dur) var(--e),border-color var(--dur)}
+.dk-card.gone{transition:transform var(--dur) var(--e),opacity calc(var(--dur) * .7) ease-out}
 .dk-card.on .dk-cf{box-shadow:0 42px 70px -30px rgba(0,0,0,.95),0 0 0 1px color-mix(in srgb,var(--a) 40%,transparent),0 0 60px -20px color-mix(in srgb,var(--a) 50%,transparent)}
 .dk-card::after{content:"";position:absolute;inset:0;border-radius:20px;background:#050a14;opacity:var(--dim,0);pointer-events:none;transition:opacity var(--dur) var(--e)}
 .dk-ct{display:flex;justify-content:space-between;align-items:center;gap:8px}
@@ -166,8 +167,6 @@
 /* телефон и планшет: колонка под колодой, панель снизу */
 @media (max-width:980px){
   .dk-grid{grid-template-columns:1fr;gap:8px;align-items:start}
-  .dk-stage{height:calc(var(--W) * 1.4 + 24px);perspective:1200px;perspective-origin:50% 45%}
-  .dk-card{left:50%;margin-left:calc(var(--W) * -.5);transform-origin:50% 50%}
   .dk-info{max-height:none;overflow:visible;padding:0}
   .dk-ctl{grid-template-columns:auto 1fr auto;position:sticky;bottom:0;z-index:5;padding:10px 0 calc(10px + env(safe-area-inset-bottom));margin:0 calc(var(--m) * -1);padding-left:var(--m);padding-right:var(--m);background:linear-gradient(0deg,#0a1220 70%,transparent)}
   .dk-prog{grid-column:1/-1;margin:0;order:5}
@@ -188,7 +187,6 @@
 }
 
 /* без анимации: простая смена карточки, без 3D */
-.dk.rm .dk-stage{perspective:none}
 .dk.rm .dk-card,.dk.rm .dk-card::after,.dk.rm .dk-info,.dk.rm .dk-prog i{transition:none}
 .dk.rm .dk-card:not(.on){visibility:hidden}
 .dk.rm .dk-pb em i,.dk.rm .dk-radar .pa{animation:none}

@@ -35,7 +35,7 @@ const info=m=>({ln:J.line(m.key),md:J.model(m.key)});
 /* ── фильтр, состояние ── */
 let list=ALL.slice(),cur=0,filter='all',openDrawer=false;
 const q=new URLSearchParams(location.search);
-if(/^(hockey|football)$/.test(q.get('f')||''))filter=q.get('f');
+{const sp=q.get('s')||'',fp=q.get('f')||'';if(/^(hockey|football)$/.test(fp))filter=fp;else if(sp==='h')filter='hockey';else if(sp==='f')filter='football'}
 const applyFilter=()=>{list=ALL.filter(m=>filter==='all'||(filter==='hockey')===isH(m))};
 
 /* ── карточка ── */
@@ -60,27 +60,21 @@ function cardHtml(m,i,n){const {ln,md}=info(m),pk=pick(m,md),fl=J.fair(ln),mx=fl
 
 const deck=$('dk-deck'),stage=$('dk-stage');
 let W=340;
-function measure(){const sw=stage.clientWidth;
-  if(mqM.matches){W=Math.max(220,Math.min(300,Math.round(sw*(sw<500?.68:.46))))}
-  else W=Math.max(270,Math.min(400,Math.round(sw*.42)));
+function measure(){const sw=stage.clientWidth,mob=mqM.matches;
+  const byH=Math.floor((innerHeight-(mob?330:350))/1.61);
+  W=mob?Math.max(230,Math.min(310,Math.round(sw*.74))):Math.max(270,Math.min(410,Math.round(sw*.66),byH));
   root.style.setProperty('--W',W+'px')}
-/* положение карточки по смещению i от выбранной: впереди — слева, остальные уходят вправо-назад «веером» */
+/* колода: стопка лицом к зрителю. Задние (до 3) ниже на 12 px и уже (0,95 / 0,90 / 0,85), темнее. Смахнутая карточка (i<0) улетает влево-вверх с поворотом */
+const FLY=()=>`translate3d(${-W*.78}px,${-W*.18}px,0) rotate(-13deg)`;
 function pose(i){
-  const mob=mqM.matches,N=mob?3:7,a=Math.abs(i);
   if(root.classList.contains('rm'))return {t:'none',o:i===0?1:0,z:i===0?5:0,dim:0,pe:i===0};
-  if(mob){ /* телефон: выбранная по центру, соседние выглядывают по краям */
-    const s=Math.sign(i);
-    if(a>N)return {t:`translate3d(${s*W*1.4}px,0,${-300}px)`,o:0,z:0,dim:.5,pe:false};
-    return {t:`translate3d(${i*W*.66}px,0,${-a*140}px) rotateY(${-s*Math.min(a,2)*34}deg)`,o:a===0?1:Math.max(.35,1-a*.28),z:10-a,dim:a?.14*a:0,pe:true}}
-  if(i<0)return {t:`translate3d(${-W*.55}px,0,${-120}px) rotateY(-28deg)`,o:0,z:0,dim:.4,pe:false};
-  if(i===0)return {t:'translate3d(0,0,0)',o:1,z:20,dim:0,pe:true};
-  if(i>N)return {t:`translate3d(${W+14+(N-1)*W*.125+40}px,${-N*5}px,${-N*70}px) rotateY(58deg)`,o:0,z:0,dim:.5,pe:false};
-  return {t:`translate3d(${W*.12+W*.92+(i-1)*W*.125}px,${-i*6}px,${-i*70}px) rotateY(58deg)`,o:Math.max(.28,1-i*.1),z:20-i,dim:Math.min(.55,.06+i*.07),pe:true};
-}
+  if(i<0)return {t:FLY(),o:0,z:i===-1?30:0,dim:0,pe:false,fly:true};
+  const k=Math.min(i,4),H=W*1.4,sc=1-.05*k;
+  return {t:`translate3d(0,${(12*k+H*.05*k).toFixed(1)}px,0) scale(${sc})`,o:i>3?0:1,z:20-i,dim:Math.min(.5,.13*k),pe:i<=3}}
 function layout(){
   deck.querySelectorAll('.dk-card').forEach((el,k)=>{const i=k-cur,p=pose(i);
     el.style.transform=p.t;el.style.opacity=p.o;el.style.zIndex=p.z;el.style.setProperty('--dim',p.dim);el.style.pointerEvents=p.pe?'auto':'none';
-    el.classList.toggle('on',i===0);el.setAttribute('aria-hidden',i===0?'false':'true');
+    el.classList.toggle('on',i===0);el.classList.toggle('gone',i<0);el.style.transition='';el.setAttribute('aria-hidden',i===0?'false':'true');
     if(i!==0)el.setAttribute('aria-hidden',p.pe?'false':'true');
   });
   const n=list.length;
@@ -186,19 +180,30 @@ addEventListener('keydown',e=>{
 });
 $('dk-prev').onclick=()=>step(-1);$('dk-next').onclick=()=>step(1);
 
-/* свайп (телефон, планшет) и перетаскивание */
-let sx=0,sy=0,sid=null,moved=false;
-stage.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;sx=e.clientX;sy=e.clientY;sid=e.pointerId;moved=false});
-stage.addEventListener('pointerup',e=>{if(sid!==e.pointerId)return;sid=null;const dx=e.clientX-sx,dy=e.clientY-sy;
-  if(Math.abs(dx)>42&&Math.abs(dx)>Math.abs(dy)*1.2){moved=true;step(dx<0?1:-1)}});
-stage.addEventListener('pointercancel',()=>{sid=null});
+/* перетаскивание: верхняя карточка идёт за пальцем с поворотом; дальше порога — улетает, иначе пружинит назад */
+let sx=0,sy=0,sid=null,moved=false,drag=false,topEl=null,t0=0;
+stage.addEventListener('pointerdown',e=>{if(openDrawer||(e.pointerType==='mouse'&&e.button!==0))return;sx=e.clientX;sy=e.clientY;sid=e.pointerId;moved=false;drag=false;t0=performance.now();topEl=deck.children[cur]||null});
+stage.addEventListener('pointermove',e=>{if(sid!==e.pointerId||!topEl||root.classList.contains('rm'))return;
+  const dx=e.clientX-sx,dy=e.clientY-sy;
+  if(!drag){if(Math.abs(dx)>9&&Math.abs(dx)>Math.abs(dy)*1.1){drag=true;moved=true;topEl.style.transition='none';try{stage.setPointerCapture(e.pointerId)}catch(_){}}else return}
+  const r=Math.max(-14,Math.min(14,dx*.07));
+  topEl.style.transform=`translate3d(${dx}px,${dy*.25}px,0) rotate(${r}deg)`;topEl.style.opacity=String(Math.max(.35,1-Math.abs(dx)/(W*1.6)))});
+const endDrag=e=>{if(sid!==e.pointerId)return;sid=null;
+  const dx=e.clientX-sx;
+  if(!drag){return}
+  drag=false;const v=Math.abs(dx)/Math.max(1,performance.now()-t0);
+  topEl.style.transition='';
+  if((Math.abs(dx)>Math.min(90,W*.28)||v>.6)&&Math.abs(dx)>24){if(!step(dx<0?1:-1))layout()}else layout();
+  setTimeout(()=>{moved=false},50)};
+stage.addEventListener('pointerup',endDrag);
+stage.addEventListener('pointercancel',e=>{if(sid===e.pointerId){sid=null;if(drag){drag=false;layout()}}});
 /* клик по карточке: в ряду — выбрать, выбранная — открыть подробности */
 deck.addEventListener('click',e=>{if(moved){moved=false;return}
   const c=e.target.closest('.dk-card');if(!c)return;const i=+c.dataset.i;
   if(i===cur)openPanel();else go(i)});
 $('dk-filter').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;filter=b.dataset.f;
   const key=list[cur]&&list[cur].key;applyFilter();const k=list.findIndex(m=>m.key===key);cur=k>=0?k:0;counts();build();renderInfo(false);
-  try{const u=new URL(location.href);filter==='all'?u.searchParams.delete('f'):u.searchParams.set('f',filter);history.replaceState(null,'',u)}catch(e2){}});
+  try{const u=new URL(location.href);u.searchParams.delete('f');filter==='all'?u.searchParams.delete('s'):u.searchParams.set('s',filter==='hockey'?'h':'f');history.replaceState(null,'',u)}catch(e2){}});
 
 /* ── панель «Подробная статистика» ── */
 const dr=$('dk-drawer'),scrim=$('dk-scrim'),dbody=$('dk-dbody');let lastFocus=null,tok=0;

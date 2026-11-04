@@ -7,6 +7,8 @@
 <meta name="description" content="Матчи КХЛ, НХЛ и футбола листаются как вещи на вешалке: карточка с линией и выводом модели, справа — о встрече и подробная статистика.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#0a1220">
+<script>/* вид спорта для шапки: ?s=h (хоккей) | ?s=f (футбол) */
+(()=>{const s=new URLSearchParams(location.search).get('s');if(s==='h'||s==='f')document.documentElement.dataset.sport=s==='h'?'hockey':'football'})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="assets/v3a.css">
