@@ -62,7 +62,7 @@ const deck=$('dk-deck'),stage=$('dk-stage');
 let W=340;
 function measure(){const sw=stage.clientWidth,mob=mqM.matches;
   const byH=Math.floor((innerHeight-(mob?330:350))/1.61);
-  W=mob?Math.max(230,Math.min(310,Math.round(sw*.74))):Math.max(270,Math.min(410,Math.round(sw*.66),byH));
+  W=mob?Math.max(220,Math.min(320,document.documentElement.clientWidth-96)):Math.max(270,Math.min(410,Math.round(sw*.66),byH));
   root.style.setProperty('--W',W+'px')}
 /* колода: стопка лицом к зрителю. Задние (до 3) ниже на 12 px и уже (0,95 / 0,90 / 0,85), темнее. Смахнутая карточка (i<0) улетает влево-вверх с поворотом */
 const FLY=()=>`translate3d(${-W*.78}px,${-W*.18}px,0) rotate(-13deg)`;

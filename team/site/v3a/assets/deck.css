@@ -58,7 +58,7 @@
 .dk-src{margin:8px 0 0;font:600 11px/1.3 var(--display);color:var(--ink-3);letter-spacing:.02em}
 .dk-pick{margin:10px 0 0;padding-top:10px;border-top:1px solid var(--rule-2);font:600 12px/1.35 var(--display);color:var(--ink-3)}
 .dk-pick b{display:block;margin-top:3px;font:800 15px/1.2 var(--display);color:var(--ink)}
-.dk-pick b em{font-style:normal;color:var(--a);font-variant-numeric:tabular-nums}
+.dk-pick b em{white-space:nowrap;font-style:normal;color:var(--a);font-variant-numeric:tabular-nums}
 
 /* колонка «О встрече» */
 .dk-info{min-width:0;transition:opacity .22s ease,transform .3s var(--e);align-self:center;max-height:calc(100dvh - 240px);overflow:auto;padding:2px 6px 2px 2px;scrollbar-width:thin;scrollbar-color:var(--rule-2) transparent}
@@ -236,8 +236,8 @@
 .dk-arr:hover:not(:disabled){transform:scale(1.08)}
 .dk-arr:focus-visible{outline:3px solid var(--signal);outline-offset:3px}
 @media (max-width:980px){
-  .dk-arr{width:44px;height:44px;top:calc(6px + var(--W) * .7 - 22px);background:rgba(8,14,28,.5)}
-  .dk-arr.dk-l{left:calc(50% - var(--W) / 2 - 12px)}
-  .dk-arr.dk-r{left:calc(50% + var(--W) / 2 - 32px)}
+  .dk-arr{width:40px;height:40px;top:calc(6px + var(--W) * .7 - 20px);background:rgba(8,14,28,.5)}
+  .dk-arr.dk-l{left:calc(50% - var(--W) / 2 - 46px)}
+  .dk-arr.dk-r{left:calc(50% + var(--W) / 2 + 6px)}
 }
 @media (hover:none){.dk-arr:hover:not(:disabled){background:rgba(8,14,28,.5);color:var(--ink);transform:none}}
