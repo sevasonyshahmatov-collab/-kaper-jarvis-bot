@@ -250,7 +250,7 @@ if os.path.exists(_h2h):
             t_['h2h'] = H2H[s_]
 
 names = {s: t['name'] for s, t in teams.items()}
-json.dump({'built': db.get('built'), 'axes': db.get('axes'), 'names': names, 'teams': out_teams},
+json.dump({'built': (datetime.now(timezone.utc) + timedelta(hours=3)).strftime('%Y-%m-%d %H:%M'), 'src_built': db.get('built'), 'axes': db.get('axes'), 'names': names, 'teams': out_teams},
           open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 print(OUT, os.path.getsize(OUT), 'байт;', len(out_teams), 'команд;',
       sum(1 for t in out_teams.values() for g in t['games'] if not g.get('s')), 'настоящих матчей;',

@@ -92,7 +92,10 @@ def step_foot_raw():
 
 
 def step_foot_build():
-    out = sh([PY, os.path.join(FB, 'build_data.py')], cwd=FB)
+    fp = os.path.join(C.REPO, 'render', 'football.py')
+    if not os.path.exists(fp):
+        fp = os.path.join(C.TEAMCODE, 'render', 'football.py')      # в ветке макета render/ нет — берём из ветки команды
+    out = sh([PY, os.path.join(FB, 'build_data.py'), fp], cwd=FB)
     return out.strip().split('\n')[-1]
 
 
