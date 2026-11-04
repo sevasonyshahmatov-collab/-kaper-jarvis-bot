@@ -13,7 +13,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="assets/v3a.css">
 <link rel="stylesheet" href="assets/nav.css">
-<link rel="stylesheet" href="assets/home.css">
 <link rel="stylesheet" href="assets/deck.css">
 </head>
 <body class="dk-page">
@@ -30,7 +29,11 @@
 </header>
 
 <main id="main" class="dk">
-  <div class="hm-bg" aria-hidden="true"><i class="hb hb1"></i><i class="hb hb2"></i><i class="hb hb3"></i><i class="hg hg1"></i><i class="hg hg2"></i><i class="hd"></i><i class="hd hd2"></i></div>
+  <div class="dk-bgfx" aria-hidden="true">
+    <div class="dk-bg"><div class="fl"><i></i><i></i><i></i><i></i></div></div>
+    <div class="dk-bg"><div class="fl"><i></i><i></i><i></i><i></i></div></div>
+    <div class="dk-tx"></div>
+  </div>
   <div class="wrap dk-wrap">
     <div class="dk-top">
       <div>
@@ -49,14 +52,15 @@
         <div class="dk-stage" id="dk-stage" tabindex="0" aria-roledescription="карусель" aria-label="Матчи: листайте колесом мыши, свайпом или стрелками ← →">
           <ol class="dk-deck" id="dk-deck"></ol>
         </div>
+      <button type="button" class="dk-arr dk-l" id="dk-prev" aria-label="Предыдущий матч"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5m6-6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button type="button" class="dk-arr dk-r" id="dk-next" aria-label="Следующий матч"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+
       </section>
       <aside class="dk-info" id="dk-info" aria-live="polite" aria-label="О встрече"></aside>
     </div>
 
     <div class="dk-ctl" id="dk-ctl">
-      <button type="button" class="dk-arr" id="dk-prev" aria-label="Предыдущий матч"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5m6-6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <div class="dk-count" aria-live="polite"><b id="dk-cur">01</b><span> / </span><span id="dk-tot">01</span></div>
-      <button type="button" class="dk-arr" id="dk-next" aria-label="Следующий матч"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <div class="dk-prog" aria-hidden="true"><i id="dk-bar"></i></div>
       <p class="dk-hint">Колесо мыши, свайп или ← →</p>
     </div>
@@ -79,6 +83,7 @@
 <script src="assets/lines.js"></script>
 <script src="assets/data/teams-lite.js"></script>
 <script src="football/data/football-lite.js"></script>
+<script src="assets/data/clubs.js"></script>
 <script src="assets/deck.js"></script>
 </body>
 </html>

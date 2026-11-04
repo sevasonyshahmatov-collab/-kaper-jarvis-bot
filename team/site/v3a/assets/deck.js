@@ -145,10 +145,48 @@ function renderInfo(animate){
   clearTimeout(swTimer);
   if(animate&&!root.classList.contains('rm')){infoEl.classList.add('sw');swTimer=setTimeout(put,190)}else put()}
 
+
+/* ── фон под матч: цвета клубов → «шёлк» (логика баннеров: слева хозяева, справа гости, между ними перелив) ── */
+const hex2rgb=h=>{h=String(h).replace('#','');if(h.length===3)h=h.replace(/./g,'$&$&');const n=parseInt(h,16);return isNaN(n)||h.length!==6?null:[n>>16&255,n>>8&255,n&255]};
+function rgb2hsl(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;let h=0,s=0;
+  if(mx!==mn){const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;h*=60}return [h,s,l]}
+function hsl2css(h,s,l){h=((h%360)+360)%360;return `hsl(${h.toFixed(0)} ${(s*100).toFixed(0)}% ${(l*100).toFixed(0)}%)`}
+const hueD=(a,b)=>{const d=Math.abs(a-b)%360;return d>180?360-d:d};
+function candsOf(m,sl){let a=[];
+  if(isH(m)){const C=(window.JV_CLUBS||{})[sl];if(C)a=a.concat(C);const T=TH[sl];if(T&&T.colors)a=a.concat(T.colors)}
+  else{const T=FB.teams[sl];if(T&&T.c)a=a.concat(T.c)}
+  return a.map(hex2rgb).filter(Boolean).map(c=>rgb2hsl(c[0],c[1],c[2]))}
+/* яркий, но не светлый: насыщенность не ниже .55, светлота .30–.40, чтобы белый текст читался */
+const norm=([h,s,l])=>[h,Math.min(.85,Math.max(.55,s)),Math.min(.40,Math.max(.30,l))];
+const score=([h,s,l])=>s>=.25&&l>.1&&l<.93?s*(1-Math.abs(l-.42)):-1;
+function pickPair(m){
+  const A=candsOf(m,m.h).sort((x,y)=>score(y)-score(x)),B=candsOf(m,m.a).sort((x,y)=>score(y)-score(x));
+  let a=A[0]&&score(A[0])>0?A[0]:null,b=B[0]&&score(B[0])>0?B[0]:null;
+  /* нет цвета (белый, чёрный, серый клуб) — нейтральный стальной оттенок */
+  if(!a)a=[218,.3,.34];if(!b)b=[222,.3,.26];
+  /* похожие цвета (синий против синего) — берём другой цвет гостей, иначе сдвигаем оттенок и яркость */
+  if(hueD(a[0],b[0])<32&&Math.abs(a[2]-b[2])<.2){
+    const alt=B.find(c=>score(c)>0&&hueD(a[0],c[0])>=40);
+    if(alt)b=alt;else b=[b[0]+34,b[1],b[2]+.1]}
+  a=norm(a);b=norm(b);
+  if(Math.abs(a[2]-b[2])<.05&&hueD(a[0],b[0])<50){a[2]=Math.max(.28,a[2]-.04);b[2]=Math.min(.42,b[2]+.05)}
+  return [a,b]}
+const bgL=[...document.querySelectorAll('.dk-bg')];let bgCur=-1,bgKey='';
+function applyBg(dir){const m=list[cur];if(!m||m.key===bgKey)return;bgKey=m.key;
+  const [a,b]=pickPair(m),mix=[((a[0]+(Math.abs(b[0]-a[0])>180?(b[0]>a[0]?-360:360)*0:0)+b[0])/2)%360,Math.min(.6,(a[1]+b[1])/2),Math.min(.3,(a[2]+b[2])/2-.02)];
+  const nxt=bgL[(bgCur+1)%2],old=bgCur>=0?bgL[bgCur]:null,rm=root.classList.contains('rm');
+  nxt.style.setProperty('--c1',hsl2css(a[0],a[1],a[2]));nxt.style.setProperty('--c2',hsl2css(b[0],b[1],b[2]));nxt.style.setProperty('--cm',hsl2css(mix[0],mix[1],mix[2]));
+  const fl=nxt.querySelector('.fl');
+  if(!rm&&old){fl.style.transition='none';nxt.style.setProperty('--dx',(dir||0)*9+'vw');void fl.offsetWidth;fl.style.transition='';nxt.style.zIndex=2;old.style.zIndex=1;nxt.classList.add('on');
+    requestAnimationFrame(()=>nxt.style.setProperty('--dx','0vw'));
+    const o=old;setTimeout(()=>{if(o!==bgL[bgCur])o.classList.remove('on')},800)}
+  else{nxt.style.setProperty('--dx','0vw');nxt.classList.add('on');nxt.style.zIndex=2;if(old){old.classList.remove('on');old.style.zIndex=1}}
+  bgCur=(bgCur+1)%2}
+
 /* ── переключение ── */
 let lockUntil=0;
 function go(to,opt={}){const n=list.length;if(!n)return;to=Math.max(0,Math.min(n-1,to));if(to===cur)return false;
-  cur=to;layout();renderInfo(true);
+  const dir=to>cur?1:-1;cur=to;layout();renderInfo(true);applyBg(dir);
   try{const u=new URL(location.href);u.searchParams.set('k',list[cur].key);history.replaceState(null,'',u)}catch(e){}
   lockUntil=performance.now()+(root.classList.contains('rm')?0:520);return true}
 const step=d=>go(cur+d);
@@ -202,7 +240,7 @@ deck.addEventListener('click',e=>{if(moved){moved=false;return}
   const c=e.target.closest('.dk-card');if(!c)return;const i=+c.dataset.i;
   if(i===cur)openPanel();else go(i)});
 $('dk-filter').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;filter=b.dataset.f;
-  const key=list[cur]&&list[cur].key;applyFilter();const k=list.findIndex(m=>m.key===key);cur=k>=0?k:0;counts();build();renderInfo(false);
+  const key=list[cur]&&list[cur].key;applyFilter();const k=list.findIndex(m=>m.key===key);cur=k>=0?k:0;counts();build();renderInfo(false);bgKey='';applyBg(0);
   try{const u=new URL(location.href);u.searchParams.delete('f');filter==='all'?u.searchParams.delete('s'):u.searchParams.set('s',filter==='hockey'?'h':'f');history.replaceState(null,'',u)}catch(e2){}});
 
 /* ── панель «Подробная статистика» ── */
@@ -293,7 +331,7 @@ function init(){
   sub.textContent=ALL.length?`${ALL.length} ${pl(ALL.length,['матч','матча','матчей'])} на сегодня и завтра по Москве · линии и модель от ${(TD.built||'').slice(11,16)||'—'} МСК`:'';
   applyFilter();
   const k=q.get('k');if(k){const i=list.findIndex(m=>m.key===k);if(i>=0)cur=i}
-  counts();build();renderInfo(false);
+  counts();build();renderInfo(false);applyBg(0);
   let rt=0;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{measure();layout()},80)});
   if(mqM.addEventListener)mqM.addEventListener('change',()=>{measure();layout()});
   if(window.ResizeObserver)new ResizeObserver(()=>{const w=W;measure();if(w!==W)layout()}).observe(stage);
