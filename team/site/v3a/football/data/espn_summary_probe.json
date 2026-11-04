@@ -1,7 +1,6 @@
 {
- "event": "401879301",
+ "event": "401915311",
  "top_keys": [
-  "article",
   "boxscore",
   "broadcasts",
   "commentary",
@@ -17,7 +16,6 @@
   "odds",
   "pickcenter",
   "rosters",
-  "seasonseries",
   "standings",
   "videos",
   "wallclockAvailable"
@@ -35,13 +33,13 @@
   "starter": true,
   "jersey": "1",
   "athlete": {
-   "id": "196176",
-   "uid": "s:600~a:196176",
-   "guid": "917afc98-2d15-9b9d-6d92-1d4ca9c6f1ae",
-   "lastName": "Raya",
-   "fullName": "David Raya",
-   "displayName": "David Raya",
-   "shortName": "D. Raya",
+   "id": "222922",
+   "uid": "s:600~a:222922",
+   "guid": "944f6559-7c6e-53af-9256-cd1bc499fafc",
+   "lastName": "Çakir",
+   "fullName": "Ugurcan Çakir",
+   "displayName": "Ugurcan Çakir",
+   "shortName": "U. Çakir",
    "links": [
     {
      "language": "en-US",
@@ -50,7 +48,7 @@
       "desktop",
       "athlete"
      ],
-     "href": "https://www.espn.com/soccer/player/_/id/196176/david-raya",
+     "href": "https://www.espn.com/soccer/player/_/id/222922/ugurcan-cakir",
      "text": "Player Card",
      "shortText": "Player Card",
      "isExternal": false,
@@ -59,7 +57,7 @@
    ],
    "jerseyImages": [
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879301/athletes/196176/jersey.png?darkMode=false",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/uefa.champions/events/401915311/athletes/222922/jersey.png?darkMode=false",
      "rel": [
       "full",
       "default"
@@ -68,7 +66,7 @@
      "height": 1440
     },
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879301/athletes/196176/jersey.png?darkMode=true",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/uefa.champions/events/401915311/athletes/222922/jersey.png?darkMode=true",
      "rel": [
       "full",
       "dark"
@@ -166,8 +164,8 @@
     "shortDisplayName": "SV",
     "description": "The number of times a goalkeeper makes a save.",
     "abbreviation": "SV",
-    "value": 1.0,
-    "displayValue": "1"
+    "value": 5.0,
+    "displayValue": "5"
    },
    {
     "name": "shotsFaced",
@@ -221,13 +219,13 @@
   "starter": false,
   "jersey": "20",
   "athlete": {
-   "id": "293236",
-   "uid": "s:600~a:293236",
-   "guid": "e8393d3a-a2e5-b262-f720-eccb7252e525",
-   "lastName": "Madueke",
-   "fullName": "Noni Madueke",
-   "displayName": "Noni Madueke",
-   "shortName": "N. Madueke",
+   "id": "131424",
+   "uid": "s:600~a:131424",
+   "guid": "7fb5530e-3fea-36c2-1b25-562762b7a805",
+   "lastName": "Gündogan",
+   "fullName": "Ilkay Gündogan",
+   "displayName": "Ilkay Gündogan",
+   "shortName": "I. Gündogan",
    "links": [
     {
      "language": "en-US",
@@ -236,20 +234,16 @@
       "desktop",
       "athlete"
      ],
-     "href": "https://www.espn.com/soccer/player/_/id/293236/noni-madueke",
+     "href": "https://www.espn.com/soccer/player/_/id/131424/ilkay-gundogan",
      "text": "Player Card",
      "shortText": "Player Card",
      "isExternal": false,
      "isPremium": false
     }
    ],
-   "headshot": {
-    "href": "https://a.espncdn.com/i/headshots/soccer/players/full/293236.png",
-    "alt": "Noni Madueke"
-   },
    "jerseyImages": [
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879301/athletes/293236/jersey.png?darkMode=false",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/uefa.champions/events/401915311/athletes/131424/jersey.png?darkMode=false",
      "rel": [
       "full",
       "default"
@@ -258,7 +252,7 @@
      "height": 1440
     },
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879301/athletes/293236/jersey.png?darkMode=true",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/uefa.champions/events/401915311/athletes/131424/jersey.png?darkMode=true",
      "rel": [
       "full",
       "dark"
@@ -273,7 +267,7 @@
    "displayName": "Substitute",
    "abbreviation": "SUB"
   },
-  "subbedIn": true,
+  "subbedIn": false,
   "subbedOut": false,
   "formationPlace": "0",
   "media": {},
@@ -284,8 +278,8 @@
     "shortDisplayName": "APP",
     "description": "The number of times a player has made an appearance in a match.",
     "abbreviation": "APP",
-    "value": 1.0,
-    "displayValue": "1"
+    "value": 0.0,
+    "displayValue": "0"
    },
    {
     "name": "foulsCommitted",
@@ -329,8 +323,8 @@
     "shortDisplayName": "SUBIN",
     "description": "The number of times a player has come on a sub in a match.",
     "abbreviation": "SUB",
-    "value": 1.0,
-    "displayValue": "1"
+    "value": 0.0,
+    "displayValue": "0"
    },
    {
     "name": "yellowCards",
@@ -404,75 +398,40 @@
     "value": 0.0,
     "displayValue": "0"
    }
-  ],
-  "subbedInFor": {
-   "jersey": "7",
-   "athlete": {
-    "id": "280555",
-    "displayName": "Bukayo Saka",
-    "links": [
-     {
-      "language": "en-US",
-      "rel": [
-       "playercard",
-       "desktop",
-       "athlete"
-      ],
-      "href": "https://www.espn.com/soccer/player/_/id/280555/bukayo-saka",
-      "text": "Player Card",
-      "shortText": "Player Card",
-      "isExternal": false,
-      "isPremium": false
-     }
-    ]
-   }
-  },
-  "plays": [
-   {
-    "clock": {
-     "displayValue": "68'"
-    },
-    "scoringPlay": false,
-    "substitution": true,
-    "redCard": false,
-    "yellowCard": false,
-    "penaltyKick": false,
-    "ownGoal": false
-   }
   ]
  },
  "keyEvent_sub": {
-  "id": "51200025",
+  "id": "54761161",
   "type": {
    "id": "76",
    "text": "Substitution",
    "type": "substitution"
   },
-  "text": "Substitution, Coventry City. Victor Torp replaces Caleb Yirenkyi.",
-  "shortText": "Victor Torp Substitution",
+  "text": "Substitution, Stuttgart. Yanik Spalt replaces Atakan Karazor because of an injury.",
+  "shortText": "Yanik Spalt Substitution",
   "period": {
-   "number": 2
+   "number": 1
   },
   "clock": {
-   "value": 3711.0,
-   "displayValue": "62'"
+   "value": 1065.0,
+   "displayValue": "18'"
   },
   "scoringPlay": false,
   "team": {
-   "id": "388",
-   "displayName": "Coventry City"
+   "id": "134",
+   "displayName": "VfB Stuttgart"
   },
   "participants": [
    {
     "athlete": {
-     "id": "256015",
-     "displayName": "Victor Torp"
+     "id": "403741",
+     "displayName": "Yanik Spalt"
     }
    },
    {
     "athlete": {
-     "id": "387659",
-     "displayName": "Caleb Yirenkyi"
+     "id": "241742",
+     "displayName": "Atakan Karazor"
     }
    }
   ],
@@ -480,13 +439,13 @@
    "id": "38",
    "description": "SA.ENVOY"
   },
-  "wallclock": "2026-08-21T20:19:19Z",
+  "wallclock": "2026-11-03T18:04:46Z",
   "shootout": false
  },
  "parsed": {
-  "359": [
+  "432": [
    [
-    "196176",
+    "222922",
     1,
     95,
     0,
@@ -497,87 +456,87 @@
     0
    ],
    [
-    "236322",
+    "193149",
     1,
     95,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "197105",
     1,
+    95,
     0,
     0,
+    1,
     2,
-    1,
-    0
-   ],
-   [
-    "328497",
-    1,
-    95,
-    0,
-    0,
-    0,
-    1,
     0,
     0
    ],
    [
-    "298329",
+    "268796",
     1,
-    81,
-    1,
-    0,
-    1,
+    77,
     0,
     0,
-    0
-   ],
-   [
-    "241077",
-    1,
-    95,
-    1,
     0,
-    1,
     1,
     0,
     0
    ],
    [
-    "203669",
-    1,
-    76,
-    3,
-    1,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "238262",
+    "219444",
     1,
     68,
-    2,
     0,
     0,
+    0,
     2,
+    1,
+    0
+   ],
+   [
+    "355113",
+    1,
+    77,
+    3,
+    3,
+    0,
+    3,
     0,
     0
    ],
    [
-    "352758",
+    "181729",
+    1,
+    83,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "212973",
     1,
     95,
     1,
     0,
     0,
-    1,
     0,
+    1,
     0
    ],
    [
-    "231182",
+    "228296",
     1,
     95,
-    1,
+    7,
     1,
     0,
     2,
@@ -585,29 +544,40 @@
     0
    ],
    [
-    "303793",
-    1,
-    76,
-    4,
-    2,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "280555",
+    "322538",
     1,
     68,
-    3,
     1,
+    0,
+    0,
+    1,
+    1,
+    0
+   ],
+   [
+    "266575",
+    1,
+    95,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "268478",
+    0,
+    12,
+    0,
+    0,
     0,
     0,
     0,
     0
    ],
    [
-    "293236",
+    "286569",
     0,
     27,
     0,
@@ -618,32 +588,21 @@
     0
    ],
    [
-    "209581",
+    "287678",
     0,
-    19,
-    2,
-    1,
+    18,
+    0,
+    0,
     0,
     1,
     0,
     0
    ],
    [
-    "292062",
+    "202641",
     0,
-    14,
+    18,
     0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "251400",
-    0,
-    19,
-    1,
     0,
     0,
     0,
@@ -651,10 +610,10 @@
     0
    ],
    [
-    "287266",
+    "258917",
     0,
     27,
-    0,
+    1,
     0,
     0,
     0,
@@ -662,9 +621,9 @@
     0
    ]
   ],
-  "388": [
+  "134": [
    [
-    "307069",
+    "201123",
     1,
     95,
     0,
@@ -675,29 +634,7 @@
     0
    ],
    [
-    "319404",
-    1,
-    95,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0
-   ],
-   [
-    "303931",
-    1,
-    95,
-    1,
-    0,
-    0,
-    2,
-    0,
-    0
-   ],
-   [
-    "191337",
+    "258909",
     1,
     95,
     0,
@@ -708,18 +645,7 @@
     0
    ],
    [
-    "206172",
-    1,
-    95,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "281139",
+    "216225",
     1,
     95,
     0,
@@ -730,20 +656,31 @@
     0
    ],
    [
-    "258491",
+    "289322",
     1,
     95,
     0,
     0,
     0,
     3,
-    0,
+    1,
     0
    ],
    [
-    "387659",
+    "241742",
     1,
-    62,
+    18,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0
+   ],
+   [
+    "218714",
+    1,
+    74,
     0,
     0,
     0,
@@ -752,65 +689,76 @@
     0
    ],
    [
-    "240495",
+    "336595",
     1,
-    70,
-    0,
-    0,
+    95,
+    2,
+    1,
     0,
     0,
     0,
     0
    ],
    [
-    "324541",
+    "268951",
     1,
     82,
-    2,
-    0,
+    3,
+    1,
     0,
     1,
     0,
     0
    ],
    [
-    "282647",
+    "290811",
     1,
-    70,
-    0,
-    0,
-    0,
+    75,
     2,
     0,
-    0
-   ],
-   [
-    "256015",
-    0,
-    33,
-    0,
-    0,
     0,
     0,
     0,
     0
    ],
    [
-    "236912",
+    "269136",
+    1,
+    74,
+    0,
+    0,
+    0,
+    4,
+    0,
+    0
+   ],
+   [
+    "273300",
+    1,
+    95,
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "345905",
+    0,
+    21,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "304019",
     0,
     13,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "286967",
-    0,
-    25,
-    1,
+    2,
     1,
     0,
     0,
@@ -818,14 +766,36 @@
     0
    ],
    [
-    "194686",
+    "259878",
     0,
-    25,
-    0,
-    0,
+    21,
     0,
     0,
     0,
+    1,
+    0,
+    0
+   ],
+   [
+    "308461",
+    0,
+    20,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "403741",
+    0,
+    77,
+    0,
+    0,
+    0,
+    1,
+    1,
     0
    ]
   ]
