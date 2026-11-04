@@ -247,7 +247,7 @@
 .dk-bg.img .fl{display:none}
 .dk.bgimg .dk-tx{display:none}
 @keyframes dkbreath{from{transform:scale(1)}to{transform:scale(1.04)}}
-@media (min-width:981px){.dk-bg.img.on{animation:dkbreath 20s ease-in-out infinite alternate}}
+/* «дыхание» фона убрано: масштабирование размывает плетение холста (владелец 04.11) */
 .dk-info{background:rgba(5,9,18,.64)}
 .dk.rm .dk-bg.img{animation:none}
 @media (prefers-reduced-motion:reduce){.dk-bg.img{animation:none!important}}
