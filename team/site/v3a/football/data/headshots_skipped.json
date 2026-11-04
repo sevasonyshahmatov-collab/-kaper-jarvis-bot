@@ -253,27 +253,11 @@
 },
 "171508": {
 "f": "Lucas Olaza.jpg",
-"why": "ошибка загрузки"
-},
-"195027": {
-"f": "Sheraldo Becker (2018).jpg",
-"why": "ошибка загрузки"
-},
-"181946": {
-"f": "Aguilar rcl asse 2425.png",
-"why": "ошибка загрузки"
-},
-"211770": {
-"f": "Sadiq Umar.jpg",
-"why": "ошибка загрузки"
-},
-"241173": {
-"f": "1189124 sPICT (cropped).jpg",
-"why": "ошибка загрузки"
+"why": "нет лица"
 },
 "225564": {
 "f": "Vitaly Janelt 29112025 (2).jpg",
-"why": "ошибка загрузки"
+"why": "нет лица"
 },
 "259902": {
 "f": "Matheus Cunha Brazil V Morocco 13 June 2026-178 (cropped).jpg",
@@ -282,10 +266,6 @@
 "259517": {
 "f": "1 joe willock 2018.jpg",
 "why": "нет лица"
-},
-"271352": {
-"f": "Shūto Machino 20221208.jpg",
-"why": "ошибка загрузки"
 },
 "270821": {
 "f": "FC Red Bull Salzburg gegen CF Barcelona (Testspiel 4. August 2021) 45 (cropped).jpg",
@@ -302,5 +282,81 @@
 "261054": {
 "f": "Junior Messias.jpg",
 "why": "нет лица"
+},
+"300853": {
+"f": "Tyrick Mitchell, Manchester United v Crystal Palace, 5 December 2021 (cropped).jpg",
+"why": "ошибка загрузки"
+},
+"384005": {
+"f": "Abdallah asse om 2425.png",
+"why": "нет лица"
+},
+"391034": {
+"f": "Jahresbeginnfeier FC RB Salzburg (2026-01-25 RB Arena) 10.jpg",
+"why": "лицо у края кадра"
+},
+"229645": {
+"f": "2019-10-23 Fußball, Männer, UEFA Champions League, RB Leipzig - FC Zenit St. Petersburg 1DX 2586 by Stepro.jpg",
+"why": "нет лица"
+},
+"288472": {
+"f": "Akor Adams 2023.jpg",
+"why": "нет лица"
+},
+"202673": {
+"f": "Anton Miranchuk.jpg",
+"why": "нет лица"
+},
+"297157": {
+"f": "Bakwa asse rcsa 2425.jpg",
+"why": "нет лица"
+},
+"312112": {
+"f": "ErenDinkci.jpg",
+"why": "лицо мелкое"
+},
+"315626": {
+"f": "Sport 0X0 Náutico Pernambucano BetNacional 2024 Final (53637052203) - Felipe.jpg",
+"why": "ошибка загрузки"
+},
+"276460": {
+"f": "German Onugkha 2019.jpg",
+"why": "нет лица"
+},
+"243386": {
+"f": "Harvey Barnes 2022 (cropped).jpg",
+"why": "лицо у края кадра"
+},
+"355359": {
+"f": "Jay Robinson 22112025 (1) (cropped).jpg",
+"why": "нет лица"
+},
+"284490": {
+"f": "Keane Lewis-Potter 2022 (2) (cropped).jpg",
+"why": "фон не отделился"
+},
+"304215": {
+"f": "Luiz Henrique Brazil V Morocco 13 June 2026-147.jpg",
+"why": "несколько лиц"
+},
+"329690": {
+"f": "Maghnes Akliouche France v Senegal 16 June 2026-512.jpg",
+"why": "несколько лиц"
+},
+"290639": {
+"f": "Maximilian Beier Ecuador v Germany 25 June 2026-152.jpg",
+"why": "несколько лиц"
+},
+"353363": {
+"f": "Mika Godts USMNT v Belgium Mar 28 2026-236 (cropped).jpg",
+"why": "несколько лиц"
+},
+"315384": {
+"f": "Mohammed Amoura training against Mozambique.png",
+"why": "ошибка загрузки"
+},
+"195368": {
+"f": "Nikita Chernov.jpg",
+"why": "лицо у края кадра"
 }
 }
