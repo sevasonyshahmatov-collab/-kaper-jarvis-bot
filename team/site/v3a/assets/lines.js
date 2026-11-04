@@ -62,6 +62,7 @@ function why(m,opt={}){const {ln,md}=m;if(!md)return '<p class="none">Расчё
 
 /* ── секция «Прогноз модели» (#model): все матчи окна с вероятностями модели и линией ── */
 function section(root,items,cfg){
+ if(!root)return; // на странице нет блока #modelbox (например, ЛЧ)
  const nDiv=items.filter(it=>flagged(it.ln,it.md).length).length,hasModel=items.filter(it=>it.md).length;
  const ver=[...new Set(items.filter(it=>it.md).map(it=>verName(it.md.ver)))].join(', ');
  const upd=TD.built?`${ddmm(TD.built)} в ${TD.built.slice(11,16)} МСК`:'';
