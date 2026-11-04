@@ -1,0 +1,45 @@
+/* JARVIS v3a — линии и расчёт модели (hockey/index.html, football/index.html, assets/lines.js) */
+.qs,.qm,.qd{font:500 13px/1.35 var(--display);color:var(--ink-3)}
+.qm{color:var(--ink-2)}.qm .mlab{font-weight:700;color:var(--ink)}
+.qs{letter-spacing:.01em}
+.dv{display:inline;font:600 13px/1.35 var(--display);color:var(--ink-2)}
+.dv b{font-weight:800}.dv .up{color:var(--win)}.dv .dn{color:var(--red)}
+.dayh{font:700 14px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);padding:18px 4px 8px;list-style:none}
+.dayinfo{margin:0 0 14px;max-width:80ch}
+/* раскрытый блок: расчёт модели */
+.x-model .wgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px 28px;margin-bottom:8px}
+.wsub h5{font:700 14px/1.2 var(--display);color:var(--ink-3);margin:0 0 8px;letter-spacing:.02em}
+.wb{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) 44px;gap:8px;align-items:center;font:600 14px/1.2 var(--display);margin-bottom:5px}
+.wb span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb em{position:relative;display:block;height:8px;background:var(--paper-3);border-radius:4px}
+.wb em i{display:block;height:100%;width:var(--w);background:var(--ink-3);border-radius:4px}
+.wb.fav em i{background:var(--sport)}
+.wb em u{position:absolute;top:-3px;width:2px;height:14px;background:var(--ink);text-decoration:none;transform:translateX(-1px)}
+.wb b{text-align:right;font-variant-numeric:tabular-nums}
+.xlam{margin:8px 0 0;font-size:15px}
+/* секция «Прогноз модели» */
+.mtoolbar{margin-bottom:14px}
+.mrows{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.mr{display:grid;grid-template-columns:70px minmax(0,1.25fr) minmax(0,1fr) minmax(0,1.25fr) minmax(0,1.1fr);gap:10px 22px;align-items:start;background:var(--card);border-radius:6px;padding:14px 18px}
+.mr.dvg{box-shadow:inset 4px 0 0 var(--sport)}
+.mr-t time{font:800 24px/1 var(--display);font-variant-numeric:tabular-nums;display:block}
+.mr-t small{font:500 13px/1.2 var(--display);color:var(--ink-3)}
+.mr h6{font:700 12px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px}
+.mr .team{font-size:18px}
+.mr-l .ml-k{font:600 15px/1.4 var(--display);color:var(--ink-2)}.mr-l .ml-k b{font:800 18px/1 var(--display);color:var(--ink)}
+.mr-l small,.mr-x small{display:block;font:500 13px/1.35 var(--display);color:var(--ink-3)}
+.mr-x{font:600 15px/1.5 var(--display);color:var(--ink-2)}.mr-x .ml-lam{font-weight:500;color:var(--ink-3);font-size:14px}
+.mr-x .qd{margin-top:6px}
+.mexplain{margin-top:26px;max-width:78ch}
+.mexplain h3{margin:0 0 8px}
+.mver{margin-top:14px}
+.empty{padding:18px 4px}
+@media (max-width:980px){.mr{grid-template-columns:62px minmax(0,1fr) minmax(0,1fr);}.mr-m{grid-column:2/4}.mr-l{grid-column:2/3}.mr-p{grid-column:3/4}.mr-x{grid-column:2/4}}
+@media (max-width:560px){.mr{grid-template-columns:54px minmax(0,1fr);padding:12px;gap:10px 12px}.mr-m,.mr-l,.mr-p,.mr-x{grid-column:2/3}.mr .team{font-size:17px}.mr-t time{font-size:20px}.wb{grid-template-columns:34px minmax(0,1fr) 42px}}
+.soon{display:grid;gap:6px;justify-items:start;padding:22px 20px;background:var(--paper-2);border-radius:6px;min-height:150px;align-content:center}
+.soon b{font:800 13px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;background:var(--paper-3);color:var(--ink-2);padding:6px 9px;border-radius:3px}
+.soon span{font-size:15px;color:var(--ink-2);max-width:42ch}
+.honest-soon{max-width:70ch}
+.simsel{width:100%;margin:2px 0 10px;padding:10px 12px;font:600 15px/1.2 var(--display);background:var(--paper-2);color:var(--ink);border:0;border-radius:6px}
+.simbars .num{font-variant-numeric:tabular-nums}
+.sim-lbl{margin:0 0 10px;color:var(--ink-3)}

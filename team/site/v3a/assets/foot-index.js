@@ -16,6 +16,13 @@ const mskDay=ms=>new Date(ms+3*3600e3).toISOString().slice(0,10);
  $('chips').innerHTML=LGK.map(k=>`<li><a href="league.html?lg=${esc(k)}" title="Страница лиги: ${esc(D.leagues[k].full)}">${LGP(k)}${esc(D.leagues[k].name)}</a></li>`).join('')}
 
 /* ── ближайшие матчи: с этого момента, первые 4 игровых дня ── */
+/* линия и расчёт модели на матчи окна — data/lines.js и data/model.js; вне окна остаются линия ESPN и расчёт по голам сезона (poisson-v1) */
+D.up.forEach(m=>{const k=JVL.key(m.lg,m.t,m.h,m.a),ln=JVL.line(k),md=JVL.model(k);
+ m.key=k;m.hn=nm(m.h);m.an=nm(m.a);
+ m.ln=ln||(m.k?{p1:m.k[0],x:m.k[1],p2:m.k[2],src:'espn',tot:m.tt&&m.tt[0],over:m.tt&&m.tt[1],under:m.tt&&m.tt[2]}:null);
+ m.md=md||{p1:m.pr[0],x:m.pr[1],p2:m.pr[2],over:m.ov,tot:2.5,btts:m.bt,lam:m.xg,ver:'poisson-v1'};
+ if(m.ln){m.k=[m.ln.p1,m.ln.x,m.ln.p2];m.tt=m.ln.tot!=null?[m.ln.tot,m.ln.over,m.ln.under]:null}
+ m.pr=[m.md.p1,m.md.x,m.md.p2];m.ov=m.md.over;m.ot=m.md.tot;m.bt=m.md.btts;m.xg=m.md.lam||m.xg});
 const now=Date.now();
 const FUT=D.up.filter(m=>LGK.includes(m.lg)&&JV.left(m.t)>-2*3600).sort((a,b)=>a.t<b.t?-1:1);
 const dayWin={};LGK.forEach(k=>{dayWin[k]=[...new Set(FUT.filter(m=>m.lg===k).map(m=>m.t.slice(0,10)))].slice(0,3)});
@@ -36,7 +43,7 @@ function pcs(p){return p.map(v=>Math.round(v*100)).join(' · ')+' %'}
 
 /* ── карточка «Прогноз дня»: сильнейший вывод модели по рынкам 1Х2 и тотал 2,5 ── */
 function best(m){const A=nm(m.h),B=nm(m.a),c=[{p:m.pr[0],t:`${A} — победа`,s:'П1',k:m.k&&m.k[0]},{p:m.pr[2],t:`${B} — победа`,s:'П2',k:m.k&&m.k[2]},
-  {p:m.ov,t:'Тотал больше 2,5',s:'ТБ 2,5',k:m.tt&&m.tt[0]===2.5?m.tt[1]:null},{p:1-m.ov,t:'Тотал меньше 2,5',s:'ТМ 2,5',k:m.tt&&m.tt[0]===2.5?m.tt[2]:null}];
+  {p:m.ov,t:`Тотал больше ${fx(m.ot,1)}`,s:'ТБ',k:m.tt&&m.tt[0]===m.ot?m.tt[1]:null},{p:1-m.ov,t:`Тотал меньше ${fx(m.ot,1)}`,s:'ТМ',k:m.tt&&m.tt[0]===m.ot?m.tt[2]:null}];
  const ck=c.filter(x=>x.k);return (ck.length?ck:c).sort((a,b)=>b.p-a.p)[0]}
 const pool=UP.filter(m=>JV.left(m.t)>0);
 const withK=pool.filter(m=>m.k);
@@ -46,9 +53,9 @@ const lvl=p=>p>=.6?'hi':p>=.5?'mid':'lo';
 const tm=(s,cls)=>{const n=nm(s);return `<div class="tm${n.length>10?' long':''}">${CI(s)}<small>${cls}</small><span>${esc(n)}</span></div>`};
 const card=({m,b})=>{const A=T[m.h],B=T[m.a];
  return `<div class="face">${tm(m.h,'хозяева')}<div class="vs"><span aria-hidden="true">—</span><time>${esc(m.t.slice(11))}</time></div>${tm(m.a,'гости')}</div>
- <div class="bet lv-${lvl(b.p)}"><span class="bl">Прогноз модели</span><strong>${esc(b.t)}</strong><span class="k num" aria-label="${b.k?'коэффициент':'линии пока нет'}">${b.k?fx(b.k,2):'—'}</span>
+ <div class="bet lv-${lvl(b.p)}"><span class="bl">Расчёт модели</span><strong>${esc(b.t)}</strong><span class="k num" aria-label="${b.k?'коэффициент':'линии пока нет'}">${b.k?fx(b.k,2):'—'}</span>
   <span class="pm"><em><i style="--w:${Math.round(b.p*100)}%"></i></em><b class="num">${Math.round(b.p*100)} % по модели</b></span></div>
- <div class="mk3"><span>1Х2<b class="num">${m.pr.map(v=>Math.round(v*100)).join(' · ')}</b><em>П1 · Х · П2, %</em></span><span>Тотал 2,5<b class="num">${Math.round(m.ov*100)} %</b><em>больше</em></span><span>Обе забьют<b class="num">${Math.round(m.bt*100)} %</b><em>да</em></span></div>
+ <div class="mk3"><span>1Х2<b class="num">${m.pr.map(v=>Math.round(v*100)).join(' · ')}</b><em>П1 · Х · П2, %</em></span><span>Тотал ${fx(m.ot,1)}<b class="num">${Math.round(m.ov*100)} %</b><em>больше</em></span><span>Обе забьют<b class="num">${Math.round(m.bt*100)} %</b><em>да</em></span></div>
  <p class="why"><b>Почему:</b> ожидаемые голы ${fx(m.xg[0],1)} : ${fx(m.xg[1],1)}. В таблице: ${esc(A.n)} — ${A.place}, ${esc(B.n)} — ${B.place}.</p>`};
 cdv.innerHTML=['h','m','s'].map((u,i)=>`<span class="cu" data-u="${u}"><b></b><small>${['ч','мин','с'][i]}</small></span>`).join('');
 const cu=[...cdv.querySelectorAll('.cu b')],cdWord=document.createElement('b');cdWord.className='cdw';cdv.appendChild(cdWord);
@@ -68,7 +75,7 @@ else{
  pager.innerHTML=picks.map(({m},i)=>`<button type="button" aria-pressed="${i===0}" aria-label="${esc(nm(m.h))} — ${esc(nm(m.a))}"></button>`).join('');
  const show=i=>{const dir=i>=cur?1:-1;cur=i;const p=picks[i],m=p.m;
   $('blg').innerHTML=LGP(m.lg);$('bmeta').textContent=`${D.leagues[m.lg].name} · ${m.t.slice(11)} МСК`;
-  const near=JV.left(m.t)<48*3600;$('bhead').textContent=i===0?`${near?'Прогноз дня':'Ближайший матч'} · 1 из ${picks.length}`:`${near?'Прогноз':'Матч'} ${i+1} из ${picks.length}`;
+  $('bhead').textContent=i===0?`Матч 1 из ${picks.length}`:`Матч ${i+1} из ${picks.length}`;
   pager.querySelectorAll('button').forEach((b,j)=>b.setAttribute('aria-pressed',j===i));
   swap(p,shown?dir:1);shown=true;cdSet(JV.left(m.t));const d=day(m.t);$('bdate').textContent=`${d.d} ${d.mon}`};
  {let sx=null,sy=0;const z=$('mstage');
@@ -98,7 +105,7 @@ function back(m){const {A,B,h}=det(m),nA=nm(m.h),nB=nm(m.a);
  const h2hHTML=h.length?`<p class="h2t"><span>${CI(m.h)}${esc(nA)}</span><b class="num">${wA} — ${dr} — ${wB}</b><span>${esc(nB)}${CI(m.a)}</span></p><ul class="h2l">${h.slice(0,6).map(g=>{const home=g.h,away=g.h===m.h?m.a:m.h;
    return `<li><span class="d">${dd(g.d)}<small class="smp">${esc(g.s)}</small></span><span class="pp">${CI(home)}<span class="${g.hs>g.as?'wn':''}">${esc(nm(home))}</span></span><span class="sc num"><b class="${g.hs>g.as?'wn':''}">${g.hs}</b>:<b class="${g.as>g.hs?'wn':''}">${g.as}</b></span><span class="pp aw">${CI(away)}<span class="${g.as>g.hs?'wn':''}">${esc(nm(away))}</span></span></li>`}).join('')}</ul>`
   :`<p class="none">Эти клубы ещё не встречались в лиге в сезонах 2025/26 и 2026/27.</p>`;
- return `<div class="xd">
+ return `<div class="xd">${JVL.why(m)}
   <section class="xb x-last"><h4>Последние 3 матча</h4><div class="two">${last(A)}${last(B)}</div></section>
   <section class="xb x-form"><h4>Форма <span class="note">последние 5: слева раньше, справа последняя; в кружке — соперник</span></h4>${form(A)}${form(B)}</section>
   <section class="xb x-stat"><h4>Статистика команды <span class="note">сезон 2026/27</span></h4><table class="st"><thead><tr><th></th><th>${CI(m.h)}<span>${esc(nA)}</span></th><th>${CI(m.a)}<span>${esc(nB)}</span></th></tr></thead><tbody>
@@ -107,13 +114,11 @@ function back(m){const {A,B,h}=det(m),nA=nm(m.h),nB=nm(m.a);
    ${row('Матчей с тоталом больше 2,5',p0(A.st.ov),p0(B.st.ov))}${row('Матчей, где забили обе',p0(A.st.bt),p0(B.st.bt))}</tbody></table></section>
   <section class="xb x-h2h"><h4>Личные встречи <span class="note">лига, два сезона</span></h4>${h2hHTML}</section>
   <p class="note xn">Матчи и статистика — ESPN, сезон 2026/27. Страница клуба — по ссылке с эмблемы в разделе «Лиги и клубы».</p></div>`}
-function rowHTML(m){const L=D.leagues[m.lg],mx=Math.max(...m.pr),d=day(m.t);
- const q=['П1','Х','П2'].map((k,j)=>`<span class="qc${m.pr[j]===mx?' fav':''}"><small>${k}</small><b class="num">${m.k?k2(m.k[j]):'—'}</b><em class="num">${pc(m.pr[j])}</em></span>`).join('');
- const tot=m.tt&&m.tt[0]===2.5?`Тотал 2,5 <span>Б <b class="num">${k2(m.tt[1])}</b></span><span>М <b class="num">${k2(m.tt[2])}</b></span>`:`Тотал 2,5 <span>Б <b class="num">${pc(m.ov)}</b></span><span>М <b class="num">${pc(1-m.ov)}</b></span>`;
+function rowHTML(m){const L=D.leagues[m.lg];
  return `<li class="match ${esc(m.lg)}"><button class="mhead" type="button" aria-expanded="false">
   <div class="mt"><time>${esc(m.t.slice(11))}</time><span class="cd" data-t="${esc(m.t)}"></span></div>
   <div><div class="lgline">${LGP(m.lg)}${esc(L.name)}</div><div class="teams"><div class="team">${CI(m.h)}<span>${esc(nm(m.h))}</span></div><div class="team">${CI(m.a)}<span>${esc(nm(m.a))}</span></div></div></div>
-  <div class="quotes"><div class="q3">${q}</div><div class="qt">${tot}</div></div>
+  <div class="quotes">${JVL.quotes(m,{btts:true,noLine:'Линии пока нет'})}</div>
   <span class="chev">${chev}</span></button><div class="mbody"><div></div></div></li>`}
 function render(l,more){if(!more){curTab=l;shownN=LIM}
  sel=(l==='all'?UP:UP.filter(m=>m.lg===l));
@@ -162,4 +167,13 @@ if(MODE&&$('resl')){const L=D.leagues[MODE],rows=[];
  rows.sort((a,b)=>a.d<b.d?1:-1);const top=rows.length?rows[0].d.slice(0,10):'',lim=Date.parse(top)-4*864e5;
  const last=rows.filter(r=>Date.parse(r.d.slice(0,10))>=lim);
  $('resl').innerHTML=last.length?last.map(r=>{const t=day(r.d);return `<li><span class="d">${t.d} ${t.mon}<br>${esc(r.d.slice(11))}</span><a class="t" href="${teamHref(r.h,MODE)}">${CI(r.h)}<span class="${r.gf>r.ga?'w':''}">${esc(nm(r.h))}</span></a><span class="s num">${r.gf}:${r.ga}</span><a class="t a" href="${teamHref(r.a,MODE)}">${CI(r.a)}<span class="${r.ga>r.gf?'w':''}">${esc(nm(r.a))}</span></a></li>`}).join(''):'<li class="note">Сыгранных матчей пока нет.</li>'}
+
+/* «Прогноз модели» (#model): все матчи окна данных — вероятности модели рядом с линией */
+{const W=(window.JV_TODAY&&JV_TODAY.matches||[]).filter(m=>m.lg!=='khl'&&m.lg!=='nhl').map(m=>m.key),byKey=Object.fromEntries(D.up.map(m=>[m.key,m]));
+ let items=W.map(k=>byKey[k]).filter(Boolean).sort((a,b)=>a.t<b.t?-1:1);
+ const fut=items.filter(m=>JV.left(m.t)>-2*3600);if(fut.length)items=fut;
+ const dl=d=>{const x=day(d);return `${x.wd}, ${x.d} ${x.mon}${d===today?' · сегодня':''}`};
+ JVL.section($('modelbox'),items.map(m=>({...m,lgHtml:LGP(m.lg)+esc(D.leagues[m.lg].name),home:`${CI(m.h)}<span>${esc(nm(m.h))}</span>`,away:`${CI(m.a)}<span>${esc(nm(m.a))}</span>`,dayLabel:dl})),
+  {btts:true,noLine:'Линии пока нет',explain:`<p>Рейтинг каждого клуба считается по модели Дикси — Коулса: это пуассоновская модель голов с поправкой на малые счета (0:0, 1:0, 0:1, 1:1). Из рейтингов получаются ожидаемые голы каждой команды, а из них — вероятности победы, ничьей, тотала и «обе забьют».</p>
+  <p>Затем расчёт смешивается с линией Pinnacle — так же, как в прогнозах команды. Поэтому на футболе расхождения с линией небольшие, а модель не независима от рынка. Шкала и пометка «расходится» показывают, где итоговая вероятность всё же заметно отличается от доли линии.</p>`})}
 })();

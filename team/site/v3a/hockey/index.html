@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Хоккей — прогнозы JARVIS (макет v3a)</title>
-<meta name="description" content="Прогнозы на КХЛ и НХЛ по собственной модели: пост на каждый матч, итоги по месяцам — все, и минусы. Макет, пример данных.">
+<meta name="description" content="Прогнозы на КХЛ и НХЛ по собственной модели: пост на каждый матч, итоги по месяцам — все, и минусы. Линия и расчёт модели обновляются дважды в день.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#071225">
 <script>/* палитра: ?theme=arena (по умолчанию: «Трансляция с арены» — тёмная арена, при прокрутке включают свет) | a «ночной лёд» | b кобальт | c светлый лёд */
@@ -17,6 +17,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js">
 <link rel="stylesheet" href="../assets/v3a.css">
 <link rel="stylesheet" href="../assets/nav.css">
+<link rel="stylesheet" href="../assets/lines.css">
 <style>
 .trends{margin-top:2px}
 .trends b{display:block;font:800 clamp(44px,4.4vw,68px)/.9 var(--display);color:var(--sport);font-variant-numeric:tabular-nums;margin-bottom:8px}
@@ -62,8 +63,8 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
         <p class="lead">Прогноз на каждый матч от собственной модели. КХЛ днём, НХЛ ночью по Москве. Итоги — все, и минусы.</p>
         <div class="hero-cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть @jarvibet</a><a class="btn btn-line" href="#matches">Матчи дня</a></div>
         <ul class="facts" aria-label="Коротко">
-          <li><b class="num" data-count="153" id="fN">153</b><span id="fNl">прогноза в октябре</span></li>
-          <li><b class="num"><span data-count="71" id="fP">71</span>&thinsp;%</b><span id="fPl">зашло в октябре</span></li>
+          <li><b class="num" data-count="0" id="fN">0</b><span id="fNl">матчей в ближайшие дни</span></li>
+          <li><b class="num" data-count="0" id="fP">0</b><span id="fPl">с линией и расчётом модели</span></li>
           <li><b class="num" data-count="2">2</b><span>лиги</span></li>
         </ul>
         <ul class="chips" aria-label="Лиги"><li><a href="league.html?lg=khl" title="Страница лиги"><span class="lgp khl"><img src="../assets/lg/khl.webp" alt=""></span>КХЛ</a></li><li><a href="league.html?lg=nhl" title="Страница лиги"><span class="lgp nhl"><img src="../assets/lg/nhl.webp" alt=""></span>НХЛ</a></li></ul>
@@ -74,7 +75,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
         <div class="board-top"><span class="bmeta"><span id="blg"></span><b id="bmeta">КХЛ · 10:30 МСК</b></span><span class="bwhen"><i class="lamp"></i><span id="bhead">Прогноз дня</span><span class="bdot">·</span><span id="bdate"></span></span></div>
         <div class="mstage" id="mstage" aria-live="polite"><div class="mcard" id="mcard"></div></div>
         <div class="cdown" role="timer" aria-label="До матча"><span class="cdl">До матча</span><span class="cdv num" id="cdv"></span></div>
-        <div class="board-foot"><p class="note">Пример данных. Прогноз КХЛ выходит в канале до 08:00 МСК, НХЛ — до 14:00.</p><div class="pager" id="pager" aria-label="Другие прогнозы дня"></div></div>
+        <div class="board-foot"><p class="note" id="boardnote">Посты с прогнозами выходят в канале: КХЛ — до 08:00 МСК, НХЛ — до 14:00.</p><div class="pager" id="pager" aria-label="Другие прогнозы дня"></div></div>
       </div>
       <a class="btn btn-tg get8" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>Получать прогноз в 08:00</a>
     </div>
@@ -84,10 +85,11 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <section class="sec" id="matches" data-zone="p1">
   <div class="wrap">
     <div class="period" data-rv><p><span class="pn">1</span><span class="pw">-й период</span><span class="pt">Сегодня на льду</span><span class="pc num">20:00</span></p></div>
-    <div class="sec-head" data-rv><h2>Сегодня на льду</h2><p>Матчи дня <span class="lgp khl"><img src="../assets/lg/khl.webp" alt=""></span>КХЛ и <span class="lgp nhl"><img src="../assets/lg/nhl.webp" alt=""></span>НХЛ. Нажми на строку: почему ставка, кэфы и вероятность по модели. <span class="sample">Пример данных</span></p></div>
+    <div class="sec-head" data-rv><h2>Сегодня на льду</h2><p>Матчи дня <span class="lgp khl"><img src="../assets/lg/khl.webp" alt=""></span>КХЛ и <span class="lgp nhl"><img src="../assets/lg/nhl.webp" alt=""></span>НХЛ. Нажми на строку: расчёт модели, тотал, форма и личные встречи.</p></div>
+    <p class="note dayinfo" id="daynote" aria-live="polite"></p>
     <div class="tabs" role="tablist" id="ltabs" aria-label="Фильтр по лигам"></div>
     <ul class="mlist" id="mlist"></ul>
-    <a class="btn btn-ink more" href="https://t.me/jarvibet" target="_blank" rel="noopener">Все прогнозы дня — в канале</a>
+    <a class="btn btn-ink more" href="https://t.me/jarvibet" target="_blank" rel="noopener">Прогнозы и ставки дня — в канале</a>
   </div>
 </section>
 
@@ -132,34 +134,13 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
         </div>
         <div class="tour-vis">
           <div class="win" id="twin">
-            <div class="win-bar"><i></i><i></i><i></i><span>Пример данных</span></div>
+            <div class="win-bar"><i></i><i></i><i></i><span>Лист таблицы</span></div>
             <div class="stack win-body">
-              <div class="tv on"><div class="elo" id="elo"></div></div>
-              <div class="tv"><table class="gt"><tr><th>Время</th><th>Матч</th><th>Прогноз</th><th>Кэф</th><th>Вер.</th></tr>
-                <tr><td>17:00</td><td>СКА — ЦСКА</td><td>ТБ 4,5</td><td class="k">1,70</td><td><i class="pb" style="--w:61%"></i>61%</td></tr>
-                <tr><td>19:30</td><td>Ак Барс — Локомотив</td><td>П2</td><td class="k">1,85</td><td><i class="pb" style="--w:58%"></i>58%</td></tr>
-                <tr><td>19:30</td><td>Сибирь — Трактор</td><td>П2</td><td class="k">1,95</td><td><i class="pb" style="--w:55%"></i>55%</td></tr>
-                <tr><td>02:00</td><td>Бостон — Торонто</td><td>П1</td><td class="k">1,75</td><td><i class="pb" style="--w:60%"></i>60%</td></tr>
-                <tr><td>03:00</td><td>Колорадо — Даллас</td><td>ТБ 5,5</td><td class="k">1,90</td><td><i class="pb" style="--w:56%"></i>56%</td></tr></table></div>
-              <div class="tv"><table class="heat" id="heat"></table></div>
-              <div class="tv"><div class="cal">
-                <div class="day">Сегодня</div>
-                <div class="gm"><time>17:00</time><img data-crest="СКА" alt=""><span>СКА — ЦСКА</span><img data-crest="ЦСКА" alt=""></div>
-                <div class="gm"><time>19:30</time><img data-crest="Ак Барс" alt=""><span>Ак Барс — Локомотив</span><img data-crest="Локомотив" alt=""></div>
-                <div class="gm"><time>19:30</time><img data-crest="Сибирь" alt=""><span>Сибирь — Трактор</span><img data-crest="Трактор" alt=""></div>
-                <div class="day">Вчера</div>
-                <div class="gm done"><time>2:1 ОТ</time><img data-crest="Локомотив" alt=""><span>Локомотив — Сибирь</span><img data-crest="Сибирь" alt=""></div>
-                <div class="gm done"><time>3:4</time><img data-crest="Трактор" alt=""><span>Трактор — СКА</span><img data-crest="СКА" alt=""></div></div></div>
-              <div class="tv"><div class="hist">
-                <svg viewBox="0 0 300 110" class="hchart" role="img" aria-label="Пример изменения банка">
-                  <line x1="10" y1="80" x2="290" y2="80" class="zero"/>
-                  <path class="area" d="M10,80 L24,71.5 L38,63 L52,73 L66,64.5 L80,74.5 L94,84.5 L108,76 L122,67.5 L136,59 L150,69 L164,60.5 L178,70.5 L192,62 L206,53.5 L220,63.5 L234,55 L248,46.5 L262,56.5 L276,48 L290,39.5 L290,80 Z"/>
-                  <path class="ln" d="M10,80 L24,71.5 L38,63 L52,73 L66,64.5 L80,74.5 L94,84.5 L108,76 L122,67.5 L136,59 L150,69 L164,60.5 L178,70.5 L192,62 L206,53.5 L220,63.5 L234,55 L248,46.5 L262,56.5 L276,48 L290,39.5"/>
-                  <circle cx="290" cy="39.5" r="4" class="end"/>
-                  <text x="10" y="104" class="ax">20 прогнозов назад</text><text x="290" y="104" class="ax" text-anchor="end">сейчас</text></svg>
-                <div class="hr"><span>29.10</span><span>Нефтехимик — Адмирал</span><span>ТБ 4,5 · 1,65</span><b class="w">✓</b></div>
-                <div class="hr"><span>30.10</span><span>Сент-Луис — Бостон</span><span>ИТБ 2,5 · 1,75</span><b class="l">✕</b></div>
-                <div class="hr"><span>30.10</span><span>Каролина — Коламбус</span><span>П1 · 1,68</span><b class="w">✓</b></div></div></div>
+              <div class="tv on"><div class="soon"><b>Скоро</b><span>Рейтинг Эло появится на сайте, когда подключим его расчёт. В таблице лист уже есть.</span></div></div>
+              <div class="tv"><table class="gt" id="gtbl"></table></div>
+              <div class="tv"><div class="soon"><b>Скоро</b><span>Что заходит у команд: цифры по сезону появятся здесь после подключения данных.</span></div></div>
+              <div class="tv"><div class="cal" id="calbox"></div></div>
+              <div class="tv"><div class="soon"><b>Скоро</b><span>История и итоги по месяцам появятся на сайте после подключения базы итогов. Пока — в канале каждое утро.</span></div></div>
               <div class="tv"><div class="more">
                 <div><b>Коэффициенты</b><span>линия на ближайшие матчи и итоги прошлых</span></div><div><b>Модель против рынка</b><span>чья оценка точнее</span></div>
                 <div><b>Купон дня</b><span>самые уверенные события дня</span></div><div><b>Мой купон</b><span>собрать свой и посчитать вероятность</span></div>
@@ -180,10 +161,12 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <section class="sec" id="model" data-zone="p3">
   <div class="wrap">
     <div class="period" data-rv><p><span class="pn">3</span><span class="pw">-й период</span><span class="pt">Модель, итоги и вопросы</span><span class="pc num">20:00</span></p></div>
-    <div class="sec-head" data-rv><h2>Как думает модель</h2><p>До матча модель разыгрывает его тысячи раз. Ставка — только там, где расчёт и линия сходятся.</p></div>
+    <div class="sec-head" data-rv><h2>Прогноз модели</h2><p>Все матчи КХЛ и НХЛ ближайших дней: вероятности модели рядом с линией. Отметка на шкале — доля линии без маржи.</p></div>
+    <div id="modelbox"></div>
+    <div class="sec-head" data-rv style="margin-top:46px"><h2>Как думает модель</h2><p>Три шага от данных к выбору. Выбор для канала делает человек по правилам ниже, а не сама модель.</p></div>
     <ol class="steps" data-rv>
-      <li><h3>Форма</h3><p>Последние игры, сила атаки и обороны, место в таблице. Броски в створ и шайбы сверх ожидания — поправка на игру.</p></li>
-      <li><h3>Линия</h3><p>Кэфы рынка сравниваются с вероятностью модели. Где модель и рынок расходятся сильно — ставки нет.</p></li>
+      <li><h3>Форма</h3><p>Результаты, сила атаки и обороны, броски в створ и шайбы сверх ожидания, вратарь и два матча за два дня.</p></li>
+      <li><h3>Линия</h3><p>Кэфы рынка сравниваются с вероятностью модели. Большое расхождение — повод перепроверить данные, а не готовый вывод.</p></li>
       <li><h3>Выбор</h3><p>Самое вероятное событие в коридоре кэфов 1,6–2,3. Остальные матчи — разбор без выбора.</p></li>
     </ol>
     <div class="lab" data-rv>
@@ -194,10 +177,10 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
         <p class="kout" id="kout" aria-live="polite"></p>
       </div>
       <div>
-        <h3 id="simh">10 000 розыгрышей: Ак Барс — Локомотив</h3>
+        <h3 id="simh">Расчёт модели</h3>
+        <select class="simsel" id="simsel" aria-label="Матч"></select>
         <div class="simbars" id="simbars"></div>
-        <button class="btn btn-line" type="button" id="again">Разыграть ещё раз</button>
-        <p class="note">Пример расчёта для матча-примера.</p>
+        <p class="note" id="simnote"></p>
       </div>
     </div>
   </div>
@@ -206,13 +189,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <section class="sec" id="honest" data-zone="p3">
   <div class="wrap">
     <div class="sec-head" data-rv><h2>Честные итоги</h2><p>Каждое утро в канале — итоги вчерашних матчей, и зашедшие, и нет. У каждого прогноза номер поста: любой можно проверить.</p></div>
-    <div class="honest">
-      <div data-rv>
-        <div class="headline-num"><span class="g"><span data-count="71" id="hP">71</span>&thinsp;%</span></div>
-        <p class="honest-cap" id="hCap">Октябрь: 153 прогноза, 108 зашли, 42 нет, 3 возврата. Сентябрь: 25 прогнозов, 21 зашёл.</p>
-      </div>
-      <div class="months" id="months" data-rv style="margin-top:0"></div>
-    </div>
+    <div class="soon honest-soon" data-rv><b>Скоро</b><span>Итоги по месяцам появятся на сайте, когда мы подключим его к базе итогов. Пока цифр здесь нет, чтобы не показывать примерные.</span><a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Итоги — в канале @jarvibet</a></div>
   </div>
 </section>
 
@@ -249,7 +226,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
     <p class="plate" aria-hidden="true">Jarvis</p>
     <div class="fcols">
       <nav aria-label="Подвал"><a href="../index.html">Главная</a><a href="../football/index.html">Футбол</a><a href="#matches">Матчи</a><a href="#honest">Итоги</a><a href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram</a></nav>
-      <p>Макет v3a · пример данных · © JARVIS, @jarvibet</p>
+      <p>Макет v3a · линии и расчёт обновляются дважды в день · © JARVIS, @jarvibet</p>
     </div>
   </div>
 </footer>
@@ -260,40 +237,10 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <script src="../assets/particles.js" defer></script>
 <script src="../assets/titles.js" defer></script>
 <script src="../assets/data/teams.js"></script>
-<script>
-/* ПРИМЕРНЫЕ ДАННЫЕ (макет, как в v2: __TODAY, __RES, __MONTHS). На сайте их подставит build.py. */
-(()=>{
- /* матчи дня — примерные; у четырёх в карусели первого экрана есть анимированный баннер (render/versus_anim.py, site=True),
-    дата и время в баннере совпадают с t */
- window.__HTODAY=[
-  {lg:'khl',t:'2026-11-01 14:30',a:'Салават Юлаев',b:'Автомобилист',p:'Победа Автомобилиста',sp:'П2',k:'1.95',y:'Автомобилист выше в таблице и в лучшей форме',x:[2.9,4.3,1.95],pr:.55},
-  {lg:'khl',t:'2026-11-01 17:00',a:'СКА',b:'ЦСКА',p:'Тотал больше 4,5',sp:'ТБ 4,5',k:'1.70',y:'Обе команды забивают в среднем больше трёх за игру',x:[2.25,4.1,2.6],pr:.56,vs:'ska_cska'},
-  {lg:'khl',t:'2026-11-01 19:30',a:'Ак Барс',b:'Локомотив',p:'Победа Локомотива',sp:'П2',k:'1.85',y:'Локомотив выиграл 2 из 3 последних',x:[2.10,4.20,1.85],pr:.58,vs:'akbars_lok'},
-  {lg:'nhl',t:'2026-11-02 02:00',a:'Бостон',b:'Торонто',p:'Победа Бостона',sp:'П1',k:'1.75',y:'Бостон дома, три победы подряд',x:[1.75,4.4,3.3],pr:.57,vs:'bos_tor'},
-  {lg:'nhl',t:'2026-11-02 04:00',a:'Колорадо',b:'Даллас',p:'Тотал больше 5,5',sp:'ТБ 5,5',k:'1.90',y:'Две самые результативные команды дивизиона',x:[2.0,4.3,2.7],pr:.555,vs:'col_dal'},
-  {lg:'nhl',t:'2026-11-02 05:00',a:'Вегас',b:'Эдмонтон',p:'Победа Эдмонтона',sp:'П2',k:'2.05',y:'Эдмонтон набрал очки в последних 3 играх',x:[2.4,4.2,2.05],pr:.52}];
- /* котировки тотала к матчам дня (пример): линия, больше, меньше */
- window.__HTOT=[['4,5',1.70,2.15],['5,5',2.05,1.78],['4,5',1.92,1.90],['5,5',1.95,1.87],['5,5',1.90,1.92],['6,5',2.10,1.74]];
- window.__RES=[{t:'Нэшвилл — Колорадо',b:'ТБ 5,5',ok:true},{t:'Рейнджерс — Лос-Анджелес',b:'ИТБ Рейнджерс 2,5',ok:true},{t:'Калгари — Торонто',b:'ТБ 5,5',ok:true},
-  {t:'Каролина — Бостон',b:'Ф2 +1,5',ok:true},{t:'Чикаго — Лос-Анджелес',b:'ИТБ Лос-Анджелеса 2,5',ok:false},{t:'Сибирь — Металлург',b:'П2',ok:false},
-  {t:'Нефтехимик — Адмирал',b:'ТБ 4,5',ok:true},{t:'Каролина — Коламбус',b:'П1',ok:true},{t:'Сент-Луис — Бостон',b:'ИТБ Бостона 2,5',ok:false}];
- window.__MONTHS=[
-  {name:'Сентябрь',n:25,w:21,l:4,p:0,rows:[
-   {d:'07.09',lg:'КХЛ',h:'Нефтехимик',a:'Сочи',bet:'Победа Нефтехимика в основное время',kef:1.72,sc:'5:1',r:'w'},
-   {d:'08.09',lg:'КХЛ',h:'Барыс',a:'Салават Юлаев',bet:'Победа Салавата Юлаева в основное время',kef:1.75,sc:'8:6',r:'l'},
-   {d:'10.09',lg:'КХЛ',h:'Нефтехимик',a:'Автомобилист',bet:'Нефтехимик не проиграет в основное время',kef:1.82,sc:'3:1',r:'w'},
-   {d:'11.09',lg:'КХЛ',h:'Лада',a:'Торпедо',bet:'Индивидуальный тотал Торпедо больше 2,5',kef:1.75,sc:'2:7',r:'w'}]},
-  {name:'Октябрь',n:153,w:108,l:42,p:3,rows:[
-   {d:'29.10',lg:'КХЛ',h:'Сибирь',a:'Металлург',bet:'Победа Металлурга в основное время',kef:1.68,sc:'5:2',r:'l'},
-   {d:'29.10',lg:'КХЛ',h:'Северсталь',a:'Спартак',bet:'Итоговая победа Спартака',kef:1.77,sc:'3:2 Б',r:'l'},
-   {d:'29.10',lg:'КХЛ',h:'Нефтехимик',a:'Адмирал',bet:'Тотал матча больше 4,5',kef:1.65,sc:'3:4',r:'w'},
-   {d:'30.10',lg:'НХЛ',h:'Каролина',a:'Коламбус',bet:'Победа Каролины в основное время',kef:1.68,sc:'3:2',r:'w'},
-   {d:'30.10',lg:'НХЛ',h:'Сент-Луис',a:'Бостон',bet:'Индивидуальный тотал Бостона больше 2,5',kef:1.75,sc:'4:1',r:'l'},
-   {d:'30.10',lg:'НХЛ',h:'Лос-Анджелес',a:'Оттава',bet:'Итоговая победа Оттавы',kef:1.92,sc:'6:5 ОТ',r:'l'}]}];
- window.__ELO=[['Локомотив',1612,14],['СКА',1598,6],['Ак Барс',1571,-4],['ЦСКА',1560,9],['Трактор',1534,-11],['Сибирь',1488,3]];
- window.__HITS=[['Локомотив',68,41,59,18],['СКА',63,61,39,22],['Ак Барс',55,50,50,25],['Трактор',48,66,34,15],['Сибирь',36,45,55,29]];
-})();
-</script>
+<script src="../data/today.js"></script>
+<script src="../data/lines.js"></script>
+<script src="../data/model.js"></script>
+<script src="../assets/lines.js"></script>
 <script>
 (()=>{
 const {esc,f1,pc,plural,RM}=JV;
@@ -318,36 +265,53 @@ const club=n=>ALIAS[n]||n;
 const crest=n=>{const k=club(n);if(EM[k])return `../assets/em/${EM[k]}.webp`;console.warn('нет эмблемы:',n);return LGI(CLUB_LG[k]||'khl')};
 const CI=(n,cls='')=>`<img class="em${cls?' '+cls:''}" src="${crest(n)}" alt="" loading="lazy">`;
 document.querySelectorAll('img[data-crest]').forEach(i=>i.src=crest(i.dataset.crest));
-const D=window.__HTODAY;
-/* цифры «прогнозов / зашло» — из тех же данных __MONTHS, что и блок «Честные итоги»: нигде не расходятся */
-{const M=window.__MONTHS,last=M[M.length-1],pct=m=>Math.round(m.w/m.n*100),$=id=>document.getElementById(id);
- const mon=s=>s.toLowerCase().replace(/ь$/,'е').replace(/рт$/,'рте').replace(/й$/,'е');
- const setN=(el,v)=>{el.dataset.count=v;el.textContent=v};
- setN($('fN'),last.n);$('fNl').textContent=`${plural(last.n,'прогноз','прогноза','прогнозов')} в ${mon(last.name)}`;
- setN($('fP'),pct(last));$('fPl').textContent=`зашло в ${mon(last.name)} (${last.w} из ${last.n})`;setN($('hP'),pct(last));
- $('hCap').textContent=[...M].reverse().map(m=>`${m.name}: ${m.n} ${plural(m.n,'прогноз','прогноза','прогнозов')}, ${m.w} ${plural(m.w,'зашёл','зашли','зашли')}`+
-  (m.l?`, ${m.l} нет`:'')+(m.p?`, ${m.p} ${plural(m.p,'возврат','возврата','возвратов')}`:'')+` — ${pct(m)} %`).join('. ')+'.'}
+const {TD:TDY,L:LN,M:MDL}=JVL;
+const CS=(slug,cls='')=>`<img class="em${cls?' '+cls:''}" src="../assets/em/${esc(slug)}.webp" alt="" loading="lazy">`;
+const NMS=(window.JV_TEAMS||{}).names||{};
+const nmS=s=>NMS[s]||s;
+const MONN=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'],WDN=['вс','пн','вт','ср','чт','пт','сб'];
+const dayName=d=>{const [y,m,dd]=d.split('-').map(Number);return `${WDN[new Date(Date.UTC(y,m-1,dd)).getUTCDay()]}, ${dd} ${MONN[m-1]}`};
+const todayD=JVL.mskDay(Date.now()),tmrD=JVL.mskDay(Date.now()+864e5);
+const dayLabel=d=>dayName(d)+(d===todayD?' · сегодня':d===tmrD?' · завтра':'');
+/* матчи окна данных: КХЛ и НХЛ из data/today.json; линия и расчёт — по ключу из data/lines.json и data/model.json */
+const ALL=(TDY.matches||[]).filter(m=>m.lg==='khl'||m.lg==='nhl').map(m=>({...m,ln:LN[m.key]||null,md:MDL[m.key]||null})).sort((a,b)=>a.t<b.t?-1:1);
+const FRESH=ALL.filter(m=>JV.left(m.t)>-3*3600);   // начавшиеся больше 3 часов назад считаем сыгранными
+const D=FRESH.length?FRESH:ALL;
+const dayNote=document.getElementById('daynote');
+if(!ALL.length){dayNote.textContent='В последнем обновлении данных матчей КХЛ и НХЛ нет. Расписание появится после следующего обновления.'}
+else if(!FRESH.length){dayNote.textContent=`Все матчи из последнего обновления (${JVL.ddmm(ALL[ALL.length-1].t)}) уже сыграны, ниже — они же. Новые появятся после обновления данных.`}
+else if(D[0].t.slice(0,10)!==todayD){dayNote.textContent=`Сегодня матчей КХЛ и НХЛ нет. Показаны ближайшие — с ${JVL.ddmm(D[0].t)}.`}
+else dayNote.hidden=true;
+const upd=TDY.built?`${JVL.ddmm(TDY.built)} в ${TDY.built.slice(11,16)} МСК`:'';
+{const $=id=>document.getElementById(id),wl=D.filter(m=>m.ln).length;
+ $('fN').dataset.count=D.length;$('fN').textContent=D.length;$('fNl').textContent=`${plural(D.length,'матч','матча','матчей')} в ближайшие дни`;
+ $('fP').dataset.count=wl;$('fP').textContent=wl;$('fPl').textContent=`с линией и расчётом модели`;
+ $('boardnote').textContent=upd?`Линия и расчёт модели обновлены ${upd}. Посты с прогнозами выходят в канале: КХЛ — до 08:00 МСК, НХЛ — до 14:00.`:'Посты с прогнозами выходят в канале: КХЛ — до 08:00 МСК, НХЛ — до 14:00.'}
 const cnt=id=>D.filter(m=>m.lg===id).length;
 const chev='<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5l5 5 5-5"/></svg>';
-const line=m=>{const inv=m.x.map(k=>1/k),s=inv.reduce((a,b)=>a+b);return inv.map(v=>v/s)};
 
-/* бегущая строка: только ближайшие будущие матчи (сегодня, завтра и ночь после), без наших прогнозов — время, лига, клубы, П1 · Х · П2 */
-{const mskDay=ms=>new Date(ms+3*3600e3).toISOString().slice(0,10),today=mskDay(Date.now()),tmr=mskDay(Date.now()+864e5);
- const up=[...D].filter(m=>JV.left(m.t)>0&&JV.left(m.t)<48*3600).sort((a,b)=>a.t<b.t?-1:1); /* ближайшие 48 ч: ночные матчи НХЛ — следующей датой */
- const L=up.length?up:[...D].filter(m=>JV.left(m.t)>0).sort((a,b)=>a.t<b.t?-1:1).slice(0,8);
- JV.ticker(document.getElementById('ticker'),L.map(m=>{const day=m.t.slice(0,10),tag=day===today?'':day===tmr?'<span class="tm2">завтра</span>':`<span class="tm2">${day.slice(8)}.${day.slice(5,7)}</span>`;
-  return `${tag}<time>${m.t.slice(11)}</time>${LGP(m.lg)}${CI(m.a,'tc')}${esc(m.a)} — ${esc(m.b)}${CI(m.b,'tc')}<span class="kq">${m.x.map(v=>f1(v,2)).join(' · ')}</span>`}))}
+/* бегущая строка: ближайшие матчи — время, лига, клубы, кэфы П1 · Х · П2 линии (если линии нет — вероятности модели) */
+{const up=D.filter(m=>JV.left(m.t)>0&&JV.left(m.t)<48*3600),L=(up.length?up:D.filter(m=>JV.left(m.t)>0)).slice(0,10);
+ if(L.length)JV.ticker(document.getElementById('ticker'),L.map(m=>{const day=m.t.slice(0,10),tag=day===todayD?'':day===tmrD?'<span class="tm2">завтра</span>':`<span class="tm2">${day.slice(8)}.${day.slice(5,7)}</span>`;
+  const q=m.ln?[m.ln.p1,m.ln.x,m.ln.p2].filter(Boolean).map(v=>f1(v,2)).join(' · '):m.md?[m.md.p1,m.md.x,m.md.p2].map(v=>Math.round(v*100)).join(' · ')+' %':'';
+  return `${tag}<time>${m.t.slice(11)}</time>${LGP(m.lg)}${CS(m.h,'tc')}${esc(m.hn)} — ${esc(m.an)}${CS(m.a,'tc')}${q?`<span class="kq">${q}</span>`:''}`}));
+ else document.getElementById('ticker').hidden=true}
 
-/* карточка «Прогноз дня»: эмблемы лицом к лицу → ставка словами → кэф и вероятность → почему → отсчёт.
+/* карточка на табло: ближайшие матчи — эмблемы, исход, который модель считает самым вероятным, линия и ожидаемые голы.
    Без табло split-flap: обычные табличные цифры, секунда сменяется лёгким сдвигом. */
-const picks=D.filter(m=>m.vs).sort((a,b)=>a.t<b.t?-1:1);
+const picks=(D.filter(m=>JV.left(m.t)>0&&m.md).length?D.filter(m=>JV.left(m.t)>0&&m.md):D).slice(0,5);
 const mcard=document.getElementById('mcard'),cdv=document.getElementById('cdv');
-const lvl=p=>p>=.57?'hi':p>=.54?'mid':'lo';
-const tm=(n,cls)=>`<div class="tm${n.length>10?' long':''}">${CI(n)}<small>${cls}</small><span>${esc(n)}</span></div>`;
-const card=m=>`<div class="face">${tm(m.a,'хозяева')}<div class="vs"><span aria-hidden="true">—</span><time>${m.t.slice(11)}</time></div>${tm(m.b,'гости')}</div>
- <div class="bet lv-${lvl(m.pr)}"><span class="bl">Прогноз</span><strong>${esc(m.p)}</strong><span class="k num" aria-label="коэффициент">${m.k.replace('.',',')}</span>
-  <span class="pm"><em><i style="--w:${Math.round(m.pr*100)}%"></i></em><b class="num">${Math.round(m.pr*100)} % по модели</b></span></div>
- <p class="why"><b>Почему:</b> ${esc(m.y)}.</p>`;
+const lvl=p=>p>=.45?'hi':p>=.38?'mid':'lo';
+const tm=(slug,name,cls)=>`<div class="tm${name.length>10?' long':''}">${CS(slug)}<small>${cls}</small><span>${esc(name)}</span></div>`;
+const card=m=>{const md=m.md,ln=m.ln,mo=md?[md.p1,md.x,md.p2]:null,i=mo?mo.indexOf(Math.max(...mo)):-1,p=i>=0?mo[i]:0;
+ const word=i===0?`${m.hn} — победа`:i===2?`${m.an} — победа`:'Ничья в основное время',kk=ln?[ln.p1,ln.x,ln.p2][i]:null;
+ const why=[];
+ if(ln)why.push(`Линия (${JVL.srcLabel(ln)}): П1 ${f1(ln.p1,2)}${ln.x?` · Х ${f1(ln.x,2)}`:''} · П2 ${f1(ln.p2,2)}.`);else why.push('Линии на матч пока нет.');
+ if(md&&md.lam)why.push(`Ожидаемые голы: ${f1(md.lam[0],1)} : ${f1(md.lam[1],1)}.`);
+ return `<div class="face">${tm(m.h,m.hn,'хозяева')}<div class="vs"><span aria-hidden="true">—</span><time>${m.t.slice(11)}</time></div>${tm(m.a,m.an,'гости')}</div>
+ ${md?`<div class="bet lv-${lvl(p)}"><span class="bl">Расчёт модели</span><strong>${esc(word)}</strong><span class="k num" aria-label="${kk?'кэф линии':'линии нет'}">${kk?f1(kk,2):'—'}</span>
+  <span class="pm"><em><i style="--w:${Math.round(p*100)}%"></i></em><b class="num">${Math.round(p*100)} % по модели</b></span></div>`:'<div class="bet lv-lo"><span class="bl">Расчёт модели</span><strong>Расчёта на этот матч пока нет</strong></div>'}
+ <p class="why">${esc(why.join(' '))}</p>`};
 /* отсчёт: «32 ч 44 мин 05 с»; меняется только та часть, что изменилась */
 cdv.innerHTML=['h','m','s'].map((u,i)=>`<span class="cu" data-u="${u}"><b></b><small>${['ч','мин','с'][i]}</small></span>`).join('');
 const cu=[...cdv.querySelectorAll('.cu b')],cdWord=document.createElement('b');cdWord.className='cdw';cdv.appendChild(cdWord);
@@ -362,14 +326,16 @@ function swap(m,dir){
   out.finished.then(()=>{mcard.innerHTML=card(m);out.cancel();
     mcard.animate([{opacity:0,transform:`translateX(${22*dir}px)`},{opacity:1,transform:'none'}],{duration:420,easing:'cubic-bezier(.23,1,.32,1)'})}).catch(()=>{mcard.innerHTML=card(m)});
 }
-document.getElementById('bdate').textContent=new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
 let cur=0,timer=0,shown=false;const pager=document.getElementById('pager');
-pager.innerHTML=picks.map((m,i)=>`<button type="button" aria-pressed="${i===0}" aria-label="${esc(m.a)} — ${esc(m.b)}"></button>`).join('');
+const boardEl=document.getElementById('board');
+if(!picks.length){document.getElementById('mstage').innerHTML='<p class="note" style="padding:24px 8px">Матчи появятся после обновления данных.</p>';cdv.parentElement.hidden=true;pager.hidden=true;document.getElementById('bdate').textContent=''}
+else{
+pager.innerHTML=picks.map((m,i)=>`<button type="button" aria-pressed="${i===0}" aria-label="${esc(m.hn)} — ${esc(m.an)}"></button>`).join('');
 function show(i){const dir=i>=cur?1:-1;cur=i;const m=picks[i];
  boardEl.classList.toggle('khl',m.lg==='khl');boardEl.classList.toggle('nhl',m.lg==='nhl');
  document.getElementById('blg').innerHTML=LGP(m.lg);
  document.getElementById('bmeta').textContent=`${LG[m.lg].name} · ${m.t.slice(11)} МСК`;
- document.getElementById('bhead').textContent=i===0?`Прогноз дня · 1 из ${picks.length}`:`Прогноз ${i+1} из ${picks.length}`;
+ document.getElementById('bhead').textContent=i===0?`Матч 1 из ${picks.length}`:`Матч ${i+1} из ${picks.length}`;
  pager.querySelectorAll('button').forEach((b,j)=>b.setAttribute('aria-pressed',j===i));
  swap(m,shown?dir:1);shown=true;cdSet(JV.left(m.t));
  document.getElementById('bdate').textContent=new Date(m.t.slice(0,10)+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}
@@ -378,62 +344,76 @@ function show(i){const dir=i>=cur?1:-1;cur=i;const m=picks[i];
  z.addEventListener('touchend',e=>{if(sx===null)return;const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;sx=null;
   if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)){show((cur+(dx<0?1:picks.length-1))%picks.length);restart()}},{passive:true})}
 pager.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;show([...pager.children].indexOf(b));restart()});
-function restart(){clearInterval(timer);if(!RM)timer=setInterval(()=>show((cur+1)%picks.length),9000)}
-const boardEl=document.getElementById('board');
+function restart(){clearInterval(timer);if(!RM&&picks.length>1)timer=setInterval(()=>show((cur+1)%picks.length),9000)}
 boardEl.addEventListener('mouseenter',()=>clearInterval(timer));boardEl.addEventListener('mouseleave',restart);
 const bio=new IntersectionObserver(es=>{if(es[0].isIntersecting){show(0);restart();bio.disconnect()}});bio.observe(boardEl);
+}
 
-/* матчи: лицевая сторона — котировки события (П1 · Х · П2 и тотал), по нажатию строка раскрывается:
-   последние 3 матча, форма, статистика команд, что заходило в наших последних ставках. Всё — пример данных. */
+/* матчи: лицевая сторона — линия (кэфы П1 · Х · П2 и тотал, источник и время снятия) и расчёт модели; по нажатию строка раскрывается:
+   вероятности исходов, тотал, ожидаемые голы, затем последние матчи, форма, статистика и личные встречи сезона. */
 const ltabs=document.getElementById('ltabs'),list=document.getElementById('mlist');
 ltabs.innerHTML=`<button class="tab" role="tab" aria-selected="true" data-l="all">Все <span class="c">${D.length}</span></button>`+
  Object.entries(LG).map(([id,l])=>`<button class="tab" role="tab" aria-selected="false" data-l="${id}">${LGP(id)}${l.name} <span class="c">${cnt(id)}</span></button>`).join('');
-D.forEach((m,i)=>m.tot=window.__HTOT[i%window.__HTOT.length]);
-/* раскрытая карточка — из assets/data/teams.js (матчи сезона с живого сайта; у записей s:1 — пример) */
-const TD=(window.JV_TEAMS||{}).teams||{},SL=n=>EM[club(n)];
+/* раскрытая карточка — из assets/data/teams.js (матчи сезона) */
+const TD=(window.JV_TEAMS||{}).teams||{};
 const dd=t=>`${t.slice(8,10)}.${t.slice(5,7)}`;
 const played=g=>g.gf!=null&&g.ga!=null;
 const rOf=g=>g.gf>g.ga?'w':g.x?'o':'l';
 const RES={w:'В',l:'П',o:'ОТ'},RESF={w:'победа',l:'поражение',o:'поражение в овертайме или по буллитам'};
-function det(m){if(m.det)return m.det;const A=TD[SL(m.a)]||null,B=TD[SL(m.b)]||null;
+function det(m){if(m.det)return m.det;const A=TD[m.h]||null,B=TD[m.a]||null;
  const games=T=>T?T.games.filter(played).sort((x,y)=>x.d<y.d?1:-1):[];
  const st=T=>T?[['Шайбы за игру',(T.gf/T.gp).toFixed(1).replace('.',',')],['Пропущено за игру',(T.ga/T.gp).toFixed(1).replace('.',',')],['Очки',T.pts],['Победы — поражения',`${T.w} — ${T.l}`],['Место в конференции',T.place]]:[];
- const h2h=A?games(A).filter(g=>g.o===SL(m.b)):[];
- return m.det={A:{name:m.a,g:games(A),st:st(A)},B:{name:m.b,g:games(B),st:st(B)},h2h}}
-function back(m){const {A,B,h2h}=det(m),nmS=sl=>(window.JV_TEAMS.names||{})[sl]||sl;
- const smp=g=>g.s?' <span class="smp">пример</span>':'';
- const last=t=>`<div class="l3"><h5>${CI(t.name)}${esc(t.name)}</h5><ul>${t.g.slice(0,3).map(g=>{const r=rOf(g);return `<li><b class="rs ${r}" title="${RESF[r]}">${RES[r]}</b><span class="op">${CI(nmS(g.o))}${esc(nmS(g.o))}</span><span class="sc num">${g.gf}:${g.ga}${g.x?`<small>${g.x}</small>`:''}</span><span class="d">${dd(g.d)}${smp(g)}</span></li>`}).join('')||'<li class="none">Нет данных</li>'}</ul></div>`;
- const form=t=>`<div class="fm"><span>${CI(t.name)}${esc(t.name)}</span><span class="dots" aria-label="форма: ${t.g.slice(0,5).reverse().map(g=>(rOf(g)==='w'?'победа над ':'поражение от ')+nmS(g.o)+' '+g.gf+':'+g.ga).join(', ')}">${t.g.slice(0,5).reverse().map(g=>{const r=rOf(g),o=nmS(g.o),sc=`${g.gf}:${g.ga}`,ex=g.x?(g.x==='Б'?' по буллитам':' в овертайме'):'',tt=r==='w'?`Победа над ${o} ${sc}${ex}`:`Поражение от ${o} ${sc}${ex}`;return `<i class="${r}" title="${esc(tt)}"><img src="../assets/em/${esc(g.o)}.webp" alt="" loading="lazy"></i>`}).join('')}</span></div>`;
- /* личные встречи: счёт с точки зрения хозяев матча m.a */
+ const h2h=A?games(A).filter(g=>g.o===m.a):[];
+ return m.det={A:{slug:m.h,name:m.hn,g:games(A),st:st(A)},B:{slug:m.a,name:m.an,g:games(B),st:st(B)},h2h}}
+function back(m){const {A,B,h2h}=det(m);
+ const last=t=>`<div class="l3"><h5>${CS(t.slug)}${esc(t.name)}</h5><ul>${t.g.slice(0,3).map(g=>{const r=rOf(g);return `<li><b class="rs ${r}" title="${RESF[r]}">${RES[r]}</b><span class="op">${CS(g.o)}${esc(nmS(g.o))}</span><span class="sc num">${g.gf}:${g.ga}${g.x?`<small>${g.x}</small>`:''}</span><span class="d">${dd(g.d)}</span></li>`}).join('')||'<li class="none">Нет данных</li>'}</ul></div>`;
+ const form=t=>`<div class="fm"><span>${CS(t.slug)}${esc(t.name)}</span><span class="dots" aria-label="форма: ${esc(t.g.slice(0,5).reverse().map(g=>(rOf(g)==='w'?'победа над ':'поражение от ')+nmS(g.o)+' '+g.gf+':'+g.ga).join(', '))}">${t.g.slice(0,5).reverse().map(g=>{const r=rOf(g),o=nmS(g.o),sc=`${g.gf}:${g.ga}`,ex=g.x?(g.x==='Б'?' по буллитам':' в овертайме'):'',tt=r==='w'?`Победа над ${o} ${sc}${ex}`:`Поражение от ${o} ${sc}${ex}`;return `<i class="${r}" title="${esc(tt)}"><img src="../assets/em/${esc(g.o)}.webp" alt="" loading="lazy"></i>`}).join('')}</span></div>`;
+ /* личные встречи: счёт с точки зрения хозяев матча */
  const wA=h2h.filter(g=>g.gf>g.ga).length,wB=h2h.length-wA;
- const h2hHTML=h2h.length?`<p class="h2t"><span>${CI(m.a)}${esc(m.a)}</span><b class="num">${wA} — ${wB}</b><span>${esc(m.b)}${CI(m.b)}</span></p><ul class="h2l">${h2h.map(g=>{const home=g.h?m.a:m.b,away=g.h?m.b:m.a,hs=g.h?g.gf:g.ga,as=g.h?g.ga:g.gf,aw=g.gf>g.ga;
-   return `<li class="${aw?'wa':'wb'}"><span class="d">${dd(g.d)}</span><span class="pp">${CI(home)}<span class="${hs>as?'wn':''}">${esc(home)}</span></span><span class="sc num"><b class="${hs>as?'wn':''}">${hs}</b>:<b class="${as>hs?'wn':''}">${as}</b>${g.x?`<small>${g.x}</small>`:''}</span><span class="pp aw">${CI(away)}<span class="${as>hs?'wn':''}">${esc(away)}</span></span>${smp(g)}</li>`}).join('')}</ul>`
+ const h2hHTML=h2h.length?`<p class="h2t"><span>${CS(m.h)}${esc(m.hn)}</span><b class="num">${wA} — ${wB}</b><span>${esc(m.an)}${CS(m.a)}</span></p><ul class="h2l">${h2h.map(g=>{const hs=g.h?g.gf:g.ga,as=g.h?g.ga:g.gf,hh=g.h?m.h:m.a,aa=g.h?m.a:m.h,aw=g.gf>g.ga;
+   return `<li class="${aw?'wa':'wb'}"><span class="d">${dd(g.d)}</span><span class="pp">${CS(hh)}<span class="${hs>as?'wn':''}">${esc(nmS(hh))}</span></span><span class="sc num"><b class="${hs>as?'wn':''}">${hs}</b>:<b class="${as>hs?'wn':''}">${as}</b>${g.x?`<small>${g.x}</small>`:''}</span><span class="pp aw">${CS(aa)}<span class="${as>hs?'wn':''}">${esc(nmS(aa))}</span></span></li>`}).join('')}</ul>`
   :`<p class="none">В этом сезоне ещё не встречались.</p>`;
- return `<div class="xd">
+ return `<div class="xd">${JVL.why(m)}
   <section class="xb x-last"><h4>Последние 3 матча</h4><div class="two">${last(A)}${last(B)}</div></section>
   <section class="xb x-form"><h4>Форма <span class="note">последние 5: слева раньше, справа последняя; в кружке — соперник</span></h4>${form(A)}${form(B)}</section>
-  <section class="xb x-stat"><h4>Статистика команды <span class="note">сезон 2026/27</span></h4><table class="st"><thead><tr><th></th><th>${CI(A.name)}<span>${esc(A.name)}</span></th><th>${CI(B.name)}<span>${esc(B.name)}</span></th></tr></thead>
+  <section class="xb x-stat"><h4>Статистика команды <span class="note">сезон 2026/27</span></h4><table class="st"><thead><tr><th></th><th>${CS(A.slug)}<span>${esc(A.name)}</span></th><th>${CS(B.slug)}<span>${esc(B.name)}</span></th></tr></thead>
    <tbody>${A.st.map((r,i)=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${B.st[i]?B.st[i][1]:'—'}</td></tr>`).join('')}</tbody></table></section>
   <section class="xb x-h2h"><h4>Личные встречи в этом сезоне</h4>${h2hHTML}</section>
-  <p class="note xn">Матчи и статистика — по данным сезона; помеченное «пример» — примерные данные макета.</p></div>`}
-function row(m){const L=LG[m.lg],ln=line(m),mx=Math.max(...ln),[tl,to,tu]=m.tot;
+  <p class="note xn">Линия и расчёт модели — по данным на ${upd||'последнее обновление'}; матчи и статистика — по данным сезона.</p></div>`}
+function row(m){const L=LG[m.lg];
  return `<li class="match ${m.lg}"><button class="mhead" type="button" aria-expanded="false">
   <div class="mt"><time>${m.t.slice(11)}</time><span class="cd" data-t="${m.t}"></span></div>
-  <div><div class="lgline">${LGP(m.lg)}${L.name}</div><div class="teams"><div class="team">${CI(m.a)}<span>${esc(m.a)}</span></div><div class="team">${CI(m.b)}<span>${esc(m.b)}</span></div></div></div>
-  <div class="quotes"><div class="q3">${['П1','Х','П2'].map((k,j)=>`<span class="qc${ln[j]===mx?' fav':''}"><small>${k}</small><b class="num">${f1(m.x[j],2)}</b><em class="num">${pc(ln[j])}</em></span>`).join('')}</div>
-   <div class="qt">Тотал ${tl} <span>Б <b class="num">${f1(to,2)}</b></span><span>М <b class="num">${f1(tu,2)}</b></span></div></div>
+  <div><div class="lgline">${LGP(m.lg)}${L.name}</div><div class="teams"><div class="team">${CS(m.h)}<span>${esc(m.hn)}</span></div><div class="team">${CS(m.a)}<span>${esc(m.an)}</span></div></div></div>
+  <div class="quotes">${JVL.quotes(m)}</div>
   <span class="chev">${chev}</span></button>
   <div class="mbody"><div>${''}</div></div></li>`}
-function render(l){const sel=(l==='all'?D:D.filter(m=>m.lg===l)).slice().sort((a,b)=>a.t<b.t?-1:1);
+function render(l){const sel=(l==='all'?D:D.filter(m=>m.lg===l));
  ltabs.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.l===l));
- list.innerHTML=sel.map(row).join('');
+ let html='',prev='';sel.forEach(m=>{const d=m.t.slice(0,10);if(d!==prev){prev=d;html+=`<li class="dayh" aria-hidden="true">${dayLabel(d)}</li>`}html+=row(m)});
+ list.innerHTML=html||'<li class="note" style="padding:18px 4px">Матчей в этой лиге нет.</li>';
  list.querySelectorAll('.match').forEach((li,i)=>{const b=li.querySelector('.mhead'),body=li.querySelector('.mbody>div');
   b.addEventListener('click',()=>{if(!body.innerHTML)body.innerHTML=back(sel[i]);requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o)})})});
- if(!RM)list.querySelectorAll('.match').forEach((li,i)=>li.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:i*55,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}));
+ if(!RM)list.querySelectorAll('.match').forEach((li,i)=>li.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:Math.min(i,12)*55,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}));
  requestAnimationFrame(()=>list.querySelectorAll('.match').forEach(li=>li.classList.add('in')));tick()}
 function tick(){document.querySelectorAll('.cd[data-t]').forEach(e=>e.textContent=JV.inMin(JV.left(e.dataset.t)));if(shown)cdSet(JV.left(picks[cur].t))}
 ltabs.addEventListener('click',e=>{const t=e.target.closest('.tab');if(t)render(t.dataset.l)});
 render('all');setInterval(tick,1000);
+
+/* «Прогноз модели» (#model): все матчи окна — вероятности модели рядом с линией */
+JVL.section(document.getElementById('modelbox'),D.map(m=>({...m,lgHtml:LGP(m.lg)+LG[m.lg].name,home:`${CS(m.h)}<span>${esc(m.hn)}</span>`,away:`${CS(m.a)}<span>${esc(m.an)}</span>`,dayLabel})),
+ {noLine:'Линии пока нет',explain:`<p>Для каждой команды модель ведёт рейтинг: он учитывает результаты, качество бросков (ожидаемые голы), игру вратаря и усталость — два матча за два дня. Из рейтингов выходит ожидаемое число голов у каждой стороны, а из него по модели Пуассона — вероятности победы в основное время, ничьей и тотала.</p>
+ <p>Итоговая вероятность — среднее двух оценок: расчёта по счёту и того, как часто заканчивают игры сами эти команды. Линия рынка в расчёт не входит, поэтому расхождение с ней — это разница оценок, а не ошибка одной из сторон.</p>`});
+
+/* реальный расчёт вместо розыгрыша: вероятности модели по выбранному матчу */
+const sb=document.getElementById('simbars'),sel=document.getElementById('simsel');
+{const L=D.filter(m=>m.md);
+ sel.innerHTML=L.map((m,i)=>`<option value="${i}">${esc(m.t.slice(8,10)+'.'+m.t.slice(5,7)+' '+m.t.slice(11))} · ${esc(m.hn)} — ${esc(m.an)}</option>`).join('');
+ const showSim=i=>{const m=L[i];if(!m)return;const r=[m.md.p1,m.md.x,m.md.p2],mx=Math.max(...r);
+  document.getElementById('simh').textContent=`Расчёт модели: ${m.hn} — ${m.an}`;
+  sb.innerHTML=['П1','Х','П2'].map((l,j)=>`<div class="${r[j]===mx?'pk':''}"><b>${pc(r[j])}</b><em><i style="--h:0%"></i></em><span>${l}</span></div>`).join('');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>sb.querySelectorAll('i').forEach((el,j)=>el.style.setProperty('--h',(r[j]*100/0.7).toFixed(1)+'%'))));
+  document.getElementById('simnote').textContent=`Основное время: П1 — победа ${m.hn}, Х — ничья, П2 — победа ${m.an}. ${m.md.lam?`Ожидаемые голы ${f1(m.md.lam[0],1)} : ${f1(m.md.lam[1],1)}.`:''}`};
+ if(L.length){sel.addEventListener('change',()=>showSim(+sel.value));showSim(0)}else{sel.hidden=true;sb.innerHTML='<p class="note">Расчёт появится после обновления данных.</p>'}}
 
 /* лиги и клубы: две большие плашки — переключатель, ниже эмблемы выбранной лиги */
 const flags=document.getElementById('flags'),wallEl=document.getElementById('wall'),wallH=document.getElementById('wallh');
@@ -441,7 +421,7 @@ const CLUBS={khl:KHL_CLUBS,nhl:NHL_CLUBS};let curLg='';
 /* эмблема на стене — ссылка на страницу команды (team/index.html?id=<файл эмблемы>); тема из адреса сохраняется */
 const TQ=(t=>/^(arena|a|b|c)$/.test(t||'')?'&theme='+t:'')(new URLSearchParams(location.search).get('theme'));
 flags.innerHTML=Object.entries(LG).map(([id,l])=>{const n=cnt(id);
- return `<button type="button" role="tab" class="lgtab ${id}" id="lg-${id}" data-lg="${id}" aria-selected="false" aria-controls="wallbox"><img class="lgbg" src="${LGI(id)}" alt=""><span class="lgtx"><span class="lgn">${l.name}</span><span class="lgf">${l.full}</span><span class="nt">Матчи ${l.when}</span><span class="cnt">${n} ${plural(n,'матч','матча','матчей')} сегодня</span></span></button>`}).join('');
+ return `<button type="button" role="tab" class="lgtab ${id}" id="lg-${id}" data-lg="${id}" aria-selected="false" aria-controls="wallbox"><img class="lgbg" src="${LGI(id)}" alt=""><span class="lgtx"><span class="lgn">${l.name}</span><span class="lgf">${l.full}</span><span class="nt">Матчи ${l.when}</span><span class="cnt">${n} ${plural(n,'матч','матча','матчей')} в ближайшие дни</span></span></button>`}).join('');
 function pickLg(lg,anim=true){if(lg===curLg)return;curLg=lg;
  flags.querySelectorAll('.lgtab').forEach(b=>b.setAttribute('aria-selected',b.dataset.lg===lg));
  const list=CLUBS[lg],put=()=>{wallH.innerHTML=`${LGP(lg)}<span>${LG[lg].name}</span><span>${list.length} ${plural(list.length,'клуб','клуба','клубов')}</span><a class="lglink" href="league.html?lg=${lg}${TQ}">Страница лиги →</a>`;
@@ -469,8 +449,16 @@ if(/^#lg-(khl|nhl)$/.test(location.hash))pickLg(location.hash.slice(4),false);
  vis.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
  vis.addEventListener('touchend',e=>{if(x0===null)return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy))go(ti+(dx<0?1:-1))},{passive:true});
  const lo=1440,hi=1640;
- document.getElementById('elo').innerHTML=window.__ELO.map(([n,v,d],i)=>`<div class="er"><b>${i+1}</b>${CI(n)}<span>${esc(n)}</span><em style="--w:${((v-lo)/(hi-lo)*100).toFixed(0)}%"></em><strong>${v}</strong><small class="${d>0?'up':'dn'}">${d>0?'+':'−'}${Math.abs(d)}</small></div>`).join('');
- document.getElementById('heat').innerHTML='<tr><th></th><th>Победа</th><th>ТБ 5,5</th><th>ТМ 5,5</th><th>ОТ</th></tr>'+window.__HITS.map(([n,...v])=>`<tr><td>${CI(n)}${esc(n)}</td>${v.map(x=>`<td style="--h:${(x/100).toFixed(2)}">${x}%</td>`).join('')}</tr>`).join('');
+ {const T5=D.filter(m=>m.md&&m.ln).slice(0,5);
+  document.getElementById('gtbl').innerHTML=T5.length?'<tr><th>Время</th><th>Матч</th><th>Исход</th><th>Кэф</th><th>Вер.</th></tr>'+T5.map(m=>{const mo=[m.md.p1,m.md.x,m.md.p2],i=mo.indexOf(Math.max(...mo)),kk=[m.ln.p1,m.ln.x,m.ln.p2][i];
+   return `<tr><td>${m.t.slice(11)}</td><td>${esc(m.hn)} — ${esc(m.an)}</td><td>${['П1','Х','П2'][i]}</td><td class="k">${kk?f1(kk,2):'—'}</td><td><i class="pb" style="--w:${Math.round(mo[i]*100)}%"></i>${Math.round(mo[i]*100)}%</td></tr>`}).join(''):'<tr><td>Расчёт появится после обновления данных</td></tr>';
+  const gm=m=>`<div class="gm"><time>${m.t.slice(11)}</time>${CS(m.h)}<span>${esc(m.hn)} — ${esc(m.an)}</span>${CS(m.a)}</div>`;
+  let cal='',pd='';D.slice(0,5).forEach(m=>{const d=m.t.slice(0,10);if(d!==pd){pd=d;cal+=`<div class="day">${d===todayD?'Сегодня':d===tmrD?'Завтра':dd(d)}</div>`}cal+=gm(m)});
+  /* последние сыгранные матчи — из данных сезона (assets/data/teams.js), по одному разу: берём запись хозяев */
+  const done=[];Object.entries(TD).forEach(([sl,T])=>T.games.forEach(g=>{if(g.h===1&&played(g))done.push({d:g.d,h:sl,a:g.o,gf:g.gf,ga:g.ga,x:g.x})}));
+  done.sort((a,b)=>a.d<b.d?1:-1);const ld=done.length?done[0].d.slice(0,10):'';
+  if(ld){cal+=`<div class="day">Сыграно ${dd(ld)}</div>`;done.filter(g=>g.d.slice(0,10)===ld).slice(0,4).forEach(g=>{cal+=`<div class="gm done"><time>${g.gf}:${g.ga}${g.x?' '+g.x:''}</time>${CS(g.h)}<span>${esc(nmS(g.h))} — ${esc(nmS(g.a))}</span>${CS(g.a)}</div>`})}
+  document.getElementById('calbox').innerHTML=cal||'<div class="day">Расписание появится после обновления данных</div>'}
  tour.querySelectorAll('img[data-crest]').forEach(i=>{i.src=crest(i.dataset.crest);i.className='em'});
  go(0);}
 
@@ -480,19 +468,6 @@ const kv=()=>{const v=+k.value,p=(v-1.2)/2;puck.style.left=(p*100)+'%';
  ko.innerHTML=`<b>${f1(v,2)}</b> — ≈ ${Math.round(100/v)} % по линии. `+(v<1.6?'Слишком низкий кэф: рисковать ради такого нет смысла.':v<=2.3?'Рабочий коридор модели.':'Слишком высокий кэф: больше случайности, чем расчёта.')};
 k.addEventListener('input',kv);kv();
 
-/* 10 000 розыгрышей: П1 26 %, Х 16 %, П2 58 % — пример как в v2 */
-const sb=document.getElementById('simbars');
-function sim(n){const c=[0,0,0];for(let i=0;i<n;i++){const r=Math.random();c[r<.26?0:r<.42?1:2]++}return c.map(v=>v/n)}
-function showSim(r){sb.innerHTML=['П1','Х','П2'].map((l,i)=>`<div class="${i===2?'pk':''}"><b>${pc(r[i])}</b><em><i style="--h:0%"></i></em><span>${l}</span></div>`).join('');
- requestAnimationFrame(()=>requestAnimationFrame(()=>sb.querySelectorAll('i').forEach((el,i)=>el.style.setProperty('--h',(r[i]*100/0.7).toFixed(1)+'%'))))}
-const simIO=new IntersectionObserver(es=>{if(es[0].isIntersecting){showSim(sim(10000));simIO.disconnect()}});simIO.observe(sb);
-document.getElementById('again').addEventListener('click',()=>{if(RM){showSim(sim(10000));return}let n=0;const iv=setInterval(()=>{const r=sim(300);sb.querySelectorAll('div').forEach((d,i)=>{d.querySelector('b').textContent=pc(r[i]);d.querySelector('i').style.setProperty('--h',(r[i]*100/0.7).toFixed(1)+'%')});if(++n>8){clearInterval(iv);const f=sim(10000);sb.querySelectorAll('div').forEach((d,i)=>{d.querySelector('b').textContent=pc(f[i]);d.querySelector('i').style.setProperty('--h',(f[i]*100/0.7).toFixed(1)+'%')})}},80)});
-
-/* месяцы */
-document.getElementById('months').innerHTML=window.__MONTHS.map(m=>`<div><h3>${m.name}</h3>
- <div class="q num" style="font:800 40px/1 var(--display);margin:10px 0 4px">${m.w}<span style="color:var(--ink-3);font-size:.6em"> из ${m.n}</span></div>
- <p class="note" style="margin:0">зашли · ${m.l} нет${m.p?` · ${m.p} ${plural(m.p,'возврат','возврата','возвратов')}`:''}</p>
- <ul class="posts">${m.rows.slice(-4).map(r=>`<li><span class="d">${r.d}</span><span><span class="pm">${LGP(r.lg==='НХЛ'?'nhl':'khl')}${CI(r.h)}${esc(r.h)} — ${CI(r.a)}${esc(r.a)}, ${r.sc}</span><br><span class="note">${esc(r.bet)} · ${f1(r.kef,2)}</span></span><span class="res ${r.r}">${r.r==='w'?'зашла':'нет'}</span></li>`).join('')}</ul></div>`).join('');
 })();
 </script>
 </body>

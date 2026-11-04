@@ -112,7 +112,7 @@ const streakHtml=streak.n>=3?`<p class="tmstreak ${streak.win?'w':'l'}" aria-lab
 const TGICO='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.9.8 1.4.4l2.6-2.2 4.8 3.5c.6.4 1.4.1 1.6-.7l3.1-15.1c.2-1-.7-1.7-1.6-1.3z"/></svg>';
 /* «Следить за командой»: старт бота с параметром follow_<id> (подписку на команду в боте делают отдельно) */
 const followBtn=(cls='')=>`<a class="follow ${cls}" href="https://t.me/jarvibet?start=follow_${esc(ID)}" target="_blank" rel="noopener" title="Прогноз и итог матча — в Telegram">${TGICO}<span>Получать прогнозы</span></a>`;
-const hasSample=T.games.some(g=>g.s||g.ks);
+const hasSample=T.games.some(g=>g.s),hasEst=T.games.some(g=>g.ks);
 const otl=Math.max(0,(T.pts||0)-2*(T.w||0));
 const confRows=Object.entries(D.teams).filter(([,x])=>x.lg===lg&&x.conf===conf).sort((a,b)=>a[1].place-b[1].place);
 const builtDay=(D.built||'').slice(0,10),bd=builtDay?day(builtDay):null;
@@ -189,13 +189,16 @@ document.getElementById('tableBox').innerHTML=`
 
 /* ── 3. все матчи сезона ── */
 const kf=v=>v==null?'—':f(v,2);
+const SRCN={fonbet:'Фонбет','khl-app':'приложение КХЛ',pinnacle:'Pinnacle',espn:'ESPN'};
+/* подпись под линией: источник (ksrc) и вероятности модели (pm), либо «оценка модели, линии ещё нет» (ks:1) */
+const kNote=g=>g.ks?'оценка модели, линии ещё нет':`${g.ksrc?'Линия: '+(SRCN[g.ksrc]||g.ksrc):'Линия'}${g.pm?` · модель: ${g.pm.map(v=>Math.round(v*100)).join(' · ')} %`:''}`;
 const row=g=>{const t=day(g.d),opp=tl(g.o,`${em(g.o)}<span>${esc(nm(g.o))}</span>`,'op');
  const when=`<span class="gd"><b>${t.d} ${t.mon}</b><small>${t.wd}${t.tm?' · '+t.tm:''}</small></span>`;
  const ha=`<span class="ha ${g.h?'h':'a'}" title="${g.h?'дома':'в гостях'}">${g.h?'Д':'В'}</span>`;
  const smp=g.s?'<span class="smp">пример</span>':'';
  if(g.gf!=null){const r=rlab(g);
   return `<li class="g ${g.h?'home':'away'}${g.s?' is-s':''}">${when}${ha}${opp}<span class="sc num">${g.gf}:${g.ga}${g.x?`<small>${g.x}</small>`:''}</span><span class="rs ${r[1]}" title="${r[2]}">${r[0]}</span>${smp}</li>`}
- return `<li class="g fut ${g.h?'home':'away'}${g.s?' is-s':''}">${when}${ha}${opp}<span class="kx num" aria-label="Линия: победа команды ${esc(T.name)} ${kf(g.k[0])}, ничья ${kf(g.k[1])}, победа соперника ${kf(g.k[2])}"><span><small>П</small>${kf(g.k[0])}</span><span><small>Х</small>${kf(g.k[1])}</span><span><small>П</small>${kf(g.k[2])}</span></span>${g.s||g.ks?'<span class="smp">пример</span>':''}</li>`};
+ return `<li class="g fut ${g.h?'home':'away'}${g.s?' is-s':''}">${when}${ha}${opp}<span class="kxw"><span class="kx num" aria-label="${g.ks?'Оценка модели':'Линия'}: победа команды ${esc(T.name)} ${kf(g.k[0])}, ничья ${kf(g.k[1])}, победа соперника ${kf(g.k[2])}"><span><small>П</small>${kf(g.k[0])}</span><span><small>Х</small>${kf(g.k[1])}</span><span><small>П</small>${kf(g.k[2])}</span></span><small class="kn${g.ks?' est':''}">${kNote(g)}</small></span></li>`};
 const wins=played.filter(g=>res(g)==='W').length;
 const lossReg=played.filter(g=>res(g)==='L').length,lossOt=played.length-wins-lossReg;
 const gfS=played.reduce((a,g)=>a+g.gf,0),gaS=played.reduce((a,g)=>a+g.ga,0);
@@ -214,7 +217,7 @@ document.getElementById('gamesBox').innerHTML=`
   <h3 class="gh">Сыгранные<span>${played.length}</span></h3>
   <ol class="gs">${played.slice().reverse().map(row).join('')}</ol>
  </div>
- ${hasSample?`<p class="note smpnote"><span class="sample">Пример данных</span> Строки с пометкой «пример» — линия на матчи, где её ещё нет, и матчи, которых нет в данных лиги, дописаны для макета. Сыгранные матчи со счётом, игроки, место и шестиугольник — настоящие.</p>`:''}`;
+ ${hasEst||hasSample?`<p class="note smpnote">${hasEst?'Кэфы с пометкой «оценка модели» посчитаны по расчёту модели: реальной линии на эти матчи ещё нет. ':''}Первые три цифры у остальных матчей — линия на день снятия; «модель» — вероятности П1 · Х · П2 нашего расчёта.${hasSample?' Строки с пометкой «пример» дописаны для макета.':''}</p>`:''}`;
 document.querySelectorAll('.gfilter button').forEach(b=>b.addEventListener('click',()=>{
  document.querySelectorAll('.gfilter button').forEach(x=>x.setAttribute('aria-pressed',x===b));document.getElementById('glist').dataset.f=b.dataset.f}));
 
@@ -249,8 +252,8 @@ if(nextG){
   <article class="nmatch" data-rv aria-label="${esc(T.name)} — ${esc(nm(nextG.o))}, ${t.d} ${t.mon}, ${t.tm} МСК">
    <div class="nmteams">${crest(oh?ID:nextG.o,'a')}<span class="nmmid"><span class="nmdt"><b>${t.d} ${t.mon}</b><small>${t.wd}${t.tm?' · '+t.tm+' МСК':''}</small></span><span class="nmha ${oh?'h':'a'}">${oh?'Дома':'В гостях'}</span></span>${crest(oh?nextG.o:ID,'b')}</div>
    <div class="nmside">
-    ${k?`<div class="nmline"><span class="sl">Линия на матч${sm?' · <em class="smp">пример</em>':''}</span>
-      <ol class="kx" aria-label="Линия: ${esc(T.name)} ${kf(k[0])}, ничья ${kf(k[1])}, ${esc(nm(nextG.o))} ${kf(k[2])}">${k.map((v,i)=>`<li><b class="num">${kf(v)}</b><small>${kl[i]}</small></li>`).join('')}</ol></div>`
+    ${k?`<div class="nmline"><span class="sl">${nextG.ks?'Оценка модели · линии ещё нет':'Линия на матч'+(nextG.ksrc?' · '+(SRCN[nextG.ksrc]||nextG.ksrc):'')}</span>
+      <ol class="kx" aria-label="Линия: ${esc(T.name)} ${kf(k[0])}, ничья ${kf(k[1])}, ${esc(nm(nextG.o))} ${kf(k[2])}">${k.map((v,i)=>`<li><b class="num">${kf(v)}</b><small>${kl[i]}</small></li>`).join('')}</ol>${nextG.pm?`<p class="mdl" aria-label="Расчёт модели">Модель JARVIS: <b>П1 ${Math.round(nextG.pm[0]*100)} % · Х ${Math.round(nextG.pm[1]*100)} % · П2 ${Math.round(nextG.pm[2]*100)} %</b></p>`:''}</div>`
      :`<div class="nmline"><span class="sl">Линия появится ближе к матчу</span></div>`}
     <div class="nmcd" id="nmcd"><span class="sl">До начала</span><b class="num" id="nmcdv">—</b></div>
     ${pick?`<div class="nmpick"><span class="sl">Наш прогноз</span><b>${esc(String(pick.pick||'').replace(/(\d)\.(\d)/g,'$1,$2'))}</b><small>кэф ${esc(pick.k)}</small></div>`:''}

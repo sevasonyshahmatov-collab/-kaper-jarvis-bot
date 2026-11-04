@@ -111,3 +111,7 @@
 @media (max-width:620px){.resl li{grid-template-columns:44px minmax(0,1fr) auto minmax(0,1fr);gap:6px;padding:9px;font-size:14px}.resl .t .em{width:22px;height:22px}}
 .resl .t{text-decoration:none;color:inherit}.resl .t:hover span{text-decoration:underline}
 .leagues[hidden]{display:none!important}
+/* подпись под линией в списке матчей клуба: источник, время снятия и вероятности модели */
+.kxw{display:grid;gap:5px;justify-items:end;grid-column:4/-1;justify-self:end}
+.kn{font:500 12px/1.2 var(--display);color:var(--ink-3);text-align:right}
+@media (max-width:760px){.g.fut .kxw{grid-column:1/-1;justify-self:stretch;justify-items:stretch}.g.fut .kn{text-align:left}}

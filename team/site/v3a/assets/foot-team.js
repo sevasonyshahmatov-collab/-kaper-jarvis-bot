@@ -41,6 +41,12 @@ document.body.dataset.lg=lg;
 const all=T.games.slice().sort((a,b)=>a.d<b.d?1:-1).reverse();
 const ctxAll=all.filter(inCtx),real=ctxAll.filter(played),future=ctxAll.filter(g=>!played(g)),S=stats(ID,inCtx);
 const listAll=(CUP||cupOnly)?ctxAll:all;
+/* реальная линия (Pinnacle) и расчёт модели из data/lines.js и data/model.js — для матчей окна данных; кэфы и вероятности — с точки зрения клуба */
+const SRCN={fonbet:'Фонбет',pinnacle:'Pinnacle',espn:'ESPN'},hm=t=>{const m=Date.parse(t);return isNaN(m)?'':new Date(m+3*36e5).toISOString().slice(11,16)};
+T.games.filter(g=>!played(g)).forEach(g=>{const hh=g.h?ID:g.o,aa=g.h?g.o:ID,key=`${g.c||lg}|${g.d.slice(0,10)}|${hh}|${aa}`,ln=(window.JV_LINES||{})[key],md=(window.JV_MODEL||{})[key],sw=a=>g.h?a:[a[2],a[1],a[0]];
+ if(ln){g.k=sw([ln.p1,ln.x,ln.p2]);g.kn=`Линия: ${SRCN[ln.src]||ln.src}, ${hm(ln.t)}`}
+ else if(g.k)g.kn='Линия: ESPN';
+ if(md){g.pr=sw([md.p1,md.x,md.p2]);g.ov=md.over;g.ot=md.tot;g.bt=md.btts}});
 const startMs=d=>Date.parse(d.slice(0,10)+'T'+(d.slice(11,16)||'00:00')+':00+03:00');
 const nextG=future.find(g=>startMs(g.d)>Date.now()-3*36e5)||future[0];
 const pts=g=>g.gf>g.ga?3:g.gf===g.ga?1:0;
@@ -131,7 +137,7 @@ const row=g=>{const t=day(g.d),opp=`<a class="op" href="${teamHref(g.o,g.c||CUP)
  const when=`<span class="gd"><b>${t.d} ${t.mon}</b><small>${t.wd}${t.tm?' · '+t.tm:''}</small></span>`;
  const ha=`<span class="ha ${g.h?'h':'a'}" title="${g.h?'дома':'в гостях'}">${g.h?'Д':'В'}</span>`;
  if(played(g)){const r=rOf(g);return `<li class="g ${g.h?'home':'away'}">${when}${ha}${opp}<span class="sc num">${g.gf}:${g.ga}</span><span class="rs ${r}" title="${RESF[r]}">${RES[r]}</span></li>`}
- return `<li class="g fut ${g.h?'home':'away'}">${when}${ha}${opp}${g.k?`<span class="kx num" aria-label="Линия: победа ${esc(T.n)} ${kf(g.k[0])}, ничья ${kf(g.k[1])}, победа соперника ${kf(g.k[2])}"><span><small>П</small>${kf(g.k[0])}</span><span><small>Х</small>${kf(g.k[1])}</span><span><small>П</small>${kf(g.k[2])}</span></span>`
+ return `<li class="g fut ${g.h?'home':'away'}">${when}${ha}${opp}${g.k?`<span class="kxw"><span class="kx num" aria-label="Линия: победа ${esc(T.n)} ${kf(g.k[0])}, ничья ${kf(g.k[1])}, победа соперника ${kf(g.k[2])}"><span><small>П</small>${kf(g.k[0])}</span><span><small>Х</small>${kf(g.k[1])}</span><span><small>П</small>${kf(g.k[2])}</span></span>${g.kn||g.pr?`<small class="kn">${g.kn?esc(g.kn):''}${g.pr?`${g.kn?' · ':''}модель: ${g.pr.map(v=>Math.round(v*100)).join(' · ')} %`:''}</small>`:''}</span>`
   :g.pr?`<span class="kx3 num" aria-label="Расчёт модели: победа ${esc(T.n)} ${Math.round(g.pr[0]*100)} %, ничья ${Math.round(g.pr[1]*100)} %, победа соперника ${Math.round(g.pr[2]*100)} %">${g.pr.map(v=>Math.round(v*100)).join(' · ')} %</span>`:''}</li>`};
 const wins=real.filter(g=>g.gf>g.ga).length,draws=real.filter(g=>g.gf===g.ga).length,losses=real.length-wins-draws;
 const gfS=real.reduce((a,g)=>a+g.gf,0),gaS=real.reduce((a,g)=>a+g.ga,0);
@@ -161,13 +167,13 @@ $('picksBox').innerHTML=`
 if(nextG){
  const t=day(nextG.d),oh=nextG.h,k=nextG.k,o=nextG.o;
  const cr2=(sl,cls)=>`<span class="nmc ${cls}"><a href="${teamHref(sl,CUP)}"><span class="nmcr">${CI(sl)}</span><b>${esc(nm(sl))}</b></a></span>`;
- const mdl=nextG.pr?`<p class="mdl" aria-label="Расчёт модели"><span>1Х2: <b>${nextG.pr.map(v=>Math.round(v*100)).join(' · ')} %</b></span><span>тотал больше 2,5: <b>${Math.round(nextG.ov*100)} %</b></span><span>обе забьют: <b>${Math.round(nextG.bt*100)} %</b></span></p>`:'';
+ const mdl=nextG.pr?`<p class="mdl" aria-label="Расчёт модели"><span>1Х2: <b>${nextG.pr.map(v=>Math.round(v*100)).join(' · ')} %</b></span><span>тотал больше ${fx(nextG.ot||2.5,1)}: <b>${Math.round(nextG.ov*100)} %</b></span><span>обе забьют: <b>${Math.round(nextG.bt*100)} %</b></span></p>`:'';
  $('nextBox').innerHTML=`
   <div class="sec-head" data-rv><h2>Следующий матч</h2><p>${LGP(nextG.c||lg)}${esc(D.leagues[nextG.c||lg].name)} · ${oh?'дома':'в гостях'}, время московское.</p></div>
   <article class="nmatch" data-rv aria-label="${esc(T.n)} — ${esc(nm(o))}, ${t.d} ${t.mon}, ${t.tm} МСК">
    <div class="nmteams">${cr2(oh?ID:o,'a')}<span class="nmmid"><span class="nmdt"><b>${t.d} ${t.mon}</b><small>${t.wd}${t.tm?' · '+t.tm+' МСК':''}</small></span><span class="nmha ${oh?'h':'a'}">${oh?'Дома':'В гостях'}</span></span>${cr2(oh?o:ID,'b')}</div>
    <div class="nmside">
-    ${k?`<div class="nmline"><span class="sl">Линия на матч</span><ol class="kx" aria-label="Линия: ${esc(T.n)} ${kf(k[0])}, ничья ${kf(k[1])}, ${esc(nm(o))} ${kf(k[2])}">${k.map((v,i)=>`<li><b class="num">${kf(v)}</b><small>${['П1','Х','П2'][i]}</small></li>`).join('')}</ol>${mdl}</div>`
+    ${k?`<div class="nmline"><span class="sl">${nextG.kn?esc(nextG.kn):'Линия на матч'}</span><ol class="kx" aria-label="Линия: ${esc(T.n)} ${kf(k[0])}, ничья ${kf(k[1])}, ${esc(nm(o))} ${kf(k[2])}">${k.map((v,i)=>`<li><b class="num">${kf(v)}</b><small>${['П1','Х','П2'][i]}</small></li>`).join('')}</ol>${mdl}</div>`
      :`<div class="nmline"><span class="sl">Линия появится ближе к матчу</span>${mdl}</div>`}
     <div class="nmcd" id="nmcd"><span class="sl">До начала</span><b class="num" id="nmcdv">—</b></div>
     <a class="btn btn-line nmgo" href="index.html#matches">Все матчи тура</a>

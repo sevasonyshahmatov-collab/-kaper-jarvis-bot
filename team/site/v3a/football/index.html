@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="../assets/v3a.css">
 <link rel="stylesheet" href="../assets/nav.css">
 <link rel="stylesheet" href="../assets/football.css">
+<link rel="stylesheet" href="../assets/lines.css">
 </head>
 <body data-field="football">
 <div class="arena-bg" id="arena" aria-hidden="true"><i class="bm"></i><i class="bm"></i><i class="bm"></i><i class="bm"></i><i class="sp"></i></div>
@@ -28,7 +29,7 @@
       <a class="seg-ucl" href="ucl.html"><span class="full">Лига чемпионов</span><span class="sh" aria-label="Лига чемпионов">ЛЧ</span></a>
     </nav>
     <nav class="nav" aria-label="Разделы">
-      <a href="#matches">Матчи</a><a href="#leagues">Лиги</a><a href="#honest">Итоги</a><a href="#faq">Вопросы</a>
+      <a href="#matches">Матчи</a><a href="#leagues">Лиги</a><a href="#model">Модель</a><a href="#honest">Итоги</a><a href="#faq">Вопросы</a>
     </nav>
     <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Telegram</span></a>
   </div>
@@ -70,7 +71,7 @@
     <div class="tabs" role="tablist" id="ltabs" aria-label="Фильтр по лигам"></div>
     <ul class="mlist" id="mlist"></ul>
     <div class="more2"><button class="btn btn-line" type="button" id="moreM" hidden>Показать ещё</button></div>
-    <a class="btn btn-ink more" href="https://t.me/jarvibet" target="_blank" rel="noopener">Ставки дня — в канале</a>
+    <a class="btn btn-ink more" href="https://t.me/jarvibet" target="_blank" rel="noopener">Прогнозы дня — в канале</a>
   </div>
 </section>
 
@@ -82,6 +83,13 @@
     <div id="wallbox" role="tabpanel" aria-live="polite"><h3 class="wallh" id="wallh"></h3><div class="wall" id="wall"></div>
       <div class="tabscroll"><table class="ltab" id="ltab"></table></div><ul class="lkey" id="lkey"></ul></div>
     <p class="note">Эмблемы и знаки лиг — собственность клубов и лиг, показаны для навигации. Данные — ESPN.</p>
+  </div>
+</section>
+
+<section class="sec" id="model" data-zone="p3">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Прогноз модели</h2><p>Все матчи ближайших дней: вероятности модели рядом с линией Pinnacle. Отметка на шкале — доля линии без маржи.</p></div>
+    <div id="modelbox"></div>
   </div>
 </section>
 
@@ -146,6 +154,10 @@
 <script src="../assets/particles.js" defer></script>
 <script src="../assets/titles.js" defer></script>
 <script src="data/football.js"></script>
+<script src="../data/today.js"></script>
+<script src="../data/lines.js"></script>
+<script src="../data/model.js"></script>
+<script src="../assets/lines.js"></script>
 <script src="../assets/foot-kit.js"></script>
 <script src="../assets/foot-index.js"></script>
 </body>

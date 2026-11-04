@@ -455,3 +455,9 @@ body .g.h2g.nx{grid-template-columns:110px 32px minmax(0,1fr) auto}
 .pltop span{font:600 15px/1 var(--display);color:var(--ink-3)} .pltop em{font-style:normal;font-weight:800;color:var(--ink);font-size:19px}
 .plgo{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:10px;border-top:1px solid var(--rule-2);font:700 16px/1.2 var(--display);color:var(--sport)}
 .plgo svg{width:22px;height:22px;flex:none;transition:transform .2s var(--out)} .plcard:hover .plgo svg{transform:translateX(4px)}
+/* линия и расчёт модели в списке матчей и в карточке «Следующий матч» */
+.kxw{display:grid;gap:5px;justify-items:end;grid-column:4/-1;justify-self:end}
+.kn{font:500 12px/1.2 var(--display);color:var(--ink-3);text-align:right}
+.kn.est{font-weight:700;color:var(--ink-2)}
+.nmline .mdl{margin:6px 0 0;font:500 15px/1.4 var(--display);color:var(--ink-2)}
+@media (max-width:760px){.g.fut{grid-template-areas:"d h o o" "k k k k"}.g.fut .kxw{grid-area:k;justify-self:stretch;justify-items:stretch}.g.fut .kn{text-align:left}}
