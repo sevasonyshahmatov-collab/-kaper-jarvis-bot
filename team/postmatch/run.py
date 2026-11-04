@@ -480,6 +480,8 @@ def checks_for(p, g, legs, res_legs):
                 t = '%s — НИЧЬЯ%s' % (sc, how)
             else:
                 t = '%s — ПОБЕДА %s%s' % (sc, settle.gen(p['home'] if h > a else p['away']).upper(), how)
+        elif l_['kind'] == 'x':
+            t = '%s — %s' % (sc, l_['label'])
         else:
             t = '%s — %s' % (sc, settle.short([l_], p['home'], p['away']).upper())
         out.append((t, ok))
@@ -559,6 +561,10 @@ def main():
             p['kef'] = float(cp[1])
     res, legs, why = settle.settle(p['pick'], p['home'], p['away'], g)
     res_legs = [settle.settle_leg(l_, g) for l_ in legs]
+    ov = raw.get('override')
+    if ov:                    # ставка, которую settle не считает (удары, угловые…): итог и строка проверки задаёт чат команды
+        res = {'win': settle.WIN, 'loss': settle.LOSS, 'push': settle.PUSH}[ov['res']]
+        legs, res_legs, why = [{'kind': 'x', 'label': ov['check']}], [res], ''
     goals = goals_of(p, g)
     ch = p['ch'] if str(p.get('ch') or '').isdigit() else ch_num
     import chronicle
