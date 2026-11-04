@@ -15,7 +15,7 @@ const SECTIONS={
  hockey:[['m','Матчи','hockey/index.html'],['khl','КХЛ','hockey/league.html?lg=khl'],['nhl','НХЛ','hockey/league.html?lg=nhl'],
          ['pl','Игроки','hockey/players.html'],['tr','Тренды','hockey/trends.html'],['mod','Модель','hockey/index.html#model']],
  football:[['m','Матчи','football/index.html'],['lg','Лиги','football/league.html?lg=epl'],['ucl','Лига чемпионов','football/ucl.html'],
-         ['pl','Игроки','football/players.html'],['tr','Тренды','football/trends.html'],['mod','Модель','index.html#model']]
+         /* ['pl','Игроки','football/players.html'], — скрыто до готовности портретов (владелец 04.11) */['tr','Тренды','football/trends.html'],['mod','Модель','index.html#model']]
 };
 /* какой пункт активен */
 function active(){

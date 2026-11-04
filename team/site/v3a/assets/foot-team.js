@@ -120,7 +120,7 @@ $('tableBox').innerHTML=`
    <div class="formbox"><span class="sl">Форма — последние 5 игр</span>
     <ol class="frm" aria-label="Последние 5 игр, слева раньше">${last5.map(g=>{const r=rOf(g),t=`${RESF[r]}: ${nm(g.o)} ${g.gf}:${g.ga}`;return `<li class="${r}" title="${esc(t)}" aria-label="${esc(t)}"><b><img src="${crest(g.o)}" alt="" loading="lazy"></b><span>${g.gf}:${g.ga}</span></li>`}).join('')}</ol>
     <p class="ss">Слева — раньше, справа — последняя игра. В кружке — соперник: зелёный — победа, серый — ничья, красный — поражение. За 5 игр — <b>${last5.reduce((s,g)=>s+pts(g),0)} ${plural(last5.reduce((s,g)=>s+pts(g),0),'очко','очка','очков')}</b>.</p></div>
-   ${plCard()}
+   ${''/* плашка «Игроки» скрыта до готовности портретов (владелец 04.11): ${plCard()} */}
   </div>
  </div>`;
 

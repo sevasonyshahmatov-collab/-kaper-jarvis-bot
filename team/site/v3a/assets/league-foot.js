@@ -148,8 +148,8 @@ Promise.all([loadJS('data/players.js'),fetch('data/photos.json').then(r=>r.json(
   <div data-rv><h3>Карточки · топ-10</h3>${cd.length?`<ol class="lgpl">${cd.map((p,i)=>`<li><span class="r num">${i+1}</span>${who(p)}<span class="val cds"><span class="cd num"><i></i>${p.y}</span>${p.r?`<span class="cd r num"><i></i>${p.r}</span>`:''}</span></li>`).join('')}</ol>`:'<p class="lgempty">Карточек пока нет.</p>'}</div>`;
  $('plCols').querySelectorAll('.av img').forEach(i=>i.addEventListener('error',()=>i.remove()));
  JV.reveal($('plCols'));
- pbox.insertAdjacentHTML('beforeend',`<a class="btn btn-ink lgall" href="players.html">Все игроки лиги →</a>`);
-}).catch(()=>{$('plCols').innerHTML='<p class="lgempty">Игроков загрузить не удалось.</p>';pbox.insertAdjacentHTML('beforeend',`<a class="btn btn-ink lgall" href="players.html">Все игроки лиги →</a>`)});
+ /* ссылка «Все игроки лиги» скрыта до готовности портретов (владелец 04.11) */
+}).catch(()=>{$('plCols').innerHTML='<p class="lgempty">Игроков загрузить не удалось.</p>'});
 })();
 
 /* пересчитать «свет арены» после отрисовки (иначе герой бледный до первой прокрутки) */
