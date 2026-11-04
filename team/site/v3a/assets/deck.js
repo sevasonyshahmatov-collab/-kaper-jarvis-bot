@@ -172,16 +172,26 @@ function pickPair(m){
   if(Math.abs(a[2]-b[2])<.05&&hueD(a[0],b[0])<50){a[2]=Math.max(.28,a[2]-.04);b[2]=Math.min(.42,b[2]+.05)}
   return [a,b]}
 const bgL=[...document.querySelectorAll('.dk-bg')];let bgCur=-1,bgKey='';
+/* картинки фона: data/deckbg/<ключ>.webp (тот же код, что у баннеров Telegram, см. daily/deck_bg.py); нет файла — CSS-фон по цветам клубов */
+let BGIDX=null,bgSeq=0;
+const bgUrl=m=>{const e=BGIDX&&BGIDX[m.key];return e?`data/deckbg/${e.f}${mqM.matches?'-m':''}.webp`:null};
+const bgPre=i=>{const m=list[i];const u=m&&bgUrl(m);if(u){const im=new Image();im.src=u}};
 function applyBg(dir){const m=list[cur];if(!m||m.key===bgKey)return;bgKey=m.key;
-  const [a,b]=pickPair(m),mix=[((a[0]+(Math.abs(b[0]-a[0])>180?(b[0]>a[0]?-360:360)*0:0)+b[0])/2)%360,Math.min(.6,(a[1]+b[1])/2),Math.min(.3,(a[2]+b[2])/2-.02)];
-  const nxt=bgL[(bgCur+1)%2],old=bgCur>=0?bgL[bgCur]:null,rm=root.classList.contains('rm');
-  nxt.style.setProperty('--c1',hsl2css(a[0],a[1],a[2]));nxt.style.setProperty('--c2',hsl2css(b[0],b[1],b[2]));nxt.style.setProperty('--cm',hsl2css(mix[0],mix[1],mix[2]));
-  const fl=nxt.querySelector('.fl');
-  if(!rm&&old){fl.style.transition='none';nxt.style.setProperty('--dx',(dir||0)*9+'vw');void fl.offsetWidth;fl.style.transition='';nxt.style.zIndex=2;old.style.zIndex=1;nxt.classList.add('on');
-    requestAnimationFrame(()=>nxt.style.setProperty('--dx','0vw'));
-    const o=old;setTimeout(()=>{if(o!==bgL[bgCur])o.classList.remove('on')},800)}
-  else{nxt.style.setProperty('--dx','0vw');nxt.classList.add('on');nxt.style.zIndex=2;if(old){old.classList.remove('on');old.style.zIndex=1}}
-  bgCur=(bgCur+1)%2}
+  const [a,b]=pickPair(m),mix=[(a[0]+b[0])/2%360,Math.min(.6,(a[1]+b[1])/2),Math.min(.3,(a[2]+b[2])/2-.02)];
+  const url=bgUrl(m),my=++bgSeq;
+  const show=img=>{if(my!==bgSeq)return;
+    const nxt=bgL[(bgCur+1)%2],old=bgCur>=0?bgL[bgCur]:null,rm=root.classList.contains('rm');
+    nxt.style.setProperty('--c1',hsl2css(a[0],a[1],a[2]));nxt.style.setProperty('--c2',hsl2css(b[0],b[1],b[2]));nxt.style.setProperty('--cm',hsl2css(mix[0],mix[1],mix[2]));
+    nxt.classList.toggle('img',!!img);nxt.style.backgroundImage=img?`url("${img}")`:'';root.classList.toggle('bgimg',!!img);
+    const fl=nxt.querySelector('.fl');
+    if(!rm&&old){fl.style.transition='none';nxt.style.setProperty('--dx',(dir||0)*9+'vw');void fl.offsetWidth;fl.style.transition='';nxt.style.zIndex=2;old.style.zIndex=1;nxt.classList.add('on');
+      requestAnimationFrame(()=>nxt.style.setProperty('--dx','0vw'));
+      const o=old;setTimeout(()=>{if(o!==bgL[bgCur])o.classList.remove('on')},800)}
+    else{nxt.style.setProperty('--dx','0vw');nxt.classList.add('on');nxt.style.zIndex=2;if(old){old.classList.remove('on');old.style.zIndex=1}}
+    bgCur=(bgCur+1)%2;
+    bgPre(cur+1);bgPre(cur-1)};
+  if(url){const im=new Image();im.onload=()=>show(url);im.onerror=()=>show(null);im.src=url}else show(null)}
+try{fetch('data/deckbg/index.json').then(r=>r.ok?r.json():null).then(j=>{if(j&&j.bg){BGIDX=j.bg;bgKey='';applyBg(0)}}).catch(()=>{})}catch(e){}
 
 /* ── переключение ── */
 let lockUntil=0;

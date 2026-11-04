@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install requests numpy brotli
+      - run: pip install requests numpy brotli pillow
       - name: Конвейер данных
         run: python team/site/v3a/daily/run.py
       - name: Закоммитить данные
