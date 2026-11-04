@@ -9,6 +9,8 @@ const f2=x=>x.toFixed(2).replace('.',','), g1=x=>String(x).replace('.',',');
 const SRC={fonbet:'Фонбет',pinnacle:'Pinnacle','khl-app':'приложение КХЛ',espn:'ESPN'};
 const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const dt=s=>{const m=/^(\d+)-(\d+)-(\d+)[ T](\d+:\d+)/.exec(s||'');return m?`${+m[3]} ${MON[+m[2]-1]}, ${m[4]}`:''};
+// время из данных с Z (UTC) — в МСК
+const dtz=s=>{const m=/^(\d+)-(\d+)-(\d+)[ T](\d+):(\d+)/.exec(s||'');if(!m)return'';const d=new Date(Date.UTC(+m[1],m[2]-1,+m[3],+m[4],+m[5])+3*36e5);return `${d.getUTCDate()} ${MON[d.getUTCMonth()]}, ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`};
 const T=window.JV_TODAY||{matches:[]},M=window.JV_MODEL||{},L=window.JV_LINES||{};
 const picker=$('#picker'),demo=$('#demo');
 if(!picker||!demo)return;
@@ -76,7 +78,7 @@ function draw(m){
   const h3=`<div class="md-blk"><h4>Шаг 3. Как из кэфа получается «вероятность букмекера»</h4>
     <table class="md-calc"><thead><tr><th>Исход</th><th>Кэф</th><th>1 / кэф</th><th>Без маржи</th></tr></thead><tbody>${trs}</tbody>
     <tfoot><tr><td>Сумма</td><td></td><td>${f1(sum)} %</td><td>100,0 %</td></tr></tfoot></table>
-    <p>Сначала делим единицу на кэф: так получается «сырая» вероятность. Но сумма по всем исходам вышла <b>${f1(sum)} %</b>, больше ста. Лишние <b>${f1(margin).replace(/^(-?\d+),0$/,'$1')} %</b> и есть маржа букмекера, его заработок заложен в кэфы. Чтобы сравнивать с моделью, каждую долю делим на сумму, и три шанса снова дают 100 %. Линия: ${esc(src)}, снята ${esc(dt(ln.t))} UTC.${ln.alt&&Object.keys(ln.alt).length?` Для сверки есть ещё: ${Object.keys(ln.alt).map(k=>esc(SRC[k]||k)).join(', ')}.`:''}</p></div>`;
+    <p>Сначала делим единицу на кэф: так получается «сырая» вероятность. Но сумма по всем исходам вышла <b>${f1(sum)} %</b>, больше ста. Лишние <b>${f1(margin).replace(/^(-?\d+),0$/,'$1')} %</b> и есть маржа букмекера, его заработок заложен в кэфы. Чтобы сравнивать с моделью, каждую долю делим на сумму, и три шанса снова дают 100 %. Линия: ${esc(src)}, снята ${esc(dtz(ln.t))} МСК.${ln.alt&&Object.keys(ln.alt).length?` Для сверки есть ещё: ${Object.keys(ln.alt).map(k=>esc(SRC[k]||k)).join(', ')}.`:''}</p></div>`;
 
   /* 4. тотал */
   let h4='';
@@ -97,7 +99,7 @@ function draw(m){
       <div class="md-tsl">Модель: шанс «больше» на разных линиях</div><div class="md-ts">${dots}</div>${book}${bt}
       <p class="note">Чем выше линия, тем меньше шанс «больше»: на шкале видно, как шанс падает при переходе от одной линии к другой.</p></div>`;
   }
-  const upd=md.t?`Расчёт модели: ${esc(dt(md.t))} UTC · версия <code>${esc(String(md.ver||'').split(' ')[0])}</code>`:'';
+  const upd=md.t?`Расчёт модели: ${esc(dtz(md.t))} МСК · версия <code>${esc(String(md.ver||'').split(' ')[0])}</code>`:'';
   demo.innerHTML=`<div class="md-hd"><h3>${esc(m.hn)} — ${esc(m.an)}</h3><span>${esc(dt(start(m)))} МСК · ${esc(m.lg.toUpperCase())}</span></div>
     ${stale?'<div class="md-warnbox">Ближайших матчей в данных мало, поэтому пример взят на последнем расчёте и матч мог уже начаться. Цифры показаны как иллюстрация расчёта.</div>':''}
     ${h1}${h2}${h3}${h4}<p class="note">${upd}. Это иллюстрация того, как читать цифры, а не рекомендация что-либо делать.</p>`;
