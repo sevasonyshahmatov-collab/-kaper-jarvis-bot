@@ -53,4 +53,4 @@ jobs:
         run: |
           left=$(python3 -c "import json;d='team/site/v3a/football/data/';p=json.load(open(d+'photos.json'));h=json.load(open(d+'headshots.json'));s=json.load(open(d+'headshots_skipped.json'));print(len([i for i in p if i not in h and i not in s]))")
           echo "осталось $left"
-          if [ "$left" -gt 0 ]; then gh workflow run site-v3a-headshots.yml --ref "$GITHUB_REF_NAME"; fi
+          if [ -f team/site/v3a/football/data/headshots_stop.txt ]; then echo "Wikimedia 429 — цепочку остановили"; elif [ "$left" -gt 0 ]; then gh workflow run site-v3a-headshots.yml --ref "$GITHUB_REF_NAME"; fi

@@ -47,9 +47,36 @@ sess = rembg.new_session(os.environ.get('HEADSHOTS_MODEL', 'u2net_human_seg'))
 casc = cv2.CascadeClassifier(os.path.join(cv2.data.haarcascades, 'haarcascade_frontalface_alt2.xml'))
 
 
+THUMB = {}   # имя файла -> адрес готовой миниатюры (MediaWiki API, по 50 файлов за запрос)
+STOP = False  # Wikimedia ответила 429 подряд — прекращаем запуск и цепочку, без долбёжки
+
+
+def thumbs(names):
+    for k in range(0, len(names), 50):
+        part = names[k:k + 50]
+        try:
+            r = S.get('https://commons.wikimedia.org/w/api.php', params={
+                'action': 'query', 'format': 'json', 'prop': 'imageinfo', 'iiprop': 'url', 'iiurlwidth': 640,
+                'titles': '|'.join('File:' + n for n in part)}, timeout=60)
+            pages = (r.json().get('query') or {}).get('pages') or {}
+            norm = {x['to']: x['from'] for x in (r.json().get('query') or {}).get('normalized') or []}
+            for pg in pages.values():
+                ii = (pg.get('imageinfo') or [{}])[0]
+                t = pg.get('title', '')
+                name = norm.get(t, t)[5:]
+                if ii.get('thumburl'):
+                    THUMB[name] = ii['thumburl']
+        except Exception as e:  # noqa: BLE001
+            print('HS api err', repr(e)[:150], flush=True)
+        time.sleep(2)
+
+
 def fetch(fn):
-    url = 'https://commons.wikimedia.org/wiki/Special:FilePath/' + requests.utils.quote(fn) + '?width=960'  # стандартный размер миниатюры Wikimedia (нестандартные — медленно и 429)
-    for k in range(5):
+    global STOP
+    url = THUMB.get(fn)
+    if not url:
+        return None
+    for k in range(3):
         try:
             r = S.get(url, timeout=60)
             if r.status_code == 200 and r.content:
@@ -57,7 +84,10 @@ def fetch(fn):
             if r.status_code == 404:
                 return None
             print('HS http', r.status_code, fn, flush=True)
-            time.sleep(10 * (k + 1) if r.status_code in (429, 503) else 3 * (k + 1))
+            if r.status_code == 429:
+                time.sleep(min(120, int(r.headers.get('Retry-After') or 30)))
+            else:
+                time.sleep(3 * (k + 1))
         except Exception as e:  # noqa: BLE001
             print('HS err', repr(e)[:150], flush=True)
             time.sleep(3 * (k + 1))
@@ -109,6 +139,9 @@ def make(raw):
 for i in ids:
     if i not in done and os.path.exists(os.path.join(OUT, i + '.webp')):
         done[i] = {'f': photos[i], 'ok': 1}
+thumbs([photos[i] for i in ids if i not in done])
+print('HS thumbs', len(THUMB), flush=True)
+fails = 0
 n_ok = n_new = n_skip = 0
 for i in ids:
     fn = photos[i]
@@ -131,6 +164,12 @@ for i in ids:
             im, why = make(raw)
     except Exception as e:  # noqa: BLE001
         im, why = None, 'ошибка загрузки' if 'download' in str(e) else 'ошибка: ' + repr(e)[:80]
+    fails = fails + 1 if why == 'ошибка загрузки' else 0
+    if fails >= 3:
+        print('HS 429 подряд — стоп, цепочку не продолжаем', flush=True)
+        STOP = True
+        break
+    time.sleep(2.0)
     if im is not None:
         im.save(path, 'WEBP', quality=88, method=6)
         done[i] = {'f': fn, 'ok': 1}
@@ -148,3 +187,7 @@ for i in ids:
 json.dump(done, open(os.path.join(D, 'headshots.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 json.dump(skipped, open(os.path.join(D, 'headshots_skipped.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
 print('HS done ok', n_ok, 'new', n_new, 'skipped', n_skip, flush=True)
+if STOP:
+    open(os.path.join(D, 'headshots_stop.txt'), 'w').write(time.strftime('%Y-%m-%d %H:%M'))
+elif os.path.exists(os.path.join(D, 'headshots_stop.txt')):
+    os.remove(os.path.join(D, 'headshots_stop.txt'))
