@@ -627,10 +627,6 @@
 "f": "Pablo Fornals.jpg",
 "why": "нет лица"
 },
-"331068": {
-"f": "Vladislav Shitov 2022.jpg",
-"why": "ошибка загрузки"
-},
 "164279": {
 "f": "Tripić, Zlatko Greuther Fürth 15-16 WP.jpg",
 "why": "несколько лиц"
@@ -651,13 +647,9 @@
 "f": "Diogo Sousa at Antalyaspor vs Fatih Karagümrük SK 20220213.jpg",
 "why": "нет лица"
 },
-"286536": {
-"f": "Dmitri Rybchinsky 2020.jpg",
-"why": "ошибка загрузки"
-},
 "194115": {
 "f": "Dominic Solanke YouTube 2024.png",
-"why": "ошибка загрузки"
+"why": "лицо у края кадра"
 },
 "320945": {
 "f": "Felix Bacher (21. September 2019) 20 (cropped).jpg",
@@ -673,6 +665,98 @@
 },
 "366885": {
 "f": "Jon Martin Vicente.jpg",
+"why": "нет лица"
+},
+"350661": {
+"f": "Lewis Koumas.png",
+"why": "нет лица"
+},
+"341333": {
+"f": "Luca Koleosho 26042025 (3).jpg",
+"why": "нет лица"
+},
+"289354": {
+"f": "Maksim Osipenko 2019.jpg",
 "why": "ошибка загрузки"
+},
+"323992": {
+"f": "Maksim Petrov (footballer) 2021.jpg",
+"why": "ошибка загрузки"
+},
+"383043": {
+"f": "Matheus Alves 1.jpg",
+"why": "нет лица"
+},
+"296163": {
+"f": "Raúl García - 01 (cropped).jpg",
+"why": "нет лица"
+},
+"210392": {
+"f": "Mandragora Udinese (cropped).png",
+"why": "лицо у края кадра"
+},
+"189794": {
+"f": "Zobnin Spartak Moscow.jpg",
+"why": "ошибка загрузки"
+},
+"385969": {
+"f": "Sergey Varatynov 2025.jpg",
+"why": "лицо мелкое"
+},
+"309518": {
+"f": "Tommaso Baldanzi.jpg",
+"why": "нет лица"
+},
+"346957": {
+"f": "Vadim Rakov.jpg",
+"why": "нет лица"
+},
+"319431": {
+"f": "William Osula 24052026 (8).jpg",
+"why": "нет лица"
+},
+"224077": {
+"f": "CAN 2023RD Congo 2-1 Guinée 9939 (cropped).jpg",
+"why": "нет лица"
+},
+"229392": {
+"f": "Aitor Cantalapiedra (cropped).jpg",
+"why": "нет лица"
+},
+"322650": {
+"f": "Aleksandr Sandrachuk.jpg",
+"why": "ошибка загрузки"
+},
+"175063": {
+"f": "Marco Silva giving advice on 14092024 (1).jpg",
+"why": "нет лица"
+},
+"289923": {
+"f": "FC Liefering gegen WSG Wattens (24. Mai 2019) 02.jpg",
+"why": "нет лица"
+},
+"272892": {
+"f": "AC Monza 2022 Serie A celebration 24 (Colpani).jpg",
+"why": "нет лица"
+},
+"289432": {
+"f": "Andrei Mostovoy (10.11.2019).jpg",
+"why": "ошибка загрузки"
+},
+"341711": {
+"f": "MCI VS FER 2024 (Anis Hadj Moussa).jpg",
+"why": "нет лица"
+},
+"328050": {
+"f": "Rangers v Tottenham Hotspur - 54202663229 (Archie Gray).jpg",
+"why": "нет лица"
+},
+"226211": {
+"f": "Artem Dovbyk.jpg",
+"why": "нет лица"
+},
+"381628": {
+"f": "Asier Otsanbela.jpg",
+"why": "нет лица"
 }
 }
