@@ -81,7 +81,8 @@ function row(m,fav){
   if(res&&fav){const mine=fav.has(m.h)&&!fav.has(m.a)?0:fav.has(m.a)&&!fav.has(m.h)?1:-1;
     if(mine>=0){const a=res[mine],b=res[1-mine];badge=a>b?'<i class="me-b w" title="Победа">В</i>':a<b?'<i class="me-b l" title="Поражение">П</i>':'<i class="me-b d" title="Ничья">Н</i>'}}
   const ex=sc&&sc[1]?` <small>${esc(sc.slice(1).join(' '))}</small>`:'';
-  return `<li class="me-m"><div class="me-mt">
+  const lv=!m.sc&&m.ms>Date.now()-4*36e5&&m.ms<Date.now()+864e5?` data-lv data-lv-lg="${esc(m.cup||m.h.lg)}" data-lv-t="${esc(new Date(m.ms).toISOString())}" data-lv-h="${esc(m.h.id)}" data-lv-a="${esc(m.a.id)}" data-lv-hn="${esc(m.h.ru)}" data-lv-an="${esc(m.a.ru)}" data-lv-en-h="${esc(m.h.en)}" data-lv-en-a="${esc(m.a.en)}"`:'';
+  return `<li class="me-m"${lv}><div class="me-mt">
     <a class="me-tm" href="${esc(page(m.h))}" title="Страница клуба: ${esc(m.h.ru)}">${img(m.h)}<b>${esc(m.h.ru)}</b></a>
     <span class="me-mc">${sc?`<strong class="num">${esc(sc[0].replace(':',' : '))}</strong>${ex}`:`<strong class="num">${esc(fmtTime(m.ms))}</strong>`}</span>
     <a class="me-tm r" href="${esc(page(m.a))}" title="Страница клуба: ${esc(m.a.ru)}"><b>${esc(m.a.ru)}</b>${img(m.a)}</a></div>
@@ -111,7 +112,7 @@ function drawMatches(){
   $('sinceBox').innerHTML=done.length?group(done,fav):`<p class="me-load">${first?'За последние дни ваши клубы не играли или счёта ещё нет в данных.':'С прошлого визита ваши клубы не сыграли ни одного матча или счёта ещё нет в данных.'}</p>`;
 }
 
-function draw(){drawClubs();drawMatches();drawRes();F.sync()}
+function draw(){drawClubs();drawMatches();drawRes();F.sync();document.dispatchEvent(new Event('jv:rows'))}
 F.onchange(()=>{if(ready)draw()});
 
 /* ── очистка ── */
@@ -125,6 +126,6 @@ cl.addEventListener('click',()=>{
 fetch('../data/search.json',{cache:'default'}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(D=>{
   D.c.forEach(r=>{C[r[1]+':'+r[0]]={id:r[0],s:r[1],lg:r[2],ru:r[3],en:r[4],al:r[5]||''}});
   M=D.m.map(r=>{const h=C[r[1]+':'+r[2]],a=C[r[1]+':'+r[3]];return h&&a?{ms:ms(r[0]),h,a,sc:r[4]||'',cup:r[5]||''}:null}).filter(Boolean);
-  ready=true;draw();
+  ready=true;draw();document.dispatchEvent(new Event('jv:rows'));
 }).catch(()=>{$('clubsBox').innerHTML='<p class="me-load">Не удалось загрузить список клубов. Обновите страницу.</p>'});
 })();

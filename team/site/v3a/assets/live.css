@@ -1,0 +1,28 @@
+/* JARVIS v3a — живой счёт (assets/live.js). Кэфов здесь нет. */
+.lv{display:inline-flex;align-items:center;gap:8px 10px;flex-wrap:wrap;font:600 13px/1.2 var(--display,system-ui);color:var(--ink-2,#3b4552);margin-top:6px}
+
+.lv-tag{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:6px;background:var(--red,#d7263d);color:#fff;font-weight:800;font-size:11px;letter-spacing:.08em}
+.lv-tag::before{content:"";width:6px;height:6px;border-radius:50%;background:#fff}
+.lv-final .lv-tag{background:var(--ink-3,#5d6773)}
+.lv-final .lv-tag::before{display:none}
+.lv-sc{font-variant-numeric:tabular-nums;font-weight:800;font-size:16px;color:var(--ink,#10161f);padding:1px 4px;border-radius:6px}
+.lv-sep{margin:0 3px}
+.lv-st{color:var(--ink-3,#5d6773);font-weight:600}
+.lv-goal .lv-sc{background:var(--signal,#ffc21a);color:var(--signal-ink,#1a1400)}
+@media (prefers-reduced-motion:no-preference){
+  .lv:not(.lv-final) .lv-tag::before{animation:lv-pulse 1.6s ease-in-out infinite}
+  .lv-goal .lv-sc{animation:lv-goal 2.4s ease-out}
+}
+@keyframes lv-pulse{50%{opacity:.35}}
+@keyframes lv-goal{0%{transform:scale(1.35)}20%{transform:scale(1)}100%{background-color:transparent}}
+/* крупный блок на странице матча */
+.lv-box{margin:14px 0 4px}
+.lv-box .lv{margin:0;gap:10px 14px}
+.lv-box .lv-sc{font-size:clamp(28px,6vw,44px);letter-spacing:.02em;padding:2px 8px}
+.lv-box .lv-tag{font-size:13px;padding:4px 10px}
+.lv-box .lv-st{font-size:15px}
+/* строки списков */
+.fc-m>.lv{display:flex;flex-basis:100%;grid-column:1/-1;margin:8px 0 0}
+.me-m>.lv{margin:4px 0 0}
+.lv[hidden]{display:none!important}
+.mt-odds-wrap[hidden]{display:none!important}

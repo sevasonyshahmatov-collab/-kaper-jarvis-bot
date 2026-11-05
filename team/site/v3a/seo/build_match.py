@@ -448,10 +448,11 @@ def match_page(m):
     facts.append('<li><small>Турнир</small><b><a href="%s">%s</a></b></li>' % (esc(lg_link(m, from_dir)), esc(lg_name(lg))))
     if fin:
         facts.insert(0, '<li class="mt-res"><small>Итог матча</small><b>%s</b></li>' % esc(res_txt))
+    lv_box = '' if fin else '<div class="lv-box"%s></div>\n' % B.lv_attrs(m)
     top = ('<section class="fc-top"><div class="wrap">\n%s\n<h1>%s<br><span>%s</span></h1>\n'
-           '<div class="mt-teams">%s<span class="mt-vs" aria-hidden="true">—</span>%s</div>\n<ul class="mt-facts">%s</ul>\n'
+           '<div class="mt-teams">%s<span class="mt-vs" aria-hidden="true">—</span>%s</div>\n%s<ul class="mt-facts">%s</ul>\n'
            '<p class="fc-upd"><time datetime="%s">%s</time></p>\n</div></section>\n'
-           % (B.crumbs_html(crumbs, rel), esc(name), esc(h1b), team_link(m, 'h', from_dir), team_link(m, 'a', from_dir), ''.join(facts),
+           % (B.crumbs_html(crumbs, rel), esc(name), esc(h1b), team_link(m, 'h', from_dir), team_link(m, 'a', from_dir), lv_box, ''.join(facts),
               esc(B.BUILT.replace(' ', 'T') + ':00+03:00'), esc(B.upd_text())))
     # расчёт и кэфы
     mdl = ''
@@ -479,7 +480,8 @@ def match_page(m):
                                    esc(pre + 'matches.html?s=' + ('h' if sport == 'hockey' else 'f')), B.CFG.TELEGRAM, B.TGSVG))
     body = top + mdl + prev + form_block(m, from_dir) + h2h_block(m) + table_block(m) + other_matches(m, from_dir) + links
     js = '<script>window.JV_ACT=%s;</script>\n' % json.dumps('khl' if lg == 'khl' else 'nhl' if lg == 'nhl' else 'ucl' if lg == 'ucl' else '' if sport == 'hockey' else 'lg')
-    text = B.shell(rel, sport, body, extra_css='match.css', head_js=js)
+    text = B.shell(rel, sport, body, extra_css='match.css', head_js=js,
+                   extra_scripts='' if fin else '<script src="%sassets/live.js" defer></script>\n' % pre)
     # JSON-LD SportsEvent
     ev = {'@type': 'SportsEvent', 'name': name, 'startDate': m['t'].replace(' ', 'T') + ':00+03:00',
           'sport': 'Ice hockey' if sport == 'hockey' else 'Association football', 'description': desc,

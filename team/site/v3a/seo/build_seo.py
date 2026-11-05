@@ -177,6 +177,13 @@ def mdl_block(m, sport):
         bar, nums, ('<p class="fc-ext">' + ' · '.join(extra) + '</p>') if extra else '')
 
 
+def lv_attrs(m):
+    """Атрибуты для assets/live.js (живой счёт): лига, начало (МСК), id и названия команд. Кэфов нет."""
+    lg = m['key'].split('|')[0]
+    return (' data-lv data-lv-lg="%s" data-lv-t="%s" data-lv-h="%s" data-lv-a="%s" data-lv-hn="%s" data-lv-an="%s"'
+            % (esc(lg), esc(m['t'].replace(' ', 'T') + ':00+03:00'), esc(m['h']), esc(m['a']), esc(m['hn']), esc(m['an'])))
+
+
 def match_li(m, sport, d_out):
     def team(slug, name):
         em = emblem(sport, slug, d_out)
@@ -191,9 +198,9 @@ def match_li(m, sport, d_out):
     import build_match as BM
     mp = BM.match_rel(m['key'])
     ml = ('<a class="fc-mlink" href="%s">Страница матча ›</a>' % esc('../' * depth(d_out) + mp)) if mp else ''
-    return ('<li class="fc-m" id="%s"><div class="fc-time"><b>%s</b><small>МСК</small></div>'
+    return ('<li class="fc-m" id="%s"%s><div class="fc-time"><b>%s</b><small>МСК</small></div>'
             '<div class="fc-teams">%s<span class="fc-vs" aria-hidden="true">—</span>%s%s%s</div>%s</li>'
-            % (mid, esc(m['t'][11:16]), team(m['h'], m['hn']), team(m['a'], m['an']), ar, ml, mdl_block(m, sport)))
+            % (mid, lv_attrs(m), esc(m['t'][11:16]), team(m['h'], m['hn']), team(m['a'], m['an']), ar, ml, mdl_block(m, sport)))
 
 
 # ───────────────────────── JSON-LD ─────────────────────────
@@ -519,7 +526,8 @@ def forecast_page(lg):
                esc(lg_link), esc(name), esc('../matches.html?s=' + ('h' if sport == 'hockey' else 'f')), esc('trends.html'), 'h' if sport == 'hockey' else 'f'))
     ld = [{'@type': 'ItemList', 'name': 'Матчи %s: %s' % (name, ru_date(day)[0] if day else ''), 'itemListElement': [
         {'@type': 'ListItem', 'position': i + 1, 'item': event_ld(m, sport, rel)} for i, m in enumerate(ms)]}] if day else []
-    return rel, shell(rel, sport, body), ld
+    live_js = '<script src="%sassets/live.js" defer></script>\n' % ('../' * depth(d_out)) if day else ''
+    return rel, shell(rel, sport, body, extra_scripts=live_js), ld
 
 
 def hub_page():
