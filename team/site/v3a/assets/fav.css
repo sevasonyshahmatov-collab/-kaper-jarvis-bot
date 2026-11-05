@@ -1,0 +1,15 @@
+/* JARVIS v3a — звёздочка «В избранное» (assets/fav.js). Только токены v3a.css. */
+.favbtn{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:6px 13px 6px 10px;border-radius:999px;cursor:pointer;
+  font:700 14px/1 var(--display);letter-spacing:.01em;white-space:nowrap;color:var(--ink);background:transparent;
+  border:1.5px solid var(--rule-2);transition:background .2s ease,border-color .2s ease,color .2s ease,transform .16s var(--out)}
+.favbtn svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;transition:fill .2s ease,transform .3s var(--out)}
+.favbtn:hover{border-color:var(--signal);color:var(--signal)}
+.favbtn:active{transform:scale(.96)}
+.favbtn:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.favbtn[aria-pressed=true]{background:var(--signal);border-color:var(--signal);color:var(--signal-ink)}
+.favbtn[aria-pressed=true] svg{fill:currentColor;transform:rotate(72deg) scale(1.05)}
+.favbtn-ico{padding:0;width:40px;height:40px;justify-content:center;border-color:transparent}
+.favbtn-ico span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.favgrp{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+@media (max-width:760px){.favbtn{min-height:44px;padding:0 14px 0 12px}.favbtn-ico{width:44px;height:44px}}
+@media (prefers-reduced-motion:reduce){.favbtn,.favbtn svg{transition:none}}

@@ -40,6 +40,7 @@ const LSEC=(()=>{if(!sport)return null;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 const home=(file==='index.html'&&!sport&&dir!=='hockey'&&dir!=='football');
 const link=(s,cur)=>`<a href="${esc(U(s[2]))}"${cur===s[0]?' aria-current="page"':''}>${esc(s[1])}</a>`;
+const STAR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.8l2.7 5.9 6.4.7-4.8 4.3 1.4 6.3L12 16.7l-5.7 3.3 1.4-6.3L2.9 9.4l6.4-.7z"/></svg>';
 const TG='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>';
 
 /* page-local меню-якоря: забираем до перерисовки */
@@ -59,10 +60,11 @@ hd.innerHTML=`<div class="wrap hdrow">
     <a href="${esc(U('football/index.html'))}"${sport==='football'?' aria-current="true"':''}>Футбол</a>
   </nav>
   ${sec?`<nav class="gnav" aria-label="Разделы сайта">${sec.map(s=>link(s,act)).join('')}</nav>`:'<span class="gnav-sp"></span>'}
+  <a class="hd-me" href="${esc(U('me/index.html'))}"${file==='index.html'&&dir==='me'?' aria-current="page"':''} title="Мой JARVIS — избранные клубы">${STAR}<span>Мой JARVIS</span></a>
   <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener" aria-label="Получать прогнозы в Telegram — бесплатно">${TG}<span>Получать прогнозы<span class="tl"> — бесплатно</span></span></a>
   <button type="button" class="mbtn" id="mbtn" aria-expanded="false" aria-controls="mpanel"><span class="mi" aria-hidden="true"></span><span class="mt">Меню</span></button>
 </div>
-<div class="mpanel" id="mpanel" hidden>${mseg}${panel}<button type="button" class="msearch" id="msearch">Поиск по сайту</button><a class="mtg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Получать прогнозы — бесплатно</span></a></div>`;
+<div class="mpanel" id="mpanel" hidden>${mseg}<a class="mme" href="${esc(U('me/index.html'))}">${STAR}<span>Мой JARVIS</span></a>${panel}<button type="button" class="msearch" id="msearch">Поиск по сайту</button><a class="mtg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Получать прогнозы — бесплатно</span></a></div>`;
 /* на телефоне в шапке место отдано кнопке подписки: переключатель спорта и поиск живут в меню */
 {const ms=document.getElementById('msearch');if(ms)ms.addEventListener('click',()=>{const sb=hd.querySelector('.sbtn');if(sb){document.getElementById('mbtn').click();sb.click()}})}
 

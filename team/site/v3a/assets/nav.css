@@ -90,3 +90,12 @@ html{scroll-padding-top:116px}
 .hd .logo.lg2 em.ls-khl{color:#ffc21a}.hd .logo.lg2 em.ls-f,.hd .logo.lg2 em.ls-ucl{color:#3dd68c}.hd .logo.lg2 em.ls-ucl{color:#7aa7ff}
 @media (max-width:1180px){.hd .logo.lg2{font-size:19px}}
 @media (max-width:560px){.hd .logo.lg2{font-size:17px;letter-spacing:.14em}.hd .logo.lg2 .lw{letter-spacing:.14em;margin-right:-.14em}.hd .logo.lg2 s,.hd .logo.lg2 em{display:none}}
+
+/* «Мой JARVIS» (этап B кабинета): в шапке на широком экране, в меню — на узком */
+.hd .hd-me{display:inline-flex;align-items:center;gap:7px;flex:none;min-height:44px;padding:0 8px;border-radius:999px;text-decoration:none;color:var(--ink-2);font:600 16px/1 var(--display);white-space:nowrap;transition:color .2s ease}
+.hd .hd-me svg{width:18px;height:18px;flex:none}
+.hd .hd-me:hover,.hd .hd-me[aria-current]{color:var(--signal)}
+.hd .hd-me:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+@media (max-width:1500px){.hd .hd-me span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.hd .hd-me{padding:0 10px}}
+@media (max-width:1100px){.hd .hd-me{display:none}}
+.mpanel .mme{gap:10px}.mpanel .mme svg{width:20px;height:20px;flex:none;color:var(--signal)}
