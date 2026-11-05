@@ -148,3 +148,7 @@ html[data-pal][data-sport="football"]:not(#_){
   .av{--c:var(--paper-3)!important;box-shadow:inset 0 0 0 1px var(--rule-2)}
   .av span,.av.lite span{color:var(--ink);text-shadow:none}
 }
+
+html[data-pal][data-sport="football"]:not(#_){
+  .seg button[aria-selected="true"],.seg button[aria-pressed="true"]{background:var(--pal);border-color:var(--pal);color:var(--pal-ink)}
+}
