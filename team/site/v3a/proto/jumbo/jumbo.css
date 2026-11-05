@@ -67,7 +67,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 main { padding-block: 24px 40px; }
 .sec { padding-block: 56px 8px; position: relative; }
 .sec-h { display: grid; gap: 14px; margin-bottom: 28px; }
-.sec-h .led { --d: 4px; font-size: clamp(34px, 6.2vw, 68px); }
+.sec-h .led { --d: 5px; font-size: clamp(36px, 6.2vw, 72px); }
 .sec-h p { max-width: 56ch; color: var(--mute); }
 
 /* шапка */
@@ -299,7 +299,8 @@ body.has-ring { padding: var(--ring) 0; }
 .crumbs { font-family: var(--f-m); font-size: 13px; color: var(--mute); display: flex; gap: 8px; flex-wrap: wrap; padding-block: 8px 0; }
 .crumbs a { text-decoration: none; }
 .crumbs a:hover { color: var(--ink); }
-.crumbs span + span::before, .crumbs a + a::before, .crumbs a + span::before { content: "/"; margin-right: 8px; color: var(--line-hi); }
+.crumbs a + a::before, .crumbs a + span::before { content: "/"; margin-right: 8px; color: var(--line-hi); }
+.crumbs i { font-style: normal; }
 .mh { padding-block: 22px 6px; }
 .mh h1 { font-size: clamp(30px, 5vw, 58px); font-weight: 800; line-height: 1.05; }
 .mh p { color: var(--mute); margin-top: 10px; }
@@ -324,7 +325,7 @@ body.has-ring { padding: var(--ring) 0; }
 @keyframes flash { 0% { opacity: 0; } 25% { opacity: 1; } 100% { opacity: 0; } }
 .sb-tot { display: flex; flex-wrap: wrap; gap: 14px 30px; align-items: center; justify-content: center; border-top: 1px solid var(--line); padding-top: 18px; }
 .sb-tot > div { display: flex; align-items: baseline; gap: 12px; }
-.sb-tot .led { --d: 4px; font-size: 56px; }
+.sb-tot .led { --d: 5px; font-size: 70px; }
 .sb-tot .lab { font-size: 14px; }
 .odds { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
 .od { padding: 14px 12px; text-align: center; display: grid; gap: 4px; transition: transform 120ms var(--ease); }
@@ -412,3 +413,18 @@ body.has-ring { padding: var(--ring) 0; }
   .sb-flash { display: none; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
 }
+
+/* шапка матча: огромные светодиодные названия, эмблемы стоят перед ними */
+.stage { position: relative; height: clamp(260px, 38vw, 520px); margin-top: 8px; }
+.stage::before { content: ""; position: absolute; left: 50%; top: 10%; width: 70%; height: 90%; transform: translateX(-50%); background: radial-gradient(ellipse at 50% 50%, var(--amber-glow), transparent 66%); opacity: 0.5; pointer-events: none; }
+.stage .nm { position: absolute; --d: 7px; font-size: clamp(44px, 12.2vw, 190px); line-height: 0.9; white-space: nowrap; width: auto; }
+.stage .n1 { left: 0; top: 0; }
+.stage .n2 { right: 0; bottom: 0; --c: var(--amber); }
+.stage .em { position: absolute; width: clamp(130px, 25vw, 340px); height: auto; aspect-ratio: 1; object-fit: contain; filter: drop-shadow(0 0 40px var(--amber-glow)) drop-shadow(0 16px 24px #000); }
+.stage .e1 { left: 24%; top: 8%; transform: rotate(-7deg); }
+.stage .e2 { right: 12%; top: 14%; transform: rotate(6deg); }
+@media (prefers-reduced-motion: no-preference) { .stage .em { animation: bob 7s ease-in-out infinite; } .stage .e2 { animation-delay: -3.5s; } }
+.meta { display: flex; flex-wrap: wrap; gap: 14px 40px; margin-top: 22px; }
+.meta dd { margin: 2px 0 0; font-size: 18px; }
+.meta dd b { color: var(--amber); font-family: var(--f-m); font-weight: 500; }
+@media (max-width: 640px) { .stage .nm { --d: 4px; } .stage .e1 { left: 4%; top: 28%; } .stage .e2 { right: 4%; top: 12%; } }
