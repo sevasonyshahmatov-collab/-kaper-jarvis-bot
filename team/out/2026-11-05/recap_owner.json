@@ -1,1 +1,1 @@
-{"day":"2026-11-05","make":["team/daily/morning.py 2026-11-05 --ask --recap-only --recap-num 0511-r2 --recap-tail \"+ экспресс КХЛ 1,80 ✅\" --job-file team/out/2026-11-05/recap_owner.json"],"messages":[]}
+{"day":"2026-11-05","make":["team/daily/morning.py 2026-11-05 --ask --recap-only --recap-num 0511-r2 --recap-tail=+_экспресс_КХЛ_1,80_✅ --job-file team/out/2026-11-05/recap_owner.json"],"messages":[]}

@@ -488,7 +488,7 @@ def main(argv=None):
     ap.add_argument('--source', choices=('channel', 'ledger'), default='channel',
                     help='откуда итоги: channel — посты канала t.me/s/jarvibet (по умолчанию), ledger — INBOX + SENT.md')
     ap.add_argument('--greet-only', action='store_true', help='только «Начало игрового дня» (06:00, без итогов)')
-    ap.add_argument('--recap-tail', help='строка в конец списка прогнозов (напр. «+ экспресс КХЛ 1,80 ✅»)')
+    ap.add_argument('--recap-tail', help='строка в конец списка прогнозов (напр. +_экспресс_КХЛ_1,80_✅; «_» → пробел: задание режется по пробелам)')
     ap.add_argument('--recap-num', help='номер поста итогов вместо ММДД-r1 (напр. 0511-r2)')
     ap.add_argument('--job-file', help='куда писать сообщения (по умолчанию team/out/<D>/morning.json)')
     ap.add_argument('--name', default='morning', help='с --job: имя файла задания (morning2 → morning2.json)')
@@ -517,7 +517,7 @@ def main(argv=None):
     elif not a.no_wait and not a.dry and a.source == 'ledger' and not a.greet_only:
         wait_cutoff(d)
     msgs, summary, _ = build(d, a.variant, card=not a.no_card, led=led, recap_only=a.recap_only or a.ask, sel=sel,
-                             source=a.source, greet_only=a.greet_only, recap_tail=a.recap_tail, recap_num=a.recap_num,
+                             source=a.source, greet_only=a.greet_only, recap_tail=(a.recap_tail or '').replace('_', ' ') or None, recap_num=a.recap_num,
                              wait=a.source == 'channel' and not a.no_wait and not a.dry)
     print('DAILY ' + json.dumps(summary, ensure_ascii=False), flush=True)
     if a.dry:
