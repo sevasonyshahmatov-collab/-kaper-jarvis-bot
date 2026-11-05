@@ -227,6 +227,8 @@ def main():
         elif why:
             old_bad.append((x, why))
     picks = picks + sorted(old.values(), key=lambda p: p['msg_id'])
+    xrows, xwait = extra_bets.rows(seen['v'][0])     # футбол и экспрессы — итог по постам канала
+    used |= {r['msg_id'] for r in xrows} | {p['msg_id'] for p, _ in xwait}
     odd = [x for x in seen['v'][0] if x['id'] not in used and x['posted'] and x['posted'] >= t0
            and any(w in ' '.join(t for t, _ in x['text']).lower() for w in ('прогноз', 'кэф', 'коэф'))]
     found, errs = data.games_for(picks) if picks else ({}, [])
@@ -236,7 +238,6 @@ def main():
         os.makedirs(out, exist_ok=True)
         with open(os.path.join(out, 'dump.pkl'), 'wb') as f:
             pickle.dump(dict(pages=pages, found=found), f)
-    xrows, xwait = extra_bets.rows(seen['v'][0])     # футбол и экспрессы — итог по постам канала
     pending = pending + xwait
     rows = rows + [r for r in xrows if r['start'] >= t0]
     stats = month_stats(rows)
