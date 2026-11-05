@@ -182,6 +182,10 @@ if(!RM){
   const sc=$('.scratch');
   if(sc){let tk=0;addEventListener('scroll',()=>{if(tk)return;tk=requestAnimationFrame(()=>{tk=0;sc.style.transform='translate3d(0,'+(-scrollY*.05).toFixed(1)+'px,0)'})},{passive:true})}
 }
+/* параллаксная глубина слоёв от курсора (только мышь) */
+if(FINE&&!RM){const st=$('.stage');if(st){const ob=$$('[data-depth]',st);let r2=0,ev;
+  st.addEventListener('pointermove',e=>{ev=e;if(!r2)r2=requestAnimationFrame(()=>{r2=0;const b=st.getBoundingClientRect(),x=(ev.clientX-b.left)/b.width-.5,y=(ev.clientY-b.top)/b.height-.5;
+    ob.forEach(o=>{const d=+o.dataset.depth;o.style.setProperty('--px',(x*d).toFixed(1)+'px');o.style.setProperty('--py',(y*d*.6).toFixed(1)+'px')})})})}}
 /* страница матча: числа от нуля */
 $$('[data-count]').forEach(el=>{if(!el.closest('#tablo')&&!el.closest('#stats'))countUp(el)});
 })();
