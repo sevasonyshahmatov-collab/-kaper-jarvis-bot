@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Проверка источников живого счёта «как браузер»: запрос с Origin и preflight OPTIONS; пишет sources_report.json/.md."""
 import json
+import os
 import re
 import time
 from datetime import datetime, timedelta, timezone
@@ -116,7 +117,8 @@ it = probe('КХЛ', 'khl.ru (сайт)', 'https://www.khl.ru/calendar/')
 it.pop('json', None)
 it['fields'] = {}
 
-json.dump(rep, open('sources_report.json', 'w'), ensure_ascii=False, indent=1)
+HERE = os.path.dirname(os.path.abspath(__file__))
+json.dump(rep, open(os.path.join(HERE, 'sources_report.json'), 'w'), ensure_ascii=False, indent=1)
 L = ['# Проверка источников живого счёта', '', 'Запуск: %s, Origin: `%s`' % (rep['at'], ORIGIN), '',
      '| Лига | Источник | HTTP | ACAO | Preflight (код / ACAO / methods) | Cache-Control | Размер | Задержка | CORS для GET |', '|---|---|---|---|---|---|---|---|---|']
 for i in rep['items']:
@@ -127,5 +129,5 @@ for i in rep['items']:
 L += ['', '## Поля счёта (пример)', '']
 for i in rep['items']:
     L.append('- **%s / %s**: `%s`' % (i['league'], i['name'], json.dumps(i.get('fields'), ensure_ascii=False)[:600]))
-open('sources_report.md', 'w').write('\n'.join(L) + '\n')
+open(os.path.join(HERE, 'sources_report.md'), 'w').write('\n'.join(L) + '\n')
 print('\n'.join(L))
