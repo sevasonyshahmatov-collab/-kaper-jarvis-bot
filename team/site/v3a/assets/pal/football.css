@@ -1,1 +1,150 @@
-/* Палитры ?pal=: доработка раздела «football». Все правила — под html[data-pal="…"]. */
+/* Палитры ?pal=: доработка раздела «football». Все правила — под html[data-pal="…"][data-sport="football"].
+   F = html[data-pal][data-sport="football"]:not(#_) — «:not(#_)» поднимает вес выше старых правил ucl.css / football.css / v3a.css.
+   Акцент (--pal / --pal-t) — только на нажимаемом: табы, фильтры, кнопки, ссылки-действия. Остальное — оттенки двух основных цветов. */
+
+/* ── общие токены: значения палитры, запомненные на html (для сброса в зонах, где старые правила красят переменные) ── */
+html[data-pal][data-sport="football"]{
+  --p-paper:var(--paper);--p-paper-2:var(--paper-2);--p-paper-3:var(--paper-3);--p-card:var(--card);--p-card-hi:var(--card-hi);
+  --p-ink:var(--ink);--p-ink-2:var(--ink-2);--p-ink-3:var(--ink-3);--p-rule:var(--rule);--p-rule-2:var(--rule-2);
+  --p-ice:var(--ice);--p-sport:var(--sport);--p-sport-ink:var(--sport-ink);--p-win:var(--win);--p-red:var(--red);
+  --p-signal:var(--signal);--p-win-ink:var(--win-ink);--p-loss-ink:var(--loss-ink);--p-crest-bg:var(--crest-bg);--p-shadow:var(--shadow);
+  --p-board:var(--board);--p-flap:var(--flap);--p-flap-2:var(--flap-2);--p-flap-ink:var(--flap-ink);
+  /* производные: стекло, кромка, зоны таблицы, нейтральные «лиги» */
+  --glass:color-mix(in srgb,var(--paper-2) 78%,transparent);--edge:var(--rule-2);--team:var(--ink-2);--mag:var(--ink-2);--cy:var(--ink-2);
+  --z1:var(--ink);--z2:var(--ink-2);--z3:var(--ink-3);--z4:var(--red);
+  --zt1:color-mix(in srgb,var(--ink) 11%,transparent);--zt2:color-mix(in srgb,var(--ink) 7%,transparent);--zt3:color-mix(in srgb,var(--ink) 4%,transparent);--zt4:color-mix(in srgb,var(--red) 13%,transparent);
+  --bgc:var(--paper)!important}
+
+html[data-pal][data-sport="football"]:not(#_){
+  /* ── фон страницы и зон: никаких «газетных» светлых полос и тёмно-синей арены ── */
+  body{background:var(--paper);color:var(--ink)}
+  .arena-bg{background:radial-gradient(70% 55% at 85% -5%,color-mix(in srgb,var(--ink) 8%,transparent),transparent 70%),linear-gradient(180deg,var(--paper-2),var(--paper) 75%)}
+  .arena-bg .bm,.arena-bg .sp{display:none}
+  :is([data-zone],.hero,.hd,.lt,.band,.sub,#honest>.wrap,#honest,.tmhero,.tm-none footer,footer){
+    --paper:var(--p-paper);--paper-2:var(--p-paper-2);--paper-3:var(--p-paper-3);--card:var(--p-card);--card-hi:var(--p-card-hi);
+    --ink:var(--p-ink);--ink-2:var(--p-ink-2);--ink-3:var(--p-ink-3);--rule:var(--p-rule);--rule-2:var(--p-rule-2);
+    --ice:var(--p-ice);--signal:var(--p-signal);--sport:var(--p-sport);--sport-ink:var(--p-sport-ink);--win:var(--p-win);--red:var(--p-red);
+    --win-ink:var(--p-win-ink);--loss-ink:var(--p-loss-ink);--crest-bg:var(--p-crest-bg);--shadow:var(--p-shadow);
+    --glass:color-mix(in srgb,var(--p-paper-2) 78%,transparent);--edge:var(--p-rule-2)}
+  .hero{--lg:var(--ink-2)}
+  .hero h1 .ln:last-child,.hero h1 em{color:var(--ink-2)}
+  /* ленты фона по зонам: чередуем два основных цвета */
+  [data-zone="p2"],[data-zone="p2b"],#leagues{background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--paper-2) 70%,transparent) 14%,color-mix(in srgb,var(--paper-2) 70%,transparent) 86%,transparent)}
+  [data-zone="p3"]{background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--paper-3) 38%,transparent) 12%,color-mix(in srgb,var(--paper-3) 38%,transparent) 88%,transparent)}
+  #leagues::before{background:linear-gradient(100deg,color-mix(in srgb,var(--ink) 5%,transparent) 0,transparent 40%,transparent 60%,color-mix(in srgb,var(--ink) 7%,transparent) 100%)}
+  #honest>.wrap{background:radial-gradient(60% 80% at 100% 0%,color-mix(in srgb,var(--ink) 7%,transparent),transparent 60%),var(--paper-2)}
+  .sub{background:var(--paper-2)}
+  .hero .board{background:var(--board);box-shadow:0 0 0 1px var(--rule-2),0 30px 70px -30px #000}
+  .hero .board::before{background:linear-gradient(90deg,transparent,var(--ink-3),transparent)}
+  .hero .btn-line{box-shadow:inset 0 0 0 2px var(--ink-2)}
+  .hero .btn-line:hover{background:var(--ink);color:var(--paper)}
+  .ticker{background:var(--board);border-color:var(--rule)}
+  .hd{background:color-mix(in srgb,var(--paper) 90%,transparent)}
+  /* ── плашки лиг и знаки ── */
+  .lgp{--c1:var(--paper-3);--c2:var(--ink-3);background:var(--paper-3);box-shadow:inset 0 -2px 0 var(--ink-3),0 0 0 1px var(--rule-2)}
+  .lgtab{background:radial-gradient(90% 120% at 100% 0%,color-mix(in srgb,var(--ink) 9%,transparent),transparent 60%),linear-gradient(120deg,var(--paper-3),var(--paper-2));box-shadow:inset 0 -6px 0 var(--ink-3);--bar:var(--pal-t)}
+  .lgtab:is(.laliga,.bundesliga,.rpl){background:radial-gradient(90% 120% at 100% 0%,color-mix(in srgb,var(--ink) 7%,transparent),transparent 60%),linear-gradient(120deg,var(--paper-2),var(--paper-3))}
+  .lgtab:is(.ucl,.uel){background:radial-gradient(90% 120% at 100% 0%,color-mix(in srgb,var(--ink) 12%,transparent),transparent 60%),linear-gradient(120deg,var(--paper),var(--paper-3))}
+  .lgtab::before{background-image:repeating-linear-gradient(90deg,color-mix(in srgb,var(--ink) 4%,transparent) 0 36px,transparent 36px 72px)}
+  .lgtab[aria-selected="true"]{box-shadow:inset 0 -6px 0 var(--pal-t),0 0 0 3px var(--paper),0 0 0 6px var(--pal-t)}
+  .cupb,.cupb.uel{background:var(--paper-3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--rule-2)}
+  /* ── таблица лиги и зоны ── */
+  .ltab{background:var(--card)}
+  .ltab th{border-bottom-color:var(--ink-3)}
+  .ltab tr.z1 td:first-child{box-shadow:inset 4px 0 0 var(--z1)}.ltab tr.z2 td:first-child{box-shadow:inset 4px 0 0 var(--z2)}
+  .ltab tr.z3 td:first-child{box-shadow:inset 4px 0 0 var(--z3)}.ltab tr.z4 td:first-child{box-shadow:inset 4px 0 0 var(--z4)}
+  .lkey .z1,.lkey i[style*="0d7a48"]{background:var(--z1)!important}
+  .lkey i[style*="1c63c4"]{background:var(--z2)!important}.lkey i[style*="d9822b"]{background:var(--z3)!important}.lkey i[style*="c4303b"]{background:var(--z4)!important}
+  /* ничья и форма: нейтральные */
+  .rs.d,.dots .d,.frm .d b,.dvd i.d{background:var(--ink-3);border-color:var(--ink-3);color:var(--paper)}
+  .tmstreak.u{border-left-color:var(--ink-3)}
+  /* котировка-фаворит: плашка нейтральная, не зелёная */
+  .match .qc{border-color:var(--rule);background:var(--paper-3)}
+  .match .qc b{color:var(--ink)}
+  .match .qc.fav{background:var(--paper-3);border-color:var(--ink-2);box-shadow:inset 0 -3px 0 var(--ink-2)}
+  .match .qc.fav small,.match .qc.fav em{color:var(--ink-2)}.match .qc.fav b{color:var(--ink)}
+  .mk3 span,.mk3 em{color:var(--ink-3)}.mk3 b{color:var(--flap-ink)}
+}
+
+html[data-pal][data-sport="football"]:not(#_){
+  --signal-ink:var(--paper);
+  #snow{filter:grayscale(1) opacity(.75)}
+  .lgtab .cnt,.leagues.two .cnt{color:var(--ink-2)}
+  .leagues .cnt{color:var(--ink-2)}
+  /* табы и фильтры — нажимаемое: акцент */
+  .tab[aria-selected="true"]{background:var(--pal);color:var(--pal-ink);box-shadow:none}
+  .tab[aria-selected="true"] .c{color:var(--pal-ink);opacity:.75}
+  .tab{background:var(--paper-3);color:var(--ink)}
+  .ctxsw a[aria-current="page"]{background:var(--pal);color:var(--pal-ink)}
+  .seg a[aria-current="page"],.seg a[aria-selected="true"]{background:var(--pal);color:var(--pal-ink)}
+  /* ── ночное небо ЛЧ/ЛЕ: нейтральные звёзды, знак турнира — оттенки палитры ── */
+  .ucl-deco svg:first-child polygon,.ucl-deco svg:first-child circle{fill:var(--ink-2)}
+  .ucl-deco .ball [stroke]{stroke:var(--ink-3)}
+  .ucl-deco .ball polygon{fill:var(--ink-3)}
+  .ucl-deco .lgbig{filter:grayscale(1)}
+  .hero .board::before,body.ctx-cup .tmpower::before{background:linear-gradient(90deg,transparent,var(--ink-3),transparent)}
+  .period p{background:color-mix(in srgb,var(--board) 82%,transparent);border-color:var(--rule-2)}
+  .period p .pn{background:var(--ink-2);color:var(--paper)}
+  .qc{background:var(--paper-3);border-color:var(--rule-2)}
+  footer{background:var(--paper)}
+  /* ── светлые «газетные» полосы ЛЧ/ЛЕ — теперь тот же тёмный фон ── */
+  .lt{background:color-mix(in srgb,var(--paper-2) 75%,var(--paper));color:var(--ink)}
+  .lt :is(.match,.st,.formbox,.hg,.dvc,.tr,.nmatch,.nmh2h,.plead li,.resl li,.hv>div,.gsum li,.tmpower,.tmtable,.ltab,.cmpw,.pkempty,.gs>li,.tmpills li){box-shadow:none}
+  .lt .qc{background:var(--paper-3);border-color:var(--rule-2)}.lt .qc b{color:var(--ink)}
+  .lt .tab{background:var(--paper-3);color:var(--ink)}
+  .lt .tab[aria-selected="true"]{background:var(--pal);color:var(--pal-ink)}
+  .lt .btn-line{box-shadow:inset 0 0 0 2px var(--ink-2);color:var(--ink)}
+  .lt .btn-ink{background:var(--ink);color:var(--paper)}
+  .lt .ltab,.lt table{background:var(--card)}
+  .lt tr.z1>td,.lt .ltab tr.z1 td{background:var(--zt1)}.lt tr.z2>td{background:var(--zt2)}.lt tr.z3>td{background:var(--zt3)}.lt tr.z4>td{background:var(--zt4)}
+  .lt tr.me>td{background:var(--paper-3);color:var(--ink)}
+  .lt .bar i,.lt .hb{background:linear-gradient(180deg,var(--ink-2),var(--ink-3))}
+  .lt .trd i.y{background:var(--ink-2);border-color:var(--ink-2)}
+  .lt .match .qc.fav,.lt .match .qc.fav b{color:var(--ink)}
+  .lt .match .qc.fav small,.lt .match .qc.fav em{color:var(--ink-2)}
+  .band{background:linear-gradient(112deg,var(--paper-2) 0%,var(--paper-3) 100%);color:var(--ink)}
+  .band::before{background:linear-gradient(90deg,var(--ink-3),transparent)}
+  .sub.band li span{color:var(--ink)}
+  .band .nmatch{background:color-mix(in srgb,var(--board) 55%,transparent)}
+  /* ── страница клуба: шапка не в цветах клуба, а в цветах палитры ── */
+  body{--c1:var(--paper-3)!important;--c2:var(--paper-2)!important;--c3:var(--paper)!important;--con:var(--ink)!important;--cacc:var(--ink-2)!important;--team:var(--ink-2)!important;--cbase:var(--paper-3)!important}
+  .tmhero.hero,body.ctx-cup .tmhero.hero{background:linear-gradient(120deg,var(--paper-3) 0%,var(--paper-2) 55%,var(--paper) 100%)}
+  .tmhero::before,body.ctx-cup .tmhero::before{background:linear-gradient(90deg,var(--ink-3) 0 64%,var(--ink) 64%)}
+  .tmhero.hero{--card:color-mix(in srgb,var(--paper) 55%,transparent);--card-hi:color-mix(in srgb,var(--paper) 70%,transparent)}
+  .tmcrest{box-shadow:0 0 0 4px var(--ink-3),0 0 0 7px var(--paper-3),0 24px 40px -24px #000}
+  .stand tr.me td{background:var(--paper-3);color:var(--ink)}.stand tr.me td:first-child{color:var(--ink);box-shadow:inset 5px 0 0 var(--ink-2)}
+  a.follow.in-hero{background:var(--pal);color:var(--pal-ink)}
+}
+
+html[data-pal][data-sport="football"]:not(#_){
+  /* внутренние вставки со своими inline-цветами (JS лиг) */
+  li[style*="1d7a45"]{--k:var(--ink)!important}li[style*="6b7585"]{--k:var(--ink-3)!important}li[style*="1c63c4"]{--k:var(--ink-2)!important}
+}
+
+/* ── выбранные табы/фильтры/переключатели на остальных страницах — акцент ── */
+html[data-pal][data-sport="football"]:not(#_){
+  .tr-sw a[aria-current="page"],.fc-sw a[aria-current="page"],.tr-bar .tab[aria-pressed="true"],.tr-bar .tab[aria-selected="true"],
+  .pl-chips button[aria-pressed=true],.pl-tabs button[aria-pressed=true],.lghero .chips a[aria-current]{background:var(--pal);border-color:var(--pal);color:var(--pal-ink)}
+  .tr-bar .tab.str[aria-pressed="true"]::before{background:var(--pal-ink)}
+  .lgpt td.on{background:color-mix(in srgb,var(--ink) 8%,transparent)}
+  .pl-kicker{color:var(--ink-2)}
+  .pl[data-m=cr] .bar i,.pl[data-m=cr] .strip .bars i.g,.strip i.c{background:var(--ink-2);color:var(--paper)}
+  .strip i.g{background:var(--ink);color:var(--paper)}
+}
+
+html[data-pal][data-sport="football"]:not(#_){
+  .lgbig{--c1:var(--paper-3);--c2:var(--ink-3);background:var(--paper-3);box-shadow:inset 0 -4px 0 var(--ink-3),0 0 0 1px var(--rule-2)}
+  .ltab tr.zp td:first-child{box-shadow:inset 4px 0 0 var(--ink-2)}
+  .lgpl .cd i{background:var(--ink-2)}.lgpl .cd.r i{background:var(--red)}
+  .lgbar .bar i{color:var(--paper)}
+  .lgbar .bar .h{background:var(--ink)}.lgbar .bar .d{background:var(--rule-2);color:var(--ink)}.lgbar .bar .a{background:var(--ink-3)}.lgbar .bar .o{background:var(--paper-3);color:var(--ink)}
+  .jvf-tg svg{color:var(--pal-t)}
+}
+
+html[data-pal][data-sport="football"]:not(#_){
+  .mt-form b{color:var(--paper)}
+  body.fc .mt-cta .btn,body.fc .mt-cta .btn span{color:var(--pal-ink)}
+  .tr-more .btn-line:hover{background:var(--ink);color:var(--paper)}
+  .av{--c:var(--paper-3)!important;box-shadow:inset 0 0 0 1px var(--rule-2)}
+  .av span,.av.lite span{color:var(--ink);text-shadow:none}
+}

@@ -31,7 +31,8 @@ const ctxHref=k=>k===lg?`team.html?id=${encodeURIComponent(ID)}`:`team.html?id=$
 const RC=CUP?(D.tables[CUP]||[]).find(x=>x.id===ID)||{place:0,gp:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}:T;
 const CX=CUP?(T.cx||{})[CUP]:null;
 const AXS=CUP?D.axesCup:D.axes;
-const CP=CUP?(CUP==='ucl'?{stops:['#0b1a4a','#081340','#06102e'],text:'#ffffff',acc:'#5fd8ff',accL:'#5fd8ff',base:'#0b1a4a'}:{stops:['#2a1608','#150d06','#0a0704'],text:'#ffffff',acc:'#ffa04a',accL:'#ffa04a',base:'#2a1608'}):palette(clubColors(T)),acc=CP.acc;
+const PAL=document.documentElement.dataset.pal,pv=k=>{const v=getComputedStyle(document.documentElement).getPropertyValue(k).trim();return /^#[0-9a-f]{3,6}$/i.test(v)?v:null};
+const CP=CUP?(CUP==='ucl'?{stops:['#0b1a4a','#081340','#06102e'],text:'#ffffff',acc:'#5fd8ff',accL:'#5fd8ff',base:'#0b1a4a'}:{stops:['#2a1608','#150d06','#0a0704'],text:'#ffffff',acc:'#ffa04a',accL:'#ffa04a',base:'#2a1608'}):palette(clubColors(T)),acc=PAL&&pv('--ink')||CP.acc;
 document.title=`${T.n}${CUP?' · '+EN:''} — матчи сезона, место в таблице, сила команды · JARVIS`;
 {const st=document.body.style;[['--c1',CP.stops[0]],['--c2',CP.stops[1]],['--c3',CP.stops[2]],['--con',CP.text],['--cacc',CP.acc],['--team',CP.accL],['--cbase',CP.base]].forEach(([k,v])=>st.setProperty(k,v));
  document.body.classList.toggle('on-light',CP.text!=='#ffffff');
@@ -273,7 +274,7 @@ if(nextG){
  const C=cur.map(mine),Ol=old.map(mine);
  const rec=a=>[a.filter(g=>g.gf>g.ga).length,a.filter(g=>g.gf===g.ga).length,a.filter(g=>g.gf<g.ga).length];
  const [cw,cd,cl]=rec(C),[tw,td,tl_]=rec(C.concat(Ol)),tot=C.length+Ol.length;
- const c1=CUP?(CUP==='ucl'?'#19c8ff':'#ff9a3c'):palette(clubColors(T)).accL,c2=CUP?(CUP==='ucl'?'#ff3fa4':'#e6ebf5'):palette(clubColors(O)).accL;
+ const c1=PAL&&pv('--ink')||(CUP?(CUP==='ucl'?'#19c8ff':'#ff9a3c'):palette(clubColors(T)).accL),c2=PAL&&pv('--ink-3')||(CUP?(CUP==='ucl'?'#ff3fa4':'#e6ebf5'):palette(clubColors(O)).accL);
  const near=!CUP&&Math.hypot(...JVF.rgb(c1).map((v,i)=>v-JVF.rgb(c2)[i]))<110;
  const nT=esc(T.n),nO=esc(O.n);
  const sumCur=C.length?`в этом сезоне ${cw}–${cd}–${cl}`:'в этом сезоне ещё не встречались';
