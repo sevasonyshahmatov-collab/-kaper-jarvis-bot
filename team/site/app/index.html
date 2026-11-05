@@ -39,7 +39,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .lg{flex:none;width:30px;height:30px;object-fit:contain}
 .btn{display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:12px;font:700 15px Inter,sans-serif;width:100%}
 .btn.tg{background:var(--tg);color:#fff}.btn.gold{background:var(--gold);color:#1d1500}.btn.sec{background:var(--card2)}
-.nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(10px + env(safe-area-inset-bottom))}
+.nav{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(10px + env(safe-area-inset-bottom))}
 .nav button{min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--mute);font:600 11px Inter,sans-serif}
 .nav svg{width:24px;height:24px}.nav button.on{color:var(--nav,var(--acc))}
 .ex{font:500 12px Inter,sans-serif;color:var(--mute);text-align:center}
@@ -175,6 +175,31 @@ span.lg{display:inline-block}
 .trg{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 14px}
 .trg div{background:var(--card2);border-radius:10px;padding:9px 11px}.trg small{display:block;color:var(--mute);font-size:11px}.trg b{font:800 17px Inter,sans-serif}.trg b span{font:500 12px Inter,sans-serif;color:var(--mute);margin-left:4px}
 
+/* «Мои клубы» (владелец 05.11): список — в Telegram CloudStorage, на нашем сервере ничего нет (team/site/app/CLUBS.md) */
+.ch{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 2px 0}
+.ch h2{margin:0;font:800 22px Inter,sans-serif}.ch .chip{min-height:40px}
+.cc .gh{padding:12px 14px}.cc .gh b{font:700 16px Inter,sans-serif}.cc .gh small{display:block;margin:2px 0 0;font:500 12px Inter,sans-serif;color:var(--mute)}
+.cc .sub{padding:10px 14px 4px;font:600 12px Inter,sans-serif;color:var(--mute);letter-spacing:.02em}
+.cr{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 14px;min-height:50px;border-top:1px solid var(--line)}
+.cc .sub+.cr{border-top:0}
+.cr time{font:600 13px Inter,sans-serif;color:var(--mute);line-height:1.25}.cr time b{display:block;color:var(--fg);font-weight:700}
+.cr .m{font:600 14px Inter,sans-serif;min-width:0}.cr .m small{display:block;color:var(--mute);font:500 12px Inter,sans-serif}
+.cr .m .p{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cr .m .me{color:var(--fg);font-weight:800}.cr .m .p{color:#c4cad6}
+.cr .s{font:800 16px Inter,sans-serif}
+.cr.r{grid-template-columns:26px minmax(0,1fr) auto}
+.cnone{padding:12px 14px;color:var(--mute);font-size:13px;border-top:1px solid var(--line)}
+.card.empty.nofill{flex:none}
+span.lg.mono,.mono{display:inline-flex!important;align-items:center;justify-content:center;border-radius:50%;background:var(--card2);color:var(--mute);font:700 12px Inter,sans-serif;text-transform:uppercase}
+.search{width:100%;min-height:46px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--fg);padding:0 14px;font:500 16px Inter,sans-serif}
+.search::placeholder{color:var(--mute)}
+.pk{display:grid;grid-template-columns:30px minmax(0,1fr) 44px;gap:12px;align-items:center;padding:6px 6px 6px 14px;min-height:56px;border-bottom:1px solid var(--line);width:100%;text-align:left}
+.pk:last-child{border-bottom:0}.pk span.n{font:600 15px Inter,sans-serif;min-width:0}.pk span.n small{display:block;color:var(--mute);font:500 12px Inter,sans-serif}
+.star{display:flex;align-items:center;justify-content:center;width:44px;height:44px;color:var(--mute)}
+.star svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;transition:transform .15s}
+.pk[aria-pressed=true] .star{color:var(--gold)}.pk[aria-pressed=true] .star svg{fill:currentColor}
+.pk:active .star svg{transform:scale(.85)}
+@media (prefers-reduced-motion:reduce){.star svg{transition:none}}
+.stick{position:sticky;bottom:0;padding-top:4px;background:linear-gradient(180deg,transparent,var(--bg) 40%)}
 </style>
 </head>
 <body>
@@ -229,9 +254,10 @@ const ICON={
  matches:['<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>','<path d="M8 2.5a1 1 0 0 1 1 1V5h6V3.5a1 1 0 1 1 2 0V5h.5A3.5 3.5 0 0 1 21 8.5V9H3v-.5A3.5 3.5 0 0 1 6.5 5H7V3.5a1 1 0 0 1 1-1zM3 11h18v6.5A3.5 3.5 0 0 1 17.5 21h-11A3.5 3.5 0 0 1 3 17.5z"/>'],
  results:['<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.5 9"/>','<path d="M12 2.5a9.5 9.5 0 1 1 0 19 9.5 9.5 0 0 1 0-19zm4.2 6a1 1 0 0 0-1.4 0l-4.1 4.2-1.7-1.7a1 1 0 1 0-1.4 1.4l2.4 2.4a1 1 0 0 0 1.4 0l4.8-4.9a1 1 0 0 0 0-1.4z"/>'],
  table:['<rect x="3.5" y="12" width="5" height="8" rx="1.5"/><rect x="9.5" y="5" width="5" height="15" rx="1.5"/><rect x="15.5" y="9" width="5" height="11" rx="1.5"/>','<rect x="3" y="12" width="5.5" height="9" rx="1.6"/><rect x="9.25" y="4" width="5.5" height="17" rx="1.6"/><rect x="15.5" y="8.5" width="5.5" height="12.5" rx="1.6"/>'],
+ clubs:['<path d="M12 3.6l2.5 5.3 5.8.7-4.3 4 1.1 5.7L12 16.4l-5.1 2.9L8 13.6l-4.3-4 5.8-.7z"/>','<path d="M12 2.8a1 1 0 0 1 .9.6l2.2 4.6 5 .6a1 1 0 0 1 .6 1.7l-3.7 3.5 1 5a1 1 0 0 1-1.5 1.1L12 17.4l-4.5 2.5a1 1 0 0 1-1.5-1.1l1-5-3.7-3.5a1 1 0 0 1 .6-1.7l5-.6 2.2-4.6a1 1 0 0 1 .9-.6z"/>'],
  trends:['<path d="M3.5 17.5l5.5-5.5 4 4 7.5-8"/><path d="M15.5 8h5v5"/>','<path d="M15.5 6.5h5a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0V9.9l-6.3 6.3a1 1 0 0 1-1.4 0L9 13.4l-4.8 4.8a1 1 0 1 1-1.4-1.4l5.5-5.5a1 1 0 0 1 1.4 0l2.8 2.8 5.6-5.6h-2.6a1 1 0 1 1 0-2z"/>'],
  video:['<rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M10.2 9.4v5.2l4.4-2.6z" fill="currentColor"/>','<path d="M6.5 4.5h11A3.5 3.5 0 0 1 21 8v8a3.5 3.5 0 0 1-3.5 3.5h-11A3.5 3.5 0 0 1 3 16V8a3.5 3.5 0 0 1 3.5-3.5zm3.7 4.9v5.2c0 .5.5.8.9.5l4.3-2.6a.6.6 0 0 0 0-1l-4.3-2.6c-.4-.3-.9 0-.9.5z"/>']};
-const TABS=[['matches','Матчи'],['results','Итоги'],['trends','Тренды'],['table','Таблица'],['video','Ролики']];
+const TABS=[['matches','Матчи'],['results','Итоги'],['trends','Тренды'],['table','Таблица'],['video','Ролики'],['clubs','Клубы']];
 function nav(on,color){
  $('#nav').style.setProperty('--nav',color||'var(--acc)');
  $('#nav').innerHTML='<a class="sidelogo" href="../">JAR<i>V</i>IS</a>'+TABS.map(([k,n])=>`<button data-go="${k}" class="${k===on?'on':''}"${k===on?' aria-current="page"':''}>${k===on
@@ -240,6 +266,89 @@ function nav(on,color){
 }
 const lgChips=(on,go)=>`<div class="chips" role="group" aria-label="Лига">${[['khl','КХЛ'],['nhl','НХЛ']].map(([k,n])=>`<button class="chip${k===on?' on':''}" data-go="${go}/${k}"${k===on?' aria-pressed="true"':''}>${n}</button>`).join('')}</div>`;
 const pickBadge=p=>{const s=String(p||'').replace(/ в осн\. время| в основное время/,'');return s.length>22?s.slice(0,21)+'…':s};
+
+
+// ── Мои клубы (владелец 05.11). Список id клубов через запятую — в Telegram CloudStorage (ключ fav_clubs, до 4096 символов),
+// вне Telegram — localStorage браузера. На наш сервер не уходит ничего; initData и данные пользователя не читаем.
+const FAV_KEY='fav_clubs',FAV_MAX=4096;
+let FAV=[],CL=null;
+const cloud=()=>{try{return tg&&tg.CloudStorage&&tg.isVersionAtLeast&&tg.isVersionAtLeast('6.9')?tg.CloudStorage:null}catch(e){return null}};
+const favParse=s=>String(s||'').split(',').map(x=>x.trim()).filter((x,i,a)=>/^[\w-]{1,64}$/.test(x)&&a.indexOf(x)===i);
+const lsGet=()=>{try{return favParse(localStorage.getItem(FAV_KEY))}catch(e){return []}};
+const lsSet=v=>{try{localStorage.setItem(FAV_KEY,v)}catch(e){}};
+function favLoad(){return new Promise(res=>{
+ const c=cloud();if(!c)return res(lsGet());
+ let done=false;const fin=v=>{if(!done){done=true;res(v)}};
+ setTimeout(()=>fin(lsGet()),2500);                      // CloudStorage не ответил — запасной вариант
+ try{c.getItem(FAV_KEY,(err,v)=>fin(err?lsGet():favParse(v)))}catch(e){fin(lsGet())}})}
+function favSave(){const v=FAV.join(','),c=cloud();
+ if(c){try{c.setItem(FAV_KEY,v,err=>{if(err)lsSet(v)})}catch(e){lsSet(v)}}else lsSet(v)}
+function favToggle(id){
+ const i=FAV.indexOf(id);
+ if(i<0){if(FAV.concat(id).join(',').length>FAV_MAX){try{tg&&tg.HapticFeedback&&tg.HapticFeedback.notificationOccurred('warning')}catch(e){}
+   const m='Слишком много клубов — уберите ненужные.';tg?tg.showAlert(m):alert(m);return false}FAV.push(id)}
+ else FAV.splice(i,1);
+ haptic();favSave();return true}
+const SPORT_LG={khl:'КХЛ',nhl:'НХЛ'};
+function buildCL(X){ // DB — data.json (хоккей КХЛ/НХЛ), X — clubs.json (клубы, футбол, матчи; может не быть)
+ const lgs=[{k:'khl',n:'КХЛ'},{k:'nhl',n:'НХЛ'}],clubs={},M={};
+ for(const k in DB.leagues||{})(DB.leagues[k]||[]).forEach(t=>{if(t.slug)clubs[t.slug]={id:t.slug,lg:k,name:t.name,s:t.name.toLowerCase()}});
+ ((X||{}).l||[]).forEach(l=>{if(!lgs.some(x=>x.k===l[1]))lgs.push({k:l[1],n:l[2]})});
+ ((X||{}).c||[]).forEach(c=>{clubs[c[0]]={id:c[0],lg:c[2],name:c[3],s:(c[3]+' '+(c[4]||'')+' '+(c[5]||'')).toLowerCase()}});
+ const put=m=>{const k=m.d.slice(0,10)+'|'+m.h+'|'+m.a;if(!M[k]||(m.sc&&!M[k].sc))M[k]=m};
+ ((X||{}).m||[]).forEach(x=>put({d:x[0],h:x[2],a:x[3],sc:x[4]||'',lg:x[5]||(clubs[x[2]]||{}).lg}));
+ const id=n=>{const t=T(n);return t&&t.slug};
+ (DB.schedule||[]).concat(DB.games||[]).forEach(g=>{const h=id(g.h),a=id(g.a);if(h&&a)put({d:g.d,h,a,sc:'',lg:g.lg})});
+ (DB.results||[]).forEach(r=>{const h=id(r.h),a=id(r.a);if(h&&a&&r.sc)put({d:r.d,h,a,sc:r.sc,lg:r.lg})});
+ lgs.forEach(l=>{l.n=SPORT_LG[l.k]||l.n});
+ return {lgs:lgs.filter(l=>Object.values(clubs).some(c=>c.lg===l.k)),clubs,M:Object.values(M),football:Object.values(clubs).some(c=>!SPORT_LG[c.lg])}}
+const lgName=k=>((CL.lgs.find(l=>l.k===k))||{}).n||'';
+const nowMsk=()=>new Date(Date.now()+3*36e5).toISOString().slice(0,16).replace('T',' ');
+const dayShort=d=>{const t=nowMsk().slice(0,10),n=new Date(t+'T12:00:00');n.setDate(n.getDate()+1);
+ return d.slice(0,10)===t?'Сегодня':d.slice(0,10)===n.toISOString().slice(0,10)?'Завтра':(+d.slice(8,10))+' '+MON[+d.slice(5,7)-1].slice(0,3)+'.'};
+const score=sc=>{const m=/(\d+)\s*[:\-–]\s*(\d+)/.exec(sc||'');return m?[+m[1],+m[2]]:null};
+function crest(id,sz){const c=CL.clubs[id]||{name:id},s=sz||30;
+ const lg=(DB.logos||{})[c.name],first=lg?'../'+lg:'emb/'+id+'.webp';
+ return `<img class="lg" src="${esc(first)}" width="${s}" height="${s}" alt="" data-m="${esc((c.name||'?').slice(0,2))}" data-alt="emb/${esc(id)}.webp" loading="lazy">`}
+document.addEventListener('error',e=>{const i=e.target;if(!i||!i.matches||!i.matches('img[data-m]'))return;
+ if(i.dataset.alt&&i.getAttribute('src')!==i.dataset.alt){const a=i.dataset.alt;i.dataset.alt='';i.src=a;return}
+ const s=document.createElement('span');s.className='lg mono';s.textContent=i.dataset.m;i.replaceWith(s)},true);
+const starSvg='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.4l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.8l-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z"/></svg>';
+const storeNote=()=>`<div class="ex">${tg&&cloud()?'Список хранится в вашем Telegram (облако Telegram). У нас — ничего не сохраняется.':'Список хранится только в этом браузере. У нас — ничего не сохраняется.'}</div>`;
+function clubCard(id){
+ const c=CL.clubs[id],cut=new Date(Date.now()+3*36e5-27e5).toISOString().slice(0,16).replace('T',' ');   // матч идёт до ~45 мин после старта по расписанию
+ const mine=CL.M.filter(m=>m.h===id||m.a===id);
+ const up=mine.filter(m=>!m.sc&&m.d>=cut).sort((a,b)=>a.d<b.d?-1:1).slice(0,3);
+ const past=mine.filter(m=>m.sc&&score(m.sc)).sort((a,b)=>a.d<b.d?1:-1).slice(0,3);
+ const nm=x=>esc((CL.clubs[x]||{name:x}).name),pair=m=>`<span class="p">${m.h===id?`<span class="me">${nm(m.h)}</span>`:nm(m.h)} — ${m.a===id?`<span class="me">${nm(m.a)}</span>`:nm(m.a)}</span>`;
+ const lgn=m=>esc(lgName(m.lg||c.lg));
+ return `<div class="card cc"><div class="gh"><a href="${SPORT_LG[c.lg]?href(c.name):'#clubs'}" style="display:flex;align-items:center;gap:10px;min-width:0">${crest(id,34)}<span><b>${esc(c.name)}</b><small>${esc(lgName(c.lg))}</small></span></a></div>
+  <div class="sub">БЛИЖАЙШИЕ МАТЧИ</div>${up.length?up.map(m=>`<div class="cr"><time><b>${dayShort(m.d)}</b>${m.d.slice(11,16)}</time><span class="m">${pair(m)}<small>${lgn(m)}</small></span></div>`).join(''):'<div class="cnone">Пока нет в расписании</div>'}
+  <div class="sub" style="border-top:1px solid var(--line);margin-top:4px;padding-top:12px">ПОСЛЕДНИЕ РЕЗУЛЬТАТЫ</div>${past.length?past.map(m=>{const [x,y]=score(m.sc),a=m.h===id?x:y,b=m.h===id?y:x,r=a>b?'В':a<b?'П':'Н';
+   return `<div class="cr r"><span class="res${r==='П'?' l':r==='Н'?' p':''}" aria-label="${r==='В'?'победа':r==='П'?'поражение':'ничья'}">${r}</span><span class="m">${pair(m)}<small>${dayShort(m.d)==='Сегодня'||dayShort(m.d)==='Завтра'?dayShort(m.d):(+m.d.slice(8,10))+' '+MON[+m.d.slice(5,7)-1]} · ${lgn(m)}</small></span><b class="s">${x}:${y}</b></div>`}).join(''):'<div class="cnone">Результатов пока нет</div>'}</div>`}
+function myClubs(){
+ const favs=FAV.filter(id=>CL.clubs[id]);
+ if(!favs.length)return `<div class="main" style="padding-top:8px"><div class="ch"><h2>Мои клубы</h2></div>
+  <div class="card empty nofill" style="padding:40px 24px"><b>Выберите клубы</b><span>Отметьте звёздочкой любимые команды КХЛ, НХЛ${CL.football?' и футбола':''} — здесь появятся их ближайшие матчи и последние результаты.</span>
+  <button class="btn tg" data-go="clubs/pick" style="margin-top:8px;max-width:280px">Выбрать клубы</button></div>${storeNote()}</div>`;
+ return `<div class="main" style="padding-top:8px"><div class="ch"><h2>Мои клубы</h2><button class="chip on" data-go="clubs/pick">Изменить</button></div>
+  ${favs.map(clubCard).join('')}${storeNote()}</div>`}
+let PK={lg:'',q:''};
+function pickList(){
+ const q=PK.q.trim().toLowerCase(),all=Object.values(CL.clubs);
+ const rows=(q?all.filter(c=>c.s.includes(q)):all.filter(c=>c.lg===PK.lg)).sort((a,b)=>a.name.localeCompare(b.name,'ru'));
+ return rows.length?rows.map(c=>`<button class="pk" data-fav="${esc(c.id)}" aria-pressed="${FAV.includes(c.id)}" aria-label="${esc(c.name)}">${crest(c.id)}<span class="n">${esc(c.name)}<small>${esc(lgName(c.lg))}</small></span><span class="star">${starSvg}</span></button>`).join(''):'<div class="cnone" style="border:0">Ничего не найдено</div>'}
+const pickCount=()=>FAV.length?'Выбрано: '+FAV.length:'Пока ничего не выбрано';
+function picker(lg){
+ PK.lg=CL.lgs.some(l=>l.k===lg)?lg:CL.lgs[0].k;PK.q='';
+ return `<div class="main" style="padding-top:8px"><div class="ch"><h2>Выбор клубов</h2><span class="l10" id="pkc">${pickCount()}</span></div>
+  <input class="search" id="pks" type="search" placeholder="Найти клуб" autocomplete="off" enterkeyhint="search" aria-label="Найти клуб">
+  <div class="chips" role="group" aria-label="Лига">${CL.lgs.map(l=>`<button class="chip${l.k===PK.lg?' on':''}" data-go="clubs/pick/${l.k}"${l.k===PK.lg?' aria-pressed="true"':''}>${esc(l.n)}</button>`).join('')}</div>
+  <div class="card" id="pkl">${pickList()}</div>${CL.football?'':'<div class="ex">Футбольные клубы появятся после ближайшего обновления данных</div>'}
+  <div class="stick"><button class="btn gold" data-go="clubs">Готово</button></div></div>`}
+document.addEventListener('input',e=>{if(e.target.id==='pks'){PK.q=e.target.value;$('#pkl').innerHTML=pickList()}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-fav]');if(!b)return;
+ if(favToggle(b.dataset.fav)){b.setAttribute('aria-pressed',FAV.includes(b.dataset.fav));const c=$('#pkc');if(c)c.textContent=pickCount()}});
 
 // ── Матчи дня: самый уверенный прогноз — карточкой, расписание дня — списком (метка «прогноз» у матчей с прогнозом)
 function matches(lg){
@@ -404,6 +513,7 @@ function render(){
  let html,tab=r,head='#0e1116',acc=null,pbg='';
  if(r==='match'){html=match(a);tab='matches'}
  else if(r==='team'){const t=team(a,b,parts[3]);html=t.html;tab='table';head=t.head||head;acc=t.acc;pbg=t.bg}
+ else if(r==='clubs'){html=a==='pick'?picker(b):myClubs();tab='clubs'}
  else if(r==='table')html=table(LG);
  else if(r==='results')html=results();
  else if(r==='trends')html=trends(LG,b);
@@ -411,7 +521,7 @@ function render(){
  else{html=matches(LG);tab='matches'}
  scr.innerHTML=html;scr.scrollTop=0;nav(tab,acc);
  $('#pagebg').innerHTML=WIDE()?pbg:'';
- const inner=r==='match'||r==='team';
+ const inner=r==='match'||r==='team'||(r==='clubs'&&a==='pick');
  $('#back').hidden=!inner;
  if(tg){inner?tg.BackButton.show():tg.BackButton.hide();try{tg.setHeaderColor(r==='team'?head:'#0e1116')}catch(e){}}
 }
@@ -423,11 +533,14 @@ document.addEventListener('click',e=>{
  const act=e.target.closest('[data-act]');
  if(act&&act.dataset.act==='buy')(tg?tg.showAlert('Оплата появится позже. Сейчас доступ к таблице — через канал @jarvibet.'):alert('Оплата появится позже. Сейчас доступ — через канал @jarvibet.'));
 });
-const back=()=>history.length>1?history.back():(location.hash='matches');
+const back=()=>history.length>1?history.back():(location.hash=/^#clubs\//.test(location.hash)?'clubs':'matches');
 $('#back').onclick=back;
 if(tg){document.documentElement.classList.add('in-tg');tg.ready();tg.expand();try{tg.setBackgroundColor('#0e1116');tg.setHeaderColor('#0e1116')}catch(e){}tg.BackButton.onClick(back)}
 fetch('bg/photos.json',{cache:'no-cache'}).then(r=>r.ok?r.json():[]).then(j=>{PHOTO=new Set(j);DB&&render()}).catch(()=>{});
-fetch('data.json',{cache:'no-cache'}).then(r=>r.ok?r.json():Promise.reject()).then(j=>{DB=j}).catch(()=>{DB=SAMPLE}).finally(()=>{
+const jget=u=>fetch(u,{cache:'no-cache'}).then(r=>r.ok?r.json():Promise.reject()).catch(()=>null);
+// ?demo=1 — пример клубов и футбола для просмотра вне сайта (team/site/app_data/demo/clubs.json; на живом сайте файла нет)
+const DEMO=/[?&]demo=1/.test(location.search);
+Promise.all([jget('data.json'),jget(DEMO?'../app_data/demo/clubs.json':'clubs.json'),favLoad()]).then(([j,x,f])=>{DB=j||SAMPLE;FAV=f;CL=buildCL(x);
  if(!(DB.games||[]).some(g=>g.lg===LG)&&(DB.games||[]).some(g=>g.lg==='nhl'))LG='nhl';render()});
 </script>
 </body>

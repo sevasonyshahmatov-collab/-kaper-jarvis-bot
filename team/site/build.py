@@ -482,6 +482,21 @@ def app_data(D, site, logos):
         sum(len(v) for v in (out.get('leagues') or {}).values()), len(games), len(out['results'])), flush=True)
 
 
+def app_clubs(site):
+    """<сайт>/app/clubs.json для экрана «Мои клубы» (владелец 05.11): клубы всех лиг (хоккей и футбол) и матчи со счётом
+    из данных макета v3a (team/site/v3a/data/search.json: c — клубы, l — лиги, m — матчи). Нет файла — ничего не пишем,
+    приложение берёт клубы КХЛ и НХЛ из data.json. Кэфов и букмекеров в файле нет."""
+    src = load(os.path.join(HERE, 'v3a', 'data', 'search.json'))
+    if not src or not src.get('c'):
+        return
+    cut = (today() - timedelta(days=20)).isoformat()
+    out = dict(built=src.get('built'), l=[[x[0], x[1], x[2]] for x in src.get('l') or []],
+               c=[[x[0], x[1], x[2], x[3], x[4] if len(x) > 4 else '', x[5] if len(x) > 5 else ''] for x in src['c']],
+               m=[x for x in src.get('m') or [] if x[0][:10] >= cut])
+    save(os.path.join(site, 'app', 'clubs.json'), out)
+    print('SITE приложение: клубов %d, матчей %d (clubs.json)' % (len(out['c']), len(out['m'])), flush=True)
+
+
 def calendar(D, td):
     """Слайд «Расписание» (владелец 25.10: настоящее расписание вместо примера): матчи дня КХЛ (нет — НХЛ) и вчерашние
     со счётом. Нет расписания на сегодня — None, на слайде остаётся пример."""
@@ -706,6 +721,7 @@ def _build(site, plans, do_settle=True):
     # мини-приложение Telegram (прототип, владелец 25.10): team/site/app → <сайт>/app/, данные → <сайт>/app/data.json
     shutil.copytree(os.path.join(HERE, 'app'), os.path.join(site, 'app'), dirs_exist_ok=True)
     app_data(D, site, logos)
+    app_clubs(site)
     changed = []
     for P in D:
         ms = sorted(P['matches'], key=lambda m: m['d'])
