@@ -46,7 +46,7 @@ function setPageColors(m){var c=cols(m),r=D.documentElement.style;r.setProperty(
 function mskNow(){return new Date().toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'})}
 function p2(n){return (n<10?'0':'')+n}
 function cd(m){var s=Math.floor((ep(m)-Date.now())/1000);
-  if(s<=0)return s>-10800?'идёт':'старт был '+hhmm(m);
+  if(s<=0)return s>-10800?'идёт':'старт '+hhmm(m);
   var d=Math.floor(s/86400),h=Math.floor(s%86400/3600),mi=Math.floor(s%3600/60),se=s%60;
   return (d?d+' д ':'')+p2(h)+':'+p2(mi)+':'+p2(se)}
 function tickCd(){$$('[data-cd]').forEach(function(e){var m=byKey(e.dataset.cd);if(m)e.textContent=cd(m)})}
@@ -155,10 +155,10 @@ function hockey(){
     '<div class="mday__box"><span class="tag"><i></i>'+LGN[f.lg]+' · '+hhmm(f)+' МСК</span><div><b style="font:700 19px/1.2 var(--f-d)">Прогноз дня</b><div style="color:var(--mute);margin-top:4px">'+esc(f.hn)+' — '+esc(f.an)+'</div></div>'+
     '<div><small style="color:var(--mute)">До матча</small><div class="big" data-cd="'+f.key+'">'+cd(f)+'</div></div>'+
     '<p style="color:var(--mute);font-size:13.5px">Посты с прогнозами выходят в канале: КХЛ — до 08:00 МСК, НХЛ — до 14:00.</p>'+
-    '<a class="btn btn-wrap vt-link" style="width:max-content" href="match.html?k='+encodeURIComponent(f.key)+'" data-vd="'+c.hd+'" data-vb="'+c.hb+'">Расчёт модели</a></div>'}
+    '<a class="btn vt-link" style="width:max-content" href="match.html?k='+encodeURIComponent(f.key)+'" data-vd="'+c.hd+'" data-vb="'+c.hb+'">Расчёт модели</a></div>'}
   var st=$('[data-stats]');if(st){var k=hk.length;st.querySelector('[data-num-a]').dataset.num=k;st.querySelector('[data-num-b]').dataset.num=hk.filter(function(m){return M[m.key]&&L[m.key]}).length}
   /* колода */
-  var dk=$('#deck');
+  var dk=$('#deck-box');
   if(dk){
     var day0=J.days[0],cur=0,flt='all',cards=[];
     function pool(){return hk.filter(function(m){return m.t.slice(0,10)===day0&&(flt==='all'||m.lg===flt)})}
@@ -220,7 +220,7 @@ function match(){
   if(o){var p=pr(m.key),mxs=[p.a,p.x,p.b];
     var cl=[[c.hd,c.hb],['#262c3d','#8d97b0'],[c.ad,c.ab]];
     $('#m-cols').innerHTML=[['П1','победа хозяев',p.a],['Х','ничья в основное время',p.x],['П2','победа гостей',p.b]].map(function(r,i){
-      return '<div class="col '+(i===1?'col--x':'')+'" style="--k:'+i+'"><span class="col__n"><span data-num="'+r[2]+'">'+r[2]+'</span><sup>%</sup></span><div class="col__bar"><i style="--v:'+r[2]+'%;--cd:'+cl[i][0]+';--cb:'+cl[i][1]+';transition-delay:'+(i*.28)+'s"></i></div><b class="nm">'+r[0]+'</b><small>'+r[1]+'</small></div>'}).join('');
+      return '<div class="col '+(i===1?'col--x':'')+'" style="--k:'+i+'"><span class="col__n"><span data-num="'+r[2]+'">'+r[2]+'</span><sup>%</sup></span><div class="col__bar"><i style="--v:'+Math.min(100,r[2]*2.1)+'%;--cd:'+cl[i][0]+';--cb:'+cl[i][1]+';transition-delay:'+(i*.28)+'s"></i></div><b class="nm">'+r[0]+'</b><small>'+r[1]+'</small></div>'}).join('');
     $('#m-tot').innerHTML=(o.tot?'<div class="tot__p"><small>Тотал '+num1(o.tot)+'</small><b>больше <span data-num="'+pct(o.over)+'">'+pct(o.over)+'</span> %</b></div>':'')+
      (o.lam?'<div class="xg"><small style="color:var(--mute)">Ожидаемые голы</small><div class="xg__r"><span>'+esc(m.hn)+'</span><i style="--c:'+c.hb+';--v:'+(o.lam[0]/Math.max(o.lam[0],o.lam[1]))+'"></i><b>'+num1(o.lam[0])+'</b></div><div class="xg__r"><span>'+esc(m.an)+'</span><i style="--c:'+c.ab+';--v:'+(o.lam[1]/Math.max(o.lam[0],o.lam[1]))+'"></i><b>'+num1(o.lam[1])+'</b></div></div>':'');
   }
