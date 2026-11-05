@@ -554,7 +554,7 @@ def main():
     ch_num, pick_why, recent = channel_post(p)
     # владелец 03.11: перед итогом сверяемся с тем, какая ставка выложена в канале СЕЙЧАС (правка в канале бот мог не увидеть)
     cp = p.get('ch_pick')
-    if cp and cp[0] and cp[0].strip().lower() != p['pick'].strip().lower():
+    if cp and cp[0] and cp[0].strip().lower() != p['pick'].strip().lower() and not raw.get('keep_pick'):  # keep_pick: ставка владельца в боте
         print('POSTMATCH ставка в канале другая: «%s» @%s вместо «%s» @%s — беру канальную' % (cp[0], cp[1], p['pick'], p['kef']), flush=True)
         p['pick'] = cp[0].strip()
         if cp[1]:
