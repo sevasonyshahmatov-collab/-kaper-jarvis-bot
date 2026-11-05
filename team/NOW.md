@@ -36,7 +36,7 @@
 - «Котировки, экспрессы и футбол — 31.10» — `session_01GakKTNbyX5zH6HJccD73MM` (продолжение чата руководителя 30.10; передача `HANDOFF_LEAD_3110_2.md`).
 - «Фонбет: точные котировки в прогнозы» — `session_01GakKTMi4rfkUTSnNm6Te7h` (Opus; итог — `docs/handoff/FONBET.md`).
 - Диспетчер JARVIS (служебный, не трогать) — `session_01GakKTMs4qribwLbphL4zbs`; на Б — «Диспетчер JARVIS Б» `session_01MtLSohbrUjwrmnARtLVyAg`.
-- «Актуальный, 04.11» — `session_01GakKTNerAENXKCc5YfKssr` (руководитель, хоккей+футбол; прошлый `session_01GakKTQ9pUXR413Mup6ppUd` — Неактуальный).
+- «Актуальный, 05.11» — `session_01GakKTMVChPSCHKahwutt2x` (руководитель, хоккей+футбол; прошлый «Неактуальный, до 05.11» `session_01GakKTNerAENXKCc5YfKssr`).
 - «Хоккей — Актуальный, 01.11» — `session_01GakKTM49pdcfF9qcUixdTy` (старый, Неактуальный).
 - Б: «Сайт v2 — 2 (30.10)» — `session_01MtLSohCCgm788XkGSKyYHh` (полёт камеры по стадиону, видео; прошлые «Сайт v2» и «Сайт JARVIS» закрыты).
 - Б: «Ролики: Топ недели + антирейтинги (КХЛ/НХЛ)» — `session_01MtLSoe18qpABRZCCgZoWqS`.
@@ -61,6 +61,7 @@
 7. По желанию: syntx.ai в разрешённые домены.
 
 ## События (новые сверху, ≤10)
+- 05.11 06:15 · А · открыт «Актуальный, 05.11» (хоккей+футбол); прошлый переименован в «Неактуальный, до 05.11»; разовых напоминаний к переносу нет; «Доброе утро» владельцу — `team/out/2026-11-05/good_morning.json`.
 - 05.11 · А · сайт v3a: ночные работы (иконки, превью, 404, подвал, model.html, профиль хоккеиста, аудит `team/site/review/SECURITY_0411.md` — критичного нет) и 60 идей; закреп задач сайта `docs/handoff/SITE_PIN.md` — новый чат сайта читает его первым.
 - 05.11 · А · по просьбе владельца: сайт — футбол и экспрессы в «Честных итогах» по месяцам (`team/site/extra_bets.py`, months.py, landing.html; ветка `claude/team-dev-site-foot-month`, PR в main); проверено на живой ленте в Actions; владельцу «было/стало» — ждём «да», потом слить и `site.yml` (plans=no).
 - 05.11 05:45 · А · передача футбола за 04.11 написана новым чатом: `docs/handoff/HANDOFF_FOOT_0511.md` (по NOW/LOG/INBOX/git log).
