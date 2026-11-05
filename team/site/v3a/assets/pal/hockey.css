@@ -1,1 +1,174 @@
-/* Палитры ?pal=: доработка раздела «hockey». Все правила — под html[data-pal="…"]. */
+/* Палитры ?pal=: раздел «хоккей». Все правила — под html[data-pal="…"]. */
+/* ── арена: страница не «включает свет», фон всегда палитры ───────────────── */
+html[data-pal][data-theme] body[data-field="hockey"]{background:var(--paper)}
+html[data-pal][data-theme] body[data-field="hockey"] :is(.hero,[data-zone],#honest>.wrap),
+html[data-pal][data-theme]:not(.lit) body[data-field="hockey"] .hd,html[data-pal][data-theme] body[data-field="hockey"] .hd{
+  --paper:inherit;--paper-2:inherit;--paper-3:inherit;--card:inherit;--card-hi:inherit;--ink:inherit;--ink-2:inherit;--ink-3:inherit;
+  --rule:inherit;--rule-2:inherit;--ice:inherit;--sport:inherit;--crest-bg:inherit;--crest-pad:inherit;--shadow:inherit;--win:inherit;--win-ink:inherit;--red:inherit;--loss-ink:inherit}
+html[data-pal][data-theme] body[data-field="hockey"] .hero>.wrap{opacity:1}
+html[data-pal][data-theme] body[data-field="hockey"] #matches .wrap>:not(.period){opacity:1}
+/* канвасы фона: разметка льда и снежная крошка — без цвета */
+html[data-pal] body[data-field="hockey"] #field,html[data-pal] body[data-field="hockey"] #snow{filter:grayscale(1)}
+html[data-pal] body[data-field="hockey"] .arena-bg{background:linear-gradient(180deg,color-mix(in srgb,var(--paper) 86%,#fff),var(--paper) 70%)}
+html[data-pal] body[data-field="hockey"] .arena-bg .bm,html[data-pal] body[data-field="hockey"] .arena-bg .sp{display:none}
+
+/* ── токены лиг: нейтральные оттенки двух основных цветов ─────────────────── */
+html[data-pal] body[data-field="hockey"]{
+  --khl-a:var(--paper-3);--khl-b:var(--ink-2);--khl-r:var(--ink-3);--khl-tint:var(--card);--khl-line:var(--rule-2);
+  --nhl-a:var(--paper-3);--nhl-b:var(--ink-3);--nhl-s:var(--ink-3);--nhl-tint:var(--card-hi);--nhl-line:var(--rule-2)}
+html[data-pal] body[data-field="hockey"] .match.khl,html[data-pal] body[data-field="hockey"] .match.nhl{color:var(--ink)}
+html[data-pal] body[data-field="hockey"] .match.khl{background:var(--card);box-shadow:inset 6px 0 0 var(--ink-2)}
+html[data-pal] body[data-field="hockey"] .match.nhl{background:var(--card-hi);box-shadow:inset 6px 0 0 var(--ink-3)}
+html[data-pal] body[data-field="hockey"] .match.khl .lgline,html[data-pal] body[data-field="hockey"] .match.nhl .lgline{color:var(--ink-2)}
+@media (hover:hover) and (pointer:fine){
+  html[data-pal] body[data-field="hockey"] .match.khl:hover{background:var(--card-hi);box-shadow:inset 6px 0 0 var(--ink-2),0 14px 28px -20px var(--shadow)}
+  html[data-pal] body[data-field="hockey"] .match.nhl:hover{background:var(--card-hi);box-shadow:inset 6px 0 0 var(--ink-3),0 14px 28px -20px var(--shadow)}}
+html[data-pal] body[data-field="hockey"] .qc{background:var(--paper-2);border-color:var(--rule-2)}
+html[data-pal] body[data-field="hockey"] .khl .qc.fav,html[data-pal] body[data-field="hockey"] .nhl .qc.fav,html[data-pal] body[data-field="hockey"] .qc.fav{
+  background:var(--ink-2);border-color:var(--ink-2);box-shadow:inset 0 -3px 0 var(--ink-3)}
+html[data-pal] body[data-field="hockey"] .qc.fav small,html[data-pal] body[data-field="hockey"] .qc.fav em,html[data-pal] body[data-field="hockey"] .qc.fav b{color:var(--paper)}
+html[data-pal] body[data-field="hockey"] .xb{background:color-mix(in srgb,var(--paper) 55%,transparent)}
+html[data-pal] body[data-field="hockey"] .rs,html[data-pal] body[data-field="hockey"] .form i{color:var(--win-ink)}
+html[data-pal] body[data-field="hockey"] :is(.rs.w,.dots .w,.form .w){background:var(--win)}
+html[data-pal] body[data-field="hockey"] :is(.rs.l,.dots .l,.form .l){background:var(--red)}
+html[data-pal] body[data-field="hockey"] :is(.rs.o,.form .d){background:var(--ink-3)}
+html[data-pal] body[data-field="hockey"] .dots .o{background:color-mix(in srgb,var(--red) 35%,var(--ink-3))}
+html[data-pal] body[data-field="hockey"] :is(.x-bets b.ok,.er .up,.hr b.w,.h2l .sc b.wn){color:var(--win)}
+html[data-pal] body[data-field="hockey"] :is(.x-bets b.no,.er .dn,.hr b.l){color:var(--red)}
+html[data-pal] body[data-field="hockey"] .ticker .ok{color:var(--win)}
+html[data-pal] body[data-field="hockey"] .ticker .no{color:var(--red)}
+html[data-pal] body[data-field="hockey"] :is(.st td,.x-bets li,.h2l li){border-top-color:var(--rule)}
+html[data-pal] body[data-field="hockey"] .smp{background:var(--fld)}
+html[data-pal] body[data-field="hockey"] .tab[data-l][aria-selected="true"]{background:var(--ink);color:var(--paper);box-shadow:none}
+html[data-pal] body[data-field="hockey"] .lgtab.khl,html[data-pal] body[data-field="hockey"] .lgtab.nhl{
+  background:linear-gradient(120deg,var(--paper-2),var(--card-hi));color:var(--ink);box-shadow:inset 0 -6px 0 var(--ink-3)}
+html[data-pal] body[data-field="hockey"] .lgtab.khl{box-shadow:inset 0 -6px 0 var(--ink-2)}
+html[data-pal] body[data-field="hockey"] :is(.lgtab .lgf,.lgtab .nt){color:var(--ink-2)}
+html[data-pal] body[data-field="hockey"] .lgtab .cnt,html[data-pal] body[data-field="hockey"] .leagues.two .cnt{color:var(--ink)}
+html[data-pal] body[data-field="hockey"] .leagues.two li{background:var(--paper-2);color:var(--ink);box-shadow:inset 0 -6px 0 var(--ink-3)}
+html[data-pal] body[data-field="hockey"] .leagues.two :is(p,.nt){color:var(--ink-2)}
+html[data-pal] body[data-field="hockey"] .lgp.nhl,html[data-pal] body[data-field="hockey"] .lgp.khl{background:var(--paper-3);box-shadow:inset 0 -2px 0 var(--ink-3),0 0 0 1px var(--rule-2)}
+
+/* ── табло: нейтральное, без голубого свечения ─────────────────────────────── */
+html[data-pal][data-theme] body[data-field="hockey"] .hero .board{background:var(--board);box-shadow:0 0 0 1px var(--rule-2),0 30px 70px -30px var(--shadow)}
+html[data-pal] body[data-field="hockey"] .board.khl,html[data-pal] body[data-field="hockey"] .board.nhl{background:linear-gradient(180deg,var(--flap),var(--board) 55%)!important;--acc:var(--ink-2)}
+html[data-pal][data-theme] body[data-field="hockey"] .hero .board::before{background:linear-gradient(90deg,transparent,var(--ink-3),transparent)}
+html[data-pal][data-theme] body[data-field="hockey"] .hero .btn-line{box-shadow:inset 0 0 0 2px var(--ink-2)}
+html[data-pal][data-theme] body[data-field="hockey"] .hero .btn-line:hover{background:var(--ink);color:var(--paper)}
+html[data-pal][data-theme] body[data-field="hockey"] .hero h1 .ln:last-child{color:var(--ink-2)}
+html[data-pal] body[data-field="hockey"] .sub,html[data-pal][data-theme] body[data-field="hockey"] .sub{background:var(--board)}
+html[data-pal][data-theme] body[data-field="hockey"] #honest>.wrap{background:var(--card);border-radius:12px}
+html[data-pal][data-theme] body[data-field="hockey"] #leagues::before{background:linear-gradient(100deg,var(--fld) 0,transparent 40%,transparent 60%,var(--fld) 100%)}
+
+/* ══ страницы клубов: тема клуба заменена палитрой; клубный цвет — только тонкий маркер ═══════════════ */
+html[data-pal] body.club{
+  --k-dk:var(--board)!important;--k-a1:var(--paper-3)!important;--k-a2:var(--rule-2)!important;--k-ac:var(--ink-3)!important;
+  --c1:var(--paper-2)!important;--c2:var(--paper)!important;--c3:var(--paper)!important;--con:var(--ink)!important;
+  --cacc:var(--ink-2)!important;--team:var(--ink-2)!important;--cbase:var(--paper-3)!important;
+  --lgc:var(--ink-3);--lgc2:var(--rule-2);
+  --k-t0:var(--paper);--k-t1:var(--paper);--k-t2:var(--paper-2);--k-t3:var(--paper-3);
+  --k-p0:var(--paper);--k-p1:var(--paper-2);--k-p2:var(--paper);--k-p3:var(--paper);
+  --fla-red:var(--ink-3);--fla-navy:var(--board);--fla-gold:var(--rule-2);--fla-sky:var(--paper-2);--fla-sand:var(--paper);--fla-aqua:var(--paper-2)}
+html[data-pal] body.club :is(#table,#games,#players,#picks,#trends,#totals,#next){
+  --paper:inherit;--paper-2:inherit;--paper-3:inherit;--card:inherit;--card-hi:inherit;--ink:inherit;--ink-2:inherit;--ink-3:inherit;--rule:inherit;--rule-2:inherit}
+html[data-pal] body.club .tmhero.hero{background:repeating-linear-gradient(135deg,var(--fld-2) 0 2px,transparent 2px 16px),linear-gradient(125deg,var(--paper-2) 0%,var(--paper) 70%)}
+html[data-pal] body.club .tmhero .tmwm{filter:grayscale(1);opacity:.06}
+html[data-pal] body.club .tmhero::before{background:linear-gradient(90deg,var(--ink-3) 0 64%,var(--rule-2) 64%)}
+html[data-pal] body.club .tmcrest{box-shadow:0 0 0 4px var(--rule-2),0 0 0 7px var(--paper-3),0 24px 40px -24px #000}
+html[data-pal] body.club .tmplace b{color:var(--ink-2)}
+html[data-pal] body.club .tmstreak{border-left-color:var(--ink-3)}
+html[data-pal] body.club .tmstreak .dots i.w{background:var(--ink-2)}
+html[data-pal] body.club .gfilter button[aria-pressed="true"]{background:var(--pal);color:var(--pal-ink)}
+html[data-pal] body.club .follow{background:var(--ink);color:var(--paper)}
+/* таблица */
+html[data-pal] body.club #table::before{background:var(--rule-2)}
+html[data-pal] body.club #table::after{background:linear-gradient(180deg,var(--paper-2),var(--paper))}
+html[data-pal] body.club #table .tmtable,html[data-pal] body.club #table .stg,html[data-pal] body.club #table .formbox{box-shadow:0 18px 40px -28px var(--shadow)}
+/* матчи: тёмная полоса */
+html[data-pal] body.club #games::before{background:
+  linear-gradient(176deg,transparent 0 clamp(14px,2.4vw,40px),var(--ink-3) 0 calc(clamp(14px,2.4vw,40px) + 6px),var(--rule-2) 0 calc(clamp(14px,2.4vw,40px) + 10px),transparent 0) top/100% 220px no-repeat,
+  repeating-linear-gradient(135deg,var(--fld-2) 0 2px,transparent 2px 18px),
+  linear-gradient(180deg,var(--flap),var(--board))}
+html[data-pal] body.club #games::after{background:var(--paper);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 48' preserveAspectRatio='none'%3E%3Cpath d='M0 48V20L35 26L64 8L96 20L125 30L164 8L195 26L247 8L288 8L341 8L374 14L403 30L454 8L494 8L528 20L580 14L613 30L658 30L695 8L733 20L765 30L795 30L824 30L863 26L916 38L962 26L1017 20L1062 14L1099 34L1140 8L1185 30L1200 22V48Z'/%3E%3C/svg%3E") bottom/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 48' preserveAspectRatio='none'%3E%3Cpath d='M0 48V20L35 26L64 8L96 20L125 30L164 8L195 26L247 8L288 8L341 8L374 14L403 30L454 8L494 8L528 20L580 14L613 30L658 30L695 8L733 20L765 30L795 30L824 30L863 26L916 38L962 26L1017 20L1062 14L1099 34L1140 8L1185 30L1200 22V48Z'/%3E%3C/svg%3E") bottom/100% 100% no-repeat}
+html[data-pal] body.club #games :is(.sec-head,.gh,.smpnote){--ink:inherit;--ink-2:inherit;--ink-3:inherit}
+html[data-pal] body.club #games .smpnote .sample{background:var(--paper-3);color:var(--ink)}
+html[data-pal] body.club #games .gh::after{background:linear-gradient(90deg,var(--rule-2),transparent)}
+html[data-pal] body.club #games .gsum li{border-top-color:var(--rule-2)}
+html[data-pal] body.club #games .gs,html[data-pal] body.club #games .gsum{box-shadow:0 22px 44px -26px #000}
+/* игроки */
+html[data-pal] body.club #players::before{background:radial-gradient(circle at 86% 14%,var(--fld) 0 clamp(70px,9vw,140px),var(--fld-2) calc(clamp(70px,9vw,140px) + 2px),transparent clamp(180px,22vw,340px)),
+  linear-gradient(180deg,var(--paper) 0%,var(--paper-2) 28%,var(--paper) 62%,var(--paper) 100%)}
+html[data-pal] body.club #players::after{background:var(--ink-3);opacity:.1}
+html[data-pal] body.club.club-nhl_fla #players::after{background:url(../club/nhl_fla_palm.svg) no-repeat right -2vw top -1vw / min(56vw,760px) auto;filter:grayscale(1) brightness(1.6);opacity:.08}
+html[data-pal] body.club.club-nhl_fla #players>.wrap::before{filter:grayscale(1) brightness(1.6);opacity:.1}
+html[data-pal] body.club #players .plead li{border-top-color:var(--rule-2)}
+html[data-pal] body.club #players .plead,html[data-pal] body.club #players .plwrap{box-shadow:0 20px 44px -30px #000}
+/* ставки */
+html[data-pal] body.club #picks::before{background:linear-gradient(180deg,var(--paper) 0,var(--paper) 100%)}
+html[data-pal] body.club #picks .pks,html[data-pal] body.club #picks .pkempty{border:2px solid var(--rule-2);box-shadow:none}
+html[data-pal] body.club #picks .pks{background:var(--rule)}
+html[data-pal] body.club #picks .pksum::before{background:linear-gradient(90deg,var(--ink-3) 0 40%,var(--rule-2) 0 80%,var(--paper-3) 0)}
+/* картинка клуба внизу: одноцветная тонировка палитры */
+html[data-pal] body.club .clubend{background:var(--board)}
+html[data-pal] body.club .clubend .ce-img{filter:grayscale(1) contrast(1.05)}
+html[data-pal] body.club .clubend::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:var(--paper-3);mix-blend-mode:color}
+html[data-pal] body.club .clubend .ce-top,html[data-pal] body.club .clubend .ce-bot{z-index:2}
+html[data-pal] body.club .clubend .ce-bot{background:linear-gradient(180deg,transparent,var(--board))}
+
+/* ── общие блоки хоккейных страниц ─────────────────────────────────────────── */
+html[data-pal] body[data-field="hockey"] .steps>li::before{color:var(--ink-2)}
+html[data-pal] body[data-field="hockey"] .steps>li:nth-child(2)::before{color:var(--ink-2)}
+html[data-pal] body[data-field="hockey"] .btn-ink{background:var(--pal);color:var(--pal-ink);box-shadow:none}
+html[data-pal] body[data-field="hockey"] .btn-ink:hover{background:color-mix(in srgb,var(--pal) 85%,#fff)}
+html[data-pal] body[data-field="hockey"] .btn-line{color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink-3)}
+/* окно «лист таблицы» */
+html[data-pal] body[data-field="hockey"] .win{background:var(--card);color:var(--ink);box-shadow:0 0 0 1px var(--rule-2),0 30px 60px -36px #000}
+html[data-pal] body[data-field="hockey"] :is(.win-bar,.win-tabs){background:var(--paper-2);border-color:var(--rule)}
+html[data-pal] body[data-field="hockey"] .win-bar i{background:var(--rule-2)}
+html[data-pal] body[data-field="hockey"] .win-tabs span.on{background:var(--card);border-top-color:var(--ink-2);color:var(--ink)}
+html[data-pal] body[data-field="hockey"] :is(.er em,.pb){background:var(--paper-3)}
+html[data-pal] body[data-field="hockey"] .er em::after{background:var(--ink-2)}
+html[data-pal] body[data-field="hockey"] :is(.gt th,.heat th,.gt td){border-color:var(--rule)}
+html[data-pal] body[data-field="hockey"] .gt td.k,html[data-pal] body[data-field="hockey"] .gm time,html[data-pal] body[data-field="hockey"] .tour .more .etc b{color:var(--ink)}
+html[data-pal] body[data-field="hockey"] .tour .more .etc{box-shadow:inset 0 0 0 2px var(--rule-2)}
+html[data-pal] body[data-field="hockey"] :is(.gm,.hr,.tour .more div){background:var(--paper-2)}
+html[data-pal] body[data-field="hockey"] .heat td{border-color:var(--card);background:color-mix(in srgb,var(--ink-2) calc(var(--h,0) * 40%),transparent)}
+html[data-pal] body[data-field="hockey"] .hchart .area{fill:color-mix(in srgb,var(--ink-2) 12%,transparent)}
+html[data-pal] body[data-field="hockey"] .hchart .end{fill:var(--ink)}
+html[data-pal] body[data-field="hockey"] .hchart .zero{stroke:var(--rule-2)}
+/* таблицы лиги */
+html[data-pal] body[data-field="hockey"] .ltab tr.zp td:first-child{box-shadow:inset 4px 0 0 var(--ink-3)}
+html[data-pal] body[data-field="hockey"] .lgpl .cd i{background:var(--ink-2)}
+html[data-pal] body[data-field="hockey"] .lgpl .cd.r i{background:var(--red)}
+html[data-pal] body[data-field="hockey"] .lgbar .bar i{color:var(--win-ink)}
+html[data-pal] body[data-field="hockey"] .lgbar .bar .d{background:var(--ink-3)}
+html[data-pal] body[data-field="hockey"] .lgbar .bar .a{background:var(--ink-2)}
+html[data-pal] body[data-field="hockey"] .lgbar .bar .o{background:var(--paper-3)}
+html[data-pal] body[data-field="hockey"] .lgbig.khl,html[data-pal] body[data-field="hockey"] .lgbig.nhl{background:var(--paper-3);box-shadow:inset 0 -4px 0 var(--ink-3),0 0 0 1px var(--rule-2)}
+/* страница матча */
+html[data-pal] body[data-field="hockey"] .mt-form b{color:var(--win-ink)}
+html[data-pal] body[data-field="hockey"] .mt-form .r-w b{background:var(--win)}
+html[data-pal] body[data-field="hockey"] .mt-form .r-l b{background:var(--red)}
+html[data-pal] body[data-field="hockey"] .mt-form .r-d b{background:var(--ink-3)}
+html[data-pal] body[data-field="hockey"] body.fc .mt-cta .btn,html[data-pal] body.fc[data-field="hockey"] .mt-cta .btn,html[data-pal] body.fc[data-field="hockey"] .mt-cta .btn span{color:var(--pal-ink)}
+/* игроки: заглушки-аватары вместо фото — нейтральные */
+html[data-pal] body[data-field="hockey"] .av:not(:has(img.ph)){background:var(--paper-3);box-shadow:inset 0 0 0 1px var(--rule-2)}
+html[data-pal] body[data-field="hockey"] .av span,html[data-pal] body[data-field="hockey"] .av.lite span{color:var(--ink-2);text-shadow:none}
+/* профиль игрока: шапка в палитре, клубный цвет — только полоса сверху */
+html[data-pal] body[data-field="hockey"] .pp-hero{color:var(--ink);background:linear-gradient(120deg,var(--paper-3) 0%,var(--paper-2) 62%,var(--card) 100%);box-shadow:inset 0 5px 0 var(--ink-3)}
+html[data-pal] body[data-field="hockey"] .pp-hero::before{background:linear-gradient(0deg,rgba(0,0,0,.25),transparent 55%)}
+html[data-pal] body[data-field="hockey"] .pp-no{color:var(--fld)}
+html[data-pal] body[data-field="hockey"] .pp-ini{color:var(--fld)}
+html[data-pal] body[data-field="hockey"] .pp-crumbs a{color:var(--ink);background:var(--card);border-color:var(--rule-2)}
+html[data-pal] body[data-field="hockey"] .pp-crumbs a:hover{background:var(--card-hi)}
+html[data-pal] body.club .radar .rpoly,html[data-pal] body.club .radar .rdot{fill:var(--ink-2);stroke:var(--ink-2)}
+html[data-pal] body.club .radar .rdot{stroke:var(--card)}
+html[data-pal] body.club .radar .rpoly.dash,html[data-pal] body.club .radar .rpoly.dash~.rdot{fill:var(--ink-3);stroke:var(--ink-3)}
+html[data-pal] body.club .radar .rval{fill:var(--ink)}
+html[data-pal] body.club .clubend{--ce-page:var(--paper)!important}
+html[data-pal] body.club .radar tspan{fill:var(--ink)}
+html[data-pal] body.club .radar tspan.rsep{fill:var(--ink-3)}
+html[data-pal] body.club .legend i{border-color:var(--ink-2)!important}
+html[data-pal] body.club .legend i.d{border-color:var(--ink-3)!important}
+html[data-pal] body.club .cmpleg b{color:var(--ink)!important}
+html[data-pal] body.club .cmpt td.lead .num{background:var(--fld);box-shadow:inset 0 -2px 0 var(--ink-2)}
