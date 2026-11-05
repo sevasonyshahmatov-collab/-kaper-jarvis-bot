@@ -11,9 +11,10 @@
   if(q==='off')p='';
   if(L.indexOf(p)<0)return;
   d.dataset.pal=p;
-  var s=document.currentScript,css=document.createElement('link');
-  css.rel='stylesheet';css.href=s.src.replace(/palettes\.js.*$/,'palettes.css');
-  document.head.appendChild(css);
+  var s=document.currentScript,base=s.src.replace(/palettes\.js.*$/,'');
+  ['palettes.css','pal/common.css','pal/hockey.css','pal/football.css'].forEach(function(f){
+    var css=document.createElement('link');css.rel='stylesheet';css.href=base+f;document.head.appendChild(css)
+  });
   document.addEventListener('DOMContentLoaded',function(){
     var b=document.createElement('div');b.className='pal-bar';b.setAttribute('role','group');b.setAttribute('aria-label','Палитра');
     var h='';
