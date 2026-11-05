@@ -31,7 +31,7 @@
 | **Б:** «Футбол из betzona — к 09:00 МСК (Б)» `trig_01XFwstYSQEJ1D67NYE9tpQP` (ВЫКЛ 01.11) | ежедн. 08:40 | диспетчер Б → новый чат (Sonnet), `team/picks/BETZONA.md` |
 
 ## Чаты (остальные в архиве с 30.10)
-- «Игроки как у OddAlerts — разбор и прототип (03.11)» — `session_018beMsDWsak9z4eLaHNPMZi` (план `team/out/2026-11-03/players/PLAYERS_PLAN.md`).
+- «Игроки как у OddAlerts — разбор и прототип (03.11)» — `session_018beMsDWsak9z4eLaHNPMZi` (Неактуальный с 05.11: сайт продолжает новый чат, закреп `docs/handoff/SITE_PIN.md`).
 - «Безопасность сайта JARVIS» — `session_018beMsGjhqV9jcuz8QoiF2h` (с 03.11, руководитель направления; аудит `team/site/security/AUDIT_2026-11-03.md`, еженедельная проверка `trig_01TrvET6pEJEqMDTrFHPUrah` ср 21:17 — новый чат).
 - «Котировки, экспрессы и футбол — 31.10» — `session_01GakKTNbyX5zH6HJccD73MM` (продолжение чата руководителя 30.10; передача `HANDOFF_LEAD_3110_2.md`).
 - «Фонбет: точные котировки в прогнозы» — `session_01GakKTMi4rfkUTSnNm6Te7h` (Opus; итог — `docs/handoff/FONBET.md`).
@@ -61,6 +61,7 @@
 7. По желанию: syntx.ai в разрешённые домены.
 
 ## События (новые сверху, ≤10)
+- 05.11 · А · сайт v3a: ночные работы (иконки, превью, 404, подвал, model.html, профиль хоккеиста, аудит `team/site/review/SECURITY_0411.md` — критичного нет) и 60 идей; закреп задач сайта `docs/handoff/SITE_PIN.md` — новый чат сайта читает его первым.
 - 05.11 · А · по просьбе владельца: сайт — футбол и экспрессы в «Честных итогах» по месяцам (`team/site/extra_bets.py`, months.py, landing.html; ветка `claude/team-dev-site-foot-month`, PR в main); проверено на живой ленте в Actions; владельцу «было/стало» — ждём «да», потом слить и `site.yml` (plans=no).
 - 05.11 05:45 · А · передача футбола за 04.11 написана новым чатом: `docs/handoff/HANDOFF_FOOT_0511.md` (по NOW/LOG/INBOX/git log).
 - 05.11 05:45 · А · передача хоккея+футбола `docs/handoff/HANDOFF_LEAD_0511.md` (Актуальный 04.11 → 05.11) написана новым чатом; строка в CLAUDE.md обновлена.
