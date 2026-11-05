@@ -1,0 +1,33 @@
+# Проверка источников живого счёта (CORS, задержка, поля) для макета v3a. Запуск — изменить team/site/v3a/live/check_run и запушить.
+name: Сайт v3a — проверка источников живого счёта
+
+on:
+  push:
+    branches: ['claude/team-dev-site-v3a']
+    paths: ['team/site/v3a/live/check_run']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site-v3a-livecheck
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -q requests
+      - run: python team/site/v3a/live/check_sources.py
+      - name: Коммит отчёта
+        run: |
+          git config user.name "jarvis-bot"
+          git config user.email "jarvis-bot@users.noreply.github.com"
+          git add team/site/v3a/live/sources_report.json team/site/v3a/live/sources_report.md
+          git commit -m "Сайт v3a: отчёт проверки источников живого счёта" || exit 0
+          for i in 1 2 3 4; do git pull --rebase origin claude/team-dev-site-v3a && git push origin HEAD:claude/team-dev-site-v3a && break; sleep $((i*3)); done
