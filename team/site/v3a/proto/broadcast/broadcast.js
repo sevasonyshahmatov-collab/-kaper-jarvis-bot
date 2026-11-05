@@ -81,7 +81,7 @@ function bugInner(m){
 function stageHTML(m,opt){
   opt=opt||{};var c=cols(m);
   return '<div class="stage'+(opt.lg?' stage--lg':'')+'" style="'+cv(c)+'"><div class="wedge wedge--h" style="--mot:'+mot(m.h)+'"></div><div class="wedge wedge--a" style="--mot:'+mot(m.a)+'"></div>'+
-  emImg(m,'h','stage__em stage__em--h')+emImg(m,'a','stage__em stage__em--a')+
+  '<span class="stage__big stage__big--h" aria-hidden="true">'+esc(m.hn.split(' ')[0])+'</span><span class="stage__big stage__big--a" aria-hidden="true">'+esc(m.an.split(' ')[0])+'</span>'+emImg(m,'h','stage__em stage__em--h')+emImg(m,'a','stage__em stage__em--a')+
   '<b class="stage__nm stage__nm--h">'+esc(m.hn)+'</b><b class="stage__nm stage__nm--a">'+esc(m.an)+'</b>'+
   '<a class="bug glass gl vt-link" href="match.html?k='+encodeURIComponent(m.key)+'" data-vd="'+c.hd+'" data-vb="'+c.hb+'" aria-label="Расчёт модели: '+esc(m.hn)+' — '+esc(m.an)+'">'+bugInner(m)+'</a></div>'}
 
@@ -206,7 +206,7 @@ function match(){
   D.title=m.hn+' — '+m.an+': прогноз на матч '+dlabel(m)+', '+(LGN[m.lg]||'')+' | JARVIS';
   var hs=$('#m-stage');
   hs.innerHTML='<div class="stage stage--lg" style="'+cv(c)+'"><div class="wedge wedge--h" style="--mot:'+mot(m.h)+'"></div><div class="wedge wedge--a" style="--mot:'+mot(m.a)+'"></div>'+
-   emImg(m,'h','stage__em stage__em--h')+emImg(m,'a','stage__em stage__em--a')+'<b class="stage__nm stage__nm--h">'+esc(m.hn)+'</b><b class="stage__nm stage__nm--a">'+esc(m.an)+'</b>'+
+   '<span class="stage__big stage__big--h" aria-hidden="true">'+esc(m.hn.split(' ')[0])+'</span><span class="stage__big stage__big--a" aria-hidden="true">'+esc(m.an.split(' ')[0])+'</span>'+emImg(m,'h','stage__em stage__em--h')+emImg(m,'a','stage__em stage__em--a')+'<b class="stage__nm stage__nm--h">'+esc(m.hn)+'</b><b class="stage__nm stage__nm--a">'+esc(m.an)+'</b>'+
    '<div class="bug glass gl" style="padding:0"><span class="bug__top"><b>'+esc(LGN[m.lg]||m.lg)+'</b><span>'+dlabel(m)+', '+hhmm(m)+' МСК</span></span><span class="bug__names"><span>'+esc(m.hn)+'</span><em>VS</em><span>'+esc(m.an)+'</span></span><span class="bug__clock"><small>До матча</small><b data-cd="'+m.key+'">'+cd(m)+'</b></span></div></div>';
   $$('.stage__em',hs).forEach(function(e){e.style.viewTransitionName=e.dataset.s==='h'?'em-h':'em-a'});
   $('#m-h1').textContent=m.hn+' — '+m.an;$('#m-sub').textContent='прогноз на матч '+dlabel(m);

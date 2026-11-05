@@ -1,2 +1,2 @@
 Эфир (broadcast) — прототип v3a, графика ТВ-трансляции. Шрифты Unbounded + Onest (Google Fonts). Внешних JS-библиотек нет (свой JS, без GSAP/Lenis).
-СТАТУС: готово — broadcast.css (общие стили, все три страницы). Осталось — broadcast.js, index.html, hockey.html, match.html, снимки shots/, видео video/.
+СТАТУС: готово — broadcast.css, broadcast.js, index.html. Осталось — hockey.html, match.html, снимки, видео.

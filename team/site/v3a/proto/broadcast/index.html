@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JARVIS: прогнозы на хоккей и футбол по собственной модели</title>
+<meta name="description" content="Вероятность модели рядом с реальной линией на каждый матч КХЛ, НХЛ и топ-лиг Европы.">
+<meta name="theme-color" content="#05060a">
+<link rel="icon" href="../../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@600;700;900&family=Playfair+Display:ital,wght@1,500;1,600&display=swap">
+<link rel="stylesheet" href="broadcast.css">
+<script>document.documentElement.classList.add('js')</script>
+</head>
+<body data-page="home">
+<a class="skip" href="#main">К содержанию</a>
+<div class="bgw" aria-hidden="true"><i></i><i></i></div>
+<div class="vtw" aria-hidden="true"></div>
+<header class="top"><div class="wrap">
+<a class="logo" href="index.html" aria-label="JARVIS, главная"><b>JARVIS</b><span>ЭФИР <em>МСК <i data-clock style="font-style:normal">--:--</i></em></span></a>
+<nav class="nav" aria-label="Разделы"><a href="hockey.html" class="n-keep">Хоккей</a><a href="index.html#f">Футбол</a><a href="hockey.html#model">Модель</a><a href="index.html#itogi">Итоги</a><a href="index.html#faq">Вопросы</a><a class="btn btn--sm" href="https://t.me/jarvibet">Получать прогнозы — бесплатно</a></nav>
+</div></header>
+<main id="main">
+<section class="hero"><div class="wrap hero__txt">
+<h1><span class="ln"><span>Прогнозы на хоккей</span></span><span class="ln"><span>и футбол — по расчёту,</span></span><span class="ln"><span class="it">а не наугад</span></span></h1>
+<div class="hero__lead"><p>На каждый матч КХЛ, НХЛ и топ-лиг Европы: вероятность нашей модели рядом с реальной линией. Для тех, кто смотрит матч дня и хочет знать шансы заранее.</p><span class="btn-wrap"><a class="btn" href="https://t.me/jarvibet">Получать прогнозы — бесплатно</a></span><ul class="checks"><li>Собственная модель, не чужие скриншоты</li><li>Линия с источником указана</li><li>Без VIP и промокодов</li></ul></div></div>
+<div id="hero-stage"><noscript><p class="wrap" style="padding:30px 0">Матч дня: Авангард — ЦСКА, 5 ноября, 16:30 МСК. Модель: П1 39 %, Х 22 %, П2 40 %.</p></noscript></div>
+</section>
+<section class="sec" id="matches"><div class="wrap"><div class="sec-h rv"><span class="tag"><i></i>Расписание эфира</span><h2>Ближайшие <span class="it">матчи</span></h2><p>Время московское. Кэфы П1 / Х / П2 — основное время. Вероятность — самый вероятный исход по модели JARVIS, он подсвечен. Это справка, не рекомендация.</p></div>
+<div class="filters rv" role="group" aria-label="Фильтр"><button class="chip" data-f="all" aria-pressed="true">Все</button><button class="chip" data-f="h" aria-pressed="false">Хоккей</button><button class="chip" data-f="f" aria-pressed="false">Футбол</button></div>
+<div class="rows" id="rows"></div>
+<p class="note">Данные матчей, модели и линий — из файлов сайта. Аналитика, не гарантия. <a href="hockey.html#deck">Все матчи дня — колодой</a></p></div></section>
+<section class="sec" id="doubts"><div class="wrap"><div class="sec-h rv"><span class="tag"><i></i>Реплики</span><h2>Частые <span class='it'>сомнения</span></h2><p>Четыре вопроса, которые задают чаще всего. Отвечаем прямо.</p></div>
+<div class="grid2"><article class="plate rv" style="--i:0"><i class="wb"></i><h3>Это бесплатно?</h3><p>Да. Канал @jarvibet бесплатный, прогнозы выходят до начала матча. Без VIP, без предоплаты, без «верняков».</p></article><article class="plate rv" style="--i:1"><i class="wb"></i><h3>Почему верить?</h3><p>Верить на слово не нужно: собственная модель, а не чужие скриншоты. У каждого прогноза вероятность модели и линия рынка, время публикации указано. Блок «Итоги» на сайте скоро. <a href="hockey.html#model">Как считает модель</a></p></article><article class="plate rv" style="--i:2"><i class="wb"></i><h3>Чем вы отличаетесь?</h3><p>Мы считаем, а не угадываем: объясняем, откуда цифра, а не просто «ставь». На каждый матч вероятность модели и реальная линия. Без промокодов и рекламы букмекеров.</p></article><article class="plate rv" style="--i:3"><i class="wb"></i><h3>А если не сработает?</h3><p>Гарантий нет: прогноз — оценка вероятности, и у любой модели бывают плохие серии. Поэтому цифры и линия всегда рядом, а решать вам.</p></article></div></div></section>
+<section class="sec" id="model"><div class="wrap"><div class="sec-h rv"><span class="tag"><i></i>Разбор</span><h2>Как думает <span class="it">модель</span></h2><p>До матча модель разыгрывает его тысячи раз. Ставка — только там, где расчёт и линия сходятся.</p></div>
+<div class="grid3 steps rv"><article class="plate step"><i class="wb"></i><span class="no">01</span><h3>Форма</h3><p>Последние игры, сила атаки и обороны, место в таблице.</p></article><article class="plate step"><i class="wb"></i><span class="no">02</span><h3>Линия</h3><p>Кэфы рынка сравниваются с вероятностью модели. Большое расхождение — повод перепроверить данные, а не готовый вывод.</p></article><article class="plate step"><i class="wb"></i><span class="no">03</span><h3>Выбор</h3><p>Самое вероятное событие в коридоре кэфов 1,6–2,3. В футболе — от 60 % по модели.</p></article></div></div></section>
+<section class="sec" id="itogi"><div class="wrap"><div class="sec-h rv"><span class="tag"><i></i>Итоги</span><h2>Честные <span class="it">итоги</span></h2><p>Каждое утро в канале — итоги вчерашних матчей, и зашедшие, и нет. У каждого прогноза номер поста: любой можно проверить.</p></div>
+<div class="soon rv"><div class="plate"><i class="wb"></i><div class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><h3>Скоро</h3><p>Сводку по месяцам и таблицу всех прогнозов выложим здесь, когда накопится проверяемая история. Пока цифр здесь нет, чтобы не показывать примерные. Итоги дня — в Telegram.</p></div><div><span class="btn-wrap"><a class="btn" href="https://t.me/jarvibet">Получать прогнозы — бесплатно</a></span></div></div></div></section>
+<section class="sec" id="tg"><div class="wrap"><div class="tg rv"><span class="tag tag--dark"><i></i>Telegram</span><h2 style="margin-top:16px">Все прогнозы — <span class="it">в Telegram</span></h2><span class="btn-wrap"><a class="btn" href="https://t.me/jarvibet">Получать прогнозы — бесплатно</a></span><div class="tg__cols"><div><b>Посты на каждый матч</b><span>С кэфом и вероятностью по модели.</span></div><div><b>Ролики</b><span>Матчи дня и тренды коротко.</span></div><div><b>Итоги дня</b><span>Все прогнозы подряд. Подписка бесплатная.</span></div></div></div></div></section>
+<section class="sec" id="faq"><div class="wrap"><div class="sec-h rv"><span class="tag"><i></i>FAQ</span><h2>Вопросы</h2></div><div class="faq"><details class="rv"><summary>Где посмотреть итоги?</summary><p>Каждое утро в канале и здесь, в разделе «Итоги»: все прогнозы подряд, с номером поста и счётом матча.</p></details><details class="rv"><summary>Какие лиги?</summary><p>Хоккей: КХЛ и НХЛ. Футбол: АПЛ, Ла Лига, Серия А, Бундеслига, Лига 1, Португалия и Лига чемпионов.</p></details><details class="rv"><summary>Что такое «ВЫБОР»?</summary><p>Ставка, у которой модель даёт от 60 % при кэфе от 1,6. Остальные матчи — разбор без выбора.</p></details><details class="rv"><summary>Почему кэф 1,6–2,3?</summary><p>Ниже — мало смысла рисковать, выше — больше случайности, чем расчёта.</p></details></div></div></section>
+</main><footer class="foot"><div class="wrap"><p>18+. Аналитика, а не призыв делать ставки. Выигрыш не гарантирован. Материалы носят информационный характер. Реклама букмекеров на сайте не размещается. Эмблемы клубов — собственность клубов, показаны для навигации.</p><p>Макет «Эфир», прототип v3a · © JARVIS, @jarvibet</p></div></footer>
+<script src="../../data/today.js"></script><script src="../../data/model.js"></script><script src="../../data/lines.js"></script><script src="../../assets/club/themes.js"></script>
+<script src="broadcast.js"></script>
+</body></html>
