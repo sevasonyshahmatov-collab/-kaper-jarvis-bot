@@ -559,9 +559,14 @@ def main():
         p['pick'] = cp[0].strip()
         if cp[1]:
             p['kef'] = float(cp[1])
-    res, legs, why = settle.settle(p['pick'], p['home'], p['away'], g)
-    res_legs = [settle.settle_leg(l_, g) for l_ in legs]
     ov = raw.get('override')
+    try:                      # ставку, которую settle не разбирает («обе забьют», «исход + тотал»), решает override
+        res, legs, why = settle.settle(p['pick'], p['home'], p['away'], g)
+        res_legs = [settle.settle_leg(l_, g) for l_ in legs]
+    except Exception:  # noqa: BLE001
+        if not ov:
+            raise
+        res, legs, why, res_legs = None, [], '', []
     if ov:                    # ставка, которую settle не считает (удары, угловые…): итог и строка проверки задаёт чат команды
         res = {'win': settle.WIN, 'loss': settle.LOSS, 'push': settle.PUSH}[ov['res']]
         legs, res_legs, why = [{'kind': 'x', 'label': ov['check']}], [res], ''
