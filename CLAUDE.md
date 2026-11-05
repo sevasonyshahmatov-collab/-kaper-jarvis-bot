@@ -47,7 +47,7 @@
 - Кэфы: в постах и пороге — Фонбет (`team/picks/fonbet.py`), Pinnacle — для вероятности; план — `docs/handoff/FONBET.md`.
 - Итоги дня: `team/daily/` (`morning.py`, `ask.py`, `banner.py`); послематчевые посты: `team/postmatch/README.md`.
 - Ролики: `render/reels/`, конвейер `team/reels_daily/`, правила роликов — `team/RULES.md` «Ролики».
-- Сайт: `team/site/`, `docs/handoff/SITE.md`. Соцсети: `docs/handoff/SMM_AGENT.md`.
+- Сайт: `team/site/`, `docs/handoff/SITE.md`; закреп задач сайта (читать первым в чате сайта) — `docs/handoff/SITE_PIN.md`. Соцсети: `docs/handoff/SMM_AGENT.md`.
 - Бот и таблицы (Apps Script): `apps-script/`, `docs/handoff/HANDOFF_CODE.md`; проверка без затрат — `tools/gas_mock/`.
 - **Схема команды и агентов: `docs/handoff/AGENTS.md` — прочитать в начале.** Живое состояние (оба аккаунта): `team/NOW.md`. Передачи между сессиями: `docs/handoff/` (свежая — `HANDOFF_LEAD_0511.md`).
 
