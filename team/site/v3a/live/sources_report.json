@@ -1,0 +1,661 @@
+{
+ "at": "2026-11-05 05:53 UTC",
+ "origin": "https://raw.githack.com",
+ "items": [
+  {
+   "league": "НХЛ",
+   "name": "ESPN scoreboard",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard",
+   "code": 200,
+   "ms": 69,
+   "bytes": 94461,
+   "acao": "*",
+   "vary": "Accept-Encoding",
+   "cache": "max-age=6",
+   "ctype": "application/json;charset=UTF-8",
+   "preflight": {
+    "code": 403,
+    "acao": null,
+    "methods": null,
+    "headers": null
+   },
+   "cors_simple_get": true,
+   "fields": {
+    "events": 4,
+    "sample": [
+     {
+      "id": "401892644",
+      "date": "2026-11-05T00:30Z",
+      "teams": [
+       "BUF",
+       "OTT"
+      ],
+      "score": [
+       "1",
+       "2"
+      ],
+      "period": 3,
+      "clock": "0:00",
+      "state": "post",
+      "detail": "Final"
+     },
+     {
+      "id": "401892645",
+      "date": "2026-11-05T00:30Z",
+      "teams": [
+       "FLA",
+       "CHI"
+      ],
+      "score": [
+       "5",
+       "3"
+      ],
+      "period": 3,
+      "clock": "0:00",
+      "state": "post",
+      "detail": "Final"
+     },
+     {
+      "id": "401892646",
+      "date": "2026-11-05T03:00Z",
+      "teams": [
+       "LA",
+       "SJ"
+      ],
+      "score": [
+       "7",
+       "2"
+      ],
+      "period": 3,
+      "clock": "0:00",
+      "state": "post",
+      "detail": "Final"
+     }
+    ]
+   }
+  },
+  {
+   "league": "АПЛ",
+   "name": "ESPN scoreboard",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard",
+   "code": 200,
+   "ms": 53,
+   "bytes": 15386,
+   "acao": "*",
+   "vary": "Accept-Encoding",
+   "cache": "max-age=2",
+   "ctype": "application/json;charset=UTF-8",
+   "preflight": {
+    "code": 403,
+    "acao": null,
+    "methods": null,
+    "headers": null
+   },
+   "cors_simple_get": true,
+   "fields": {
+    "events": 1,
+    "sample": [
+     {
+      "id": "401879242",
+      "date": "2026-11-06T20:00Z",
+      "teams": [
+       "EVE",
+       "COV"
+      ],
+      "score": [
+       "0",
+       "0"
+      ],
+      "period": null,
+      "clock": "0'",
+      "state": "pre",
+      "detail": "Scheduled"
+     }
+    ]
+   }
+  },
+  {
+   "league": "Ла Лига",
+   "name": "ESPN scoreboard",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard",
+   "code": 200,
+   "ms": 46,
+   "bytes": 15402,
+   "acao": "*",
+   "vary": "Accept-Encoding",
+   "cache": "max-age=9",
+   "ctype": "application/json;charset=UTF-8",
+   "preflight": {
+    "code": 403,
+    "acao": null,
+    "methods": null,
+    "headers": null
+   },
+   "cors_simple_get": true,
+   "fields": {
+    "events": 1,
+    "sample": [
+     {
+      "id": "401882809",
+      "date": "2026-11-06T20:00Z",
+      "teams": [
+       "SEV",
+       "ALA"
+      ],
+      "score": [
+       "0",
+       "0"
+      ],
+      "period": null,
+      "clock": "0'",
+      "state": "pre",
+      "detail": "Scheduled"
+     }
+    ]
+   }
+  },
+  {
+   "league": "Серия А",
+   "name": "ESPN scoreboard",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard",
+   "code": 200,
+   "ms": 39,
+   "bytes": 15158,
+   "acao": "*",
+   "vary": "Accept-Encoding",
+   "cache": "max-age=4",
+   "ctype": "application/json;charset=UTF-8",
+   "preflight": {
+    "code": 403,
+    "acao": null,
+    "methods": null,
+    "headers": null
+   },
+   "cors_simple_get": true,
+   "fields": {
+    "events": 1,
+    "sample": [
+     {
+      "id": "401874815",
+      "date": "2026-11-06T19:45Z",
+      "teams": [
+       "VEN",
+       "UDI"
+      ],
+      "score": [
+       "0",
+       "0"
+      ],
+      "period": null,
+      "clock": "0'",
+      "state": "pre",
+      "detail": "Scheduled"
+     }
+    ]
+   }
+  },
+  {
+   "league": "Бундеслига",
+   "name": "ESPN scoreboard",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard",
+   "code": 200,
+   "ms": 49,
+   "bytes": 11404,
+   "acao": "*",
+   "vary": "Accept-Encoding",
+   "cache": "max-age=3",
+   "ctype": "application/json;charset=UTF-8",
+   "preflight": {
+    "code": 403,
+    "acao": null,
+    "methods": null,
+    "headers": null
+   },
+   "cors_simple_get": true,
+   "fields": {
+    "events": 1,
+    "sample": [
+     {
+      "id": "401884739",
+      "date": "2026-11-06T19:30Z",
+      "teams": [
+       "HSV",
+       "BMG"
+      ],
+      "score": [
+       "0",
+       "0"
+      ],
+      "period": null,
+      "clock": "0'",
+      "state": "pre",
+      "detail": "Scheduled"
+     }
+    ]
+   }
+  },
+  {
+   "league": "Лига 1",
+   "name": "ESPN scoreboard",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard",
+   "code": 200,
+   "ms": 61,
+   "bytes": 14889,
+   "acao": "*",
+   "vary": "Accept-Encoding",
+   "cache": "max-age=2",
+   "ctype": "application/json;charset=UTF-8",
+   "preflight": {
+    "code": 403,
+    "acao": null,
+    "methods": null,
+    "headers": null
+   },
+   "cors_simple_get": true,
+   "fields": {
+    "events": 1,
+    "sample": [
+     {
+      "id": "401876405",
+      "date": "2026-11-06T19:45Z",
+      "teams": [
+       "TOU",
+       "STR"
+      ],
+      "score": [
+       "0",
+       "0"
+      ],
+      "period": null,
+      "clock": "0'",
+      "state": "pre",
+      "detail": "Scheduled"
+     }
+    ]
+   }
+  },
+  {
+   "league": "РПЛ",
+   "name": "ESPN scoreboard",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/soccer/rus.1/scoreboard",
+   "code": 200,
+   "ms": 79,
+   "bytes": 9472,
+   "acao": "*",
+   "vary": "Accept-Encoding",
+   "cache": "max-age=8",
+   "ctype": "application/json;charset=UTF-8",
+   "preflight": {
+    "code": 403,
+    "acao": null,
+    "methods": null,
+    "headers": null
+   },
+   "cors_simple_get": true,
+   "fields": {
+    "events": 1,
+    "sample": [
+     {
+      "id": "401879812",
+      "date": "2026-11-06T16:30Z",
+      "teams": [
+       "LMO",
+       "RUB"
+      ],
+      "score": [
+       "0",
+       "0"
+      ],
+      "period": null,
+      "clock": "0'",
+      "state": "pre",
+      "detail": "Scheduled"
+     }
+    ]
+   }
+  },
+  {
+   "league": "Лига чемпионов",
+   "name": "ESPN scoreboard",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard",
+   "code": 200,
+   "ms": 47,
+   "bytes": 111862,
+   "acao": "*",
+   "vary": "Accept-Encoding",
+   "cache": "max-age=8",
+   "ctype": "application/json;charset=UTF-8",
+   "preflight": {
+    "code": 403,
+    "acao": null,
+    "methods": null,
+    "headers": null
+   },
+   "cors_simple_get": true,
+   "fields": {
+    "events": 9,
+    "sample": [
+     {
+      "id": "401915383",
+      "date": "2026-11-04T17:45Z",
+      "teams": [
+       "AEK",
+       "RMA"
+      ],
+      "score": [
+       "2",
+       "3"
+      ],
+      "period": 2,
+      "clock": "90'+4'",
+      "state": "post",
+      "detail": "FT"
+     },
+     {
+      "id": "401915382",
+      "date": "2026-11-04T17:45Z",
+      "teams": [
+       "FEN",
+       "LIV"
+      ],
+      "score": [
+       "3",
+       "2"
+      ],
+      "period": 2,
+      "clock": "90'+3'",
+      "state": "post",
+      "detail": "FT"
+     },
+     {
+      "id": "401915304",
+      "date": "2026-11-04T20:00Z",
+      "teams": [
+       "DOR",
+       "BET"
+      ],
+      "score": [
+       "2",
+       "1"
+      ],
+      "period": 2,
+      "clock": "90'+4'",
+      "state": "post",
+      "detail": "FT"
+     }
+    ]
+   }
+  },
+  {
+   "league": "Лига Европы",
+   "name": "ESPN scoreboard",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.europa/scoreboard",
+   "code": 200,
+   "ms": 45,
+   "bytes": 9572,
+   "acao": "*",
+   "vary": "Accept-Encoding",
+   "cache": "max-age=3",
+   "ctype": "application/json;charset=UTF-8",
+   "preflight": {
+    "code": 403,
+    "acao": null,
+    "methods": null,
+    "headers": null
+   },
+   "cors_simple_get": true,
+   "fields": {
+    "events": 1,
+    "sample": [
+     {
+      "id": "401915551",
+      "date": "2026-11-04T15:30Z",
+      "teams": [
+       "REN",
+       "OLY"
+      ],
+      "score": [
+       "0",
+       "0"
+      ],
+      "period": 2,
+      "clock": "90'+4'",
+      "state": "post",
+      "detail": "FT"
+     }
+    ]
+   }
+  },
+  {
+   "league": "НХЛ",
+   "name": "api-web score/now",
+   "url": "https://api-web.nhle.com/v1/score/now",
+   "code": 200,
+   "ms": 287,
+   "bytes": 29077,
+   "acao": null,
+   "vary": "Accept-Encoding",
+   "cache": "no-transform, max-age=9, s-maxage=9",
+   "ctype": "application/json",
+   "preflight": {
+    "code": 200,
+    "acao": null,
+    "methods": null,
+    "headers": null
+   },
+   "cors_simple_get": false,
+   "fields": {
+    "games": 4,
+    "sample": [
+     {
+      "id": 2026020247,
+      "start": "2026-11-05T00:30:00Z",
+      "state": "OFF",
+      "home": "BUF",
+      "away": "OTT",
+      "score": [
+       1,
+       2
+      ],
+      "period": 3,
+      "clock": {
+       "timeRemaining": "00:00",
+       "secondsRemaining": 0,
+       "running": false,
+       "inIntermission": false
+      }
+     },
+     {
+      "id": 2026020248,
+      "start": "2026-11-05T00:30:00Z",
+      "state": "OFF",
+      "home": "FLA",
+      "away": "CHI",
+      "score": [
+       5,
+       3
+      ],
+      "period": 3,
+      "clock": {
+       "timeRemaining": "00:00",
+       "secondsRemaining": 0,
+       "running": false,
+       "inIntermission": false
+      }
+     },
+     {
+      "id": 2026020249,
+      "start": "2026-11-05T03:00:00Z",
+      "state": "FINAL",
+      "home": "LAK",
+      "away": "SJS",
+      "score": [
+       7,
+       2
+      ],
+      "period": 3,
+      "clock": {
+       "timeRemaining": "00:00",
+       "secondsRemaining": 0,
+       "running": false,
+       "inIntermission": false
+      }
+     }
+    ]
+   }
+  },
+  {
+   "league": "НХЛ",
+   "name": "api-web gamecenter landing",
+   "url": "https://api-web.nhle.com/v1/gamecenter/2026020247/landing",
+   "code": 200,
+   "ms": 323,
+   "bytes": 7510,
+   "acao": null,
+   "vary": "Accept-Encoding",
+   "cache": "no-transform, max-age=9, s-maxage=9",
+   "ctype": "application/json",
+   "preflight": {
+    "code": 200,
+    "acao": null,
+    "methods": null,
+    "headers": null
+   },
+   "cors_simple_get": false,
+   "fields": {
+    "id": 2026020247,
+    "state": "OFF",
+    "period": 3,
+    "clock": {
+     "timeRemaining": "00:00",
+     "secondsRemaining": 0,
+     "running": false,
+     "inIntermission": false
+    },
+    "home": 1,
+    "away": 2
+   }
+  },
+  {
+   "league": "НХЛ",
+   "name": "api-web schedule/now",
+   "url": "https://api-web.nhle.com/v1/schedule/now",
+   "code": 200,
+   "ms": 212,
+   "bytes": 89624,
+   "acao": null,
+   "vary": "Accept-Encoding",
+   "cache": "no-transform, max-age=14, s-maxage=14",
+   "ctype": "application/json",
+   "preflight": {
+    "code": 200,
+    "acao": null,
+    "methods": null,
+    "headers": null
+   },
+   "cors_simple_get": false,
+   "fields": {
+    "keys": [
+     "nextStartDate",
+     "previousStartDate",
+     "gameWeek",
+     "oddsPartners",
+     "preSeasonStartDate",
+     "regularSeasonStartDate",
+     "regularSeasonEndDate",
+     "playoffEndDate"
+    ]
+   }
+  },
+  {
+   "league": "НХЛ",
+   "name": "api.nhle.com stats team summary",
+   "url": "https://api.nhle.com/stats/rest/en/team/summary?limit=2&cayenneExp=seasonId=20262027%20and%20gameTypeId=2",
+   "code": 200,
+   "ms": 141,
+   "bytes": 1063,
+   "acao": null,
+   "vary": "Accept-Encoding, Origin",
+   "cache": null,
+   "ctype": "application/json",
+   "preflight": {
+    "code": 200,
+    "acao": null,
+    "methods": null,
+    "headers": null
+   },
+   "cors_simple_get": false,
+   "fields": {
+    "keys": [
+     "data",
+     "total"
+    ]
+   }
+  },
+  {
+   "league": "КХЛ",
+   "name": "khl.api.webcaster.pro data.json",
+   "url": "https://khl.api.webcaster.pro/api/khl_mobile/data.json",
+   "code": 403,
+   "ms": 1228,
+   "bytes": 1,
+   "acao": null,
+   "vary": "Accept-Encoding",
+   "cache": "no-cache",
+   "ctype": "text/html; charset=utf-8",
+   "preflight": {
+    "code": 403,
+    "acao": null,
+    "methods": null,
+    "headers": null
+   },
+   "cors_simple_get": false,
+   "fields": {
+    "stage": null
+   }
+  },
+  {
+   "league": "КХЛ",
+   "name": "khl.api.webcaster.pro events_v2",
+   "url": "https://khl.api.webcaster.pro/api/khl_mobile/events_v2.json?order_direction=asc&page=1&q%5Bstart_at_gt_time_from_unixtime%5D=1793771608&q%5Bstart_at_lt_time_from_unixtime%5D=1794030808&stage_id=None",
+   "code": 200,
+   "ms": 1230,
+   "bytes": 170,
+   "acao": "https://raw.githack.com",
+   "vary": "Accept-Encoding, Accept-Encoding",
+   "cache": "max-age=0, private, must-revalidate",
+   "ctype": "application/json; charset=utf-8",
+   "preflight": {
+    "code": 403,
+    "acao": null,
+    "methods": null,
+    "headers": null
+   },
+   "cors_simple_get": true,
+   "fields": {
+    "events": 0,
+    "sample": []
+   }
+  },
+  {
+   "league": "КХЛ",
+   "name": "khl.ru (сайт)",
+   "url": "https://www.khl.ru/calendar/",
+   "code": 200,
+   "ms": 991,
+   "bytes": 97506,
+   "acao": null,
+   "vary": "Accept-Encoding",
+   "cache": "no-store, no-cache, must-revalidate",
+   "ctype": "text/html; charset=utf-8",
+   "preflight": {
+    "code": 405,
+    "acao": null,
+    "methods": null,
+    "headers": null
+   },
+   "cors_simple_get": false,
+   "fields": {}
+  }
+ ]
+}
