@@ -17,6 +17,7 @@
   split         daily/split.py: нарезка тяжёлых данных на лёгкие файлы (teams-lite, club/<slug>, football-lite, games, pl/*, plite_*) — для скорости на телефоне
   deck_bg       daily/deck_bg.py: фоны «Колоды матчей» тем же кодом, что баннеры Telegram (render/poster.py) → data/deckbg/*.webp + index.json
   search        search/build_index.py (без сети, после пересборки данных) → data/search.json
+  seo           seo/build_seo.py: «Прогноз на сегодня», словарь, title/canonical/og/JSON-LD, sitemap.xml, robots.txt (SITE_ORIGIN — seo/seo_config.py)
   check         сводка и data/daily_log.json
 """
 import json, os, shutil, subprocess, sys, time, traceback
@@ -157,6 +158,11 @@ def step_search():
     return sh([PY, os.path.join(C.V3A, 'search', 'build_index.py')], cwd=C.REPO).strip().split('\n')[-1]
 
 
+def step_seo():
+    """seo/build_seo.py: страницы «Прогноз на сегодня», словарь, title/canonical/JSON-LD, sitemap.xml, robots.txt (без сети, после search)."""
+    return sh([PY, os.path.join(C.V3A, 'seo', 'build_seo.py')], cwd=C.REPO).strip().split('\n')[-1]
+
+
 def step_check():
     t = C.jload(os.path.join(C.V3A, 'assets', 'data', 'teams.json'), {})
     games = [g for x in (t.get('teams') or {}).values() for g in x['games']]
@@ -177,7 +183,7 @@ def step_check():
 STEPS = [('teamcode', step_teamcode), ('live', step_live), ('hockey_season', step_hockey_season), ('foot_raw', step_foot_raw),
          ('foot_build', step_foot_build), ('foot_lineups', step_foot_lineups), ('foot_photos', step_foot_photos),
          ('foot_players', step_foot_players), ('foot_trends', step_foot_trends), ('nhl_players', step_nhl_players),
-         ('khl_players', step_khl_players), ('lines_model', step_lines_model), ('teams_build', step_teams_build), ('split', step_split), ('deck_bg', step_deck_bg), ('search', step_search), ('check', step_check)]
+         ('khl_players', step_khl_players), ('lines_model', step_lines_model), ('teams_build', step_teams_build), ('split', step_split), ('deck_bg', step_deck_bg), ('search', step_search), ('seo', step_seo), ('check', step_check)]
 
 
 def write_log():

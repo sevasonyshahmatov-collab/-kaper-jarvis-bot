@@ -155,4 +155,6 @@ addEventListener('keydown',e=>{
   else if(e.key==='ArrowUp'){e.preventDefault();mark(cur<0?-1:cur-1)}
   else if(e.key==='Tab'){const f=[...box.querySelectorAll('input,button')].filter(x=>x.offsetParent);if(f.length){const i=f.indexOf(document.activeElement);if(e.shiftKey&&i<=0){e.preventDefault();f[f.length-1].focus()}else if(!e.shiftKey&&i===f.length-1){e.preventDefault();f[0].focus()}}}
 });
+/* адрес вида ?q=… (SearchAction в разметке главной): открыть поиск с этим запросом */
+try{const qq=new URLSearchParams(location.search).get('q');if(qq){inp.value=qq.slice(0,80);open()}}catch(e){}
 })();

@@ -35,7 +35,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A team/site/v3a/data team/site/v3a/assets/data team/site/v3a/team/season.json team/site/v3a/football/data team/site/v3a/hockey/data
+          git add -A team/site/v3a/data team/site/v3a/assets/data team/site/v3a/team/season.json team/site/v3a/football/data team/site/v3a/hockey/data team/site/v3a/sitemap.xml team/site/v3a/robots.txt team/site/v3a/*.html team/site/v3a/hockey/*.html team/site/v3a/football/*.html
           git diff --cached --quiet && { echo "данные не изменились"; exit 0; }
           git commit -q -m "Данные v3a: ежедневное обновление $(TZ=Europe/Moscow date '+%d.%m %H:%M') МСК (run ${{ github.run_number }})"
           for i in 1 2 3 4 5; do

@@ -25,7 +25,7 @@ if(!L){
   <ul class="chips"><li><a href="league.html?lg=khl${tq}">${lgp('khl')}КХЛ</a></li><li><a href="league.html?lg=nhl${tq}">${lgp('nhl')}НХЛ</a></li></ul>`;
  document.querySelectorAll('.lgsec').forEach(e=>{e.hidden=true;e.removeAttribute('data-zone')});document.querySelector('.nav').hidden=true;return;
 }
-document.title=`${L.name} — таблица, матчи, бомбардиры · JARVIS (макет v3a)`;
+document.title=`${L.name} — таблица, матчи, бомбардиры · JARVIS`;
 const TM=Object.entries(D.teams).filter(([,t])=>t.lg===LG).map(([id,t])=>({id,...t}));
 const byName=Object.fromEntries(TM.map(t=>[t.name,t.id])),nm=s=>(D.teams[s]||{}).name||s;
 const ABBR={};TM.forEach(t=>{ABBR[LG==='nhl'?(t.id.startsWith('nhl_')?t.id.slice(4).toUpperCase():t.id==='minnesota'?'MIN':t.id==='dallas'?'DAL':t.id.toUpperCase()):t.id]=t.id});

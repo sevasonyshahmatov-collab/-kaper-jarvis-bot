@@ -1,0 +1,9 @@
+# Сайт пока закрыт от поиска: домена нет, макет. Страницы тоже с meta robots noindex.
+User-agent: *
+Disallow: /
+
+# --- Готовая версия для открытия (раскомментировать вместе со снятием noindex; делает seo/build_seo.py при INDEXING_OPEN=True) ---
+# User-agent: *
+# Allow: /
+#
+# Sitemap: https://jarvibet.example/sitemap.xml

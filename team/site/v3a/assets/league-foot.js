@@ -22,7 +22,7 @@ if(!L){
 const CUP=!!L.cup,LN=L.name,ids=L.ids;
 const sel=g=>CUP?g.c===LG:!g.c;                     // матч этого турнира (в таблице клуба вперемешку лига и еврокубки)
 const tref=s=>teamHref(s,CUP?LG:'');
-document.title=`${LN} — таблица, матчи, бомбардиры · JARVIS (макет v3a)`;
+document.title=`${LN} — таблица, матчи, бомбардиры · JARVIS`;
 
 /* все сыгранные матчи турнира: берём по одной записи (с точки зрения хозяев) */
 const M=[];ids.forEach(i=>(T[i]?T[i].games:[]).forEach(g=>{if(g.h===1&&sel(g)&&played(g))M.push({d:g.d,h:i,a:g.o,gf:g.gf,ga:g.ga})}));

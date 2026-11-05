@@ -31,7 +31,7 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
  const gp=nhl?(P.sgp||N):(P.sgp||P.gp||N);
  const parts=P.n.split(/\s+/),big=nhl?parts.slice(1).join(' ')||P.n:parts[0],small=nhl?(parts.length>1?parts[0]:''):parts.slice(1).join(' ');
  const ini=parts.map(w=>w[0]).slice(0,2).join('').toUpperCase();
- document.title=`${P.n} — профиль хоккеиста · JARVIS (макет v3a)`;
+ document.title=`${P.n} — профиль хоккеиста · JARVIS`;
  const mkList=MK.filter(m=>!m.nhl||nhl);
  /* «n из N»: КХЛ-приложение не отдаёт, кто играл в матче, — лог содержит все матчи клуба, N в сезоне берём по играм игрока */
  const hit=(arr,m,season)=>{const k=arr.filter(m.f).length;return[k,(season&&!nhl)?Math.max(gp,k):arr.length]};
