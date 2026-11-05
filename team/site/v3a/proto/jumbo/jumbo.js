@@ -160,7 +160,7 @@ function board(m) {
   $('.bd-lg', root).textContent = LG[m.lg] + ', ' + dayWord(m).toLowerCase();
   $('.bd-tm', root).textContent = live(m) ? 'идёт матч' : hhmm(m) + ' МСК';
   $$('.bd-h', root).forEach(e => { e.dataset.f = m.hn; e.setAttribute('aria-label', m.hn); }); $$('.bd-a', root).forEach(e => { e.dataset.f = m.an; });
-  $$('.bd-hi', root).forEach(e => { e.src = emb(m, m.h); }); $$('.bd-ai', root).forEach(e => { e.src = emb(m, m.a); });
+  $$('.bd-hi,.bd-hi2').forEach(e => { e.src = emb(m, m.h); }); $$('.bd-ai,.bd-ai2').forEach(e => { e.src = emb(m, m.a); });
   $$('.pc', root).forEach((c, i) => { c.classList.toggle('max', i === mi); $('.flap', c).dataset.f = String(p0(pr[i][1])); });
   const a = $('a.btn', root); if (a) a.href = href(m);
   root.classList.toggle('live', live(m));

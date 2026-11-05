@@ -50,7 +50,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   --c: var(--ink); --d: 5px;
   font-family: var(--f-d); font-weight: 800; line-height: 0.98; color: transparent; width: fit-content; max-width: 100%;
   overflow-wrap: break-word; min-width: 0;
-  background-image: radial-gradient(circle at 50% 50%, var(--c) 0 31%, transparent 43%), radial-gradient(circle at 50% 50%, var(--off) 0 31%, transparent 43%);
+  background-image: radial-gradient(circle at 50% 50%, var(--c) 0 40%, transparent 52%), radial-gradient(circle at 50% 50%, var(--off) 0 31%, transparent 43%);
   background-size: var(--d) var(--d);
   -webkit-background-clip: text, border-box; background-clip: text, border-box;
 }
@@ -157,7 +157,20 @@ body.has-ring { padding: var(--ring) 0; }
 
 /* ───────── hero ───────── */
 .hero { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); gap: 40px; align-items: center; padding-block: 36px 24px; min-height: calc(100vh - 150px); }
-.hero h1.led { --d: 6px; font-size: clamp(46px, 7.6vw, 108px); margin-bottom: 26px; }
+.hero { position: relative; }
+.hero::before { content: ""; position: absolute; right: -4%; top: -6%; width: 62%; height: 80%; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, var(--amber-glow), transparent 68%); opacity: 0.55; }
+.hl { position: relative; z-index: 1; }
+.hl h1.led { margin-right: -34%; }
+.hr { position: relative; display: grid; gap: 0; z-index: 2; }
+.objs { position: relative; height: clamp(190px, 24vw, 330px); margin: -30px 0 6px -26%; pointer-events: none; z-index: 3; }
+.objs img { position: absolute; width: clamp(170px, 22vw, 320px); height: auto; aspect-ratio: 1; object-fit: contain; filter: drop-shadow(0 0 34px var(--amber-glow)) drop-shadow(0 14px 22px #000); }
+.objs .o1 { left: 14%; top: 4%; transform: rotate(-6deg); }
+.objs .o2 { left: 46%; top: 22%; transform: rotate(5deg); }
+@media (prefers-reduced-motion: no-preference) { .objs img { animation: bob 7s ease-in-out infinite; } .objs .o2 { animation-delay: -3.5s; } }
+@keyframes bob { 50% { translate: 0 -8px; } }
+@media (max-width: 900px) { .hl h1.led { margin-right: 0; } .objs { margin: -10px 0 -20px 0; height: 190px; } .objs .o1 { left: 6%; } .objs .o2 { left: 40%; } .hero::before { width: 100%; right: 0; } }
+.hero h1.led { --d: 6px; font-size: clamp(44px, 7.3vw, 112px); line-height: 0.94; margin-bottom: 26px; }
 .hero .lead { font-size: 19px; max-width: 44ch; color: var(--ink); margin-bottom: 26px; }
 .hero .acts { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
 .hero .acts .lab { max-width: 28ch; }
