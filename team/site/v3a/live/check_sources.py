@@ -132,6 +132,44 @@ for label, h in [('UA Mozilla/5.0 без Origin', {'User-Agent': 'Mozilla/5.0'})
     except Exception as e:  # noqa: BLE001
         rep['khl_variants'].append({'variant': label, 'error': repr(e)[:150]})
 
+# КХЛ: events_v2 / event_v2 с Origin, стадия берётся из data.json без Origin
+try:
+    st2 = requests.get(KHL + 'data.json', headers={'User-Agent': UA}, timeout=30).json().get('current_stage_id')
+except Exception:  # noqa: BLE001
+    st2 = None
+rep['khl_origin_tests'] = []
+if st2:
+    q2 = ('events_v2.json?order_direction=asc&page=1&q%%5Bstart_at_gt_time_from_unixtime%%5D=%d&q%%5Bstart_at_lt_time_from_unixtime%%5D=%d&stage_id=%s' % (frm, to, st2))
+    evid = None
+    for label, path in [('events_v2', q2)]:
+        for oh in ({'User-Agent': UA}, {'User-Agent': UA, 'Origin': ORIGIN}):
+            try:
+                t = time.time()
+                r = requests.get(KHL + path, headers=oh, timeout=30)
+                ms = int((time.time() - t) * 1000)
+                js = r.json() if r.status_code == 200 else None
+                if js and isinstance(js, list) and not evid:
+                    evid = (js[0].get('event') or js[0]).get('id')
+                    ev0 = js[0].get('event') or js[0]
+                    rep['khl_sample_event'] = {k: ev0.get(k) for k in ('id', 'start_at', 'game_state_key', 'score', 'scores', 'period', 'time', 'minute') if k in ev0}
+                    rep['khl_event_keys'] = sorted(ev0.keys())
+                rep['khl_origin_tests'].append({'what': label, 'origin': 'Origin' in oh, 'code': r.status_code, 'acao': r.headers.get('Access-Control-Allow-Origin'),
+                                                'ms': ms, 'n': len(js) if isinstance(js, list) else None})
+            except Exception as e:  # noqa: BLE001
+                rep['khl_origin_tests'].append({'what': label, 'error': repr(e)[:120]})
+    if evid:
+        for oh in ({'User-Agent': UA}, {'User-Agent': UA, 'Origin': ORIGIN}):
+            try:
+                t = time.time()
+                r = requests.get(KHL + 'event_v2.json?id=%s' % evid, headers=oh, timeout=30)
+                ms = int((time.time() - t) * 1000)
+                d = r.json() if r.status_code == 200 else {}
+                d = d.get('event') or d
+                rep['khl_origin_tests'].append({'what': 'event_v2', 'origin': 'Origin' in oh, 'code': r.status_code, 'acao': r.headers.get('Access-Control-Allow-Origin'),
+                                                'ms': ms, 'keys': sorted(d.keys())[:80] if 'Origin' not in oh else None, 'state': d.get('game_state_key'), 'score': d.get('score')})
+            except Exception as e:  # noqa: BLE001
+                rep['khl_origin_tests'].append({'what': 'event_v2', 'error': repr(e)[:120]})
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 json.dump(rep, open(os.path.join(HERE, 'sources_report.json'), 'w'), ensure_ascii=False, indent=1)
 L = ['# Проверка источников живого счёта', '', 'Запуск: %s, Origin: `%s`' % (rep['at'], ORIGIN), '',
@@ -145,5 +183,6 @@ L += ['', '## Поля счёта (пример)', '']
 for i in rep['items']:
     L.append('- **%s / %s**: `%s`' % (i['league'], i['name'], json.dumps(i.get('fields'), ensure_ascii=False)[:600]))
 L += ['', '## КХЛ data.json: варианты заголовков', ''] + ['- %s: %s' % (v['variant'], json.dumps({k: x for k, x in v.items() if k != 'variant'}, ensure_ascii=False)) for v in rep['khl_variants']]
+L += ['', '## КХЛ: с Origin и без', ''] + ['- `%s`' % json.dumps(v, ensure_ascii=False)[:900] for v in rep['khl_origin_tests']] + ['- пример события: `%s`' % json.dumps(rep.get('khl_sample_event'), ensure_ascii=False), '- ключи события: `%s`' % rep.get('khl_event_keys')]
 open(os.path.join(HERE, 'sources_report.md'), 'w').write('\n'.join(L) + '\n')
 print('\n'.join(L))
