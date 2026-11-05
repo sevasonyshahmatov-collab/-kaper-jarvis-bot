@@ -307,7 +307,7 @@ def pick_line(r):
     return '%s%s — %s %s (%s)' % (texts.MARK_EMOJI[r['res']], esc(r['home']), esc(r['away']), score_s(r['g']), esc(r['bet']))
 
 
-def recap_post(day, rows, week, plan, photo=False):
+def recap_post(day, rows, week, plan, photo=False, tail=None):
     """Итоги — шаблон владельца 16.10: приветствие + «итоги» / «куда ставили» / строки прогнозов / итог / настрой.
     Счёт в строке «куда ставили» и число строк — из одного списка rows (не расходятся)."""
     if not rows:
@@ -318,7 +318,7 @@ def recap_post(day, rows, week, plan, photo=False):
              n_prog=plural(t['n'], 'прогноз', 'прогноза', 'прогнозов'), n_count=t['n'], score=score_line(t))
     res_kind, mood = tone(t)
     picks = [pick_line(r) + (';' if i < len(rows) - 1 else '.') for i, r in enumerate(rows)]
-    text = compose([fill(plan.one('r.hello'), c), '', fill(plan.one('r.count'), c)] + picks +
+    text = compose([fill(plan.one('r.hello'), c), '', fill(plan.one('r.count'), c)] + picks + ([tail] if tail else []) +
                    ['', fill(plan.one('r.total.' + res_kind), c), plan.one('r.wish.' + mood)])
     assert len(picks) == t['n']
     return dict(text=text, layout='шаблон владельца', tags='', tally=t, tone=res_kind,

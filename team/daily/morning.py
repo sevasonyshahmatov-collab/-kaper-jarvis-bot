@@ -353,7 +353,7 @@ def log_scores(rd):
 
 
 def build(d, variant=0, card=True, out_dir=None, led=None, recap_only=False, sel=None, source='channel', greet_only=False,
-          wait=False):
+          wait=False, recap_tail=None, recap_num=None):
     """Всё утро: → (сообщения задания, сводка для лога, внутренности). Посты — с "emoji": true (team_job их не чистит).
     Итоги: sel — по выбору из опроса (--ask); иначе source='channel' — посты канала (запасной — INBOX + SENT.md),
     'ledger' — прежний режим (INBOX + SENT.md, граница CUTOFF). greet_only — только «Начало игрового дня»."""
@@ -375,7 +375,7 @@ def build(d, variant=0, card=True, out_dir=None, led=None, recap_only=False, sel
         log_scores(rd)
     recap, card_note, images = None, '', []
     if rd and rd['rows']:
-        recap = compose.recap_post(d, rd['rows'], rd['week'], plan)
+        recap = compose.recap_post(d, rd['rows'], rd['week'], plan, tail=recap_tail)
         if card:
             t = recap['tally']
             try:
@@ -388,6 +388,8 @@ def build(d, variant=0, card=True, out_dir=None, led=None, recap_only=False, sel
                 card_note = ', без баннера (не нарисовался: %s)' % compose.esc(repr(e)[:80])
         if images and len(recap['text']) > compose.CAPTION_MAX:
             card_note += ' — подпись длиннее 1024: баннер отдельным постом %s-r2' % mmdd(d)
+    if recap_num:                                     # номер поста итогов вместо ММДД-r1 (напр. 0511-r2)
+        pid_r1 = '%s-r1' % mmdd(d)
     msgs = [{'to': 'owner', 'type': 'text', 'html': True, 'text': intro(d, morning, recap, rd, merr, card_note, recap_only)}]
     problems = []
     post = dict(to='owner', html=True, buttons='post', emoji=True)
@@ -412,6 +414,10 @@ def build(d, variant=0, card=True, out_dir=None, led=None, recap_only=False, sel
             problems += ['футбол: ' + e for e in compose.validate(m['text'], photo=m['type'] != 'text')] if m['text'] else []
         msgs += fm
         msgs[0]['text'] += '\n\n' + fnote
+    if recap_num:
+        for m in msgs:
+            if m.get('pid') == pid_r1:
+                m['pid'] = recap_num
     if problems:
         msgs[0]['text'] += '\n\nПроверка постов: ' + compose.esc('; '.join(problems))
     summary = dict(day=d.isoformat(), morning=morning and morning['layout'], recap=recap and recap['tone'],
@@ -482,6 +488,8 @@ def main(argv=None):
     ap.add_argument('--source', choices=('channel', 'ledger'), default='channel',
                     help='откуда итоги: channel — посты канала t.me/s/jarvibet (по умолчанию), ledger — INBOX + SENT.md')
     ap.add_argument('--greet-only', action='store_true', help='только «Начало игрового дня» (06:00, без итогов)')
+    ap.add_argument('--recap-tail', help='строка в конец списка прогнозов (напр. «+ экспресс КХЛ 1,80 ✅»)')
+    ap.add_argument('--recap-num', help='номер поста итогов вместо ММДД-r1 (напр. 0511-r2)')
     ap.add_argument('--job-file', help='куда писать сообщения (по умолчанию team/out/<D>/morning.json)')
     ap.add_argument('--name', default='morning', help='с --job: имя файла задания (morning2 → morning2.json)')
     a = ap.parse_args(argv)
@@ -509,7 +517,7 @@ def main(argv=None):
     elif not a.no_wait and not a.dry and a.source == 'ledger' and not a.greet_only:
         wait_cutoff(d)
     msgs, summary, _ = build(d, a.variant, card=not a.no_card, led=led, recap_only=a.recap_only or a.ask, sel=sel,
-                             source=a.source, greet_only=a.greet_only,
+                             source=a.source, greet_only=a.greet_only, recap_tail=a.recap_tail, recap_num=a.recap_num,
                              wait=a.source == 'channel' and not a.no_wait and not a.dry)
     print('DAILY ' + json.dumps(summary, ensure_ascii=False), flush=True)
     if a.dry:
