@@ -100,9 +100,8 @@ function nextMatch(P){
   return Promise.all([load('../data/lines.js'),load('../data/model.js')]).then(()=>{
    const ln=(window.JV_LINES||{})[key],md=(window.JV_MODEL||{})[key];if(!ln&&!md)return;
    const f2=v=>v==null?'—':(+v).toFixed(2),pc=v=>v==null?'—':Math.round(v*100)+'%';
-   const SRC={fonbet:'Фонбет','khl-app':'приложение КХЛ',pinnacle:'Pinnacle',espn:'ESPN'};
    const hn=tn(hs),an=tn(as);let h='';
-   if(ln)h+=`<div><h3>Линия · ${esc(SRC[ln.src]||ln.src||'')}</h3><div class="row"><span>${esc(hn)}</span><b>${f2(ln.p1)}</b></div>${ln.x!=null?`<div class="row"><span>Ничья</span><b>${f2(ln.x)}</b></div>`:''}<div class="row"><span>${esc(an)}</span><b>${f2(ln.p2)}</b></div>${ln.tot!=null?`<div class="row"><span>Тотал ${ln.tot}: больше / меньше</span><b>${f2(ln.over)} / ${f2(ln.under)}</b></div>`:''}</div>`;
+   if(ln)h+=`<div><h3>Линия</h3><div class="row"><span>${esc(hn)}</span><b>${f2(ln.p1)}</b></div>${ln.x!=null?`<div class="row"><span>Ничья</span><b>${f2(ln.x)}</b></div>`:''}<div class="row"><span>${esc(an)}</span><b>${f2(ln.p2)}</b></div>${ln.tot!=null?`<div class="row"><span>Тотал ${ln.tot}: больше / меньше</span><b>${f2(ln.over)} / ${f2(ln.under)}</b></div>`:''}</div>`;
    if(md)h+=`<div><h3>Модель JARVIS · основное время</h3><div class="row"><span>${esc(hn)}</span><b>${pc(md.p1)}</b></div>${md.x!=null?`<div class="row"><span>Ничья</span><b>${pc(md.x)}</b></div>`:''}<div class="row"><span>${esc(an)}</span><b>${pc(md.p2)}</b></div>${md.w1!=null?`<div class="row"><span>С учётом ОТ и буллитов</span><b>${pc(md.w1)} / ${pc(md.w2)}</b></div>`:''}${md.over!=null&&md.tot!=null?`<div class="row"><span>Тотал ${md.tot} больше</span><b>${pc(md.over)}</b></div>`:''}</div>`;
    document.getElementById('nxl').innerHTML=`<div class="pp-ln">${h}</div><p class="pp-note">Линия и вероятности модели — справочные данные матча, не рекомендация. Хозяева — ${esc(hn)}.</p>`})});
 }

@@ -5,7 +5,7 @@
 'use strict';
 const L=window.JV_LINES||{},M=window.JV_MODEL||{},TD=window.JV_TODAY||{built:'',days:[],matches:[]};
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-const SRC={fonbet:'Фонбет','khl-app':'приложение КХЛ',pinnacle:'Pinnacle',espn:'ESPN'};
+const SRC={};
 const f2=v=>v==null||isNaN(v)?'—':(+v).toFixed(2).replace('.',',');
 const f1=v=>v==null||isNaN(v)?'—':(+v).toFixed(1).replace('.',',');
 const p0=v=>Math.round(v*100);
@@ -13,7 +13,7 @@ const key=(lg,t,h,a)=>`${lg}|${String(t).slice(0,10)}|${h}|${a}`;
 /* «2026-11-04T05:23Z» (UTC) → «08:23» по Москве */
 const hhmm=t=>{const ms=Date.parse(t);return isNaN(ms)?'':new Date(ms+3*3600e3).toISOString().slice(11,16)};
 const ddmm=t=>String(t).slice(8,10)+'.'+String(t).slice(5,7);
-const srcLabel=ln=>!ln?'':(SRC[ln.src]||ln.src)+(ln.t?', '+hhmm(ln.t):'');
+const srcLabel=ln=>!ln?'':(ln.t?'обновлена в '+hhmm(ln.t)+' МСК':'рынок');
 const verName=v=>String(v||'').replace(/\s*\(.*\)$/,'');
 /* доли линии без маржи: из обратных кэфов */
 const fair=ln=>{if(!ln)return null;const inv=[1/ln.p1,ln.x?1/ln.x:0,1/ln.p2],s=inv[0]+inv[1]+inv[2];return inv.map(v=>v/s)};
@@ -37,7 +37,7 @@ function quotes(m,opt={}){const {ln,md}=m,fl=fair(ln),pm=md?[md.p1,md.x,md.p2]:n
  const q=['П1','Х','П2'].map((k,j)=>{const v=ln?(j===0?ln.p1:j===1?ln.x:ln.p2):null;
   return `<span class="qc${base&&base[j]===mx?' fav':''}"><small>${k}</small><b class="num">${v?f2(v):'—'}</b><em class="num">${base?p0(base[j])+'%':''}</em></span>`}).join('');
  const tot=ln&&ln.tot!=null&&ln.over?`<div class="qt">Тотал ${f1(ln.tot)} <span>Б <b class="num">${f2(ln.over)}</b></span><span>М <b class="num">${f2(ln.under)}</b></span></div>`:'';
- const src=ln?`<div class="qs">Линия: ${esc(srcLabel(ln))}${ln.tot_src&&ln.tot_src!==ln.src?`, тотал — ${esc(SRC[ln.tot_src]||ln.tot_src)}`:''}${fl?' · % под кэфом — доля линии без маржи':''}</div>`
+ const src=ln?`<div class="qs">Линия: ${esc(srcLabel(ln))}${fl?' · % под кэфом — доля линии без маржи':''}</div>`
   :`<div class="qs">${esc(opt.noLine||'Линии пока нет')}</div>`;
  return `<div class="q3">${q}</div>${tot}${md?`<div class="qm">${modelLine(md,opt)}</div>`:''}${dvHtml(ln,md)?`<div class="qd">${dvHtml(ln,md)}</div>`:''}${src}`}
 
@@ -54,11 +54,10 @@ function why(m,opt={}){const {ln,md}=m;if(!md)return '<p class="none">Расчё
    ${md.btts!=null?bar('Обе команды забьют',md.btts,null,false):''}</div>`}
  const fin=md.w1!=null&&md.w2!=null?`<div class="wsub"><h5>Итоговая победа, с овертаймом и буллитами</h5>${bar(names[0],md.w1,ln&&ln.fin1&&ln.fin2?(1/ln.fin1)/(1/ln.fin1+1/ln.fin2):null,md.w1>md.w2)}${bar(names[1],md.w2,null,md.w2>md.w1)}</div>`:'';
  const lam=md.lam?`<p class="xlam"><b>Ожидаемые голы:</b> ${esc(names[0])} <b class="num">${f2(md.lam[0])}</b> — ${esc(names[1])} <b class="num">${f2(md.lam[1])}</b>, вместе <b class="num">${f2(md.lam[0]+md.lam[1])}</b>.</p>`:'';
- const alt=ln&&ln.alt?Object.entries(ln.alt).map(([s,a])=>`${esc(SRC[s]||s)}: ${f2(a.p1)} / ${a.x?f2(a.x)+' / ':''}${f2(a.p2)}`).join('; '):'';
  return `<section class="xb x-model"><h4>Расчёт модели <span class="note">${esc(verName(md.ver))}, ${esc(hhmm(md.t))} МСК</span></h4>
-  <div class="wgrid"><div class="wsub"><h5>Исход в основное время</h5>${rows}${ln?`<p class="note">Метка на шкале — доля линии (${esc(srcLabel(ln))}) без маржи.</p>`:'<p class="note">Линии на матч пока нет.</p>'}</div>
+  <div class="wgrid"><div class="wsub"><h5>Исход в основное время</h5>${rows}${ln?`<p class="note">Метка на шкале — доля линии без маржи.</p>`:'<p class="note">Линии на матч пока нет.</p>'}</div>
   ${totals}${fin}</div>${lam}${dvHtml(ln,md)?`<p class="qd">${dvHtml(ln,md)}</p>`:''}
-  ${alt?`<p class="note">Для сверки, кэфы П1 / ${ln.x?'Х / ':''}П2 в других источниках — ${alt}.</p>`:''}</section>`}
+  </section>`}
 
 /* ── секция «Прогноз модели» (#model): все матчи окна с вероятностями модели и линией ── */
 function section(root,items,cfg){

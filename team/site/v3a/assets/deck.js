@@ -55,7 +55,7 @@ function cardHtml(m,i,n){const {ln,md}=info(m),pk=pick(m,md),fl=J.fair(ln),mx=fl
   let ql='';
   if(ln){const hasX=!!ln.x,cells=[['П1',ln.p1,0]].concat(hasX?[['Х',ln.x,1]]:[],[['П2',ln.p2,2]]);
    ql=`<div class="dk-ql${hasX?'':' two'}">${cells.map(c=>`<span class="${(mo?mo[c[2]]===mm:fl&&fl[c[2]]===mx)?'fav':''}"><small>${c[0]}</small><b>${f2(c[1])}</b></span>`).join('')}</div>
-   <p class="dk-src">Линия: ${esc(J.srcLabel(ln))} МСК</p>`}
+   <p class="dk-src">Линия: ${esc(J.srcLabel(ln))}</p>`}
   else ql=`<p class="dk-src">Линии на этот матч пока нет</p>`;
   const t=String(m.t||'');
   return `<div class="dk-cf">
@@ -151,7 +151,7 @@ function infoHtml(m){const {ln,md}=info(m);let h='';
     const hasX=!!ln.x;
     h+=`<div class="dk-blk"><h3>Линия</h3><div class="dk-lnq"><span><small>П1</small><b>${f2(ln.p1)}</b></span>${hasX?`<span><small>Х</small><b>${f2(ln.x)}</b></span>`:''}<span><small>П2</small><b>${f2(ln.p2)}</b></span>`+
      (ln.tot!=null&&ln.over?`<span><small>ТБ ${f1(ln.tot)}</small><b>${f2(ln.over)}</b></span><span><small>ТМ ${f1(ln.tot)}</small><b>${f2(ln.under)}</b></span>`:'')+`</div>
-     <p class="dk-note">Источник: ${esc(J.srcLabel(ln))} МСК${ln.tot_src&&ln.tot_src!==ln.src?`, тотал — ${esc(J.SRC[ln.tot_src]||ln.tot_src)}`:''}. Основное время.</p></div>`}
+     <p class="dk-note">Линия: ${esc(J.srcLabel(ln))}. Основное время.</p></div>`}
   else h+=`<div class="dk-blk"><h3>Линия</h3><p class="dk-note" style="margin:0">Линии на этот матч пока нет.</p></div>`;
   h+=`<button type="button" class="dk-more" id="dk-more">Подробная статистика<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
   return h}

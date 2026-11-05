@@ -21,7 +21,7 @@ f.innerHTML=`<div class="wrap"><div class="jvf-top">
    <a class="jvf-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Telegram @jarvibet</span></a></div>
   <nav class="jvf-cols" aria-label="Разделы сайта">${COLS.map(c=>`<div><b>${esc(c[0])}</b>${c[1].map(l=>`<a href="${esc(U(l[1]))}">${esc(l[0])}</a>`).join('')}</div>`).join('')}</nav>
  </div>
- <div class="jvf-bot"><p class="jvf-data">Данные: ESPN, НХЛ, приложение КХЛ. Линии: Фонбет, Pinnacle. Линии и расчёт обновляются дважды в день.</p><span class="jvf-slot"></span><span class="jvf-age" title="Сайт только для совершеннолетних">18+</span></div></div>`;
+ <div class="jvf-bot"><p class="jvf-data">Данные: ESPN, НХЛ, приложение КХЛ. Линии и расчёт обновляются дважды в день.</p><span class="jvf-slot"></span><span class="jvf-age" title="Сайт только для совершеннолетних">18+</span></div></div>`;
 if(keep){keep.className='jvf-note';f.querySelector('.jvf-slot').replaceWith(keep)}
 if(old)old.replaceWith(f);else document.body.appendChild(f);
 })();

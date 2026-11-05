@@ -41,10 +41,10 @@ document.body.dataset.lg=lg;
 const all=T.games.slice().sort((a,b)=>a.d<b.d?1:-1).reverse();
 const ctxAll=all.filter(inCtx),real=ctxAll.filter(played),future=ctxAll.filter(g=>!played(g)),S=stats(ID,inCtx);
 const listAll=(CUP||cupOnly)?ctxAll:all;
-/* реальная линия (Pinnacle) и расчёт модели из data/lines.js и data/model.js — для матчей окна данных; кэфы и вероятности — с точки зрения клуба */
-const SRCN={fonbet:'Фонбет',pinnacle:'Pinnacle',espn:'ESPN'},hm=t=>{const m=Date.parse(t);return isNaN(m)?'':new Date(m+3*36e5).toISOString().slice(11,16)};
+/* реальная линия рынка и расчёт модели из data/lines.js и data/model.js — для матчей окна данных; кэфы и вероятности — с точки зрения клуба */
+const hm=t=>{const m=Date.parse(t);return isNaN(m)?'':new Date(m+3*36e5).toISOString().slice(11,16)};
 T.games.filter(g=>!played(g)).forEach(g=>{const hh=g.h?ID:g.o,aa=g.h?g.o:ID,key=`${g.c||lg}|${g.d.slice(0,10)}|${hh}|${aa}`,ln=(window.JV_LINES||{})[key],md=(window.JV_MODEL||{})[key],sw=a=>g.h?a:[a[2],a[1],a[0]];
- if(ln){g.k=sw([ln.p1,ln.x,ln.p2]);g.kn=`Линия: ${SRCN[ln.src]||ln.src}, ${hm(ln.t)}`}
+ if(ln){g.k=sw([ln.p1,ln.x,ln.p2]);g.kn=`Линия, ${hm(ln.t)}`}
  else if(g.k)g.kn='Линия: ESPN';
  if(md){g.pr=sw([md.p1,md.x,md.p2]);g.ov=md.over;g.ot=md.tot;g.bt=md.btts}});
 const startMs=d=>Date.parse(d.slice(0,10)+'T'+(d.slice(11,16)||'00:00')+':00+03:00');

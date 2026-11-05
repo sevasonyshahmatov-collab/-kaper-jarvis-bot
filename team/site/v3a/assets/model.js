@@ -6,7 +6,7 @@ const sw=$('#sw-'+sp);if(sw)sw.setAttribute('aria-current','page');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 const f1=x=>(Math.round(x*1000)/10).toFixed(1).replace('.',',');
 const f2=x=>x.toFixed(2).replace('.',','), g1=x=>String(x).replace('.',',');
-const SRC={fonbet:'Фонбет',pinnacle:'Pinnacle','khl-app':'приложение КХЛ',espn:'ESPN'};
+const SRC={};
 const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const dt=s=>{const m=/^(\d+)-(\d+)-(\d+)[ T](\d+:\d+)/.exec(s||'');return m?`${+m[3]} ${MON[+m[2]-1]}, ${m[4]}`:''};
 // время из данных с Z (UTC) — в МСК
@@ -49,7 +49,6 @@ function draw(m){
   const diffs=outs.map((o,i)=>Math.round((mp[i]-fair[i])*1000)/10);
   let bi=0;diffs.forEach((d,i)=>{if(Math.abs(d)>Math.abs(diffs[bi]))bi=i});
   const big=Math.abs(diffs[bi])>=5;
-  const src=SRC[ln.src]||ln.src;
   const lam=md.lam||null;
 
   /* 1. ожидаемые голы + распределение Пуассона */
@@ -61,7 +60,7 @@ function draw(m){
       <div class="md-g" role="img" aria-label="Шанс забить 0–6 голов у каждой команды при таких ожидаемых голах">${K.map((k,i)=>`<div><i style="height:${(ph[i]/mx*100).toFixed(0)}%;animation-delay:${i*40}ms"></i><i class="b" style="height:${(pa[i]/mx*100).toFixed(0)}%;animation-delay:${i*40}ms"></i></div>`).join('')}</div>
       <div class="md-gl">${K.map(k=>`<span>${k}</span>`).join('')}</div>
       <div class="md-gh"><em>${esc(m.hn)}</em><em class="b">${esc(m.an)}</em><span>число голов в матче: 0–6</span></div>
-      <p>Столбики показывают упрощённый расчёт по Пуассону: например, ${esc(m.hn)} при ${f2(lam[0])} ожидаемого гола забивает ровно два гола с шансом около ${Math.round(pois(lam[0],2)*100)} %. Из таких шансов для обеих команд складываются пары счётов, а из них победа, ничья и тотал.${hk?'':' В футболе добавляется поправка Дикси–Коулса на малые счёты, а сама вероятность смешана с линией Pinnacle.'}</p></div>`;
+      <p>Столбики показывают упрощённый расчёт по Пуассону: например, ${esc(m.hn)} при ${f2(lam[0])} ожидаемого гола забивает ровно два гола с шансом около ${Math.round(pois(lam[0],2)*100)} %. Из таких шансов для обеих команд складываются пары счётов, а из них победа, ничья и тотал.${hk?'':' В футболе добавляется поправка Дикси–Коулса на малые счёты, а сама вероятность смешана с линией рынка.'}</p></div>`;
   }
 
   /* 2. вероятности модели против линии */
@@ -70,7 +69,7 @@ function draw(m){
   const diffTxt=outs.map((o,i)=>`${o[1]} ${diffs[i]>0?'+':''}${String(diffs[i]).replace('.',',').replace('-','−')}`).join(' · ');
   const h2=`<div class="md-blk"><h4>Шаг 2. Вероятности: модель и линия</h4>
     <div class="md-cmp">${rows}</div>
-    <div class="md-key" style="margin-top:12px"><em>модель</em><em class="l">линия (${esc(src)}) без маржи</em></div>
+    <div class="md-key" style="margin-top:12px"><em>модель</em><em class="l">линия без маржи</em></div>
     <p>Разница модели и линии в процентных пунктах: <span class="md-diff${big?' hi':''}">${diffTxt}</span>. ${big?`Самое большое расхождение: ${outs[bi][1]}, ${String(Math.abs(diffs[bi])).replace('.',',')} п.п. Это разница оценок двух источников, а не сигнал и не совет: модель могла не учесть то, что знает рынок (например, состав в день матча).`:'Расхождения небольшие: модель и линия оценивают матч похоже.'}</p></div>`;
 
   /* 3. маржа */
@@ -78,7 +77,7 @@ function draw(m){
   const h3=`<div class="md-blk"><h4>Шаг 3. Как из кэфа получается «вероятность букмекера»</h4>
     <table class="md-calc"><thead><tr><th>Исход</th><th>Кэф</th><th>1 / кэф</th><th>Без маржи</th></tr></thead><tbody>${trs}</tbody>
     <tfoot><tr><td>Сумма</td><td></td><td>${f1(sum)} %</td><td>100,0 %</td></tr></tfoot></table>
-    <p>Сначала делим единицу на кэф: так получается «сырая» вероятность. Но сумма по всем исходам вышла <b>${f1(sum)} %</b>, больше ста. Лишние <b>${f1(margin).replace(/^(-?\d+),0$/,'$1')} %</b> и есть маржа букмекера, его заработок заложен в кэфы. Чтобы сравнивать с моделью, каждую долю делим на сумму, и три шанса снова дают 100 %. Линия: ${esc(src)}, снята ${esc(dtz(ln.t))} МСК.${ln.alt&&Object.keys(ln.alt).length?` Для сверки есть ещё: ${Object.keys(ln.alt).map(k=>esc(SRC[k]||k)).join(', ')}.`:''}</p></div>`;
+    <p>Сначала делим единицу на кэф: так получается «сырая» вероятность. Но сумма по всем исходам вышла <b>${f1(sum)} %</b>, больше ста. Лишние <b>${f1(margin).replace(/^(-?\d+),0$/,'$1')} %</b> и есть маржа букмекера, его заработок заложен в кэфы. Чтобы сравнивать с моделью, каждую долю делим на сумму, и три шанса снова дают 100 %. Линия снята ${esc(dtz(ln.t))} МСК.</p></div>`;
 
   /* 4. тотал */
   let h4='';
@@ -91,7 +90,7 @@ function draw(m){
     let book='',bt='';
     if(L0!=null&&ln.over&&ln.under){
       const bo=(1/ln.over)/(1/ln.over+1/ln.under),bm=1/ln.over+1/ln.under-1;
-      book=`<div class="md-tsl">Линия (${esc(SRC[ln.tot_src||ln.src]||'')})</div><div class="md-ts l"><i style="left:${pos(L0)}%"></i><span style="left:${pos(L0)}%">${f1(bo)} %<em>больше ${g1(L0)}</em></span></div>`;
+      book=`<div class="md-tsl">Линия</div><div class="md-ts l"><i style="left:${pos(L0)}%"></i><span style="left:${pos(L0)}%">${f1(bo)} %<em>больше ${g1(L0)}</em></span></div>`;
       const mo=pts.find(p=>p[0]===L0);
       bt=`<p>У линии на тотал ${g1(L0)} кэфы ${f2(ln.over)} (больше) и ${f2(ln.under)} (меньше). Те же 1 / кэф дают сумму ${f1(1+bm)} %, то есть маржа ${f1(bm)} %, а без неё шанс «больше» ${f1(bo)} %.${mo?` Модель на этой линии даёт ${f1(mo[1])} % (разница ${(mo[1]-bo>=0?'+':'−')+String(Math.abs(Math.round((mo[1]-bo)*1000)/10)).replace('.',',')} п.п.).`:` Модель считала тотал на другой линии (${g1(md.tot)}), поэтому прямое сравнение здесь не получается.`}</p>`;
     }
