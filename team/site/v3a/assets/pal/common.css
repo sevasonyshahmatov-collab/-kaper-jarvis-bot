@@ -168,3 +168,7 @@ html[data-pal] .sp-bg{background:color-mix(in srgb,var(--board) 62%,transparent)
 html[data-pal] .sp-box,html[data-pal] .sp-panel,html[data-pal] .sp-top{background:var(--card-hi);border-color:var(--rule-2)}
 html[data-pal] .sp-i:hover,html[data-pal] .sp-i.on{background:var(--paper-3)}
 html[data-pal] .nf{background:transparent}
+
+/* шапка на тёмной «арене» (model, forecast…) получала старые переменные из v3a.css — берём палитру родителя */
+html[data-pal][data-theme] .hd,html[data-pal][data-theme]:not(.lit) .hd{--paper:inherit;--paper-2:inherit;--paper-3:inherit;--card:inherit;--card-hi:inherit;--ink:inherit;--ink-2:inherit;--ink-3:inherit;--rule:inherit;--rule-2:inherit;--ice:inherit;--sport:inherit;--shadow:inherit;--crest-bg:inherit}
+@media (max-width:980px){html[data-pal] .dk-ctl{background:linear-gradient(0deg,var(--paper) 70%,transparent)}}
