@@ -33,4 +33,4 @@ print('FEED posts %d pages %d kept %d replies %d' % (len(posts), pages, len(out)
 b = base64.b64encode(gzip.compress(json.dumps(out, ensure_ascii=False).encode())).decode()
 parts = [b[i:i + 3500] for i in range(0, len(b), 3500)]
 for i, s in enumerate(parts):
-    print('::notice title=FD_%d/%d::%s' % (i + 1, len(parts), s), flush=True)
+    print('FDX_%d %s' % (i + 1, s), flush=True)
