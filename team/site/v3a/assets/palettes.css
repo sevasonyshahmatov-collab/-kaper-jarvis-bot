@@ -1,97 +1,83 @@
-/* Пробные палитры 60/30/10 (владелец 05.11): два спокойных цвета + один акцент ТОЛЬКО на нажимаемом.
-   Включаются ?pal=lime|coral|purple|mono (assets/palettes.js), без параметра сайт как раньше.
-   --signal здесь нейтральный (не акцент): всё, что раньше было золотым и не нажимается, стало цветом текста.
-   Акцент: --pal (заливка), --pal-ink (текст на нём), --pal-t (акцент как цвет текста/линии на фоне). */
-html[data-pal="lime"],html[data-pal="lime"] body.md,html[data-pal="lime"] body.fc,html[data-pal="lime"] body.tr{
-  --paper:#0a0a0a; --paper-2:#151515; --paper-3:#212121; --card:#141414; --card-hi:#1e1e1e;
-  --ink:#ffffff; --ink-2:#cfcfcf; --ink-3:#9d9d9d; --rule:#262626; --rule-2:#3d3d3d;
-  --board:#000000; --flap:#171717; --flap-2:#101010; --flap-ink:#ffffff;
-  --pal:#c6f432; --pal-ink:#0a0a0a; --pal-t:#c6f432;
-  --signal:#cfcfcf; --signal-ink:#0a0a0a;
-  --ice:#cfcfcf; --pitch:#cfcfcf; --sport:#cfcfcf; --sport-ink:#0a0a0a;
-  --red:#e0707a; --win:#8fb86a; --win-ink:#0a0a0a; --loss-ink:#0a0a0a;
-  --puck:#000000; --puck-rim:#ffffff;
-  --khl:#1a1a1a; --khl-2:#9d9d9d; --nhl:#1a1a1a; --nhl-2:#9d9d9d;
-  --conf-hi:#ffffff; --conf-mid:#cfcfcf; --conf-lo:#9d9d9d;
-  --crest-bg:#f2f2f2; --crest-pad:1;
-  --shadow:rgba(0,0,0,.7); --bgc:#0a0a0a; --lit:0;
-  --fld:rgba(255,255,255,.08); --fld-2:rgba(255,255,255,.04); --fld-pitch:transparent;
-  --fld-red:rgba(255,255,255,.08); --fld-blue:rgba(255,255,255,.08); --fld-run:rgba(255,255,255,.08); --fld-run2:rgba(255,255,255,.08);
-  --acc:#cfcfcf;
+/* Палитры 60/30/10 (владелец 05.11, v2 «энергия»): тёмный фон с жизнью (60) + второй цвет в карточках, полосах, графиках (30) + акцент ТОЛЬКО на нажимаемом (10).
+   Включаются ?pal=stadium|ice|volt|royal (assets/palettes.js), без параметра сайт как раньше.
+   --pal (заливка), --pal-ink (текст на ней), --pal-t (акцент как текст/линия) — акцент. --e2/--e2b — второй цвет и пара для полос, --e2t — второй цвет как текст,
+   --glow/--glow2 — rgb-тройки для свечений. Правила «энергии» — assets/pal/energy.css. */
+html[data-pal="stadium"],html[data-pal="stadium"] body.md,html[data-pal="stadium"] body.fc,html[data-pal="stadium"] body.tr{
+  --paper:#0b1026; --paper-2:#111a3f; --paper-3:#1a2a66; --card:#111a40; --card-hi:#1a2860;
+  --ink:#ffffff; --ink-2:#cfd8f7; --ink-3:#9eabd8; --rule:#1f2d66; --rule-2:#35479c;
+  --board:#060a1c; --flap:#12205a; --flap-2:#0c1640; --flap-ink:#ffffff;
+  --pal:#ff5a1f; --pal-ink:#190802; --pal-t:#ff7d4a;
+  --e1:#0b1026; --e2:#2f6bff; --e2b:#1fc4ff; --e2t:#7ea3ff; --glow:47,107,255; --glow2:31,196,255;
+  --signal:#7ea3ff; --signal-ink:#0b1026;
+  --ice:#7ea3ff; --pitch:#7ea3ff; --sport:#7ea3ff; --sport-ink:#0b1026;
+  --red:#ff4d63; --win:#25d07a; --win-ink:#04140c; --loss-ink:#1a0408; --draw:#8a96c4;
+  --puck:#060a1c; --puck-rim:#ffffff;
+  --khl:#2f6bff; --khl-2:#7ea3ff; --nhl:#1fc4ff; --nhl-2:#7ea3ff;
+  --conf-hi:#ffffff; --conf-mid:#cfd8f7; --conf-lo:#9eabd8;
+  --crest-bg:#f2f2f6; --crest-pad:1;
+  --shadow:rgba(2,5,20,.7); --bgc:#0b1026; --lit:0;
+  --fld:rgba(47,107,255,.22); --fld-2:rgba(47,107,255,.10); --fld-pitch:transparent;
+  --fld-red:rgba(31,196,255,.26); --fld-blue:rgba(47,107,255,.26); --fld-run:rgba(47,107,255,.2); --fld-run2:rgba(31,196,255,.2);
+  --acc:#7ea3ff;
   color-scheme:dark;}
-html[data-pal="lime"] body.fc .hd,html[data-pal="lime"] body.tr .hd{--paper:#0a0a0a}
-html[data-pal="coral"],html[data-pal="coral"] body.md,html[data-pal="coral"] body.fc,html[data-pal="coral"] body.tr{
-  --paper:#0b1730; --paper-2:#12244a; --paper-3:#1b3262; --card:#10203f; --card-hi:#172a52;
-  --ink:#f3eee3; --ink-2:#d0cabd; --ink-3:#a5a6ab; --rule:#1b2d52; --rule-2:#33486f;
-  --board:#060e20; --flap:#142340; --flap-2:#0e1a33; --flap-ink:#f3eee3;
-  --pal:#ff6a4d; --pal-ink:#1a0905; --pal-t:#ff6a4d;
-  --signal:#d0cabd; --signal-ink:#0b1730;
-  --ice:#d0cabd; --pitch:#d0cabd; --sport:#d0cabd; --sport-ink:#0b1730;
-  --red:#e58a8c; --win:#8ec0a2; --win-ink:#0b1730; --loss-ink:#0b1730;
-  --puck:#060e20; --puck-rim:#f3eee3;
-  --khl:#142340; --khl-2:#a5a6ab; --nhl:#142340; --nhl-2:#a5a6ab;
-  --conf-hi:#f3eee3; --conf-mid:#d0cabd; --conf-lo:#a5a6ab;
-  --crest-bg:#f3eee3; --crest-pad:1;
-  --shadow:rgba(2,6,18,.7); --bgc:#0b1730; --lit:0;
-  --fld:rgba(243,238,227,.09); --fld-2:rgba(243,238,227,.04); --fld-pitch:transparent;
-  --fld-red:rgba(243,238,227,.09); --fld-blue:rgba(243,238,227,.09); --fld-run:rgba(243,238,227,.09); --fld-run2:rgba(243,238,227,.09);
-  --acc:#d0cabd;
+html[data-pal="stadium"] body.fc .hd,html[data-pal="stadium"] body.tr .hd{--paper:#0b1026}
+html[data-pal="ice"],html[data-pal="ice"] body.md,html[data-pal="ice"] body.fc,html[data-pal="ice"] body.tr{
+  --paper:#06121f; --paper-2:#0a1d31; --paper-3:#0f2d4a; --card:#0a1c2f; --card-hi:#102a46;
+  --ink:#ffffff; --ink-2:#d0eaf6; --ink-3:#93b6cb; --rule:#12304a; --rule-2:#1f4e73;
+  --board:#030b14; --flap:#0c2640; --flap-2:#081a2e; --flap-ink:#ffffff;
+  --pal:#e5173f; --pal-ink:#ffffff; --pal-t:#ff5f7e;
+  --e1:#06121f; --e2:#34d6ff; --e2b:#2f7bff; --e2t:#6fe3ff; --glow:52,214,255; --glow2:47,123,255;
+  --signal:#6fe3ff; --signal-ink:#06121f;
+  --ice:#6fe3ff; --pitch:#6fe3ff; --sport:#6fe3ff; --sport-ink:#06121f;
+  --red:#ff4d63; --win:#22d3a0; --win-ink:#04140c; --loss-ink:#1a0408; --draw:#7f9db3;
+  --puck:#030b14; --puck-rim:#ffffff;
+  --khl:#34d6ff; --khl-2:#6fe3ff; --nhl:#2f7bff; --nhl-2:#6fe3ff;
+  --conf-hi:#ffffff; --conf-mid:#d0eaf6; --conf-lo:#93b6cb;
+  --crest-bg:#f2f2f6; --crest-pad:1;
+  --shadow:rgba(0,6,14,.7); --bgc:#06121f; --lit:0;
+  --fld:rgba(52,214,255,.22); --fld-2:rgba(52,214,255,.10); --fld-pitch:transparent;
+  --fld-red:rgba(47,123,255,.26); --fld-blue:rgba(52,214,255,.26); --fld-run:rgba(52,214,255,.2); --fld-run2:rgba(47,123,255,.2);
+  --acc:#6fe3ff;
   color-scheme:dark;}
-html[data-pal="coral"] body.fc .hd,html[data-pal="coral"] body.tr .hd{--paper:#0b1730}
-html[data-pal="purple"],html[data-pal="purple"] body.md,html[data-pal="purple"] body.fc,html[data-pal="purple"] body.tr{
-  --paper:#0f2a1e; --paper-2:#173a2a; --paper-3:#214c37; --card:#133324; --card-hi:#1a4230;
-  --ink:#e8e0cc; --ink-2:#c8c1ae; --ink-3:#a0a591; --rule:#1d4231; --rule-2:#35634d;
-  --board:#081a12; --flap:#16382a; --flap-2:#102a1f; --flap-ink:#e8e0cc;
-  --pal:#8656f3; --pal-ink:#ffffff; --pal-t:#a78bfa;
-  --signal:#c8c1ae; --signal-ink:#0f2a1e;
-  --ice:#c8c1ae; --pitch:#c8c1ae; --sport:#c8c1ae; --sport-ink:#0f2a1e;
-  --red:#e08a85; --win:#9fcf8a; --win-ink:#0f2a1e; --loss-ink:#0f2a1e;
-  --puck:#081a12; --puck-rim:#e8e0cc;
-  --khl:#16382a; --khl-2:#a0a591; --nhl:#16382a; --nhl-2:#a0a591;
-  --conf-hi:#e8e0cc; --conf-mid:#c8c1ae; --conf-lo:#a0a591;
-  --crest-bg:#e8e0cc; --crest-pad:1;
-  --shadow:rgba(0,10,5,.65); --bgc:#0f2a1e; --lit:0;
-  --fld:rgba(232,224,204,.09); --fld-2:rgba(232,224,204,.04); --fld-pitch:transparent;
-  --fld-red:rgba(232,224,204,.09); --fld-blue:rgba(232,224,204,.09); --fld-run:rgba(232,224,204,.09); --fld-run2:rgba(232,224,204,.09);
-  --acc:#c8c1ae;
+html[data-pal="ice"] body.fc .hd,html[data-pal="ice"] body.tr .hd{--paper:#06121f}
+html[data-pal="volt"],html[data-pal="volt"] body.md,html[data-pal="volt"] body.fc,html[data-pal="volt"] body.tr{
+  --paper:#111317; --paper-2:#1b1424; --paper-3:#2a1735; --card:#1a161f; --card-hi:#271a31;
+  --ink:#ffffff; --ink-2:#e3dcec; --ink-3:#aea3bb; --rule:#2c2236; --rule-2:#4a3560;
+  --board:#08090b; --flap:#26172f; --flap-2:#1a111f; --flap-ink:#ffffff;
+  --pal:#d4ff3a; --pal-ink:#10130a; --pal-t:#d4ff3a;
+  --e1:#111317; --e2:#c026d3; --e2b:#7c3cff; --e2t:#e57cf2; --glow:192,38,211; --glow2:124,60,255;
+  --signal:#e57cf2; --signal-ink:#111317;
+  --ice:#e57cf2; --pitch:#e57cf2; --sport:#e57cf2; --sport-ink:#111317;
+  --red:#ff4d63; --win:#2fdc7a; --win-ink:#04140c; --loss-ink:#1a0408; --draw:#9a8fa8;
+  --puck:#08090b; --puck-rim:#ffffff;
+  --khl:#c026d3; --khl-2:#e57cf2; --nhl:#7c3cff; --nhl-2:#e57cf2;
+  --conf-hi:#ffffff; --conf-mid:#e3dcec; --conf-lo:#aea3bb;
+  --crest-bg:#f2f2f6; --crest-pad:1;
+  --shadow:rgba(6,2,10,.7); --bgc:#111317; --lit:0;
+  --fld:rgba(192,38,211,.22); --fld-2:rgba(192,38,211,.10); --fld-pitch:transparent;
+  --fld-red:rgba(124,60,255,.26); --fld-blue:rgba(192,38,211,.26); --fld-run:rgba(192,38,211,.2); --fld-run2:rgba(124,60,255,.2);
+  --acc:#e57cf2;
   color-scheme:dark;}
-html[data-pal="purple"] body.fc .hd,html[data-pal="purple"] body.tr .hd{--paper:#0f2a1e}
-html[data-pal="mono"],html[data-pal="mono"] body.md,html[data-pal="mono"] body.fc,html[data-pal="mono"] body.tr{
-  --paper:#0a1220; --paper-2:#16223a; --paper-3:#22304d; --card:#111b2e; --card-hi:#18253e;
-  --ink:#eaf1fb; --ink-2:#b9c5d9; --ink-3:#8f9cb4; --rule:#1c2840; --rule-2:#2c3b5a;
-  --board:#04070d; --flap:#151b26; --flap-2:#0f141d; --flap-ink:#eaf1fb;
-  --pal:#5cf2c2; --pal-ink:#04140f; --pal-t:#5cf2c2;
-  --signal:#b9c5d9; --signal-ink:#0a1220;
-  --ice:#b9c5d9; --pitch:#b9c5d9; --sport:#b9c5d9; --sport-ink:#0a1220;
-  --red:#e5818c; --win:#7fb596; --win-ink:#0a1220; --loss-ink:#0a1220;
-  --puck:#04070d; --puck-rim:#eaf1fb;
-  --khl:#151b26; --khl-2:#8f9cb4; --nhl:#151b26; --nhl-2:#8f9cb4;
-  --conf-hi:#eaf1fb; --conf-mid:#b9c5d9; --conf-lo:#8f9cb4;
-  --crest-bg:#eef3fa; --crest-pad:1;
-  --shadow:rgba(0,0,0,.65); --bgc:#0a1220; --lit:0;
-  --fld:rgba(150,200,255,.10); --fld-2:rgba(150,200,255,.04); --fld-pitch:transparent;
-  --fld-red:rgba(150,200,255,.10); --fld-blue:rgba(150,200,255,.10); --fld-run:rgba(150,200,255,.10); --fld-run2:rgba(150,200,255,.10);
-  --acc:#b9c5d9;
+html[data-pal="volt"] body.fc .hd,html[data-pal="volt"] body.tr .hd{--paper:#111317}
+html[data-pal="royal"],html[data-pal="royal"] body.md,html[data-pal="royal"] body.fc,html[data-pal="royal"] body.tr{
+  --paper:#1a0b3b; --paper-2:#25104f; --paper-3:#33187a; --card:#220f4a; --card-hi:#301870;
+  --ink:#ffffff; --ink-2:#e1d8fa; --ink-3:#b3a4dd; --rule:#38207a; --rule-2:#5b3fb5;
+  --board:#110626; --flap:#2c1466; --flap-2:#200e4d; --flap-ink:#ffffff;
+  --pal:#ffe14d; --pal-ink:#1a0b3b; --pal-t:#ffe14d;
+  --e1:#1a0b3b; --e2:#3b2bff; --e2b:#9a63ff; --e2t:#9aa0ff; --glow:59,43,255; --glow2:154,99,255;
+  --signal:#9aa0ff; --signal-ink:#1a0b3b;
+  --ice:#9aa0ff; --pitch:#9aa0ff; --sport:#a9a4ff; --sport-ink:#1a0b3b;
+  --red:#ff4d6a; --win:#2fdc86; --win-ink:#04140c; --loss-ink:#1a0408; --draw:#a091cf;
+  --puck:#110626; --puck-rim:#ffffff;
+  --khl:#3b2bff; --khl-2:#9aa0ff; --nhl:#9a63ff; --nhl-2:#9aa0ff;
+  --conf-hi:#ffffff; --conf-mid:#e1d8fa; --conf-lo:#b3a4dd;
+  --crest-bg:#f2f2f6; --crest-pad:1;
+  --shadow:rgba(8,2,24,.7); --bgc:#1a0b3b; --lit:0;
+  --fld:rgba(59,43,255,.22); --fld-2:rgba(59,43,255,.10); --fld-pitch:transparent;
+  --fld-red:rgba(154,99,255,.26); --fld-blue:rgba(59,43,255,.26); --fld-run:rgba(59,43,255,.2); --fld-run2:rgba(154,99,255,.2);
+  --acc:#9aa0ff;
   color-scheme:dark;}
-html[data-pal="mono"] body.fc .hd,html[data-pal="mono"] body.tr .hd{--paper:#0a1220}
-html[data-pal="trend"],html[data-pal="trend"] body.md,html[data-pal="trend"] body.fc,html[data-pal="trend"] body.tr{
-  --paper:#24152b; --paper-2:#301d39; --paper-3:#3d2849; --card:#2b1a33; --card-hi:#35213f;
-  --ink:#f0eee9; --ink-2:#d2cbd0; --ink-3:#aaa0b0; --rule:#3a2745; --rule-2:#54406a;
-  --board:#170c1c; --flap:#2f1c38; --flap-2:#241530; --flap-ink:#f0eee9;
-  --pal:#2fd3a0; --pal-ink:#052018; --pal-t:#2fd3a0;
-  --signal:#d2cbd0; --signal-ink:#24152b;
-  --ice:#d2cbd0; --pitch:#d2cbd0; --sport:#d2cbd0; --sport-ink:#24152b;
-  --red:#e58a95; --win:#9cc4a8; --win-ink:#24152b; --loss-ink:#24152b;
-  --puck:#170c1c; --puck-rim:#f0eee9;
-  --khl:#2f1c38; --khl-2:#aaa0b0; --nhl:#2f1c38; --nhl-2:#aaa0b0;
-  --conf-hi:#f0eee9; --conf-mid:#d2cbd0; --conf-lo:#aaa0b0;
-  --crest-bg:#f0eee9; --crest-pad:1;
-  --shadow:rgba(10,2,14,.7); --bgc:#24152b; --lit:0;
-  --fld:rgba(240,238,233,.09); --fld-2:rgba(240,238,233,.04); --fld-pitch:transparent;
-  --fld-red:rgba(240,238,233,.09); --fld-blue:rgba(240,238,233,.09); --fld-run:rgba(240,238,233,.09); --fld-run2:rgba(240,238,233,.09);
-  --acc:#d2cbd0;
-  color-scheme:dark;}
-html[data-pal="trend"] body.fc .hd,html[data-pal="trend"] body.tr .hd{--paper:#24152b}
+html[data-pal="royal"] body.fc .hd,html[data-pal="royal"] body.tr .hd{--paper:#1a0b3b}
 
 /* ── акцент только на нажимаемом ───────────────────────────────────────────── */
 html[data-pal] ::selection{background:var(--pal);color:var(--pal-ink)}

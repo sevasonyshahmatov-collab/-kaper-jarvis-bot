@@ -68,7 +68,6 @@ html[data-pal][data-sport="football"]:not(#_){
 
 html[data-pal][data-sport="football"]:not(#_){
   --signal-ink:var(--paper);
-  #snow{filter:grayscale(1) opacity(.75)}
   .lgtab .cnt,.leagues.two .cnt{color:var(--ink-2)}
   .leagues .cnt{color:var(--ink-2)}
   /* табы и фильтры — нажимаемое: акцент */
@@ -81,7 +80,6 @@ html[data-pal][data-sport="football"]:not(#_){
   .ucl-deco svg:first-child polygon,.ucl-deco svg:first-child circle{fill:var(--ink-2)}
   .ucl-deco .ball [stroke]{stroke:var(--ink-3)}
   .ucl-deco .ball polygon{fill:var(--ink-3)}
-  .ucl-deco .lgbig{filter:grayscale(1)}
   .hero .board::before,body.ctx-cup .tmpower::before{background:linear-gradient(90deg,transparent,var(--ink-3),transparent)}
   .period p{background:color-mix(in srgb,var(--board) 82%,transparent);border-color:var(--rule-2)}
   .period p .pn{background:var(--ink-2);color:var(--paper)}
@@ -107,11 +105,6 @@ html[data-pal][data-sport="football"]:not(#_){
   .sub.band li span{color:var(--ink)}
   .band .nmatch{background:color-mix(in srgb,var(--board) 55%,transparent)}
   /* ── страница клуба: шапка не в цветах клуба, а в цветах палитры ── */
-  body{--c1:var(--paper-3)!important;--c2:var(--paper-2)!important;--c3:var(--paper)!important;--con:var(--ink)!important;--cacc:var(--ink-2)!important;--team:var(--ink-2)!important;--cbase:var(--paper-3)!important}
-  .tmhero.hero,body.ctx-cup .tmhero.hero{background:linear-gradient(120deg,var(--paper-3) 0%,var(--paper-2) 55%,var(--paper) 100%)}
-  .tmhero::before,body.ctx-cup .tmhero::before{background:linear-gradient(90deg,var(--ink-3) 0 64%,var(--ink) 64%)}
-  .tmhero.hero{--card:color-mix(in srgb,var(--paper) 55%,transparent);--card-hi:color-mix(in srgb,var(--paper) 70%,transparent)}
-  .tmcrest{box-shadow:0 0 0 4px var(--ink-3),0 0 0 7px var(--paper-3),0 24px 40px -24px #000}
   .stand tr.me td{background:var(--paper-3);color:var(--ink)}.stand tr.me td:first-child{color:var(--ink);box-shadow:inset 5px 0 0 var(--ink-2)}
   a.follow.in-hero{background:var(--pal);color:var(--pal-ink)}
 }

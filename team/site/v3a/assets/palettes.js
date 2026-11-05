@@ -1,7 +1,7 @@
-/* Пробные палитры 60/30/10: ?pal=lime|coral|purple|mono включает, ?pal=off сбрасывает; без параметра сайт как раньше.
+/* Пробные палитры 60/30/10: ?pal=stadium|ice|volt|royal включает, ?pal=off сбрасывает; без параметра сайт как раньше.
    Выбор помнится в sessionStorage до закрытия вкладки. Плашка-переключатель видна только при включённой палитре. */
 (function(){
-  var d=document.documentElement,K='jv-pal',L=['lime','coral','purple','mono','trend'],N={lime:'Лайм',coral:'Коралл',purple:'Фиолет',mono:'Мята',trend:'Тренд'};
+  var d=document.documentElement,K='jv-pal',L=['stadium','ice','volt','royal'],N={stadium:'Стадион',ice:'Лёд и огонь',volt:'Вольт',royal:'Королевский'};
   var p='',q='';
   try{q=new URLSearchParams(location.search).get('pal')||''}catch(e){}
   try{
@@ -12,7 +12,7 @@
   if(L.indexOf(p)<0)return;
   d.dataset.pal=p;
   var s=document.currentScript,base=s.src.replace(/palettes\.js.*$/,'');
-  ['palettes.css','pal/common.css','pal/hockey.css','pal/football.css'].forEach(function(f){
+  ['palettes.css','pal/common.css','pal/hockey.css','pal/football.css','pal/energy.css'].forEach(function(f){
     var css=document.createElement('link');css.rel='stylesheet';css.href=base+f;document.head.appendChild(css);
     if(f==='palettes.css')css.addEventListener('load',function(){try{var v=getComputedStyle(d).getPropertyValue('--paper').trim(),m=document.querySelector('meta[name=theme-color]');if(v&&m)m.content=v}catch(e){}})
   });
