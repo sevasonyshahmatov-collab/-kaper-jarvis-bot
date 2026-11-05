@@ -213,7 +213,7 @@ body.has-ring { padding: var(--ring) 0; }
 .mc .pp { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center; }
 .mc .pp > div { border-top: 1px solid var(--line); padding-top: 8px; position: relative; }
 .mc .pp .lab { font-size: 12px; display: block; }
-.mc .pp .led { --d: 3px; font-size: 44px; margin-inline: auto; }
+.mc .pp .led { --d: 2px; font-size: 44px; margin-inline: auto; }
 .mc .pp .mx { border-top-color: var(--amber); }
 .mc .kf { display: flex; gap: 14px; flex-wrap: wrap; font-family: var(--f-m); font-size: 13px; color: var(--mute); }
 .mc .kf b { color: var(--ink); font-weight: 500; }
@@ -270,7 +270,7 @@ body.has-ring { padding: var(--ring) 0; }
 .mr .tm2 img { width: 26px; height: 26px; object-fit: contain; }
 .mr .tt { font-family: var(--f-m); color: var(--amber); font-size: 18px; font-weight: 500; }
 .mr .p { text-align: center; }
-.mr .p .led { --d: 3px; font-size: 32px; margin-inline: auto; }
+.mr .p .led { --d: 2px; font-size: 32px; margin-inline: auto; }
 .mr .p .lab { font-size: 12px; display: block; }
 .walls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 .wall { padding: 22px; display: grid; gap: 16px; align-content: start; }
@@ -387,7 +387,8 @@ body.has-ring { padding: var(--ring) 0; }
   .mgrid, .sheets { grid-template-columns: minmax(0, 1fr); }
   .rs-l, .rs-r { width: 6px; }
   .rs-l .rtrack, .rs-r .rtrack { display: none; }
-  .hero h1.led, .hh h1.led { --d: 4px; }
+  .hero h1.led, .hh h1.led { --d: 3px; }
+  .sec-h .led { --d: 3px; }
   .sec-h .led { --d: 3px; }
   .step .led { --d: 4px; font-size: 64px; }
   .sb-col .led { --d: 5px; }
@@ -428,3 +429,4 @@ body.has-ring { padding: var(--ring) 0; }
 .meta dd { margin: 2px 0 0; font-size: 18px; }
 .meta dd b { color: var(--amber); font-family: var(--f-m); font-weight: 500; }
 @media (max-width: 640px) { .stage .nm { --d: 4px; } .stage .e1 { left: 4%; top: 28%; } .stage .e2 { right: 4%; top: 12%; } }
+@media (max-width: 640px) { .hero h1.led, .hh h1.led { --d: 3px; font-size: clamp(40px, 12.5vw, 60px); } .sec-h .led { --d: 3px; } }

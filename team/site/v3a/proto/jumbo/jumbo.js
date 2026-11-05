@@ -44,7 +44,7 @@ function row(m) {
   return `<a class="pn mr tilt${live(m) ? ' live' : ''}" href="${href(m)}" data-k="${esc(m.key)}"><i class="wave"></i>
   <span class="tt">${live(m) ? '<span class="livetag">идёт</span>' : hhmm(m)}</span>
   <span class="tm2"><span><img src="${emb(m, m.h)}" alt="" width="26" height="26" loading="lazy">${esc(m.hn)}</span><span><img src="${emb(m, m.a)}" alt="" width="26" height="26" loading="lazy">${esc(m.an)}</span><span class="lab">${esc(LG[m.lg])}, ${esc(dayWord(m).toLowerCase())}</span></span>
-  ${pr.map((p, i) => `<span class="p"><span class="lab">${p[0]}${i === mi ? ', вероятнее' : ''}</span><span class="led ${i === mi ? 'am' : 'hi'}" ${i === mi ? '' : 'style="--c:var(--mute)"'}>${p0(p[1])}</span></span>`).join('')}</a>`;
+  ${pr.map((p, i) => `<span class="p"><span class="lab">${p[0]}${i === mi ? ', вероятнее' : ''}</span><span class="led ${i === mi ? 'am' : 'hi'}" ${i === mi ? '' : 'style="--c:var(--ink)"'}>${p0(p[1])}</span></span>`).join('')}</a>`;
 }
 
 /* ── split-flap ── */
