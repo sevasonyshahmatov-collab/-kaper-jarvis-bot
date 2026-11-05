@@ -117,6 +117,21 @@ it = probe('КХЛ', 'khl.ru (сайт)', 'https://www.khl.ru/calendar/')
 it.pop('json', None)
 it['fields'] = {}
 
+
+# КХЛ: варианты заголовков для data.json (выясняем, из-за чего 403)
+rep['khl_variants'] = []
+for label, h in [('UA Mozilla/5.0 без Origin', {'User-Agent': 'Mozilla/5.0'}),
+                 ('UA Chrome без Origin', {'User-Agent': UA}),
+                 ('UA Chrome + Origin', {'User-Agent': UA, 'Origin': ORIGIN}),
+                 ('UA Mozilla/5.0 + Origin', {'User-Agent': 'Mozilla/5.0', 'Origin': ORIGIN}),
+                 ('UA Chrome + Origin + Referer', {'User-Agent': UA, 'Origin': ORIGIN, 'Referer': ORIGIN + '/'})]:
+    try:
+        r = requests.get(KHL + 'data.json', headers=h, timeout=30)
+        rep['khl_variants'].append({'variant': label, 'code': r.status_code, 'acao': r.headers.get('Access-Control-Allow-Origin'),
+                                    'bytes': len(r.content), 'head': r.text[:120]})
+    except Exception as e:  # noqa: BLE001
+        rep['khl_variants'].append({'variant': label, 'error': repr(e)[:150]})
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 json.dump(rep, open(os.path.join(HERE, 'sources_report.json'), 'w'), ensure_ascii=False, indent=1)
 L = ['# Проверка источников живого счёта', '', 'Запуск: %s, Origin: `%s`' % (rep['at'], ORIGIN), '',
@@ -129,5 +144,6 @@ for i in rep['items']:
 L += ['', '## Поля счёта (пример)', '']
 for i in rep['items']:
     L.append('- **%s / %s**: `%s`' % (i['league'], i['name'], json.dumps(i.get('fields'), ensure_ascii=False)[:600]))
+L += ['', '## КХЛ data.json: варианты заголовков', ''] + ['- %s: %s' % (v['variant'], json.dumps({k: x for k, x in v.items() if k != 'variant'}, ensure_ascii=False)) for v in rep['khl_variants']]
 open(os.path.join(HERE, 'sources_report.md'), 'w').write('\n'.join(L) + '\n')
 print('\n'.join(L))
