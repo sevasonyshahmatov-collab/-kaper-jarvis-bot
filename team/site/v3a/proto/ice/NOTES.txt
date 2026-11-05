@@ -1,2 +1,2 @@
-СТАТУС: готово index.html (черновик, без глубины-слоёв); осталось: слой «гигантский текст + вырезанные объекты + рифлёное стекло» в первом экране и шапке матча, hockey.html, match.html, shots/, video/. Сборка: _build_*.py -> html.
+СТАТУС: готово index.html, hockey.html (первый вариант); осталось: match.html, shots/, video/, доводка, NOTES полностью. Сборка: _build_*.py -> html.
 Направление 2 «Белый лёд» (ice), светлое. Шрифты локально: vendor/fonts (Geologica, Manrope, Playfair Italic).
