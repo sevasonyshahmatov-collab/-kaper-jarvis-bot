@@ -140,7 +140,7 @@ html[data-pal] body[data-field="hockey"] .hchart .zero{stroke:var(--rule-2)}
 html[data-pal] body[data-field="hockey"] .ltab tr.zp td:first-child{box-shadow:inset 4px 0 0 var(--ink-3)}
 html[data-pal] body[data-field="hockey"] .lgpl .cd i{background:var(--ink-2)}
 html[data-pal] body[data-field="hockey"] .lgpl .cd.r i{background:var(--red)}
-html[data-pal] body[data-field="hockey"] .lgbar .bar i{color:var(--win-ink)}
+
 html[data-pal] body[data-field="hockey"] .lgbar .bar .d{background:var(--ink-3)}
 html[data-pal] body[data-field="hockey"] .lgbar .bar .a{background:var(--ink-2)}
 html[data-pal] body[data-field="hockey"] .lgbar .bar .o{background:var(--paper-3)}
@@ -171,4 +171,17 @@ html[data-pal] body.club .radar tspan.rsep{fill:var(--ink-3)}
 html[data-pal] body.club .legend i{border-color:var(--ink-2)!important}
 html[data-pal] body.club .legend i.d{border-color:var(--ink-3)!important}
 html[data-pal] body.club .cmpleg b{color:var(--ink)!important}
-html[data-pal] body.club .cmpt td.lead .num{background:var(--fld);box-shadow:inset 0 -2px 0 var(--ink-2)}
+html[data-pal] body.club .cmpt td.lead .num{background:color-mix(in srgb,var(--ink) 8%,transparent);box-shadow:inset 0 -2px 0 var(--ink-2)}
+/* зоны таблицы лиги, ключ и полосы «хозяева / гости» */
+html[data-pal] body[data-field="hockey"] .ltab tr.z1 td:first-child,html[data-pal] body[data-field="hockey"] .ltab tr.zp td:first-child{box-shadow:inset 4px 0 0 var(--ink-2)}
+html[data-pal] body[data-field="hockey"] .ltab tr.z2 td:first-child{box-shadow:inset 4px 0 0 var(--ink-3)}
+html[data-pal] body[data-field="hockey"] .ltab tr.z3 td:first-child{box-shadow:inset 4px 0 0 var(--rule-2)}
+html[data-pal] body[data-field="hockey"] .ltab tr.z4 td:first-child{box-shadow:inset 4px 0 0 var(--red)}
+html[data-pal] body[data-field="hockey"] #tbKey i{background:var(--ink-2)!important}
+html[data-pal] body[data-field="hockey"] .lgbar li:nth-child(1){--k:var(--ink-2)!important}
+html[data-pal] body[data-field="hockey"] .lgbar li:nth-child(2){--k:var(--ink-3)!important}
+html[data-pal] body[data-field="hockey"] .lgbar li:nth-child(3){--k:var(--rule-2)!important}
+html[data-pal] body[data-field="hockey"] .lgbar .bar .h{background:var(--ink-2)}
+html[data-pal] body[data-field="hockey"] .lgbar .bar .a{background:var(--ink-3)}
+html[data-pal] body[data-field="hockey"] .lgbar .bar i{color:var(--paper)}
+html[data-pal] body[data-field="hockey"] .pp-no,html[data-pal] body[data-field="hockey"] .pp-ini{color:color-mix(in srgb,var(--ink) 8%,transparent)}
