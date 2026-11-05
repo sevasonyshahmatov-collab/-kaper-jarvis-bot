@@ -1,1 +1,170 @@
-/* Палитры ?pal=: доработка раздела «common». Все правила — под html[data-pal="…"]. */
+/* Палитры ?pal=: доработка раздела «common» (главная, матчи дня, модель, словарь, прогноз, поиск, «Мой JARVIS», 404, шапка, подвал, LIVE, избранное, линии).
+   Все правила — под html[data-pal]; цвета только производные от переменных палитры (--paper*, --card*, --ink*, --rule*, --board), акцент --pal/--pal-t — только на нажимаемом. */
+
+/* ── служебное: прокрутка, подсветка, фокус ───────────────────────────────── */
+html[data-pal]{scrollbar-color:var(--rule-2) var(--paper)}
+html[data-pal] *{scrollbar-color:var(--rule-2) transparent}
+html[data-pal] ::-webkit-scrollbar{width:10px;height:10px;background:var(--paper)}
+html[data-pal] ::-webkit-scrollbar-thumb{background:var(--rule-2);border-radius:6px;border:2px solid var(--paper)}
+html[data-pal] ::-webkit-scrollbar-thumb:hover{background:var(--ink-3)}
+html[data-pal] ::-moz-selection{background:var(--pal);color:var(--pal-ink)}
+html[data-pal] [class]:focus-visible,html[data-pal] a:focus-visible,html[data-pal] button:focus-visible,html[data-pal] summary:focus-visible{outline-color:var(--pal-t)}
+html[data-pal] body{background:var(--paper);color:var(--ink)}
+
+/* ── шапка и мобильное меню ──────────────────────────────────────────────── */
+html[data-pal] .hd{background:color-mix(in srgb,var(--paper) 92%,transparent);border-bottom-color:var(--rule)}
+html[data-pal] .hd .logo.lg2 em,html[data-pal] .hd .logo.lg2 em.ls-khl,html[data-pal] .hd .logo.lg2 em.ls-f,html[data-pal] .hd .logo.lg2 em.ls-ucl{color:var(--ink-2)}
+html[data-pal] .mpanel{background:var(--paper);border-color:var(--rule-2)}
+html[data-pal] .mpanel a{border-color:var(--rule)}
+
+/* ── подвал ──────────────────────────────────────────────────────────────── */
+html[data-pal] footer.jvf{border-top-color:var(--rule-2);background:var(--paper)}
+html[data-pal] .jvf-tg{border-color:var(--rule-2)}
+html[data-pal] .jvf-tg svg{color:var(--pal-t)}
+html[data-pal] .jvf-cols a:hover,html[data-pal] .jvf-tg:hover{color:var(--pal-t);border-color:var(--pal-t)}
+html[data-pal] .jvf-age{border-color:var(--ink-3);color:var(--ink-3)}
+
+/* ── плашка LIVE, избранное, линии ───────────────────────────────────────── */
+html[data-pal] .lv-tag{background:var(--ink-2);color:var(--paper)}
+html[data-pal] .lv-tag::before{background:var(--paper)}
+html[data-pal] .lv-goal .lv-sc{background:var(--ink);color:var(--paper)}
+html[data-pal] .lv-final .lv-tag{background:var(--ink-3);color:var(--paper)}
+html[data-pal] .favbtn{background:color-mix(in srgb,var(--card-hi) 70%,transparent);border-color:var(--rule-2);color:var(--ink-2)}
+html[data-pal] .favbtn svg{stroke:currentColor}
+html[data-pal] .favbtn[aria-pressed=true] svg{fill:currentColor}
+html[data-pal] .ln-move.up,html[data-pal] .ln-up{color:var(--win)}
+html[data-pal] .ln-move.dn,html[data-pal] .ln-dn{color:var(--red)}
+
+/* ── главная: герой «ночная арена» ───────────────────────────────────────── */
+/* (в palettes.css селектор [data-v="1"] стоял потомком html и не срабатывал: data-v висит на самом html) */
+html[data-pal][data-v="1"] .hm-bg{background:
+  radial-gradient(60% 55% at 12% -8%,color-mix(in srgb,var(--ink) 11%,transparent),transparent 70%),
+  radial-gradient(45% 50% at 96% 4%,color-mix(in srgb,var(--ink-2) 7%,transparent),transparent 70%),
+  radial-gradient(70% 60% at 70% 110%,color-mix(in srgb,var(--paper-3) 70%,transparent),transparent 72%),
+  linear-gradient(180deg,color-mix(in srgb,var(--paper) 82%,var(--paper-3)),var(--paper) 92%)}
+html[data-pal][data-v="1"] .hm-bg::after{background:
+  conic-gradient(from 168deg at 14% -12%,transparent 0 6deg,color-mix(in srgb,var(--ink) 12%,transparent) 11deg,transparent 21deg),
+  conic-gradient(from 190deg at 38% -14%,transparent 0 4deg,color-mix(in srgb,var(--ink) 7%,transparent) 9deg,transparent 17deg),
+  conic-gradient(from 160deg at 92% -12%,transparent 0 6deg,color-mix(in srgb,var(--ink-2) 9%,transparent) 11deg,transparent 20deg)}
+html[data-pal] .hm-bg .hb1{background:linear-gradient(180deg,color-mix(in srgb,var(--ink) 30%,transparent),transparent 72%)}
+html[data-pal] .hm-bg .hb2{background:linear-gradient(180deg,color-mix(in srgb,var(--ink) 20%,transparent),transparent 68%)}
+html[data-pal] .hm-bg .hb3{background:linear-gradient(180deg,color-mix(in srgb,var(--ink-2) 24%,transparent),transparent 70%)}
+html[data-pal] .hm-bg .hg1{background:var(--paper-3)}
+html[data-pal] .hm-bg .hg2{background:var(--ink-3)}
+html[data-pal] .hm-bg .hd{background-image:
+  radial-gradient(1.6px 1.6px at 12% 78%,color-mix(in srgb,var(--ink) 90%,transparent),transparent 60%),radial-gradient(1.2px 1.2px at 27% 34%,color-mix(in srgb,var(--ink) 70%,transparent),transparent 60%),
+  radial-gradient(1.4px 1.4px at 44% 62%,color-mix(in srgb,var(--ink) 80%,transparent),transparent 60%),radial-gradient(1px 1px at 58% 22%,color-mix(in srgb,var(--ink) 70%,transparent),transparent 60%),
+  radial-gradient(1.6px 1.6px at 71% 70%,color-mix(in srgb,var(--ink-2) 90%,transparent),transparent 60%),radial-gradient(1.2px 1.2px at 86% 40%,color-mix(in srgb,var(--ink) 70%,transparent),transparent 60%),
+  radial-gradient(1px 1px at 93% 84%,color-mix(in srgb,var(--ink-2) 90%,transparent),transparent 60%),radial-gradient(1.3px 1.3px at 5% 46%,color-mix(in srgb,var(--ink-2) 80%,transparent),transparent 60%)}
+/* голубой отсвет прожекторов остаётся только в «Лайм» и «Тренд» (решение владельца) */
+html[data-pal="lime"][data-v="1"] .hm-bg,html[data-pal="trend"][data-v="1"] .hm-bg{background:
+  radial-gradient(60% 55% at 12% -8%,rgba(110,170,255,.24),transparent 70%),
+  radial-gradient(45% 50% at 96% 4%,color-mix(in srgb,var(--ink-2) 7%,transparent),transparent 70%),
+  radial-gradient(70% 60% at 70% 110%,color-mix(in srgb,var(--paper-3) 70%,transparent),transparent 72%),
+  linear-gradient(180deg,color-mix(in srgb,var(--paper) 82%,var(--paper-3)),var(--paper) 92%)}
+html[data-pal="lime"] .hm-bg .hb1,html[data-pal="trend"] .hm-bg .hb1{background:linear-gradient(180deg,rgba(110,170,255,.32),transparent 72%)}
+html[data-pal="lime"] .hm-bg .hg2,html[data-pal="trend"] .hm-bg .hg2{background:rgb(90,140,230)}
+html[data-pal][data-v="1"] .hm-bg::after{opacity:0}
+
+/* двери «Хоккей / Футбол» — это ссылки: плашка-карточка, акцент на стрелке и при наведении */
+html[data-pal] .hm-door{background:var(--card-hi);color:var(--ink);border:1px solid var(--rule-2)}
+html[data-pal] .hm-door svg{color:var(--pal-t)}
+html[data-pal] .hm-door .hm-dc{color:var(--ink-2);opacity:1}
+@media (hover:hover) and (pointer:fine){html[data-pal] .hm-door:hover{border-color:var(--pal-t);box-shadow:0 12px 30px -12px var(--shadow);filter:none}}
+html[data-pal] .hm-today{background:color-mix(in srgb,var(--card) 88%,transparent);border-color:var(--rule-2)}
+html[data-pal] .hm-tag{background:var(--paper-3);color:var(--ink-2)}
+html[data-pal] .hm-q i{background:var(--paper-2)}
+html[data-pal] .hm-proof li,html[data-pal] .hm-micro li{background:color-mix(in srgb,var(--paper-2) 60%,transparent);border-color:var(--rule-2);color:var(--ink-2)}
+html[data-pal] .hm-proof svg,html[data-pal] .hm-micro svg{color:var(--ink-2)}
+html[data-pal] .steps li::before,html[data-pal] .steps>li>b:first-child{color:var(--ink-2)}
+html[data-pal] .steps>li:nth-child(2)::before,html[data-pal] .steps>li:nth-child(3)::before{color:var(--ink-2)}
+html[data-pal] .soon{background:var(--card);border-color:var(--rule-2)}
+html[data-pal] .soon b{color:var(--ink)}
+html[data-pal] .obj details[open]{border-color:var(--ink-3)}
+html[data-pal] .faq details{border-color:var(--rule-2)}
+html[data-pal] .sub{background:var(--paper-2);border-color:var(--rule-2)}
+html[data-pal] .sub li{border-color:var(--rule-2)}
+html[data-pal] .sub li span{color:var(--ink-2)}
+html[data-pal] .cta{background:var(--paper-2)}
+
+/* ── «Матчи дня» (колода) ────────────────────────────────────────────────── */
+html[data-pal] .dk,html[data-pal] .dk.bgimg{background:var(--paper);--sp:var(--ink-2)}
+html[data-pal] .dk-card{--h1:color-mix(in srgb,var(--paper-3) 72%,var(--ink-3))!important;--h2:var(--paper-3)!important}
+/* фон-картинка: растр в старых цветах гасим в серый и тонируем цветом палитры (оверлей color), сверху затемнение */
+html[data-pal] .dk-bg::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:#808080;mix-blend-mode:saturation}
+html[data-pal] .dk-bg::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--paper-3) 100%,var(--paper-2)),var(--paper-2) 55%,var(--paper-3));mix-blend-mode:color}
+html[data-pal] .dk-bgfx::after{content:"";position:absolute;inset:0;z-index:5;pointer-events:none;
+  background:radial-gradient(120% 100% at 50% 40%,color-mix(in srgb,var(--paper) 52%,transparent) 30%,color-mix(in srgb,var(--paper) 86%,transparent) 100%)}
+html[data-pal] .dk-tx{background:
+  radial-gradient(120% 100% at 50% 45%,transparent 45%,color-mix(in srgb,var(--board) 70%,transparent) 100%),
+  repeating-linear-gradient(45deg,color-mix(in srgb,var(--ink) 4.5%,transparent) 0 1px,transparent 1px 3px),
+  repeating-linear-gradient(-45deg,color-mix(in srgb,var(--board) 10%,transparent) 0 1px,transparent 1px 3px)}
+html[data-pal] .dk-card::after{background:var(--board)}
+html[data-pal] .dk-cf{background:
+  radial-gradient(90% 55% at 50% 0,color-mix(in srgb,var(--ink) 9%,transparent),transparent 72%),
+  linear-gradient(165deg,var(--card-hi),color-mix(in srgb,var(--board) 70%,var(--card)) 70%);
+  border-color:var(--rule-2);box-shadow:0 30px 50px -26px var(--shadow),0 6px 16px -8px var(--shadow)}
+html[data-pal] .dk-card.on .dk-cf{box-shadow:0 42px 70px -30px var(--shadow),0 0 0 1px color-mix(in srgb,var(--ink) 22%,transparent),0 0 60px -24px color-mix(in srgb,var(--ink) 30%,transparent)}
+html[data-pal] .dk .dk-cf{background:
+  radial-gradient(90% 55% at 50% 0,color-mix(in srgb,var(--ink) 9%,transparent),transparent 72%),
+  linear-gradient(165deg,var(--card-hi),color-mix(in srgb,var(--board) 70%,var(--card)) 70%)}
+html[data-pal] [data-card="1"] .dk-cf{background:linear-gradient(180deg,var(--card-hi),var(--board));border-color:var(--rule-2)}
+html[data-pal] [data-card="3"] .dk-cf{background:var(--card);border:0}
+html[data-pal] [data-card="2"] .dk-cf{background:linear-gradient(160deg,color-mix(in srgb,var(--card-hi) 55%,transparent),color-mix(in srgb,var(--board) 70%,transparent));border-color:color-mix(in srgb,var(--ink) 26%,transparent)}
+html[data-pal] [data-card="2"] .dk-card:not(.on) .dk-cf{background:linear-gradient(160deg,var(--paper-3),var(--paper-2))}
+html[data-pal] [data-card="2"] .dk-card.on .dk-cf{box-shadow:inset 0 1px 0 color-mix(in srgb,var(--ink) 40%,transparent),0 0 0 1px color-mix(in srgb,var(--ink) 20%,transparent),0 40px 60px -28px var(--shadow)}
+html[data-pal] .dk-ctop{background:
+  linear-gradient(180deg,color-mix(in srgb,var(--board) 38%,transparent),color-mix(in srgb,var(--board) 56%,transparent)),
+  linear-gradient(104deg,var(--h1) 0%,var(--h1) 30%,color-mix(in srgb,var(--h1) 50%,var(--h2)) 50%,var(--h2) 70%,var(--h2) 100%)}
+html[data-pal] [data-card="3"] .dk-ctop{background:
+  linear-gradient(180deg,color-mix(in srgb,var(--board) 36%,transparent),color-mix(in srgb,var(--board) 54%,transparent)),
+  repeating-linear-gradient(45deg,color-mix(in srgb,var(--ink) 5%,transparent) 0 1px,transparent 1px 3px),
+  repeating-linear-gradient(-45deg,color-mix(in srgb,var(--board) 12%,transparent) 0 1px,transparent 1px 3px),
+  linear-gradient(100deg,var(--h1) 0%,color-mix(in srgb,var(--h1) 50%,var(--h2)) 50%,var(--h2) 100%)}
+html[data-pal] [data-card="3"] .dk-cbot{background:linear-gradient(180deg,var(--card-hi),var(--board));border-top-color:color-mix(in srgb,var(--ink) 40%,transparent)}
+html[data-pal] [data-card="1"] .dk-em,html[data-pal] [data-card="2"] .dk-em{box-shadow:0 0 0 3px color-mix(in srgb,var(--ink) 18%,transparent),0 0 44px 6px color-mix(in srgb,var(--ink) 22%,transparent),0 10px 20px -8px var(--shadow)}
+html[data-pal] .dk-em{background:var(--crest-bg);box-shadow:0 8px 20px -10px var(--shadow)}
+html[data-pal] .dk-ql span{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+html[data-pal] .dk-pick{border-top-color:var(--rule-2)}
+html[data-pal] .dk-form i.d{background:var(--ink-3)}
+html[data-pal] .dk-info{--ink-3:color-mix(in srgb,var(--ink) 78%,var(--paper));--ink-2:color-mix(in srgb,var(--ink) 92%,var(--paper));background:color-mix(in srgb,var(--board) 66%,transparent);border-color:var(--rule-2)}
+html[data-pal] .dk-sub,html[data-pal] .dk-hint{color:var(--ink-2)}
+html[data-pal] .dk-count{color:var(--ink-3)}
+html[data-pal] .dk-arr{background:color-mix(in srgb,var(--board) 60%,transparent);border-color:var(--rule-2)}
+html[data-pal] .dk-arr:hover:not(:disabled){border-color:var(--pal-t);color:var(--pal-t)}
+@media (hover:none){html[data-pal] .dk-arr:hover:not(:disabled){background:color-mix(in srgb,var(--board) 60%,transparent)}}
+html[data-pal] .dk-scrim{background:color-mix(in srgb,var(--board) 62%,transparent)}
+html[data-pal] .dk-drawer{background:linear-gradient(180deg,var(--card-hi),var(--paper));border-left-color:var(--rule-2);box-shadow:-30px 0 60px -20px var(--shadow)}
+html[data-pal] .dk-field line,html[data-pal] .dk-field circle,html[data-pal] .dk-field rect,html[data-pal] .dk-field path{stroke:currentColor}
+html[data-pal] .dk-field [fill]:not([fill=none]){fill:currentColor}
+html[data-pal]{--dk-ca:var(--ink);--dk-cb:var(--ink-3)}
+html[data-pal] .dk-filter{background:color-mix(in srgb,var(--paper-2) 80%,transparent)}
+html[data-pal] .dk-ctl button,html[data-pal] .dk-cards button{border-color:var(--rule-2)}
+html[data-pal] .dk-prog i{background:var(--ink-2)}
+html[data-pal] .dk-bar{background:var(--rule-2)}
+html[data-pal] .dk-bar i{background:var(--ink-2)}
+
+/* ── «Как считает модель» ────────────────────────────────────────────────── */
+html[data-pal][data-theme] body.md,html[data-pal][data-theme][data-sport] body.md{--sport:var(--ink-2);--ice:var(--ink-2);--pitch:var(--ink-2);--md-h:var(--ink-2);--md-a:var(--ink-3);--bgc:var(--paper);background:var(--paper)}
+html[data-pal] .md h1 span,html[data-pal] .md-kick{color:var(--ink-2)}
+html[data-pal] .md-g i,html[data-pal] .md-bar.m>span>i,html[data-pal] .md-ts i{background:var(--ink-2)}
+html[data-pal] .md-gh em::before,html[data-pal] .md-key em::before{background:var(--ink-2)}
+html[data-pal] .md-steps svg{stroke:var(--ink-2)}
+html[data-pal] .md-pair,html[data-pal] .md-warn{border-left-color:var(--ink-3);box-shadow:inset 4px 0 0 var(--ink-3)}
+html[data-pal] .md-pair{box-shadow:none}
+html[data-pal] .md-faq summary::after{color:var(--pal-t)}
+html[data-pal] .md-picker button[aria-selected=true],html[data-pal] .md-sw a[aria-current]{background:var(--pal);color:var(--pal-ink)}
+html[data-pal] .md-picker button,html[data-pal] .md-sw a{background:var(--paper-2)}
+html[data-pal] .md-picker button[aria-selected=true],html[data-pal] .md-sw a[aria-current]{background:var(--pal)}
+html[data-pal] .md-steps li,html[data-pal] .md-how article,html[data-pal] .md-demo{background:var(--card)}
+html[data-pal] .md-lam div,html[data-pal] .md-blk .md-box{background:var(--paper-2)}
+
+/* ── «Мой JARVIS», поиск, 404 ────────────────────────────────────────────── */
+html[data-pal] .me-top::before{background:radial-gradient(ellipse 60% 55% at 70% 45%,color-mix(in srgb,var(--ink-3) 14%,transparent),transparent)}
+html[data-pal] .me-empty,html[data-pal] .me-login,html[data-pal] .me-card,html[data-pal] .me-m{background:var(--card);border-color:var(--rule-2)}
+html[data-pal] .me-in input{background:var(--paper-2);border-color:var(--rule-2);color:var(--ink)}
+html[data-pal] .sp-bg{background:color-mix(in srgb,var(--board) 62%,transparent)}
+html[data-pal] .sp-box,html[data-pal] .sp-panel,html[data-pal] .sp-top{background:var(--card-hi);border-color:var(--rule-2)}
+html[data-pal] .sp-i:hover,html[data-pal] .sp-i.on{background:var(--paper-3)}
+html[data-pal] .nf{background:transparent}

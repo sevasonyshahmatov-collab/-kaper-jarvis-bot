@@ -13,7 +13,8 @@
   d.dataset.pal=p;
   var s=document.currentScript,base=s.src.replace(/palettes\.js.*$/,'');
   ['palettes.css','pal/common.css','pal/hockey.css','pal/football.css'].forEach(function(f){
-    var css=document.createElement('link');css.rel='stylesheet';css.href=base+f;document.head.appendChild(css)
+    var css=document.createElement('link');css.rel='stylesheet';css.href=base+f;document.head.appendChild(css);
+    if(f==='palettes.css')css.addEventListener('load',function(){try{var v=getComputedStyle(d).getPropertyValue('--paper').trim(),m=document.querySelector('meta[name=theme-color]');if(v&&m)m.content=v}catch(e){}})
   });
   document.addEventListener('DOMContentLoaded',function(){
     var b=document.createElement('div');b.className='pal-bar';b.setAttribute('role','group');b.setAttribute('aria-label','Палитра');
