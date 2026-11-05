@@ -3,7 +3,7 @@
 (()=>{
 'use strict';
 const {D,esc,fx,plural,T:TM,nm,CI,LGP,LGI,teamHref,day,dd,played,rOf,RES,RESF,gamesOf,stats,h2h,dots,radar,palette,clubColors,crest}=JVF;
-const P=new URLSearchParams(location.search),ID=(P.get('id')||'').toLowerCase();
+const P=new URLSearchParams(location.search),ID=(P.get('id')||window.JV_TEAM_ID||'').toLowerCase();
 const T=TM[ID];
 const $=id=>document.getElementById(id);
 const AX=D.axes;

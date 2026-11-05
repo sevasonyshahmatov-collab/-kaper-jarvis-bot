@@ -19,6 +19,7 @@ const SECTIONS={
 };
 /* какой пункт активен */
 function active(){
+  if(window.JV_ACT!==undefined)return window.JV_ACT; /* страницы по понятным адресам (/khl/ska/, /khl/<матч>/) сами задают раздел */
   if(!sport)return '';
   if(dir==='team'){const id=q.get('id')||'',T=window.JV_TEAMS&&JV_TEAMS.teams&&JV_TEAMS.teams[id];
     return T&&T.lg==='nhl'||/^nhl_/.test(id)?'nhl':'khl'}

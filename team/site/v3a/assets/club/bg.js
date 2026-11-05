@@ -3,7 +3,7 @@
    блока, только transform и только без prefers-reduced-motion. Подключает team.js по флагу bg:1. */
 (()=>{const b=document.body,id=b.dataset.clubId,hero=document.querySelector('.tmhero'),ft=document.querySelector('footer');if(!id)return;
 const bottom=b.classList.contains('club-bgb');let el;
-b.style.setProperty('--club-bg',`url(${new URL('../assets/club/bg/'+id+'.webp',location.href).href})`);
+b.style.setProperty('--club-bg',`url(${new URL('../assets/club/bg/'+id+'.webp',document.baseURI).href})`);
 if(bottom){if(!ft)return;el=document.createElement('div');el.className='clubend';el.innerHTML='<i class="ce-img"></i><i class="ce-top"></i><i class="ce-bot"></i>';
  const pk=document.querySelector('#picks');if(pk){const c=getComputedStyle(pk).backgroundColor;if(c&&c!=='rgba(0, 0, 0, 0)')el.style.setProperty('--ce-page',c)}
  ft.parentNode.insertBefore(el,ft)}

@@ -41,8 +41,8 @@ try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('fa
 
 /* страницы клубов: хоккей team/index.html?id=…, футбол football/team.html?id=… — звёздочку ставим рядом с кнопкой «Получать прогнозы» */
 (()=>{
-  const p=location.pathname,m=/[?&]id=([a-z0-9_]+)/i.exec(location.search);if(!m)return;
-  const s=/\/team\/(index\.html)?$/.test(p)?'h':/\/football\/team\.html$/.test(p)?'f':'';if(!s)return;
+  const p=location.pathname,m=/[?&]id=([a-z0-9_]+)/i.exec(location.search)||(window.JV_TEAM_ID?[0,window.JV_TEAM_ID]:null);if(!m)return;
+  const s=window.JV_TEAM_ID?(window.JV_TEAM_KIND||''):/\/team\/(index\.html)?$/.test(p)?'h':/\/football\/team\.html$/.test(p)?'f':'';if(!s)return;
   const id=m[1].toLowerCase();
   const put=()=>{
     const top=document.querySelector('.tmtop');if(!top)return false;

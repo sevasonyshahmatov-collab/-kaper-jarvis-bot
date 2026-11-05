@@ -133,9 +133,11 @@ function teamRow(m,s,n){const st=standing(m,s),T=team(m,s);
   return `<div class="dk-trow"><img class="em" src="${emUrl(m,s)}" alt="" onerror="this.outerHTML='<span class=ph></span>'"><div><b>${esc(n)}</b><small>${esc(sub)}${st&&st.sub?' · '+esc(st.sub):''}</small></div>${formHtml(m,s)}</div>`}
 function pl(n,f){n=Math.abs(n)%100;const a=n%10;return n>10&&n<20?f[2]:a>1&&a<5?f[1]:a===1?f[0]:f[2]}
 
+/* страница матча по понятному адресу (генерирует seo/build_match.py → data/matchlinks.js) */
+function matchLink(m){const u=(window.JV_MATCHLINKS||{})[m.key||`${m.lg}|${String(m.t||'').slice(0,10)}|${m.h}|${m.a}`];return u?`<a class="dk-mpage" href="${esc(u)}">Страница матча: форма, личные встречи, расчёт ›</a>`:''}
 function infoHtml(m){const {ln,md}=info(m);let h='';
   const t=String(m.t||'');
-  h+=`<div class="dk-ihead"><img class="dk-lgwm" src="assets/lg/${esc(LGLOGO[m.lg]||m.lg+'.webp')}" alt="" aria-hidden="true" onerror="this.remove()"><p class="dk-ik">О встрече</p><h2 class="dk-ih">${esc(m.hn)} — ${esc(m.an)}<small>${esc(lgFull(m))} · ${esc(dayLabel(t))}, ${esc(t.slice(11,16))} МСК${m.arena&&m.arena.name?' · '+esc(m.arena.name)+(m.arena.city?', '+esc(m.arena.city):''):''}</small></h2></div>`;
+  h+=`<div class="dk-ihead"><img class="dk-lgwm" src="assets/lg/${esc(LGLOGO[m.lg]||m.lg+'.webp')}" alt="" aria-hidden="true" onerror="this.remove()"><p class="dk-ik">О встрече</p><h2 class="dk-ih">${esc(m.hn)} — ${esc(m.an)}<small>${esc(lgFull(m))} · ${esc(dayLabel(t))}, ${esc(t.slice(11,16))} МСК${m.arena&&m.arena.name?' · '+esc(m.arena.name)+(m.arena.city?', '+esc(m.arena.city):''):''}</small></h2>${matchLink(m)}</div>`;
   h+=`<div class="dk-blk"><h3>Таблица и форма</h3>${teamRow(m,m.h,m.hn)}${teamRow(m,m.a,m.an)}<p class="dk-note">Форма — последние 5 матчей, слева раньше: зелёный — победа, красный — поражение.</p></div>`;
   if(md){
     const rows=[[md.p1,'П1 · '+m.hn],[md.x,isH(m)?'Х · ничья в осн. время':'Х · ничья'],[md.p2,'П2 · '+m.an]].filter(r=>r[0]!=null),mx=Math.max(...rows.map(r=>r[0]));

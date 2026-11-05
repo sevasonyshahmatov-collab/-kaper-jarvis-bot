@@ -78,3 +78,4 @@ body.fc a:focus-visible{outline:3px solid var(--ice);outline-offset:2px}
   .fc-nums b{font-size:21px}
 }
 @media (prefers-reduced-motion:no-preference){.gl-t{transition:border-color .2s ease,box-shadow .2s ease}}
+.fc-mlink{margin-top:2px;font:700 14px/1.3 var(--display);color:var(--acc);text-underline-offset:3px}

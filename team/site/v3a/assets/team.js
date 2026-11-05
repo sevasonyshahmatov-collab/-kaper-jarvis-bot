@@ -4,7 +4,7 @@
 (()=>{
 'use strict';
 const D=window.JV_TEAMS||{teams:{},names:{},axes:[]};
-const P=new URLSearchParams(location.search),ID=(P.get('id')||'').toLowerCase(),THEME=P.get('theme');
+const P=new URLSearchParams(location.search),ID=(P.get('id')||window.JV_TEAM_ID||'').toLowerCase(),THEME=P.get('theme');
 const T=Object.hasOwn(D.teams,ID)?D.teams[ID]:undefined;
 const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 const f=(v,d=2)=>(+v).toFixed(d).replace('.',',');
@@ -99,7 +99,7 @@ if(CLUB_THEMES[ID]){const th=CLUB_THEMES[ID];document.body.classList.add('club',
  if(th.js){const s=document.createElement('script');s.src=`../assets/club/${ID}.js`;document.head.appendChild(s)}
  if(th.bg)clubBg()}
 else if(CS){/* общий движок assets/club/theme.css: переменные клуба из assets/club/themes.js */
- const b=document.body,u=p=>`url(${new URL('../assets/'+p,location.href).href})`;b.classList.add('club','club-g','club-'+ID);
+ const b=document.body,u=p=>`url(${new URL('../assets/'+p,document.baseURI).href})`;b.classList.add('club','club-g','club-'+ID);
  [['--k-dk',CS.dk],['--k-a1',CS.a1],['--k-a2',CS.a2],['--k-ac',CS.ac],['--k-em',u('em/'+ID+'.webp')],['--k-mA',u('club/m/'+CS.m[0]+'.svg')],['--k-mB',u('club/m/'+(CS.m[1]||CS.m[0])+'.svg')]].forEach(([k,v])=>b.style.setProperty(k,v));
  if(!CS.m[1])b.classList.add('nomB');
  if(CS.bg)clubBg()}

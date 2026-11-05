@@ -84,16 +84,25 @@ def ru_date(d):
     return '%d %s' % (dd, MON_G[m - 1]), WD[datetime.date(y, m, dd).weekday()]
 
 
+def depth(from_dir):
+    return 0 if from_dir == '' else from_dir.count('/') + 1
+
+
 def club_href(sport, slug, from_dir):
-    """Ссылка на страницу клуба; from_dir — папка страницы ('' корень, 'hockey', 'football')."""
-    pre = '' if from_dir == '' else '../'
+    """Ссылка на страницу клуба; from_dir — папка страницы ('' корень, 'hockey', 'football', 'khl/2026-…').
+    Если у клуба есть понятный адрес (seo/build_match.py: /khl/ska/), ведёт на него, иначе на старый ?id=."""
+    pre = '../' * depth(from_dir)
+    import build_match as BM
+    cd = BM.club_dir(sport, slug)
+    if cd:
+        return pre + cd + '/index.html'
     if sport == 'hockey':
         return pre + 'team/index.html?id=' + slug
     return (pre + 'football/team.html?id=' + slug) if from_dir == '' else 'team.html?id=' + slug
 
 
 def emblem(sport, slug, from_dir):
-    pre = '' if from_dir == '' else '../'
+    pre = '../' * depth(from_dir)
     rel = ('assets/em/%s.webp' if sport == 'hockey' else 'assets/fc/%s.webp') % slug
     return pre + rel if os.path.exists(os.path.join(ROOT, rel)) else None
 
@@ -179,9 +188,12 @@ def match_li(m, sport, d_out):
     elif m.get('arena_s'):
         ar = '<small class="fc-arena">%s</small>' % esc(m['arena_s'])
     mid = 'm-' + re.sub(r'[^a-z0-9]+', '-', m['key'].lower()).strip('-')
+    import build_match as BM
+    mp = BM.match_rel(m['key'])
+    ml = ('<a class="fc-mlink" href="%s">Страница матча ›</a>' % esc('../' * depth(d_out) + mp)) if mp else ''
     return ('<li class="fc-m" id="%s"><div class="fc-time"><b>%s</b><small>МСК</small></div>'
-            '<div class="fc-teams">%s<span class="fc-vs" aria-hidden="true">—</span>%s%s</div>%s</li>'
-            % (mid, esc(m['t'][11:16]), team(m['h'], m['hn']), team(m['a'], m['an']), ar, mdl_block(m, sport)))
+            '<div class="fc-teams">%s<span class="fc-vs" aria-hidden="true">—</span>%s%s%s</div>%s</li>'
+            % (mid, esc(m['t'][11:16]), team(m['h'], m['hn']), team(m['a'], m['an']), ar, ml, mdl_block(m, sport)))
 
 
 # ───────────────────────── JSON-LD ─────────────────────────
@@ -197,7 +209,7 @@ def event_ld(m, sport, page_rel):
     mid = 'm-' + re.sub(r'[^a-z0-9]+', '-', m['key'].lower()).strip('-')
 
     def tm(slug, name):
-        return {'@type': 'SportsTeam', 'name': name, 'url': url(posixpath.normpath(posixpath.join(d_out, club_href(sport, slug, d_out))))}
+        return {'@type': 'SportsTeam', 'name': name, 'url': url(posixpath.normpath(posixpath.join(d_out, club_href(sport, slug, d_out))).replace('/index.html', '/'))}
     ev = {'@type': 'SportsEvent', 'name': '%s — %s' % (m['hn'], m['an']),
           'startDate': m['t'].replace(' ', 'T') + ':00+03:00',
           'eventStatus': 'https://schema.org/EventScheduled',
@@ -304,6 +316,12 @@ PAGES = {
 }
 
 
+def _wire_canon():
+    import build_match as BM
+    PAGES['team/index.html']['canon_map'] = BM.canon_map('hockey')
+    PAGES['football/team.html']['canon_map'] = BM.canon_map('football')
+
+
 def fc_rel(lg):
     return '%s/forecast-%s.html' % (SPORT_OF[lg], lg)
 
@@ -319,6 +337,7 @@ for _lg in LG_ALL:
 
 
 # ───────────────────────── голова страницы ─────────────────────────
+
 BEGIN, END = '<!--seo:begin-->', '<!--seo:end-->'
 
 
@@ -328,7 +347,12 @@ def head_block(rel, P, extra_ld):
     t, d = esc(P['title']), esc(P['desc'])
     lines = [BEGIN,
              '<meta name="description" content="%s">' % d]
-    if P.get('dyn'):
+    if P.get('canon_map'):
+        # старые адреса клубов (?id=): canonical на понятный адрес /khl/ska/, если клуб известен; иначе прежняя логика
+        lines.append('<script>(function(){try{var id=(new URLSearchParams(location.search).get("id")||"").toLowerCase(),M=%s,u=M[id]?%s+M[id]:%s,h=document.head,l=document.createElement("link");'
+                     'l.rel="canonical";l.href=u;h.appendChild(l);var m=document.createElement("meta");m.setAttribute("property","og:url");m.content=u;h.appendChild(m)}catch(e){}})()</script>'
+                     % (json.dumps(P['canon_map'], ensure_ascii=False, separators=(',', ':')), json.dumps(ORIGIN + '/'), json.dumps(page_url)))
+    elif P.get('dyn'):
         # адрес страницы зависит от параметров (?id=, ?lg=): canonical и og:url ставит скрипт, остальные параметры отбрасываются
         keys = json.dumps(P['dyn'])
         lines.append('<script>(function(){try{var q=new URLSearchParams(location.search),s=[];%s.forEach(function(k){var v=q.get(k);'
@@ -353,7 +377,7 @@ def head_block(rel, P, extra_ld):
                                           'query-input': 'required name=search_term_string'}})
     else:
         graph.append({'@type': 'WebPage', 'name': P['title'], 'description': P['desc'], 'inLanguage': 'ru',
-                      'isPartOf': {'@id': ORIGIN + '/#site'}, **({} if P.get('dyn') else {'url': page_url})})
+                      'isPartOf': {'@id': ORIGIN + '/#site'}, **({} if P.get('dyn') or P.get('canon_map') else {'url': page_url})})
         if P.get('crumbs'):
             graph.append(crumbs_ld(P['crumbs']))
     graph += extra_ld
@@ -376,8 +400,10 @@ def events_for(kind):
 
 
 def patch_page(rel, extra_ld=None):
-    P = PAGES[rel]
-    src = rd(rel)
+    return patch_text(rd(rel), rel, PAGES[rel], extra_ld)
+
+
+def patch_text(src, rel, P, extra_ld=None):
     # title
     src = re.sub(r'<title>.*?</title>', '<title>%s</title>' % esc(P['title']), src, count=1, flags=re.S)
     # убрать всё, что теперь ведёт блок: description, og:*, twitter:*, canonical, TODO-комментарии, прежний блок
@@ -394,7 +420,7 @@ def patch_page(rel, extra_ld=None):
     # блок перед </head>
     ld = list(extra_ld or [])
     ev = P.get('events')
-    if ev:
+    if ev and rel in PAGES:
         evs = events_for(ev)
         if evs:
             ld.append({'@type': 'ItemList', 'name': 'Ближайшие матчи', 'itemListElement': [
@@ -411,13 +437,12 @@ TGSVG = ('<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path 
          '.6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>')
 
 
-def shell(rel, sport, body, extra_scripts=''):
+def shell(rel, sport, body, extra_scripts='', extra_css='', head_js=''):
     d = posixpath.dirname(rel)
-    pre = '' if not d else '../'
-    other = 'football' if sport == 'hockey' else 'hockey'
+    pre = '../' * depth(d)
     if sport:
-        hk = 'index.html' if sport == 'hockey' else '../hockey/index.html'
-        fb = 'index.html' if sport == 'football' else '../football/index.html'
+        hk = ('index.html' if sport == 'hockey' else '../hockey/index.html') if depth(d) < 2 else pre + 'hockey/index.html'
+        fb = ('index.html' if sport == 'football' else '../football/index.html') if depth(d) < 2 else pre + 'football/index.html'
         header = ('<header class="hd" id="hd">\n  <div class="wrap">\n    <a class="logo" href="%sindex.html" aria-label="JARVIS, на главную">JAR<i>V</i>IS</a>\n'
                   '    <nav class="seg" aria-label="Вид спорта">\n      <a href="%s"%s>Хоккей</a>\n      <a href="%s"%s>Футбол</a>\n    </nav>\n'
                   '    <nav class="nav" aria-label="Разделы"></nav>\n'
@@ -430,12 +455,12 @@ def shell(rel, sport, body, extra_scripts=''):
     return ('<!doctype html>\n<html lang="ru"%s data-theme="arena">\n<head>\n<meta charset="utf-8">\n<meta name="referrer" content="strict-origin-when-cross-origin">\n'
             '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<title></title>\n<meta name="robots" content="noindex">\n'
             '<meta name="theme-color" content="#071225">\n%s\n<link rel="stylesheet" href="%sassets/v3a.css">\n<link rel="stylesheet" href="%sassets/nav.css">\n'
-            '<link rel="stylesheet" href="%sassets/forecast.css">\n<link rel="icon" href="%sfavicon.svg" type="image/svg+xml">\n'
+            '<link rel="stylesheet" href="%sassets/forecast.css">\n%s%s<link rel="icon" href="%sfavicon.svg" type="image/svg+xml">\n'
             '<link rel="icon" href="%sfavicon-32.png" sizes="32x32" type="image/png">\n<link rel="apple-touch-icon" href="%sapple-touch-icon.png">\n'
             '<link rel="manifest" href="%ssite.webmanifest">\n</head>\n<body class="fc"%s>\n<a class="skip" href="#main">К содержанию</a>\n%s\n\n<main id="main">\n%s\n</main>\n\n'
             '<footer><div class="wrap"><p id="foot">Макет v3a · © JARVIS, @jarvibet</p></div></footer>\n\n'
             '<script src="%sassets/nav.js"></script>\n<script src="%sassets/footer.js"></script>\n%s</body>\n</html>\n'
-            % (sattr, FONTS, pre, pre, pre, pre, pre, pre, pre, ' data-field="%s"' % sport if sport else '', header, body, pre, pre, extra_scripts))
+            % (sattr, FONTS, pre, pre, pre, ('<link rel="stylesheet" href="%sassets/%s">\n' % (pre, extra_css)) if extra_css else '', head_js, pre, pre, pre, pre, ' data-field="%s"' % sport if sport else '', header, body, pre, pre, extra_scripts))
 
 
 def crumbs_html(items, rel):
@@ -569,10 +594,8 @@ def build_sitemap(extra_ld_pages):
     for lg, v in FOOT['leagues'].items():
         if not v.get('cup'):
             urls.append('football/league.html?lg=' + lg)
-    for k in TEAMS['names']:
-        urls.append('team/index.html?id=' + k)
-    for k in FOOT['teams']:
-        urls.append('football/team.html?id=' + k)
+    import build_match as BM
+    urls += BM.sitemap_paths()  # понятные адреса клубов и страницы матчей (старые ?id= остаются рабочими, но в sitemap их нет: у них canonical на новые)
     seen, out = set(), []
     for u in urls:
         if u not in seen:
@@ -602,6 +625,9 @@ def build_robots():
 
 # ───────────────────────── запуск ─────────────────────────
 def main():
+    import build_match as BM
+    BM.init(sys.modules[__name__])
+    _wire_canon()
     made = build_pages()
     changed = 0
     for rel in PAGES:
@@ -611,10 +637,11 @@ def main():
         new = patch_page(rel, made.get(rel))
         if wr(rel, new):
             changed += 1
+    mstat = BM.run()
     n = build_sitemap(made)
     build_robots()
     # 404: закрыт от поиска всегда, без canonical
-    print('SEO: страниц %d (изменено %d), в sitemap %d адресов, origin %s, индексация %s' % (len(PAGES), changed, n, ORIGIN, 'открыта' if OPEN else 'закрыта'))
+    print('SEO: страниц %d (изменено %d), в sitemap %d адресов, origin %s, индексация %s; %s' % (len(PAGES), changed, n, ORIGIN, 'открыта' if OPEN else 'закрыта', mstat))
 
 
 if __name__ == '__main__':
