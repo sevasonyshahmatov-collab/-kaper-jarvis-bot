@@ -605,9 +605,10 @@ def main():
         import signal
 
         def _too_long(*_):
-            raise TimeoutError('баннер дольше %d с' % RENDER_MAX)
+            raise TimeoutError('баннер дольше %d с' % lim)
+        lim = int(raw.get('render_max') or RENDER_MAX)   # 05.11: 8:1 Металлург — баннер не уложился в 6 мин; повтор с "render_max"
         signal.signal(signal.SIGALRM, _too_long)
-        signal.alarm(RENDER_MAX)          # 31.10: баннер 3110-8 рисовался 38 мин — задание сняли, итог не ушёл
+        signal.alarm(lim)          # 31.10: баннер 3110-8 рисовался 38 мин — задание сняли, итог не ушёл
         try:
             render(p, g, legs, res, res_legs, path)
         except Exception as e:  # noqa: BLE001 — без баннера итог всё равно уходит текстом
