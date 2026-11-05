@@ -168,8 +168,9 @@ def parse_page(page):
                 posted = datetime.fromisoformat(ts.group(1).replace('Z', '+00:00')).astimezone(MSK)
             except ValueError:
                 pass
+        rep = re.search(r'tgme_widget_message_reply[^>]*href="https?://t\.me/%s/(\d+)"' % CHANNEL, block, re.I)
         out.append(dict(id=int(num.group(1)), text=text_lines(inner), media=_media(rest), media_url=_media_url(rest),
-                        edited=edited, posted=posted))
+                        edited=edited, posted=posted, reply=int(rep.group(1)) if rep else None))
     return sorted(out, key=lambda p: p['id'])
 
 
