@@ -1,6 +1,7 @@
 {
- "event": "401915311",
+ "event": "401915383",
  "top_keys": [
+  "article",
   "boxscore",
   "broadcasts",
   "commentary",
@@ -16,6 +17,7 @@
   "odds",
   "pickcenter",
   "rosters",
+  "seasonseries",
   "standings",
   "videos",
   "wallclockAvailable"
@@ -31,15 +33,15 @@
  "roster0": {
   "active": true,
   "starter": true,
-  "jersey": "1",
+  "jersey": "91",
   "athlete": {
-   "id": "222922",
-   "uid": "s:600~a:222922",
-   "guid": "944f6559-7c6e-53af-9256-cd1bc499fafc",
-   "lastName": "Çakir",
-   "fullName": "Ugurcan Çakir",
-   "displayName": "Ugurcan Çakir",
-   "shortName": "U. Çakir",
+   "id": "175264",
+   "uid": "s:600~a:175264",
+   "guid": "217df50c-9b53-830e-beb3-e21ea39ffd0c",
+   "lastName": "Brignoli",
+   "fullName": "Alberto Brignoli",
+   "displayName": "Alberto Brignoli",
+   "shortName": "A. Brignoli",
    "links": [
     {
      "language": "en-US",
@@ -48,7 +50,7 @@
       "desktop",
       "athlete"
      ],
-     "href": "https://www.espn.com/soccer/player/_/id/222922/ugurcan-cakir",
+     "href": "https://www.espn.com/soccer/player/_/id/175264/alberto-brignoli",
      "text": "Player Card",
      "shortText": "Player Card",
      "isExternal": false,
@@ -57,7 +59,7 @@
    ],
    "jerseyImages": [
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/uefa.champions/events/401915311/athletes/222922/jersey.png?darkMode=false",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/uefa.champions/events/401915383/athletes/175264/jersey.png?darkMode=false",
      "rel": [
       "full",
       "default"
@@ -66,7 +68,7 @@
      "height": 1440
     },
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/uefa.champions/events/401915311/athletes/222922/jersey.png?darkMode=true",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/uefa.champions/events/401915383/athletes/175264/jersey.png?darkMode=true",
      "rel": [
       "full",
       "dark"
@@ -155,8 +157,8 @@
     "shortDisplayName": "GA",
     "description": "The number of goals allowed by the goalkeeper.",
     "abbreviation": "GA",
-    "value": 0.0,
-    "displayValue": "0"
+    "value": 3.0,
+    "displayValue": "3"
    },
    {
     "name": "saves",
@@ -217,15 +219,15 @@
  "roster_sub": {
   "active": true,
   "starter": false,
-  "jersey": "20",
+  "jersey": "10",
   "athlete": {
-   "id": "131424",
-   "uid": "s:600~a:131424",
-   "guid": "7fb5530e-3fea-36c2-1b25-562762b7a805",
-   "lastName": "Gündogan",
-   "fullName": "Ilkay Gündogan",
-   "displayName": "Ilkay Gündogan",
-   "shortName": "I. Gündogan",
+   "id": "228267",
+   "uid": "s:600~a:228267",
+   "guid": "68f1c30e-8bea-ac39-c710-478dcdb9a00c",
+   "lastName": "Zubkov",
+   "fullName": "Oleksandr Zubkov",
+   "displayName": "Oleksandr Zubkov",
+   "shortName": "O. Zubkov",
    "links": [
     {
      "language": "en-US",
@@ -234,7 +236,7 @@
       "desktop",
       "athlete"
      ],
-     "href": "https://www.espn.com/soccer/player/_/id/131424/ilkay-gundogan",
+     "href": "https://www.espn.com/soccer/player/_/id/228267/oleksandr-zubkov",
      "text": "Player Card",
      "shortText": "Player Card",
      "isExternal": false,
@@ -243,7 +245,7 @@
    ],
    "jerseyImages": [
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/uefa.champions/events/401915311/athletes/131424/jersey.png?darkMode=false",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/uefa.champions/events/401915383/athletes/228267/jersey.png?darkMode=false",
      "rel": [
       "full",
       "default"
@@ -252,7 +254,7 @@
      "height": 1440
     },
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/uefa.champions/events/401915311/athletes/131424/jersey.png?darkMode=true",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/uefa.champions/events/401915383/athletes/228267/jersey.png?darkMode=true",
      "rel": [
       "full",
       "dark"
@@ -267,7 +269,7 @@
    "displayName": "Substitute",
    "abbreviation": "SUB"
   },
-  "subbedIn": false,
+  "subbedIn": true,
   "subbedOut": false,
   "formationPlace": "0",
   "media": {},
@@ -278,8 +280,8 @@
     "shortDisplayName": "APP",
     "description": "The number of times a player has made an appearance in a match.",
     "abbreviation": "APP",
-    "value": 0.0,
-    "displayValue": "0"
+    "value": 1.0,
+    "displayValue": "1"
    },
    {
     "name": "foulsCommitted",
@@ -323,8 +325,8 @@
     "shortDisplayName": "SUBIN",
     "description": "The number of times a player has come on a sub in a match.",
     "abbreviation": "SUB",
-    "value": 0.0,
-    "displayValue": "0"
+    "value": 1.0,
+    "displayValue": "1"
    },
    {
     "name": "yellowCards",
@@ -341,8 +343,8 @@
     "shortDisplayName": "GA",
     "description": "The number of goals allowed by the goalkeeper.",
     "abbreviation": "GA",
-    "value": 0.0,
-    "displayValue": "0"
+    "value": 1.0,
+    "displayValue": "1"
    },
    {
     "name": "shotsFaced",
@@ -398,40 +400,75 @@
     "value": 0.0,
     "displayValue": "0"
    }
+  ],
+  "subbedInFor": {
+   "jersey": "9",
+   "athlete": {
+    "id": "221332",
+    "displayName": "Luka Jovic",
+    "links": [
+     {
+      "language": "en-US",
+      "rel": [
+       "playercard",
+       "desktop",
+       "athlete"
+      ],
+      "href": "https://www.espn.com/soccer/player/_/id/221332/luka-jovic",
+      "text": "Player Card",
+      "shortText": "Player Card",
+      "isExternal": false,
+      "isPremium": false
+     }
+    ]
+   }
+  },
+  "plays": [
+   {
+    "clock": {
+     "displayValue": "88'"
+    },
+    "scoringPlay": false,
+    "substitution": true,
+    "redCard": false,
+    "yellowCard": false,
+    "penaltyKick": false,
+    "ownGoal": false
+   }
   ]
  },
  "keyEvent_sub": {
-  "id": "54761161",
+  "id": "54801628",
   "type": {
    "id": "76",
    "text": "Substitution",
    "type": "substitution"
   },
-  "text": "Substitution, Stuttgart. Yanik Spalt replaces Atakan Karazor because of an injury.",
-  "shortText": "Yanik Spalt Substitution",
+  "text": "Substitution, AEK Athens. Zine replaces Lovro Majer.",
+  "shortText": "Zini Substitution",
   "period": {
-   "number": 1
+   "number": 2
   },
   "clock": {
-   "value": 1065.0,
-   "displayValue": "18'"
+   "value": 3153.0,
+   "displayValue": "53'"
   },
   "scoringPlay": false,
   "team": {
-   "id": "134",
-   "displayName": "VfB Stuttgart"
+   "id": "887",
+   "displayName": "AEK Athens"
   },
   "participants": [
    {
     "athlete": {
-     "id": "403741",
-     "displayName": "Yanik Spalt"
+     "id": "297754",
+     "displayName": "Zini"
     }
    },
    {
     "athlete": {
-     "id": "241742",
-     "displayName": "Atakan Karazor"
+     "id": "237549",
+     "displayName": "Lovro Majer"
     }
    }
   ],
@@ -439,13 +476,13 @@
    "id": "38",
    "description": "SA.ENVOY"
   },
-  "wallclock": "2026-11-03T18:04:46Z",
+  "wallclock": "2026-11-04T18:57:15Z",
   "shootout": false
  },
  "parsed": {
-  "432": [
+  "887": [
    [
-    "222922",
+    "175264",
     1,
     95,
     0,
@@ -456,7 +493,7 @@
     0
    ],
    [
-    "193149",
+    "324593",
     1,
     95,
     0,
@@ -467,53 +504,64 @@
     0
    ],
    [
-    "197105",
+    "218951",
+    1,
+    95,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "285427",
+    1,
+    95,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "302487",
     1,
     95,
     0,
     0,
-    1,
-    2,
-    0,
-    0
-   ],
-   [
-    "268796",
-    1,
-    77,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0
-   ],
-   [
-    "219444",
-    1,
-    68,
-    0,
-    0,
-    0,
-    2,
-    1,
-    0
-   ],
-   [
-    "355113",
-    1,
-    77,
-    3,
-    3,
     0,
     3,
     0,
     0
    ],
    [
-    "181729",
+    "235669",
     1,
-    83,
+    60,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "260554",
+    1,
+    95,
+    0,
+    0,
+    0,
+    3,
+    1,
+    0
+   ],
+   [
+    "237549",
+    1,
+    53,
     0,
     0,
     0,
@@ -522,53 +570,64 @@
     0
    ],
    [
-    "212973",
+    "260026",
     1,
     95,
+    3,
+    1,
+    1,
+    0,
+    0,
+    1
+   ],
+   [
+    "192943",
+    1,
+    60,
+    1,
     1,
     0,
     0,
     0,
-    1,
     0
    ],
    [
-    "228296",
+    "221332",
     1,
-    95,
+    88,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0
+   ],
+   [
+    "228267",
+    0,
     7,
-    1,
     0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "239738",
+    0,
+    35,
     2,
     0,
-    0
-   ],
-   [
-    "322538",
-    1,
-    68,
-    1,
     0,
     0,
-    1,
-    1,
-    0
-   ],
-   [
-    "266575",
-    1,
-    95,
-    0,
-    0,
-    0,
-    1,
     0,
     0
    ],
    [
-    "268478",
+    "297754",
     0,
-    12,
+    42,
     0,
     0,
     0,
@@ -577,53 +636,20 @@
     0
    ],
    [
-    "286569",
+    "246666",
     0,
-    27,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "287678",
-    0,
-    18,
+    35,
     0,
     0,
     0,
     1,
-    0,
-    0
-   ],
-   [
-    "202641",
-    0,
-    18,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "258917",
-    0,
-    27,
-    1,
-    0,
-    0,
-    0,
     0,
     0
    ]
   ],
-  "134": [
+  "86": [
    [
-    "201123",
+    "134283",
     1,
     95,
     0,
@@ -634,7 +660,7 @@
     0
    ],
    [
-    "258909",
+    "169438",
     1,
     95,
     0,
@@ -645,157 +671,157 @@
     0
    ],
    [
-    "216225",
-    1,
-    95,
-    0,
-    0,
-    0,
-    2,
-    0,
-    0
-   ],
-   [
-    "289322",
-    1,
-    95,
-    0,
-    0,
-    0,
-    3,
-    1,
-    0
-   ],
-   [
-    "241742",
-    1,
-    18,
-    0,
-    0,
-    0,
-    1,
-    1,
-    0
-   ],
-   [
-    "218714",
-    1,
-    74,
-    0,
-    0,
-    0,
-    2,
-    1,
-    0
-   ],
-   [
-    "336595",
+    "228402",
     1,
     95,
     2,
     1,
     0,
-    0,
+    1,
     0,
     0
    ],
    [
-    "268951",
+    "259910",
     1,
-    82,
+    81,
+    2,
+    1,
+    1,
+    5,
+    1,
+    0
+   ],
+   [
+    "213248",
+    1,
+    95,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0
+   ],
+   [
+    "291281",
+    1,
+    86,
     3,
     1,
     0,
-    1,
-    0,
-    0
-   ],
-   [
-    "290811",
-    1,
-    75,
-    2,
-    0,
-    0,
     0,
     0,
     0
    ],
    [
-    "269136",
-    1,
-    74,
-    0,
-    0,
-    0,
-    4,
-    0,
-    0
-   ],
-   [
-    "273300",
+    "285150",
     1,
     95,
+    0,
+    0,
+    0,
+    6,
+    0,
+    0
+   ],
+   [
+    "199833",
+    1,
+    67,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "231388",
+    1,
+    95,
+    7,
+    3,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "252107",
+    1,
+    81,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "402479",
+    1,
+    67,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "310637",
+    0,
+    14,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "380286",
+    0,
+    9,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "246532",
+    0,
+    14,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0
+   ],
+   [
+    "235818",
+    0,
+    28,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "346612",
+    0,
+    28,
     2,
-    1,
-    0,
-    0,
-    1,
-    0
-   ],
-   [
-    "345905",
-    0,
-    21,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "304019",
-    0,
-    13,
-    2,
-    1,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "259878",
-    0,
-    21,
-    0,
     0,
     0,
     1,
     0,
-    0
-   ],
-   [
-    "308461",
-    0,
-    20,
-    1,
-    0,
-    0,
-    1,
-    0,
-    0
-   ],
-   [
-    "403741",
-    0,
-    77,
-    0,
-    0,
-    0,
-    1,
-    1,
     0
    ]
   ]
