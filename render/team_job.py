@@ -249,6 +249,8 @@ def postmatch_env(payload):
         out['override'] = {'res': ov['res'], 'check': str(ov.get('check') or '').replace('\n', ' ')[:80]}
     if pm.get('keep_pick'):
         out['keep_pick'] = 1
+    if str(pm.get('render_max') or '').isdigit():   # лимит на баннер, с (повтор, когда 6 мин не хватило)
+        out['render_max'] = min(int(pm['render_max']), 1200)
     for k, n in (('story', 900), ('outro', 300)):
         if pm.get(k):
             out[k] = str(pm[k]).replace('\n', ' ')[:n]
