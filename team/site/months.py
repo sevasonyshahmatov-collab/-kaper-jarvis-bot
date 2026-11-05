@@ -28,6 +28,9 @@ import re  # noqa: E402
 
 import settle  # noqa: E402
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import extra_bets  # noqa: E402  футбол и экспрессы (владелец 05.11)
+
 # ---------------------------------------------------------------- старый формат (сентябрь — 15 октября)
 # «🏒КХЛ. 🐺НЕФТЕХИМИК - ХК СОЧИ🐆» / «⚔️ Сочи — ЦСКА | 19:30» первой строкой, дальше разбор и строка
 # «✅ Прогноз: Победа Нефтехимика в основное время за 1.72» (кэф — «за 1.72» в той же строке). Даты матча в посте нет:
@@ -137,6 +140,10 @@ MONTH = ['', 'Январь', 'Февраль', 'Март', 'Апрель', 'Ма
 def _row(r):
     """Прогноз для списка на сайте: дата матча, лига, матч, ставка обычными словами, кэф, счёт, итог, номер поста."""
     g = r['g']
+    if r.get('kind'):                                # футбол / экспресс (extra_bets): ставка — как в посте
+        return dict(d=r['start'].astimezone(MSK).strftime('%d.%m'), lg=r['lg'], h=r['home'], a=r['away'], bet=r['bet'],
+                    kef=r.get('kef'), sc='%s:%s' % (g['hg'], g['ag']) if g.get('hg') is not None else '', end='',
+                    r={'win': 'w', 'loss': 'l'}.get(r['res'], 'p'), id=r['msg_id'], k=r['kind'])
     try:
         bet = ask.phrase(r['legs'], r['home'], r['away'])
     except Exception:  # noqa: BLE001
@@ -183,7 +190,12 @@ def month_stats(rows, now=None):
         kefs = [r['kef'] for r in rs if r.get('kef')]
         units = sum(r['kef'] - 1 for r in w if r.get('kef')) - len(l)
         last = rs[-1]['start'].astimezone(MSK)
-        out.append(dict(m=k, name=MONTH[int(k[5:])], n=len(rs), w=len(w), l=len(l), p=len(rs) - len(w) - len(l),
+        kinds = {}                                   # хоккей / футбол / экспрессы: сколько и сколько зашло
+        for r in rs:
+            x = kinds.setdefault(r.get('kind') or 'hockey', dict(n=0, w=0))
+            x['n'] += 1
+            x['w'] += r['res'] == 'win'
+        out.append(dict(m=k, name=MONTH[int(k[5:])], n=len(rs), w=len(w), l=len(l), p=len(rs) - len(w) - len(l), kinds=kinds,
                         kef=round(sum(kefs) / len(kefs), 2) if kefs else None, units=round(units, 2),
                         live=int(k == now.strftime('%Y-%m')), upto='%d %s' % (last.day, gen[last.month]),
                         rows=[_row(r) for r in rs]))
@@ -224,6 +236,9 @@ def main():
         os.makedirs(out, exist_ok=True)
         with open(os.path.join(out, 'dump.pkl'), 'wb') as f:
             pickle.dump(dict(pages=pages, found=found), f)
+    xrows, xwait = extra_bets.rows(seen['v'][0])     # футбол и экспрессы — итог по постам канала
+    pending = pending + xwait
+    rows = rows + [r for r in xrows if r['start'] >= t0]
     stats = month_stats(rows)
     os.makedirs(out, exist_ok=True)
     with open(os.path.join(out, 'published.json'), 'w', encoding='utf-8') as f:     # сайт и приложение — только эти матчи
@@ -239,6 +254,11 @@ def main():
     lines += ['', '## Все прогнозы', '']
     for r in sorted(rows, key=lambda r: r['start']):
         g = r['g']
+        if r.get('kind'):
+            lines.append('- %s №%d %s %s%s: %s, кэф %s → %s%s' % (
+                r['start'].astimezone(MSK).strftime('%d.%m %H:%M'), r['msg_id'], r['lg'], r['home'], (' — ' + r['away']) if r['away'] else '',
+                r['bet'], r.get('kef'), res.get(r['res'], r['res']), (' (%s:%s)' % (g['hg'], g['ag'])) if g else ''))
+            continue
         lines.append('- %s №%d %s %s — %s: %s [%s], кэф %s → %s (%s:%s%s)' % (
             r['start'].astimezone(MSK).strftime('%d.%m %H:%M'), r['msg_id'], r['league'], r['home'], r['away'], r['bet'], r['short'],
             r.get('kef'), res.get(r['res'], r['res']), g.get('hg'), g.get('ag'), (' ' + g['end']) if g.get('end') else ''))
