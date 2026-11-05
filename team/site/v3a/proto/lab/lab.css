@@ -284,7 +284,7 @@ footer .f1{font:500 12px var(--mono);letter-spacing:.1em;color:var(--dim);text-t
 .dial svg{width:100%;max-width:200px;overflow:visible;display:block;margin:0 auto}
 .dial svg .tk{stroke:var(--line2);fill:none}
 .dial svg .arc{fill:none;stroke-width:6;stroke-linecap:butt}
-.dial svg .needle{stroke:var(--ink);stroke-width:2;transform-origin:100px 100px}
+.dial svg .needle{stroke:var(--ink);stroke-width:2;}
 .dial svg text{font:400 9.5px var(--mono);fill:var(--mut);text-anchor:middle}
 .dial b{display:block;font:500 28px/1 var(--mono);margin-top:2px}
 .dial small{font:400 11px var(--mono);color:var(--mut)}
@@ -377,3 +377,8 @@ footer .f1{font:500 12px var(--mono);letter-spacing:.1em;color:var(--dim);text-t
 html,body{overflow-x:clip}.hero{overflow-x:clip;overflow-y:visible}
 .hero .giant small{display:none}
 @media(min-width:960px){.hero .puck3d{left:calc(50% - 130px);bottom:34px}}
+
+.mh .orb.blue{left:auto;right:-6vw;top:-40%;width:clamp(200px,32vw,400px);opacity:.9}
+.mh .giant{bottom:auto;top:6%;left:-1vw}
+.mh .giant small{display:none}
+@media(max-width:640px){.mh .orb.blue{right:-30vw;top:10%;opacity:.7}}
