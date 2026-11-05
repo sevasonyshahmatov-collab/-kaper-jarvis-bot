@@ -1,25 +1,25 @@
 # Проверка источников живого счёта
 
-Запуск: 2026-11-05 05:53 UTC, Origin: `https://raw.githack.com`
+Запуск: 2026-11-05 05:54 UTC, Origin: `https://raw.githack.com`
 
 | Лига | Источник | HTTP | ACAO | Preflight (код / ACAO / methods) | Cache-Control | Размер | Задержка | CORS для GET |
 |---|---|---|---|---|---|---|---|---|
-| НХЛ | ESPN scoreboard | 200 | * | 403 / None / None | max-age=6 | 94461 | 69 мс | да |
-| АПЛ | ESPN scoreboard | 200 | * | 403 / None / None | max-age=2 | 15386 | 53 мс | да |
-| Ла Лига | ESPN scoreboard | 200 | * | 403 / None / None | max-age=9 | 15402 | 46 мс | да |
-| Серия А | ESPN scoreboard | 200 | * | 403 / None / None | max-age=4 | 15158 | 39 мс | да |
-| Бундеслига | ESPN scoreboard | 200 | * | 403 / None / None | max-age=3 | 11404 | 49 мс | да |
-| Лига 1 | ESPN scoreboard | 200 | * | 403 / None / None | max-age=2 | 14889 | 61 мс | да |
-| РПЛ | ESPN scoreboard | 200 | * | 403 / None / None | max-age=8 | 9472 | 79 мс | да |
-| Лига чемпионов | ESPN scoreboard | 200 | * | 403 / None / None | max-age=8 | 111862 | 47 мс | да |
-| Лига Европы | ESPN scoreboard | 200 | * | 403 / None / None | max-age=3 | 9572 | 45 мс | да |
-| НХЛ | api-web score/now | 200 | None | 200 / None / None | no-transform, max-age=9, s-maxage=9 | 29077 | 287 мс | нет |
-| НХЛ | api-web gamecenter landing | 200 | None | 200 / None / None | no-transform, max-age=9, s-maxage=9 | 7510 | 323 мс | нет |
-| НХЛ | api-web schedule/now | 200 | None | 200 / None / None | no-transform, max-age=14, s-maxage=14 | 89624 | 212 мс | нет |
-| НХЛ | api.nhle.com stats team summary | 200 | None | 200 / None / None | None | 1063 | 141 мс | нет |
-| КХЛ | khl.api.webcaster.pro data.json | 403 | None | 403 / None / None | no-cache | 1 | 1228 мс | нет |
-| КХЛ | khl.api.webcaster.pro events_v2 | 200 | https://raw.githack.com | 403 / None / None | max-age=0, private, must-revalidate | 170 | 1230 мс | да |
-| КХЛ | khl.ru (сайт) | 200 | None | 405 / None / None | no-store, no-cache, must-revalidate | 97506 | 991 мс | нет |
+| НХЛ | ESPN scoreboard | 200 | * | 403 / None / None | max-age=9 | 95553 | 213 мс | да |
+| АПЛ | ESPN scoreboard | 200 | * | 403 / None / None | max-age=9 | 15386 | 72 мс | да |
+| Ла Лига | ESPN scoreboard | 200 | * | 403 / None / None | max-age=10 | 15402 | 57 мс | да |
+| Серия А | ESPN scoreboard | 200 | * | 403 / None / None | max-age=1 | 15158 | 51 мс | да |
+| Бундеслига | ESPN scoreboard | 200 | * | 403 / None / None | max-age=10 | 11404 | 55 мс | да |
+| Лига 1 | ESPN scoreboard | 200 | * | 403 / None / None | max-age=5 | 14889 | 45 мс | да |
+| РПЛ | ESPN scoreboard | 200 | * | 403 / None / None | max-age=1 | 9472 | 56 мс | да |
+| Лига чемпионов | ESPN scoreboard | 200 | * | 403 / None / None | max-age=5 | 111862 | 48 мс | да |
+| Лига Европы | ESPN scoreboard | 200 | * | 403 / None / None | max-age=2 | 9572 | 48 мс | да |
+| НХЛ | api-web score/now | 200 | None | 200 / None / None | no-transform, max-age=12, s-maxage=12 | 29077 | 321 мс | нет |
+| НХЛ | api-web gamecenter landing | 200 | None | 200 / None / None | no-transform, max-age=11, s-maxage=11 | 7510 | 200 мс | нет |
+| НХЛ | api-web schedule/now | 200 | None | 200 / None / None | no-transform, max-age=1, s-maxage=1 | 89624 | 360 мс | нет |
+| НХЛ | api.nhle.com stats team summary | 200 | None | 200 / None / None | None | 1063 | 130 мс | нет |
+| КХЛ | khl.api.webcaster.pro data.json | 403 | None | 403 / None / None | no-cache | 1 | 1726 мс | нет |
+| КХЛ | khl.api.webcaster.pro events_v2 | 200 | https://raw.githack.com | 403 / None / None | max-age=0, private, must-revalidate | 170 | 2011 мс | да |
+| КХЛ | khl.ru (сайт) | 200 | None | 405 / None / None | no-store, no-cache, must-revalidate | 97506 | 1330 мс | нет |
 
 ## Поля счёта (пример)
 
@@ -39,3 +39,11 @@
 - **КХЛ / khl.api.webcaster.pro data.json**: `{"stage": null}`
 - **КХЛ / khl.api.webcaster.pro events_v2**: `{"events": 0, "sample": []}`
 - **КХЛ / khl.ru (сайт)**: `{}`
+
+## КХЛ data.json: варианты заголовков
+
+- UA Mozilla/5.0 без Origin: {"code": 200, "acao": "*", "bytes": 29949, "head": "{\"safe_live_shift\":0,\"stages_v2\":[{\"id\":407,\"khl_id\":1436,\"title\":\"Регулярный чемпионат\",\"type\":\"regular\",\"season\":\"2026"}
+- UA Chrome без Origin: {"code": 200, "acao": "*", "bytes": 29949, "head": "{\"safe_live_shift\":0,\"stages_v2\":[{\"id\":407,\"khl_id\":1436,\"title\":\"Регулярный чемпионат\",\"type\":\"regular\",\"season\":\"2026"}
+- UA Chrome + Origin: {"code": 403, "acao": null, "bytes": 1, "head": " "}
+- UA Mozilla/5.0 + Origin: {"code": 403, "acao": null, "bytes": 1, "head": " "}
+- UA Chrome + Origin + Referer: {"code": 403, "acao": null, "bytes": 1, "head": " "}
