@@ -242,6 +242,13 @@ def postmatch_env(payload):
         out['espn'] = pm['espn']
     if pm.get('force'):
         out['force'] = 1
+    # итог ставки, которую скрипт не считает (удары, «обе забьют», «исход + тотал»): override {res, check} от чата команды;
+    # keep_pick — ставка владельца из бота важнее текста в канале (05.11)
+    ov = pm.get('override')
+    if isinstance(ov, dict) and ov.get('res') in ('win', 'loss', 'push'):
+        out['override'] = {'res': ov['res'], 'check': str(ov.get('check') or '').replace('\n', ' ')[:80]}
+    if pm.get('keep_pick'):
+        out['keep_pick'] = 1
     for k, n in (('story', 900), ('outro', 300)):
         if pm.get(k):
             out[k] = str(pm[k]).replace('\n', ' ')[:n]
