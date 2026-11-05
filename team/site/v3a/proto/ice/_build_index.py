@@ -15,7 +15,7 @@ h+='''<main id="main">
   <div class="ribs" aria-hidden="true" data-depth="-16"></div>
   <img class="obj e1" data-depth="26" src="../../assets/em/avangard.webp" alt="" width="210" height="210">
   <img class="obj e2" data-depth="34" src="../../assets/em/cska.webp" alt="" width="210" height="210">
-  <span class="obj puck pk" aria-hidden="true" data-depth="46"></span>
+  <span class="obj puck hp" aria-hidden="true" data-depth="46"></span>
   <div class="slab tablo-slab" aria-label="Табло матча дня"><div class="tilt-in"><div class="plate" style="padding:10px"><div class="cut tablo" id="tablo" data-vt>
    <div class="tablo-top"><span>КХЛ, матч дня</span><span>16:30 МСК</span></div>
    <div class="tablo-teams"><div class="tm"><img class="vt-h" src="../../assets/em/avangard.webp" alt="" width="88" height="88"><b>Авангард</b></div><span class="vs" aria-hidden="true">—</span><div class="tm"><img class="vt-a" src="../../assets/em/cska.webp" alt="" width="88" height="88"><b>ЦСКА</b></div></div>

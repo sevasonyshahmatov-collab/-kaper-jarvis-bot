@@ -37,7 +37,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-3;
     radial-gradient(900px 700px at 20% 95%,var(--ice-2),transparent 70%),
     linear-gradient(180deg,var(--ice-1),var(--ice-2) 120%)}
 .scratch{position:fixed;inset:-8% 0;z-index:-2;pointer-events:none;background:url("img/scratch.svg") center top/cover no-repeat;opacity:.85;will-change:transform}
-[data-beam]{position:relative}
+[data-beam]{position:relative;overflow-x:clip}
 .beam{position:absolute;top:-10%;bottom:-10%;left:0;width:34vw;min-width:240px;pointer-events:none;z-index:0;opacity:0;
   background:linear-gradient(90deg,transparent,var(--w40) 28%,var(--w95) 50%,var(--w40) 72%,transparent);
   transform:translateX(-40vw) skewX(-16deg)}
@@ -538,10 +538,24 @@ main{display:block}
 .obj{position:absolute;z-index:3;pointer-events:none;filter:drop-shadow(0 22px 14px var(--cold));will-change:transform;translate:var(--px,0px) var(--py,0px)}
 .obj.e1{left:0;top:-2%;width:clamp(120px,15vw,210px);transform:rotate(-9deg)}
 .obj.e2{right:4%;top:-6%;width:clamp(120px,15vw,210px);transform:rotate(8deg)}
-.obj.pk{left:2%;top:15%;--d:clamp(150px,19vw,260px);--rim:var(--red)}
-.obj.pk::after{display:none}
+.obj.hp{left:2%;top:15%;--d:clamp(150px,19vw,260px);--rim:var(--red)}
+.obj.hp::after{display:none}
 .hs .tablo-slab{position:absolute;left:4%;right:0;bottom:0;z-index:4}
-@media (prefers-reduced-motion:no-preference){.obj.e1{animation:bob 7s ease-in-out infinite}.obj.e2{animation:bob 8s ease-in-out -3s infinite}.obj.pk{animation:bob 6s ease-in-out -1s infinite}}
-@keyframes bob{50%{transform:translateY(-9px) rotate(var(--r,0deg))}}
+@media (prefers-reduced-motion:no-preference){.obj.e1{animation:bob1 7s ease-in-out infinite}.obj.e2{animation:bob2 8s ease-in-out -3s infinite}.obj.hp{animation:bob3 6s ease-in-out -1s infinite}}
+@keyframes bob1{50%{transform:translateY(-9px) rotate(-9deg)}}@keyframes bob2{50%{transform:translateY(-9px) rotate(8deg)}}@keyframes bob3{50%{transform:translateY(-9px)}}
 @media (max-width:900px){.stage .wrap{grid-template-columns:minmax(0,1fr);padding-top:clamp(90px,26vw,170px)}.hs{margin-top:10px;min-height:470px}
-  .giant{font-size:clamp(70px,22.5vw,220px);top:6px}.sphere{right:-6%;width:68vw}.ribs{right:30%;width:46vw}.obj.e1{width:30vw}.obj.e2{width:30vw}.obj.pk{--d:38vw;left:34%}}
+  .giant{font-size:clamp(70px,22.5vw,220px);top:6px}.sphere{right:-6%;width:68vw}.ribs{right:30%;width:46vw}.obj.e1{width:30vw}.obj.e2{width:30vw}.obj.hp{--d:38vw;left:34%}}
+
+/* шапка матча: слои глубины */
+.mstage{padding-top:0}
+.mstage .wrap{display:block;padding-top:0}
+.mscene{position:relative;height:clamp(300px,40vw,520px);margin-top:clamp(30px,6vw,90px)}
+.mscene .sphere{left:50%;right:auto;top:6%;width:clamp(200px,26vw,360px);transform:translateX(-50%)}
+.mscene .ribs{left:50%;right:auto;top:2%;width:clamp(150px,20vw,280px);height:92%;margin-left:clamp(-140px,-10vw,-60px)}
+.mscene .obj.e1{left:6%;top:8%;width:clamp(130px,23vw,330px)}
+.mscene .obj.e2{right:6%;left:auto;top:8%;width:clamp(130px,23vw,330px)}
+.mscene .obj.hp{left:50%;top:auto;bottom:-8px;margin-left:calc(var(--d) * -.5);--d:clamp(90px,11vw,150px)}
+.mtext{position:relative;z-index:4;margin-top:clamp(18px,3vw,36px)}
+.mtext .facts{margin-top:22px}
+.mstage .giant{font-size:clamp(120px,32vw,460px);top:clamp(30px,5vw,70px)}
+@media (max-width:900px){.mscene{height:300px}.mscene .obj.e1{left:0}.mscene .obj.e2{right:0}.mscene .obj.hp{--d:72px}.mscene .sphere{width:52vw}.mstage .giant{font-size:clamp(100px,36vw,260px)}}
