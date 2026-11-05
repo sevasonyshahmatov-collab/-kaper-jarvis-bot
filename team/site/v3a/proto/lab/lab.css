@@ -364,3 +364,16 @@ footer .f1{font:500 12px var(--mono);letter-spacing:.1em;color:var(--dim);text-t
 .mh .cutl{right:22%;bottom:-6px}.mh .cutr{right:2%;bottom:-18px;animation-delay:-3s}
 @media(max-width:640px){.mh .cutl{right:30%;bottom:-24px}.mh .cutr{right:0}.mh h1{max-width:60%}}
 @media(prefers-reduced-motion:reduce){.orb,.puck3d,.mh .cutl,.mh .cutr{animation:none!important}}
+/* правка глубины после снимков */
+.hero .giant{left:-2vw;top:14%;bottom:auto;font-size:clamp(150px,30vw,470px);-webkit-text-stroke:1px rgba(126,195,255,.30);background:linear-gradient(180deg,#2f3742 0,#1a1e24 90%);-webkit-background-clip:text;background-clip:text}
+.hero .giant small{left:1%;top:-14%;font-size:11px}
+.hero .orb{right:-3vw;top:-12%;width:clamp(200px,34vw,470px)}
+.hero .puck3d{left:calc(50% - 60px);bottom:90px;top:auto}
+@media(max-width:959px){
+ .hero .giant{top:auto;bottom:18%;font-size:34vw}
+ .hero .orb{right:-30vw;top:54%;width:78vw;opacity:.85}
+ .hero .puck3d{left:auto;right:5%;bottom:auto;top:566px}
+}
+html,body{overflow-x:clip}.hero{overflow-x:clip;overflow-y:visible}
+.hero .giant small{display:none}
+@media(min-width:960px){.hero .puck3d{left:calc(50% - 130px);bottom:34px}}
