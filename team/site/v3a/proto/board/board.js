@@ -20,6 +20,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 const T = W.JV_TODAY || { matches: [], days: [] }, M = W.JV_MODEL || {}, L = W.JV_LINES || {}, LK = W.JV_MATCHLINKS || {};
 const CS = W.CLUB_SET || {};
 const LG = { khl: 'КХЛ', nhl: 'НХЛ', epl: 'АПЛ', laliga: 'Ла Лига', seriea: 'Серия А', bundesliga: 'Бундеслига', ligue1: 'Лига 1', ucl: 'Лига чемпионов', uel: 'Лига Европы', rpl: 'РПЛ' };
+const isHockeyLg = l => l === 'khl' || l === 'nhl';
 const isHockey = m => m.lg === 'khl' || m.lg === 'nhl';
 const clubColor = id => (CS[id] && CS[id].a1) || '#5b6572';
 const clubDark = id => (CS[id] && CS[id].dk) || '#2a2f35';
@@ -35,7 +36,7 @@ function share(l) {
   const i = [1 / l.p1, 1 / l.x, 1 / l.p2], s = i[0] + i[1] + i[2];
   return i.map(v => v / s);
 }
-const emb = id => `<img src="../../assets/em/${esc(id)}.webp" alt="" width="52" height="52" loading="lazy" decoding="async">`;
+const emb = (id, lg) => `<img src="../../assets/${lg && !isHockeyLg(lg) ? 'fc' : 'em'}/${esc(id)}.webp" alt="" width="52" height="52" loading="lazy" decoding="async">`;
 const ini = n => `<span class="ini" aria-hidden="true">${esc(n.trim().charAt(0))}</span>`;
 D.addEventListener('error', e => {
   const t = e.target;
@@ -132,7 +133,7 @@ function tileHTML(m, i) {
   <div class="tile-in">
     <div class="face front" style="--ca:${clubColor(m.h)};--cb:${clubColor(m.a)}"><i class="band"></i><i class="knob"></i>
       <div class="meta"><b>${LG[m.lg] || m.lg.toUpperCase()}</b><span>${dayLabel(m)}, ${timeOf(m)} МСК</span></div>
-      <div class="vs"><div class="tm">${emb(m.h).replace('alt=""', 'alt="" data-n="' + esc(m.hn) + '"')}<span>${esc(m.hn)}</span></div><span class="dash">—</span><div class="tm">${emb(m.a).replace('alt=""', 'alt="" data-n="' + esc(m.an) + '"')}<span>${esc(m.an)}</span></div></div>
+      <div class="vs"><div class="tm">${emb(m.h, m.lg).replace('alt=""', 'alt="" data-n="' + esc(m.hn) + '"')}<span>${esc(m.hn)}</span></div><span class="dash">—</span><div class="tm">${emb(m.a, m.lg).replace('alt=""', 'alt="" data-n="' + esc(m.an) + '"')}<span>${esc(m.an)}</span></div></div>
       <div class="pr">${cell('h', 'П1', mod.p1, ln && ln.p1)}${cell('d', 'Х', mod.x, ln && ln.x)}${cell('a', 'П2', mod.p2, ln && ln.p2)}</div>
       <p class="hint">Нажми, чтобы перевернуть</p>
     </div>
@@ -287,7 +288,7 @@ function countdown() {
   const z = n => String(n).padStart(2, '0');
   const tick = () => {
     const d = t0 - Date.now();
-    if (d <= 0) { out.textContent = d > -3 * 3600e3 ? 'идёт' : 'сыгран'; lab.textContent = d > -3 * 3600e3 ? 'Матч начался' : 'Матч дня'; return; }
+    if (d <= 0) { out.textContent = d > -3 * 3600e3 ? 'идёт' : 'сыгран'; lab.textContent = d > -3 * 3600e3 ? 'Матч начался' : 'Матч'; return; }
     const s = Math.floor(d / 1e3), dd = Math.floor(s / 86400);
     out.textContent = (dd ? dd + ' д ' : '') + z(Math.floor(s % 86400 / 3600)) + ':' + z(Math.floor(s % 3600 / 60)) + ':' + z(s % 60);
   };
@@ -374,7 +375,7 @@ function hockeyPage() {
     tabs.addEventListener('click', e => { const b = e.target.closest('button'); if (b) show(b.dataset.k); });
     show('fc');
   }
-  countdown();
+  countdown(); routes(); corridor();
 }
 
 /* ---------- главная ---------- */

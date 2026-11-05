@@ -1,2 +1,2 @@
-СТАТУС: готово board.css, board.js, index.html; осталось hockey.html, match.html, снимки, видео (обновляется по ходу).
+СТАТУС: готово index, hockey, match (стили, скрипт); осталось: проверка снимков 768, видео, финальные правки
 Направление 3 «Тренерский планшет» (board). Шрифты и библиотеки лежат в vendor/ (облако не грузит CDN): Russo One, Golos Text, Caveat (woff2), GSAP 3.13.0, DrawSVG, Rough.js 4.6.6.

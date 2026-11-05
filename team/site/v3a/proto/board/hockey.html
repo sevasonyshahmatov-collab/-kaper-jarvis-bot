@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Хоккей: матчи КХЛ и НХЛ и прогнозы модели | JARVIS</title>
+<meta name="description" content="Матчи КХЛ и НХЛ, вероятности модели рядом с линией, аналитическая таблица. Бесплатно.">
+<meta name="theme-color" content="#e8ebe8">
+<link rel="icon" href="../../favicon.svg">
+<link rel="stylesheet" href="board.css">
+<script>try{if(sessionStorage.getItem('jvboard')){sessionStorage.removeItem('jvboard');document.documentElement.classList.add('arrive')}}catch(e){}</script>
+</head>
+<body data-page="hockey">
+<a class="skip" href="#main">К содержанию</a>
+<div class="lamp" aria-hidden="true"></div><div class="frame" aria-hidden="true"></div>
+<header class="rail"><div class="rail-in">
+<a class="logo" href="index.html" aria-label="JARVIS, главная"><i></i>JARVIS</a>
+<nav class="nav" aria-label="Разделы"><a href="#sevodnya">Матчи</a><a href="#leagues">Лиги и клубы</a><a href="#sheet">Аналитика</a><a href="#model">Модель</a><a href="#results">Итоги</a><a href="#faq">Вопросы</a></nav>
+<a class="btn btn-sm" href="https://t.me/jarvibet">Получать прогнозы</a>
+</div></header>
+<div class="tape" aria-label="Матчи дня"><div class="tape-run"></div></div>
+<main id="main">
+<section class="hero" style="padding-bottom:20px"><div class="wrap"><div class="top-grid">
+<div class="dayblock"><h1>Хоккей: КХЛ и НХЛ</h1>
+<p class="lead" style="margin-top:0">Прогноз на каждый матч от собственной модели. КХЛ днём, НХЛ ночью по Москве. Бесплатно, без VIP.</p>
+<div class="cta-row" style="margin-top:6px"><a class="btn" href="https://t.me/jarvibet">Получать прогнозы — бесплатно</a></div>
+<div class="clock" data-t="2026-11-05 16:30"><span class="l">До матча дня</span><span class="num">--:--:--</span></div>
+<div class="stats"><div class="stat"><span class="num" id="st-all" data-count="0">0</span><small>матчей в ближайшие дни</small></div><div class="stat"><span class="num" id="st-line" data-count="0">0</span><small>с линией и расчётом</small></div><div class="stat"><span class="num" id="st-lg" data-count="2">2</span><small>лиги</small></div></div>
+<p class="credit">Посты с прогнозами выходят в канале: КХЛ до 08:00 МСК, НХЛ до 14:00.</p></div>
+<div><h2 class="h2" style="font-size:clamp(1.3rem,3vw,1.7rem)">Матч дня</h2><div class="deck" id="feat" style="grid-template-columns:minmax(0,1fr);margin-top:20px;max-width:440px"><noscript><p><a href="match.html">Авангард — ЦСКА, 16:30 МСК: модель 39 / 22 / 40 %</a></p></noscript></div></div>
+</div></div></section>
+<section id="sevodnya"><div class="wrap"><h2 class="h2">Сегодня на льду</h2>
+<p class="lead">Матчи дня КХЛ и НХЛ. Нажми на фишку: расчёт модели, тотал и кэфы на обороте.</p>
+<div class="filters" id="chips" role="group" aria-label="Фильтр матчей"><button class="chip" data-f="all" aria-pressed="true">Все</button><button class="chip" data-f="khl" aria-pressed="false">КХЛ</button><button class="chip" data-f="nhl" aria-pressed="false">НХЛ</button></div><div class="deck" id="deck"></div>
+<p style="margin-top:22px"><button class="btn btn-ghost" id="more" hidden>Показать все</button></p><p class="legend">Время московское. Кэфы П1 / Х / П2: основное время, на момент обновления линии. Вероятность: по модели JARVIS. Кэфы: справка, не рекомендация. Это аналитика, не гарантия.</p></div></section>
+<section id="leagues"><div class="wrap"><h2 class="h2">Лиги и клубы</h2>
+<p class="lead">Две лиги, одна модель. КХЛ днём и вечером, НХЛ ночью: ночные матчи собраны в один игровой день.</p>
+<div class="leagues"><div class="lg"><header><img src="../../assets/lg/khl.webp" alt="" width="44" height="44"><h3>КХЛ</h3></header><div class="mags" id="mags-khl"></div></div>
+<div class="lg"><header><img src="../../assets/lg/nhl.webp" alt="" width="44" height="44"><h3>НХЛ</h3></header><div class="mags" id="mags-nhl"></div></div></div>
+<p class="credit" style="margin-top:14px">Эмблемы собственность клубов, показаны для навигации.</p></div></section>
+<section id="sheet"><div class="wrap"><h2 class="h2">Аналитическая таблица</h2>
+<p class="lead">Для тех, кто считает сам: все матчи КХЛ и НХЛ в одном месте, форма команд, вероятности модели и кэфы. Обновляется каждый игровой день.</p>
+<div class="sheet"><div class="tabs" id="tabs" role="tablist" aria-label="Листы таблицы"></div><div class="panel" id="panel" role="tabpanel"><h3>Прогнозы</h3><p>Все матчи ближайших дней на одном листе.</p></div></div>
+<div class="access"><a class="btn" href="https://t.me/jarvibet">Хочу таблицу</a><small>Оплата появится скоро. Сейчас доступ через Telegram.</small></div></div></section>
+<section id="forecast"><div class="wrap"><h2 class="h2">Прогноз модели</h2>
+<p class="lead">Матчи КХЛ и НХЛ ближайших дней: сверху вероятности модели, снизу доля линии без маржи. Кэфы: справка, не рекомендация.</p>
+<div class="key"><span><i class="h"></i>П1, хозяева</span><span><i class="d"></i>Х, ничья</span><span><i class="a"></i>П2, гости</span></div>
+<div class="fc" id="fc"></div><p style="margin-top:20px"><button class="btn btn-ghost" id="fc-more">Показать все матчи</button></p></div></section>
+<section id="model"><div class="wrap"><h2 class="h2">Как думает модель</h2>
+<p class="lead">До матча модель разыгрывает его тысячи раз. Выбор для канала делает человек по правилам ниже, а не сама модель. Ставка только там, где расчёт и линия сходятся.</p>
+<div class="play"><svg class="route" aria-hidden="true"></svg>
+<div class="step"><span class="tok">1</span><h3>Форма</h3><p>Последние игры, сила атаки и обороны, место в таблице. В хоккее ещё броски в створ, вратарь и два матча за два дня.</p></div>
+<div class="step"><span class="tok">2</span><h3>Линия</h3><p>Кэфы рынка сравниваются с вероятностью модели. Большое расхождение: повод перепроверить данные, а не готовый вывод.</p></div>
+<div class="step"><span class="tok">3</span><h3>Выбор</h3><p>Самое вероятное событие в коридоре кэфов 1,6–2,3. В футболе от 60 % по модели. Остальные матчи: разбор без выбора.</p></div></div>
+<div class="corridor"><h3>Почему 1,6–2,3</h3><p>Ниже мало смысла рисковать, выше больше случайности, чем расчёта.</p>
+<div class="axis"><svg aria-hidden="true"></svg><span class="zone" style="left:25%;width:29.2%"></span>
+<span class="tk" style="left:8.3%">1,2</span><span class="tk" style="left:25%">1,6</span><span class="tk" style="left:54.2%">2,3</span><span class="tk" style="left:91.7%">3,2</span></div></div>
+</div></section><section id="results"><div class="wrap"><h2 class="h2">Честные итоги</h2>
+<p class="lead">Каждое утро в канале итоги вчерашних матчей, и зашедшие, и нет. У каждого прогноза номер поста: любой можно проверить.</p>
+<div class="soon"><h3>Скоро</h3><p>Сводку по месяцам и таблицу всех прогнозов выложим здесь, когда накопится проверяемая история. Пока цифр здесь нет, чтобы не показывать примерные. Итоги дня в Telegram.</p></div></div></section><section id="doubts"><div class="wrap"><h2 class="h2">Частые сомнения</h2><p class="lead">Коротко о главном.</p><ul class="notes"><li class="note"><h3>Это бесплатно?</h3><p>Да. Канал @jarvibet бесплатный, прогнозы выходят до начала матча. Без VIP и предоплаты, без обещаний гарантированного исхода.</p></li><li class="note"><h3>Почему верить?</h3><p>Верить на слово не нужно: собственная модель, а не чужие скриншоты. У каждого прогноза вероятность модели и линия рынка, время публикации указано. Блок «Итоги» на сайте скоро. <a href="index.html#model">Как считает модель</a></p></li><li class="note"><h3>Чем вы отличаетесь?</h3><p>Мы считаем, а не угадываем: объясняем, откуда цифра, а не просто даём совет. На каждый матч вероятность модели и реальная линия. Без промокодов и рекламы букмекеров.</p></li><li class="note"><h3>А если не сработает?</h3><p>Гарантий нет: прогноз — оценка вероятности, и у любой модели бывают плохие серии. Поэтому цифры и линия всегда рядом, а решать вам.</p></li></ul></div></section><section id="tg"><div class="wrap"><div class="tg"><div><h2 class="h2">Все прогнозы в Telegram</h2><p class="lead">КХЛ до 08:00 МСК, НХЛ до 14:00, с кэфом и вероятностью. Ролики и итоги утром.</p>
+<div class="tg-list" style="margin-top:24px"><div class="player"><span class="tok">1</span><div><h3>Посты на каждый матч</h3><p>С кэфом и вероятностью по модели.</p></div></div>
+<div class="player"><span class="tok">2</span><div><h3>Ролики</h3><p>Матчи дня и тренды коротко.</p></div></div>
+<div class="player"><span class="tok">3</span><div><h3>Итоги дня</h3><p>Все прогнозы подряд. Подписка бесплатная.</p></div></div></div></div>
+<div class="big-cta"><h2>Подписка бесплатная</h2><p>Прогнозы выходят до начала матча.</p><a class="btn" href="https://t.me/jarvibet">Получать прогнозы — бесплатно</a></div></div></div></section><section id="faq"><div class="wrap"><h2 class="h2">Вопросы</h2><p class="lead">Футбол: топ-лиги Европы и Лига чемпионов, та же модель. <a href="../../football/index.html">Прогнозы на футбол</a></p><div class="faq"><details><summary>Где посмотреть итоги?</summary><div class="ans">Каждое утро в канале и здесь, в разделе «Итоги»: все прогнозы подряд, с номером поста и счётом матча.</div></details><details><summary>Какие лиги?</summary><div class="ans">Хоккей: КХЛ и НХЛ. Футбол: АПЛ, Ла Лига, Серия А, Бундеслига, Лига 1, Португалия и Лига чемпионов.</div></details><details><summary>Что такое «ВЫБОР»?</summary><div class="ans">Событие, у которого модель даёт от 60 % при кэфе от 1,6. Остальные матчи: разбор без выбора.</div></details><details><summary>Когда выходят прогнозы?</summary><div class="ans">КХЛ до 08:00 по Москве, НХЛ до 14:00. Ночные матчи НХЛ собраны в один игровой день.</div></details></div><p class="fine">18+. Аналитика, а не призыв делать ставки. Выигрыш не гарантирован.</p></div></section></main><footer class="tray"><div class="tray-in">
+<div class="mk-row" aria-hidden="true"><span class="marker"></span><span class="marker"></span><span class="marker"></span><span class="marker"></span><span class="eraser"></span></div>
+<p>18+. Материалы носят информационный характер и не гарантируют результат: это аналитика, а не призыв делать ставки. Выигрыш не гарантирован. Реклама букмекеров на сайте не размещается.</p>
+<p class="fl"><a href="index.html">Главная</a><a href="hockey.html">Хоккей</a><a href="../../football/index.html">Футбол</a><a href="https://t.me/jarvibet">Telegram @jarvibet</a><span>Прототип «Тренерский планшет», © JARVIS</span></p>
+</div></footer>
+<noscript><style>.tile,.note{transform:none}</style></noscript>
+<script src="../../data/today.js"></script><script src="../../data/model.js"></script><script src="../../data/lines.js"></script><script src="../../data/matchlinks.js"></script><script src="../../assets/club/themes.js"></script>
+<script src="vendor/gsap.min.js"></script><script src="vendor/DrawSVGPlugin.min.js"></script><script src="vendor/rough.js"></script>
+<script src="board.js"></script>
+</body></html>
