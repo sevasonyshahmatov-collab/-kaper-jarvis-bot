@@ -1,0 +1,20 @@
+{
+ "hockey": {
+  "w": 770,
+  "h": 900,
+  "author": "Connor Mah",
+  "license": "CC BY-SA 2.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Connor_McDavid_-_18880077644.jpg",
+  "src": "File:Connor McDavid - 18880077644.jpg",
+  "license_url": "https://creativecommons.org/licenses/by-sa/2.0"
+ },
+ "football": {
+  "w": 493,
+  "h": 900,
+  "author": "Bryan Berlin",
+  "license": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Kylian_Mbappe_France_v_Senegal_16_June_2026-391.jpg",
+  "src": "File:Kylian Mbappe France v Senegal 16 June 2026-391.jpg",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0"
+ }
+}
