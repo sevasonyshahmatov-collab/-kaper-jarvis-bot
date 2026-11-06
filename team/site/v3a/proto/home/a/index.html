@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ru" data-theme="c">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JARVIS: первая полоса</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#e3eff9">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="stylesheet" href="../../../assets/v3a.css">
+<link rel="stylesheet" href="../../../assets/nav.css">
+<link rel="stylesheet" href="home-a.css">
+<link rel="icon" href="../../../favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="../../../index.html" aria-label="JARVIS, главная">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="../../../hockey/index.html">Хоккей</a>
+      <a href="../../../football/index.html">Футбол</a>
+    </nav>
+    <nav class="nav" aria-label="Разделы"><a href="#cols">Сегодня</a><a href="#how">Модель</a></nav>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Получать прогнозы — бесплатно</span></a>
+  </div>
+</header>
+
+<main id="main" class="fp">
+  <div class="wrap">
+    <div class="fp-mast">
+      <span id="fp-date">Сегодня</span>
+      <span class="fp-mid">Прогнозы на КХЛ, НХЛ и топ-футбол по расчёту модели</span>
+      <span id="fp-upd"></span>
+    </div>
+
+    <div class="fp-top">
+      <article class="fp-lead" id="fp-lead" aria-live="polite">
+        <h1>Прогнозы на хоккей и футбол — по расчёту, а не наугад</h1>
+      </article>
+      <aside class="fp-side">
+        <p class="fp-lede">На каждый матч КХЛ, НХЛ и топ-лиг Европы — вероятность нашей модели рядом с линией рынка. Прогнозы выходят до начала игры, бесплатно.</p>
+        <a class="btn btn-tg fp-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>Получать прогнозы — бесплатно</a>
+        <p class="fp-micro">Без VIP и промокодов. <a href="../../../index.html#model">Как считает модель</a></p>
+      </aside>
+    </div>
+
+    <div class="fp-cols" id="cols">
+      <section class="fp-col" aria-labelledby="fp-hh">
+        <h2 id="fp-hh">Хоккей</h2>
+        <ol class="fp-list" id="fp-h"><li class="fp-none">Загружаем матчи…</li></ol>
+        <a class="fp-more" href="../../../hockey/index.html">Все матчи хоккея</a>
+      </section>
+      <section class="fp-col" aria-labelledby="fp-fh">
+        <h2 id="fp-fh">Футбол</h2>
+        <ol class="fp-list" id="fp-f"><li class="fp-none">Загружаем матчи…</li></ol>
+        <a class="fp-more" href="../../../football/index.html">Все матчи футбола</a>
+      </section>
+      <section class="fp-col fp-how" id="how" aria-labelledby="fp-mh">
+        <h2 id="fp-mh">Как читать</h2>
+        <p>Крупные проценты — вероятность исхода по модели: она разыгрывает матч тысячи раз. Рядом — кэф линии на тот же исход.</p>
+        <p>«Выбор» появляется, когда модель даёт от 60 % при кэфе от 1,6.</p>
+        <p class="fp-legal">18+. Аналитика, а не призыв делать ставки. Выигрыш не гарантирован.</p>
+      </section>
+    </div>
+  </div>
+</main>
+
+<script src="../../../assets/nav.js"></script>
+<script src="../../../assets/footer.js"></script>
+<script src="../../../data/today.js"></script>
+<script src="../../../data/lines.js"></script>
+<script src="../../../data/model.js"></script>
+<script src="../../../assets/lines.js"></script>
+<script src="../common.js"></script>
+<script src="home-a.js"></script>
+</body>
+</html>
