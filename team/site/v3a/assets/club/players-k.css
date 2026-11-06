@@ -1,0 +1,52 @@
+/* Игроки в цветах клуба (06.11). Класс .k и переменные --kb/--kbm/--ks/--kt/--ko/--ko2/--kx/--kp ставит hockey-players.js из club/jersey.js.
+   Форма у всех одна, меняется только раскраска: диагональный градиент основного цвета, «рукав» из полос слева, эмблема-водяной знак,
+   номер контуром, портрет на подложке второго цвета. Цвет текста (--ko) выбран по яркости фона, контраст ≥ 4.5. */
+.pr.k{position:relative;overflow:hidden;isolation:isolate;border:0;color:var(--ko);padding:12px 112px 12px 44px;
+  background:
+    linear-gradient(112deg,transparent 0 70%,color-mix(in srgb,var(--ks) 16%,transparent) 70% 78%,transparent 78%),
+    linear-gradient(100deg,var(--kb) 0,var(--kb) 52%,var(--kbm) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 12px 24px -18px rgba(0,0,0,.9)}
+.pr.k::before{content:"";position:absolute;z-index:-1;left:-10px;top:-4px;bottom:-4px;width:40px;transform:skewX(-9deg);
+  background:linear-gradient(90deg,var(--ks) 0 15px,var(--kt) 15px 19px,var(--ks) 19px 23px,transparent 23px);transition:filter .2s}
+.pr.k .wm{position:absolute;z-index:-1;right:116px;top:50%;width:150px;height:150px;margin-top:-75px;pointer-events:none;opacity:.2;
+  background:var(--ks);-webkit-mask-size:contain;mask-size:contain;-webkit-mask-position:center;mask-position:center;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.pr.k .no{position:absolute;z-index:-1;right:14px;bottom:-10px;font:900 88px/1 var(--display);letter-spacing:-.03em;color:transparent;
+  -webkit-text-stroke:1.5px var(--kx);opacity:.6;pointer-events:none;transition:opacity .2s}
+.pr.k .rk,.pr.k .nm span,.pr.k .hit b small,.pr.k .strip small,.pr.k .ha,.pr.k .nx{color:var(--ko2)}
+.pr.k .nm b,.pr.k .hit b,.pr.k .strip small b,.pr.k .ha b,.pr.k .nx b{color:var(--ko)}
+.pr.k .bar{background:color-mix(in srgb,var(--ko) 24%,transparent)}
+.pr.k .bar i{background:var(--kx)}
+.pr.k .strip .bars{border-bottom-color:color-mix(in srgb,var(--ko) 38%,transparent)}
+.pr.k .strip .bars i{background:color-mix(in srgb,var(--ko) 26%,transparent)}
+.pr.k .strip .bars i.g{background:var(--kx)}
+.pr.k .strip .bars i b,.pr.k .strip .bars i.g b{color:var(--ko)}
+.pr.k .nx img{background:#fff;padding:2px}
+.pr.k .av{background:radial-gradient(circle at 50% 22%,color-mix(in srgb,var(--kp) 72%,#fff),var(--kp) 72%);
+  box-shadow:0 0 0 2px var(--kt),0 0 0 5px color-mix(in srgb,var(--kx) 55%,transparent)}
+.pr.k .av span{color:var(--kpo);text-shadow:none}
+.pr.k .av .ph{background:transparent}
+.pr.k .av .bd{box-shadow:0 0 0 2px var(--kb)}
+/* топ-3: металлическая кромка (1 — золото, 2 — серебро, 3 — бронза) */
+.pr.k.t1,.pr.k.t2,.pr.k.t3{border:2px solid transparent;padding:10px 110px 10px 42px;
+  background:
+    linear-gradient(112deg,transparent 0 70%,color-mix(in srgb,var(--ks) 16%,transparent) 70% 78%,transparent 78%) padding-box,
+    linear-gradient(100deg,var(--kb) 0,var(--kb) 52%,var(--kbm) 100%) padding-box,
+    var(--mt) border-box}
+.pr.k.t1{--mt:linear-gradient(135deg,#fff1ad,#d9a82b 26%,#fff6c9 48%,#a97a14 74%,#f4d975);box-shadow:0 0 0 1px rgba(255,226,130,.25),0 14px 28px -16px rgba(255,200,60,.55)}
+.pr.k.t2{--mt:linear-gradient(135deg,#f4f7fa,#a9b3bd 30%,#eef2f6 52%,#7d8791 78%,#dfe5ea)}
+.pr.k.t3{--mt:linear-gradient(135deg,#f1c9a1,#b0703a 30%,#f0cfae 52%,#7f4b22 78%,#dba878)}
+.pr.k.t1 .rk{font-size:22px}
+@media (hover:hover){
+  .pr.k:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 16px 28px -16px color-mix(in srgb,var(--kx) 70%,#000)}
+  .pr.k:hover::before{filter:brightness(1.18) saturate(1.2)}
+  .pr.k:hover .no{opacity:.95}
+}
+@media (prefers-reduced-motion:no-preference){.pr.k{transition:transform .18s ease,box-shadow .18s ease}}
+@media (max-width:900px){
+  .pr.k{padding-left:34px;padding-right:14px}
+  .pr.k.t1,.pr.k.t2,.pr.k.t3{padding-left:32px;padding-right:12px}
+  .pr.k .nx{padding-right:60px}
+  .pr.k::before{width:30px;background:linear-gradient(90deg,var(--ks) 0 11px,var(--kt) 11px 14px,var(--ks) 14px 17px,transparent 17px)}
+  .pr.k .no{font-size:62px;right:8px;bottom:-4px}
+  .pr.k .wm{width:130px;height:130px;margin-top:-65px;right:-10px}
+}
