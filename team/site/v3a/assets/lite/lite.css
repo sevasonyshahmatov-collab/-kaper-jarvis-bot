@@ -74,16 +74,18 @@ html.lite .lt-wedge--2{right:-6%;width:22%;clip-path:polygon(34% 0,100% 0,66% 10
 @media(hover:hover) and (pointer:fine){
   html.lite :is(.hm-row,.match:not(.open),.fc-m,.lgm,.plcard,.crest,.hm-door,.door,.me-card,.me-m,.me-tm,.lgtab,.lt-glass,.hero .board){
     position:relative;transition:transform .28s var(--lt-ease),box-shadow .28s var(--lt-ease),background-color .25s ease}
-  html.lite :is(.hm-row,.match:not(.open),.fc-m,.lgm,.plcard,.crest,.hm-door,.door,.me-card,.me-m,.me-tm,.lgtab,.lt-glass):hover{
+  html.lite :is(.hm-row,.fc-m,.lgm,.plcard,.crest,.hm-door,.door,.me-card,.me-m,.me-tm,.lgtab,.lt-glass):hover{
     transform:translateY(-3px);box-shadow:0 12px 28px -12px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.18)}
+  /* строка матча уже несёт цветную кромку box-shadow — тень кладём фильтром, чтобы её не затереть */
+  html.lite .match:not(.open):hover{transform:translateY(-2px);filter:drop-shadow(0 10px 12px rgba(0,0,0,.35))}
   html.lite .lt-glass:hover{box-shadow:0 20px 44px -16px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.22)}
   html.lite :is(.hm-row,.match:not(.open),.fc-m,.lgm,.plcard,.crest,.hm-door,.door,.me-card,.me-m,.me-tm,.lgtab,.lt-glass):active{
     transform:scale(.98);transition-duration:.08s}
   /* блик — своим слоем поверх карточки, ничего не обрезает */
-  html.lite :is(.hm-row,.fc-m,.lgm,.plcard,.hm-door,.door,.me-card,.me-m,.me-tm,.lgtab,.lt-glass)::after{
+  html.lite :is(.hm-row,.match:not(.open),.fc-m,.lgm,.plcard,.hm-door,.door,.me-card,.me-m,.me-tm,.lgtab,.lt-glass)::after{
     content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;opacity:0;
     background:linear-gradient(100deg,transparent 38%,rgba(255,255,255,.11) 50%,transparent 62%);background-size:260% 100%;background-position:150% 0}
-  html.lite :is(.hm-row,.fc-m,.lgm,.plcard,.hm-door,.door,.me-card,.me-m,.me-tm,.lgtab,.lt-glass):hover::after{
+  html.lite :is(.hm-row,.match:not(.open),.fc-m,.lgm,.plcard,.hm-door,.door,.me-card,.me-m,.me-tm,.lgtab,.lt-glass):hover::after{
     opacity:1;animation:ltGlint .8s var(--lt-ease) 1 both}
 }
 @keyframes ltGlint{from{background-position:150% 0}to{background-position:-50% 0}}
