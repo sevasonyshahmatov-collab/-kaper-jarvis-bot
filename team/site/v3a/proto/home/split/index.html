@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ru" data-theme="a">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JARVIS: раскол</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0a1220">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="stylesheet" href="../../../assets/v3a.css">
+<link rel="stylesheet" href="../../../assets/nav.css">
+<link rel="stylesheet" href="split.css">
+<link rel="icon" href="../../../favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="../../../index.html" aria-label="JARVIS, главная">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="../../../hockey/index.html">Хоккей</a>
+      <a href="../../../football/index.html">Футбол</a>
+    </nav>
+    <nav class="nav" aria-label="Разделы"><a href="#today">Сегодня</a><a href="#model">Модель</a></nav>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Получать прогнозы — бесплатно</span></a>
+  </div>
+</header>
+
+<main id="main">
+<section class="sp" id="sp" aria-labelledby="sp-h">
+
+  <!-- ГАЗОН: нижний слой, виден справа / снизу от шва -->
+  <div class="half turf" id="turf" aria-hidden="true">
+    <div class="bg"></div>
+    <svg class="mk" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice"><g fill="none" stroke="#fff" stroke-width="5" opacity=".34"><rect x="60" y="60" width="1480" height="880"/><path d="M800 60v880"/><circle cx="800" cy="500" r="140"/><circle cx="800" cy="500" r="7" fill="#fff"/><rect x="60" y="270" width="230" height="460"/><rect x="1310" y="270" width="230" height="460"/><rect x="60" y="390" width="90" height="220"/><rect x="1450" y="390" width="90" height="220"/><path d="M290 410a140 140 0 0 1 0 180M1310 410a140 140 0 0 0 0 180"/></g></svg>
+    <i class="sweep"></i>
+    <div class="word" id="wT">ФУТБОЛ</div>
+    <img class="pl" id="plT" src="../players/football.webp" alt="" width="493" height="900" draggable="false">
+    <div class="ui" id="uT"><span class="cnt" id="cnt-f">топ-лиги Европы</span><span class="cta">Открыть футбол<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 10h13M11 4l6 6-6 6"/></svg></span></div>
+  </div>
+
+  <!-- ЛЁД: верхний слой, обрезается по шву -->
+  <div class="half ice" id="ice" aria-hidden="true">
+    <div class="bg"></div>
+    <canvas class="scr" id="scr"></canvas>
+    <svg class="mk" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice"><g fill="none" stroke-width="5"><circle cx="520" cy="500" r="170" stroke="#ff8d99" opacity=".42"/><circle cx="520" cy="500" r="9" fill="#ff8d99" stroke="none" opacity=".5"/><path d="M520 330v-270M520 670v270" stroke="#ff8d99" opacity=".3"/><path d="M1040 40v920" stroke="#7fc4ff" stroke-width="22" opacity=".42"/><path d="M180 40v920" stroke="#ff8d99" stroke-width="9" opacity=".32"/><path d="M60 330a150 150 0 0 1 130 170 150 150 0 0 1-130 170" stroke="#9ad2ff" opacity=".35"/></g></svg>
+    <i class="frost"></i><i class="sweep"></i>
+    <div class="word" id="wI">ХОККЕЙ</div>
+    <img class="pl" id="plI" src="../players/hockey.webp" alt="" width="846" height="1100" draggable="false">
+    <div class="ui" id="uI"><span class="cnt" id="cnt-h">КХЛ и НХЛ</span><span class="cta">Открыть хоккей<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 10h13M11 4l6 6-6 6"/></svg></span></div>
+  </div>
+
+  <canvas class="fx" id="fx" aria-hidden="true"></canvas>
+  <svg class="seam" id="seam" aria-hidden="true"><line id="sg" class="g"/><line id="sl" class="l"/></svg>
+
+  <a class="hit" id="hI" data-s="ice" href="../../../hockey/index.html" aria-label="Хоккей: КХЛ и НХЛ, открыть"></a>
+  <a class="hit" id="hT" data-s="turf" href="../../../football/index.html" aria-label="Футбол: топ-лиги Европы, открыть"></a>
+
+  <div class="head"><p class="eyebrow">JARVIS · прогнозы по собственной модели</p><h1 id="sp-h">Хоккей или футбол — выбирай сторону</h1></div>
+  <p class="credit">Фото: Kylian Mbappé — Bryan Berlin, CC BY-SA 4.0, Wikimedia Commons</p>
+  <div class="veil" id="veil"></div>
+</section>
+
+<section class="sec td" id="today">
+  <div class="wrap">
+    <div class="td-h"><h2>Ближайшие матчи</h2><span id="td-upd"></span></div>
+    <ul class="td-list" id="td-list"><li class="td-soon">Загружаем матчи…</li></ul>
+    <p class="td-note">Время московское. Вероятность — самый вероятный исход по модели JARVIS, кэф — на этот же исход, основное время. Это аналитика, не гарантия.</p>
+  </div>
+</section>
+
+<section class="sec td" id="model">
+  <div class="wrap">
+    <div class="td-h"><h2>Как думает модель</h2></div>
+    <ol class="steps">
+      <li><h3>Форма</h3><p>Последние игры, сила атаки и обороны, место в таблице.</p></li>
+      <li><h3>Линия</h3><p>Кэфы рынка сравниваются с вероятностью модели.</p></li>
+      <li><h3>Выбор</h3><p>Самое вероятное событие в коридоре кэфов 1,6–2,3. В футболе — от 60 % по модели.</p></li>
+    </ol>
+  </div>
+</section>
+</main>
+
+<script src="../../../assets/nav.js"></script>
+<script src="../../../assets/footer.js"></script>
+<script src="../../../data/today.js"></script>
+<script src="../../../data/lines.js"></script>
+<script src="../../../data/model.js"></script>
+<script src="../../../assets/lines.js"></script>
+<script src="../common.js"></script>
+<script src="vendor/gsap.min.js"></script>
+<script src="split.js"></script>
+</body>
+</html>
