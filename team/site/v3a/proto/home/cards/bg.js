@@ -9,14 +9,13 @@ if(fan){
  const F=[['khl',3,6,-17,1.15,1.5,34,2.2,1.6,5],['epl',13,34,-7,1.3,.8,41,1.6,2.4,-4],['laliga',2,62,13,1.05,2,37,2.4,-1.8,6],['ucl',14,76,22,.85,3.2,45,1.4,-2,-5],
   ['nhl',86,5,16,1.1,1.6,38,-2.2,1.8,-5],['seriea',76,31,7,1.25,.8,43,-1.8,2.2,4],['bundesliga',91,59,-13,1.05,2,35,-2,-2,-6],['ligue1',77,75,-21,.9,3.2,47,-1.4,1.6,5]];
  fan.innerHTML=F.map(([lg,x,y,r,s,b,d,dx,dy,dr],i)=>
-  `<div class="fw" style="--x:${x}%;--y:${y}%;--s:${s};--i:${i}"><div class="fd" style="--r:${r};--dx:${dx*3.2}vmin;--dy:${dy*3.2}vmin;--dr:${dr*2}deg;--ry:${i%2?-22:22}deg;--d:${(d/4.5).toFixed(1)}s;--dl:${-i*1.3}s;--gl:${(i*.85).toFixed(2)}s"><div class="fk" style="--b:${b}px"><img src="../../../assets/lg/${lg}.webp" alt="" draggable="false"><i></i></div></div></div>`).join('');
+  `<div class="fw" style="--x:${x}%;--y:${y}%;--s:${s};--i:${i}"><div class="fd" style="--r:${r};--dx:${dx*3.2}vmin;--dy:${dy*3.2}vmin;--dr:${dr*2}deg;--ry:${i%2?-22:22}deg;--d:${(d/2.4).toFixed(1)}s;--dl:${-i*2.3}s"><div class="fk" style="--b:${b}px"><img src="../../../assets/lg/${lg}.webp" alt="" draggable="false"><i></i></div></div></div>`).join('');
 }
-/* лёгкий параллакс веера за курсором (свойство translate не мешает анимации transform) */
-if(fan&&!RM&&matchMedia('(hover:hover)').matches){
- const hero=fan.parentElement;let tx=0,ty=0,raf2=0;
- hero.addEventListener('pointermove',e=>{const b=hero.getBoundingClientRect();tx=(e.clientX-b.left)/b.width*2-1;ty=(e.clientY-b.top)/b.height*2-1;
-  if(!raf2)raf2=requestAnimationFrame(()=>{raf2=0;fan.style.setProperty('--mx',tx.toFixed(3));fan.style.setProperty('--my',ty.toFixed(3))})});
- hero.addEventListener('pointerleave',()=>{fan.style.setProperty('--mx',0);fan.style.setProperty('--my',0)});
+/* блик: раз в 4 с на одной случайной карточке (не на той же, что в прошлый раз) */
+if(fan&&!RM){
+ const ks=[...fan.querySelectorAll('.fk')];let last=-1;
+ setInterval(()=>{if(document.hidden)return;let n;do{n=Math.floor(Math.random()*ks.length)}while(n===last&&ks.length>1);last=n;
+  const k=ks[n];k.classList.remove('gl');void k.offsetWidth;k.classList.add('gl')},4000);
 }
 
 const cv=document.getElementById('cd-dust');
