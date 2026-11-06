@@ -64,10 +64,10 @@ html.efir[data-sport=hockey] .facts li>span{color:#fff;font-size:14px;max-width:
 html.efir[data-sport=hockey] .chips{margin-top:22px}
 html.efir[data-sport=hockey] #top .chips a{background:rgba(44,55,77,.85)}
 /* карточка «Прогноз дня» — табло-стекло (интерактив: листается) */
-html.efir[data-sport=hockey] .board,html.efir[data-sport=hockey] [data-theme] .hero .board{background:var(--ef-glass);border:1px solid var(--ef-edge);border-radius:4px;box-shadow:var(--ef-sh1);color:#fff;padding:0;overflow:hidden;position:relative;
+html.efir[data-sport=hockey] .board,html.efir[data-sport=hockey][data-theme="arena"] .hero .board{background:var(--ef-glass);border:1px solid var(--ef-edge);border-radius:4px;box-shadow:var(--ef-sh1);color:#fff;padding:0;overflow:hidden;position:relative;
   -webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);max-width:560px}
-@media(max-width:899px){html.efir[data-sport=hockey] .board,html.efir[data-sport=hockey] [data-theme] .hero .board{background:linear-gradient(180deg,rgba(38,48,70,.94),rgba(26,34,52,.96))}}
-html.efir[data-sport=hockey] .board::before,html.efir[data-sport=hockey] [data-theme] .hero .board::before{display:none}
+@media(max-width:899px){html.efir[data-sport=hockey] .board,html.efir[data-sport=hockey][data-theme="arena"] .hero .board{background:linear-gradient(180deg,rgba(38,48,70,.94),rgba(26,34,52,.96))}}
+html.efir[data-sport=hockey] .board::before,html.efir[data-sport=hockey][data-theme="arena"] .hero .board::before{display:none}
 html.efir[data-sport=hockey] .board-top{padding:10px 16px;margin:0;border-bottom:1px solid var(--ef-edge);color:var(--ef-mute);font:600 12px/1.2 var(--ef-b);letter-spacing:0}
 html.efir[data-sport=hockey] .board-top b,html.efir[data-sport=hockey] .board-top .bmeta b{color:#fff;font:700 12px/1 var(--ef-d)}
 html.efir[data-sport=hockey] .board-top .lamp{background:#fff;border-radius:0;transform:skewX(-12deg)}
@@ -695,6 +695,10 @@ html.efir[data-sport=hockey] .lgnote{color:var(--ef-dim)}
 /* .hm — колонки таблицы лиги; не путать с блоком главной (efir.css даёт .hm display:flex) */
 html.efir[data-sport=hockey] .ltab .hm{display:table-cell;padding:8px;overflow:visible;isolation:auto}
 @media(max-width:620px){html.efir[data-sport=hockey] .ltab .hm{display:none}html.efir[data-sport=hockey] .lgm .when{font-size:14px}html.efir[data-sport=hockey] .lgm{grid-template-columns:56px minmax(0,1fr) auto minmax(0,1fr)}}
+html.efir[data-sport=hockey] .lghero>.wrap,html.efir[data-sport=hockey] [data-theme] .lghero>.wrap{display:block}
+html.efir[data-sport=hockey] .lgrow{margin-top:6px}
+html.efir[data-sport=hockey] #top.lghero>.wrap{display:block}
+html.efir[data-sport=hockey] #top.lghero::before,html.efir[data-sport=hockey] #top.lghero::after{width:46%}
 /* ═══ 9. ТРЕНДЫ ДНЯ (hockey/trends.html) ═══ */
 html.efir[data-sport=hockey] body.tr{--paper:var(--ef-bg);--paper-2:var(--ef-chip);--paper-3:var(--ef-chip2);--card:var(--ef-chip);--card-hi:var(--ef-chip2);--ink:var(--ef-ink);--ink-2:var(--ef-mute);--ink-3:var(--ef-dim);
   --rule:var(--ef-line2);--rule-2:var(--ef-line);--ice:#fff;--acc:#fff;--ok:#6be3a0;--no:#ff9aa6;--crest-bg:transparent;background:transparent;color:var(--ef-ink)}
