@@ -553,3 +553,4 @@ em.it,.it{font-family:var(--f-s);font-style:italic;font-weight:500;letter-spacin
 .odd,.mt__r,.lg,.dcard,.cl{background:linear-gradient(180deg,#3a4863,#313e57)!important;border-color:rgba(255,255,255,.14)!important}
 .dcard{background:#313e57!important}
 .sheet__ctl button,.chip{background:#3c4b67}
+.nav a.btn{color:#000}.nav a.btn:hover{color:#fff}
