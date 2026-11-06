@@ -4,7 +4,7 @@
 
 | Файл | Игрок | Автор | Лицензия | Страница файла |
 |---|---|---|---|---|
-| `hockey.webp` | Connor McDavid | Connor Mah | CC BY-SA 2.0 | https://commons.wikimedia.org/wiki/File:Connor_McDavid_-_18880077644.jpg |
+| `hockey.webp` | Connor McDavid | фото прислал владелец 06.11 (источник не указан) | ⚠️ лицензию выяснить до публикации сайта | — (фон вырезан rembg, контраст/цвет/резкость чуть подняты) |
 | `football.webp` | Kylian Mbappé | Bryan Berlin | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Kylian_Mbappe_France_v_Senegal_16_June_2026-391.jpg |
 
 Остальные кандидаты (`cand/`) с авторами и лицензиями — в `cand/meta.json`.
