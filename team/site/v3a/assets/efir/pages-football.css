@@ -351,7 +351,7 @@ html.efir[data-sport="football"] .tmhero.hero::after,html.efir[data-sport="footb
 html.efir[data-sport="football"] .tmbg,html.efir[data-sport="football"] .tmwm,html.efir[data-sport="football"] .embsh{display:none!important}
 html.efir[data-sport="football"] .tmcrest{background:none;box-shadow:none;border-radius:0;width:clamp(96px,16vw,230px);aspect-ratio:1}
 html.efir[data-sport="football"] .tmcrest .em{width:100%;height:100%;filter:drop-shadow(0 18px 24px rgba(8,12,22,.6));animation:efEm .7s .3s var(--ef-ease) both}
-html.efir[data-sport="football"] .tmname h1{font:900 clamp(30px,6.2vw,92px)/.95 var(--ef-d);letter-spacing:-.035em;overflow-wrap:break-word;hyphens:manual;text-transform:none}
+html.efir[data-sport="football"] .tmname h1{font:900 clamp(28px,4.8vw,70px)/.95 var(--ef-d);letter-spacing:-.035em;overflow-wrap:break-word;hyphens:manual;text-transform:none}
 html.efir[data-sport="football"] .tmlg,html.efir[data-sport="football"] .tmlg a{font:600 14px/1.2 var(--ef-b);color:var(--ef-mute);text-decoration:none}
 html.efir[data-sport="football"] .tmlg a:hover{color:#fff}
 html.efir[data-sport="football"] .tmrow{gap:clamp(14px,2.4vw,36px)}
@@ -543,3 +543,73 @@ html.efir[data-sport="football"] .gl-t:target{box-shadow:none;border-top-color:#
 html.efir[data-sport="football"] .gl-t h3,html.efir[data-sport="football"] .gl-h{font-family:var(--ef-d)}
 html.efir[data-sport="football"] .gl-t h3 a{color:#fff}
 html.efir[data-sport="football"] .gl-t p{color:var(--ef-mute)}
+
+/* ═══ 7. ТРЕНДЫ / ИГРОКИ / АВТОРСТВО ФОТО ═══ */
+html.efir[data-sport="football"] .tr-top{padding-top:clamp(18px,3vw,44px)}
+html.efir[data-sport="football"] .tr-top h1,html.efir[data-sport="football"] .pl-hero h1{font:900 clamp(30px,5vw,68px)/1 var(--ef-d);letter-spacing:-.035em;text-wrap:balance}
+html.efir[data-sport="football"] .tr-top h1 span{color:#fff;font-family:var(--ef-i);font-style:italic;font-weight:500;letter-spacing:0}
+html.efir[data-sport="football"] .pl-lead{color:var(--ef-mute)}
+html.efir[data-sport="football"] .tr-bar{border-color:var(--ef-line)}
+html.efir[data-sport="football"] .tr-bar .tab,html.efir[data-sport="football"] .pl-tabs button,html.efir[data-sport="football"] .pl-chips button,html.efir[data-sport="football"] .pl-more{border:0;border-radius:0;clip-path:var(--sk12);background:var(--ef-chip);color:var(--ef-mute);font:600 14px/1 var(--ef-b);padding:12px 22px 12px 14px;transition:background .15s,color .15s,transform .12s}
+html.efir[data-sport="football"] .pl-more{display:block;margin-left:0}
+html.efir[data-sport="football"] .tr-bar .tab:hover,html.efir[data-sport="football"] .pl-tabs button:hover,html.efir[data-sport="football"] .pl-chips button:hover,html.efir[data-sport="football"] .pl-more:hover{background:var(--ef-chip2);color:#fff}
+html.efir[data-sport="football"] :is(.tr-bar .tab,.pl-tabs button,.pl-chips button,.pl-more):active{transform:scale(.97)}
+html.efir[data-sport="football"] .tr-bar .tab[aria-pressed="true"],html.efir[data-sport="football"] .tr-bar .tab[aria-selected="true"],html.efir[data-sport="football"] .pl-tabs button[aria-pressed="true"],html.efir[data-sport="football"] .pl-chips button[aria-pressed="true"]{background:#fff;color:#000}
+html.efir[data-sport="football"] .tr-bar .tab.str::before{border-radius:0;transform:skewX(-12deg);background:var(--hb)}
+html.efir[data-sport="football"] .tr-lbl,html.efir[data-sport="football"] .pl-row label{font:700 11px/1 var(--ef-d);letter-spacing:.1em;color:var(--ef-dim)}
+html.efir[data-sport="football"] .pl-row select,html.efir[data-sport="football"] .pl-row input{background:var(--ef-chip);color:#fff;border:0;border-bottom:2px solid #fff;border-radius:0}
+html.efir[data-sport="football"] .pl-meta,html.efir[data-sport="football"] .tr-note,html.efir[data-sport="football"] .tr-legal,html.efir[data-sport="football"] .pl-note{color:var(--ef-mute)}
+html.efir[data-sport="football"] .tr-sum b{font:900 clamp(34px,4vw,54px)/1 var(--ef-d);letter-spacing:-.03em}
+html.efir[data-sport="football"] .tr-sum{color:var(--ef-mute)}
+html.efir[data-sport="football"] .tr-plate{background:none;border:0;border-left:3px solid var(--hb);border-radius:0;padding:2px 0 2px 16px;color:var(--ef-mute)}
+html.efir[data-sport="football"] .tr-plate b{color:#fff}
+html.efir[data-sport="football"] .tlist{gap:0}
+html.efir[data-sport="football"] .tlist>.tr{background:none;box-shadow:none;border-radius:0;border-top:1px solid var(--ef-line2);padding:14px 4px 14px 12px;position:relative;transition:background .2s}
+html.efir[data-sport="football"] .tlist>.tr:last-child{border-bottom:1px solid var(--ef-line2)}
+html.efir[data-sport="football"] .tlist>.tr.strong::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:5px;background:var(--hb);transform:skewX(-12deg)}
+@media(hover:hover) and (pointer:fine){html.efir[data-sport="football"] .tlist>.tr:hover{background:rgba(255,255,255,.05)}}
+html.efir[data-sport="football"] .tr-em{background:none;padding:0;border-radius:0}
+html.efir[data-sport="football"] .tr-em img{filter:drop-shadow(0 4px 6px rgba(8,12,22,.5))}
+html.efir[data-sport="football"] .tr-em.pl{background:var(--ef-chip2);color:#fff;clip-path:polygon(0 0,100% 0,calc(100% - 7px) 100%,0 100%)}
+html.efir[data-sport="football"] .tr-t{font:700 clamp(16px,1.6vw,20px)/1.25 var(--ef-b)}
+html.efir[data-sport="football"] .tr-t a{border-bottom-color:var(--ef-line)}
+html.efir[data-sport="football"] .tr-t a:hover{border-color:#fff}
+html.efir[data-sport="football"] .tr-t b{color:#fff;font-family:var(--ef-d)}
+html.efir[data-sport="football"] .tr-m{color:var(--ef-mute)}
+html.efir[data-sport="football"] .tr-m a{color:var(--ef-mute)}
+html.efir[data-sport="football"] .tr-m .tg{background:var(--ef-chip2);color:#fff;border-radius:0;clip-path:polygon(0 0,100% 0,calc(100% - 5px) 100%,0 100%);padding:5px 10px 5px 7px;font-family:var(--ef-d);font-size:10.5px}
+html.efir[data-sport="football"] .tr-m .tg.s{background:#fff;color:#000}
+html.efir[data-sport="football"] .sdots i{border-radius:0;transform:skewX(-12deg);box-shadow:inset 0 0 0 2px var(--ef-line)}
+html.efir[data-sport="football"] .sdots i.h{background:#fff;box-shadow:none}
+html.efir[data-sport="football"] .sdots i.d{background:rgba(255,255,255,.4)}
+html.efir[data-sport="football"] .tr-n{font:900 26px/1 var(--ef-d)}
+html.efir[data-sport="football"] .tr-n small{font-family:var(--ef-b);color:var(--ef-mute)}
+html.efir[data-sport="football"] .tg-match h3{font-family:var(--ef-d)}
+html.efir[data-sport="football"] .tg-match h3 a{color:#fff}
+html.efir[data-sport="football"] .tg-match .tms img{background:none;padding:0;filter:drop-shadow(0 4px 6px rgba(8,12,22,.5))}
+html.efir[data-sport="football"] .tg-match p{color:var(--ef-mute)}
+html.efir[data-sport="football"] .tr-empty{background:none;box-shadow:none;border-top:1px solid var(--ef-line);border-radius:0;color:var(--ef-mute)}
+html.efir[data-sport="football"] .tr-empty b{font-family:var(--ef-d);color:#fff}
+html.efir[data-sport="football"] .tr-more .btn-line{color:#fff;box-shadow:none}
+/* игроки: строка — интерактив-титр, у неё клин цвета клуба игрока (--c) */
+html.efir[data-sport="football"] .pl-list{gap:10px}
+html.efir[data-sport="football"] .pl-list>.pr{background:var(--ef-row);border:1px solid var(--ef-line2);border-radius:4px;box-shadow:var(--ef-sh1);position:relative;isolation:isolate;overflow:hidden;padding:12px 16px 12px 24px;transition:transform .3s var(--ef-ease),box-shadow .3s var(--ef-ease)}
+html.efir[data-sport="football"] .pl-list>.pr::before{content:"";position:absolute;left:0;top:0;bottom:0;width:12px;z-index:-1;background:var(--c,var(--hb));clip-path:polygon(0 0,100% 0,45% 100%,0 100%);transition:transform .35s var(--ef-ease)}
+@media(hover:hover) and (pointer:fine){html.efir[data-sport="football"] .pl-list>.pr:hover{transform:translateY(-3px);box-shadow:var(--ef-sh2)}html.efir[data-sport="football"] .pl-list>.pr:hover::before{transform:translateX(5px)}}
+html.efir[data-sport="football"] .pr .rk{font:900 18px/1 var(--ef-d);color:transparent;-webkit-text-stroke:1.2px rgba(255,255,255,.6)}
+html.efir[data-sport="football"] .pr .cr,html.efir[data-sport="football"] .nx img,html.efir[data-sport="football"] .av .bd{background:none;padding:0;border-radius:0;box-shadow:none;filter:drop-shadow(0 3px 5px rgba(8,12,22,.5))}
+html.efir[data-sport="football"] .pr .nm b{font:700 17px/1.15 var(--ef-b)}
+html.efir[data-sport="football"] .pr .nm span,html.efir[data-sport="football"] .ha,html.efir[data-sport="football"] .nx{color:var(--ef-mute)}
+html.efir[data-sport="football"] .ha b,html.efir[data-sport="football"] .nx b{color:#fff}
+html.efir[data-sport="football"] .ha{width:auto;height:auto;background:none;transform:none;display:block;place-items:normal;font:500 13px/1.5 var(--ef-b)}
+html.efir[data-sport="football"] .hit b{font:900 24px/1 var(--ef-d)}
+html.efir[data-sport="football"] .hit b small{color:var(--ef-mute);font-family:var(--ef-b)}
+html.efir[data-sport="football"] .pl .bar i,html.efir[data-sport="football"] .pl[data-m=cr] .bar i{background:#fff}
+html.efir[data-sport="football"] .strip .bars{border-bottom-color:var(--ef-line)}
+html.efir[data-sport="football"] .strip .bars i{background:rgba(255,255,255,.18);border-radius:0}
+html.efir[data-sport="football"] .strip .bars i.g,html.efir[data-sport="football"] .pl[data-m=cr] .strip .bars i.g{background:#fff}
+html.efir[data-sport="football"] .strip .bars i b,html.efir[data-sport="football"] .strip small{color:var(--ef-mute)}
+html.efir[data-sport="football"] .strip .bars i.g b,html.efir[data-sport="football"] .strip small b{color:#fff}
+html.efir[data-sport="football"] .av{border-radius:0;clip-path:polygon(0 0,100% 0,calc(100% - 9px) 100%,0 100%);overflow:hidden}
+html.efir[data-sport="football"] .av .ph{border-radius:0}
+html.efir[data-sport="football"] .av .bd{right:3px;bottom:3px;width:24px;height:24px}
