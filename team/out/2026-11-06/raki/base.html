@@ -1,0 +1,81 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Dela;src:url(DelaGothicOne-Regular.ttf)}
+@font-face{font-family:Golos;src:url("GolosText[wght].ttf");font-weight:100 900}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1350px;overflow:hidden;background:#140c08}
+.wrap{position:relative;width:1080px;height:1350px;overflow:hidden;
+  background:
+   radial-gradient(900px 700px at 50% 38%, rgba(255,170,60,.22), transparent 70%),
+   repeating-linear-gradient(90deg, #2a1810 0 132px, #24150d 132px 135px, #2e1b11 135px 270px),
+   #22140c;font-family:Golos;color:#fff4e6}
+/* wood grain */
+.wrap:before{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(2deg, rgba(0,0,0,.0) 0 18px, rgba(0,0,0,.10) 18px 20px, rgba(255,200,140,.03) 20px 34px);}
+.vign{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%, transparent 45%, rgba(0,0,0,.72) 100%);}
+svg.bg{position:absolute;inset:0}
+.content{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center}
+.top{margin-top:70px;text-align:center}
+.kicker{font:700 26px Golos;letter-spacing:.32em;color:#ffcf7a;text-transform:uppercase}
+h1{font:400 100px/0.95 Dela;margin-top:18px;letter-spacing:-.01em;
+  background:linear-gradient(180deg,#fff1c9 0%,#ffb93d 55%,#e8731c 100%);-webkit-background-clip:text;color:transparent;
+  filter:drop-shadow(0 6px 0 #5a1d08) drop-shadow(0 16px 30px rgba(0,0,0,.6))}
+.year{font:400 64px Dela;color:#e8401f;margin-top:6px;text-shadow:0 4px 0 #3a0e04, 0 0 30px rgba(232,64,31,.45)}
+.tickets{margin-top:58px;display:flex;flex-direction:column;gap:56px;width:900px}
+.t{position:relative;border-radius:30px;padding:30px 36px 28px;
+  background:linear-gradient(180deg,rgba(32,18,10,.86),rgba(20,11,6,.9));
+  border:2px solid rgba(255,190,90,.35);box-shadow:0 24px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,220,160,.15);
+  backdrop-filter:blur(3px)}
+.row{display:flex;align-items:center;justify-content:space-between}
+.team{display:flex;flex-direction:column;align-items:center;width:230px}
+.team img{width:118px;height:118px;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))}
+.team span{font:800 26px Golos;margin-top:10px;letter-spacing:.02em}
+.mid{text-align:center;flex:1}
+.lbl{font:600 18px Golos;letter-spacing:.24em;text-transform:uppercase;color:#ffcf7a;opacity:.85}
+.bet{font:800 38px/1.12 Golos;margin-top:10px}
+.odd{display:inline-block;margin-top:14px;font:400 34px Dela;color:#1b0f06;background:#ffb93d;border-radius:14px;padding:6px 20px 8px}
+.stamp{position:absolute;top:-20px;right:-16px;transform:rotate(9deg);
+  font:400 30px Dela;color:#fff;background:#2fae4f;border-radius:16px;padding:10px 22px 12px;
+  box-shadow:0 10px 24px rgba(0,0,0,.5);border:3px solid #a8f0b8}
+.num{position:absolute;top:-16px;left:30px;font:800 18px Golos;letter-spacing:.2em;color:#1b0f06;background:#ffcf7a;border-radius:10px;padding:5px 12px}
+.foot{position:absolute;bottom:58px;left:0;right:0;text-align:center}
+.score{font:400 64px Dela;color:#7ee38f;text-shadow:0 4px 0 #0d3a17,0 0 30px rgba(80,220,110,.35)}
+.score small{font:800 26px Golos;color:#fff4e6;letter-spacing:.18em;text-transform:uppercase;display:block;margin-top:4px;text-shadow:none;opacity:.85}
+.brand{margin-top:18px;font:700 24px Golos;letter-spacing:.3em;color:#ffcf7a;opacity:.8}
+</style></head><body>
+<div class="wrap">
+
+<div class="vign"></div>
+
+<div class="content" style="display:none">
+ <div class="top">
+  <div class="kicker">Специальный выпуск · КХЛ</div>
+  <h1>КУБОК РАКОВ</h1>
+  <div class="year">2026</div>
+ </div>
+ <div class="tickets">
+  <div class="t">
+   <div class="num">ОРДИНАР 1</div><div class="stamp">ЗАШЛА ✓</div>
+   <div class="row">
+    <div class="team"><img src="admiral.png"><span>Адмирал</span></div>
+    <div class="mid"><div class="lbl">ставка</div><div class="bet">Тотал Адмирала<br>больше 2,5</div><div class="odd">2,01</div></div>
+    <div class="team"><img src="barys.png"><span>Барыс</span></div>
+   </div>
+  </div>
+  <div class="t">
+   <div class="num">ОРДИНАР 2</div><div class="stamp">ЗАШЛА ✓</div>
+   <div class="row">
+    <div class="team"><img src="amur.png"><span>Амур</span></div>
+    <div class="mid"><div class="lbl">ставка</div><div class="bet">Тотал матча<br>меньше 5,5</div><div class="odd">1,69</div></div>
+    <div class="team"><img src="ska.png"><span>СКА</span></div>
+   </div>
+  </div>
+ </div>
+ <div class="foot">
+  <div class="score">2 из 2<small>оба ординара зашли</small></div>
+  <div class="brand">JARVIS · @jarvibet</div>
+ </div>
+</div>
+</div>
+</body></html>
