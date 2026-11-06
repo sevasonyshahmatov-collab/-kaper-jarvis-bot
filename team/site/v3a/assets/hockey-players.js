@@ -38,11 +38,8 @@ fetch(`data/plite_${LG}.json`).then(r=>r.json()).then(D=>{
    const jk=JY?JY.key(LG,p.t):'',jv=JY&&JY.vars(jk),lt=jv&&JY.calc(jk).lt;
    return `<article class="pr${jv?' k'+(lt?' lt':'')+(i<3?' t'+(i+1):''):''}" role="listitem"${jv?` style="${jv}"`:''}>${jv?`<img class="wm" src="${em(p.t)}" alt="" aria-hidden="true" loading="lazy" onerror="this.remove()">${p.no!=null?`<span class="no" aria-hidden="true">${esc(p.no)}</span>`:''}`:''}<span class="rk">${i+1}</span>
     <div class="av" style="--c:${c}">${p.img?`<img class="ph" src="${esc(p.img)}" alt="" loading="lazy" onerror="this.remove()">`:''}<img class="bd" src="${em(p.t)}" alt="" loading="lazy" onerror="this.remove()"></div>
-    <div class="nm"><b>${p.id!=null?`<a href="player.html?lg=${LG}&id=${p.id}" title="Профиль игрока">${esc(p.n)}</a>`:esc(p.n)}</b><span>${esc(tn(p.t))} · ${p.pos==='D'?'защ.':'нап.'}${p.no?' · №'+p.no:''} · ${p.G}+${p.A}=${p.G+p.A}${LG==='khl'?`, игр ${p.gp}`:`, бросков ${p.S}`} · ${mmss(p.toi)} за игру</span></div>
-    <div class="hit" aria-label="${h[0]} из ${h[1]} матчей"><b>${h[0]}<small>из ${h[1]}</small></b><div class="bar"><i style="width:${pc}%"></i></div></div>
-    <div class="strip" aria-label="Последние 10 матчей">${strip}</div>
-    <div class="ha">Дома <b>${sp(1)}</b> · В гостях <b>${sp(0)}</b></div>
-    <div class="nx">${nx?`<img src="${em(nx.o)}" alt="" loading="lazy" onerror="this.remove()"><span>Далее: <b>${esc(tn(nx.o))}</b><br>${nx.h?'дома':'в гостях'}, ${nx.d.slice(8,10)}.${nx.d.slice(5,7)}</span>`:''}</div>
+    <div class="nm"><b>${p.id!=null?`<a href="player.html?lg=${LG}&id=${p.id}" title="Профиль игрока">${esc(p.n)}</a>`:esc(p.n)}</b><span>${esc(tn(p.t))} · ${p.pos==='D'?'защитник':'нападающий'}</span></div>
+    ${p.img?`<img class="cut" src="${esc(p.img)}" alt="" aria-hidden="true" loading="lazy" onerror="this.remove()">`:''}
    </article>`}).join('');
   $('more').hidden=L.length<=st.lim}
  $('mk').onclick=e=>{const b=e.target.closest('button');if(!b)return;st.m=b.dataset.m;st.lim=30;$('mk').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()};

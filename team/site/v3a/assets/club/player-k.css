@@ -40,3 +40,11 @@ html[data-white]{--paper:#ffffff;--paper-2:#f2f5f9;--paper-3:#e6ecf3;--card:#f6f
 html[data-white] body{background:#fff}
 
 .pp-ini{display:none!important}
+
+/* Объёмная шапка (player-tilt.js): наклон, блик, слои; цветной номер (владелец 06.11) */
+.pp-hero{transform-origin:50% 50%;will-change:transform;transition:box-shadow .3s;box-shadow:0 30px 60px -36px rgba(10,20,40,.55)}
+.pp-hero:hover{box-shadow:0 40px 70px -34px rgba(10,20,40,.6)}
+.pp-hero .pp-no,.pp-hero .pp-txt,.pp-hero .pp-photo{will-change:translate}
+.pp-glare{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;transition:opacity .35s;border-radius:inherit;mix-blend-mode:soft-light;
+  background:radial-gradient(42% 70% at var(--gx,50%) var(--gy,50%),rgba(255,255,255,.65),rgba(255,255,255,0) 70%)}
+.pp.k .pp-no{color:var(--kx);-webkit-text-stroke:0;opacity:.95;text-shadow:0 3px 0 color-mix(in srgb,var(--kt) 50%,transparent)}

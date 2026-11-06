@@ -59,3 +59,25 @@ html[data-white] body{background:#fff}
 .av>span{display:none}
 .av:not(:has(.ph)){background:#fff!important}
 .av:not(:has(.ph)) .bd,.pr.k .av:not(:has(.ph)) .bd{position:static;width:66%;height:66%;padding:0;background:none;box-shadow:none;border-radius:0}
+
+/* Упрощённая строка (владелец 06.11): без «n из N», полос, дом/выезд и «Далее». Ранг, фото, имя, клуб; справа — фото игрока
+   крупно на фоне цветного номера. */
+.pr.k{grid-template-columns:28px 84px minmax(0,1fr);grid-template-areas:none;min-height:118px;padding-right:300px}
+.pr.k.t1,.pr.k.t2,.pr.k.t3{padding-right:298px}
+.pr.k .nm b{font-size:22px}
+.pr.k .no{right:18px;bottom:-14px;font-size:118px;color:var(--kx);-webkit-text-stroke:0;opacity:.92;
+  text-shadow:0 2px 0 color-mix(in srgb,var(--kt) 55%,transparent)}
+.pr.k .wm{right:auto;left:52%;opacity:.22}
+.pr.k .cut{position:absolute;z-index:0;right:96px;bottom:0;height:112%;width:auto;max-width:210px;object-fit:contain;object-position:50% 100%;pointer-events:none;
+  -webkit-mask-image:linear-gradient(to bottom,#000 70%,transparent),linear-gradient(to right,transparent,#000 22%);-webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to bottom,#000 70%,transparent),linear-gradient(to right,transparent,#000 22%);mask-composite:intersect;
+  filter:drop-shadow(0 6px 14px rgba(0,0,0,.35));transition:transform .25s cubic-bezier(.23,1,.32,1)}
+@media (hover:hover){.pr.k:hover .cut{transform:translateY(-4px) scale(1.03)}}
+@media (max-width:900px){
+  .pr.k,.pr.k.t1,.pr.k.t2,.pr.k.t3{grid-template-columns:20px 56px minmax(0,1fr);grid-template-areas:none;min-height:96px;padding-right:92px}
+  .pr.k .av{grid-area:auto;width:52px;height:52px}.pr.k .rk,.pr.k .nm{grid-area:auto}
+  .pr.k .nm b{font-size:17px;white-space:normal}
+  .pr.k .no{font-size:76px;right:6px;bottom:-8px}
+  .pr.k .cut{right:28px;max-width:120px}
+  .pr.k .wm{display:none}
+}
