@@ -1,17 +1,4 @@
-@font-face {
-  font-family: 'Unbounded';
-  font-style: normal;
-  font-weight: 300;
-  font-display: swap;
-  src: url(Yq6F-LOTXCb04q32xlpat-6uR42XTqtG60bx040.woff2) format("woff2");
-}
-@font-face {
-  font-family: 'Unbounded';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(Yq6F-LOTXCb04q32xlpat-6uR42XTqtG6xjx040.woff2) format("woff2");
-}
+/* локальные шрифты «Эфира» (Google Fonts, OFL), только латиница+кириллица: Unbounded 600/700/900, Onest 400–700, IBM Plex Sans Italic 500 */
 @font-face {
   font-family: 'Unbounded';
   font-style: normal;
@@ -33,7 +20,6 @@
   font-display: swap;
   src: url(Yq6F-LOTXCb04q32xlpat-6uR42XTqtG67H2040.woff2) format("woff2");
 }
-
 @font-face {
   font-family: 'Onest';
   font-style: normal;
@@ -62,37 +48,6 @@
   font-display: swap;
   src: url(gNMZW3F-SZuj7zOT0IfSjTS16cPhEhiZsg.woff2) format("woff2");
 }
-
-@font-face {
-  font-family: 'Playfair Display';
-  font-style: italic;
-  font-weight: 500;
-  font-display: swap;
-  src: url(nuFRD-vYSZviVYUb_rj3ij__anPXDTnCjmHKM4nYO7KN_pqTbtY.woff2) format("woff2");
-}
-@font-face {
-  font-family: 'Playfair Display';
-  font-style: italic;
-  font-weight: 600;
-  font-display: swap;
-  src: url(nuFRD-vYSZviVYUb_rj3ij__anPXDTnCjmHKM4nYO7KN_naUbtY.woff2) format("woff2");
-}
-
-@font-face {
-  font-family: 'Literata';
-  font-style: italic;
-  font-weight: 500;
-  font-display: swap;
-  src: url(or3NQ6P12-iJxAIgLYT1PLs1Zd0nfUwAbeGVKoRYzNiCp1OUedn8zbXWSQ.woff2) format("woff2");
-}
-@font-face {
-  font-family: 'Literata';
-  font-style: italic;
-  font-weight: 600;
-  font-display: swap;
-  src: url(or3NQ6P12-iJxAIgLYT1PLs1Zd0nfUwAbeGVKoRYzNiCp1OUedn8IbLWSQ.woff2) format("woff2");
-}
-
 @font-face {
   font-family: 'IBM Plex Sans';
   font-style: italic;
@@ -100,12 +55,4 @@
   font-stretch: normal;
   font-display: swap;
   src: url(zYXEKVElMYYaJe8bpLHnCwDKhdTEG46kmUZQCX598fQbM4jw8V78x9OWIhqpQ6g9.woff2) format("woff2");
-}
-@font-face {
-  font-family: 'IBM Plex Sans';
-  font-style: italic;
-  font-weight: 600;
-  font-stretch: normal;
-  font-display: swap;
-  src: url(zYXEKVElMYYaJe8bpLHnCwDKhdTEG46kmUZQCX598fQbM4jw8V78x9OWIhpFRKg9.woff2) format("woff2");
 }

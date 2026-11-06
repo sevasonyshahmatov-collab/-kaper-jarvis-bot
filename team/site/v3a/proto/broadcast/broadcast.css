@@ -511,3 +511,45 @@ em.it,.it{font-family:var(--f-s);font-style:italic;font-weight:500;letter-spacin
   #m-stage .stage{--sh:420px}#m-stage .bug{top:auto;bottom:12px;transform:translateX(-50%);animation-name:plateInM}#m-stage .stage__em{top:27%!important}
 }
 @keyframes plateInM{from{opacity:0;transform:translateX(-50%) translateY(16px) scale(.97)}}
+
+/* ═══ Решения владельца 06.11 (те же, что в assets/efir/efir.css): 1) вторичный шрифт — IBM Plex Sans Italic; 2) фон светлее — «сталь студии»; 3) меньше плашек ═══ */
+:root{
+  --bg:#2c374d; --bg2:#364560; --ink:#f6f8fc; --mute:#d3dbea; --dim:#c6cfe1; --edge:rgba(255,255,255,.26);
+  --glass:rgba(255,255,255,.12); --glass2:rgba(255,255,255,.06);
+  --f-s:"IBM Plex Sans","Onest",system-ui,sans-serif;
+  --sh-1:0 1px 0 rgba(255,255,255,.14) inset,0 10px 24px -8px rgba(8,12,22,.6),0 2px 6px rgba(8,12,22,.4);
+  --sh-2:0 1px 0 rgba(255,255,255,.22) inset,0 26px 46px -10px rgba(8,12,22,.7),0 6px 14px rgba(8,12,22,.45);
+}
+body{background:var(--bg)}
+.bgw{background:radial-gradient(1300px 700px at 50% -12%,#4a5b7a,transparent 64%),radial-gradient(900px 520px at 0% 100%,rgba(130,160,215,.16),transparent 62%),var(--bg)}
+.bgw i{opacity:.2}
+em.it,.it{font-family:var(--f-s);font-style:italic;font-weight:500;letter-spacing:0}
+.hero h1 .it{font-weight:500}
+.logo span,.tag--dark{background:#3c4b67}
+.chip{background:#3c4b67}.chip:hover{background:#465774}.chip[aria-pressed=true]{background:#fff}
+.row{background:linear-gradient(180deg,#3a4863,#313e57);border-color:rgba(255,255,255,.12)}
+.row::before{background:linear-gradient(90deg,rgba(26,34,52,.5),rgba(26,34,52,.86) 30%,rgba(26,34,52,.86) 70%,rgba(26,34,52,.5))}
+.ticker a{color:#000}
+.glass{--edge:rgba(255,255,255,.26)}
+@media(max-width:899px){.glass{background:linear-gradient(180deg,rgba(38,48,70,.94),rgba(26,34,52,.96))}}
+.bug__tot{background:rgba(10,14,26,.4)}
+/* плашки — только у интерактива (строки, кэфы, табло, кнопки); тексты — открытая типографика */
+.plate{background:none;border:0;border-top:3px solid var(--hb,#d0344d);border-radius:0;box-shadow:none;padding:18px 0 0}
+.plate:nth-child(2){border-top-color:var(--ab,#4a6ee0)}.plate:nth-child(3){border-top-color:#fff}.plate:nth-child(4){border-top-color:var(--hb,#d0344d)}
+.plate .wb,.plate::after{display:none}
+.plate h3,.plate p{padding-left:0}
+.plate:hover{transform:none;box-shadow:none}
+.steps .plate:nth-child(n){transform:none}
+.step .no{margin-left:0}
+.faq details{background:none;border:0;border-top:1px solid rgba(255,255,255,.2);border-radius:0;box-shadow:none}
+.faq details:last-child{border-bottom:1px solid rgba(255,255,255,.2)}
+.faq summary{padding-left:0}.faq details p{padding-left:0}
+.faq summary:hover,.faq summary:active{background:none}
+.faq details[open]{box-shadow:none}
+.tg{background:none;border:0;box-shadow:none}
+.tg__cols div{background:none;border:0;border-top:1px solid var(--edge);border-radius:0;padding:14px 0 0}
+.soon>*{background:none}
+.foot{border-top-color:rgba(255,255,255,.18)}
+.odd,.mt__r,.lg,.dcard,.cl{background:linear-gradient(180deg,#3a4863,#313e57)!important;border-color:rgba(255,255,255,.14)!important}
+.dcard{background:#313e57!important}
+.sheet__ctl button,.chip{background:#3c4b67}
