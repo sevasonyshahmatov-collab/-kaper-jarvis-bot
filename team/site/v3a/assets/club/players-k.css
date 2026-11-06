@@ -8,8 +8,8 @@
   box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 12px 24px -18px rgba(0,0,0,.9)}
 .pr.k::before{content:"";position:absolute;z-index:-1;left:-10px;top:-4px;bottom:-4px;width:40px;transform:skewX(-9deg);
   background:linear-gradient(90deg,var(--ks) 0 15px,var(--kt) 15px 19px,var(--ks) 19px 23px,transparent 23px);transition:filter .2s}
-.pr.k .wm{position:absolute;z-index:-1;right:116px;top:50%;width:150px;height:150px;margin-top:-75px;pointer-events:none;opacity:.2;
-  background:var(--ks);-webkit-mask-size:contain;mask-size:contain;-webkit-mask-position:center;mask-position:center;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.pr.k .wm{position:absolute;z-index:-1;display:block;right:116px;top:50%;width:150px;height:150px;margin-top:-75px;pointer-events:none;opacity:.3;
+  object-fit:contain;filter:saturate(1.1) drop-shadow(0 6px 18px rgba(0,0,0,.25));transform:rotate(-8deg)}
 .pr.k .no{position:absolute;z-index:-1;right:14px;bottom:-10px;font:900 88px/1 var(--display);letter-spacing:-.03em;color:transparent;
   -webkit-text-stroke:1.5px var(--kx);opacity:.6;pointer-events:none;transition:opacity .2s}
 .pr.k .rk,.pr.k .nm span,.pr.k .hit b small,.pr.k .strip small,.pr.k .ha,.pr.k .nx{color:var(--ko2)}
@@ -50,3 +50,12 @@
   .pr.k .no{font-size:62px;right:8px;bottom:-4px}
   .pr.k .wm{width:130px;height:130px;margin-top:-65px;right:-10px}
 }
+
+/* Белый фон разделов игроков (владелец 06.11): html[data-white] — тема «c» с чисто белой бумагой */
+html[data-white]{--paper:#ffffff;--paper-2:#f2f5f9;--paper-3:#e6ecf3;--card:#f6f8fb;--card-hi:#ffffff;--rule:#dde4ec;--grain-op:0}
+html[data-white] body{background:#fff}
+
+/* без инициалов: нет фото — в круге эмблема клуба (владелец 06.11) */
+.av>span{display:none}
+.av:not(:has(.ph)){background:#fff!important}
+.av:not(:has(.ph)) .bd{position:static;width:66%;height:66%;padding:0;background:none;box-shadow:none;border-radius:0}

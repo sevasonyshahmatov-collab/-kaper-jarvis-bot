@@ -36,8 +36,8 @@ fetch(`data/plite_${LG}.json`).then(r=>r.json()).then(D=>{
    const sp=a=>{const lg=p.log.filter(r=>r[3]===a);return`${lg.filter(M.f).length}/${lg.length}`};
    const nx=D.next[p.t];
    const jk=JY?JY.key(LG,p.t):'',jv=JY&&JY.vars(jk),lt=jv&&JY.calc(jk).lt;
-   return `<article class="pr${jv?' k'+(lt?' lt':'')+(i<3?' t'+(i+1):''):''}" role="listitem"${jv?` style="${jv}"`:''}>${jv?`<i class="wm" style="-webkit-mask-image:url(${em(p.t)});mask-image:url(${em(p.t)})"></i>${p.no!=null?`<span class="no" aria-hidden="true">${esc(p.no)}</span>`:''}`:''}<span class="rk">${i+1}</span>
-    <div class="av" style="--c:${c}"><span>${esc(ini(p.n))}</span>${p.img?`<img class="ph" src="${esc(p.img)}" alt="" loading="lazy" onerror="this.remove()">`:''}<img class="bd" src="${em(p.t)}" alt="" loading="lazy" onerror="this.remove()"></div>
+   return `<article class="pr${jv?' k'+(lt?' lt':'')+(i<3?' t'+(i+1):''):''}" role="listitem"${jv?` style="${jv}"`:''}>${jv?`<img class="wm" src="${em(p.t)}" alt="" aria-hidden="true" loading="lazy" onerror="this.remove()">${p.no!=null?`<span class="no" aria-hidden="true">${esc(p.no)}</span>`:''}`:''}<span class="rk">${i+1}</span>
+    <div class="av" style="--c:${c}">${p.img?`<img class="ph" src="${esc(p.img)}" alt="" loading="lazy" onerror="this.remove()">`:''}<img class="bd" src="${em(p.t)}" alt="" loading="lazy" onerror="this.remove()"></div>
     <div class="nm"><b>${p.id!=null?`<a href="player.html?lg=${LG}&id=${p.id}" title="Профиль игрока">${esc(p.n)}</a>`:esc(p.n)}</b><span>${esc(tn(p.t))} · ${p.pos==='D'?'защ.':'нап.'}${p.no?' · №'+p.no:''} · ${p.G}+${p.A}=${p.G+p.A}${LG==='khl'?`, игр ${p.gp}`:`, бросков ${p.S}`} · ${mmss(p.toi)} за игру</span></div>
     <div class="hit" aria-label="${h[0]} из ${h[1]} матчей"><b>${h[0]}<small>из ${h[1]}</small></b><div class="bar"><i style="width:${pc}%"></i></div></div>
     <div class="strip" aria-label="Последние 10 матчей">${strip}</div>

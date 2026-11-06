@@ -34,3 +34,9 @@
   .pp.k .pp-hero{--bp:60%}
   .pp.k .pp-photo::before{left:2%;right:2%}
 }
+
+/* Белый фон разделов игроков (владелец 06.11): html[data-white] — тема «c» с чисто белой бумагой */
+html[data-white]{--paper:#ffffff;--paper-2:#f2f5f9;--paper-3:#e6ecf3;--card:#f6f8fb;--card-hi:#ffffff;--rule:#dde4ec;--grain-op:0}
+html[data-white] body{background:#fff}
+
+.pp-ini{display:none!important}
