@@ -75,6 +75,14 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
  <div class="pp-cta"><p>Разборы матчей и прогнозы по хоккею — в нашем Telegram-боте.</p><a href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a></div>`;
  MAIN.innerHTML=html;
  MAIN.style.setProperty('--c',col);
+ /* клубные цвета профиля (06.11): переменные --kb… из club/jersey.js; --kg — акцент для графиков на фоне страницы */
+ const JY=window.JV_JERSEY,jc=JY&&JY.calc(P.t);
+ if(jc){
+  JY.vars(P.t).split(';').forEach(d=>{const i=d.indexOf(':');MAIN.style.setProperty(d.slice(0,i),d.slice(i+1))});
+  let bg='#0b1626';try{const m=/(\d+)\D+(\d+)\D+(\d+)/.exec(getComputedStyle(document.body).backgroundColor);if(m)bg='#'+[1,2,3].map(i=>(+m[i]).toString(16).padStart(2,'0')).join('')}catch(e){}
+  const a=JY.pick(P.t,bg);MAIN.style.setProperty('--kg',a.g);MAIN.style.setProperty('--kgo',a.go);
+  MAIN.classList.add('k');if(jc.lt)MAIN.classList.add('lt');
+ }
  /* график */
  const chart=document.getElementById('chart');
  const draw=k=>{const m=mkList.find(x=>x.k===k)||mkList[0],R=log.slice(-15),mx=Math.max(k==='s3'?4:2,...R.map(m.v));

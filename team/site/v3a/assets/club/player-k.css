@@ -1,0 +1,36 @@
+/* Профиль игрока в цветах клуба (06.11). Класс .k на .pp и переменные --kb/--kbm/--ks/--kt/--ko/--ko2/--kx/--kp/--kg ставит player.js из club/jersey.js.
+   Шапка — свитер: основной цвет слева, диагональные полосы рукава (второй цвет и кромка) справа, номер контуром, портрет на подложке.
+   Графики и акценты ниже — в --kg: цвет клуба, подобранный по контрасту к фону страницы. Без .k (нет цвета клуба) всё как раньше. */
+.pp.k .pp-hero{--bp:66%;color:var(--ko);
+  background:
+    linear-gradient(0deg,rgba(0,0,0,.18),transparent 45%),
+    linear-gradient(114deg,var(--kb) 0 var(--bp),var(--kt) var(--bp) calc(var(--bp) + 1.2%),var(--ks) calc(var(--bp) + 1.2%) calc(var(--bp) + 17%),var(--kt) calc(var(--bp) + 17%) calc(var(--bp) + 18%),var(--kbm) calc(var(--bp) + 18%) 100%)}
+.pp.k .pp-hero::before{background:radial-gradient(60% 90% at 90% 0%,rgba(255,255,255,.14),transparent 60%);z-index:-1}
+.pp.k .pp-no{color:transparent;-webkit-text-stroke:2px var(--kt);opacity:.55;right:clamp(8px,2vw,28px)}
+.pp.k .pp-crumbs a{color:var(--ko);background:rgba(0,0,0,.3);border-color:color-mix(in srgb,var(--ko) 35%,transparent)}
+.pp.k.lt .pp-crumbs a{background:rgba(255,255,255,.4)}
+.pp.k .pp-crumbs a:hover,.pp.k .pp-crumbs a:focus-visible{background:rgba(0,0,0,.5)}
+.pp.k.lt .pp-crumbs a:hover,.pp.k.lt .pp-crumbs a:focus-visible{background:rgba(255,255,255,.65)}
+.pp.k .pp-pos,.pp.k .pp-sub{color:var(--ko2);opacity:1}
+.pp.k h1{color:var(--ko);opacity:1;text-shadow:none}
+.pp.k .pp-photo::before{content:"";position:absolute;left:16%;right:16%;bottom:0;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle at 50% 28%,color-mix(in srgb,var(--kp) 70%,#fff),var(--kp) 72%);
+  box-shadow:0 0 0 3px var(--kt),0 0 0 8px color-mix(in srgb,var(--kb) 70%,transparent),0 18px 30px -12px rgba(0,0,0,.55);transform:translateY(8%)}
+.pp.k .pp-photo img.ph{position:relative;filter:drop-shadow(0 8px 14px rgba(0,0,0,.4))}
+.pp.k .pp-ini{color:var(--kpo);opacity:.55;z-index:1}
+.pp.k .pp-hero{overflow:hidden}
+/* акценты ниже шапки */
+.pp.k .pp-sec>h2{display:flex;align-items:center;gap:10px}
+.pp.k .pp-sec>h2::before{content:"";flex:none;width:6px;height:.9em;border-radius:2px;background:linear-gradient(180deg,var(--kg) 0 62%,var(--kt) 62% 74%,var(--kg) 74%);transform:skewX(-12deg)}
+.pp.k .pp-tile{border-top:3px solid var(--kg)}
+.pp.k .pp-tabs button[aria-pressed=true]{background:var(--kg);color:var(--kgo);border-color:var(--kg)}
+.pp.k .pp-mk .mb i{background:var(--kg)}
+.pp.k .pp-col .bar.g{background:var(--kg)}
+.pp.k .pp-col .bar.g b{color:var(--kgo)}
+.pp.k .pp-gm .pt b.g{background:var(--kg);color:var(--kgo)}
+.pp.k .pp-nx{border-left:4px solid var(--kg)}
+@media (hover:hover){.pp.k .pp-tile{transition:transform .18s ease}.pp.k .pp-tile:hover{transform:translateY(-2px)}}
+@media (max-width:720px){
+  .pp.k .pp-hero{--bp:60%}
+  .pp.k .pp-photo::before{left:2%;right:2%}
+}

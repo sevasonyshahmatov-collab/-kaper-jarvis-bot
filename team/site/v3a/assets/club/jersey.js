@@ -86,5 +86,10 @@ function calc(k){
 }
 const vars=k=>{const v=calc(k);if(!v)return'';
  return`--kb:${v.b};--kbm:${v.bm};--ks:${v.s};--kt:${v.t};--ko:${v.ko};--ko2:${v.ko2};--kx:${v.kx};--kp:${v.kp};--kpo:${v.kpo}`};
-return{J,calc,vars,key,cr,mix,lum}
+/* акцент для страницы на фоне bg (#rrggbb): самый «цветной» из основного/второго/кромки, что читается на фоне (≥3.2); иначе осветляем */
+const pick=(k,bg)=>{const c=J[k];if(!c)return null;const chroma=h=>{const a=rgb(h);return Math.max(...a)-Math.min(...a)};
+ for(const t of[0,.15,.3,.45,.6]){const ok=c.map(x=>mix(x,WH,t)).filter(x=>cr(x,bg)>=3.2&&chroma(x)>45);
+  if(ok.length){const g=ok.sort((a,b)=>chroma(b)-chroma(a))[0];return{g,go:cr(WH,g)>=cr(DK,g)?WH:DK}}}
+ return{g:WH,go:DK}};
+return{J,calc,vars,key,pick,cr,mix,lum}
 })();
