@@ -80,6 +80,22 @@ function prepSections(){
   });
   W.JVEfir.reveal();
 }
+/* лига: цвета клиньев по лиге; строки .lgm — цвета клубов по эмблемам */
+function decorateLgm(lg){
+  $$('.lgm:not([data-ef])').forEach(function(el){
+    el.setAttribute('data-ef','1');
+    var ids=$$('.t img',el).map(function(i){var m=/\/em\/([a-z0-9_]+)\.webp/.exec(i.getAttribute('src')||'');return m?m[1]:''});
+    if(ids.length>1&&ids[0]&&ids[1]){var c=W.JVEfir.cols({h:ids[0],a:ids[1],lg:lg});el.setAttribute('style',W.JVEfir.cv(c))}
+    el.insertAdjacentHTML('afterbegin','<i class="wd h"></i><i class="wd a"></i>');
+  });
+}
+boot.league=function(){
+  var lg=new URLSearchParams(location.search).get('lg')==='nhl'?'nhl':'khl',r=H.style;
+  var C=lg==='nhl'?['#10151f','#5b6b86','#2b3446','#d3dbea']:['#0d2a78','#2d57c9','#7a1220','#e0434f'];
+  r.setProperty('--hd',C[0]);r.setProperty('--hb',C[1]);r.setProperty('--ad',C[2]);r.setProperty('--ab',C[3]);
+  decorateLgm(lg);
+  $$('main').forEach(function(m){new MutationObserver(function(){decorateLgm(lg)}).observe(m,{childList:true,subtree:true})});
+};
 function start(){var f=boot[page];if(f)f()}
 waitFor(function(){return W.JVEfir},start);
 })();
