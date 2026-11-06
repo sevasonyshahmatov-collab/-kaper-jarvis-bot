@@ -52,6 +52,34 @@ boot.club=function(){
   tagSections({table:'Таблица · сезон',trends:'Тренды · форма',totals:'Тоталы · шайбы',next:'Следующий матч',games:'Матчи сезона',players:'Игроки',picks:'Наши прогнозы'});
   watchMatches();
 };
+/* страница матча: цвета клубов, сцена (клинья + гигантские названия), метки разделов, цифры, появление */
+function emId(a){var i=a&&a.querySelector('img'),m=i&&/\/em\/([a-z0-9_]+)\.webp/.exec(i.getAttribute('src')||'');return m?m[1]:''}
+boot.match=function(){
+  var tms=$$('.mt-tm'),top=$('.fc-top');if(tms.length<2||!top)return;
+  var lg=(/\/(khl|nhl)\//.exec(P)||[])[1]||'khl',ids=tms.map(emId);
+  var c=W.JVEfir.cols({h:ids[0],a:ids[1],lg:lg}),r=H.style;
+  r.setProperty('--hd',c.hd);r.setProperty('--hb',c.hb);r.setProperty('--ad',c.ad);r.setProperty('--ab',c.ab);
+  var nm=tms.map(function(a){return ((a.querySelector('span')||{}).textContent||'').trim().split(' ')[0]});
+  top.insertAdjacentHTML('afterbegin','<div class="mt-stage" aria-hidden="true"><i class="wedge wedge--h"></i><i class="wedge wedge--a"></i><b class="mt-big h">'+esc(nm[0])+'</b><b class="mt-big a">'+esc(nm[1])+'</b></div>');
+  var vs=$('.mt-vs');if(vs)vs.textContent='VS';
+  prepSections();
+};
+function prepSections(){
+  var T={'mt-md':'Расчёт модели · линия','mt-pv':'Коротко о матче','mt-form':'Форма · 5 матчей','mt-h2h':'Личные встречи','mt-tbl':'Положение в таблице','mt-oth':'В этот день'};
+  $$('.fc-sec').forEach(function(s,i){
+    var h=$('h2',s);if(h&&T[h.id]&&!$('.ef-tagw',s))h.insertAdjacentHTML('beforebegin',W.JVEfir.tag(T[h.id]));
+    if(h&&!h.querySelector('.ef-it')){var w=h.innerHTML.trim().split(' ');if(w.length>1){var l=w.pop();h.innerHTML=w.join(' ')+' <span class="ef-it">'+l+'</span>'}}
+    var wr=$('.wrap',s);if(!wr)return;
+    $$('.wrap > *',s).forEach(function(e,k){if(e.classList.contains('ef-tagw'))return;e.classList.add('ef-rv');e.style.setProperty('--i',k)});
+  });
+  /* вероятности модели: пересчёт цифр, максимум отмечен */
+  $$('.fc-pm').forEach(function(pm){
+    var li=$$('.fc-nums li',pm),best=-1,bi=-1;
+    li.forEach(function(x,i){var b=$('b',x),v=parseInt(b.textContent,10);if(v>best){best=v;bi=i}b.innerHTML='<span data-num="'+v+'">'+v+'</span> %'});
+    if(li[bi])li[bi].classList.add('mx');
+  });
+  W.JVEfir.reveal();
+}
 function start(){var f=boot[page];if(f)f()}
 waitFor(function(){return W.JVEfir},start);
 })();
