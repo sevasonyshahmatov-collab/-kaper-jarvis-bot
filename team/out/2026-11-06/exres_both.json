@@ -1,0 +1,4 @@
+{"day": "2026-11-05",
+ "make": ["team/picks/express_result.py --manual team/out/2026-11-05/express_coupons.json 5 out/express/2026-11-05 team/out/2026-11-06/exres_both.json 0511-e5",
+          "team/out/2026-11-06/foot_e4.py"],
+ "messages": []}
