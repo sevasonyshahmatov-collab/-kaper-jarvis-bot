@@ -21,9 +21,9 @@ function setLg(k){var c=LGC[k];if(c)setPage({a:[c[0],c[1]],b:[c[2],c[3]]})}
 
 /* ——— строки матчей: клинья клубов по краям (только интерактивное: матч, строка лиги, результат) ——— */
 function rows(){
-  $$('.match:not([data-ef]),.lgm:not([data-ef]),.resl li:not([data-ef])').forEach(function(r){
+  $$('.match:not([data-ef]),.lgm:not([data-ef]),.resl li:not([data-ef]),.fc-m:not([data-ef])').forEach(function(r){
     r.setAttribute('data-ef','1');
-    var im=$$('img.em',r).map(idOf).filter(Boolean);if(im.length<2)return;
+    var im=$$('img[src*="/fc/"]',r).map(idOf).filter(Boolean);if(im.length<2)return;
     var c=pairOf(im[0],im[1]);r.setAttribute('style',(r.getAttribute('style')||'')+';'+vars(c));
     r.classList.add('ef-row');
     r.insertAdjacentHTML('afterbegin','<i class="w w--h"></i><i class="w w--a"></i>')})}
@@ -55,8 +55,19 @@ function colors(){
   if(W.JV_TEAM_ID){var id=W.JV_TEAM_ID;setPage({a:fcol(id),b:['#1b2338','#8794ad']})}
   else if(/team\.html$/.test(location.pathname)&&q.get('id'))setPage({a:fcol(q.get('id').replace(/-/g,'_')),b:['#1b2338','#8794ad']})}
 
+/* ——— страница матча и forecast: клинья клубов, гигантские названия; столбики вероятностей растут ——— */
+function matchStage(){
+  var top=$('.fc-top');if(!top)return;
+  var im=$$('.mt-tm img',top).map(idOf).filter(Boolean);
+  if(im.length>=2){
+    setPage(pairOf(im[0],im[1]));
+    var nm=$$('.mt-tm span',top).map(function(e){return e.textContent.trim()});
+    ['h','a'].forEach(function(s,i){var e=D.createElement('span');e.className='ef-stage__big ef-stage__big--'+s;e.setAttribute('aria-hidden','true');e.textContent=(nm[i]||'').split(' ')[0];top.appendChild(e)})}
+  else{var m=/forecast-(\w+)\.html/.exec(location.pathname);if(m)setLg(m[1])}}
+function bars(){$$('.fc-bar:not(.ef-rv)').forEach(function(b){b.classList.add('ef-rv')});if(W.JVEfir)W.JVEfir.reveal()}
+
 function start(){
-  colors();hero();rows();tags();
+  colors();hero();matchStage();rows();tags();bars();
   var t=0,main=$('main')||D.body;
   new MutationObserver(function(){cancelAnimationFrame(t);t=requestAnimationFrame(function(){rows();tags()})}).observe(main,{childList:true,subtree:true});
   var pg=W.EF_PAGE;if(pg)pg()}
