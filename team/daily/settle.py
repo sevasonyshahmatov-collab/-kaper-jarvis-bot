@@ -118,6 +118,8 @@ def parse_leg(text, home, away):
         ou, line = _ou(t), _num(t)
         if not ou or line is None:
             raise ValueError('тотал: не понял больше/меньше или линию')
+        if side and re.search(r'\(\s*\d', t) and not re.search(r'матч', t):       # «Тотал ЦСКА (2) больше» — тотал команды, не матча (владелец 06.11)
+            return dict(kind='it', side=side, ou=ou, line=line, scope=scope)
         return dict(kind='tot', ou=ou, line=line, scope=scope)
     # фора
     m = re.search(r'\bф([12])\b|\bф([12])\s?\(|\bфор[аоуы]\w*', t)
