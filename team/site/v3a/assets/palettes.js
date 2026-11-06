@@ -1,6 +1,7 @@
 /* Пробные палитры 60/30/10: ?pal=stadium|ice|volt|royal включает, ?pal=off сбрасывает; без параметра сайт как раньше.
    Выбор помнится в sessionStorage до закрытия вкладки. Плашка-переключатель видна только при включённой палитре. */
 (function(){
+  if(document.documentElement.classList.contains("efir"))return; /* тема «Эфир» включена: старый переключатель палитр не нужен */
   var d=document.documentElement,K='jv-pal',L=['stadium','ice','volt','royal'],N={stadium:'Стадион',ice:'Лёд и огонь',volt:'Вольт',royal:'Королевский'};
   var p='',q='';
   try{q=new URLSearchParams(location.search).get('pal')||''}catch(e){}

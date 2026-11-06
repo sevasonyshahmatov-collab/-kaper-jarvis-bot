@@ -1,0 +1,382 @@
+/* JARVIS · тема «Эфир» — графика ТВ-трансляции поверх существующих страниц сайта.
+   Включается загрузчиком efir-loader.js (?theme=efir) классом <html class="efir">; без класса ничего из этого файла не работает.
+   Устройство: 1) токены  2) база  3) фон  4) шапка/подвал  5) КОМПОНЕНТЫ ef-*  6) правило «без плашек»  7) главная  8) переход-клин  9) reduced-motion.
+   Правило плашек (владелец 06.11): плашка (фон/рамка/тень) — только у интерактивного: карточка матча, строка-титр, кэф, табло-счёт, кнопка, чип.
+   Тексты, пояснения, вопросы, итоги, подписки — открытая типографика: линии, крупные цифры, клин клуба как акцент, воздух. */
+
+/* ═══ 1. ТОКЕНЫ ═══ */
+html.efir{
+  /* фон: студийный средний тон «сталь» (выбор B). Контраст текста на самой светлой точке прожектора (#4a5b7a): ink 6,3 · mute 4,8 · dim 4,5 */
+  --ef-bg:#2c374d; --ef-bg2:#364560; --ef-spot:#4a5b7a;
+  --ef-ink:#f6f8fc; --ef-mute:#d3dbea; --ef-dim:#c6cfe1;
+  --ef-line:rgba(255,255,255,.2); --ef-line2:rgba(255,255,255,.12);
+  --ef-glass:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06)); --ef-edge:rgba(255,255,255,.26);
+  --ef-chip:#3c4b67; --ef-chip2:#465774;       /* пластина под интерактив */
+  --ef-row:linear-gradient(180deg,#3a4863,#313e57);
+  /* клубные цвета: задаёт efir.js по матчу дня; запасные значения */
+  --hd:#282828; --hb:#d0344d; --ad:#1b3a8c; --ab:#4a6ee0;
+  /* шрифты: Unbounded — заголовки и цифры, Onest — текст, IBM Plex Sans Italic — курсивный акцент */
+  --ef-d:"Unbounded","Onest",system-ui,sans-serif; --ef-b:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif; --ef-i:"IBM Plex Sans","Onest",system-ui,sans-serif;
+  /* отступы, ритм */
+  --ef-gut:clamp(16px,3.2vw,44px); --ef-maxw:1240px; --ef-sec:clamp(56px,8vw,112px);
+  --ef-tan:.2126;                              /* tan 12° — угол всех клиньев и скосов */
+  --ef-ease:cubic-bezier(.23,1,.32,1); --ef-ease-io:cubic-bezier(.77,0,.175,1);
+  --ef-sh1:0 1px 0 rgba(255,255,255,.14) inset,0 10px 24px -8px rgba(8,12,22,.6),0 2px 6px rgba(8,12,22,.4);
+  --ef-sh2:0 1px 0 rgba(255,255,255,.22) inset,0 26px 46px -10px rgba(8,12,22,.7),0 6px 14px rgba(8,12,22,.45);
+  --sk12:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%);   /* скошенный правый край (кнопки, метки) */
+
+  /* токены существующего сайта → в Эфир (так страницы без разметки Эфира сразу выглядят в теме) */
+  --paper:var(--ef-bg); --paper-2:var(--ef-chip); --paper-3:var(--ef-chip2);
+  --card:var(--ef-chip); --card-hi:var(--ef-chip2);
+  --ink:var(--ef-ink); --ink-2:var(--ef-mute); --ink-3:var(--ef-dim);
+  --rule:var(--ef-line2); --rule-2:var(--ef-line);
+  --signal:#fff; --signal-ink:#000; --sport:#fff; --sport-ink:#000;
+  --display:var(--ef-d); --text:var(--ef-b);
+  --shadow:rgba(8,12,22,.6);
+  --out:var(--ef-ease); --inout:var(--ef-ease-io);
+  color-scheme:dark;
+}
+
+/* ═══ 2. БАЗА ═══ */
+html.efir{background:var(--ef-bg);scroll-behavior:smooth;scroll-padding-top:84px;overflow-x:clip}
+html.efir body{background:transparent;color:var(--ef-ink);font:400 16px/1.55 var(--ef-b);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;overflow-x:clip}
+html.efir body::after,html.efir #field{display:none}                       /* зерно и поле старой темы выключены */
+html.efir h1,html.efir h2,html.efir h3{font-family:var(--ef-d);text-transform:none;letter-spacing:-.01em;line-height:1.08;text-wrap:balance;overflow-wrap:break-word}
+html.efir h1{font-weight:900;font-size:clamp(25px,3.3vw,48px);line-height:1.04}
+html.efir h2{font-weight:700;font-size:clamp(25px,3.4vw,46px);line-height:1.08}
+html.efir h3{font-weight:700;font-size:clamp(17px,1.6vw,21px)}
+html.efir h1,html.efir h2,html.efir h3,html.efir .btn,html.efir .seg a,html.efir .nav a{letter-spacing:-.005em!important}
+html.efir a{text-underline-offset:3px}
+html.efir :focus-visible{outline:2px solid #fff;outline-offset:3px;border-radius:2px}
+html.efir ::selection{background:#fff;color:#000}
+html.efir .skip{background:#fff;color:#000}
+html.efir .pal-bar{display:none!important}                                  /* старый переключатель палитр */
+
+/* курсивный акцент: IBM Plex Sans Italic — наклон ≈12°, как у клиньев и скошенных кнопок */
+html.efir .ef-it,html.efir em.it{font-family:var(--ef-i);font-style:italic;font-weight:500;letter-spacing:0;text-transform:none}
+html.efir h1 .ef-it{font-weight:500}
+
+/* ═══ 3. ФОН ═══ студийный свет сверху + два еле заметных клина (цвет — матч дня) */
+html.efir .ef-bgw{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;background:
+  radial-gradient(1300px 700px at 50% -12%,color-mix(in srgb,var(--ef-spot) 100%,transparent),transparent 64%),
+  radial-gradient(900px 520px at 0% 100%,rgba(130,160,215,.16),transparent 62%),var(--ef-bg)}
+html.efir .ef-bgw i{position:absolute;top:-10%;bottom:-10%;width:34vw;opacity:.2;--sk:calc(100vh*var(--ef-tan));clip-path:polygon(var(--sk) 0,100% 0,calc(100% - var(--sk)) 100%,0 100%)}
+html.efir .ef-bgw i:first-child{left:-8vw;background:linear-gradient(180deg,var(--hb),transparent 80%)}
+html.efir .ef-bgw i:last-child{right:-8vw;background:linear-gradient(180deg,var(--ab),transparent 80%)}
+
+/* ═══ 4. ШАПКА И ПОДВАЛ ═══ */
+html.efir .hd{background:color-mix(in srgb,var(--ef-bg) 72%,transparent);-webkit-backdrop-filter:blur(12px) saturate(1.2);backdrop-filter:blur(12px) saturate(1.2);border-bottom:1px solid var(--ef-line2)}
+html.efir .hd.stuck{box-shadow:0 10px 24px -14px rgba(8,12,22,.7)}
+html.efir .hd .wrap{height:64px}
+html.efir .hd .logo.lg2 s,html.efir .hd .logo.lg2 em{display:none}
+html.efir .hd .logo.lg2 .lw{letter-spacing:.02em;margin:0}
+html.efir .hd .logo,html.efir .hd .logo.lg2{font:900 17px/1 var(--ef-d);letter-spacing:.02em;text-transform:none;color:#000;background:#fff;padding:11px 20px 11px 14px;min-height:0;clip-path:polygon(0 0,100% 0,calc(100% - 10px) 100%,0 100%);gap:0;flex:none;filter:none;white-space:nowrap}
+html.efir .logo i{all:unset;font:inherit;color:inherit}
+html.efir .logo i::after{display:none}
+html.efir .ef-air{display:flex;align-items:center;gap:8px;margin-left:-6px;padding:0 16px 0 20px;height:38px;flex:none;background:var(--ef-chip);color:#fff;font:700 11px/1 var(--ef-d);clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);letter-spacing:.02em}
+html.efir .ef-air em{font-style:normal;color:var(--ef-mute);font-weight:600}
+html.efir .seg{background:none;padding:0;gap:4px;margin-left:6px}
+html.efir .seg a{font:700 13px/1 var(--ef-d);padding:12px 20px 12px 16px;border-radius:0;background:var(--ef-chip);color:var(--ef-mute);clip-path:var(--sk12);transition:background .15s,color .15s,transform .12s}
+html.efir .seg a:hover{background:var(--ef-chip2);color:#fff}
+html.efir .seg a[aria-current]{background:#fff;color:#000}
+html.efir .seg a:active{transform:scale(.97)}
+html.efir .nav a{font:600 14px/1 var(--ef-b);color:var(--ef-mute)}
+html.efir .nav a:hover,html.efir .nav a.on{color:#fff}
+html.efir .nav .bar{background:#fff;border-radius:0;height:2px}
+@media(max-width:700px){html.efir .ef-air{display:none}}
+
+/* подвал: открытая типографика, сверху косая линия-клин */
+html.efir footer.jvf{border-top:0;position:relative;color:var(--ef-ink);font-family:var(--ef-d)}
+html.efir footer.jvf::before{content:"";position:absolute;left:0;top:0;width:100%;height:4px;background:linear-gradient(90deg,var(--hb) 0 18%,#fff 18% 20%,var(--ab) 20% 38%,var(--ef-line2) 38%)}
+html.efir .jvf-logo{font-weight:900;letter-spacing:.06em}
+html.efir .jvf-logo span::after{background:#fff;height:3px;border-radius:0;transform:skewX(-30deg)}
+html.efir .jvf-brand p,html.efir .jvf-note,html.efir .jvf-bot p{color:var(--ef-mute);font-family:var(--ef-b)}
+html.efir .jvf-tg{border:0;border-radius:0;background:var(--ef-chip);clip-path:var(--sk12);padding:12px 22px 12px 16px}
+html.efir .jvf-tg:hover{background:var(--ef-chip2)}
+html.efir .jvf-tg svg{color:#fff}
+html.efir .jvf-cols b{color:var(--ef-dim)!important;font-weight:700}
+html.efir .jvf-cols a{font-family:var(--ef-b);font-weight:500;color:var(--ef-ink)}
+html.efir .jvf-bot{border-top:1px solid var(--ef-line2)}
+html.efir .jvf-age{border-radius:0;color:var(--ef-mute);border-color:var(--ef-dim)}
+
+/* ═══ 5. КОМПОНЕНТЫ ЭФИРА ═══ */
+
+/* 5.1 эфирная метка раздела: <span class="ef-tag"><i></i>ФОРМА · ПОСЛЕДНИЕ 5</span>. Тёмный вариант — ef-tag--dark */
+html.efir .ef-tag{display:inline-flex;align-items:center;gap:10px;background:#fff;color:#000;font:700 12px/1 var(--ef-d);padding:9px 22px 9px 12px;clip-path:var(--sk12);text-transform:uppercase;letter-spacing:.03em;width:max-content;max-width:100%}
+html.efir .ef-tag i{width:8px;height:8px;background:var(--hb);display:block;transform:skewX(-12deg);flex:none}
+html.efir .ef-tag--dark{background:var(--ef-chip);color:#fff}
+html.efir .ef-tagw{display:inline-block;filter:drop-shadow(0 5px 8px rgba(8,12,22,.45))}   /* обёртка: тень не обрезается clip-path */
+
+/* 5.2 клин клуба — акцент секции. <i class="ef-wedge"></i> (вертикальный скошенный штрих) и .ef-rule (линия-разделитель с клином) */
+html.efir .ef-wedge{display:inline-block;width:10px;height:1.1em;background:var(--hb);transform:skewX(-12deg);vertical-align:-.12em}
+html.efir .ef-wedge--a{background:var(--ab)}
+html.efir .ef-rule{display:block;height:3px;border:0;margin:0;background:linear-gradient(90deg,var(--hb) 0 14%,#fff 14% 15.5%,var(--ab) 15.5% 29%,var(--ef-line2) 29%)}
+
+/* 5.3 стеклянная плашка-счёт. <a class="ef-glass ef-gl">…</a>; внутри ef-glass__top / __names / __clock / __p (три колонки) / __foot */
+html.efir .ef-glass{position:relative;background:var(--ef-glass);border:1px solid var(--ef-edge);border-radius:4px;box-shadow:var(--ef-sh1);color:#fff;text-decoration:none;display:block;transition:box-shadow .3s var(--ef-ease)}
+@media(min-width:900px){html.efir .ef-glass{-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2)}}
+@media(max-width:899px){html.efir .ef-glass{background:linear-gradient(180deg,rgba(38,48,70,.94),rgba(26,34,52,.96))}}
+html.efir .ef-glass:hover{box-shadow:var(--ef-sh2)}
+html.efir .ef-glass__top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;font:600 12px/1.2 var(--ef-b);color:var(--ef-mute);border-bottom:1px solid var(--ef-edge)}
+html.efir .ef-glass__top b{color:#fff;font:700 12px/1 var(--ef-d)}
+html.efir .ef-glass__names{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:14px 16px 4px;font:900 clamp(15px,2.2vw,24px)/1.1 var(--ef-d)}
+html.efir .ef-glass__names span:last-child{text-align:right}
+html.efir .ef-glass__names em{font:700 12px/1 var(--ef-d);font-style:normal;color:#000;background:#fff;padding:7px 10px;clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+html.efir .ef-glass__clock{display:block;text-align:center;padding:4px 16px 12px}
+html.efir .ef-glass__clock small{display:block;color:var(--ef-mute);font-size:12px}
+html.efir .ef-glass__clock b{font:700 clamp(26px,4.2vw,44px)/1.1 var(--ef-d);white-space:nowrap}
+html.efir .ef-glass__p{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--ef-edge)}
+html.efir .ef-glass__p div{padding:10px 8px 12px;text-align:center;border-right:1px solid var(--ef-edge);position:relative}
+html.efir .ef-glass__p div:last-child{border-right:0}
+html.efir .ef-glass__p small{display:block;font-size:11px;color:var(--ef-mute)}
+html.efir .ef-glass__p b{font:700 clamp(18px,2.6vw,28px)/1.1 var(--ef-d)}
+html.efir .ef-glass__p .mx{background:rgba(255,255,255,.16)}
+html.efir .ef-glass__p .mx::after{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:#fff}
+html.efir .ef-glass__foot{display:flex;justify-content:space-between;gap:10px;padding:9px 16px;font-size:13px;color:var(--ef-mute);background:rgba(10,14,26,.4)}
+html.efir .ef-glass__foot b{color:#fff;font-weight:600}
+
+/* 5.4 блик при наведении (один раз за вход курсора): класс ef-gl на любой элемент с position≠static и overflow:hidden (у стекла — автоматически) */
+html.efir .ef-gl{overflow:hidden}
+html.efir .ef-gl::after{content:"";position:absolute;top:-20%;bottom:-20%;left:0;width:32%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.3) 50%,transparent);transform:translateX(-160%) skewX(-18deg);opacity:0;pointer-events:none;z-index:4}
+@media(hover:hover) and (pointer:fine){html.efir .ef-gl:hover::after{animation:efGlint .7s var(--ef-ease) 1 both}}
+@keyframes efGlint{0%{opacity:1;transform:translateX(-160%) skewX(-18deg)}100%{opacity:1;transform:translateX(420%) skewX(-18deg)}}
+
+/* 5.5 кнопки: белый скошенный блок, клин клуба заезжает при наведении, нажатие scale .97. Работает на .btn, .btn-tg, .btn-ink, .ef-btn */
+html.efir .btn,html.efir .ef-btn{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 28px 0 22px;border-radius:0;border:0;background:#fff;color:#000;font:700 14px/1.1 var(--ef-b);text-decoration:none;position:relative;isolation:isolate;overflow:hidden;
+  clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%);transition:transform .16s var(--ef-ease),color .2s;white-space:normal;cursor:pointer}
+html.efir .btn::before,html.efir .ef-btn::before{content:"";position:absolute;inset:0;background:var(--hb);transform:translateX(-102%);transition:transform .35s var(--ef-ease);z-index:-1}
+html.efir .btn:hover,html.efir .ef-btn:hover{background:#fff;color:#fff}
+html.efir .btn:hover::before,html.efir .ef-btn:hover::before{transform:translateX(0)}
+html.efir .btn:active,html.efir .ef-btn:active{transform:scale(.97);transition-duration:.12s}
+html.efir .btn svg{width:18px;height:18px;flex:none}
+html.efir .hd .btn{min-height:40px;font-size:13px;padding:0 24px 0 16px}
+html.efir .btn-line,html.efir .ef-btn--ghost{background:var(--ef-chip);color:#fff;box-shadow:none}
+html.efir .btn-line:hover,html.efir .ef-btn--ghost:hover{background:var(--ef-chip);color:#fff}
+html.efir .btn-ink:hover,html.efir .btn-tg:hover{background:#fff}
+@media(max-width:520px){html.efir .hd .btn{padding:0 18px 0 14px}}
+
+/* 5.6 чип-фильтр (интерактивное): <button class="ef-chip" aria-pressed="true"> */
+html.efir .ef-chip{border:0;background:var(--ef-chip);color:var(--ef-mute);font:600 14px/1 var(--ef-b);padding:12px 22px 12px 16px;clip-path:var(--sk12);transition:background .15s,color .15s,transform .12s;cursor:pointer}
+html.efir .ef-chip:hover{color:#fff;background:var(--ef-chip2)}
+html.efir .ef-chip:active{transform:scale(.97)}
+html.efir .ef-chip[aria-pressed=true]{background:#fff;color:#000}
+
+/* 5.7 строка-титр матча (интерактивное): ef-row с клином клуба по краям. Цвета: style="--hd:…;--hb:…;--ad:…;--ab:…". Внутри можно <i class="w w--h"></i><i class="w w--a"></i> — широкие клинья */
+html.efir .ef-row,html.efir .hm-row{position:relative;isolation:isolate;overflow:hidden;background:var(--ef-row);border:1px solid var(--ef-line2);border-radius:4px;box-shadow:var(--ef-sh1);
+  transition:transform .3s var(--ef-ease),box-shadow .3s var(--ef-ease);color:inherit;text-decoration:none}
+html.efir .ef-row::before,html.efir .hm-row::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--hb) 30%,transparent),transparent 26%,transparent 76%,color-mix(in srgb,var(--ab) 30%,transparent))}
+html.efir .ef-row .w,html.efir .hm-row .w{position:absolute;top:0;bottom:0;width:14px;z-index:-1;transition:transform .35s var(--ef-ease)}
+html.efir .ef-row .w--h,html.efir .hm-row .w--h{left:0;transform:translateX(-4px);background:var(--hb);clip-path:polygon(0 0,100% 0,45% 100%,0 100%)}
+html.efir .ef-row .w--a,html.efir .hm-row .w--a{right:0;transform:translateX(4px);background:var(--ab);clip-path:polygon(55% 0,100% 0,100% 100%,0 100%)}
+html.efir .ef-row::after,html.efir .hm-row::after{content:"";position:absolute;top:-20%;bottom:-20%;left:0;width:28%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.24) 50%,transparent);transform:translateX(-160%) skewX(-18deg);opacity:0;pointer-events:none}
+@media(hover:hover) and (pointer:fine){
+  html.efir .ef-row:hover,html.efir .hm-row:hover{transform:translateY(-3px);box-shadow:var(--ef-sh2);background:var(--ef-row)}
+  html.efir .ef-row:hover .w--h,html.efir .hm-row:hover .w--h{transform:translateX(6px)}
+  html.efir .ef-row:hover .w--a,html.efir .hm-row:hover .w--a{transform:translateX(-6px)}
+  html.efir .ef-row:hover::after,html.efir .hm-row:hover::after{animation:efGlint .7s var(--ef-ease) 1 both}
+}
+html.efir .ef-row:active,html.efir .hm-row:active{transform:scale(.985);transition-duration:.12s}
+
+/* 5.8 кэф-кнопка (интерактивное) и строка вероятностей: <span class="ef-odd"><small>П1</small><b>1,90</b></span>; .fav — подсвеченный исход модели */
+html.efir .ef-odd{display:grid;gap:2px;text-align:center;background:rgba(255,255,255,.1);border-radius:3px;padding:6px 8px 7px;line-height:1.1;min-width:48px;transition:transform .12s}
+html.efir .ef-odd small{font-size:10.5px;color:var(--ef-mute);letter-spacing:.06em}
+html.efir .ef-odd b{font:700 15px/1.2 var(--ef-d)}
+html.efir .ef-odd.fav{background:rgba(255,255,255,.2);box-shadow:inset 0 -3px 0 #fff}
+html.efir button.ef-odd{border:0;color:#fff;cursor:pointer}
+html.efir button.ef-odd:active{transform:scale(.97)}
+
+/* 5.9 открытая типографика (БЕЗ плашек) */
+html.efir .ef-open{background:none;border:0;border-radius:0;box-shadow:none;padding:0}
+html.efir .ef-lines>*+*{border-top:1px solid var(--ef-line)}                 /* список с линиями-разделителями */
+html.efir .ef-bignum{font:900 clamp(54px,6vw,84px)/.9 var(--ef-d);color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.6);letter-spacing:-.03em;display:block}  /* крупная цифра-контур */
+html.efir .ef-lead{color:var(--ef-mute);max-width:46ch}
+html.efir .ef-sechead{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:end;gap:14px 40px;margin-bottom:clamp(26px,3.4vw,46px)}
+html.efir .ef-sechead>.ef-tagw{grid-column:1/-1;justify-self:start}
+html.efir .ef-sechead h2{max-width:22ch}
+html.efir .ef-sechead p{color:var(--ef-mute);max-width:46ch}
+@media(max-width:820px){html.efir .ef-sechead{grid-template-columns:minmax(0,1fr)}}
+
+/* 5.10 появление при прокрутке: .ef-rv → .ef-in ставит efir.js (IntersectionObserver). Строки идут шагом 60 мс: style="--i:N" */
+html.efir.ef-js .ef-rv{opacity:0;transform:translateY(22px);transition:opacity .7s var(--ef-ease),transform .9s var(--ef-ease);transition-delay:calc(var(--i,0)*60ms)}
+html.efir.ef-js .ef-rv.ef-in{opacity:1;transform:none}
+html.efir.ef-js .ef-rv--line{transform:none;clip-path:inset(0 100% 0 0);transition:clip-path .8s var(--ef-ease),opacity .4s}
+html.efir.ef-js .ef-rv--line.ef-in{clip-path:inset(0 0 0 0)}
+
+/* 5.11 столбик-доля: <span class="ef-seg"><i class="mx" style="flex:39"></i><i style="flex:22"></i><i style="flex:40"></i></span> */
+html.efir .ef-seg{display:flex;height:5px;gap:2px}
+html.efir .ef-seg i{display:block;background:rgba(255,255,255,.26)}
+html.efir .ef-seg i.mx{background:#fff}
+
+/* ═══ 6. ПРАВИЛО «БЕЗ ПЛАШЕК» для существующих блоков сайта ═══ */
+html.efir .sec{padding-top:var(--ef-sec);position:relative}
+html.efir .sec-head{margin-bottom:clamp(26px,3.4vw,46px);align-items:end}
+html.efir .sec-head h2{max-width:22ch}
+html.efir .sec-head>.ef-tagw,html.efir .faq>div>.ef-tagw{grid-column:1/-1;justify-self:start}
+html.efir .faq>div>.ef-tagw{display:block;margin-bottom:14px}
+html.efir .sec-head p,html.efir .soon p{color:var(--ef-mute)}
+/* «Частые сомнения» — вопросы с линиями, не карточки */
+html.efir .obj .obj-grid{gap:0 clamp(28px,5vw,72px)}
+html.efir .obj details{background:none;border:0;border-top:1px solid var(--ef-line);border-radius:0}
+html.efir .obj details[open]{border-color:var(--ef-line)}
+html.efir .obj summary{padding:20px 0;border-radius:0;min-height:0;font:700 clamp(16px,1.45vw,19px)/1.25 var(--ef-d);position:relative}
+html.efir .obj summary::after,html.efir .faq summary::after{width:16px;height:16px;border:0;background:linear-gradient(#fff,#fff) center/100% 2px no-repeat,linear-gradient(#fff,#fff) center/2px 100% no-repeat;transform:none;transition:transform .3s var(--ef-ease)}
+html.efir .obj details[open] summary::after,html.efir .faq details[open] summary::after{transform:rotate(45deg)}
+html.efir .obj details p,html.efir .faq details p{padding:0 0 20px;color:var(--ef-mute);font-size:16px}
+html.efir .obj details p a,html.efir .faq details p a{color:#fff}
+html.efir .obj summary:focus-visible{outline:2px solid #fff}
+html.efir .obj .obj-grid details:nth-last-child(-n+2){border-bottom:1px solid var(--ef-line)}
+@media(max-width:760px){html.efir .obj .obj-grid details:nth-last-child(2){border-bottom:0}}
+/* «Как думает модель» — крупные цифры-контуры и клинья над колонками, фона нет */
+html.efir .steps{background:none;gap:0 clamp(24px,4vw,56px);overflow:visible}
+html.efir .steps>li{background:none;padding:22px 0 0;position:relative;gap:12px}
+html.efir .steps>li::after{content:"";position:absolute;left:0;top:0;width:100%;height:3px;background:linear-gradient(90deg,var(--c,#fff) 0 28%,var(--ef-line) 28%)}
+html.efir .steps>li:nth-child(1){--c:var(--hb)}html.efir .steps>li:nth-child(2){--c:#fff}html.efir .steps>li:nth-child(3){--c:var(--ab)}
+html.efir .steps>li::before{font:900 clamp(54px,6vw,84px)/.9 var(--ef-d);color:transparent!important;-webkit-text-stroke:1.5px rgba(255,255,255,.6);letter-spacing:-.03em;content:"0" counter(s)}
+html.efir .steps h3{font-size:clamp(19px,1.8vw,24px)}
+html.efir .steps p{color:var(--ef-mute);max-width:34ch}
+@media(max-width:760px){html.efir .steps>li{padding-bottom:14px}}
+/* «Честные итоги» — «Скоро» крупной типографикой, без рамки */
+html.efir .soon{background:none;border:0;border-radius:0;padding:0;max-width:none;gap:16px;position:relative;padding-left:clamp(18px,2.4vw,30px)}
+html.efir .soon::before{content:"";position:absolute;left:0;top:.2em;bottom:.2em;width:8px;background:var(--hb);transform:skewX(-12deg)}
+html.efir .soon b{font:900 clamp(40px,6vw,84px)/1 var(--ef-d);color:#fff}
+html.efir [data-theme=c] .soon b{color:#fff}
+html.efir .soon p{font-size:clamp(16px,1.3vw,19px);max-width:52ch}
+/* подписка в Telegram — без чёрной плашки: заголовок слева, три пункта строками-линиями справа, клин клуба за заголовком */
+html.efir .sub{background:none;color:var(--ef-ink);padding:var(--ef-sec) 0 0;margin-top:0;position:relative;isolation:isolate}
+html.efir .sub::before{content:"";position:absolute;left:-6%;top:calc(var(--ef-sec)*.6);bottom:-6%;width:46%;z-index:-1;background:linear-gradient(90deg,var(--hd),color-mix(in srgb,var(--hb) 45%,var(--hd)));opacity:.9;--sk:80px;clip-path:polygon(0 0,100% 0,calc(100% - var(--sk)) 100%,0 100%)}
+html.efir .sub h2{color:#fff;font-size:clamp(25px,3.6vw,46px);max-width:14ch}
+html.efir .sub ul{gap:0}
+html.efir .sub li{background:none;padding:18px 0;grid-template-columns:minmax(0,170px) 1fr;border-top:1px solid var(--ef-line)}
+html.efir .sub li:last-child{border-bottom:1px solid var(--ef-line)}
+html.efir .sub li b{color:#fff;font:700 15px/1.25 var(--ef-d)}
+html.efir .sub li span{color:var(--ef-mute)}
+@media(max-width:760px){html.efir .sub::before{width:80%;top:0}html.efir .sub li{grid-template-columns:1fr;gap:4px}}
+/* «Вопросы» — линии */
+html.efir .faq{align-items:start}
+html.efir .faq details{border-top:1px solid var(--ef-line);background:none}
+html.efir .faq details:last-of-type{border-bottom:1px solid var(--ef-line)}
+html.efir .faq summary{font:700 clamp(15px,1.35vw,18px)/1.3 var(--ef-d);padding:20px 0}
+html.efir .legal{color:var(--ef-dim)}
+/* плавающая кнопка Telegram (мобильная) — интерактив, плашка допустима */
+html.efir .tgbar{background:#fff;color:#000;border-radius:0;font:700 15px/1.1 var(--ef-b);box-shadow:0 -10px 24px -10px rgba(8,12,22,.6)}
+
+/* ═══ 7. ГЛАВНАЯ ═══ */
+html.efir .hm{padding:0;overflow:visible;isolation:auto;display:flex;flex-direction:column}
+html.efir .hm-bg{display:none}
+html.efir .hm-grid{display:contents}
+html.efir .hm-lead,html.efir .hm-today{width:min(var(--ef-maxw),calc(100% - var(--ef-gut)*2));margin-inline:auto}
+html.efir .hm-lead{display:grid;gap:0 clamp(28px,4vw,56px);padding-block:clamp(14px,2.6vw,34px) clamp(20px,2.6vw,32px);align-items:end}
+@media(min-width:900px){
+  html.efir .hm-lead{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);align-items:end}
+  html.efir .hm-date{grid-column:1;grid-row:1}
+  html.efir .hm h1{grid-column:1;grid-row:2 / span 4;align-self:end}
+  html.efir .hm-sub{grid-column:2;grid-row:1 / span 2;align-self:start}
+  html.efir .hm-proof{grid-column:2;grid-row:3}
+  html.efir .hm-act{grid-column:2;grid-row:4}
+  html.efir .hm-doors{grid-column:2;grid-row:5}
+}
+html.efir .hm-date{font:700 12px/1 var(--ef-d);letter-spacing:.14em;color:var(--ef-mute)}
+html.efir .hm-date span::before{border-radius:0;transform:skewX(-12deg);background:var(--hb)}
+html.efir .hm h1{max-width:none;margin:18px 0 0;font-size:clamp(25px,3.3vw,48px);line-height:1.06;text-transform:none}
+html.efir .hm h1 .ln{display:block;overflow:clip;padding:.06em 0 .1em;margin:-.06em 0 -.1em}
+html.efir.ef-js .hm h1 .ln>span{display:block;transform:none;transition:none;animation:efLn .8s var(--ef-ease) both}
+html.efir .hm h1 .ln:nth-child(2)>span{animation-delay:.08s}html.efir .hm h1 .ln:nth-child(3)>span{animation-delay:.16s}
+@keyframes efLn{from{transform:translateY(105%)}}
+@keyframes efUp{from{opacity:0;transform:translateY(14px)}}
+html.efir .hm-sub{font-size:clamp(15px,1.25vw,18px);color:var(--ef-mute);max-width:44ch;margin-top:0}
+html.efir .hm-act{margin-top:16px}
+html.efir .hm-tg{font-size:14px;padding:0 28px 0 22px}
+html.efir .hm-micro{font:500 13px/1.4 var(--ef-b);color:var(--ef-dim);margin-top:10px}
+html.efir .hm-micro a{color:#fff}
+html.efir .hm-proof{margin:14px 0 0;gap:4px 18px}
+html.efir .hm-proof li{background:none;border:0;border-radius:0;padding:0;font:500 13px/1.4 var(--ef-b);color:var(--ef-mute)}
+html.efir .hm-proof li::before{left:auto;position:static;display:inline-block;width:10px;height:2px;border:0;background:#fff;margin-right:8px;vertical-align:middle;transform:skewX(-30deg)}
+html.efir .hm-doors{gap:8px;margin-top:16px}
+html.efir .hm-door{border-radius:0;background:var(--ef-chip);color:#fff;min-height:56px;padding:10px 22px 10px 16px;clip-path:var(--sk12);box-shadow:none;position:relative;isolation:isolate;overflow:hidden;gap:2px 10px}
+html.efir .hm-door::before{content:"";position:absolute;inset:0;background:var(--hb);transform:translateX(-102%);transition:transform .35s var(--ef-ease);z-index:-1}
+html.efir .hm-door.fb::before{background:var(--ab)}
+html.efir .hm-door:hover{transform:none;box-shadow:none;filter:none}
+html.efir .hm-door:hover::before{transform:none}
+html.efir .hm-door:active{transform:scale(.97)}
+html.efir .hm-dn{font:900 17px/1 var(--ef-d);text-transform:none}
+html.efir .hm-dc{font:500 12px/1.2 var(--ef-b);opacity:.9}
+html.efir .hm-door svg{width:18px;height:18px}
+
+/* сцена матча дня: клинья → гигантское название → вырезанная эмблема → стеклянная плашка-счёт */
+html.efir .ef-stage{--sh:clamp(330px,50vh,500px);--sk:calc(var(--sh)*var(--ef-tan));position:relative;height:var(--sh);overflow:clip;isolation:isolate;contain:layout paint;width:100%}
+html.efir .ef-stage .wedge{position:absolute;top:0;bottom:0;width:52%;will-change:transform}
+html.efir .ef-stage .wedge--h{left:0;clip-path:polygon(0 0,100% 0,calc(100% - var(--sk)) 100%,0 100%);background:linear-gradient(90deg,var(--hd) 0%,var(--hd) 22%,var(--hb) 100%);animation:efWH .8s var(--ef-ease) both}
+html.efir .ef-stage .wedge--a{right:0;clip-path:polygon(var(--sk) 0,100% 0,100% 100%,0 100%);background:linear-gradient(270deg,var(--ad) 0%,var(--ad) 22%,var(--ab) 100%);animation:efWA .8s var(--ef-ease) both}
+html.efir .ef-stage .wedge::before{content:"";position:absolute;inset:0;background:#fff;-webkit-mask:var(--mot) 62% 50%/auto 92% no-repeat;mask:var(--mot) 62% 50%/auto 92% no-repeat;opacity:.1}
+html.efir .ef-stage .wedge::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-78deg,rgba(255,255,255,.05) 0 2px,transparent 2px 22px)}
+@keyframes efWH{from{transform:translateX(-108%)}}@keyframes efWA{from{transform:translateX(108%)}}
+html.efir .ef-stage__big{position:absolute;top:2%;z-index:1;font:900 clamp(54px,12.5vw,190px)/.9 var(--ef-d);letter-spacing:-.04em;color:rgba(255,255,255,.14);-webkit-text-stroke:1px rgba(255,255,255,.3);white-space:nowrap;pointer-events:none;text-transform:uppercase;max-width:50%;overflow:hidden;animation:efUp .9s .3s var(--ef-ease) both}
+html.efir .ef-stage__big--h{left:1.5%}html.efir .ef-stage__big--a{right:1.5%}
+html.efir .ef-stage__em{position:absolute;top:50%;z-index:2;width:clamp(110px,21vw,290px);aspect-ratio:1;object-fit:contain;margin-top:calc(clamp(110px,21vw,290px)/-2);filter:drop-shadow(0 14px 22px rgba(8,12,22,.6));animation:efEm .7s .5s var(--ef-ease) both}
+html.efir .ef-stage__em--h{left:clamp(14px,5vw,90px)}html.efir .ef-stage__em--a{right:clamp(14px,5vw,90px);animation-delay:.58s}
+@keyframes efEm{from{opacity:0;transform:scale(.92)}}
+html.efir .ef-stage__nm{position:absolute;bottom:clamp(14px,3vh,28px);font:900 clamp(15px,2.3vw,30px)/1 var(--ef-d);text-shadow:0 2px 12px rgba(8,12,22,.7);animation:efUp .6s .65s var(--ef-ease) both;max-width:30%;z-index:2}
+html.efir .ef-stage__nm--h{left:clamp(14px,5vw,90px)}html.efir .ef-stage__nm--a{right:clamp(14px,5vw,90px);text-align:right}
+html.efir .ef-stage .ef-glass{position:absolute;left:50%;top:50%;width:min(620px,calc(100% - 24px));transform:translate(-50%,-50%);z-index:3;animation:efPlate .6s .42s var(--ef-ease) both}
+@keyframes efPlate{from{opacity:0;transform:translate(-50%,calc(-50% + 16px)) scale(.97)}}
+@keyframes efPlateM{from{opacity:0;transform:translateX(-50%) translateY(16px) scale(.97)}}
+@media(max-width:700px){
+  html.efir .ef-stage{--sh:430px}
+  html.efir .ef-stage__em{top:27%;width:min(46vw,170px);margin-top:-72px}
+  html.efir .ef-stage__nm{display:none}
+  html.efir .ef-stage__big{font-size:17vw;top:3%}
+  html.efir .ef-stage .ef-glass{top:auto;bottom:12px;transform:translateX(-50%);animation-name:efPlateM}
+}
+
+/* расписание эфира: «ближайшие матчи» — без рамки у блока, плашки только у строк-титров */
+html.efir .hm-today{background:none;border:0;border-radius:0;padding:var(--ef-sec) 0 0;-webkit-backdrop-filter:none;backdrop-filter:none}
+html.efir .hm-th{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:end;gap:14px 40px;margin-bottom:22px}
+html.efir .hm-th .ef-tagw{grid-column:1/-1;justify-self:start}
+html.efir .hm-th h2{font-size:clamp(25px,3.4vw,46px);text-transform:none}
+html.efir .hm-upd{font:500 13px/1.3 var(--ef-b);color:var(--ef-dim);justify-self:end}
+html.efir .hm-list{display:grid;gap:10px}
+html.efir .hm-list li{border:0}
+html.efir .hm-soon{color:var(--ef-mute)}
+html.efir .hm-row{grid-template-columns:70px minmax(0,1fr) auto;gap:6px 16px;padding:12px 20px;border-radius:4px}
+html.efir .hm-t{font:700 18px/1 var(--ef-d)}
+html.efir .hm-t small{color:var(--ef-mute)}
+html.efir .hm-tm{font:700 15px/1.15 var(--ef-d)}
+html.efir .hm-tm img{width:32px;height:32px;filter:drop-shadow(0 4px 6px rgba(8,12,22,.5))}
+html.efir .hm-q{gap:6px}
+html.efir .hm-q i{background:rgba(255,255,255,.1);border-radius:3px;font:700 15px/1.2 var(--ef-d);min-width:52px;padding:6px 8px 7px}
+html.efir .hm-q i small{color:var(--ef-mute)}
+html.efir .hm-q i.fav{outline:0;background:rgba(255,255,255,.2);box-shadow:inset 0 -3px 0 #fff}
+html.efir .hm-info{font:500 13px/1.3 var(--ef-b);color:var(--ef-mute)}
+html.efir .hm-info b{color:#fff}
+html.efir .hm-tag{background:#fff;color:#000;border-radius:0;font:700 10.5px/1 var(--ef-d);padding:4px 10px 4px 6px;clip-path:polygon(0 0,100% 0,calc(100% - 5px) 100%,0 100%)}
+html.efir .hm-note{font:400 13px/1.5 var(--ef-b);color:var(--ef-dim);max-width:80ch;margin-top:18px}
+@media(max-width:560px){
+  html.efir .hm-row{grid-template-columns:66px minmax(0,1fr);padding:12px 14px}
+  html.efir .hm-sub{margin-top:14px}
+  html.efir .hm-th{grid-template-columns:1fr}html.efir .hm-upd{justify-self:start}
+}
+
+/* ═══ 8. ПЕРЕХОД МЕЖДУ СТРАНИЦАМИ: клин цвета клуба проходит экран за 450 мс; эмблемы (em-h/em-a) перелетают ═══ */
+@media(prefers-reduced-motion:no-preference){@view-transition{navigation:auto}}
+html.efir .ef-vtw{position:fixed;top:0;bottom:0;left:-30vw;width:160vw;z-index:200;pointer-events:none;display:none;view-transition-name:efwedge;--sk:calc(100vh*var(--ef-tan));
+  clip-path:polygon(var(--sk) 0,100% 0,calc(100% - var(--sk)) 100%,0 100%);background:linear-gradient(90deg,var(--vd,#282828) 0,var(--vb,#d0344d) 72%,#fff 72%,#fff 76%,var(--vb,#d0344d) 76%,var(--vd,#282828) 100%)}
+html.efir.ef-vt .ef-vtw{display:block}
+::view-transition-group(root){animation-duration:.45s}
+::view-transition-old(root){animation:efVtOld .45s linear both}
+::view-transition-new(root){animation:efVtNew .45s linear both}
+::view-transition-group(efwedge){animation:none}
+::view-transition-old(efwedge){display:none}
+::view-transition-new(efwedge){animation:efVtW .45s var(--ef-ease-io) both;mix-blend-mode:normal}
+@keyframes efVtOld{0%,50%{opacity:1}51%,100%{opacity:0}}
+@keyframes efVtNew{0%,49%{opacity:0}50%,100%{opacity:1}}
+@keyframes efVtW{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+::view-transition-group(em-h),::view-transition-group(em-a){animation-duration:.45s;animation-timing-function:cubic-bezier(.23,1,.32,1);z-index:300}
+
+/* ═══ 9. reduced-motion: всё выключено, цифры итоговые ═══ */
+@media(prefers-reduced-motion:reduce){
+  html.efir{scroll-behavior:auto}
+  html.efir *,html.efir *::before,html.efir *::after{animation:none!important;transition-duration:.01ms!important;transition-delay:0s!important}
+  html.efir.ef-js .ef-rv,html.efir.ef-js .ef-rv--line{opacity:1;transform:none;clip-path:none}
+  html.efir .ef-gl::after,html.efir .ef-row::after,html.efir .hm-row::after{display:none}
+}

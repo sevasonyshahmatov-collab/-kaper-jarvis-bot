@@ -433,8 +433,16 @@ def patch_text(src, rel, P, extra_ld=None):
             ld.append({'@type': 'ItemList', 'name': 'Ближайшие матчи', 'itemListElement': [
                 {'@type': 'ListItem', 'position': i + 1, 'item': event_ld(m, sp, rel)} for i, (m, sp) in enumerate(evs)]})
     blk = head_block(rel, P, ld)
+    pre_ = '../' * rel.count('/')
+    ldr = '<script src="%sassets/efir/efir-loader.js"></script>' % pre_  # тема «Эфир» (?theme=efir), ставится ПЕРЕД palettes.js
+    pal = '<script src="%sassets/palettes.js"></script>' % pre_
     if 'assets/palettes.js' not in blk and 'assets/palettes.js' not in src:
-        blk += '\n<script src="%sassets/palettes.js"></script>' % ('../' * rel.count('/'))
+        blk += '\n' + ldr + '\n' + pal
+    elif 'efir-loader' not in src and 'efir-loader' not in blk:
+        if pal in src:
+            src = src.replace(pal, ldr + '\n' + pal, 1)
+        else:
+            blk = blk.replace(pal, ldr + '\n' + pal, 1)
     src = src.replace('</head>', blk + '\n</head>', 1)
     return src
 
@@ -466,10 +474,10 @@ def shell(rel, sport, body, extra_scripts='', extra_css='', head_js=''):
             '<meta name="theme-color" content="#071225">\n%s\n<link rel="stylesheet" href="%sassets/v3a.css">\n<link rel="stylesheet" href="%sassets/nav.css">\n'
             '<link rel="stylesheet" href="%sassets/forecast.css">\n%s%s<link rel="icon" href="%sfavicon.svg" type="image/svg+xml">\n'
             '<link rel="icon" href="%sfavicon-32.png" sizes="32x32" type="image/png">\n<link rel="apple-touch-icon" href="%sapple-touch-icon.png">\n'
-            '<link rel="manifest" href="%ssite.webmanifest">\n<script src="%sassets/palettes.js"></script>\n</head>\n<body class="fc"%s>\n<a class="skip" href="#main">К содержанию</a>\n%s\n\n<main id="main">\n%s\n</main>\n\n'
+            '<link rel="manifest" href="%ssite.webmanifest">\n<script src="%sassets/efir/efir-loader.js"></script>\n<script src="%sassets/palettes.js"></script>\n</head>\n<body class="fc"%s>\n<a class="skip" href="#main">К содержанию</a>\n%s\n\n<main id="main">\n%s\n</main>\n\n'
             '<footer><div class="wrap"><p id="foot">Макет v3a · © JARVIS, @jarvibet</p></div></footer>\n\n'
             '<script src="%sassets/nav.js"></script>\n<script src="%sassets/footer.js"></script>\n%s</body>\n</html>\n'
-            % (sattr, FONTS, pre, pre, pre, ('<link rel="stylesheet" href="%sassets/%s">\n' % (pre, extra_css)) if extra_css else '', head_js, pre, pre, pre, pre, pre, ' data-field="%s"' % sport if sport else '', header, body, pre, pre, extra_scripts))
+            % (sattr, FONTS, pre, pre, pre, ('<link rel="stylesheet" href="%sassets/%s">\n' % (pre, extra_css)) if extra_css else '', head_js, pre, pre, pre, pre, pre, pre, ' data-field="%s"' % sport if sport else '', header, body, pre, pre, extra_scripts))
 
 
 def crumbs_html(items, rel):
