@@ -1,0 +1,53 @@
+/* Шаблон 1: игроки «вылезают» из плашек переключателя. Шрифты и палитра — как на текущей главной (v3a.css). */
+.pl-hero{position:relative;isolation:isolate;overflow:hidden;padding:clamp(24px,3.4vw,52px) 0 clamp(36px,4.4vw,64px)}
+.pl-hero .hm-bg{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.pl-top{max-width:900px}
+.pl-top h1{font-size:clamp(38px,5vw,76px);line-height:.95;margin:clamp(14px,2vw,22px) 0 0;text-transform:uppercase;max-width:16ch}
+.pl-top .hm-sub{max-width:52ch}
+
+/* две большие плашки */
+.pl-doors{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2.4vw,32px);margin-top:clamp(120px,15vw,210px)}
+.pl-door{--sport:var(--ice);position:relative;display:block;text-decoration:none;color:var(--sport-ink);
+  height:clamp(190px,21vw,300px);border-radius:22px;-webkit-tap-highlight-color:transparent}
+.pl-door.fb{--sport:var(--pitch)}
+/* плашка (фон) — отдельный слой, чтобы обрезать только низ игрока */
+.pl-card{position:absolute;inset:0;border-radius:22px;overflow:hidden;
+  background:
+    radial-gradient(70% 90% at 78% 0,color-mix(in srgb,#fff 34%,transparent),transparent 62%),
+    linear-gradient(160deg,color-mix(in srgb,var(--sport) 92%,#fff),var(--sport) 55%,color-mix(in srgb,var(--sport) 70%,#000));
+  box-shadow:0 18px 40px -22px color-mix(in srgb,var(--sport) 80%,#000);transition:box-shadow .35s var(--out),filter .3s ease}
+.pl-card::after{content:"";position:absolute;inset:0;opacity:.18;background:repeating-linear-gradient(115deg,#fff 0 2px,transparent 2px 22px)}
+/* слой игрока: верх открыт (вылезает над плашкой), низ обрезан краем плашки со скруглением */
+.pl-clip{position:absolute;inset:0;border-radius:0 0 22px 22px;clip-path:inset(-100% -2% 0 -2% round 0 0 22px 22px);pointer-events:none}
+.pl-ph{position:absolute;bottom:-7%;height:158%;width:auto;max-width:none;right:3%;transform-origin:50% 100%;
+  transition:transform .45s var(--out);filter:drop-shadow(0 14px 18px rgba(0,0,0,.35));will-change:transform}
+.pl-txt{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:flex-end;padding:clamp(16px,2vw,28px);width:58%}
+.pl-n{font:900 clamp(34px,4.6vw,68px)/.9 var(--display);text-transform:uppercase;letter-spacing:-.01em}
+.pl-c{font:700 clamp(14px,1.3vw,18px)/1.25 var(--display);letter-spacing:.02em;margin-top:8px;opacity:.92}
+.pl-go{display:inline-flex;align-items:center;gap:8px;margin-top:12px;font:800 15px/1 var(--display);letter-spacing:.04em;text-transform:uppercase}
+.pl-go svg{width:20px;height:20px;transition:transform .35s var(--out)}
+.pl-door:focus-visible{outline:3px solid var(--signal);outline-offset:4px}
+@media (hover:hover) and (pointer:fine){
+  .pl-door:hover .pl-ph{transform:translateY(-14px) scale(1.03) rotate(-1deg)}
+  .pl-door:hover .pl-card{filter:brightness(1.07);box-shadow:0 26px 48px -20px color-mix(in srgb,var(--sport) 85%,#000)}
+  .pl-door:hover .pl-go svg{transform:translateX(6px)}
+}
+.pl-door:active .pl-ph{transform:translateY(-6px)}
+@media (prefers-reduced-motion:reduce){.pl-ph,.pl-card,.pl-go svg{transition:none}.pl-door:hover .pl-ph{transform:none}}
+
+/* телефон: плашки друг под другом, текст слева, игрок справа и не залезает на текст */
+@media (max-width:640px){
+  .pl-doors{grid-template-columns:1fr;gap:clamp(92px,26vw,120px);margin-top:clamp(92px,26vw,120px)}
+  .pl-door{height:150px}
+  .pl-txt{width:52%}
+  .pl-ph{height:175%;right:2%;bottom:-10%}
+}
+.pl-credit{margin:clamp(14px,2vw,22px) 0 0;font:600 12px/1.4 var(--display);color:var(--ink-3);letter-spacing:.02em}
+.pl-credit a{color:var(--ink-2)}
+
+/* блок «ближайшие матчи» ниже — те же данные, что и на текущей главной, без стекла */
+.pl-today{margin-top:clamp(28px,3.4vw,48px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(20px,3.4vw,56px);align-items:start}
+.pl-today .hm-today{backdrop-filter:none;background:var(--card)}
+.pl-side{display:grid;gap:14px;align-content:start}
+.pl-side .hm-act{margin-top:0}
+@media (max-width:900px){.pl-today{grid-template-columns:1fr}}
