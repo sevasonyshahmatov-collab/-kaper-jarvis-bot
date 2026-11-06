@@ -1,0 +1,513 @@
+/* JARVIS · «Эфир» · раздел ХОККЕЙ (html[data-sport=hockey]). Грузится efir-loader.js после efir.css, только при ?theme=efir.
+   Страницы: хоккей-главная, лиги, тренды, игроки, клубы, матчи, прогнозы. Плашки — только у интерактива (карточка матча, строка, кэф, табло, кнопка, чип). */
+/* ═══ 1. БАЗА ХОККЕЯ: зоны-бумаги и «свет по прокрутке» старой темы выключены, токены — в Эфир ═══ */
+html.efir[data-sport=hockey]{--khl:#2d57c9;--khl-2:#e0434f;--nhl:#3c4b67;--nhl-2:#d3dbea;--ice:#fff;--red:#ff7b87;--win:#46d98a;--sport:#fff;
+  --khl-tint:transparent;--nhl-tint:transparent;--khl-b:var(--hb);--khl-r:#fff;--nhl-a:var(--hb);--nhl-s:#fff;--khl-line:var(--ef-line);--nhl-line:var(--ef-line);
+  --flap:var(--ef-chip);--flap-2:var(--ef-chip);--flap-ink:#fff;--board:transparent;--crest-bg:transparent;--crest-pad:0;--loss-ink:#fff;--win-ink:#000;--bgc:#2c374d}
+html.efir[data-sport=hockey] .arena-bg,html.efir[data-sport=hockey] .tmbg,html.efir[data-sport=hockey] #field,html.efir[data-sport=hockey] canvas.fld,html.efir[data-sport=hockey] .hero canvas{display:none!important}
+html.efir[data-sport=hockey] [data-zone],html.efir[data-sport=hockey] #honest>.wrap,html.efir[data-sport=hockey] .hero,html.efir[data-sport=hockey] .hd,html.efir[data-sport=hockey] body.fc,html.efir[data-sport=hockey] .tmhero,html.efir[data-sport=hockey] .tmsec{
+  --paper:var(--ef-bg);--paper-2:var(--ef-chip);--paper-3:var(--ef-chip2);--card:var(--ef-chip);--card-hi:var(--ef-chip2);
+  --ink:var(--ef-ink);--ink-2:var(--ef-mute);--ink-3:var(--ef-dim);--rule:var(--ef-line2);--rule-2:var(--ef-line);--shadow:rgba(8,12,22,.6);
+  --ice:#fff;--sport:#fff;--acc:#fff;--crest-bg:transparent;--crest-pad:0;--win:#46d98a;--red:#ff7b87;color:var(--ef-ink)}
+html.efir[data-sport=hockey] #honest>.wrap{background:none;border-radius:0;padding-top:0;padding-bottom:0}
+html.efir[data-sport=hockey] #leagues::before{display:none}
+html.efir[data-sport=hockey] .hero>.wrap,html.efir[data-sport=hockey] #matches .wrap>:not(.period){opacity:1!important}
+html.efir[data-sport=hockey] .hero,html.efir[data-sport=hockey] .hero.tmhero{background:none!important;padding-bottom:0}
+html.efir[data-sport=hockey] .hero::before,html.efir[data-sport=hockey] .hero::after{display:none}
+html.efir[data-sport=hockey] body.fc{background:transparent;color:var(--ef-ink)}
+html.efir[data-sport=hockey] body.fc a:focus-visible{outline-color:#fff}
+html.efir[data-sport=hockey] .wrap{position:relative}
+html.efir[data-sport=hockey] main{overflow-x:clip}
+html.efir[data-sport=hockey] .note,html.efir[data-sport=hockey] .mt-note,html.efir[data-sport=hockey] .fc-upd{color:var(--ef-dim)}
+html.efir[data-sport=hockey] .eyebrow{font:700 12px/1 var(--ef-d);letter-spacing:.14em;text-transform:uppercase;color:var(--ef-mute)}
+/* появление: свой механизм старой темы (data-rv/.in) оставляем — только мягче */
+html.efir[data-sport=hockey] [data-rv]{transition-timing-function:var(--ef-ease)}
+
+/* метка периода → эфирная метка раздела (белая скошенная пластина-титр) */
+html.efir[data-sport=hockey] .period{margin:0 0 clamp(24px,3vw,40px)}
+html.efir[data-sport=hockey] .period p{background:#fff;color:#000;border-radius:0;padding:0 24px 0 0;gap:0;clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%);font:700 12px/1 var(--ef-d);filter:none;align-items:stretch}
+html.efir[data-sport=hockey] .period .pn{background:var(--hb);color:#fff;border-radius:0;height:auto;min-width:0;width:auto;padding:9px 10px 9px 12px;font:900 13px/1 var(--ef-d);clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,0 100%);margin-right:10px}
+html.efir[data-sport=hockey] .period .pw{display:none}
+html.efir[data-sport=hockey] .period .pt{color:#000;border:0;padding:9px 0;font:700 12px/1 var(--ef-d);letter-spacing:0}
+html.efir[data-sport=hockey] .period .pc{color:#000;border:0;padding:9px 0 9px 12px;font:700 12px/1 var(--ef-d)}
+html.efir[data-sport=hockey] .period p{display:inline-flex;filter:drop-shadow(0 5px 8px rgba(8,12,22,.45))}
+
+/* заголовок раздела: ссылки/описание */
+html.efir[data-sport=hockey] .sec-head p{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .sec-head .lgp,html.efir[data-sport=hockey] .tmlg .lgp,html.efir[data-sport=hockey] .wallh .lgp,html.efir[data-sport=hockey] .lgline .lgp,html.efir[data-sport=hockey] .tab .lgp,html.efir[data-sport=hockey] .chips .lgp{background:none;box-shadow:none;border-radius:0}
+
+/* кнопки-обводки старой темы → скошенные (efir.css уже делает .btn); chip/tab */
+html.efir[data-sport=hockey] .tabs{gap:6px;margin-bottom:26px}
+html.efir[data-sport=hockey] .tab,html.efir[data-sport=hockey] .chips a,html.efir[data-sport=hockey] .gfilter button,html.efir[data-sport=hockey] .tstep{border:0;border-radius:0;background:var(--ef-chip);color:var(--ef-mute);font:600 14px/1 var(--ef-b);padding:12px 22px 12px 14px;clip-path:var(--sk12);box-shadow:none;position:relative;cursor:pointer;transition:background .2s,color .2s,transform .12s}
+html.efir[data-sport=hockey] .tab:hover:not([aria-selected=true]),html.efir[data-sport=hockey] .chips a:hover{background:var(--ef-chip2);color:#fff}
+html.efir[data-sport=hockey] .tab:active,html.efir[data-sport=hockey] .chips a:active,html.efir[data-sport=hockey] .tstep:active{transform:scale(.97)}
+html.efir[data-sport=hockey] .tab[aria-selected=true],html.efir[data-sport=hockey] .tab[data-l][aria-selected=true],html.efir[data-sport=hockey] .tstep.on,html.efir[data-sport=hockey] .tstep[aria-selected=true]{background:#fff;color:#000;box-shadow:none}
+html.efir[data-sport=hockey] .tab .c{color:inherit;opacity:.7}
+html.efir[data-sport=hockey] .tab[aria-selected=true] .c{color:#000;opacity:.6}
+html.efir[data-sport=hockey] .chips a{font:600 14px/1 var(--ef-b)}
+/* ═══ 2. ХОККЕЙ · ГЛАВНАЯ (hockey/index.html) ═══ */
+/* первый экран: два клина клубов за героем, текст слева, стеклянное табло справа */
+html.efir[data-sport=hockey] #top{position:relative;isolation:isolate;overflow:clip;padding-top:clamp(18px,3vw,40px);padding-bottom:clamp(28px,4vw,56px)}
+html.efir[data-sport=hockey] #top::before,html.efir[data-sport=hockey] #top::after{content:"";display:block!important;position:absolute;top:0;bottom:0;z-index:-1;width:46%;--sk:calc(clamp(420px,60vw,640px)*var(--ef-tan));opacity:.95}
+html.efir[data-sport=hockey] #top::before{left:0;background:linear-gradient(90deg,var(--hd),var(--hb));clip-path:polygon(0 0,100% 0,calc(100% - var(--sk)) 100%,0 100%);animation:efWH .8s var(--ef-ease) both}
+html.efir[data-sport=hockey] #top::after{right:0;background:linear-gradient(270deg,var(--ad),var(--ab));clip-path:polygon(var(--sk) 0,100% 0,100% 100%,0 100%);animation:efWA .8s var(--ef-ease) both}
+html.efir[data-sport=hockey] #top .wrap{display:grid;gap:26px clamp(28px,4vw,64px);align-items:center}
+@media(min-width:981px){html.efir[data-sport=hockey] #top .wrap{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}}
+html.efir[data-sport=hockey] #top h1{font:900 clamp(34px,6vw,84px)/.98 var(--ef-d);text-transform:none;text-shadow:0 4px 24px rgba(8,12,22,.35)}
+html.efir[data-sport=hockey] #top h1 .ln:last-child{color:#fff}
+html.efir[data-sport=hockey] #top h1 .ln:last-child>span{font-family:var(--ef-i);font-style:italic;font-weight:500}
+html.efir[data-sport=hockey] #top .lead{color:#fff;max-width:40ch;font-size:clamp(16px,1.35vw,19px);text-shadow:0 2px 14px rgba(8,12,22,.4)}
+html.efir[data-sport=hockey] .hero-cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+html.efir[data-sport=hockey] .facts{margin-top:30px;gap:14px clamp(22px,3vw,44px)}
+html.efir[data-sport=hockey] .facts b{font:900 clamp(40px,4.4vw,64px)/.9 var(--ef-d);color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.85);letter-spacing:-.03em}
+html.efir[data-sport=hockey] .facts li>span{color:#fff;font-size:14px;max-width:16ch;text-shadow:0 1px 10px rgba(8,12,22,.5)}
+html.efir[data-sport=hockey] .chips{margin-top:22px}
+html.efir[data-sport=hockey] #top .chips a{background:rgba(44,55,77,.85)}
+/* карточка «Прогноз дня» — табло-стекло (интерактив: листается) */
+html.efir[data-sport=hockey] .board,html.efir[data-sport=hockey] [data-theme] .hero .board{background:var(--ef-glass);border:1px solid var(--ef-edge);border-radius:4px;box-shadow:var(--ef-sh1);color:#fff;padding:0;overflow:hidden;position:relative;
+  -webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);max-width:560px}
+@media(max-width:899px){html.efir[data-sport=hockey] .board,html.efir[data-sport=hockey] [data-theme] .hero .board{background:linear-gradient(180deg,rgba(38,48,70,.94),rgba(26,34,52,.96))}}
+html.efir[data-sport=hockey] .board::before,html.efir[data-sport=hockey] [data-theme] .hero .board::before{display:none}
+html.efir[data-sport=hockey] .board-top{padding:10px 16px;margin:0;border-bottom:1px solid var(--ef-edge);color:var(--ef-mute);font:600 12px/1.2 var(--ef-b);letter-spacing:0}
+html.efir[data-sport=hockey] .board-top b,html.efir[data-sport=hockey] .board-top .bmeta b{color:#fff;font:700 12px/1 var(--ef-d)}
+html.efir[data-sport=hockey] .board-top .lamp{background:#fff;border-radius:0;transform:skewX(-12deg)}
+html.efir[data-sport=hockey] .board-top .bwhen{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .mstage{padding:0 16px}
+html.efir[data-sport=hockey] .mcard .face,html.efir[data-sport=hockey] .hero .board .face{padding:18px 0 8px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+html.efir[data-sport=hockey] .mcard .tm{display:grid;justify-items:center;gap:4px;text-align:center}
+html.efir[data-sport=hockey] .mcard .tm .em,html.efir[data-sport=hockey] .hero .board .face .em{width:clamp(64px,18vw,96px);height:clamp(64px,18vw,96px);object-fit:contain;filter:drop-shadow(0 12px 18px rgba(8,12,22,.55))}
+html.efir[data-sport=hockey] .mcard .tm small{font:600 11px/1 var(--ef-b);letter-spacing:.12em;text-transform:uppercase;color:var(--ef-mute)}
+html.efir[data-sport=hockey] .mcard .tm span{font:900 clamp(16px,2.6vw,21px)/1.1 var(--ef-d)}
+html.efir[data-sport=hockey] .mcard .vs{display:grid;justify-items:center;gap:6px}
+html.efir[data-sport=hockey] .mcard .vs span{display:none}
+html.efir[data-sport=hockey] .mcard .vs time,html.efir[data-sport=hockey] .hero .board .face .vs time{background:#fff;color:#000;border:0;border-radius:0;padding:7px 12px;font:700 13px/1 var(--ef-d);clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+html.efir[data-sport=hockey] .mcard .bet,html.efir[data-sport=hockey] .hero .board .bet{background:rgba(255,255,255,.1);box-shadow:inset 3px 0 0 #fff;border-radius:0;padding:12px 16px;margin:8px 0 0;display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center}
+html.efir[data-sport=hockey] .bet .bl{grid-column:1/-1;font:600 11px/1 var(--ef-b);letter-spacing:.1em;text-transform:uppercase;color:var(--ef-mute)}
+html.efir[data-sport=hockey] .bet strong{font:700 clamp(16px,2.4vw,20px)/1.15 var(--ef-d);color:#fff}
+html.efir[data-sport=hockey] .bet .k{font:900 clamp(26px,4vw,34px)/1 var(--ef-d);color:#fff;justify-self:end}
+html.efir[data-sport=hockey] .bet .pm{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin-top:6px}
+html.efir[data-sport=hockey] .bet .pm em{flex:1;height:5px;background:rgba(255,255,255,.2);border-radius:0;overflow:hidden;display:block}
+html.efir[data-sport=hockey] .bet .pm em i{display:block;height:100%;background:#fff;width:var(--w)}
+html.efir[data-sport=hockey] .bet .pm b{font:600 13px/1 var(--ef-b);color:var(--ef-mute);white-space:nowrap}
+html.efir[data-sport=hockey] .mcard .why{margin:10px 0 0;padding:0 0 12px;font-size:13px;color:var(--ef-mute)}
+html.efir[data-sport=hockey] .cdown{margin:0;padding:12px 16px;border-top:1px solid var(--ef-edge);background:rgba(255,255,255,.06);align-items:center}
+html.efir[data-sport=hockey] .cdl{color:var(--ef-mute);font:600 12px/1 var(--ef-b);letter-spacing:.1em}
+html.efir[data-sport=hockey] .cu b{font:700 clamp(24px,6.4cqw,34px)/1 var(--ef-d);color:#fff}
+html.efir[data-sport=hockey] .cu small{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .board-foot{margin:0;padding:10px 16px 12px;border-top:1px solid var(--ef-edge)}
+html.efir[data-sport=hockey] .board-foot .note{color:var(--ef-dim);font-size:12px}
+html.efir[data-sport=hockey] .pager button,html.efir[data-sport=hockey] .pager i,html.efir[data-sport=hockey] .pager span{border-radius:0;background:rgba(255,255,255,.3)}
+html.efir[data-sport=hockey] .pager .on,html.efir[data-sport=hockey] .pager [aria-current=true],html.efir[data-sport=hockey] .pager [aria-selected=true]{background:#fff}
+html.efir[data-sport=hockey] .get8{margin-top:12px}
+/* ═══ 3. СТРОКИ МАТЧЕЙ (главная хоккея, лиги, клубы): строка-титр с клиньями клубов ═══ */
+html.efir[data-sport=hockey] .dayh{font:700 12px/1 var(--ef-d);letter-spacing:.14em;text-transform:uppercase;color:var(--ef-mute);padding:22px 0 10px}
+html.efir[data-sport=hockey] .mlist{gap:10px}
+html.efir[data-sport=hockey] .match,html.efir[data-sport=hockey] .match.khl,html.efir[data-sport=hockey] .match.nhl{position:relative;isolation:isolate;overflow:hidden;background:var(--ef-row);border:1px solid var(--ef-line2);border-radius:4px;
+  box-shadow:var(--ef-sh1);transition:transform .3s var(--ef-ease),box-shadow .3s var(--ef-ease)}
+html.efir[data-sport=hockey] .match::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,color-mix(in srgb,var(--hb) 30%,transparent),transparent 26%,transparent 76%,color-mix(in srgb,var(--ab) 30%,transparent))}
+html.efir[data-sport=hockey] .match .w{position:absolute;top:0;bottom:0;width:14px;z-index:-1;transition:transform .35s var(--ef-ease)}
+html.efir[data-sport=hockey] .match .w--h{left:0;transform:translateX(-4px);background:var(--hb);clip-path:polygon(0 0,100% 0,45% 100%,0 100%)}
+html.efir[data-sport=hockey] .match .w--a{right:0;transform:translateX(4px);background:var(--ab);clip-path:polygon(55% 0,100% 0,100% 100%,0 100%)}
+html.efir[data-sport=hockey] .match::after{content:"";position:absolute;top:-20%;bottom:-20%;left:0;width:28%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.24) 50%,transparent);transform:translateX(-160%) skewX(-18deg);opacity:0;pointer-events:none}
+@media(hover:hover) and (pointer:fine){
+  html.efir[data-sport=hockey] .match:hover,html.efir[data-sport=hockey] .match.khl:hover,html.efir[data-sport=hockey] .match.nhl:hover{background:var(--ef-row);transform:translateY(-3px);box-shadow:var(--ef-sh2)}
+  html.efir[data-sport=hockey] .match:hover .w--h{transform:translateX(6px)}html.efir[data-sport=hockey] .match:hover .w--a{transform:translateX(-6px)}
+  html.efir[data-sport=hockey] .match:hover::after{animation:efGlint .7s var(--ef-ease) 1 both}
+}
+html.efir[data-sport=hockey] .match:active{transform:scale(.988);transition-duration:.12s}
+html.efir[data-sport=hockey] .match.open{transform:none}
+html.efir[data-sport=hockey] .mhead{padding:14px 20px 14px 26px;color:inherit;font:inherit;background:none}
+html.efir[data-sport=hockey] .mt time{font:900 clamp(20px,2.4vw,26px)/1 var(--ef-d)}
+html.efir[data-sport=hockey] .mt .cd{color:var(--ef-mute);font:500 12px/1.2 var(--ef-b)}
+html.efir[data-sport=hockey] .team{font:700 clamp(16px,1.6vw,19px)/1.15 var(--ef-d)}
+html.efir[data-sport=hockey] .team img,html.efir[data-sport=hockey] .em{filter:drop-shadow(0 4px 6px rgba(8,12,22,.5))}
+html.efir[data-sport=hockey] .lgline,html.efir[data-sport=hockey] .match.khl .lgline,html.efir[data-sport=hockey] .match.nhl .lgline{color:var(--ef-mute);font:600 11px/1 var(--ef-d);letter-spacing:.1em;text-transform:uppercase}
+html.efir[data-sport=hockey] .qc{background:rgba(255,255,255,.1);border:0;border-radius:3px;box-shadow:none;padding:7px 10px}
+html.efir[data-sport=hockey] .qc small{color:var(--ef-mute);font:700 11px/1 var(--ef-d)}
+html.efir[data-sport=hockey] .qc em{color:var(--ef-mute);font:500 11px/1.2 var(--ef-b)}
+html.efir[data-sport=hockey] .qc b{font:700 clamp(17px,2vw,21px)/1 var(--ef-d);color:#fff}
+html.efir[data-sport=hockey] .khl .qc.fav,html.efir[data-sport=hockey] .nhl .qc.fav,html.efir[data-sport=hockey] .qc.fav{background:rgba(255,255,255,.2);border:0;box-shadow:inset 0 -3px 0 #fff}
+html.efir[data-sport=hockey] .qc.fav small,html.efir[data-sport=hockey] .qc.fav em{color:#fff}
+html.efir[data-sport=hockey] .qt{color:var(--ef-mute);font:600 13px/1.2 var(--ef-b)}
+html.efir[data-sport=hockey] .qt span{color:var(--ef-mute)}html.efir[data-sport=hockey] .qt b{color:#fff;font:700 15px/1 var(--ef-d)}
+html.efir[data-sport=hockey] .qm{font:500 13px/1.4 var(--ef-b);color:var(--ef-mute)}
+html.efir[data-sport=hockey] .qm .mlab{color:#fff;font-weight:700}
+html.efir[data-sport=hockey] .qs{font:500 12px/1.4 var(--ef-b);color:var(--ef-dim)}
+html.efir[data-sport=hockey] .qm b,html.efir[data-sport=hockey] .mod-hi,html.efir[data-sport=hockey] .qm em{color:#fff}
+html.efir[data-sport=hockey] .chev{background:none;border-radius:0;width:34px;height:34px;transition:transform .35s var(--ef-ease)}
+html.efir[data-sport=hockey] .match.open .chev,html.efir[data-sport=hockey] .match:hover .chev,html.efir[data-sport=hockey] .match.open:hover .chev{background:none;color:#fff}
+html.efir[data-sport=hockey] .chev svg{width:16px;height:16px}
+/* раскрытая часть: открытая типографика, линии вместо плашек */
+html.efir[data-sport=hockey] .mbody>div{border-top:0}
+html.efir[data-sport=hockey] .xd{gap:6px 28px;padding:4px 20px 22px 26px}
+html.efir[data-sport=hockey] .xb{background:none;border-radius:0;padding:16px 0 4px;border-top:1px solid var(--ef-line)}
+html.efir[data-sport=hockey] .xb h4{font:700 13px/1.2 var(--ef-d);letter-spacing:.1em;text-transform:uppercase;color:var(--ef-mute)}
+html.efir[data-sport=hockey] .xb h4 .note{text-transform:none;letter-spacing:0;font:500 12px/1.3 var(--ef-b);color:var(--ef-dim)}
+html.efir[data-sport=hockey] .st td,html.efir[data-sport=hockey] .x-bets li,html.efir[data-sport=hockey] .h2l li{border-top-color:var(--ef-line2)}
+html.efir[data-sport=hockey] .st,html.efir[data-sport=hockey] .l3 li,html.efir[data-sport=hockey] .fm,html.efir[data-sport=hockey] .x-bets li,html.efir[data-sport=hockey] .h2l li{font-family:var(--ef-b)}
+html.efir[data-sport=hockey] .l3 h5,html.efir[data-sport=hockey] .fm,html.efir[data-sport=hockey] .st th,html.efir[data-sport=hockey] .h2t{font-family:var(--ef-d)}
+html.efir[data-sport=hockey] .rs{border-radius:0;font-family:var(--ef-d);clip-path:polygon(0 0,100% 0,calc(100% - 4px) 100%,0 100%)}
+html.efir[data-sport=hockey] .rs.w,html.efir[data-sport=hockey] .dots .w{background:#1f8f55}html.efir[data-sport=hockey] .rs.l,html.efir[data-sport=hockey] .dots .l{background:#c63a4a}html.efir[data-sport=hockey] .rs.o{background:#5b6985}
+html.efir[data-sport=hockey] .dots i{border-radius:0;transform:skewX(-8deg)}
+html.efir[data-sport=hockey] .dots i:last-child{box-shadow:0 0 0 2px var(--ef-bg),0 0 0 4px #fff}
+html.efir[data-sport=hockey] .h2l .sc,html.efir[data-sport=hockey] .h2l .sc b{color:var(--ef-mute)}html.efir[data-sport=hockey] .h2l .sc b.wn{color:#6be3a0}html.efir[data-sport=hockey] .h2l .wn{color:#fff}
+html.efir[data-sport=hockey] .smp{background:rgba(255,255,255,.14);color:var(--ef-mute);border-radius:0}
+html.efir[data-sport=hockey] .mdet dt{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .form .w{background:#1f8f55}html.efir[data-sport=hockey] .form .l{background:#c63a4a}html.efir[data-sport=hockey] .form i{border-radius:0}
+html.efir[data-sport=hockey] .more{margin-top:22px}
+@media(max-width:560px){html.efir[data-sport=hockey] .mhead{padding:12px 12px 12px 18px}html.efir[data-sport=hockey] .xd{padding:2px 14px 18px 18px;grid-template-columns:1fr}html.efir[data-sport=hockey] .x-last .two{grid-template-columns:1fr}}
+/* модель расходится: бейджи */
+html.efir[data-sport=hockey] .badge{background:#fff;color:#000;border-radius:0;clip-path:polygon(0 0,100% 0,calc(100% - 5px) 100%,0 100%);padding:5px 10px 5px 7px;font-family:var(--ef-d)}
+html.efir[data-sport=hockey] .badge.mute{background:var(--ef-chip2);color:var(--ef-mute)}
+html.efir[data-sport=hockey] .mtoolbar{margin-bottom:6px}
+/* ═══ 4. ЛИГИ И КЛУБЫ (стена эмблем) и таблицы ═══ */
+html.efir[data-sport=hockey] .lgtab{border:0;border-radius:0;background:var(--ef-chip);color:#fff;position:relative;isolation:isolate;overflow:hidden;box-shadow:var(--ef-sh1);transition:transform .3s var(--ef-ease),box-shadow .3s var(--ef-ease)}
+html.efir[data-sport=hockey] .lgtab::before{content:"";position:absolute;top:0;bottom:0;left:0;width:10px;background:var(--hb);transform:skewX(-12deg) translateX(-4px);z-index:0;transition:transform .35s var(--ef-ease)}
+html.efir[data-sport=hockey] .lgtab.nhl::before{background:#fff}
+html.efir[data-sport=hockey] .lgtab .lgf{color:var(--ef-mute)}html.efir[data-sport=hockey] .lgtab .nt{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .lgtab .lgn{font:900 clamp(26px,3vw,38px)/1 var(--ef-d)}
+html.efir[data-sport=hockey] .lgtab .cnt{font:700 14px/1.2 var(--ef-d);color:#fff}
+html.efir[data-sport=hockey] .lgtab[aria-selected=true]{background:var(--ef-chip2);box-shadow:inset 0 -3px 0 #fff,var(--ef-sh1)}
+html.efir[data-sport=hockey] .lgtab:active{transform:scale(.98)}
+@media(hover:hover){html.efir[data-sport=hockey] .lgtab:hover{transform:translateY(-3px);box-shadow:var(--ef-sh2)}html.efir[data-sport=hockey] .lgtab:hover::before{transform:skewX(-12deg) translateX(4px)}}
+html.efir[data-sport=hockey] .lgtab .lgbg{opacity:.5;mix-blend-mode:normal;filter:none}
+html.efir[data-sport=hockey] .wallh{font:900 clamp(22px,2.6vw,32px)/1.1 var(--ef-d)}
+html.efir[data-sport=hockey] .wallh span:last-of-type{color:var(--ef-mute);font:500 14px/1 var(--ef-b)}
+html.efir[data-sport=hockey] .wallh .lglink,html.efir[data-sport=hockey] .wallh .lglink:hover{background:var(--ef-chip);color:#fff;box-shadow:none;border-radius:0;clip-path:var(--sk12);padding:12px 22px 12px 16px;font:600 14px/1 var(--ef-b);transition:background .2s,transform .12s}
+html.efir[data-sport=hockey] .wallh .lglink:hover{background:var(--ef-chip2)}
+html.efir[data-sport=hockey] .crest{border-radius:0;transition:transform .3s var(--ef-ease)}
+html.efir[data-sport=hockey] .crest span{color:var(--ef-mute);font:600 13px/1.15 var(--ef-b)}
+html.efir[data-sport=hockey] .crest::before{content:"";position:absolute;left:50%;top:10px;width:46px;height:60px;margin-left:-23px;background:var(--ef-chip);opacity:0;transform:skewX(-12deg) scale(.6);transition:opacity .3s,transform .35s var(--ef-ease);z-index:-1}
+@media(hover:hover){html.efir[data-sport=hockey] .crest:hover{background:none;transform:translateY(-3px)}html.efir[data-sport=hockey] .crest:hover::before{opacity:.9;transform:skewX(-12deg)}html.efir[data-sport=hockey] .crest:hover span{color:#fff}}
+html.efir[data-sport=hockey] .crest:active{transform:scale(.97)}
+html.efir[data-sport=hockey] .crest .em{padding:0;filter:drop-shadow(0 8px 10px rgba(8,12,22,.5))}
+/* таблица (клуб, лиги): открытая, линии */
+html.efir[data-sport=hockey] .table{border-collapse:collapse;width:100%;font-family:var(--ef-b)}
+html.efir[data-sport=hockey] .table th{font:700 11px/1 var(--ef-d);letter-spacing:.12em;text-transform:uppercase;color:var(--ef-mute);background:none;border-bottom:1px solid var(--ef-line)}
+html.efir[data-sport=hockey] .table td{border-bottom:1px solid var(--ef-line2);background:none}
+html.efir[data-sport=hockey] .table tbody tr{transition:background .2s}
+@media(hover:hover){html.efir[data-sport=hockey] .table tbody tr:hover{background:rgba(255,255,255,.07)}}
+html.efir[data-sport=hockey] .table td.pts,html.efir[data-sport=hockey] .table td b{font-family:var(--ef-d);font-weight:700;color:#fff}
+html.efir[data-sport=hockey] .table .cl{color:#fff;font-weight:600}
+html.efir[data-sport=hockey] .table tr.me td,html.efir[data-sport=hockey] .stand tr.me td{background:linear-gradient(90deg,color-mix(in srgb,var(--hb) 55%,transparent),rgba(255,255,255,.08) 70%);color:#fff;box-shadow:none}
+html.efir[data-sport=hockey] .table tr.me td:first-child{box-shadow:inset 4px 0 0 #fff}
+html.efir[data-sport=hockey] .tmtable,html.efir[data-sport=hockey] .tw,html.efir[data-sport=hockey] .tblwrap,html.efir[data-sport=hockey] .mt-tw{background:none;border:0;border-radius:0;box-shadow:none}
+/* ═══ 5. ХОККЕЙ-ГЛАВНАЯ · «Прогноз модели», «Как думает модель» и остальные разделы: открытая типографика ═══ */
+/* ряды модели — не интерактив: линия сверху, клин клуба слева, без плашки */
+html.efir[data-sport=hockey] .mrows{gap:0}
+html.efir[data-sport=hockey] .mr{background:none;border-radius:0;padding:22px 0 22px 22px;border-top:1px solid var(--ef-line);position:relative;box-shadow:none}
+html.efir[data-sport=hockey] .mr:last-child{border-bottom:1px solid var(--ef-line)}
+html.efir[data-sport=hockey] .mr::before{content:"";position:absolute;left:0;top:22px;width:8px;height:34px;background:var(--hb);transform:skewX(-12deg);transition:transform .35s var(--ef-ease)}
+html.efir[data-sport=hockey] .mr::after{content:"";position:absolute;left:11px;top:22px;width:8px;height:34px;background:var(--ab);transform:skewX(-12deg);display:none}
+html.efir[data-sport=hockey] .mr.dvg{box-shadow:none}
+html.efir[data-sport=hockey] .mr.dvg::after{display:block}
+@media(hover:hover){html.efir[data-sport=hockey] .mr:hover::before{transform:skewX(-12deg) translateX(4px)}}
+html.efir[data-sport=hockey] .mr-t time{font:900 clamp(22px,2.4vw,28px)/1 var(--ef-d)}
+html.efir[data-sport=hockey] .mr-t small{color:var(--ef-mute);font:500 12px/1.2 var(--ef-b)}
+html.efir[data-sport=hockey] .mr h6{font:700 11px/1 var(--ef-d);letter-spacing:.14em;color:var(--ef-mute)}
+html.efir[data-sport=hockey] .mr .team{font:700 clamp(16px,1.6vw,19px)/1.15 var(--ef-d)}
+html.efir[data-sport=hockey] .mr-l .ml-k{color:var(--ef-mute);font:500 15px/1.4 var(--ef-b)}
+html.efir[data-sport=hockey] .mr-l .ml-k b{font:700 19px/1 var(--ef-d);color:#fff}
+html.efir[data-sport=hockey] .mr-l small,html.efir[data-sport=hockey] .mr-x small{color:var(--ef-dim);font:500 12.5px/1.35 var(--ef-b)}
+html.efir[data-sport=hockey] .mr-x{color:var(--ef-mute);font:500 14px/1.5 var(--ef-b)}
+html.efir[data-sport=hockey] .mr-x b{font:700 16px/1 var(--ef-d);color:#fff}
+html.efir[data-sport=hockey] .mr-x .ml-lam{color:var(--ef-mute);font-size:14px}
+html.efir[data-sport=hockey] .mr-x .qd{color:#fff;font-weight:700}
+html.efir[data-sport=hockey] .qd .up,html.efir[data-sport=hockey] .dv .up{color:#6be3a0}html.efir[data-sport=hockey] .qd .dn,html.efir[data-sport=hockey] .dv .dn{color:var(--ef-mute)}
+/* вероятности — столбики-линии, максимум белый */
+html.efir[data-sport=hockey] .wb{grid-template-columns:34px minmax(0,1fr) 48px;font:600 13px/1.2 var(--ef-d)}
+html.efir[data-sport=hockey] .wb em{height:5px;background:rgba(255,255,255,.18);border-radius:0}
+html.efir[data-sport=hockey] .wb em i{background:rgba(255,255,255,.55);border-radius:0;transition:width .9s var(--ef-ease)}
+html.efir[data-sport=hockey] .wb.fav em i{background:#fff}
+html.efir[data-sport=hockey] .wb em u{background:#fff;height:13px;top:-4px;opacity:.8}
+html.efir[data-sport=hockey] .wb b{white-space:nowrap;font:700 13px/1 var(--ef-d)}
+html.efir[data-sport=hockey] .probs .pr{grid-template-columns:34px 1fr 48px}
+html.efir[data-sport=hockey] .probs .pr em{background:rgba(255,255,255,.18);border-radius:0}html.efir[data-sport=hockey] .probs .pr em i{background:rgba(255,255,255,.55);border-radius:0}html.efir[data-sport=hockey] .probs .pr.top em i{background:#fff}
+html.efir[data-sport=hockey] .probs .pr b{white-space:nowrap}
+html.efir[data-sport=hockey] .x-model .wgrid{gap:14px 36px}
+html.efir[data-sport=hockey] .wsub h5{font:700 11px/1 var(--ef-d);letter-spacing:.14em;text-transform:uppercase;color:var(--ef-mute)}
+/* пояснение и «лаборатория» */
+html.efir[data-sport=hockey] .mexplain{border-top:1px solid var(--ef-line);padding-top:26px}
+html.efir[data-sport=hockey] .mexplain h3{font:700 clamp(19px,1.8vw,24px)/1.15 var(--ef-d)}
+html.efir[data-sport=hockey] .mexplain p,html.efir[data-sport=hockey] .mver{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .lab{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:34px clamp(28px,5vw,72px);margin-top:46px;padding-top:30px;border-top:1px solid var(--ef-line);background:none;border-radius:0}
+@media(max-width:860px){html.efir[data-sport=hockey] .lab{grid-template-columns:1fr}}
+html.efir[data-sport=hockey] .lab h3{font:700 clamp(18px,1.6vw,22px)/1.2 var(--ef-d)}
+html.efir[data-sport=hockey] .corr .track{background:rgba(255,255,255,.18);border-radius:0;height:5px}
+html.efir[data-sport=hockey] .corr .track i{background:#fff}
+html.efir[data-sport=hockey] .puck{background:#fff;border-radius:0;transform:skewX(-12deg)}
+html.efir[data-sport=hockey] .kt span{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .kout{color:#fff;font:700 15px/1.4 var(--ef-b)}
+html.efir[data-sport=hockey] .simsel{background:var(--ef-chip);color:#fff;border-radius:0;clip-path:var(--sk12);padding:12px 22px 12px 14px;border:0;font:600 14px/1.2 var(--ef-b)}
+html.efir[data-sport=hockey] .simbars{height:210px}
+html.efir[data-sport=hockey] .simbars em{background:rgba(255,255,255,.14);border-radius:0}
+html.efir[data-sport=hockey] .simbars em i{background:rgba(255,255,255,.5)}
+html.efir[data-sport=hockey] .simbars .pk em i{background:#fff}
+html.efir[data-sport=hockey] .simbars b{font:900 clamp(24px,3vw,34px)/1 var(--ef-d)}
+html.efir[data-sport=hockey] .simbars .pk b{color:#fff}
+html.efir[data-sport=hockey] .simbars div{font:600 13px/1 var(--ef-d);color:var(--ef-mute)}
+/* «Скоро» и подписки: уже в efir.css; здесь страховка для .soon внутри lines.css */
+html.efir[data-sport=hockey] .soon{min-height:0;background:none}
+html.efir[data-sport=hockey] .soon b{background:none;letter-spacing:0;text-transform:none;padding:0}
+html.efir[data-sport=hockey] .honest-soon{max-width:none}
+/* аналитическая таблица (витрина листов) */
+html.efir[data-sport=hockey] .tour{background:none;border:0;border-radius:0}
+html.efir[data-sport=hockey] .tour-steps{display:flex;flex-wrap:wrap;gap:6px}
+html.efir[data-sport=hockey] .tstep{font:600 14px/1 var(--ef-b)}
+html.efir[data-sport=hockey] .tc{background:none;border:0}
+html.efir[data-sport=hockey] .tc h3{font:700 clamp(19px,1.8vw,24px)/1.2 var(--ef-d)}
+html.efir[data-sport=hockey] .tc ul{list-style:none;padding:0;margin:14px 0 0}
+html.efir[data-sport=hockey] .tc li{padding:10px 0 10px 22px;border-top:1px solid var(--ef-line2);color:var(--ef-mute);position:relative}
+html.efir[data-sport=hockey] .tc li::before{content:"";position:absolute;left:0;top:18px;width:10px;height:2px;background:#fff;transform:skewX(-30deg)}
+html.efir[data-sport=hockey] .feat{list-style:none;margin:0 0 18px;padding:0}
+html.efir[data-sport=hockey] .feat li{padding:9px 0 9px 22px;border-top:1px solid var(--ef-line2);position:relative;color:var(--ef-mute)}
+html.efir[data-sport=hockey] .feat li::before{content:"";position:absolute;left:0;top:18px;width:10px;height:2px;background:#fff;transform:skewX(-30deg)}
+html.efir[data-sport=hockey] .tour-shot,html.efir[data-sport=hockey] .tshot{border-radius:4px;box-shadow:var(--ef-sh1)}
+/* макет листа таблицы: стеклянное окно-табло */
+html.efir[data-sport=hockey] .win{background:var(--ef-glass);border:1px solid var(--ef-edge);border-radius:4px;box-shadow:var(--ef-sh1);color:#fff;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+@media(max-width:899px){html.efir[data-sport=hockey] .win{background:linear-gradient(180deg,rgba(38,48,70,.94),rgba(26,34,52,.96))}}
+html.efir[data-sport=hockey] .win-bar,html.efir[data-sport=hockey] .win-tabs{background:rgba(255,255,255,.07);border-color:var(--ef-edge)}
+html.efir[data-sport=hockey] .win-bar i{background:rgba(255,255,255,.3);border-radius:0;transform:skewX(-12deg)}
+html.efir[data-sport=hockey] .win-bar span,html.efir[data-sport=hockey] .win-tabs span{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .win-tabs span.on{background:rgba(255,255,255,.12);color:#fff;border-top-color:#fff}
+html.efir[data-sport=hockey] .gt th,html.efir[data-sport=hockey] .heat th{color:var(--ef-mute);border-color:var(--ef-line);font:700 11px/1 var(--ef-d);letter-spacing:.1em;text-transform:uppercase}
+html.efir[data-sport=hockey] .gt td{border-color:var(--ef-line2)}
+html.efir[data-sport=hockey] .gt td:first-child{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .gt td.k,html.efir[data-sport=hockey] .gm time{color:#fff;font-family:var(--ef-d);font-weight:700}
+html.efir[data-sport=hockey] .pb{background:rgba(255,255,255,.18);border-radius:0}
+html.efir[data-sport=hockey] .pb::after{background:#fff;border-radius:0}
+html.efir[data-sport=hockey] .gm{background:rgba(255,255,255,.08);border-radius:3px}
+html.efir[data-sport=hockey] .cal .day{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .tour-nav button{background:var(--ef-chip);color:#fff;border:0;border-radius:0;clip-path:var(--sk12)}
+html.efir[data-sport=hockey] .tour-nav button:active{transform:scale(.95)}
+html.efir[data-sport=hockey] #table .sec-head .eyebrow{margin:0 0 12px}
+html.efir[data-sport=hockey] .win .soon{padding:0 0 0 22px;color:#fff}
+@media(max-width:560px){html.efir[data-sport=hockey] .mr{grid-template-columns:50px minmax(0,1fr)}html.efir[data-sport=hockey] .mr-t time{font-size:17px}html.efir[data-sport=hockey] .mt time{font-size:18px}}
+/* ═══ 6. СТРАНИЦА КЛУБА (team/index.html?id=… и khl/<клуб>/, nhl/<клуб>/): «представление команды» ═══ */
+html.efir[data-sport=hockey] body[style*="--k-dk"]{--hd:var(--k-dk);--hb:var(--k-a1);--ad:var(--k-dk);--ab:var(--k-a2,var(--k-a1))}
+html.efir[data-sport=hockey] body[style*="--k-dk"] .ef-bgw i:first-child{background:linear-gradient(180deg,var(--k-a1),transparent 80%)}
+html.efir[data-sport=hockey] .tmwm{display:none}
+html.efir[data-sport=hockey] .tmhero.hero,html.efir[data-sport=hockey] [data-theme] .tmhero.hero{background:none!important;overflow:clip;isolation:isolate;padding-top:clamp(14px,2.4vw,30px);padding-bottom:clamp(30px,4vw,56px);color:#fff}
+html.efir[data-sport=hockey] .tmhero::before{content:"";position:absolute;left:0;top:0;bottom:0;right:auto;width:min(62%,760px);height:auto;z-index:-1;--sk:calc(clamp(520px,64vw,720px)*var(--ef-tan));
+  background:linear-gradient(90deg,var(--k-dk,var(--hd)),var(--k-a1,var(--hb)));clip-path:polygon(0 0,100% 0,calc(100% - var(--sk)) 100%,0 100%);animation:efWH .8s var(--ef-ease) both}
+html.efir[data-sport=hockey] .tmhero::after{content:"";position:absolute;left:0;top:0;bottom:0;width:min(62%,760px);z-index:-1;pointer-events:none;--sk:calc(clamp(520px,64vw,720px)*var(--ef-tan));opacity:.1;
+  background:#fff;-webkit-mask:var(--k-mA,none) 30% 50%/auto 90% no-repeat;mask:var(--k-mA,none) 30% 50%/auto 90% no-repeat}
+html.efir[data-sport=hockey] .tmhero.has-bg::after{display:block}
+html.efir[data-sport=hockey] .tmhero .wrap{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(20px,3vw,48px)}
+@media(max-width:980px){html.efir[data-sport=hockey] .tmhero .wrap{grid-template-columns:1fr}}
+html.efir[data-sport=hockey] .crumb{color:#fff;font:600 14px/1 var(--ef-b);text-shadow:0 1px 10px rgba(8,12,22,.5)}
+html.efir[data-sport=hockey] .tmtop{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px 16px}
+html.efir[data-sport=hockey] .favgrp{display:flex;flex-wrap:wrap;gap:8px}
+html.efir[data-sport=hockey] .favbtn,html.efir[data-sport=hockey] .follow{border:0;border-radius:0;background:var(--ef-chip);color:#fff;font:600 13px/1 var(--ef-b);padding:12px 22px 12px 14px;clip-path:var(--sk12);box-shadow:none;transition:background .2s,transform .12s}
+html.efir[data-sport=hockey] .favbtn[aria-pressed=true]{background:#fff;color:#000}
+html.efir[data-sport=hockey] .follow{background:#fff;color:#000}
+html.efir[data-sport=hockey] .favbtn:active,html.efir[data-sport=hockey] .follow:active{transform:scale(.97)}
+@media(hover:hover){html.efir[data-sport=hockey] .favbtn:hover{background:var(--ef-chip2)}html.efir[data-sport=hockey] .follow:hover{background:#fff;filter:none}}
+/* эмблема без круга и без тонировки: крупная, с тенью */
+html.efir[data-sport=hockey] .tmcrest{background:none;box-shadow:none;border-radius:0;width:clamp(92px,12vw,170px)}
+html.efir[data-sport=hockey] .tmcrest .em{filter:drop-shadow(0 16px 24px rgba(8,12,22,.6));width:100%;height:100%}
+html.efir[data-sport=hockey] .tmcrest .embsh{display:none}
+html.efir[data-sport=hockey] .tmlg{color:#fff;font:600 13px/1.2 var(--ef-b);letter-spacing:.02em}
+html.efir[data-sport=hockey] .tmlg a.lglnk::after{display:none}
+html.efir[data-sport=hockey] .tmname h1{font:900 clamp(40px,7vw,104px)/.9 var(--ef-d);letter-spacing:-.04em!important;text-shadow:0 6px 30px rgba(8,12,22,.35)}
+@media(max-width:620px){html.efir[data-sport=hockey] .tmname h1{font-size:clamp(34px,10.4vw,46px)}html.efir[data-sport=hockey] .tmrow{grid-template-columns:92px minmax(0,1fr)}html.efir[data-sport=hockey] .tmcrest{width:92px}}
+/* огромный номер места на клине клуба */
+html.efir[data-sport=hockey] .tmplace{position:relative;align-items:center;gap:6px 16px;margin-top:clamp(20px,3vw,36px);width:max-content;max-width:100%}
+html.efir[data-sport=hockey] .tmplace::before{content:"";position:absolute;left:-18px;top:-8px;bottom:-8px;right:-26px;z-index:-1;background:rgba(8,12,22,.34);transform:skewX(-12deg);animation:efUp .7s .2s var(--ef-ease) both}
+html.efir[data-sport=hockey] .tmplace b,html.efir[data-sport=hockey] [data-theme] .tmhero .tmplace b{font:900 clamp(96px,13vw,190px)/.8 var(--ef-d);color:#fff;letter-spacing:-.05em;text-shadow:0 8px 28px rgba(8,12,22,.35);padding-right:2px}
+html.efir[data-sport=hockey] .tmplace span{font:700 clamp(15px,1.5vw,20px)/1.2 var(--ef-d);color:#fff;padding:0 8px 0 0;max-width:15ch}
+/* плашки «очки · игры · шайбы» — въезжают как титры */
+html.efir[data-sport=hockey] .tmpills{background:none;border-radius:0;gap:6px;overflow:visible;margin-top:clamp(22px,3vw,34px)}
+html.efir[data-sport=hockey] .tmpills li{background:var(--ef-glass);border:1px solid var(--ef-edge);border-radius:0;box-shadow:var(--ef-sh1);padding:12px 18px 11px 14px;clip-path:polygon(0 0,100% 0,calc(100% - 10px) 100%,0 100%);position:relative;
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);background-color:rgba(44,55,77,.55);animation:efTitle .6s calc(.35s + var(--k,0)*.1s) var(--ef-ease) both}
+html.efir[data-sport=hockey] .tmpills li:nth-child(2){--k:1}html.efir[data-sport=hockey] .tmpills li:nth-child(3){--k:2}html.efir[data-sport=hockey] .tmpills li:nth-child(4){--k:3}
+html.efir[data-sport=hockey] .tmpills li::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#fff}
+html.efir[data-sport=hockey] .tmpills b{font:900 clamp(24px,2.6vw,34px)/1 var(--ef-d);color:#fff}
+html.efir[data-sport=hockey] .tmpills span{font:500 13px/1.2 var(--ef-b);color:var(--ef-mute)}
+@keyframes efTitle{from{opacity:0;transform:translateX(-36px)}}
+html.efir[data-sport=hockey] .tmcoach{color:#fff;font:500 14px/1.4 var(--ef-b)}
+/* шестиугольник силы: открытый, без карточки */
+html.efir[data-sport=hockey] .tmpower{background:none;box-shadow:none;border-radius:0;padding:0}
+html.efir[data-sport=hockey] .tmpower .ph h2{font:900 clamp(22px,2.2vw,30px)/1.1 var(--ef-d)}
+html.efir[data-sport=hockey] .tmpower .ph span{color:#fff;font:500 13px/1 var(--ef-b)}
+html.efir[data-sport=hockey] .radar .rg0{fill:rgba(255,255,255,.08);stroke:#fff;stroke-opacity:.3}
+html.efir[data-sport=hockey] .radar .rg{stroke:#fff;stroke-opacity:.18}
+html.efir[data-sport=hockey] .radar .rmid{stroke:#fff;stroke-opacity:.7}
+html.efir[data-sport=hockey] .radar .rpoly{fill:#fff;fill-opacity:.3;stroke:#fff}
+html.efir[data-sport=hockey] .radar .rdot{fill:#fff;stroke:var(--k-a1,var(--hb))}
+html.efir[data-sport=hockey] .radar .rlab{fill:#fff;font:600 13px var(--ef-b)}
+html.efir[data-sport=hockey] .radar .rval{font:800 17px var(--ef-d);fill:#fff}
+html.efir[data-sport=hockey] .legend{color:#fff;font:500 13px/1.2 var(--ef-b)}
+html.efir[data-sport=hockey] .legend i{border-top-color:#fff}html.efir[data-sport=hockey] .legend i.d{border-top-color:#fff}
+html.efir[data-sport=hockey] .tmpower .note{color:#fff}
+
+/* разделы клуба: метка, открытые блоки */
+html.efir[data-sport=hockey] .tmsec{padding-top:var(--ef-sec)}
+html.efir[data-sport=hockey] .tmsec .sec-head p{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .tmgrid{gap:clamp(28px,4vw,64px)}
+html.efir[data-sport=hockey] .stand td{padding:11px 10px}
+html.efir[data-sport=hockey] .stand td:first-child{font:700 18px/1 var(--ef-d);color:var(--ef-mute)}
+html.efir[data-sport=hockey] .stand .cl span{font-weight:600}
+html.efir[data-sport=hockey] .stand .pts{font-family:var(--ef-d)}
+html.efir[data-sport=hockey] .stand tr.me td{background:linear-gradient(90deg,color-mix(in srgb,var(--k-a1,var(--hb)) 70%,transparent),rgba(255,255,255,.06) 85%)!important;color:#fff!important;font-weight:700}
+html.efir[data-sport=hockey] .stand tr.me td:first-child{color:#fff!important;box-shadow:inset 5px 0 0 #fff!important}
+html.efir[data-sport=hockey] .stand tr+tr td{border-top-color:var(--ef-line2)}
+/* статистика сезона / форма: открытая типографика */
+html.efir[data-sport=hockey] .stg{background:none;border-radius:0;gap:0 clamp(20px,3vw,40px)}
+html.efir[data-sport=hockey] .st{background:none;padding:18px 0 16px;border-top:1px solid var(--ef-line)}
+html.efir[data-sport=hockey] .sl{font:700 11px/1.2 var(--ef-d);letter-spacing:.12em;text-transform:uppercase;color:var(--ef-mute)}
+html.efir[data-sport=hockey] .st>b{font:900 clamp(34px,3.6vw,52px)/1 var(--ef-d);color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.85);letter-spacing:-.03em}
+html.efir[data-sport=hockey] .st>b small{color:#fff;-webkit-text-stroke:0;font-family:var(--ef-b)}
+html.efir[data-sport=hockey] .ss{color:var(--ef-mute)}html.efir[data-sport=hockey] .ss b{color:#fff}
+html.efir[data-sport=hockey] .bar{background:rgba(255,255,255,.18);border-radius:0;height:5px}
+html.efir[data-sport=hockey] .bar i{background:#fff;border-radius:0;transform-origin:left}
+html.efir[data-sport=hockey] .formbox{background:none;padding:18px 0 0;border-top:1px solid var(--ef-line);border-radius:0}
+html.efir[data-sport=hockey] .frm b{border-radius:0;clip-path:polygon(12% 0,100% 0,88% 100%,0 100%);aspect-ratio:1.2;width:clamp(44px,4.6vw,58px)}
+html.efir[data-sport=hockey] .frm .w b{background:#1f8f55}html.efir[data-sport=hockey] .frm .l b{background:#c63a4a}html.efir[data-sport=hockey] .frm .ot b{background:#8a6275}
+html.efir[data-sport=hockey] .frm li:last-child b{box-shadow:none;outline:2px solid #fff;outline-offset:3px}
+html.efir[data-sport=hockey] .frm span{color:var(--ef-mute);font-family:var(--ef-b)}
+/* сводка матчей: крупные цифры-контуры */
+html.efir[data-sport=hockey] .gsum{background:none;border-radius:0;gap:0 clamp(18px,3vw,40px)}
+html.efir[data-sport=hockey] .gsum li{background:none;padding:14px 0 12px;border-top:1px solid var(--ef-line)}
+html.efir[data-sport=hockey] .gsum b{font:900 clamp(34px,3.6vw,52px)/1 var(--ef-d);color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.85);letter-spacing:-.03em}
+html.efir[data-sport=hockey] .gsum span{color:var(--ef-mute);font-size:14px}
+html.efir[data-sport=hockey] .gsum li.w b{-webkit-text-stroke-color:#6be3a0}html.efir[data-sport=hockey] .gsum li.l b{-webkit-text-stroke-color:#ff9aa6}
+/* фильтры */
+html.efir[data-sport=hockey] .gfilter .seg{display:inline-flex;gap:4px;background:none;padding:0}
+html.efir[data-sport=hockey] .gfilter button{border-radius:0;background:var(--ef-chip);color:var(--ef-mute);clip-path:var(--sk12);padding:12px 22px 12px 16px;font:600 14px/1 var(--ef-b)}
+html.efir[data-sport=hockey] .gfilter button:hover{background:var(--ef-chip2);color:#fff}
+html.efir[data-sport=hockey] .gfilter button:active{transform:scale(.97)}
+html.efir[data-sport=hockey] .gfilter button[aria-pressed=true]{background:#fff;color:#000}
+html.efir[data-sport=hockey] .gfilter button small{margin-left:6px;opacity:.7}
+html.efir[data-sport=hockey] .trctl{display:flex;flex-wrap:wrap;gap:6px 18px;margin-bottom:6px}
+/* матчи сезона: строки-титры (ссылки — интерактив) */
+html.efir[data-sport=hockey] .gh{font:900 clamp(20px,2vw,28px)/1.1 var(--ef-d);text-transform:none}
+html.efir[data-sport=hockey] .gh span{font:500 14px/1 var(--ef-b);color:var(--ef-mute)}
+html.efir[data-sport=hockey] .gs{background:none;border-radius:0;gap:8px}
+html.efir[data-sport=hockey] .g{position:relative;isolation:isolate;overflow:hidden;background:var(--ef-row);border:1px solid var(--ef-line2);border-radius:4px;box-shadow:var(--ef-sh1);color:#fff;transition:transform .3s var(--ef-ease),box-shadow .3s var(--ef-ease);padding:10px 18px 10px 22px}
+html.efir[data-sport=hockey] .g::before{content:"";position:absolute;left:0;top:0;bottom:0;width:12px;z-index:-1;background:var(--k-a1,var(--hb));clip-path:polygon(0 0,100% 0,45% 100%,0 100%);transform:translateX(-3px);transition:transform .35s var(--ef-ease)}
+html.efir[data-sport=hockey] .g.away::before{background:#fff;opacity:.85}
+html.efir[data-sport=hockey] .g .w{position:absolute;top:0;bottom:0;right:0;width:12px;z-index:-1;background:var(--ab);clip-path:polygon(55% 0,100% 0,100% 100%,0 100%);transform:translateX(3px);transition:transform .35s var(--ef-ease)}
+@media(hover:hover){html.efir[data-sport=hockey] .g:hover{transform:translateY(-2px);box-shadow:var(--ef-sh2)}html.efir[data-sport=hockey] .g:hover::before{transform:translateX(4px)}html.efir[data-sport=hockey] .g:hover .w{transform:translateX(-4px)}}
+html.efir[data-sport=hockey] .g:active{transform:scale(.985)}
+html.efir[data-sport=hockey] .gd b{font:700 16px/1 var(--ef-d)}
+html.efir[data-sport=hockey] .gd small{color:var(--ef-mute);font:500 12px/1 var(--ef-b)}
+html.efir[data-sport=hockey] .ha{border-radius:0;background:rgba(255,255,255,.14);color:#fff;font-family:var(--ef-d);transform:skewX(-8deg)}
+html.efir[data-sport=hockey] .ha.h{background:#fff;color:#000}
+html.efir[data-sport=hockey] .op{font:700 clamp(15px,1.6vw,18px)/1.1 var(--ef-d);color:#fff}
+html.efir[data-sport=hockey] .op .em{filter:drop-shadow(0 4px 6px rgba(8,12,22,.5))}
+html.efir[data-sport=hockey] .sc{font:900 22px/1 var(--ef-d)}
+html.efir[data-sport=hockey] .sc small{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .rs{font-family:var(--ef-d)}
+html.efir[data-sport=hockey] .rs.ot{background:#8a6275;color:#fff}
+html.efir[data-sport=hockey] .rs.w{background:#1f8f55;color:#fff}html.efir[data-sport=hockey] .rs.l{background:#c63a4a;color:#fff}
+html.efir[data-sport=hockey] .kx>span{background:rgba(255,255,255,.1);border-radius:3px;font:700 16px/1 var(--ef-d);color:#fff}
+html.efir[data-sport=hockey] .kx>span:first-child{background:rgba(255,255,255,.2);box-shadow:inset 0 -3px 0 #fff;color:#fff}
+html.efir[data-sport=hockey] .kx small{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .smp{background:rgba(255,255,255,.14);color:var(--ef-mute);border-radius:0}
+html.efir[data-sport=hockey] .g.is-s .gd,html.efir[data-sport=hockey] .g.is-s .op,html.efir[data-sport=hockey] .g.is-s .sc{opacity:1}
+/* ближайший матч: стеклянное табло */
+html.efir[data-sport=hockey] .nmatch{background:var(--ef-glass);border:1px solid var(--ef-edge);border-radius:4px;box-shadow:var(--ef-sh1);padding:0;overflow:hidden;position:relative;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+@media(max-width:899px){html.efir[data-sport=hockey] .nmatch{background:linear-gradient(180deg,rgba(38,48,70,.94),rgba(26,34,52,.96))}}
+html.efir[data-sport=hockey] .nmteams{padding:18px 18px 8px}
+html.efir[data-sport=hockey] .nmc a{font:900 clamp(18px,2.4vw,28px)/1.1 var(--ef-d);color:#fff}
+html.efir[data-sport=hockey] .nmdt{font:700 13px/1 var(--ef-d);color:#000;background:#fff;padding:7px 12px;clip-path:var(--sk12)}
+html.efir[data-sport=hockey] .nmha{color:var(--ef-mute);font:600 12px/1 var(--ef-b)}
+html.efir[data-sport=hockey] .nmside{padding:8px 18px 18px;border-top:1px solid var(--ef-edge);margin-top:8px}
+html.efir[data-sport=hockey] .nmline .sl,html.efir[data-sport=hockey] .nmcd .sl{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .nmcd b{font:700 clamp(22px,3vw,32px)/1.1 var(--ef-d);color:#fff}
+html.efir[data-sport=hockey] .mdl{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .nmh2h{border:0;border-top:1px solid var(--ef-line);border-radius:0;background:none}
+html.efir[data-sport=hockey] .nmh2h summary{padding:18px 0;list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform .12s}
+html.efir[data-sport=hockey] .nmh2h summary:active{transform:scale(.99)}
+html.efir[data-sport=hockey] .h2st b{font:700 clamp(16px,1.6vw,20px)/1.2 var(--ef-d)}
+html.efir[data-sport=hockey] .h2st small,html.efir[data-sport=hockey] .h2ar{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .cmps h3{font:700 13px/1.2 var(--ef-d);letter-spacing:.1em;text-transform:uppercase;color:var(--ef-mute)}
+html.efir[data-sport=hockey] .cmpw,html.efir[data-sport=hockey] .cmpad{background:none}
+/* игроки клуба */
+html.efir[data-sport=hockey] .plead{list-style:none;margin:0 0 24px;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0 clamp(24px,4vw,56px)}
+html.efir[data-sport=hockey] .plead li{background:none;border:0;border-top:1px solid var(--ef-line);border-radius:0;padding:16px 0}
+html.efir[data-sport=hockey] .plead .sl{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .plv b,html.efir[data-sport=hockey] .pln{font-family:var(--ef-d)}
+html.efir[data-sport=hockey] .plv b{font-weight:900;font-size:clamp(40px,4vw,60px);color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.85)}
+html.efir[data-sport=hockey] .plwrap{background:none;border:0;border-radius:0}
+html.efir[data-sport=hockey] .pltab th{font:700 11px/1 var(--ef-d)}
+/* наши ставки */
+html.efir[data-sport=hockey] .pks,html.efir[data-sport=hockey] .pkempty{background:none;border-radius:0}
+html.efir[data-sport=hockey] .pks li{background:none;border-top:1px solid var(--ef-line);padding:14px 0}
+html.efir[data-sport=hockey] .pksum b{font:900 clamp(64px,7vw,104px)/.85 var(--ef-d);color:#fff}
+html.efir[data-sport=hockey] .pkbar i{border-radius:0;transform:skewX(-12deg)}
+html.efir[data-sport=hockey] .pkbar .ok,html.efir[data-sport=hockey] .pks .ok .pr{background:#1f8f55;color:#fff}html.efir[data-sport=hockey] .pkbar .no,html.efir[data-sport=hockey] .pks .no .pr{background:#c63a4a;color:#fff}
+html.efir[data-sport=hockey] .pks .pr{border-radius:0;clip-path:polygon(12% 0,100% 0,88% 100%,0 100%)}
+html.efir[data-sport=hockey] .pkempty{padding:0}
+html.efir[data-sport=hockey] .pm,html.efir[data-sport=hockey] .pt strong{font-family:var(--ef-d)}
+html.efir[data-sport=hockey] .pt small{color:var(--ef-mute)}
+/* ═══ 6.0 КЛУБНАЯ ТЕМА СТАРОГО САЙТА (club/theme.css, club/nhl_fla.css) — светлые полосы, водяные знаки и рамки выключены; цвета клуба — в клиньях и акцентах ═══ */
+html.efir[data-sport=hockey] :is(.club-g,.club-nhl_fla) .tmsec::before,html.efir[data-sport=hockey] :is(.club-g,.club-nhl_fla) .tmsec::after,
+html.efir[data-sport=hockey] :is(.club-g,.club-nhl_fla) :is(#table,#games,#players,#picks)::before,html.efir[data-sport=hockey] :is(.club-g,.club-nhl_fla) :is(#table,#games,#players,#picks)::after,
+html.efir[data-sport=hockey] :is(.club-g,.club-nhl_fla) #players>.wrap::before,html.efir[data-sport=hockey] :is(.club-g,.club-nhl_fla) #picks .pksum::before{display:none}
+html.efir[data-sport=hockey] :is(.club-g,.club-nhl_fla) :is(#table,#games,#players,#picks,#trends,#totals,#next){margin-top:0;padding-top:var(--ef-sec);padding-bottom:0;
+  --paper:var(--ef-bg);--paper-2:var(--ef-chip);--paper-3:var(--ef-chip2);--card:var(--ef-chip);--card-hi:var(--ef-chip2);--ink:var(--ef-ink);--ink-2:var(--ef-mute);--ink-3:var(--ef-dim);color:var(--ef-ink)}
+html.efir[data-sport=hockey] :is(.club-g,.club-nhl_fla) :is(#games,#players,#picks) :is(.sec-head,.gh,.smpnote){--ink:var(--ef-ink);--ink-2:var(--ef-mute);--ink-3:var(--ef-dim);color:var(--ef-ink)}
+html.efir[data-sport=hockey] :is(.club-g,.club-nhl_fla) :is(#table .tmtable,#table .stg,#table .formbox,#games .gs,#games .gsum,#players .plead,#players .plwrap,#picks .pks,#picks .pkempty){box-shadow:none;border:0;background:none;border-radius:0}
+html.efir[data-sport=hockey] :is(.club-g,.club-nhl_fla) #games .gsum li{border-top:1px solid var(--ef-line)}
+html.efir[data-sport=hockey] :is(.club-g,.club-nhl_fla) #games .gh::after{background:linear-gradient(90deg,var(--hb),transparent);height:3px;transform:skewX(-30deg)}
+html.efir[data-sport=hockey] :is(.club-g,.club-nhl_fla) #players .plead li{border-top-color:var(--ef-line)}
+html.efir[data-sport=hockey] :is(.club-g,.club-nhl_fla) #games .smpnote .sample{background:rgba(255,255,255,.14);color:#fff}
+html.efir[data-sport=hockey] :is(.club-g,.club-nhl_fla) .tmhero{padding-bottom:clamp(30px,4vw,56px)}
+html.efir[data-sport=hockey] .tmsec[data-zone]{padding-bottom:0}
+html.efir[data-sport=hockey] .clubend{--ce-page:var(--ef-bg);margin-top:var(--ef-sec)}
+html.efir[data-sport=hockey] .clubend .ce-top{background:linear-gradient(180deg,var(--ef-bg) 0,color-mix(in srgb,var(--ef-bg) 55%,transparent) 38%,transparent)}
+/* ═══ 6.1 КЛУБ: тренды, тоталы, личные встречи, игроки — открытая типографика ═══ */
+html.efir[data-sport=hockey] .stand{table-layout:fixed;width:100%}
+html.efir[data-sport=hockey] .stand th:first-child,html.efir[data-sport=hockey] .stand td:first-child{width:44px}
+html.efir[data-sport=hockey] .stand .ra{width:50px;text-align:right}
+html.efir[data-sport=hockey] .stand td.ra.pts{width:54px}
+@media(min-width:621px){html.efir[data-sport=hockey] .stand .ra{width:62px}}
+html.efir[data-sport=hockey] .tmtable{overflow:visible}
+html.efir[data-sport=hockey] .trs{background:none;border-radius:0;gap:0}
+html.efir[data-sport=hockey] .tr{background:none;border-top:1px solid var(--ef-line);padding:16px 0}
+html.efir[data-sport=hockey] .trs .tr:last-child{border-bottom:1px solid var(--ef-line)}
+html.efir[data-sport=hockey] .trt{font:700 clamp(16px,1.5vw,19px)/1.2 var(--ef-d)}
+html.efir[data-sport=hockey] .trd i{border-radius:0;transform:skewX(-12deg);border-color:rgba(255,255,255,.5);width:14px;height:20px}
+html.efir[data-sport=hockey] .trd i.y{background:#fff;border-color:#fff}
+html.efir[data-sport=hockey] .trn b{font:900 clamp(22px,2.4vw,30px)/1 var(--ef-d)}
+html.efir[data-sport=hockey] .trn small,html.efir[data-sport=hockey] .tr.none{color:var(--ef-mute)}
+/* гистограммы и дом/гости */
+html.efir[data-sport=hockey] .hg,html.efir[data-sport=hockey] .dvc,html.efir[data-sport=hockey] .hv>div,html.efir[data-sport=hockey] .plcard,html.efir[data-sport=hockey] .nmh2h .h2in,html.efir[data-sport=hockey] .cmps{background:none;border:0;border-radius:0;box-shadow:none}
+html.efir[data-sport=hockey] .hg{padding:18px 0 4px;border-top:1px solid var(--ef-line)}
+html.efir[data-sport=hockey] .hg figcaption,html.efir[data-sport=hockey] .dvh,html.efir[data-sport=hockey] .dvc h4{font:700 13px/1.2 var(--ef-d);letter-spacing:.1em;text-transform:uppercase;color:var(--ef-mute)}
+html.efir[data-sport=hockey] .dvc{padding:16px 0;border-top:1px solid var(--ef-line)}
+html.efir[data-sport=hockey] .dvc h4{font-size:clamp(20px,2vw,26px);letter-spacing:0;text-transform:none;color:#fff;font-weight:900}
+html.efir[data-sport=hockey] .dvc dl div{border-bottom:1px solid var(--ef-line2)}
+html.efir[data-sport=hockey] .dvc dt{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .dvc dd,html.efir[data-sport=hockey] .dvc dd b,html.efir[data-sport=hockey] .bst dd{font-family:var(--ef-d);color:#fff}
+html.efir[data-sport=hockey] .dvc .bst{background:linear-gradient(90deg,color-mix(in srgb,var(--k-a1,var(--hb)) 55%,transparent),transparent 80%);box-shadow:inset 4px 0 0 #fff}
+html.efir[data-sport=hockey] .dvd i{border-radius:0;transform:skewX(-12deg)}
+html.efir[data-sport=hockey] .hp i,html.efir[data-sport=hockey] .hx,html.efir[data-sport=hockey] .hn{color:#fff}
+html.efir[data-sport=hockey] .tsbig b{font:900 clamp(40px,5vw,72px)/.9 var(--ef-d);color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.85);letter-spacing:-.03em}
+html.efir[data-sport=hockey] .tsbig span{color:var(--ef-mute)}
+html.efir[data-sport=hockey] .nmcr{background:none;box-shadow:none;border-radius:0}
+html.efir[data-sport=hockey] .nmcr .em{filter:drop-shadow(0 12px 18px rgba(8,12,22,.55))}
+html.efir[data-sport=hockey] .nmatch .kx li{background:rgba(255,255,255,.1);border-radius:3px;font:700 20px/1 var(--ef-d);color:#fff}
+html.efir[data-sport=hockey] .nmatch .kx li:first-child{background:rgba(255,255,255,.2);box-shadow:inset 0 -3px 0 #fff;color:#fff}
+html.efir[data-sport=hockey] .nmha,html.efir[data-sport=hockey] .nmha.h{background:rgba(255,255,255,.14);color:#fff;border-radius:0;clip-path:var(--sk12);padding:6px 14px 6px 10px}
+html.efir[data-sport=hockey] .nmha.h{background:#fff;color:#000}
+html.efir[data-sport=hockey] .nmgo{margin-top:4px}
+html.efir[data-sport=hockey] .nmpick small{color:var(--ef-mute)}
+/* игроки клуба */
+html.efir[data-sport=hockey] .pltab th{background:var(--ef-bg)}
+html.efir[data-sport=hockey] .pltab th button{color:var(--ef-mute);font:700 11px/1 var(--ef-d);letter-spacing:.08em;text-transform:uppercase}
+html.efir[data-sport=hockey] .pltab th[aria-sort] button,html.efir[data-sport=hockey] .pltab th button:hover{color:#fff}
+html.efir[data-sport=hockey] .pltab th button i{color:#fff}
+html.efir[data-sport=hockey] .pltab td{background:none;border-top:1px solid var(--ef-line2)}
+html.efir[data-sport=hockey] .pltab td.c1,html.efir[data-sport=hockey] .pltab td.c2{background:var(--ef-bg)}
+html.efir[data-sport=hockey] .pltab td.on{background:rgba(255,255,255,.08);color:#fff}
+html.efir[data-sport=hockey] .pltab tbody tr:hover td,html.efir[data-sport=hockey] .pltab tbody tr:hover td.on{background:rgba(255,255,255,.1)}
+html.efir[data-sport=hockey] .pltab tbody tr:hover td.c1,html.efir[data-sport=hockey] .pltab tbody tr:hover td.c2{background:#3a4863}
+html.efir[data-sport=hockey] .pltab .c2{box-shadow:1px 0 0 var(--ef-line2)}
+html.efir[data-sport=hockey] .pltab td.c2{font:700 16px/1.2 var(--ef-b)}
+html.efir[data-sport=hockey] .plwrap:focus-visible{outline-color:#fff}
+html.efir[data-sport=hockey] .pav,html.efir[data-sport=hockey] .pla{border-radius:0}
+html.efir[data-sport=hockey] .plgo{color:#fff;font-family:var(--ef-d)}
+html.efir[data-sport=hockey] .tmstreak{background:none;border-left-color:#fff;border-radius:0}
