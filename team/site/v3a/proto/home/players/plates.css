@@ -1,0 +1,98 @@
+/* 5 вариантов плашек «Хоккей / Футбол». Включаются классом на <html>: ?v=1..5 -> .pv.pv1 … .pv5. Без параметра — исходный вид.
+   Без стекла и backdrop-filter; один приём на вариант. Игрок остаётся в .pl-clip: верх над плашкой, низ обрезан. */
+
+/* украшения внутри плашки скрыты, пока не выбран вариант */
+.pl-card>*{display:none}
+.pv .pl-card{container-type:size}
+.pv .pl-card::after,.pv .pl-card::before{content:none}
+.pv .pl-card>*{position:absolute;margin:0;font-style:normal;pointer-events:none}
+.pv .pl-door .pl-c,.pv .pl-door .pl-n,.pv .pl-door .pl-go{text-shadow:none}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- 1. Лёд и газон ---------- */
+.pv1 .hk{color:#0a2a4e}
+.pv1 .fb{color:#fff}
+.pv1 .hk .pl-card{background:radial-gradient(80% 120% at 85% 10%,#f4fbff,transparent 70%),linear-gradient(170deg,#e6f4fc,#bddcf1);
+  box-shadow:0 18px 40px -22px #0d4a80,inset 0 0 0 2px rgba(255,255,255,.6)}
+.pv1 .fb .pl-card{background:#2c8a4d;box-shadow:0 18px 40px -22px #0b4a28,inset 0 0 0 2px rgba(255,255,255,.28)}
+.pv1 .pl-card>.px-a{display:block;inset:0}
+.pv1 .hk .px-a{background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 250' preserveAspectRatio='xMaxYMid slice'><rect x='388' y='-5' width='18' height='260' fill='%232a6cc0' fill-opacity='.5'/><circle cx='545' cy='125' r='84' fill='none' stroke='%23d23a46' stroke-opacity='.75' stroke-width='4'/><circle cx='545' cy='125' r='9' fill='%23d23a46' fill-opacity='.8'/><path d='M461 108h-22M461 142h-22M629 108h22M629 142h22' stroke='%23d23a46' stroke-opacity='.75' stroke-width='4'/><path d='M391 58Q370.0 51.0 403 96' stroke='%237fb4d6' stroke-opacity='.9' stroke-width='1.4' fill='none' stroke-linecap='round'/><path d='M656 34Q662.5 0.0 725 16' stroke='%23ffffff' stroke-opacity='.7' stroke-width='1' fill='none' stroke-linecap='round'/><path d='M306 43Q325.0 69.5 398 52' stroke='%237fb4d6' stroke-opacity='.9' stroke-width='1' fill='none' stroke-linecap='round'/><path d='M656 35Q703.5 22.5 761 64' stroke='%23ffffff' stroke-opacity='.9' stroke-width='2' fill='none' stroke-linecap='round'/><path d='M196 94Q212.0 57.5 220 67' stroke='%237fb4d6' stroke-opacity='.7' stroke-width='2' fill='none' stroke-linecap='round'/><path d='M245 46Q308.5 42.0 352 74' stroke='%23ffffff' stroke-opacity='.9' stroke-width='2' fill='none' stroke-linecap='round'/><path d='M124 164Q27.0 182.0 -36 198' stroke='%237fb4d6' stroke-opacity='.35' stroke-width='1.4' fill='none' stroke-linecap='round'/><path d='M381 139Q428.5 134.5 490 152' stroke='%23ffffff' stroke-opacity='.9' stroke-width='2' fill='none' stroke-linecap='round'/><path d='M309 40Q364.0 37.5 413 33' stroke='%23ffffff' stroke-opacity='.35' stroke-width='1.4' fill='none' stroke-linecap='round'/><path d='M354 175Q279.5 156.0 201 145' stroke='%23ffffff' stroke-opacity='.7' stroke-width='1' fill='none' stroke-linecap='round'/><path d='M560 127Q449.0 165.0 390 167' stroke='%237fb4d6' stroke-opacity='.35' stroke-width='1.4' fill='none' stroke-linecap='round'/><path d='M408 197Q403.5 219.5 397 228' stroke='%23ffffff' stroke-opacity='.9' stroke-width='1' fill='none' stroke-linecap='round'/><path d='M336 141Q393.0 134.0 502 181' stroke='%237fb4d6' stroke-opacity='.35' stroke-width='1.4' fill='none' stroke-linecap='round'/><path d='M651 194Q685.0 183.5 689 185' stroke='%237fb4d6' stroke-opacity='.7' stroke-width='1' fill='none' stroke-linecap='round'/><path d='M532 110Q457.0 127.5 428 143' stroke='%23ffffff' stroke-opacity='.9' stroke-width='1.4' fill='none' stroke-linecap='round'/><path d='M192 209Q155.0 239.5 128 214' stroke='%23ffffff' stroke-opacity='.9' stroke-width='1' fill='none' stroke-linecap='round'/></svg>") right center/cover no-repeat}
+.pv1 .fb .px-a{background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 250' preserveAspectRatio='xMaxYMid slice'><g fill='none' stroke='%23fff' stroke-opacity='.8' stroke-width='4'><path d='M540 -5V255'/><circle cx='540' cy='125' r='88'/></g><circle cx='540' cy='125' r='7' fill='%23fff' fill-opacity='.85'/></svg>") right center/cover no-repeat}
+.pv1 .fb .px-b{display:block;inset:0;background:repeating-linear-gradient(90deg,transparent 0 8cqw,rgba(0,0,0,.1) 8cqw 16cqw),radial-gradient(90% 120% at 80% 0,rgba(255,255,255,.14),transparent 60%)}
+.pv1 .hk .px-b{display:block;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.5),transparent 35%)}
+
+/* ---------- 2. Разметка-схема: чертёж площадки + число матчей ---------- */
+.pv2 .pl-door{color:#fff}
+.pv2 .hk{--c:#7fd0ff}
+.pv2 .fb{--c:#7ff0b0}
+.pv2 .hk .pl-card{background:linear-gradient(160deg,#0a1a2e,#0d2a4a)}
+.pv2 .fb .pl-card{background:linear-gradient(160deg,#08201a,#0c3a2a)}
+.pv2 .pl-card>.px-a{display:block;inset:0}
+.pv2 .hk .px-a{background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 250' preserveAspectRatio='xMaxYMid slice'><g fill='none' stroke='%23fff' stroke-opacity='.6' stroke-width='1.6'><rect x='230' y='20' width='460' height='210' rx='64'/><path d='M460 20V230M350 20V230M570 20V230M290 24V226M630 24V226'/><circle cx='460' cy='125' r='38'/><circle cx='345' cy='70' r='26'/><circle cx='345' cy='180' r='26'/><circle cx='575' cy='70' r='26'/><circle cx='575' cy='180' r='26'/><path d='M290 108a17 17 0 0 1 0 34M630 108a17 17 0 0 0 0 34'/></g><circle cx='460' cy='125' r='3' fill='%23fff' fill-opacity='.7'/></svg>") right center/cover no-repeat}
+.pv2 .fb .px-a{background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 250' preserveAspectRatio='xMaxYMid slice'><g fill='none' stroke='%23fff' stroke-opacity='.6' stroke-width='1.6'><rect x='230' y='20' width='460' height='210'/><path d='M460 20V230'/><circle cx='460' cy='125' r='38'/><rect x='230' y='62' width='72' height='126'/><rect x='230' y='92' width='26' height='66'/><rect x='618' y='62' width='72' height='126'/><rect x='664' y='92' width='26' height='66'/><path d='M302 104a24 24 0 0 1 0 42M618 104a24 24 0 0 0 0 42'/></g><circle cx='460' cy='125' r='3' fill='%23fff' fill-opacity='.7'/></svg>") right center/cover no-repeat}
+.pv2 .pl-card>.px-cnt{display:flex;align-items:flex-end;gap:12px;left:clamp(16px,2vw,28px);top:clamp(12px,1.4vw,20px);color:var(--c)}
+.pv2 .px-cnt s{text-decoration:none;font:900 clamp(44px,42cqh,104px)/.82 var(--display);letter-spacing:-.02em}
+.pv2 .px-cnt u{text-decoration:none;font:800 clamp(10px,1.35cqw,13px)/1.2 var(--display);letter-spacing:.1em;text-transform:uppercase;color:#fff;opacity:.8;padding-bottom:3px}
+.pv2 .pl-c{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- 3. Билет ---------- */
+.pv3 .pl-door{color:#fff}
+.pv3 .pl-card{--stub:21%;box-shadow:none;
+  -webkit-mask-image:radial-gradient(circle 10px at 21% 0,transparent 9.5px,#000 10px),radial-gradient(circle 10px at 21% 100%,transparent 9.5px,#000 10px),radial-gradient(circle 11px at 0 50%,transparent 10.5px,#000 11px),radial-gradient(circle 11px at 100% 50%,transparent 10.5px,#000 11px);
+  -webkit-mask-composite:source-in;
+  mask-image:radial-gradient(circle 10px at 21% 0,transparent 9.5px,#000 10px),radial-gradient(circle 10px at 21% 100%,transparent 9.5px,#000 10px),radial-gradient(circle 11px at 0 50%,transparent 10.5px,#000 11px),radial-gradient(circle 11px at 100% 50%,transparent 10.5px,#000 11px);
+  mask-composite:intersect;border-radius:18px}
+.pv3 .hk .pl-card{background:linear-gradient(135deg,#1c78cf,#0f4f93)}
+.pv3 .fb .pl-card{background:linear-gradient(135deg,#1c9a5e,#0d6a3e)}
+.pv3 .pl-card>.px-b{display:block;left:0;top:0;bottom:0;width:var(--stub);background:rgba(0,0,0,.24)}
+.pv3 .pl-card>.px-a{display:block;left:var(--stub);top:16px;bottom:16px;width:0;border-left:3px dotted rgba(255,255,255,.75);transform:translateX(-1.5px)}
+.pv3 .pl-card>.px-cnt{display:flex;flex-direction:column;align-items:center;left:0;width:var(--stub);top:50%;transform:translateY(-62%);text-align:center}
+.pv3 .px-cnt s{text-decoration:none;font:900 clamp(34px,13cqw,64px)/.9 var(--display)}
+.pv3 .px-cnt u{text-decoration:none;font:800 clamp(9px,1.7cqw,12px)/1.15 var(--display);letter-spacing:.08em;text-transform:uppercase;margin-top:6px;opacity:.85;padding:0 4px}
+.pv3 .pl-card>.px-bar{display:block;left:calc(var(--stub)/2 - 30px);bottom:16px;width:60px;height:22px;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 30' preserveAspectRatio='none'><rect x='0' y='0' width='3' height='30' fill='%23fff'/><rect x='14' y='0' width='1' height='30' fill='%23fff'/><rect x='17' y='0' width='1' height='30' fill='%23fff'/><rect x='20' y='0' width='1' height='30' fill='%23fff'/><rect x='23' y='0' width='2' height='30' fill='%23fff'/><rect x='27' y='0' width='3' height='30' fill='%23fff'/><rect x='32' y='0' width='1' height='30' fill='%23fff'/><rect x='40' y='0' width='3' height='30' fill='%23fff'/><rect x='44' y='0' width='3' height='30' fill='%23fff'/><rect x='48' y='0' width='1' height='30' fill='%23fff'/><rect x='51' y='0' width='3' height='30' fill='%23fff'/><rect x='56' y='0' width='1' height='30' fill='%23fff'/><rect x='65' y='0' width='1' height='30' fill='%23fff'/><rect x='68' y='0' width='2' height='30' fill='%23fff'/><rect x='77' y='0' width='3' height='30' fill='%23fff'/><rect x='81' y='0' width='1' height='30' fill='%23fff'/><rect x='84' y='0' width='2' height='30' fill='%23fff'/><rect x='88' y='0' width='1' height='30' fill='%23fff'/><rect x='91' y='0' width='1' height='30' fill='%23fff'/><rect x='96' y='0' width='2' height='30' fill='%23fff'/><rect x='104' y='0' width='1' height='30' fill='%23fff'/><rect x='110' y='0' width='1' height='30' fill='%23fff'/><rect x='116' y='0' width='3' height='30' fill='%23fff'/></svg>") center/100% 100% no-repeat;opacity:.8}
+.pv3 .pl-txt{left:21%;width:40%;padding-left:clamp(14px,2vw,24px)}
+.pv3 .pl-c{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- 4. Арена ---------- */
+.pv4 .pl-door{color:#fff}
+.pv4 .hk{--lt:150,205,255}
+.pv4 .fb{--lt:130,240,180}
+.pv4 .hk .pl-card{background:linear-gradient(180deg,#060a14,#0c1730 70%,#112245)}
+.pv4 .fb .pl-card{background:linear-gradient(180deg,#040b09,#08201a 70%,#0c3326)}
+.pv4 .px-a{display:block;inset:0;background:conic-gradient(from 180deg at 75% -12%,transparent 146deg,rgba(var(--lt),.5) 180deg,transparent 214deg);-webkit-mask-image:linear-gradient(180deg,#000,transparent 95%);mask-image:linear-gradient(180deg,#000,transparent 95%)}
+.pv4 .px-b{display:block;left:0;right:0;bottom:0;height:46%;background:radial-gradient(55% 100% at 75% 100%,rgba(var(--lt),.55),transparent 72%)}
+.pv4 .pl-card::after{content:"";display:block;position:absolute;left:22%;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,rgba(var(--lt),.9) 55%,transparent)}
+.pv4 .pl-card>.px-word{display:block;right:-2cqw;top:9cqh;font:900 17.5cqw/.8 var(--display);text-transform:uppercase;letter-spacing:-.01em;white-space:nowrap;color:transparent;-webkit-text-stroke:1.5px rgba(var(--lt),.5)}
+
+/* ---------- 5. Табло ---------- */
+.pv5 .pl-door{color:#fff}
+.pv5 .hk{--c:#4cc2ff}
+.pv5 .fb{--c:#3ddc8a}
+.pv5 .pl-card{background:#04070b;border-radius:16px;
+  box-shadow:inset 0 0 0 2px var(--c),inset 0 0 26px -6px var(--c),0 16px 36px -20px var(--c)}
+.pv5 .pl-card>.px-a{display:block;inset:0;background:radial-gradient(circle,rgba(255,255,255,.14) 1.3px,transparent 1.8px) 0 0/9px 9px}
+.pv5 .pl-card>.px-cnt{display:flex;align-items:flex-end;gap:12px;left:clamp(16px,2vw,28px);top:clamp(14px,1.6vw,22px);color:var(--c)}
+.pv5 .px-cnt s{text-decoration:none;font:900 clamp(40px,36cqh,92px)/.82 var(--display);letter-spacing:.04em;
+  -webkit-mask:radial-gradient(circle,#000 1.9px,transparent 2.3px) 0 0/5px 5px;mask:radial-gradient(circle,#000 1.9px,transparent 2.3px) 0 0/5px 5px}
+.pv5 .px-cnt u{text-decoration:none;font:800 clamp(10px,1.35cqw,13px)/1.2 var(--display);letter-spacing:.1em;text-transform:uppercase;color:#fff;opacity:.75;padding-bottom:3px}
+.pv5 .pl-c{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* телефон */
+@media (max-width:640px){
+  .pv2 .px-cnt s{font-size:46px}.pv2 .pl-card>.px-cnt{top:12px;left:14px}.pv2 .px-cnt u{font-size:9px}
+  .pv3 .pl-txt{padding-left:12px;width:42%}
+  .pv3 .pl-card>.px-bar{width:46px;height:16px;left:calc(var(--stub)/2 - 23px);bottom:14px}
+  .pv3 .px-cnt s{font-size:clamp(28px,11cqw,40px)}
+  .pv3 .px-cnt u{font-size:8px;letter-spacing:.04em}
+  .pv5 .px-cnt s{font-size:42px;-webkit-mask-size:4px 4px;mask-size:4px 4px;-webkit-mask-image:radial-gradient(circle,#000 1.5px,transparent 1.9px);mask-image:radial-gradient(circle,#000 1.5px,transparent 1.9px)}
+  .pv5 .px-cnt u{font-size:9px}
+  .pv5 .pl-card>.px-cnt{top:12px;left:14px}
+}
+
+/* переключатель вариантов (для владельца) */
+.pv-sw{position:fixed;left:12px;bottom:12px;z-index:60;display:flex;align-items:center;gap:4px;padding:5px 6px 5px 10px;border-radius:999px;background:#10161f;color:#fff;box-shadow:0 6px 20px -8px rgba(0,0,0,.6);font:700 12px/1 var(--display)}
+.pv-sw span{opacity:.7;margin-right:4px;letter-spacing:.04em}
+.pv-sw a{display:grid;place-items:center;min-width:28px;height:28px;border-radius:999px;color:#fff;text-decoration:none;font-size:13px}
+.pv-sw a[aria-current=true]{background:var(--signal);color:var(--signal-ink)}
+@media (hover:hover){.pv-sw a:hover{background:rgba(255,255,255,.18)}.pv-sw a[aria-current=true]:hover{background:var(--signal)}}
+@media (max-width:760px){.pv-sw{bottom:74px}}

@@ -7,8 +7,9 @@
 <title>JARVIS: шаблон 1, игроки в плашках</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#0a1220">
-<script>/* вариант первого экрана: ?v=1 (ночная арена, по умолчанию) или ?v=2 (газетный, светлый); палитра: ?theme=a|b|c */
-(()=>{const q=new URLSearchParams(location.search),v=q.get('v')==='2'?2:1,t=q.get('theme')||(v===2?'c':''),d=document.documentElement;d.dataset.v=v;if(/^[abc]$/.test(t||''))d.dataset.theme=t;
+<script>/* плашки: ?v=1..5 (варианты 1 Лёд и газон, 2 Цвета клуба, 3 Билет, 4 Арена, 5 Табло); без параметра — исходный вид; палитра: ?theme=a|b|c */
+(()=>{const q=new URLSearchParams(location.search),v=+q.get('v'),t=q.get('theme')||'',d=document.documentElement;d.dataset.v=1;if(/^[abc]$/.test(t))d.dataset.theme=t;
+if(v>=1&&v<=5)d.classList.add('pv','pv'+v);
 document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84',c:'#e3eff9'}[d.dataset.theme]||'#0a1220'})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,6 +27,7 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
 <script src="../../../assets/palettes.js"></script>
 
 <link rel="stylesheet" href="players.css">
+<link rel="stylesheet" href="plates.css">
 </head>
 <body>
 <a class="skip" href="#main">К содержанию</a>
@@ -48,12 +50,12 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
     </div>
     <div class="pl-doors" id="fork">
       <a class="pl-door hk" href="../../../hockey/index.html" aria-label="Хоккей: КХЛ и НХЛ">
-        <span class="pl-card" aria-hidden="true"></span>
+        <span class="pl-card" aria-hidden="true"><i class="px-a"></i><i class="px-b"></i><b class="px-word">Хоккей</b><b class="px-cnt"></b><i class="px-bar"></i></span>
         <span class="pl-clip" aria-hidden="true"><img class="pl-ph" src="hockey.webp" alt="" width="846" height="1100" decoding="async"></span>
         <span class="pl-txt"><span class="pl-n">Хоккей</span><span class="pl-c" id="cnt-h">КХЛ и НХЛ</span><span class="pl-go">Открыть <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 10h13M11 4l6 6-6 6"/></svg></span></span>
       </a>
       <a class="pl-door fb" href="../../../football/index.html" aria-label="Футбол: топ-лиги Европы">
-        <span class="pl-card" aria-hidden="true"></span>
+        <span class="pl-card" aria-hidden="true"><i class="px-a"></i><i class="px-b"></i><b class="px-word">Футбол</b><b class="px-cnt"></b><i class="px-bar"></i></span>
         <span class="pl-clip" aria-hidden="true"><img class="pl-ph" src="football.webp" alt="" width="493" height="900" decoding="async"></span>
         <span class="pl-txt"><span class="pl-n">Футбол</span><span class="pl-c" id="cnt-f">топ-лиги Европы</span><span class="pl-go">Открыть <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 10h13M11 4l6 6-6 6"/></svg></span></span>
       </a>
@@ -132,6 +134,15 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
 
 <a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Получать прогнозы — бесплатно</span><span aria-hidden="true">›</span></a>
 
+<nav class="pv-sw" id="pv-sw" aria-label="Вариант плашек"><span>Плашки</span><a href="?v=1" title="Лёд и газон">1</a><a href="?v=2" title="Разметка-схема">2</a><a href="?v=3" title="Билет">3</a><a href="?v=4" title="Арена">4</a><a href="?v=5" title="Табло">5</a><a href="?" title="Исходный вид">0</a></nav>
+<script>
+(()=>{const cur=document.documentElement.className.match(/pv(\d)/),cn=cur?cur[1]:'0',th=new URLSearchParams(location.search).get('theme');
+document.querySelectorAll('#pv-sw a').forEach(a=>{const n=a.textContent;if(th)a.href+=(n==='0'?'':'&')+'theme='+th;if(n===cn)a.setAttribute('aria-current','true')});
+const w=n=>{const m=n%10,c=n%100;return m===1&&c!==11?'матч':m>1&&m<5&&(c<10||c>20)?'матча':'матчей'};
+const fill=()=>document.querySelectorAll('.pl-door').forEach(d=>{const t=d.querySelector('.pl-c').textContent,m=/^(\d+)/.exec(t),x=d.querySelector('.px-cnt');
+ x.innerHTML=m?'<s>'+m[1]+'</s><u>'+w(+m[1])+(/сегодня/.test(t)?' сегодня':' скоро')+'</u>':'<s>–</s><u>'+t+'</u>'});
+fill();document.querySelectorAll('.pl-c').forEach(e=>new MutationObserver(fill).observe(e,{childList:true,characterData:true,subtree:true}))})();
+</script>
 <script src="../../../assets/nav.js"></script>
 <script src="../../../assets/footer.js"></script>
 <script src="../../../data/today.js"></script>
