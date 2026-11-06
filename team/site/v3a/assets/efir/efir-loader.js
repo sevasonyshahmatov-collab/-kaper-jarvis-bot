@@ -12,12 +12,16 @@
   d.classList.add('efir');d.setAttribute('data-efir','1');
   var s=document.currentScript,base=s.src.replace(/efir-loader\.js.*$/,'');
   try{var m=document.querySelector('meta[name=theme-color]');if(m)m.content='#2c374d'}catch(e){}
-  var css=['vendor/fonts.css','efir.css'];
+  var css=['vendor/fonts.css','efir.css'],extra=[];
+  /* разделы: футбол — pages-football.css/js + цвета клубов из эмблем */
+  if(d.getAttribute('data-sport')==='football'){css.push('pages-football.css');extra=['fc-colors.js','pages-football.js']}
   if(document.readyState==='loading'){
     css.forEach(function(f){document.write('<link rel="stylesheet" href="'+base+f+'">')});
     document.write('<script defer src="'+base+'efir.js"><\/script>');
+    extra.forEach(function(f){document.write('<script defer src="'+base+f+'"><\/script>')});
   }else{
     css.forEach(function(f){var l=document.createElement('link');l.rel='stylesheet';l.href=base+f;document.head.appendChild(l)});
     var j=document.createElement('script');j.src=base+'efir.js';document.head.appendChild(j);
+    extra.forEach(function(f){var x=document.createElement('script');x.src=base+f;x.async=false;document.head.appendChild(x)});
   }
 })();

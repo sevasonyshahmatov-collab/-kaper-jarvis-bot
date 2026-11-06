@@ -1,0 +1,457 @@
+/* JARVIS · «Эфир» — раздел ФУТБОЛА (football/*, лиги, клубы, матчи по чистым адресам). Подключает efir-loader.js, только при ?theme=efir.
+   Всё скоуплено: html.efir[data-sport="football"] — хоккей и общие страницы этот файл не трогают.
+   Устройство: 1) токены и база  2) общие компоненты (метка-период, чипы, строки-титры, кэфы, таблицы, итоги)  3) главная футбола (hero)
+   4) страница лиги  5) ЛЧ/ЛЕ  6) клуб («представление команды»)  7) тренды / игроки / авторство фото  8) forecast  9) матч  10) reduced-motion.
+   Правило плашек: плашка — только у интерактива (строка матча, кэф, чип, кнопка, табло-счёт). Остальное — линии, цифры, клин клуба, воздух. */
+
+/* ═══ 1. ТОКЕНЫ И БАЗА ═══ */
+html.efir[data-sport="football"] :where(*){
+  /* локальные светлые зоны сайта (data-zone, .lt, .band, .tmhero, body.fc …) возвращаем в Эфир: каждый элемент наследует токены Эфира */
+  --paper:var(--ef-bg); --paper-2:var(--ef-chip); --paper-3:var(--ef-chip2); --card:var(--ef-chip); --card-hi:var(--ef-chip2);
+  --ink:var(--ef-ink); --ink-2:var(--ef-mute); --ink-3:var(--ef-dim); --rule:var(--ef-line2); --rule-2:var(--ef-line);
+  --board:#243049; --flap:#2c3a56; --flap-2:#243049; --flap-ink:#fff; --glass:var(--ef-glass); --edge:var(--ef-edge);
+  --win:#6fe0a0; --win-ink:#04210f; --red:#ff7a86; --loss-ink:#2b0409; --ice:#fff; --sport:#fff; --sport-ink:#000; --signal:#fff; --signal-ink:#000;
+  --crest-bg:transparent; --crest-pad:0; --shadow:rgba(8,12,22,.6);
+  --display:var(--ef-b);                      /* текст — Onest; Unbounded — только заголовки и крупные цифры (ниже) */
+}
+html.efir[data-sport="football"] body{background:transparent;color:var(--ef-ink)}
+html.efir[data-sport="football"] .arena-bg{display:none}
+html.efir[data-sport="football"] .hero>.wrap,html.efir[data-sport="football"] #matches .wrap>:not(.period){opacity:1}
+html.efir[data-sport="football"] #leagues::before{display:none}
+html.efir[data-sport="football"] .lgsec,html.efir[data-sport="football"] .tmsec{padding-top:var(--ef-sec)}
+html.efir[data-sport="football"] .sec{padding-top:var(--ef-sec)}
+html.efir[data-sport="football"] .sec-head h2,html.efir[data-sport="football"] .lgsec .sec-head h2{font:700 clamp(25px,3.4vw,46px)/1.08 var(--ef-d);text-transform:none}
+html.efir[data-sport="football"] .h3,html.efir[data-sport="football"] h3{font-family:var(--ef-d)}
+html.efir[data-sport="football"] .note{color:var(--ef-dim)}
+html.efir[data-sport="football"] .legal{color:var(--ef-dim)}
+
+/* ссылки-подписи и «вернуться» */
+html.efir[data-sport="football"] .crumb{font:600 14px/1 var(--ef-b);color:var(--ef-mute);display:inline-flex;gap:8px;align-items:center;text-decoration:none;margin-bottom:clamp(14px,2vw,26px)}
+html.efir[data-sport="football"] .crumb:hover{color:#fff;text-decoration:none}
+
+/* бегущая строка: тёмная лента с косыми разделителями, без «светло-табло» */
+html.efir[data-sport="football"] .ticker{background:rgba(20,28,44,.72);color:var(--ef-ink);font:600 14px/1 var(--ef-b);border-block:1px solid var(--ef-line2);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+html.efir[data-sport="football"] .ticker li{padding:12px 24px 12px 0}
+html.efir[data-sport="football"] .ticker li::after{width:6px;height:12px;border-radius:0;background:var(--hb);transform:skewX(-12deg);margin-left:14px}
+html.efir[data-sport="football"] .ticker time{color:#000;background:#fff;font:700 12px/1 var(--ef-d);padding:5px 9px 5px 6px;clip-path:polygon(0 0,100% 0,calc(100% - 5px) 100%,0 100%)}
+html.efir[data-sport="football"] .ticker .tm2{color:var(--ef-mute)}
+html.efir[data-sport="football"] .ticker .kq{color:var(--ef-mute)}
+html.efir[data-sport="football"] .ticker .em,html.efir[data-sport="football"] .ticker img{background:none;padding:0}
+
+/* ═══ 2. ОБЩИЕ КОМПОНЕНТЫ ═══ */
+
+/* «1-й тайм / 2-й тайм» → эфирная метка раздела: белый скошенный титр, номер — тёмный косой квадрат */
+html.efir[data-sport="football"] .period{margin:0 0 clamp(18px,2.4vw,30px)}
+html.efir[data-sport="football"] .period p{background:#fff;color:#000;border-radius:0;padding:9px 24px 9px 9px;gap:10px;font:700 12px/1 var(--ef-d);letter-spacing:.03em;text-transform:uppercase;clip-path:var(--sk12);filter:none}
+html.efir[data-sport="football"] .period .pn{background:var(--hb);color:#fff;border-radius:0;width:auto;height:auto;min-width:26px;padding:6px 8px;font:900 12px/1 var(--ef-d);transform:skewX(-12deg);display:inline-block}
+html.efir[data-sport="football"] .period .pn::after{display:none}
+html.efir[data-sport="football"] .period .pw{margin:0;color:#000}
+html.efir[data-sport="football"] .period .pt{color:#333;font:600 12px/1 var(--ef-b);padding-left:10px;border-left:1px solid rgba(0,0,0,.25);text-transform:none;letter-spacing:0}
+html.efir[data-sport="football"] .period .pc{color:#000;border-left:1px solid rgba(0,0,0,.25);padding-left:10px}
+@media(max-width:620px){html.efir[data-sport="football"] .period .pt{display:none}}
+
+/* чипы-фильтры лиг / вкладки */
+html.efir[data-sport="football"] :is(.tab,.lgsw .tab,.gfilter .seg a,.gfilter .seg button){border:0;background:var(--ef-chip);color:var(--ef-mute);font:600 14px/1 var(--ef-b);padding:12px 22px 12px 14px;border-radius:0;clip-path:var(--sk12);transition:background .15s,color .15s,transform .12s;cursor:pointer;gap:8px}
+html.efir[data-sport="football"] .tab:hover:not([aria-selected="true"]){background:var(--ef-chip2);color:#fff}
+html.efir[data-sport="football"] .tab:active{transform:scale(.97)}
+html.efir[data-sport="football"] .tab[aria-selected="true"],html.efir[data-sport="football"] .tab[data-l][aria-selected="true"]{background:#fff;color:#000;box-shadow:none}
+html.efir[data-sport="football"] .tab .c{color:var(--ef-dim);font-family:var(--ef-d);font-size:12px}
+html.efir[data-sport="football"] .tab[aria-selected="true"] .c{color:#333}
+html.efir[data-sport="football"] .tabs{gap:6px 4px}
+html.efir[data-sport="football"] .tab .lgp{--s:18px}
+
+/* кнопки сайта */
+html.efir[data-sport="football"] .btn-line{background:var(--ef-chip);color:#fff;box-shadow:none}
+html.efir[data-sport="football"] .more2,html.efir[data-sport="football"] .lgmore{justify-content:flex-start}
+
+/* день — линия-подзаголовок */
+html.efir[data-sport="football"] .dayh{font:700 12px/1 var(--ef-d);letter-spacing:.1em;color:var(--ef-mute);padding:22px 0 8px;display:flex;align-items:center;gap:12px}
+html.efir[data-sport="football"] .dayh::before{content:"";width:8px;height:14px;background:var(--hb);transform:skewX(-12deg);flex:none}
+html.efir[data-sport="football"] .dayh::after{content:"";flex:1;height:1px;background:var(--ef-line2)}
+
+/* строка-титр матча (интерактив): .match / .lgm / .resl li. Клинья клубов вставляет pages-football.js (<i class="w w--h">) */
+html.efir[data-sport="football"] .mlist,html.efir[data-sport="football"] .lgml,html.efir[data-sport="football"] .resl{gap:10px}
+html.efir[data-sport="football"] :is(.match,.lgm,.resl li){background:var(--ef-row);border:1px solid var(--ef-line2);border-radius:4px;box-shadow:var(--ef-sh1);position:relative;isolation:isolate;overflow:hidden}
+html.efir[data-sport="football"] :is(.match,.lgm,.resl li):not(.ef-row)::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,color-mix(in srgb,var(--hb) 18%,transparent),transparent 26%,transparent 76%,color-mix(in srgb,var(--ab) 18%,transparent))}
+html.efir[data-sport="football"] .match.ef-row:hover,html.efir[data-sport="football"] .match.open{background:var(--ef-row)}
+html.efir[data-sport="football"] .match.khl,html.efir[data-sport="football"] .match.nhl{box-shadow:var(--ef-sh1)}
+html.efir[data-sport="football"] .mhead{padding:16px 22px 16px 28px;gap:14px 20px;color:var(--ef-ink)}
+html.efir[data-sport="football"] .mhead:focus-visible{outline:2px solid #fff;outline-offset:-3px}
+html.efir[data-sport="football"] .mt time{font:700 22px/1 var(--ef-d);letter-spacing:-.02em}
+html.efir[data-sport="football"] .mt .cd{font:500 12px/1.2 var(--ef-b);color:var(--ef-mute)}
+html.efir[data-sport="football"] .team{font:700 18px/1.1 var(--ef-b)}
+html.efir[data-sport="football"] .team img,html.efir[data-sport="football"] .team .em{background:none;padding:0;width:30px;height:30px;filter:drop-shadow(0 4px 6px rgba(8,12,22,.5))}
+html.efir[data-sport="football"] .lgline{font:600 12px/1 var(--ef-b);color:var(--ef-mute);letter-spacing:.02em}
+html.efir[data-sport="football"] .match.khl .lgline,html.efir[data-sport="football"] .match.nhl .lgline{color:var(--ef-mute)}
+html.efir[data-sport="football"] .chev{background:rgba(255,255,255,.12);color:#fff;border-radius:0;width:32px;height:32px;clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+html.efir[data-sport="football"] .match.open .chev{background:#fff;color:#000;transform:rotate(180deg)}
+html.efir[data-sport="football"] .match:hover .chev{background:rgba(255,255,255,.22)}
+html.efir[data-sport="football"] .match.open:hover .chev{background:#fff}
+
+/* кэфы и вероятности на строке: .qc → ef-odd (плашка у интерактива-кэфа) */
+html.efir[data-sport="football"] .qc{background:rgba(255,255,255,.1);border:0;border-radius:3px;padding:6px 10px 7px;color:#fff}
+html.efir[data-sport="football"] .qc small{font:600 10.5px/1 var(--ef-b);color:var(--ef-mute);letter-spacing:.06em}
+html.efir[data-sport="football"] .qc em{font:500 11px/1.2 var(--ef-b);color:var(--ef-mute)}
+html.efir[data-sport="football"] .qc b{font:700 17px/1.1 var(--ef-d);color:#fff}
+html.efir[data-sport="football"] .qc.fav,html.efir[data-sport="football"] .match .qc.fav{background:rgba(255,255,255,.2);border:0;box-shadow:inset 0 -3px 0 #fff}
+html.efir[data-sport="football"] .qc.fav small,html.efir[data-sport="football"] .qc.fav em{color:#fff}
+html.efir[data-sport="football"] .qs,html.efir[data-sport="football"] .qm,html.efir[data-sport="football"] .qd,html.efir[data-sport="football"] .kn{color:var(--ef-mute);font:500 12px/1.35 var(--ef-b)}
+html.efir[data-sport="football"] .qm .mlab{color:#fff}
+html.efir[data-sport="football"] .qt{font:600 13px/1.2 var(--ef-b);color:var(--ef-mute)}
+html.efir[data-sport="football"] .qt b{font:700 15px/1 var(--ef-d);color:#fff}
+html.efir[data-sport="football"] .dv,html.efir[data-sport="football"] .dv b{color:var(--ef-mute)}
+html.efir[data-sport="football"] .dv .up{color:var(--win)}html.efir[data-sport="football"] .dv .dn{color:var(--red)}
+
+/* раскрытая часть матча — открытая типографика: блоки разделены линиями, заголовок — с клином */
+html.efir[data-sport="football"] .xd{gap:6px 40px;padding:2px 22px 22px 28px}
+html.efir[data-sport="football"] .xb{background:none;border-radius:0;padding:16px 0 0;border-top:1px solid var(--ef-line)}
+html.efir[data-sport="football"] .xb h4{font:700 14px/1.2 var(--ef-d);display:flex;align-items:center;gap:10px}
+html.efir[data-sport="football"] .xb h4::before{content:"";width:7px;height:14px;background:var(--hb);transform:skewX(-12deg);flex:none}
+html.efir[data-sport="football"] .xb h4 .note{font:500 12px/1.3 var(--ef-b);color:var(--ef-dim)}
+html.efir[data-sport="football"] .xb .em{background:none;padding:0}
+html.efir[data-sport="football"] .st td{border-top-color:var(--ef-line2)}
+html.efir[data-sport="football"] .x-bets li{border-top-color:var(--ef-line2)}
+html.efir[data-sport="football"] .l3 h5{font:700 14px/1.2 var(--ef-b)}
+html.efir[data-sport="football"] .xlam,html.efir[data-sport="football"] .xn{color:var(--ef-mute)}
+html.efir[data-sport="football"] .wb em{background:rgba(255,255,255,.14);border-radius:0;height:5px}
+html.efir[data-sport="football"] .wb em i{background:rgba(255,255,255,.5);border-radius:0}
+html.efir[data-sport="football"] .wb.fav em i{background:#fff}
+html.efir[data-sport="football"] .wb em u{background:#fff}
+html.efir[data-sport="football"] .wsub h5{color:var(--ef-mute)}
+html.efir[data-sport="football"] .h2t b{font-family:var(--ef-d)}
+html.efir[data-sport="football"] .rs{border-radius:0;clip-path:polygon(0 0,100% 0,calc(100% - 4px) 100%,0 100%);padding:0 4px}
+html.efir[data-sport="football"] .dots i{border-radius:50%}
+html.efir[data-sport="football"] .dots i:last-child{box-shadow:0 0 0 2px var(--ef-bg),0 0 0 4px #fff}
+html.efir[data-sport="football"] .rs.w,html.efir[data-sport="football"] .dots .w{background:#1f8a52}
+html.efir[data-sport="football"] .rs.l,html.efir[data-sport="football"] .dots .l{background:#c4303b}
+html.efir[data-sport="football"] .rs.d,html.efir[data-sport="football"] .dots .d{background:#7c8599}
+
+/* «Прогноз модели» — строки .mr: линии вместо плашек */
+html.efir[data-sport="football"] .mrows{gap:0}
+html.efir[data-sport="football"] .mr{background:none;border-radius:0;border-top:1px solid var(--ef-line);padding:20px 4px;position:relative}
+html.efir[data-sport="football"] .mr:last-child{border-bottom:1px solid var(--ef-line)}
+html.efir[data-sport="football"] .mr.dvg{box-shadow:none}
+html.efir[data-sport="football"] .mr.dvg::before{content:"";position:absolute;left:-14px;top:18px;width:6px;height:28px;background:var(--hb);transform:skewX(-12deg)}
+html.efir[data-sport="football"] .mr-t time{font:700 20px/1 var(--ef-d)}
+html.efir[data-sport="football"] .mr h6{font:700 11px/1 var(--ef-d);letter-spacing:.1em;color:var(--ef-dim)}
+html.efir[data-sport="football"] .mr .team{font:700 16px/1.1 var(--ef-b)}
+html.efir[data-sport="football"] .mr-l .ml-k b{font-family:var(--ef-d);font-size:16px}
+html.efir[data-sport="football"] .mr .pr em{background:rgba(255,255,255,.14);border-radius:0;height:5px}
+html.efir[data-sport="football"] .mr .pr em i{background:rgba(255,255,255,.5);border-radius:0}
+html.efir[data-sport="football"] .mr .pr.top em i{background:#fff}
+html.efir[data-sport="football"] .mexplain{color:var(--ef-mute)}
+html.efir[data-sport="football"] .mexplain h3{font-family:var(--ef-d)}
+html.efir[data-sport="football"] .simsel{background:var(--ef-chip);color:#fff;border-radius:0}
+html.efir[data-sport="football"] .badge{border-radius:0;background:#fff;color:#000;clip-path:polygon(0 0,100% 0,calc(100% - 5px) 100%,0 100%);padding:5px 10px 5px 8px}
+html.efir[data-sport="football"] .badge.mute{background:rgba(255,255,255,.16);color:#fff}
+html.efir[data-sport="football"] .soon{padding-left:clamp(18px,2.4vw,30px)}
+
+/* лиги — большие плитки (интерактив): оставляем фирменные цвета лиг, без закруглений и ободков */
+html.efir[data-sport="football"] .leagues{background:none;gap:10px}
+html.efir[data-sport="football"] .lgtab{border-radius:4px;box-shadow:var(--ef-sh1);transition:transform .3s var(--ef-ease),box-shadow .3s var(--ef-ease)}
+html.efir[data-sport="football"] .lgtab[aria-selected="true"]{box-shadow:inset 0 -6px 0 var(--bar,#fff),0 0 0 2px #fff,var(--ef-sh2)}
+html.efir[data-sport="football"] .lgtab .lgn{font-family:var(--ef-d);font-weight:900;text-transform:none;letter-spacing:-.02em}
+@media(hover:hover) and (pointer:fine){html.efir[data-sport="football"] .lgtab:hover{transform:translateY(-3px);box-shadow:var(--ef-sh2)}}
+html.efir[data-sport="football"] .lgtab:active{transform:scale(.97)}
+html.efir[data-sport="football"] .lgp{border-radius:3px}
+html.efir[data-sport="football"] .wallh{font:700 20px/1.1 var(--ef-d);gap:12px;flex-wrap:wrap}
+html.efir[data-sport="football"] .wallh span:last-of-type{font:500 14px/1 var(--ef-b);color:var(--ef-mute)}
+html.efir[data-sport="football"] .lglink{color:#fff;font:600 14px/1 var(--ef-b);text-decoration:none;margin-left:auto;border-bottom:2px solid var(--hb);padding-bottom:3px}
+html.efir[data-sport="football"] .lglink:hover{border-color:#fff}
+
+/* стена эмблем — клубы без плашек, эмблема на воздухе; наведение: эмблема растёт, под ней клин */
+html.efir[data-sport="football"] .wall{gap:4px 6px}
+html.efir[data-sport="football"] .crest{background:none;border-radius:0;padding:14px 6px 12px}
+html.efir[data-sport="football"] .crest::after{content:"";position:absolute;left:30%;right:30%;bottom:0;height:3px;background:var(--hb);transform:skewX(-12deg) scaleX(0);transition:transform .3s var(--ef-ease)}
+html.efir[data-sport="football"] .crest .em,html.efir[data-sport="football"] .crest img{background:none;padding:0;filter:drop-shadow(0 6px 8px rgba(8,12,22,.5))}
+html.efir[data-sport="football"] .crest span{font:600 13px/1.15 var(--ef-b);color:var(--ef-ink)}
+@media(hover:hover) and (pointer:fine){html.efir[data-sport="football"] .crest:hover{background:none;transform:none}html.efir[data-sport="football"] .crest:hover::after{transform:skewX(-12deg) scaleX(1)}}
+html.efir[data-sport="football"] .crest:active img{transform:scale(.94)}
+
+/* таблицы — открытые: линии, зона — косой клин слева. ВАЖНО: .hm (колонки «В Н П») не должны ловить правила главной */
+html.efir[data-sport="football"] .ltab{background:none;font:500 15px/1.2 var(--ef-b);margin-top:14px}
+html.efir[data-sport="football"] .ltab .hm{display:table-cell;flex:none;width:auto;padding:inherit;overflow:visible}
+html.efir[data-sport="football"] .ltab th{font:700 11px/1 var(--ef-d);letter-spacing:.08em;color:var(--ef-dim);border-bottom:2px solid #fff}
+html.efir[data-sport="football"] .ltab td{border-top:1px solid var(--ef-line2)}
+html.efir[data-sport="football"] .ltab td:first-child{font:700 15px/1 var(--ef-d);color:var(--ef-mute)}
+html.efir[data-sport="football"] .ltab td:last-child{font:900 16px/1 var(--ef-d);color:#fff}
+html.efir[data-sport="football"] .ltab tr:hover td{background:rgba(255,255,255,.05)}
+html.efir[data-sport="football"] .ltab .em,html.efir[data-sport="football"] .stand .em{background:none;padding:0;filter:drop-shadow(0 3px 4px rgba(8,12,22,.4))}
+html.efir[data-sport="football"] .ltab tr.z1 td:first-child{box-shadow:inset 4px 0 0 #3ecf86}
+html.efir[data-sport="football"] .ltab tr.z2 td:first-child{box-shadow:inset 4px 0 0 #4ea1ff}
+html.efir[data-sport="football"] .ltab tr.z3 td:first-child{box-shadow:inset 4px 0 0 #ffb04a}
+html.efir[data-sport="football"] .ltab tr.z4 td:first-child{box-shadow:inset 4px 0 0 #ff6574}
+html.efir[data-sport="football"] .ltab tr.zp td:first-child{box-shadow:inset 4px 0 0 #4ea1ff}
+html.efir[data-sport="football"] .lkey{font:500 12px/1.2 var(--ef-b);color:var(--ef-mute)}
+html.efir[data-sport="football"] .lkey i{border-radius:0;transform:skewX(-12deg)}
+@media(max-width:620px){html.efir[data-sport="football"] .ltab .hm{display:none}}
+
+/* результаты .resl (клубы, главная): строка-титр, счёт Unbounded */
+html.efir[data-sport="football"] .resl li{padding:10px 16px 10px 22px;font:600 16px/1.2 var(--ef-b)}
+html.efir[data-sport="football"] .resl .d{color:var(--ef-mute);font:500 12px/1.2 var(--ef-b)}
+html.efir[data-sport="football"] .resl .s{font:900 20px/1 var(--ef-d)}
+html.efir[data-sport="football"] .resl .t .em{background:none;padding:0;filter:drop-shadow(0 4px 6px rgba(8,12,22,.5))}
+
+/* игроки, строки лиги */
+html.efir[data-sport="football"] .lgm{padding:12px 18px 12px 24px;font:600 16px/1.2 var(--ef-b)}
+html.efir[data-sport="football"] .lgm .when{font:700 17px/1 var(--ef-b);letter-spacing:-.01em}
+html.efir[data-sport="football"] .lghero .facts{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:620px){html.efir[data-sport="football"] .lghero .facts{grid-template-columns:repeat(2,minmax(0,1fr))}html.efir[data-sport="football"] .lghero .facts li{min-width:0}}
+html.efir[data-sport="football"] .lgm .when small{font:500 11px/1 var(--ef-b);color:var(--ef-mute)}
+html.efir[data-sport="football"] .lgm .s{font:900 20px/1 var(--ef-d)}
+html.efir[data-sport="football"] .lgm .s small{font:600 11px/1 var(--ef-b);color:var(--ef-mute)}
+html.efir[data-sport="football"] .lgm .t .em{background:none;padding:0;filter:drop-shadow(0 4px 6px rgba(8,12,22,.5))}
+html.efir[data-sport="football"] .lgm .live{color:var(--red)}
+html.efir[data-sport="football"] .lgpl{gap:0}
+html.efir[data-sport="football"] .lgpl li{background:none;border-radius:0;border-top:1px solid var(--ef-line2);padding:10px 4px 10px 0}
+html.efir[data-sport="football"] .lgpl li:last-child{border-bottom:1px solid var(--ef-line2)}
+html.efir[data-sport="football"] .lgpl .r{font:900 18px/1 var(--ef-d);color:transparent;-webkit-text-stroke:1.2px rgba(255,255,255,.6)}
+html.efir[data-sport="football"] .lgpl li:nth-child(-n+3) .r{color:transparent;-webkit-text-stroke:1.4px #fff}
+html.efir[data-sport="football"] .lgpl .av{background:var(--ef-chip2);color:#fff;border-radius:0;clip-path:polygon(0 0,100% 0,calc(100% - 7px) 100%,0 100%);width:48px}
+html.efir[data-sport="football"] .lgpl .who b{font:700 17px/1.15 var(--ef-b)}
+html.efir[data-sport="football"] .lgpl .who a{color:var(--ef-mute)}
+html.efir[data-sport="football"] .lgpl .who .em{background:none;padding:0}
+html.efir[data-sport="football"] .lgpl .val{font:900 26px/1 var(--ef-d)}
+html.efir[data-sport="football"] .lgpl .val small{color:var(--ef-mute);font-family:var(--ef-b)}
+html.efir[data-sport="football"] .lgpl .cd i{border-radius:0;transform:skewX(-12deg)}
+html.efir[data-sport="football"] .lgcols>div>h3,html.efir[data-sport="football"] .lgcard h3{font:700 clamp(18px,1.8vw,24px)/1.1 var(--ef-d)}
+html.efir[data-sport="football"] .lgpt{background:none;font-family:var(--ef-b)}
+html.efir[data-sport="football"] .lgpt th{border-bottom-color:#fff;font-family:var(--ef-d);color:var(--ef-dim)}
+html.efir[data-sport="football"] .lgpt td{border-top-color:var(--ef-line2)}
+html.efir[data-sport="football"] .lgconf{font-family:var(--ef-d)}
+
+/* статистика лиги — крупные цифры с линиями, без плашек */
+html.efir[data-sport="football"] .lgst{background:none;border-radius:0;gap:0 clamp(20px,3vw,44px)}
+html.efir[data-sport="football"] .lgst li{background:none;padding:18px 0 14px;border-top:1px solid var(--ef-line);position:relative}
+html.efir[data-sport="football"] .lgst li::before{content:"";position:absolute;left:0;top:-2px;width:28%;height:3px;background:var(--c,#fff)}
+html.efir[data-sport="football"] .lgst li:nth-child(1){--c:var(--hb)}html.efir[data-sport="football"] .lgst li:nth-child(3){--c:var(--ab)}
+html.efir[data-sport="football"] .lgst b{font:900 clamp(34px,4vw,56px)/.95 var(--ef-d);letter-spacing:-.03em}
+html.efir[data-sport="football"] .lgst span{color:var(--ef-mute)}
+html.efir[data-sport="football"] .lgst em{color:var(--ef-dim)}
+html.efir[data-sport="football"] .lgbar .bar{background:none;border-radius:0;gap:3px;height:40px}
+html.efir[data-sport="football"] .lgbar .bar i{border-radius:0;font-family:var(--ef-d);font-size:16px;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+html.efir[data-sport="football"] .lgbar .bar .h{background:var(--hb)}
+html.efir[data-sport="football"] .lgbar .bar .d{background:#7c8599}
+html.efir[data-sport="football"] .lgbar .bar .a{background:var(--ab)}
+html.efir[data-sport="football"] .lgbar li::before{border-radius:0;transform:skewX(-12deg)}
+html.efir[data-sport="football"] .lgbar h3{font-family:var(--ef-d)}
+
+/* итоги и «три рынка»: цифры на воздухе, колонки разделены линиями */
+html.efir[data-sport="football"] .hv{gap:0 clamp(20px,3vw,44px)}
+html.efir[data-sport="football"] .hv>div{background:none;border-radius:0;padding:16px 0 0;border-top:1px solid var(--ef-line);position:relative}
+html.efir[data-sport="football"] .hv>div::before{content:"";position:absolute;left:0;top:-2px;width:28%;height:3px;background:var(--c,#fff)}
+html.efir[data-sport="football"] .hv>div:nth-child(1){--c:var(--hb)}html.efir[data-sport="football"] .hv>div:nth-child(3){--c:var(--ab)}
+html.efir[data-sport="football"] .hv h3{font:700 15px/1.2 var(--ef-b);color:var(--ef-mute)}
+html.efir[data-sport="football"] .hv .q{font:900 clamp(44px,5vw,68px)/.95 var(--ef-d);letter-spacing:-.03em}
+html.efir[data-sport="football"] .hv .q small{font:600 15px/1 var(--ef-b);color:var(--ef-mute);letter-spacing:0}
+html.efir[data-sport="football"] .hv p{color:var(--ef-mute)}
+html.efir[data-sport="football"] #honest>.wrap{background:none;border-radius:0;--paper:var(--ef-bg);padding-top:0;padding-bottom:0}
+html.efir[data-sport="football"] .headline-num .g{font:900 clamp(80px,12vw,168px)/.85 var(--ef-d);letter-spacing:-.05em;color:#fff}
+html.efir[data-sport="football"] .honest-cap{color:var(--ef-mute)}
+html.efir[data-sport="football"] .mk3 span{background:none;border-radius:0;border-top:1px solid var(--ef-edge);padding:8px 4px;color:var(--ef-mute);font:600 11px/1.1 var(--ef-b)}
+html.efir[data-sport="football"] .mk3 b{font:700 20px/1 var(--ef-d);color:#fff}
+html.efir[data-sport="football"] .mk3 em{color:var(--ef-mute)}
+html.efir[data-sport="football"] .xg{color:var(--ef-mute)}
+html.efir[data-sport="football"] .sub{background:none}
+html.efir[data-sport="football"] .swap{background:none}
+
+/* форма и «ничья» */
+html.efir[data-sport="football"] .frm .d b,html.efir[data-sport="football"] .rs.d,html.efir[data-sport="football"] .dvd i.d{background:#7c8599;border-color:#7c8599}
+html.efir[data-sport="football"] .kx3,html.efir[data-sport="football"] .mdl{color:var(--ef-mute)}
+html.efir[data-sport="football"] .mdl b{color:#fff}
+
+/* ═══ 3. ГЛАВНАЯ ФУТБОЛА: hero «в эфире» — клинья клубов за табло, гигантские названия, стеклянное табло ═══ */
+html.efir[data-sport="football"] .hero{position:relative;isolation:isolate;overflow:clip;padding:clamp(26px,4vw,64px) 0 clamp(40px,5vw,80px)}
+html.efir[data-sport="football"] .hero::before,html.efir[data-sport="football"] .hero::after{content:"";position:absolute;top:0;bottom:0;width:52%;z-index:-2;--sk:calc(clamp(420px,60vh,640px)*var(--ef-tan));opacity:.5;pointer-events:none}
+html.efir[data-sport="football"] .hero::before{left:0;background:linear-gradient(90deg,var(--hd) 0,var(--hd) 24%,var(--hb) 100%);clip-path:polygon(0 0,100% 0,calc(100% - var(--sk)) 100%,0 100%);animation:efWH .8s var(--ef-ease) both}
+html.efir[data-sport="football"] .hero::after{right:0;background:linear-gradient(270deg,var(--ad) 0,var(--ad) 24%,var(--ab) 100%);clip-path:polygon(var(--sk) 0,100% 0,100% 100%,0 100%);animation:efWA .8s var(--ef-ease) both}
+html.efir[data-sport="football"] .hero .wrap{position:relative;z-index:1}
+html.efir[data-sport="football"] .hero .ef-stage__big{top:4%;z-index:-1;font-size:clamp(54px,11vw,170px)}
+html.efir[data-sport="football"] .hero h1{font:900 clamp(34px,5vw,72px)/1.02 var(--ef-d);letter-spacing:-.03em;text-transform:none}
+html.efir[data-sport="football"] .hero h1 .ln:last-child,html.efir[data-sport="football"] .hero h1 .ln:last-child>span{font-family:var(--ef-i);font-style:italic;font-weight:500;letter-spacing:0;color:#fff}
+html.efir[data-sport="football"] .hero .lead{color:var(--ef-ink);max-width:44ch;font-size:clamp(15px,1.25vw,18px)}
+html.efir[data-sport="football"] .hero-cta{gap:10px}
+html.efir[data-sport="football"] .facts{margin-top:clamp(22px,2.6vw,34px);gap:14px clamp(24px,3vw,44px)}
+html.efir[data-sport="football"] .facts li{border-top:1px solid var(--ef-line);padding-top:10px;min-width:96px}
+html.efir[data-sport="football"] .facts b{font:900 clamp(40px,4.6vw,64px)/.9 var(--ef-d);letter-spacing:-.03em;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.75)}
+html.efir[data-sport="football"] .facts li>span{color:var(--ef-mute);font-size:14px}
+html.efir[data-sport="football"] .chips{margin-top:22px;gap:6px 4px}
+html.efir[data-sport="football"] .chips a{background:var(--ef-chip);color:var(--ef-mute);border-radius:0;clip-path:var(--sk12);padding:9px 20px 9px 10px;font:600 14px/1 var(--ef-b);transition:background .15s,color .15s,transform .12s}
+html.efir[data-sport="football"] .chips a:hover{background:var(--ef-chip2);color:#fff}
+html.efir[data-sport="football"] .chips a:active{transform:scale(.97)}
+html.efir[data-sport="football"] .chips a[aria-current],html.efir[data-sport="football"] .lghero .chips a[aria-current]{background:#fff;color:#000}
+
+/* табло дня → стеклянное табло-счёт */
+html.efir[data-sport="football"] .hero .board,html.efir[data-sport="football"] .board{background:var(--ef-glass);border:1px solid var(--ef-edge);border-radius:4px;box-shadow:var(--ef-sh2);color:#fff}
+@media(min-width:900px){html.efir[data-sport="football"] .board{-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2)}}
+@media(max-width:899px){html.efir[data-sport="football"] .hero .board,html.efir[data-sport="football"] .board{background:linear-gradient(180deg,rgba(38,48,70,.94),rgba(26,34,52,.96))}}
+html.efir[data-sport="football"] .hero .board::before{display:none}
+html.efir[data-sport="football"] .board-top{font:600 12px/1.2 var(--ef-b);color:var(--ef-mute);border-bottom:1px solid var(--ef-edge);margin:calc(clamp(14px,2vw,22px)*-1) calc(clamp(14px,2vw,22px)*-1) 6px;padding:10px 16px}
+html.efir[data-sport="football"] .board-top b,html.efir[data-sport="football"] .board-top .bmeta b{color:#fff;font:700 12px/1 var(--ef-d)}
+html.efir[data-sport="football"] .board-top .bwhen,html.efir[data-sport="football"] .board-top .bdot{color:var(--ef-mute)}
+html.efir[data-sport="football"] .board-top .lamp{border-radius:0;background:var(--hb);transform:skewX(-12deg)}
+html.efir[data-sport="football"] .face .em{background:none;padding:0;box-shadow:none;border-radius:0;filter:drop-shadow(0 12px 18px rgba(8,12,22,.6))}
+html.efir[data-sport="football"] .face .tm span{font:900 clamp(18px,5.2cqw,26px)/1.05 var(--ef-d);color:#fff}
+html.efir[data-sport="football"] .face .tm small{color:var(--ef-mute)}
+html.efir[data-sport="football"] .face .vs span{color:rgba(255,255,255,.4);font-family:var(--ef-d)}
+html.efir[data-sport="football"] .face .vs time{font:700 clamp(14px,3.4cqw,17px)/1 var(--ef-d);color:#000;background:#fff;border-radius:0;clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,0 100%);padding:7px 12px 7px 9px}
+html.efir[data-sport="football"] .bet{background:rgba(10,14,26,.4);border-radius:3px;box-shadow:inset 3px 0 0 var(--hb);--lv:#fff}
+html.efir[data-sport="football"] .bet.lv-hi,html.efir[data-sport="football"] .bet.lv-mid,html.efir[data-sport="football"] .bet.lv-lo{--lv:#fff}
+html.efir[data-sport="football"] .bet .bl{color:var(--ef-mute);font:600 11px/1 var(--ef-b)}
+html.efir[data-sport="football"] .bet strong{font:700 clamp(17px,4.6cqw,22px)/1.15 var(--ef-b)}
+html.efir[data-sport="football"] .bet .k{font:900 clamp(32px,8.4cqw,46px)/1 var(--ef-d);color:#fff}
+html.efir[data-sport="football"] .bet .pm em{background:rgba(255,255,255,.18);border-radius:0;height:5px}
+html.efir[data-sport="football"] .bet .pm i{border-radius:0;transform-origin:left;animation:efBar 1s var(--ef-ease) both}
+@keyframes efBar{from{transform:scaleX(0)}}
+html.efir[data-sport="football"] .bet .pm b{font:700 14px/1 var(--ef-b);color:#fff}
+html.efir[data-sport="football"] .board .mk3 span{background:none;border-top:1px solid var(--ef-edge);border-left:1px solid var(--ef-edge);padding:8px 8px 9px}
+html.efir[data-sport="football"] .board .mk3 span:first-child{border-left:0}
+html.efir[data-sport="football"] .board .mk3{gap:0;margin-top:12px}
+html.efir[data-sport="football"] .why{color:var(--ef-mute);font-size:13px}
+html.efir[data-sport="football"] .why b{color:#fff}
+html.efir[data-sport="football"] .cdown{border-top:1px solid var(--ef-edge);margin-top:8px;padding-top:10px}
+html.efir[data-sport="football"] .cdl{font:600 12px/1 var(--ef-b);color:var(--ef-mute)}
+html.efir[data-sport="football"] .cdv .cu b,html.efir[data-sport="football"] .cdv b{font-family:var(--ef-d);color:#fff}
+html.efir[data-sport="football"] .cdv small{color:var(--ef-mute)}
+html.efir[data-sport="football"] .board-foot .note{color:var(--ef-mute)}
+html.efir[data-sport="football"] .pager button{background:rgba(255,255,255,.28);border-radius:0;transform:skewX(-12deg)}
+html.efir[data-sport="football"] .pager button[aria-pressed="true"]{background:#fff}
+html.efir[data-sport="football"] .get8{margin-top:14px}
+@media(max-width:980px){html.efir[data-sport="football"] .hero::before,html.efir[data-sport="football"] .hero::after{width:70%;opacity:.5}}
+
+/* ═══ 4. СТРАНИЦА ЛИГИ ═══ */
+html.efir[data-sport="football"] .lghero{padding-bottom:clamp(30px,4vw,60px)}
+html.efir[data-sport="football"] .lgrow{gap:clamp(18px,3vw,44px)}
+html.efir[data-sport="football"] .lgbig{border-radius:0;clip-path:polygon(0 0,100% 0,calc(100% - 14px) 100%,0 100%);padding-right:10px;box-shadow:none;background:linear-gradient(90deg,var(--c1),color-mix(in srgb,var(--c2) 40%,var(--c1)))}
+html.efir[data-sport="football"] .lgname h1{font:900 clamp(34px,6.4vw,104px)/.95 var(--ef-d);letter-spacing:-.035em;overflow-wrap:normal;hyphens:manual}
+html.efir[data-sport="football"] .lgname .tmlg{font:600 15px/1.3 var(--ef-b);color:var(--ef-mute)}
+html.efir[data-sport="football"] .lghero .facts{margin-top:clamp(24px,3vw,44px)}
+html.efir[data-sport="football"] .lgsw{margin-bottom:22px}
+
+/* ═══ 5. ЛИГА ЧЕМПИОНОВ / ЛИГА ЕВРОПЫ: «вечер Лиги чемпионов в эфире» — те же токены Эфира, акцент ЛЧ (синий) / ЛЕ (оранжевый) на клиньях ═══ */
+html.efir[data-sport="football"][data-theme="ucl"]{--hd:#0a1a52;--hb:#2d5bd8;--ad:#0a1a52;--ab:#7fb2ff}
+html.efir[data-sport="football"][data-theme="uel"]{--hd:#1a0f07;--hb:#e0600a;--ad:#1a0f07;--ab:#ff9a3a}
+html.efir[data-sport="football"] :is(.lt,.band){background:none;color:var(--ef-ink)}
+html.efir[data-sport="football"] .band{background:linear-gradient(100deg,color-mix(in srgb,var(--hd) 80%,transparent),color-mix(in srgb,var(--hb) 55%,transparent));clip-path:polygon(0 0,100% 0,calc(100% - 28px) 100%,0 100%);padding-block:clamp(26px,3vw,44px)}
+html.efir[data-sport="football"] .ucl-sky,html.efir[data-sport="football"] #sky,html.efir[data-sport="football"] canvas.sky{opacity:.45}
+
+/* ═══ 10. reduced-motion ═══ */
+@media(prefers-reduced-motion:reduce){
+  html.efir[data-sport="football"] .hero::before,html.efir[data-sport="football"] .hero::after,html.efir[data-sport="football"] .bet .pm i{animation:none!important}
+}
+
+/* ═══ 6. КЛУБ — «представление команды»: огромное место на клине клуба, подпись въезжает титром ═══ */
+html.efir[data-sport="football"] .tmhero.hero{--paper:var(--ef-bg);--paper-2:var(--ef-chip);--paper-3:var(--ef-chip2);--card:var(--ef-chip);--card-hi:var(--ef-chip2);
+  --ink:var(--ef-ink);--ink-2:var(--ef-mute);--ink-3:var(--ef-dim);--rule:var(--ef-line2);--rule-2:var(--ef-line);--ice:#fff;--sport:#fff;--crest-bg:transparent;--crest-pad:0;
+  color:var(--ef-ink);background:none;overflow:clip;padding:clamp(18px,3vw,44px) 0 clamp(44px,6vw,88px)}
+html.efir[data-sport="football"] .tmhero.hero::before{content:"";position:absolute;left:0;top:0;bottom:0;right:auto;width:64%;height:auto;z-index:-1;--sk:clamp(60px,12vw,150px);opacity:.58;
+  background:linear-gradient(90deg,var(--hd) 0,var(--hd) 20%,var(--hb) 100%);clip-path:polygon(0 0,100% 0,calc(100% - var(--sk)) 100%,0 100%);animation:efWH .8s var(--ef-ease) both}
+html.efir[data-sport="football"] .tmhero.hero::after,html.efir[data-sport="football"] .tmhero.has-bg::after{content:"";position:absolute;right:0;top:0;bottom:0;left:auto;width:36%;z-index:-1;--sk:clamp(50px,9vw,110px);opacity:.38;
+  background:linear-gradient(270deg,var(--ad) 0,var(--ad) 24%,var(--ab) 100%);clip-path:polygon(var(--sk) 0,100% 0,100% 100%,0 100%);animation:efWA .8s var(--ef-ease) both}
+html.efir[data-sport="football"] .tmbg,html.efir[data-sport="football"] .tmwm,html.efir[data-sport="football"] .embsh{display:none!important}
+html.efir[data-sport="football"] .tmcrest{background:none;box-shadow:none;border-radius:0;width:clamp(96px,16vw,230px);aspect-ratio:1}
+html.efir[data-sport="football"] .tmcrest .em{width:100%;height:100%;filter:drop-shadow(0 18px 24px rgba(8,12,22,.6));animation:efEm .7s .3s var(--ef-ease) both}
+html.efir[data-sport="football"] .tmname h1{font:900 clamp(30px,6.2vw,92px)/.95 var(--ef-d);letter-spacing:-.035em;overflow-wrap:break-word;hyphens:manual;text-transform:none}
+html.efir[data-sport="football"] .tmlg,html.efir[data-sport="football"] .tmlg a{font:600 14px/1.2 var(--ef-b);color:var(--ef-mute);text-decoration:none}
+html.efir[data-sport="football"] .tmlg a:hover{color:#fff}
+html.efir[data-sport="football"] .tmrow{gap:clamp(14px,2.4vw,36px)}
+html.efir[data-sport="football"] .ctxsw{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-wrap:wrap;gap:6px 4px}
+html.efir[data-sport="football"] .ctxsw a{display:flex;align-items:center;gap:8px;background:var(--ef-chip);color:var(--ef-mute);font:600 13px/1 var(--ef-b);padding:9px 20px 9px 10px;border-radius:0;clip-path:var(--sk12);text-decoration:none;box-shadow:none;transition:background .15s,color .15s,transform .12s}
+html.efir[data-sport="football"] .ctxsw a:hover{background:var(--ef-chip2);color:#fff}
+html.efir[data-sport="football"] .ctxsw a:active{transform:scale(.97)}
+html.efir[data-sport="football"] .ctxsw a[aria-current]{background:#fff;color:#000}
+html.efir[data-sport="football"] .ctxsw small{font:700 11px/1 var(--ef-d);opacity:.8}
+html.efir[data-sport="football"] .favbtn,html.efir[data-sport="football"] .follow{border-radius:0;clip-path:var(--sk12);font:600 13px/1 var(--ef-b);padding:11px 20px 11px 14px;background:var(--ef-chip);color:#fff;border:0;box-shadow:none}
+html.efir[data-sport="football"] .follow{background:#fff;color:#000}
+html.efir[data-sport="football"] .favbtn[aria-pressed="true"]{background:#fff;color:#000}
+/* место в лиге — огромная цифра-контур на клине */
+html.efir[data-sport="football"] .tmplace{margin-top:clamp(16px,2.4vw,32px);gap:clamp(10px,2vw,24px);align-items:flex-end}
+html.efir[data-sport="football"] .tmplace b,html.efir[data-sport="football"] .tmhero .tmplace b{font:900 clamp(110px,22vw,300px)/.78 var(--ef-d);letter-spacing:-.06em;color:rgba(255,255,255,.12);-webkit-text-stroke:2px rgba(255,255,255,.85);margin-left:-.04em}
+html.efir[data-sport="football"] .tmplace span{font:700 clamp(15px,1.6vw,22px)/1.25 var(--ef-b);color:#fff;padding-bottom:6px}
+/* стат-строка: открытые «титры» — линии, цифры Unbounded, въезжают по очереди */
+html.efir[data-sport="football"] .tmpills{background:none;border-radius:0;gap:0 clamp(14px,2vw,28px);margin-top:clamp(18px,2.4vw,30px)}
+html.efir[data-sport="football"] .tmpills li{background:none;padding:12px 0 0;border-top:1px solid var(--ef-line);position:relative;animation:efTitle .7s var(--ef-ease) both;animation-delay:calc(.45s + var(--k,0)*.08s)}
+html.efir[data-sport="football"] .tmpills li:nth-child(1){--k:0}html.efir[data-sport="football"] .tmpills li:nth-child(2){--k:1}html.efir[data-sport="football"] .tmpills li:nth-child(3){--k:2}html.efir[data-sport="football"] .tmpills li:nth-child(4){--k:3}
+html.efir[data-sport="football"] .tmpills li::before{content:"";position:absolute;left:0;top:-2px;width:34%;height:3px;background:var(--hb)}
+html.efir[data-sport="football"] .tmpills b{font:900 clamp(22px,2.6vw,36px)/1 var(--ef-d);letter-spacing:-.02em}
+html.efir[data-sport="football"] .tmpills span{color:var(--ef-mute);font:500 13px/1.25 var(--ef-b)}
+@keyframes efTitle{from{opacity:0;transform:translateX(-26px);clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+html.efir[data-sport="football"] .tmstreak{color:var(--ef-mute);font:500 14px/1.3 var(--ef-b);border-top:1px solid var(--ef-line2);padding-top:12px}
+html.efir[data-sport="football"] .tmstreak b{font:900 20px/1 var(--ef-d);color:#fff}
+html.efir[data-sport="football"] .tmstreak.w,html.efir[data-sport="football"] .tmstreak.l,html.efir[data-sport="football"] .tmstreak.u{background:none;border:0;border-top:1px solid var(--ef-line2);border-radius:0;box-shadow:none}
+html.efir[data-sport="football"] .tmcoach{color:var(--ef-mute)}
+/* радар силы: без карточки, линии и клин */
+html.efir[data-sport="football"] .tmpower{background:none;box-shadow:none;border-radius:0;padding:0}
+html.efir[data-sport="football"] .tmpower .ph h2,html.efir[data-sport="football"] .tmpower h2{font:700 clamp(18px,1.8vw,24px)/1.1 var(--ef-d)}
+html.efir[data-sport="football"] .tmpower .ph span{color:var(--ef-mute)}
+html.efir[data-sport="football"] .radar .rg0{fill:rgba(255,255,255,.05);stroke:#fff;stroke-opacity:.3}
+html.efir[data-sport="football"] .radar .rg{stroke:#fff;stroke-opacity:.16}
+html.efir[data-sport="football"] .radar .rmid{stroke:#fff;stroke-opacity:.6}
+html.efir[data-sport="football"] .radar .rlab{fill:#fff;font:600 13px var(--ef-b)}
+html.efir[data-sport="football"] .radar .rdot{stroke:var(--ef-bg)}
+html.efir[data-sport="football"] .legend{color:var(--ef-mute)}
+/* шапка: возвращаем шапку Эфира (у клуба арена красила её в цвет клуба) */
+html.efir[data-sport="football"] body .hd,html.efir[data-sport="football"]:not(.lit) body .hd{background:color-mix(in srgb,var(--ef-bg) 72%,transparent);color:var(--ef-ink)}
+
+/* разделы клуба: плашки → открытая типографика (линии, крупные цифры, клин клуба) */
+html.efir[data-sport="football"] :is(.stg,.gsum,.plead,.trs,.pks,.gs){background:none;border-radius:0;overflow:visible;gap:0 clamp(18px,2.6vw,40px)}
+html.efir[data-sport="football"] :is(.st,.gsum li,.plead li){background:none;border-radius:0;border-top:1px solid var(--ef-line);position:relative;padding:16px 0 14px}
+html.efir[data-sport="football"] :is(.st,.gsum li,.plead li)::before{content:"";position:absolute;left:0;top:-2px;width:26%;height:3px;background:var(--team,var(--hb))}
+html.efir[data-sport="football"] .plead li{border-top-width:1px}
+html.efir[data-sport="football"] .sl{font:600 14px/1.15 var(--ef-b);color:var(--ef-mute)}
+html.efir[data-sport="football"] .st>b,html.efir[data-sport="football"] .gsum b,html.efir[data-sport="football"] .plead b{font:900 clamp(32px,3.6vw,50px)/1 var(--ef-d);letter-spacing:-.03em}
+html.efir[data-sport="football"] .ss{color:var(--ef-mute)}
+html.efir[data-sport="football"] .bar{background:rgba(255,255,255,.16);border-radius:0;height:5px}
+html.efir[data-sport="football"] .bar i{background:#fff;border-radius:0}
+html.efir[data-sport="football"] .formbox,html.efir[data-sport="football"] .hg,html.efir[data-sport="football"] .dvc,html.efir[data-sport="football"] .pkempty,html.efir[data-sport="football"] .plcard{background:none;border-radius:0;box-shadow:none;border:0;border-top:1px solid var(--ef-line);padding:16px 0 4px}
+html.efir[data-sport="football"] .frm li:last-child b{box-shadow:0 0 0 3px var(--ef-bg),0 0 0 5px #fff}
+html.efir[data-sport="football"] .frm .w b{background:#1f8a52}html.efir[data-sport="football"] .frm .l b{background:#c4303b}html.efir[data-sport="football"] .frm .d b{background:#7c8599}
+html.efir[data-sport="football"] .frm span{color:var(--ef-mute)}
+html.efir[data-sport="football"] .gh{font:900 clamp(20px,2.2vw,28px)/1 var(--ef-d);text-transform:none;letter-spacing:-.02em}
+html.efir[data-sport="football"] .gh span{font:500 14px/1 var(--ef-b);color:var(--ef-mute)}
+html.efir[data-sport="football"] .g{background:none;border-top:1px solid var(--ef-line2);padding:10px 2px;transition:background .2s}
+html.efir[data-sport="football"] .g:last-child{border-bottom:1px solid var(--ef-line2)}
+@media(hover:hover) and (pointer:fine){html.efir[data-sport="football"] .g:hover{background:rgba(255,255,255,.05)}}
+html.efir[data-sport="football"] .gd b{font:700 15px/1 var(--ef-b)}
+html.efir[data-sport="football"] .gd small{color:var(--ef-mute)}
+html.efir[data-sport="football"] .ha{border-radius:0;background:rgba(255,255,255,.14);color:#fff;transform:skewX(-12deg)}
+html.efir[data-sport="football"] .ha.h{background:#fff;color:#000}
+html.efir[data-sport="football"] .op{font:700 17px/1.1 var(--ef-b)}
+html.efir[data-sport="football"] .op .em{background:none;padding:0;filter:drop-shadow(0 4px 6px rgba(8,12,22,.5))}
+html.efir[data-sport="football"] .sc{font:900 20px/1 var(--ef-d)}
+html.efir[data-sport="football"] .sc small{color:var(--ef-mute);font-family:var(--ef-b)}
+html.efir[data-sport="football"] .rs{border-radius:0;font:800 14px/1 var(--ef-d)}
+html.efir[data-sport="football"] .rs.w{background:#1f8a52;color:#fff}html.efir[data-sport="football"] .rs.l{background:#c4303b;color:#fff}html.efir[data-sport="football"] .rs.ot{background:#7c8599;color:#fff}
+html.efir[data-sport="football"] .kx>span{background:rgba(255,255,255,.1);border-radius:3px;color:#fff;font:700 15px/1 var(--ef-d)}
+html.efir[data-sport="football"] .kx>span:first-child{background:rgba(255,255,255,.2);box-shadow:inset 0 -3px 0 #fff;color:#fff}
+html.efir[data-sport="football"] .kx small{color:var(--ef-mute);font-family:var(--ef-b)}
+html.efir[data-sport="football"] .smp{background:rgba(255,255,255,.12);color:var(--ef-mute);border-radius:0}
+html.efir[data-sport="football"] .gfilter button{border-radius:0;clip-path:var(--sk12);background:var(--ef-chip);color:var(--ef-mute);padding:12px 22px 12px 14px;font:600 14px/1 var(--ef-b)}
+html.efir[data-sport="football"] .gfilter button[aria-pressed="true"]{background:#fff;color:#000}
+html.efir[data-sport="football"] .gfilter .seg{gap:4px;background:none}
+html.efir[data-sport="football"] .pks li{background:none;border-top:1px solid var(--ef-line2);border-radius:0}
+html.efir[data-sport="football"] .pksum b{font:900 clamp(60px,7vw,108px)/.85 var(--ef-d);color:#fff}
+html.efir[data-sport="football"] .pkbar i{border-radius:0;transform:skewX(-12deg);width:10px;height:14px}
+html.efir[data-sport="football"] .pkbar .ok{background:#3ecf86}html.efir[data-sport="football"] .pkbar .no{background:#ff6574}
+html.efir[data-sport="football"] .stand tr.me td{background:rgba(255,255,255,.14);color:#fff}
+html.efir[data-sport="football"] .stand tr.me td:first-child{color:#fff;box-shadow:inset 5px 0 0 var(--hb)}
+html.efir[data-sport="football"] .stand td:first-child{font:700 17px/1 var(--ef-d)}
+html.efir[data-sport="football"] .stand tr+tr td{border-top-color:var(--ef-line2)}
+html.efir[data-sport="football"] .tmtable table,html.efir[data-sport="football"] .table{background:none}
+/* тренды клуба .tr (строки с тремя частями) */
+html.efir[data-sport="football"] .trs .tr{background:none;border-radius:0;border-top:1px solid var(--ef-line2);padding:14px 2px}
+html.efir[data-sport="football"] .trs .tr:last-child{border-bottom:1px solid var(--ef-line2)}
+html.efir[data-sport="football"] .trctl{gap:8px}
+/* следующий матч: стеклянное табло-счёт */
+html.efir[data-sport="football"] .nmatch{background:var(--ef-glass);border:1px solid var(--ef-edge);border-radius:4px;box-shadow:var(--ef-sh1);color:#fff}
+@media(min-width:900px){html.efir[data-sport="football"] .nmatch{-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2)}}
+html.efir[data-sport="football"] .nmatch .kx li{background:rgba(255,255,255,.1);border-radius:3px;font-family:var(--ef-d)}
+html.efir[data-sport="football"] .nmha{background:#fff;color:#000;border-radius:0;clip-path:polygon(0 0,100% 0,calc(100% - 5px) 100%,0 100%);font-family:var(--ef-d)}
+html.efir[data-sport="football"] .nmh2h{background:var(--ef-chip);border-radius:4px;box-shadow:none}
+html.efir[data-sport="football"] .nmteams .em,html.efir[data-sport="football"] .nmteams img{background:none;padding:0;border-radius:0;box-shadow:none;filter:drop-shadow(0 12px 16px rgba(8,12,22,.55))}
+/* игроки клуба */
+html.efir[data-sport="football"] .plwrap{background:none;border-radius:0}
+html.efir[data-sport="football"] .pltab th{background:#323f58;color:#fff}
+html.efir[data-sport="football"] .pltab td,html.efir[data-sport="football"] .pltab td.c1{background:none;border-top-color:var(--ef-line2)}
+html.efir[data-sport="football"] .cmpt{background:none}
+html.efir[data-sport="football"] .pltop .pav{background:var(--ef-chip2);border-radius:0}
