@@ -1,0 +1,500 @@
+/* JARVIS · «Эфир» — общие страницы: Матчи дня, Модель, Словарь, Прогноз, Мой JARVIS, 404, поиск, шапка/меню, LIVE, избранное.
+   Грузится efir-loader.js после efir.css; всё под html.efir (без ?theme=efir ничего не меняется).
+   Правило плашек: плашка — только у интерактива (карточка матча, строка, кэф, кнопка, чип, поле ввода). Тексты — линии, клин, цифры, воздух. */
+
+/* ═══ 0. БАЗА: старые «арены» страниц перебиты токенами Эфира ═══ */
+html.efir[data-theme] body[class],html.efir body.fc,html.efir body.md,html.efir body.me-page,html.efir body.dk-page{
+  --paper:var(--ef-bg);--paper-2:var(--ef-chip);--paper-3:var(--ef-chip2);--card:var(--ef-chip);--card-hi:var(--ef-chip2);
+  --ink:var(--ef-ink);--ink-2:var(--ef-mute);--ink-3:var(--ef-dim);--rule:var(--ef-line2);--rule-2:var(--ef-line);
+  --signal:#fff;--signal-ink:#000;--sport:#fff;--sport-ink:#000;--acc:#fff;--ice:#fff;--display:var(--ef-d);--text:var(--ef-b);
+  background:transparent;color:var(--ef-ink);font-family:var(--ef-b)}
+html.efir body.fc .hd,html.efir body.md .hd{--paper:var(--ef-bg)}
+html.efir main{position:relative}
+/* эфирные метки, которые на страницах уже есть в разметке (без правки HTML) */
+html.efir .md-kick,html.efir .me-kick,html.efir .dk-ik,html.efir .nf small{display:inline-flex;align-items:center;gap:10px;background:#fff;color:#000;font:700 12px/1 var(--ef-d);padding:9px 22px 9px 12px;clip-path:var(--sk12);text-transform:uppercase;letter-spacing:.03em;width:max-content;max-width:100%;margin:0 0 18px}
+html.efir .md-kick::before,html.efir .me-kick::before,html.efir .dk-ik::before,html.efir .nf small::before{content:"";width:8px;height:8px;background:var(--hb);display:block;transform:skewX(-12deg);flex:none;border-radius:0;margin:0;vertical-align:baseline}
+/* появление при прокрутке для блоков, которым JS ставит .ef-rv — общий шаг */
+html.efir .ef-sec-in{animation:efUp .7s var(--ef-ease) both}
+html.efir h1 .ef-it,html.efir h2 .ef-it{color:#fff}
+
+/* ═══ 1. ШАПКА: звёздочка, поиск, подстраница, мобильное меню ═══ */
+html.efir .gnav a{font:600 14px/1 var(--ef-b);color:var(--ef-mute);border-radius:0;padding:14px 10px;transition:color .2s}
+html.efir .gnav a:hover,html.efir .gnav a[aria-current]{color:#fff}
+html.efir .gnav a[aria-current]::after{height:2px;border-radius:0;background:#fff;transform:skewX(-30deg)}
+html.efir .hd-me{color:var(--ef-mute);transition:color .2s,transform .12s}
+html.efir .hd-me:hover,html.efir .hd-me[aria-current]{color:#fff}
+html.efir .hd-me:active{transform:scale(.97)}
+html.efir .hd .sbtn{background:var(--ef-chip);border-radius:0;clip-path:var(--sk12);padding:0 20px 0 14px;color:#fff;transition:background .15s,transform .12s}
+html.efir .hd .sbtn:hover{background:var(--ef-chip2)}
+html.efir .hd .sbtn:active{transform:scale(.97)}
+html.efir .hd .sbtn kbd{border-radius:0;border-color:var(--ef-dim);color:var(--ef-mute);font-family:var(--ef-b)}
+html.efir .mbtn{background:var(--ef-chip);border-radius:0;clip-path:var(--sk12);padding:0 20px 0 14px;color:#fff;font:700 14px/1 var(--ef-d);transition:background .15s,transform .12s}
+html.efir .mbtn:active{transform:scale(.97)}
+html.efir .mbtn[aria-expanded=true]{background:#fff;color:#000}
+html.efir .subbar{border-top:1px solid var(--ef-line2)}
+@media(max-width:1100px){html.efir .hd .sbtn,html.efir .mbtn{padding:0 18px 0 12px;width:auto}}
+@media(max-width:430px){html.efir .hd .mbtn{width:48px;padding:0 6px 0 0;justify-content:center}html.efir .hd .btn-tg{padding:0 22px 0 14px;font-size:13px;min-height:44px}}
+html.efir .hd .wrap.hdrow{gap:clamp(8px,1.4vw,18px)}
+/* мобильное меню: сталь, пункты — линии, переключатель спорта и «Telegram» — кнопки */
+html.efir .mpanel{background:color-mix(in srgb,var(--ef-bg) 94%,#000);border-top:1px solid var(--ef-line2);box-shadow:0 22px 34px -16px rgba(8,12,22,.8);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+html.efir .mpanel a{font:700 17px/1.1 var(--ef-d);border-bottom:1px solid var(--ef-line);position:relative;transition:padding .25s var(--ef-ease),color .2s}
+html.efir .mpanel a:hover{padding-left:12px}
+html.efir .mpanel a[aria-current]{box-shadow:none;color:#fff}
+html.efir .mpanel a[aria-current]::before{content:"";position:absolute;left:-6px;top:30%;bottom:30%;width:6px;background:var(--hb);transform:skewX(-12deg)}
+html.efir .mgrp b{font:700 11px/1 var(--ef-d);letter-spacing:.14em;color:var(--ef-dim)}
+html.efir .mpanel .mseg a{border-radius:0;background:var(--ef-chip);clip-path:var(--sk12);border:0;justify-content:center;transition:background .15s,transform .12s}
+html.efir .mpanel .mseg a:hover{padding-left:0;background:var(--ef-chip2)}
+html.efir .mpanel .mseg a[aria-current]{background:#fff;color:#000}
+html.efir .mpanel .mseg a[aria-current]::before{display:none}
+html.efir .mpanel .mseg a:active,html.efir .mpanel .mtg:active{transform:scale(.97)}
+html.efir .mpanel .mtg{border-radius:0;background:#fff;color:#000;clip-path:var(--sk12);border:0;font:700 15px/1.1 var(--ef-b)}
+html.efir .mpanel .mtg:hover{padding-left:0}
+html.efir .msearch{font:700 17px/1.1 var(--ef-d);border-bottom:1px solid var(--ef-line);color:var(--ef-ink)}
+/* подвал: колонки без цветных заголовков-акцентов старой темы уже в efir.css; здесь — отступ и появление */
+html.efir footer.jvf{margin-top:var(--ef-sec)}
+html.efir .jvf-cols a{background:linear-gradient(#fff,#fff) 0 100%/0 2px no-repeat;transition:background-size .3s var(--ef-ease);text-decoration:none}
+html.efir .jvf-cols a:hover{background-size:100% 2px;text-decoration:none}
+html.efir .jvf-tg{transition:background .15s,transform .12s}
+html.efir .jvf-tg:active{transform:scale(.97)}
+html.efir footer:not(.jvf){border-top:1px solid var(--ef-line2);color:var(--ef-mute)}
+html.efir footer:not(.jvf) a{color:var(--ef-ink)}
+
+/* ═══ 2. LIVE и избранное ═══ */
+html.efir .lv{font:600 13px/1.2 var(--ef-b);color:var(--ef-mute)}
+html.efir .lv-tag{border-radius:0;clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,0 100%);padding:4px 12px 4px 8px;font:700 11px/1 var(--ef-d);letter-spacing:.06em;background:#e03b52}
+html.efir .lv-final .lv-tag{background:var(--ef-chip2)}
+html.efir .lv-sc{font:900 17px/1 var(--ef-d);color:#fff;border-radius:0;padding:3px 6px}
+html.efir .lv-st{color:var(--ef-mute)}
+html.efir .lv-goal .lv-sc{background:#fff;color:#000}
+html.efir .lv-box .lv-sc{font-size:clamp(28px,6vw,44px)}
+html.efir .favbtn{border:0;border-radius:0;background:var(--ef-chip);color:var(--ef-mute);clip-path:var(--sk12);padding:6px 20px 6px 12px;font:700 13px/1 var(--ef-b);transition:background .15s,color .15s,transform .12s}
+html.efir .favbtn:hover{background:var(--ef-chip2);color:#fff;border:0}
+html.efir .favbtn[aria-pressed=true]{background:#fff;color:#000}
+html.efir .favbtn-ico{width:40px;padding:0 6px 0 0}
+html.efir .favbtn:focus-visible{outline:2px solid #fff}
+
+/* ═══ 3. ПОИСК (оверлей) — стекло, строки с клином ═══ */
+html.efir .sp-bg{background:rgba(14,20,34,.62);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+html.efir .sp-pn{background:linear-gradient(180deg,rgba(60,75,103,.95),rgba(40,51,74,.97));border:1px solid var(--ef-edge);border-radius:4px;box-shadow:var(--ef-sh2);-webkit-backdrop-filter:blur(16px) saturate(1.2);backdrop-filter:blur(16px) saturate(1.2);animation:efUp .35s var(--ef-ease) both}
+html.efir .sp-top{border-bottom:1px solid var(--ef-line)}
+html.efir .sp-top input{font:500 18px/1.2 var(--ef-b);color:#fff}
+html.efir .sp-top:focus-within{box-shadow:inset 0 -2px 0 var(--hb)}
+html.efir .sp-x{border-radius:0;clip-path:var(--sk12);background:var(--ef-chip2);padding:0 20px 0 14px;color:#fff;font:700 13px/1 var(--ef-d);transition:background .15s,transform .12s}
+html.efir .sp-x:hover{background:#fff;color:#000}
+html.efir .sp-x:active{transform:scale(.97)}
+html.efir .sp-g h3{font:700 11px/1 var(--ef-d);letter-spacing:.14em;color:var(--ef-dim)}
+html.efir .sp-i{border-radius:0;position:relative;transition:background .15s,padding .25s var(--ef-ease)}
+html.efir .sp-i::before{content:"";position:absolute;left:0;top:18%;bottom:18%;width:5px;background:var(--hb);transform:skewX(-12deg) scaleY(0);transition:transform .25s var(--ef-ease)}
+html.efir .sp-i:hover,html.efir .sp-i.on{background:rgba(255,255,255,.08);box-shadow:none}
+html.efir .sp-i:hover::before,html.efir .sp-i.on::before{transform:skewX(-12deg) scaleY(1)}
+html.efir .sp-i:active{transform:scale(.99)}
+html.efir .sp-t b{font:700 15px/1.2 var(--ef-d)}
+html.efir .sp-lg{border-radius:0;background:var(--ef-chip2);color:#fff;clip-path:var(--sk12);font-family:var(--ef-d)}
+@media(max-width:760px){html.efir .sp-pn{background:var(--ef-bg);border-radius:0}}
+
+/* ═══ 4. МАТЧИ ДНЯ (колода) ═══ */
+html.efir .dk-bgfx{display:none}
+html.efir .dk{background:transparent;--e:var(--ef-ease)}
+html.efir .dk-page{overflow-x:clip}
+html.efir .dk-h1{font:900 clamp(30px,4.4vw,60px)/1.02 var(--ef-d);letter-spacing:-.02em;color:#fff}
+html.efir .dk-sub{font:500 14px/1.4 var(--ef-b);color:var(--ef-mute)}
+html.efir .dk-top>div:first-child .ef-tagw{display:block;margin-bottom:16px}
+html.efir .dk-filter{background:none;padding:0;border-radius:0;gap:4px;backdrop-filter:none;-webkit-backdrop-filter:none}
+html.efir .dk-filter button{border-radius:0;background:var(--ef-chip);color:var(--ef-mute);clip-path:var(--sk12);padding:12px 22px 12px 16px;font:700 13px/1 var(--ef-d);transition:background .15s,color .15s,transform .12s}
+html.efir .dk-filter button:hover{background:var(--ef-chip2);color:#fff}
+html.efir .dk-filter button:active{transform:scale(.97)}
+html.efir .dk-filter button[aria-pressed=true]{background:#fff;color:#000}
+html.efir .dk-filter button small{font-family:var(--ef-d);opacity:.75}
+@media(max-width:560px){html.efir .dk-filter{width:100%}html.efir .dk-filter button{padding:12px 16px 12px 10px;font-size:12px}}
+
+/* карточка: сталь, два клина клубов, белые рёбра, блик и сдвиг клина при наведении */
+@property --efw{syntax:'<percentage>';inherits:false;initial-value:38%}
+html.efir .dk .dk-card{filter:none;--cut:63%;--efw:38%}
+html.efir .dk .dk-cf{border:1px solid var(--ef-edge);border-radius:4px;background:linear-gradient(180deg,#3a4863,#2b3650);-webkit-mask:none;mask:none;
+  box-shadow:var(--ef-sh1);animation:none}
+html.efir .dk .dk-card.on .dk-cf{box-shadow:var(--ef-sh2),0 0 60px -22px color-mix(in srgb,var(--h1) 60%,var(--h2))}
+html.efir .dk .dk-card::after{border-radius:4px}
+html.efir .dk .dk-ctop{flex:0 0 var(--cut);background:
+  linear-gradient(102deg,var(--h1) 0 calc(var(--efw) - 1.2%),#fff calc(var(--efw) - 1.2%) var(--efw),transparent var(--efw) calc(100% - var(--efw)),#fff calc(100% - var(--efw)) calc(100% - var(--efw) + 1.2%),var(--h2) calc(100% - var(--efw) + 1.2%) 100%),
+  linear-gradient(180deg,#2d394f,#232d43);padding-bottom:12px;transition:--efw .45s var(--ef-ease)}
+html.efir .dk .dk-ctop::after{content:"";position:absolute;inset:0;z-index:1;opacity:1;mix-blend-mode:normal;background:repeating-linear-gradient(-78deg,rgba(255,255,255,.05) 0 2px,transparent 2px 22px);pointer-events:none}
+html.efir .dk .dk-card.on:hover .dk-ctop{--efw:42%}
+html.efir .dk .dk-ctop>.dk-wm{display:block;position:absolute;z-index:1;top:50%;width:78%;aspect-ratio:1;margin-top:-39%;opacity:.12;filter:brightness(0) invert(1);pointer-events:none}
+html.efir .dk .dk-wm.l{left:-46%}html.efir .dk .dk-wm.r{right:-46%}
+html.efir .dk .dk-ctop>.dk-no{display:block;position:absolute;z-index:2;left:50%;bottom:8px;transform:translateX(-50%);font:700 10px/1 var(--ef-d);letter-spacing:.14em;color:#000;padding:6px 14px 6px 10px;border-radius:0;background:#fff;clip-path:var(--sk12)}
+html.efir .dk .dk-cf::after{content:"";position:absolute;top:-20%;bottom:-20%;left:0;width:32%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.3) 50%,transparent);transform:translateX(-160%) skewX(-18deg);opacity:0;pointer-events:none;z-index:6}
+@media(hover:hover) and (pointer:fine){html.efir .dk .dk-card.on:hover .dk-cf::after{animation:efGlint .8s var(--ef-ease) 1 both}}
+html.efir .dk .dk-card:active .dk-cf{transform:scale(.985);transition:transform .12s}
+html.efir .dk .dk-cf{transition:transform .3s var(--ef-ease),box-shadow .3s var(--ef-ease)}
+html.efir .dk .dk-lg{font:700 11px/1 var(--ef-d);letter-spacing:.08em;color:#fff}
+html.efir .dk .dk-lg img{filter:drop-shadow(0 2px 4px rgba(8,12,22,.5))}
+html.efir .dk .dk-dt{font:600 12px/1.2 var(--ef-b);color:#fff;text-shadow:0 1px 8px rgba(8,12,22,.6)}
+html.efir .dk .dk-dt b{font:700 12px/1.2 var(--ef-d)}
+html.efir .dk .dk-em{background:none;box-shadow:none;padding:0;border-radius:0;width:calc(var(--W)*.27);height:calc(var(--W)*.27);margin-bottom:4px}
+html.efir .dk .dk-em img{filter:drop-shadow(0 10px 14px rgba(8,12,22,.6))}
+html.efir .dk .dk-tm b{font:800 clamp(13px,1.1vw,16px)/1.1 var(--ef-d);color:#fff;text-shadow:0 2px 10px rgba(8,12,22,.7)}
+html.efir .dk .dk-tm i{font:600 10.5px/1 var(--ef-d);letter-spacing:.1em;color:#fff;opacity:.85}
+html.efir .dk .dk-vs{font:700 12px/1 var(--ef-d);color:#000;background:#fff;padding:7px 10px;clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+html.efir .dk .dk-cbot{flex:1;display:flex;flex-direction:column;justify-content:center;border-top:1px solid var(--ef-edge);background:rgba(10,14,26,.32)}
+html.efir .dk .dk-ql{gap:6px}
+html.efir .dk .dk-ql span{background:rgba(255,255,255,.1);border:0;border-radius:3px;padding:8px 4px 8px;transition:transform .12s}
+html.efir .dk .dk-ql span small{font:600 10px/1 var(--ef-d);color:var(--ef-mute)}
+html.efir .dk .dk-ql span b{font:700 clamp(16px,1.5vw,20px)/1.1 var(--ef-d);color:#fff}
+html.efir .dk .dk-ql span.fav{background:rgba(255,255,255,.2);box-shadow:inset 0 -3px 0 #fff;border:0}
+html.efir .dk .dk-ql span.fav small{color:#fff}
+html.efir .dk .dk-src{font:500 11px/1.3 var(--ef-b);color:var(--ef-dim)}
+html.efir .dk .dk-pick{font:500 12px/1.35 var(--ef-b);color:var(--ef-mute);border-top-color:var(--ef-line2)}
+html.efir .dk .dk-pick b{font:700 14px/1.2 var(--ef-d);color:#fff}
+html.efir .dk .dk-pick b em{color:#fff}
+html.efir .dk-stage:focus-visible{outline:2px solid #fff;border-radius:4px}
+html.efir .dk-arr{width:50px;height:46px;border:0;border-radius:0;background:var(--ef-chip);color:#fff;clip-path:var(--sk12);padding-right:6px}
+html.efir .dk-l{clip-path:polygon(12px 0,100% 0,100% 100%,0 100%);padding:0 0 0 6px}
+html.efir .dk-arr:hover:not(:disabled){background:#fff;color:#000}
+html.efir .dk-arr:active:not(:disabled){transform:scale(.94)}
+html.efir .dk-count{font:300 clamp(26px,2.4vw,34px)/1 var(--ef-d);color:var(--ef-dim)}
+html.efir .dk-count b{font-weight:900;color:#fff}
+html.efir .dk-prog{height:3px;background:var(--ef-line2);border-radius:0}
+html.efir .dk-prog i{background:#fff;border-radius:0}
+html.efir .dk-hint{font:500 12px/1 var(--ef-b);color:var(--ef-dim)}
+@media(max-width:980px){html.efir .dk-ctl{background:linear-gradient(0deg,var(--ef-bg) 70%,transparent)}}
+
+/* колонка «О встрече» — открытая типографика */
+html.efir .dk-info{background:none;border:0;border-radius:0;box-shadow:none;padding:2px 8px 2px 2px}
+html.efir .dk-ih{font:900 clamp(22px,2.3vw,34px)/1.08 var(--ef-d);letter-spacing:-.015em;color:#fff}
+html.efir .dk-ih small{font:500 14px/1.4 var(--ef-b);color:var(--ef-mute)}
+html.efir .dk-mpage{font:600 14px/1.3 var(--ef-b);color:#fff;text-decoration-color:var(--hb);text-decoration-thickness:2px;transition:text-decoration-color .2s}
+html.efir .dk-mpage:hover{text-decoration-color:#fff}
+html.efir .dk-lgwm{opacity:.12;filter:brightness(0) invert(1)}
+html.efir .dk-blk{border-top:1px solid var(--ef-line);position:relative}
+html.efir .dk-blk::before{content:"";position:absolute;left:0;top:-2px;width:46px;height:3px;background:var(--hb)}
+html.efir .dk-blk:nth-of-type(even)::before{background:#fff}
+html.efir .dk-blk h3{font:700 11px/1 var(--ef-d);letter-spacing:.14em;color:var(--ef-dim);margin-bottom:12px}
+html.efir .dk-trow .em{background:none;padding:0;border-radius:0;filter:drop-shadow(0 4px 6px rgba(8,12,22,.5))}
+html.efir .dk-trow b{font:700 15px/1.15 var(--ef-d)}
+html.efir .dk-trow small{font:500 13px/1.25 var(--ef-b);color:var(--ef-mute)}
+html.efir .dk-form i{border-radius:0;transform:skewX(-12deg);width:14px;height:18px}
+html.efir .dk-pb{font:500 13px/1.1 var(--ef-b);color:var(--ef-mute);grid-template-columns:minmax(0,140px) 1fr 52px}
+html.efir .dk-pb em{border-radius:0;height:8px;background:rgba(255,255,255,.12)}
+html.efir .dk-pb em i{border-radius:0;background:rgba(255,255,255,.42)}
+html.efir .dk-pb.top em i{background:#fff}
+html.efir .dk-pb b{font:700 14px/1 var(--ef-d);color:#fff;white-space:nowrap}
+html.efir .dk-kv{font:500 13px/1.35 var(--ef-b);color:var(--ef-mute)}
+html.efir .dk-kv b{color:#fff;font-family:var(--ef-d);font-weight:700}
+html.efir .dk-lnq span{background:rgba(255,255,255,.1);border-radius:3px;padding:8px 10px}
+html.efir .dk-lnq span small{font:600 10px/1 var(--ef-d);color:var(--ef-mute)}
+html.efir .dk-lnq span b{font:700 17px/1 var(--ef-d);color:#fff}
+html.efir .dk-note{font:400 12.5px/1.5 var(--ef-b);color:var(--ef-dim)}
+html.efir .dk-empty{color:var(--ef-mute);font-family:var(--ef-b)}
+html.efir .dk-more{border-radius:0;background:#fff;color:#000;clip-path:var(--sk12);padding:15px 30px 15px 22px;font:700 14px/1.1 var(--ef-b);position:relative;isolation:isolate;overflow:hidden;transition:transform .16s var(--ef-ease),color .2s}
+html.efir .dk-more::before{content:"";position:absolute;inset:0;background:var(--hb);transform:translateX(-102%);transition:transform .35s var(--ef-ease);z-index:-1}
+html.efir .dk-more:hover{filter:none;color:#fff}
+html.efir .dk-more:hover::before{transform:none}
+html.efir .dk-more:active{transform:scale(.97)}
+html.efir .dk-info.sw{transform:translateX(18px)}
+/* панель статистики */
+html.efir .dk-scrim{background:rgba(14,20,34,.6)}
+html.efir .dk-drawer{background:linear-gradient(180deg,#34415c,#28324a);border-left:1px solid var(--ef-edge);box-shadow:-30px 0 60px -20px rgba(8,12,22,.7)}
+html.efir .dk-dhead{border-bottom:1px solid var(--ef-line)}
+html.efir .dk-dk{font:700 11px/1 var(--ef-d);letter-spacing:.14em;color:var(--ef-dim)}
+html.efir .dk-dhead h2{font:900 clamp(18px,1.8vw,24px)/1.15 var(--ef-d)}
+html.efir .dk-x{border:0;border-radius:0;background:var(--ef-chip2);clip-path:var(--sk12);width:50px;padding-right:6px;transition:background .15s,transform .12s}
+html.efir .dk-x:hover{background:#fff;color:#000;transform:none}
+html.efir .dk-x:active{transform:scale(.94)}
+html.efir .dk-sec{border-bottom:1px solid var(--ef-line)}
+html.efir .dk-sec h3{font:700 11px/1 var(--ef-d);letter-spacing:.14em;color:var(--ef-dim)}
+html.efir .dk-links a{border:0;border-radius:0;background:var(--ef-chip);clip-path:var(--sk12);padding:12px 22px 12px 16px;font:600 14px/1 var(--ef-b);transition:background .15s,color .15s,transform .12s}
+html.efir .dk-links a:hover{background:#fff;color:#000}
+html.efir .dk-links a:active{transform:scale(.97)}
+html.efir .dk-h2h li,html.efir .dk-lg5 li,html.efir .dk-ld small,html.efir .dk-axv,html.efir .dk-h2hs{font-family:var(--ef-b)}
+html.efir .dk-h2h b,html.efir .dk-ld strong,html.efir .dk-lg5 b{font-family:var(--ef-d)}
+html.efir .dk-leg{font-family:var(--ef-b)}
+/* вход: старт-анимация */
+html.efir.ef-js .dk-top>*,html.efir.ef-js .dk-main,html.efir.ef-js .dk-ctl{animation:efUp .7s var(--ef-ease) both}
+html.efir.ef-js .dk-main{animation-delay:.1s}html.efir.ef-js .dk-ctl{animation-delay:.2s}
+
+/* ═══ 5. МОДЕЛЬ ═══ */
+html.efir .md main{padding-bottom:0}
+html.efir .md-top{padding:clamp(28px,5vw,72px) 0 clamp(20px,3vw,36px)}
+html.efir .md h1{font:900 clamp(28px,4.6vw,64px)/1.04 var(--ef-d);letter-spacing:-.02em;margin:0 0 20px}
+html.efir .md h1 span{font-family:var(--ef-i);font-style:italic;font-weight:500;letter-spacing:0;color:#fff}
+html.efir .md-lead,html.efir .md-sub{font:400 clamp(16px,1.4vw,19px)/1.55 var(--ef-b);color:var(--ef-mute)}
+html.efir .md-sub{margin:0 0 22px}
+html.efir .md-sw{gap:4px}
+html.efir .md-sw a{border-radius:0;background:var(--ef-chip);color:var(--ef-mute);clip-path:var(--sk12);padding:12px 22px 12px 16px;font:700 13px/1 var(--ef-d);transition:background .15s,color .15s,transform .12s}
+html.efir .md-sw a:hover{background:var(--ef-chip2);color:#fff}
+html.efir .md-sw a:active{transform:scale(.97)}
+html.efir .md-sw a[aria-current]{background:#fff;color:#000}
+html.efir .md-sec{padding:var(--ef-sec) 0 0}
+html.efir .md-sec h2{font:700 clamp(24px,3.2vw,44px)/1.08 var(--ef-d);letter-spacing:-.01em;max-width:24ch;margin:0 0 clamp(22px,3vw,40px)}
+html.efir .md-sec .ef-tagw{display:block;margin-bottom:16px}
+/* три шага: цифры-контуры и клинья над колонками */
+html.efir .md-steps{gap:0 clamp(24px,4vw,56px);margin-bottom:clamp(28px,3vw,44px)}
+html.efir .md-steps li{background:none;border-radius:0;padding:22px 0 0;position:relative;counter-increment:s}
+html.efir .md-steps li+li::before{display:none}
+html.efir .md-steps li::after{content:"";position:absolute;left:0;top:0;width:100%;height:3px;background:linear-gradient(90deg,var(--c,#fff) 0 28%,var(--ef-line) 28%)}
+html.efir .md-steps li:nth-child(1){--c:var(--hb)}html.efir .md-steps li:nth-child(2){--c:#fff}html.efir .md-steps li:nth-child(3){--c:var(--ab)}
+html.efir .md-steps svg{width:44px;height:44px;stroke:#fff;stroke-width:2.4;margin-bottom:12px;opacity:.9}
+html.efir .md-steps b{font:700 clamp(18px,1.7vw,23px)/1.2 var(--ef-d);margin-bottom:10px}
+html.efir .md-steps p{font:400 16px/1.55 var(--ef-b);color:var(--ef-mute);max-width:36ch}
+@media(max-width:860px){html.efir .md-steps li{padding-bottom:18px}}
+html.efir .md-pair{background:none;border-radius:0;border:0;box-shadow:none;padding:2px 0 2px clamp(18px,2.4vw,28px);position:relative;font:400 17px/1.55 var(--ef-b);color:var(--ef-mute);max-width:70ch}
+html.efir .md-pair::before{content:"";position:absolute;left:0;top:.2em;bottom:.2em;width:8px;background:var(--hb);transform:skewX(-12deg)}
+html.efir .md-pair b{color:#fff;font-family:var(--ef-d);font-weight:700}
+html.efir .md-how{gap:0 clamp(28px,5vw,72px)}
+html.efir .md-how article{background:none;border-radius:0;padding:20px 0 14px;border-top:1px solid var(--ef-line);position:relative}
+html.efir .md-how article::before{content:"";position:absolute;left:0;top:-2px;width:46px;height:3px;background:var(--hb)}
+html.efir .md-how article:nth-child(2)::before{background:var(--ab)}
+html.efir .md-how h3{font:700 clamp(18px,1.7vw,23px)/1.2 var(--ef-d)}
+html.efir .md-how p{font:400 16px/1.6 var(--ef-b);color:var(--ef-mute)}
+html.efir .md code{background:rgba(255,255,255,.12);border-radius:2px;color:#fff;font-family:ui-monospace,Menlo,monospace}
+/* живой пример */
+html.efir .md-picker{gap:4px}
+html.efir .md-picker button{border-radius:0;background:var(--ef-chip);color:var(--ef-mute);clip-path:var(--sk12);padding:10px 24px 10px 14px;font:600 14px/1.2 var(--ef-b);transition:background .15s,color .15s,transform .12s}
+html.efir .md-picker button:hover{background:var(--ef-chip2);color:#fff}
+html.efir .md-picker button:active{transform:scale(.97)}
+html.efir .md-picker button[aria-selected=true]{background:#fff;color:#000}
+html.efir .md-picker button small{font-family:var(--ef-b);color:inherit;opacity:.75}
+html.efir .md-demo{background:none;border-radius:0;padding:clamp(20px,2.4vw,32px) 0 0;border-top:1px solid var(--ef-line);position:relative;gap:clamp(28px,3vw,44px)}
+html.efir .md-demo::before{content:"";position:absolute;left:0;top:-2px;width:46px;height:3px;background:#fff}
+html.efir .md-hd h3{font:900 clamp(20px,2.6vw,34px)/1.1 var(--ef-d)}
+html.efir .md-hd span{font:500 14px/1.3 var(--ef-b);color:var(--ef-mute)}
+html.efir .md-blk h4{font:700 11px/1 var(--ef-d);letter-spacing:.14em;color:var(--ef-dim)}
+html.efir .md-blk p{font:400 15px/1.55 var(--ef-b);color:var(--ef-mute)}
+html.efir .md-blk p b{color:#fff}
+html.efir .md-lam{gap:0 clamp(20px,4vw,56px)}
+html.efir .md-lam div{background:none;border-radius:0;padding:12px 0 0;border-top:3px solid var(--hb)}
+html.efir .md-lam div+div{border-top-color:var(--ab)}
+html.efir .md-lam b{font:900 clamp(40px,6vw,76px)/.95 var(--ef-d);letter-spacing:-.03em;color:#fff}
+html.efir .md-lam span{font:500 14px/1.3 var(--ef-b);color:var(--ef-mute)}
+html.efir .md-g i{background:#fff;border-radius:0;opacity:.95}
+html.efir .md-g i.b{background:rgba(255,255,255,.38)}
+html.efir .md-gl,html.efir .md-gh,html.efir .md-key,html.efir .md-tsl,html.efir .md-row>b{font-family:var(--ef-b)}
+html.efir .md-row>b{font-family:var(--ef-d);font-size:14px}
+html.efir .md-gh em::before,html.efir .md-key em::before{border-radius:0;transform:skewX(-12deg);background:#fff}
+html.efir .md-gh em.b::before,html.efir .md-key em.l::before{background:rgba(255,255,255,.38)}
+html.efir .md-bar{font-family:var(--ef-b);color:var(--ef-mute)}
+html.efir .md-bar>span{background:rgba(255,255,255,.12);border-radius:0;height:12px}
+html.efir .md-bar>span>i{border-radius:0}
+html.efir .md-bar.m>span>i{background:#fff}
+html.efir .md-bar.l>span>i{background:rgba(255,255,255,.4)}
+html.efir .md-bar output{font:700 13px/1 var(--ef-d);color:#fff}
+html.efir .md-diff{background:rgba(255,255,255,.12);border-radius:0;font-family:var(--ef-d);color:var(--ef-mute)}
+html.efir .md-diff.hi{background:#fff;color:#000}
+html.efir .md-calc{font-family:var(--ef-b)}
+html.efir .md-calc th{font:700 10.5px/1.2 var(--ef-d);letter-spacing:.1em;color:var(--ef-dim);border-bottom:1px solid var(--ef-line)}
+html.efir .md-calc td{border-bottom:1px solid var(--ef-line2)}
+html.efir .md-calc tfoot td{font-family:var(--ef-d);font-size:14px}
+html.efir .md-ts::before{background:rgba(255,255,255,.14);border-radius:0;height:4px}
+html.efir .md-ts i{background:#fff;border-radius:0;transform:skewX(-12deg)}
+html.efir .md-ts.l i{background:rgba(255,255,255,.5)}
+html.efir .md-ts span{font-family:var(--ef-d);font-size:12px}
+html.efir .md-ts span em{font-family:var(--ef-b)}
+html.efir .md-warnbox{background:none;border-radius:0;padding:4px 0 4px 18px;border-left:4px solid #fff;font:400 15px/1.55 var(--ef-b);color:var(--ef-mute)}
+html.efir .md-warnbox b{color:#fff}
+/* «чего модель не знает» — строки с линиями, две колонки */
+html.efir .md-blind{gap:0 clamp(28px,5vw,72px);margin-bottom:clamp(24px,3vw,40px)}
+html.efir .md-blind li{background:none;border-radius:0;padding:18px 0 18px;border-top:1px solid var(--ef-line);font:400 16px/1.55 var(--ef-b);color:var(--ef-mute)}
+html.efir .md-blind b{font:700 16px/1.25 var(--ef-d);color:#fff}
+html.efir .md-warn{background:none;border-radius:0;box-shadow:none;padding:2px 0 2px clamp(18px,2.4vw,30px);position:relative;font:400 clamp(16px,1.4vw,19px)/1.55 var(--ef-b);color:var(--ef-mute);max-width:64ch}
+html.efir .md-warn::before{content:"";position:absolute;left:0;top:.2em;bottom:.2em;width:8px;background:var(--hb);transform:skewX(-12deg)}
+html.efir .md-warn b{color:#fff;font-family:var(--ef-d)}
+/* вопросы — линии */
+html.efir .md-faq{max-width:none;gap:0;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:clamp(28px,5vw,72px);align-items:start}
+@media(max-width:860px){html.efir .md-faq{grid-template-columns:1fr}}
+html.efir .md-faq details{background:none;border-radius:0;border-top:1px solid var(--ef-line)}
+html.efir .md-faq details:nth-last-child(-n+2){border-bottom:1px solid var(--ef-line)}
+@media(max-width:860px){html.efir .md-faq details:nth-last-child(2){border-bottom:0}}
+html.efir .md-faq summary{font:700 clamp(15px,1.35vw,18px)/1.3 var(--ef-d);padding:20px 40px 20px 0}
+html.efir .md-faq summary::after{content:"";right:0;width:16px;height:16px;background:linear-gradient(#fff,#fff) center/100% 2px no-repeat,linear-gradient(#fff,#fff) center/2px 100% no-repeat;font:0;transition:transform .3s var(--ef-ease)}
+html.efir .md-faq details[open] summary::after{content:"";transform:translateY(-50%) rotate(45deg)}
+html.efir .md-faq details p{padding:0 0 20px;font:400 16px/1.6 var(--ef-b);color:var(--ef-mute)}
+/* подписка */
+html.efir .md-cta{padding:var(--ef-sec) 0 0;position:relative;isolation:isolate}
+html.efir .md-cta::before{content:"";position:absolute;left:-6%;top:calc(var(--ef-sec)*.6);bottom:-30px;width:46%;z-index:-1;background:linear-gradient(90deg,var(--hd),color-mix(in srgb,var(--hb) 45%,var(--hd)));opacity:.9;--sk:80px;clip-path:polygon(0 0,100% 0,calc(100% - var(--sk)) 100%,0 100%)}
+html.efir .md-cta h2{font:700 clamp(24px,3.6vw,46px)/1.08 var(--ef-d);max-width:16ch}
+html.efir .md-cta p{color:var(--ef-mute)}
+html.efir .md-cta .btn{font-size:15px;padding:0 30px 0 22px}
+html.efir .md-cta .note{font:400 13px/1.5 var(--ef-b);color:var(--ef-dim)}
+@media(max-width:760px){html.efir .md-cta::before{width:80%}}
+
+/* ═══ 6. СЛОВАРЬ и ПРОГНОЗ (body.fc) ═══ */
+html.efir .fc-top{padding:clamp(24px,4vw,56px) 0 0}
+html.efir .fc-top h1{font:900 clamp(28px,4.6vw,64px)/1.04 var(--ef-d);letter-spacing:-.02em;margin:18px 0 0}
+html.efir .fc-top h1 span{font-family:var(--ef-i);font-style:italic;font-weight:500;letter-spacing:0;color:#fff}
+html.efir .fc-top .lead{font:400 clamp(16px,1.4vw,19px)/1.55 var(--ef-b);color:var(--ef-mute)}
+html.efir .fc-crumbs{font:500 13px/1.3 var(--ef-b);color:var(--ef-dim);margin-bottom:22px}
+html.efir .fc-crumbs a{color:var(--ef-mute)}
+html.efir .fc-crumbs a:hover{color:#fff}
+html.efir .fc-upd{font:500 13px/1.3 var(--ef-b);color:var(--ef-dim)}
+html.efir .fc-sec{padding:clamp(28px,4vw,56px) 0 0}
+html.efir .fc-sec h2,html.efir .gl-h{font:700 clamp(22px,2.6vw,36px)/1.1 var(--ef-d);letter-spacing:-.01em;margin:0 0 20px}
+html.efir .fc-sec .ef-tagw{display:block;margin-bottom:14px}
+html.efir .fc-sw{gap:4px}
+html.efir .fc-sw a{border-radius:0;background:var(--ef-chip);color:var(--ef-mute);clip-path:var(--sk12);padding:12px 22px 12px 16px;font:700 13px/1 var(--ef-d);transition:background .15s,color .15s,transform .12s}
+html.efir .fc-sw a:hover{background:var(--ef-chip2);color:#fff}
+html.efir .fc-sw a:active{transform:scale(.97)}
+html.efir .fc-sw a[aria-current=page]{background:#fff;color:#000}
+html.efir .fc-note{background:none;border-radius:0;border-left:0;padding:2px 0 2px 24px;position:relative;font:400 15px/1.55 var(--ef-b);color:var(--ef-mute)}
+html.efir .fc-note::before{content:"";position:absolute;left:0;top:.15em;bottom:.15em;width:7px;background:var(--hb);transform:skewX(-12deg)}
+/* строка матча = строка-титр (интерактив): клинья по краям, блик, нажатие */
+html.efir .fc-list{gap:10px}
+html.efir .fc-m{position:relative;isolation:isolate;overflow:hidden;background:var(--ef-row);border:1px solid var(--ef-line2);border-radius:4px;box-shadow:var(--ef-sh1);transition:transform .3s var(--ef-ease),box-shadow .3s var(--ef-ease);padding:14px 22px}
+html.efir .fc-m::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,color-mix(in srgb,var(--hb) 30%,transparent),transparent 26%,transparent 76%,color-mix(in srgb,var(--ab) 30%,transparent))}
+html.efir .fc-m .w{position:absolute;top:0;bottom:0;width:14px;z-index:-1;transition:transform .35s var(--ef-ease)}
+html.efir .fc-m .w--h{left:0;transform:translateX(-4px);background:var(--hb);clip-path:polygon(0 0,100% 0,45% 100%,0 100%)}
+html.efir .fc-m .w--a{right:0;transform:translateX(4px);background:var(--ab);clip-path:polygon(55% 0,100% 0,100% 100%,0 100%)}
+html.efir .fc-m::after{content:"";position:absolute;top:-20%;bottom:-20%;left:0;width:28%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.24) 50%,transparent);transform:translateX(-160%) skewX(-18deg);opacity:0;pointer-events:none}
+@media(hover:hover) and (pointer:fine){
+  html.efir .fc-m:hover{transform:translateY(-3px);box-shadow:var(--ef-sh2)}
+  html.efir .fc-m:hover .w--h{transform:translateX(6px)}html.efir .fc-m:hover .w--a{transform:translateX(-6px)}
+  html.efir .fc-m:hover::after{animation:efGlint .7s var(--ef-ease) 1 both}}
+html.efir .fc-time b{font:900 clamp(22px,2.4vw,28px)/1 var(--ef-d)}
+html.efir .fc-time small{font:600 11px/1 var(--ef-d);color:var(--ef-mute)}
+html.efir .fc-tm{font:700 clamp(15px,1.5vw,18px)/1.15 var(--ef-d)}
+html.efir .fc-tm img{filter:drop-shadow(0 4px 6px rgba(8,12,22,.5))}
+html.efir .fc-arena{font:500 13px/1.3 var(--ef-b);color:var(--ef-mute)}
+html.efir .fc-bar{border-radius:0;height:6px;background:none;gap:2px}
+html.efir .fc-bar .b1{background:#fff}html.efir .fc-bar .bx{background:rgba(255,255,255,.3)}html.efir .fc-bar .b2{background:rgba(255,255,255,.55)}
+html.efir .fc-nums small{font:500 12px/1.2 var(--ef-b);color:var(--ef-mute)}
+html.efir .fc-nums b{font:700 clamp(18px,1.9vw,24px)/1 var(--ef-d)}
+html.efir .fc-nums li:first-child b,html.efir .fc-nums li:last-child b{color:#fff}
+html.efir .fc-ext{font:400 14px/1.45 var(--ef-b);color:var(--ef-mute)}
+html.efir .fc-ext b{color:#fff}
+html.efir .fc-none,html.efir .fc-legal{font-family:var(--ef-b);color:var(--ef-dim)}
+html.efir .fc-links{font:500 15px/1.6 var(--ef-b);color:var(--ef-mute)}
+html.efir .fc-links a{color:#fff;text-decoration-color:var(--hb);text-decoration-thickness:2px}
+html.efir .fc-how p{font:400 16px/1.6 var(--ef-b);color:var(--ef-mute)}
+html.efir .fc-how a{color:#fff;text-decoration-color:var(--hb);text-decoration-thickness:2px}
+/* хабы лиг (forecast.html): строки-титры */
+html.efir .fc-hubs{gap:clamp(28px,4vw,56px)}
+html.efir .fc-hub{gap:10px}
+html.efir .fc-hub a{position:relative;overflow:hidden;isolation:isolate;border:1px solid var(--ef-line2);border-radius:4px;background:var(--ef-row);box-shadow:var(--ef-sh1);padding:16px 22px 16px 26px;transition:transform .3s var(--ef-ease),box-shadow .3s var(--ef-ease)}
+html.efir .fc-hub a::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--hb);clip-path:polygon(0 0,100% 0,45% 100%,0 100%);transition:width .35s var(--ef-ease)}
+html.efir .fc-hub-col:nth-child(2) .fc-hub a::before{background:var(--ab)}
+html.efir .fc-hub a::after{content:"";position:absolute;top:-20%;bottom:-20%;left:0;width:28%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.24) 50%,transparent);transform:translateX(-160%) skewX(-18deg);opacity:0;pointer-events:none}
+@media(hover:hover) and (pointer:fine){html.efir .fc-hub a:hover{transform:translateY(-3px);box-shadow:var(--ef-sh2);background:var(--ef-row);border-color:var(--ef-line2)}html.efir .fc-hub a:hover::before{width:18px}html.efir .fc-hub a:hover::after{animation:efGlint .7s var(--ef-ease) 1 both}}
+html.efir .fc-hub a:active{transform:scale(.985)}
+html.efir .fc-hub b{font:900 clamp(17px,1.7vw,20px)/1.1 var(--ef-d)}
+html.efir .fc-hub small{font:500 13px/1.2 var(--ef-b);color:var(--ef-mute)}
+/* словарь: термины — открытые блоки с линиями; оглавление — чипы (интерактив) */
+html.efir .gl-toc{gap:4px}
+html.efir .gl-toc a{border-radius:0;background:var(--ef-chip);color:var(--ef-mute);clip-path:var(--sk12);padding:11px 22px 11px 16px;font:600 14px/1.2 var(--ef-b);transition:background .15s,color .15s,transform .12s}
+html.efir .gl-toc a:hover{background:var(--ef-chip2);color:#fff}
+html.efir .gl-toc a:active{transform:scale(.97)}
+html.efir .gl-list{gap:0 clamp(28px,5vw,72px)}
+html.efir .gl-t{background:none;border:0;border-top:1px solid var(--ef-line);border-radius:0;padding:22px 0 18px;position:relative}
+html.efir .gl-t::before{content:"";position:absolute;left:0;top:-2px;width:46px;height:3px;background:var(--hb);transition:width .4s var(--ef-ease)}
+html.efir .gl-t:nth-child(even)::before{background:#fff}
+html.efir .gl-t:hover::before,html.efir .gl-t:target::before{width:92px}
+html.efir .gl-t:target{box-shadow:none;border-color:var(--ef-line)}
+html.efir .gl-t:target h3{color:#fff}
+html.efir .gl-t h3{font:700 clamp(16px,1.5vw,20px)/1.25 var(--ef-d)}
+html.efir .gl-t h3 a{color:var(--ef-dim);font-family:var(--ef-b)}
+html.efir .gl-t h3 a:hover{color:#fff}
+html.efir .gl-t p{font:400 16px/1.6 var(--ef-b);color:var(--ef-mute)}
+html.efir .gl-ex{color:var(--ef-dim)!important;font-size:15px!important}
+html.efir .gl-ex b{color:var(--ef-mute);font-family:var(--ef-d);font-weight:600;font-size:13px}
+
+/* ═══ 7. МОЙ JARVIS ═══ */
+html.efir .me-top{overflow:visible;padding:clamp(28px,5vw,72px) 0 clamp(8px,2vw,24px)}
+html.efir .me-top::before{display:none}
+html.efir .me-top h1{font:900 clamp(30px,5vw,68px)/1.02 var(--ef-d);letter-spacing:-.02em}
+html.efir .me-top h1 span{font-family:var(--ef-i);font-style:italic;font-weight:500;letter-spacing:0;color:#fff}
+html.efir .me-lead{font:400 clamp(16px,1.4vw,19px)/1.55 var(--ef-b);color:var(--ef-mute)}
+html.efir .me-sec{padding:clamp(40px,6vw,80px) 0 0}
+html.efir .me-sec h2{font:700 clamp(24px,3.2vw,44px)/1.08 var(--ef-d)}
+html.efir .me-sec .ef-tagw{display:block;margin-bottom:14px}
+html.efir .me-cnt,html.efir .me-sub{font:500 14px/1.3 var(--ef-b);color:var(--ef-dim)}
+html.efir .me-load{font-family:var(--ef-b);color:var(--ef-mute)}
+html.efir .me-lab{font:700 11px/1 var(--ef-d);letter-spacing:.14em;color:var(--ef-dim)}
+html.efir .me-in svg{stroke:var(--ef-mute)}
+html.efir .me-in input{background:var(--ef-chip);border:1px solid var(--ef-line);border-radius:4px;font:500 16px/1 var(--ef-b);color:#fff;transition:border-color .2s,box-shadow .2s,background .2s}
+html.efir .me-in input:focus{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.18);background:var(--ef-chip2)}
+html.efir .me-res{background:linear-gradient(180deg,#46577a,#37465f);border:1px solid var(--ef-edge);border-radius:4px;box-shadow:var(--ef-sh2)}
+html.efir .me-r{border-radius:0;transition:background .15s}
+html.efir .me-r:hover,html.efir .me-r:focus-visible{background:rgba(255,255,255,.1)}
+html.efir .me-rt b,html.efir .me-pb b,html.efir .me-ct b{font-family:var(--ef-d)}
+html.efir .me-rt b{font-size:15px}
+html.efir .me-rt small,html.efir .me-ct small,html.efir .me-pb small{font:500 13px/1.2 var(--ef-b);color:var(--ef-mute)}
+html.efir .me-ra{color:#fff;font-family:var(--ef-d)}
+html.efir .me-none{color:var(--ef-mute);font-family:var(--ef-b)}
+html.efir .me-cr{border-radius:0;background:none;padding:0;filter:drop-shadow(0 4px 6px rgba(8,12,22,.5))}
+/* пусто: без пунктирной коробки — клин, крупный текст, чипы-клубы */
+html.efir .me-empty{background:none;border:0;border-radius:0;justify-items:start;text-align:left;padding:clamp(8px,2vw,24px) 0 0 clamp(22px,3vw,40px);position:relative}
+html.efir .me-empty::before{content:"";position:absolute;left:0;top:8px;bottom:6px;width:12px;background:var(--hb);clip-path:polygon(0 0,100% 0,45% 100%,0 100%)}
+html.efir .me-star{width:auto;height:auto;background:none;box-shadow:none;border-radius:0}
+html.efir .me-star svg{width:44px;height:44px;stroke:#fff;stroke-width:1.5}
+html.efir .me-empty h3{font:900 clamp(22px,3vw,38px)/1.05 var(--ef-d);text-transform:none;letter-spacing:-.01em;margin-top:2px}
+html.efir .me-empty p{font:400 16px/1.55 var(--ef-b);color:var(--ef-mute)}
+html.efir .me-pop{gap:6px;max-width:820px}
+html.efir .me-pb{border:0;border-radius:0;background:var(--ef-chip);clip-path:var(--sk12);padding:8px 24px 8px 12px;transition:background .15s,transform .12s}
+html.efir .me-pb:hover{background:var(--ef-chip2);border:0}
+html.efir .me-pb i{color:#fff;font-family:var(--ef-d)}
+/* клубы и матчи пользователя */
+html.efir .me-grid{gap:10px}
+html.efir .me-card{overflow:hidden;isolation:isolate;border:1px solid var(--ef-line2);border-radius:4px;background:var(--ef-row);box-shadow:var(--ef-sh1);transition:transform .3s var(--ef-ease),box-shadow .3s var(--ef-ease)}
+html.efir .me-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--hb);clip-path:polygon(0 0,100% 0,45% 100%,0 100%);transition:width .35s var(--ef-ease)}
+html.efir .me-card::after{content:"";position:absolute;top:-20%;bottom:-20%;left:0;width:28%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.24) 50%,transparent);transform:translateX(-160%) skewX(-18deg);opacity:0;pointer-events:none}
+@media(hover:hover) and (pointer:fine){html.efir .me-card:hover{transform:translateY(-3px);box-shadow:var(--ef-sh2);border-color:var(--ef-line2)}html.efir .me-card:hover::before{width:18px}html.efir .me-card:hover::after{animation:efGlint .7s var(--ef-ease) 1 both}}
+html.efir .me-card{padding-left:24px}
+html.efir .me-ct b{font-size:19px;font-weight:900}
+html.efir .me-cn{border-top:1px solid var(--ef-line2);font:400 15px/1.45 var(--ef-b);color:var(--ef-mute)}
+html.efir .me-cn b{color:#fff}
+html.efir .me-cn span{color:#fff;font-family:var(--ef-d);font-size:14px}
+html.efir .me-day{font:700 11px/1 var(--ef-d);letter-spacing:.14em;color:var(--ef-dim)}
+html.efir .me-ms{gap:10px;max-width:none}
+html.efir .me-m{overflow:hidden;isolation:isolate;border:1px solid var(--ef-line2);border-radius:4px;background:var(--ef-row);box-shadow:var(--ef-sh1);padding:10px 22px;transition:transform .3s var(--ef-ease),box-shadow .3s var(--ef-ease)}
+html.efir .me-m::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,color-mix(in srgb,var(--hb) 28%,transparent),transparent 24%,transparent 76%,color-mix(in srgb,var(--ab) 28%,transparent))}
+@media(hover:hover) and (pointer:fine){html.efir .me-m:hover{transform:translateY(-2px);box-shadow:var(--ef-sh2);border-color:var(--ef-line2)}}
+html.efir .me-tm b{font:700 clamp(14px,1.4vw,17px)/1.1 var(--ef-d)}
+html.efir .me-tm:hover b{color:#fff;text-decoration:underline;text-decoration-color:var(--hb);text-decoration-thickness:2px}
+html.efir .me-mc strong{font:900 clamp(18px,2vw,24px)/1 var(--ef-d)}
+html.efir .me-mc small{font:500 12px/1.3 var(--ef-b);color:var(--ef-mute)}
+html.efir .me-ml{font:500 13px/1 var(--ef-b);color:var(--ef-mute)}
+html.efir .me-b{border-radius:0;transform:skewX(-12deg);font-family:var(--ef-d)}
+html.efir .me-b.d{background:rgba(255,255,255,.2);color:#fff}
+/* вход и подписка — как «Эфир в Telegram»: без плашки */
+html.efir .me-login{background:none;border:0;border-radius:0;padding:var(--ef-sec) 0 0;position:relative;isolation:isolate;box-shadow:none}
+html.efir .me-login::before{content:"";position:absolute;left:-6%;top:calc(var(--ef-sec)*.5);bottom:-8%;width:46%;z-index:-1;background:linear-gradient(90deg,var(--hd),color-mix(in srgb,var(--hb) 45%,var(--hd)));opacity:.9;--sk:80px;clip-path:polygon(0 0,100% 0,calc(100% - var(--sk)) 100%,0 100%)}
+html.efir .me-login h2{font-size:clamp(24px,3.4vw,44px);max-width:12ch}
+html.efir .me-lp{font:400 17px/1.55 var(--ef-b);color:var(--ef-mute)}
+html.efir .me-small{font:400 13px/1.5 var(--ef-b);color:var(--ef-dim)}
+html.efir .me-lact{gap:10px}
+html.efir .me-clear{border:0;border-radius:0;background:var(--ef-chip);color:#fff;clip-path:var(--sk12);padding:0 24px 0 18px;min-height:48px;font:700 14px/1.1 var(--ef-b);cursor:pointer;transition:background .15s,transform .12s}
+html.efir .me-clear:hover{background:var(--ef-chip2)}
+html.efir .me-clear:active{transform:scale(.97)}
+@media(max-width:760px){html.efir .me-login::before{width:80%;top:0}}
+
+/* ═══ 8. 404 ═══ */
+html.efir .nf{padding-top:clamp(48px,9vw,120px);position:relative}
+html.efir .nf h1{font:900 clamp(32px,6.4vw,92px)/1.02 var(--ef-d);letter-spacing:-.03em;margin:0 0 20px;max-width:14ch}
+html.efir .nf p{font:400 clamp(16px,1.4vw,19px)/1.55 var(--ef-b);color:var(--ef-mute)}
+html.efir .nf-links{gap:4px}
+html.efir .nf-links a{border:0!important;border-radius:0;background:var(--ef-chip);color:var(--ef-mute);clip-path:var(--sk12);padding:14px 26px 14px 18px;font:700 14px/1 var(--ef-d);transition:background .15s,color .15s,transform .12s}
+html.efir .nf-links a:hover{background:#fff;color:#000}
+html.efir .nf-links a:active{transform:scale(.97)}
+html.efir .nf::after{content:"404";position:absolute;right:0;top:clamp(40px,6vw,90px);font:900 clamp(120px,26vw,380px)/.8 var(--ef-d);letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.22);pointer-events:none;z-index:-1}
+
+/* ═══ 9. появление при прокрутке для общих блоков (класс ставит pages-common.js) ═══ */
+html.efir.ef-js .gl-t.ef-rv,html.efir.ef-js .md-faq details.ef-rv{transition-delay:calc(var(--i,0)*30ms)}
+
+/* ═══ 10. reduced-motion ═══ */
+@media(prefers-reduced-motion:reduce){
+  html.efir .dk .dk-cf::after,html.efir .fc-m::after,html.efir .fc-hub a::after,html.efir .me-card::after{display:none}
+  html.efir.ef-js .dk-top>*,html.efir.ef-js .dk-main,html.efir.ef-js .dk-ctl,html.efir .sp-pn{animation:none!important}
+}
+
+/* ═══ 11. шапка с разделами (gnav): часы эфира сворачиваются, чтобы всё помещалось без горизонтальной прокрутки ═══ */
+@media(max-width:1700px){html.efir .hd:has(.gnav) .ef-air em{display:none}html.efir .hd:has(.gnav) .ef-air{padding:0 14px 0 18px}}
+@media(max-width:1300px){html.efir .hd:has(.gnav) .ef-air{display:none}html.efir .hd .seg a{padding:11px 18px 11px 14px}html.efir .gnav a{padding:14px 7px}}
+html.efir .hd .wrap.hdrow{min-width:0}
+@media(max-width:700px){html.efir .nf::after{top:auto;bottom:-10px;font-size:46vw;-webkit-text-stroke-color:rgba(255,255,255,.14)}}
+html.efir .dk-radar .rl{font-family:var(--ef-b);fill:var(--ef-mute)}
+/* узкие экраны: шапка не шире окна */
+@media(max-width:1000px){html.efir .ef-air{display:none}}
+@media(max-width:400px){
+  html.efir .hd .logo,html.efir .hd .logo.lg2{font-size:15px;padding:10px 15px 10px 11px}
+  html.efir .hd .btn-tg{padding:0 18px 0 12px;font-size:13px;gap:6px}
+  html.efir .hd .wrap.hdrow{gap:6px}
+}
+@media(max-width:350px){html.efir .hd .btn-tg span{display:none}html.efir .hd .btn-tg{padding:0 20px 0 14px}}

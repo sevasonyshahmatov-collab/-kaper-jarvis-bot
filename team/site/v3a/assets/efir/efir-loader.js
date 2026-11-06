@@ -12,9 +12,9 @@
   d.classList.add('efir');d.setAttribute('data-efir','1');
   var s=document.currentScript,base=s.src.replace(/efir-loader\.js.*$/,'');
   try{var m=document.querySelector('meta[name=theme-color]');if(m)m.content='#2c374d'}catch(e){}
-  var css=['vendor/fonts.css','efir.css'],extra=[];
-  /* разделы по спорту: футбол — pages-football.css/js + цвета клубов; хоккей — pages-hockey.css/js */
-  if(d.getAttribute('data-sport')==='football'){css.push('pages-football.css');extra=['fc-colors.js','pages-football.js']}
+  var css=['vendor/fonts.css','efir.css','pages-common.css'],extra=['pages-common.js'];
+  /* разделы по спорту: футбол — pages-football.css/js + цвета клубов; хоккей — pages-hockey.css/js; общие страницы — pages-common */
+  if(d.getAttribute('data-sport')==='football'){css.push('pages-football.css');extra.push('fc-colors.js','pages-football.js')}
   if(d.getAttribute('data-sport')==='hockey'){css.push('pages-hockey.css');extra.push('pages-hockey.js')}
   if(document.readyState==='loading'){
     css.forEach(function(f){document.write('<link rel="stylesheet" href="'+base+f+'">')});
