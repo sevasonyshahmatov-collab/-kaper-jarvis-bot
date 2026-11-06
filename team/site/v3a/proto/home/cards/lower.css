@@ -8,14 +8,16 @@
 .cd-fan{z-index:0;overflow:hidden}
 /* затемнение к центру: фон не спорит с двумя главными карточками */
 .cd-fan::after{content:"";position:absolute;inset:0;background:radial-gradient(48% 56% at 50% 52%,rgba(7,13,25,.88) 0,rgba(7,13,25,.55) 62%,rgba(7,13,25,.18) 100%)}
-.fw{--w:clamp(104px,12.5vw,196px);position:absolute;left:var(--x);top:var(--y);width:calc(var(--w)*var(--s));aspect-ratio:5/7;
+.fw{--w:clamp(104px,12.5vw,196px);position:absolute;left:var(--x);top:var(--y);width:calc(var(--w)*var(--s));aspect-ratio:5/7;perspective:700px;
+  translate:calc(var(--mx,0)*var(--s)*-26px) calc(var(--my,0)*var(--s)*-18px);transition:translate .9s cubic-bezier(.23,1,.32,1);
   animation:fanin 1.6s cubic-bezier(.23,1,.32,1) calc(1.3s + var(--i)*.09s) both}
-.fd{position:absolute;inset:0;will-change:transform;transform:rotate(calc(var(--r)*1deg));animation:fandrift var(--d) ease-in-out var(--dl) infinite alternate}
-.fk{position:absolute;inset:0;border-radius:8%;overflow:hidden;filter:blur(var(--b)) brightness(.62) saturate(.8);
+.fd{position:absolute;inset:0;will-change:transform;transform:rotate(calc(var(--r)*1deg));animation:fandrift var(--d) ease-in-out var(--dl) infinite alternate;transform-style:preserve-3d}
+.fk{position:absolute;inset:0;border-radius:8%;overflow:hidden;filter:blur(var(--b)) brightness(.74) saturate(.85);
   background:linear-gradient(165deg,#1a2c4d,#0e1a31 60%,#0a1324);box-shadow:inset 0 0 0 3px rgba(150,170,205,.45),inset 0 0 0 6px rgba(10,18,32,.9)}
 .fk img{position:absolute;left:19%;top:20%;width:62%;height:auto;display:block;filter:drop-shadow(0 4px 10px rgba(0,0,0,.5))}
-.fk i{position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(190,215,255,.22) 48%,transparent 62%)}
-@keyframes fandrift{to{transform:translate3d(var(--dx),var(--dy),0) rotate(calc((var(--r) + var(--dr))*1deg))}}
+.fk i{position:absolute;inset:0;background:linear-gradient(115deg,transparent 38%,rgba(200,225,255,.42) 50%,transparent 62%) no-repeat;background-size:260% 100%;background-position:130% 0;animation:fglint 7s ease-in-out var(--gl) infinite}
+@keyframes fglint{0%,55%{background-position:130% 0}85%,100%{background-position:-30% 0}}
+@keyframes fandrift{0%{transform:rotate(calc(var(--r)*1deg)) rotateY(0)}50%{transform:translate3d(calc(var(--dx)*.55),calc(var(--dy)*-.4),0) rotate(calc(var(--r)*1deg + var(--dr)*.5)) rotateY(var(--ry))}100%{transform:translate3d(var(--dx),var(--dy),0) rotate(calc(var(--r)*1deg + var(--dr))) rotateY(calc(var(--ry)*-.4))}}
 @keyframes fanin{from{opacity:0;transform:translate3d(calc((50vw - var(--x))*.3),-3vh,0) scale(.7)}to{opacity:.9;transform:none}}
 .cd-cones{z-index:1;mix-blend-mode:screen;overflow:hidden}
 .cd-cones i{position:absolute;top:-4%;width:30vw;height:92%;left:calc(var(--cx) - 15vw);transform-origin:50% 0;
@@ -199,7 +201,8 @@
   .cd-cones i{width:60vw;left:calc(var(--cx) - 30vw)}
 }
 @media (prefers-reduced-motion:reduce){
-  .fw,.fd,.cd-cones i,.md-row.in .mc{animation:none}
+  .fw,.fd,.fk i,.cd-cones i,.md-row.in .mc{animation:none}
+  .fw{translate:none}
   .fw{opacity:.9}
   .xtc .flip{transition:none}
   .rv{opacity:1;transform:none;transition:none}
