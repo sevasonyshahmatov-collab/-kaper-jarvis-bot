@@ -11,42 +11,28 @@ UA = {"User-Agent": "jarvibet-banner/1.0 (team script)"}
 OK = ("cc0", "public domain", "pd")
 
 
-def search(q, n=25):
-    r = requests.get(API, headers=UA, timeout=30, params={
-        "action": "query", "format": "json", "generator": "search", "gsrsearch": f"{q} filetype:bitmap",
-        "gsrnamespace": 6, "gsrlimit": n, "prop": "imageinfo", "iiprop": "url|size|extmetadata|mime",
-        "iiurlwidth": 1400})
-    pages = r.json().get("query", {}).get("pages", {}).values()
-    out = []
-    for p in sorted(pages, key=lambda p: p.get("index", 99)):
-        ii = (p.get("imageinfo") or [{}])[0]
-        if ii.get("mime") != "image/jpeg" or ii.get("width", 0) < 1000:
-            continue
-        md = ii.get("extmetadata", {})
-        lic = md.get("LicenseShortName", {}).get("value", "")
-        art = md.get("Artist", {}).get("value", "")
-        out.append({"title": p["title"], "url": ii.get("thumburl") or ii["url"], "lic": lic,
-                    "artist": __import__("re").sub("<[^>]+>", "", art).strip(), "w": ii["width"], "h": ii["height"]})
+def get_titles(titles):
+    import re, time
+    for k in range(6):
+        r = requests.get(API, headers=UA, timeout=30, params={
+            "action": "query", "format": "json", "titles": "|".join(titles), "prop": "imageinfo",
+            "iiprop": "url|extmetadata", "iiurlwidth": 1600})
+        try:
+            pages = r.json()["query"]["pages"].values(); break
+        except Exception:
+            print("api", r.status_code); time.sleep(5 + 5 * k)
+    out = {}
+    for p in pages:
+        ii = p["imageinfo"][0]; md = ii.get("extmetadata", {})
+        art = re.sub("<[^>]+>", "", md.get("Artist", {}).get("value", "")).strip()
+        for k in range(5):
+            resp = requests.get(ii["thumburl"], headers=UA, timeout=60)
+            if resp.ok: break
+            time.sleep(5 + 5 * k)
+        out[p["title"]] = {"img": Image.open(io.BytesIO(resp.content)).convert("RGB"),
+                           "lic": md.get("LicenseShortName", {}).get("value", ""), "artist": art, "title": p["title"]}
+        print("PICK", p["title"], "|", out[p["title"]]["lic"], "|", art)
     return out
-
-
-def pick(queries, skip=()):
-    free, other = [], []
-    for q in queries:
-        for c in search(q):
-            if c["title"] in skip:
-                continue
-            (free if c["lic"].lower().startswith(OK) else other).append(c)
-    for c in free + other:
-        if c["lic"].lower().startswith(OK) or "cc by" in c["lic"].lower():
-            try:
-                im = Image.open(io.BytesIO(requests.get(c["url"], headers=UA, timeout=60).content)).convert("RGB")
-                c["img"] = im
-                print("PICK", c["title"], "|", c["lic"], "|", c["artist"])
-                return c
-            except Exception as e:  # noqa
-                print("skip", c["title"], e)
-    sys.exit("no photo for " + str(queries))
 
 
 def cover(im, w, h):
@@ -72,26 +58,26 @@ def put(base, im, box, alpha=1.0, k=0.62, bright=0.9):
 
 
 base = Image.open(os.path.join(D, "base.png")).convert("RGB")
-rak = pick(["boiled red crab", "cooked crab plate", "king crab cooked"])
-rak2 = pick(["steamed crab", "Dungeness crab cooked", "crab legs"], skip={rak["title"]})
-beer = pick(["beer mug foam", "glass of beer lager", "beer stein"])
-
-put(base, rak2["img"], (480, -260, 860, 860), alpha=0.85, k=0.72)
-put(base, rak2["img"], (-340, 40, 760, 760), alpha=0.6, k=0.7)
-put(base, rak["img"], (-260, 560, 1080, 1080), k=0.8)
-put(base, beer["img"], (600, 600, 640, 860), k=0.72, bright=0.95)
+T = get_titles(["File:Crabs as food in Antalya.jpg", "File:Crab (1795737730).jpg",
+                "File:Alaskan King Crab Legs (3241225745).jpg", "File:Beer Mug (30310981316).jpg"])
+rak, rak2, legs, beer = (T[t] for t in ["File:Crabs as food in Antalya.jpg", "File:Crab (1795737730).jpg",
+                                        "File:Alaskan King Crab Legs (3241225745).jpg", "File:Beer Mug (30310981316).jpg"])
+put(base, rak2["img"], (440, -240, 900, 900), alpha=0.9, k=0.74)
+put(base, legs["img"], (-360, 20, 800, 800), alpha=0.65, k=0.7)
+put(base, rak["img"], (-280, 520, 1100, 1100), k=0.8)
+put(base, beer["img"], (560, 600, 720, 860), k=0.74, bright=0.95)
 
 fg = Image.open(os.path.join(D, "fg.png")).convert("RGBA")
 out = base.convert("RGBA")
 out.alpha_composite(fg)
 out = out.convert("RGB")
 
-credits = [c for c in (rak, rak2, beer) if not c["lic"].lower().startswith(OK)]
+credits = [c for c in (rak, rak2, legs, beer) if not c["lic"].lower().startswith(OK)]
 if credits:
-    t = "Фото: " + "; ".join(f"{c['artist'][:30]}, {c['lic']}" for c in credits) + " · Wikimedia Commons"
+    t = "Фото: " + "; ".join(f"{c['artist'][:24]}, {c['lic']}" for c in credits) + " · Wikimedia Commons"
     ImageDraw.Draw(out).text((18, 1326), t[:160], fill=(200, 180, 160), font=ImageFont.truetype(os.path.join(D, "GolosText[wght].ttf"), 15))
 out.save(os.path.join(D, "kubok_rakov_real.jpg"), quality=92)
 
-th = out.resize((432, 540))
-b = io.BytesIO(); th.save(b, "JPEG", quality=55)
+th = out.resize((540, 675))
+b = io.BytesIO(); th.save(b, "JPEG", quality=70)
 print("PREVIEW_B64_START"); print(base64.b64encode(b.getvalue()).decode()); print("PREVIEW_B64_END")
