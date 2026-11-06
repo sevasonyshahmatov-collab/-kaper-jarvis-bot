@@ -1,0 +1,39 @@
+# Фото игроков для главной v3a (шаблон 1): Commons -> rembg -> proto/home/players/cand. Триггер — изменение run.txt.
+name: Игроки для главной v3a
+
+on:
+  push:
+    branches: ['claude/team-dev-**']
+    paths: ['team/site/v3a/proto/home/players/run.txt']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  players:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/cache@v4
+        with:
+          path: ~/.u2net
+          key: rembg-isnet-v1
+      - run: pip install rembg onnxruntime pillow requests
+      - run: python team/site/v3a/proto/home/players/hero_players.py
+      - name: Закоммитить вырезки
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A team/site/v3a/proto/home/players/cand
+          git diff --cached --quiet || git commit -m "Игроки для главной v3a: вырезки кандидатов"
+          for i in 1 2 3 4 5; do
+            git fetch -q --depth=50 origin "$GITHUB_REF_NAME" && git rebase -q FETCH_HEAD && git push && exit 0
+            git rebase --abort 2>/dev/null; sleep 10
+          done
+          exit 1
