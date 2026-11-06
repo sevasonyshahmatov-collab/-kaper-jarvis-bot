@@ -48,9 +48,10 @@ def fade(w, h, k=0.62):
     return m.filter(ImageFilter.GaussianBlur(min(w, h) * 0.16))
 
 
-def put(base, im, box, alpha=1.0, k=0.62, bright=0.9):
+def put(base, im, box, alpha=1.0, k=0.62, bright=0.9, sat=1.25):
     x, y, w, h = box
-    ph = ImageEnhance.Brightness(cover(im, w, h)).enhance(bright)
+    ph = ImageEnhance.Color(ImageEnhance.Contrast(cover(im, w, h)).enhance(1.12)).enhance(sat)
+    ph = ImageEnhance.Brightness(ph).enhance(bright)
     m = fade(w, h, k)
     if alpha < 1:
         m = m.point(lambda v: int(v * alpha))
@@ -62,20 +63,18 @@ T = get_titles(["File:Crabs as food in Antalya.jpg", "File:Crab (1795737730).jpg
                 "File:Alaskan King Crab Legs (3241225745).jpg", "File:Beer Mug (30310981316).jpg"])
 rak, rak2, legs, beer = (T[t] for t in ["File:Crabs as food in Antalya.jpg", "File:Crab (1795737730).jpg",
                                         "File:Alaskan King Crab Legs (3241225745).jpg", "File:Beer Mug (30310981316).jpg"])
-put(base, rak2["img"], (440, -240, 900, 900), alpha=0.9, k=0.74)
-put(base, legs["img"], (-360, 20, 800, 800), alpha=0.65, k=0.7)
-put(base, rak["img"], (-280, 520, 1100, 1100), k=0.8)
-put(base, beer["img"], (560, 600, 720, 860), k=0.74, bright=0.95)
+put(base, rak["img"], (-380, -80, 760, 760), alpha=0.5, k=0.62, bright=0.8)
+put(base, rak2["img"], (500, -220, 820, 820), alpha=0.9, k=0.66)
+put(base, legs["img"], (-300, 640, 1000, 1000), k=0.7, bright=1.0)
+put(base, beer["img"], (560, 720, 620, 760), k=0.7, bright=1.08, sat=1.15)
 
 fg = Image.open(os.path.join(D, "fg.png")).convert("RGBA")
 out = base.convert("RGBA")
 out.alpha_composite(fg)
 out = out.convert("RGB")
 
-credits = [c for c in (rak, rak2, legs, beer) if not c["lic"].lower().startswith(OK)]
-if credits:
-    t = "Фото: " + "; ".join(f"{c['artist'][:24]}, {c['lic']}" for c in credits) + " · Wikimedia Commons"
-    ImageDraw.Draw(out).text((18, 1326), t[:160], fill=(200, 180, 160), font=ImageFont.truetype(os.path.join(D, "GolosText[wght].ttf"), 15))
+t = "Фото: Wikimedia Commons, CC BY — Kadı; David Pursehouse; missbossy; Victor Zolotuhin"
+ImageDraw.Draw(out).text((18, 1326), t, fill=(200, 180, 160), font=ImageFont.truetype(os.path.join(D, "GolosText[wght].ttf"), 15))
 out.save(os.path.join(D, "kubok_rakov_real.jpg"), quality=92)
 
 th = out.resize((540, 675))
