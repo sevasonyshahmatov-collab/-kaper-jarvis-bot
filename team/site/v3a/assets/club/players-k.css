@@ -58,4 +58,4 @@ html[data-white] body{background:#fff}
 /* без инициалов: нет фото — в круге эмблема клуба (владелец 06.11) */
 .av>span{display:none}
 .av:not(:has(.ph)){background:#fff!important}
-.av:not(:has(.ph)) .bd{position:static;width:66%;height:66%;padding:0;background:none;box-shadow:none;border-radius:0}
+.av:not(:has(.ph)) .bd,.pr.k .av:not(:has(.ph)) .bd{position:static;width:66%;height:66%;padding:0;background:none;box-shadow:none;border-radius:0}
