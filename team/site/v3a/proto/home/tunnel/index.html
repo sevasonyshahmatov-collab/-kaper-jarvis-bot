@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ru" data-theme="a">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JARVIS: туннель</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0a1220">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="stylesheet" href="../../../assets/v3a.css">
+<link rel="stylesheet" href="../../../assets/nav.css">
+<link rel="stylesheet" href="tunnel.css">
+<link rel="icon" href="../../../favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="../../../index.html" aria-label="JARVIS, главная">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="../../../hockey/index.html">Хоккей</a>
+      <a href="../../../football/index.html">Футбол</a>
+    </nav>
+    <nav class="nav" aria-label="Разделы"><a href="#list">Сегодня</a><a href="#how">Модель</a></nav>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Получать прогнозы — бесплатно</span></a>
+  </div>
+</header>
+
+<main id="main">
+<section class="scene" id="scene" aria-label="Вход на арену">
+ <div class="stick" id="stick">
+  <canvas class="tun" id="tun" aria-hidden="true"></canvas>
+  <div class="title" id="title">
+   <h1>Прогнозы на хоккей и футбол — по расчёту, а не наугад</h1>
+   <p>Вероятность каждого исхода считает модель JARVIS. Выйдите из туннеля и выберите арену.</p>
+  </div>
+  <div class="sp" id="sp">
+   <div class="arena ice" id="ar-h">
+    <div class="bg"><div class="floor"><svg viewBox="0 0 400 200" preserveAspectRatio="none" aria-hidden="true"><ellipse cx="200" cy="100" rx="70" ry="34"/><path d="M200 0v200M0 100h400"/></svg></div><div class="glow"></div></div>
+    <div class="half">
+     <div class="plr"><div class="plr-in"><img src="../players/hockey.webp" alt="Коннор Макдэвид, хоккеист" width="846" height="1100"></div></div>
+     <div class="txt"><span class="kick">КХЛ и НХЛ</span><h2>Хоккей</h2><p class="cnt" id="cnt-h">КХЛ и НХЛ</p><a class="go" href="../../../hockey/index.html">Прогнозы на хоккей <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+    </div>
+   </div>
+   <div class="arena grass" id="ar-f">
+    <div class="bg"><div class="floor"><svg viewBox="0 0 400 200" preserveAspectRatio="none" aria-hidden="true"><circle cx="200" cy="100" r="38"/><path d="M200 0v200"/><rect x="2" y="50" width="70" height="100"/><rect x="328" y="50" width="70" height="100"/></svg></div><div class="glow"></div></div>
+    <div class="half">
+     <div class="plr"><div class="plr-in"><img src="../players/football.webp" alt="Килиан Мбаппе, футболист" width="493" height="900"></div></div>
+     <div class="txt"><span class="kick">топ-лиги Европы</span><h2>Футбол</h2><p class="cnt" id="cnt-f">топ-лиги Европы</p><a class="go" href="../../../football/index.html">Прогнозы на футбол <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+    </div>
+   </div>
+  </div>
+  <p class="credit" id="credit">Фото: Kylian Mbappé — Bryan Berlin, CC BY-SA 4.0, Wikimedia Commons</p>
+  <div class="hint" id="hint" aria-hidden="true"><span>листайте</span><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+ </div>
+</section>
+
+<section class="list" id="list" aria-label="Ближайшие матчи">
+ <div class="wrap">
+  <div class="lh"><h2>Ближайшие матчи</h2><p id="lh-date">Сегодня</p></div>
+  <div class="rows" id="rows" aria-live="polite"><p class="none">Загружаем матчи…</p></div>
+  <p class="note" id="how">Время московское. Проценты — вероятности исходов по модели JARVIS в основное время; кэф — линия рынка на самый вероятный исход. <span id="upd"></span> Это аналитика, а не гарантия. 18+.<br>Фото: Kylian Mbappé — Bryan Berlin, CC BY-SA 4.0, Wikimedia Commons.</p>
+ </div>
+</section>
+</main>
+
+<script src="../../../assets/nav.js"></script>
+<script src="../../../assets/footer.js"></script>
+<script src="../../../data/today.js"></script>
+<script src="../../../data/lines.js"></script>
+<script src="../../../data/model.js"></script>
+<script src="../../../assets/lines.js"></script>
+<script src="../common.js"></script>
+<script src="tunnel.js"></script>
+</body>
+</html>
