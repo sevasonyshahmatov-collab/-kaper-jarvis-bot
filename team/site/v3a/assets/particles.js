@@ -8,7 +8,7 @@
 (()=>{
 'use strict';
 const doc=document.documentElement;
-if(doc.dataset.theme!=='arena'||!document.querySelector('.hero'))return;
+if(doc.dataset.hbg||doc.dataset.theme!=='arena'||!document.querySelector('.hero'))return;
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const cv=document.createElement('canvas');
 cv.id='snow';cv.setAttribute('aria-hidden','true');

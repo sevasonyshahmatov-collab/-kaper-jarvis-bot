@@ -199,6 +199,6 @@ function keepTheme(){
 document.addEventListener('DOMContentLoaded',()=>{keepTheme();arena();chrome();wipe();
   requestAnimationFrame(()=>document.querySelector('.hero,.mast')?.classList.add('ready'));
   JV.reveal();
-  const k=document.body.dataset.field;if(k)JV.field(k);
+  const k=document.body.dataset.field;if(k&&!document.documentElement.dataset.hbg)JV.field(k);
 });
 })();
