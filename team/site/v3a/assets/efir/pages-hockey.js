@@ -96,6 +96,31 @@ boot.league=function(){
   decorateLgm(lg);
   $$('main').forEach(function(m){new MutationObserver(function(){decorateLgm(lg)}).observe(m,{childList:true,subtree:true})});
 };
+/* прогноз на сегодня: строки .fc-m красим по эмблемам, сцена из клиньев первого матча */
+function emIds(el){return $$('img',el).map(function(i){var m=/\/em\/([a-z0-9_]+)\.webp/.exec(i.getAttribute('src')||'');return m?m[1]:''}).filter(Boolean)}
+boot.forecast=function(){
+  var lg=/forecast-nhl/.test(P)?'nhl':'khl',first=true,top=$('.fc-top');
+  $$('.fc-m').forEach(function(el){
+    var ids=emIds(el);if(ids.length<2)return;
+    var c=W.JVEfir.cols({h:ids[0],a:ids[1],lg:lg});el.setAttribute('style',W.JVEfir.cv(c));
+    if(first){first=false;var r=H.style;r.setProperty('--hd',c.hd);r.setProperty('--hb',c.hb);r.setProperty('--ad',c.ad);r.setProperty('--ab',c.ab)}
+  });
+  if(top&&!$('.mt-stage'))top.insertAdjacentHTML('afterbegin','<div class="mt-stage" aria-hidden="true"><i class="wedge wedge--h"></i><i class="wedge wedge--a"></i></div>');
+  var T={};$$('.fc-sec h2').forEach(function(h){if(h.id)T[h.id]=h.id});
+  prepSections();
+};
+/* игрок: клубный цвет из .pp, метки разделов */
+boot.player=function(){
+  function paint(){
+    var pp=$('.pp');if(!pp)return;
+    var c=getComputedStyle(pp).getPropertyValue('--c').trim();
+    if(c){H.style.setProperty('--hb',c);H.style.setProperty('--hd',c)}
+    var map=['Сезон · цифры','Рынки · «n из N»','Форма · матчи','Следующий матч','Линия'],i=0;
+    $$('.pp-sec').forEach(function(s,k){var h=$('h2',s);if(h&&!$('.ef-tagw',s)){h.insertAdjacentHTML('beforebegin',W.JVEfir.tag(map[k]||'Игрок'))}});
+  }
+  paint();
+  var m=$('main');if(m)new MutationObserver(paint).observe(m,{childList:true,subtree:true});
+};
 function start(){var f=boot[page];if(f)f()}
 waitFor(function(){return W.JVEfir},start);
 })();
