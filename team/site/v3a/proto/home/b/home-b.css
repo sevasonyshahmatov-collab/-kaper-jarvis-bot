@@ -1,0 +1,57 @@
+/* Шаблон B «Рейтинг уверенности». Палитра a (ночной лёд), шрифты сайта. Один приём: строка матча — полоса вероятностей, список упорядочен по уверенности модели. */
+.rk{padding:clamp(18px,2.6vw,36px) 0 clamp(40px,5vw,72px)}
+.rk-head{display:flex;justify-content:space-between;align-items:end;gap:20px 40px;flex-wrap:wrap}
+.rk-date{margin:0 0 10px;font:600 15px/1 var(--display);color:var(--ink-3)}
+.rk h1{font:800 clamp(28px,3vw,44px)/1.05 var(--display);letter-spacing:-.02em;max-width:30ch;text-transform:none}
+.rk-sub{margin:12px 0 0;font:400 17px/1.5 var(--text);color:var(--ink-2);max-width:58ch}
+.rk-tg{white-space:nowrap}
+.rk-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin-top:clamp(18px,2.4vw,28px);padding-top:14px;border-top:1px solid var(--rule-2)}
+.rk-tabs{display:flex;gap:4px;padding:3px;border-radius:999px;background:var(--paper-2)}
+.rk-tabs button{font:700 15px/1 var(--display);padding:9px 15px;border:0;border-radius:999px;background:transparent;color:var(--ink-2);cursor:pointer;transition:background .2s ease,color .2s ease}
+.rk-tabs button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.rk-tabs button:not([aria-pressed="true"]):hover{color:var(--ink)}
+.rk-upd{margin-left:auto;font:600 13px/1 var(--display);color:var(--ink-3)}
+
+.rk-legend,.rk-list a{display:grid;grid-template-columns:34px 78px minmax(0,1.15fr) minmax(220px,1.25fr) 150px;gap:0 clamp(12px,1.6vw,24px);align-items:center}
+.rk-legend{margin-top:12px;font:600 12px/1 var(--display);color:var(--ink-3)}
+.rk-legend span{grid-row:1}
+.rk-legend .c1{grid-column:4;justify-self:start}.rk-legend .c0{grid-column:4;justify-self:center}.rk-legend .c2{grid-column:4;justify-self:end}
+.rk-legend span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;background:var(--c)}
+.rk-legend .c1,.rk-pb .c1{--c:var(--ice)}.rk-legend .c0,.rk-pb .c0{--c:var(--paper-3)}.rk-legend .c2,.rk-pb .c2{--c:var(--signal)}
+.rk-list{list-style:none;margin:6px 0 0;padding:0}
+.rk-list li{border-top:1px solid var(--rule-2)}
+.rk-list a{padding:12px 0;text-decoration:none;color:var(--ink);transition:background .2s ease}
+.rk-n{font:800 22px/1 var(--display);color:var(--ink-3);font-variant-numeric:tabular-nums;text-align:right}
+.rk-list li.top .rk-n{color:var(--signal)}
+.rk-list time{font:800 20px/1 var(--display);font-variant-numeric:tabular-nums}
+.rk-list time small{display:block;font:600 12px/1.25 var(--display);color:var(--ink-3);margin-top:4px}
+.rk-tm{display:grid;gap:6px;min-width:0;font:700 17px/1.15 var(--display)}
+.rk-tm span{display:flex;align-items:center;gap:10px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rk-tm img{width:26px;height:26px;object-fit:contain;flex:none}
+.rk-pb{display:flex;gap:3px;height:34px}
+.rk-pb i{display:flex;align-items:center;justify-content:center;min-width:6px;border-radius:5px;background:var(--c);font:800 15px/1 var(--display);font-style:normal;font-variant-numeric:tabular-nums;color:var(--paper)}
+.rk-pb .c0{color:var(--ink-2)}
+.rk-pb .c1{color:var(--sport-ink)}
+.rk-pb.none{display:block;font:600 14px/34px var(--display);color:var(--ink-3)}
+.rk-pk{text-align:right}
+.rk-pk b{font:900 36px/1 var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.rk-pk b small{font-size:.5em;margin-left:2px}
+.rk-pk>small{display:block;margin-top:4px;font:600 13px/1.25 var(--display);color:var(--ink-3)}
+.rk-list li.top .rk-pk b{color:var(--signal)}
+@media (hover:hover){.rk-list a:hover{background:color-mix(in srgb,var(--card-hi) 55%,transparent)}}
+.rk-none{padding:20px 0;color:var(--ink-2)}
+.rk-note{margin:16px 0 0;font:400 13px/1.5 var(--text);color:var(--ink-3);max-width:80ch}
+
+@media (max-width:900px){
+ .rk-legend{display:none}
+ .rk-list a{grid-template-columns:62px minmax(0,1fr) auto;grid-template-areas:"t m p" "b b b";gap:10px 12px;padding:14px 0}
+ .rk-n{display:none}
+ .rk-list time{grid-area:t}.rk-tm{grid-area:m}.rk-pk{grid-area:p}.rk-pb{grid-area:b}
+ .rk-pk b{font-size:30px}
+ .rk-pb{height:30px}
+}
+@media (max-width:520px){
+ .rk-upd{margin-left:0;width:100%}
+ .rk-tabs button{padding:9px 12px;font-size:14px}
+ .rk-tg{width:100%;justify-content:center}
+}

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ru" data-theme="a">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JARVIS: рейтинг уверенности</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0a1220">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="stylesheet" href="../../../assets/v3a.css">
+<link rel="stylesheet" href="../../../assets/nav.css">
+<link rel="stylesheet" href="home-b.css">
+<link rel="icon" href="../../../favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="../../../index.html" aria-label="JARVIS, главная">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="../../../hockey/index.html">Хоккей</a>
+      <a href="../../../football/index.html">Футбол</a>
+    </nav>
+    <nav class="nav" aria-label="Разделы"><a href="#rank">Сегодня</a><a href="#how">Модель</a></nav>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Получать прогнозы — бесплатно</span></a>
+  </div>
+</header>
+
+<main id="main" class="rk">
+  <div class="wrap">
+    <div class="rk-head">
+      <div>
+        <p class="rk-date" id="rk-date">Сегодня</p>
+        <h1>Матчи дня — от самого предсказуемого к самому открытому</h1>
+        <p class="rk-sub">Модель разыгрывает каждый матч тысячи раз. Чем выше строка, тем увереннее она в исходе. Рядом — кэфы линии.</p>
+      </div>
+      <a class="btn btn-tg rk-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a>
+    </div>
+
+    <div class="rk-bar" id="rank">
+      <div class="rk-tabs" role="group" aria-label="Вид спорта">
+        <button type="button" data-f="all" aria-pressed="true">Все</button>
+        <button type="button" data-f="h" aria-pressed="false">Хоккей</button>
+        <button type="button" data-f="f" aria-pressed="false">Футбол</button>
+      </div>
+      <div class="rk-tabs" role="group" aria-label="Порядок">
+        <button type="button" data-s="p" aria-pressed="true">По уверенности</button>
+        <button type="button" data-s="t" aria-pressed="false">По времени</button>
+      </div>
+      <span class="rk-upd" id="rk-upd"></span>
+    </div>
+
+    <div class="rk-legend" aria-hidden="true"><span class="c1">Победа хозяев</span><span class="c0">Ничья</span><span class="c2">Победа гостей</span></div>
+    <ol class="rk-list" id="rk-list" aria-live="polite"><li class="rk-none">Загружаем матчи…</li></ol>
+    <p class="rk-note" id="how">Время московское. Полоса — вероятности исходов по модели JARVIS в основное время, цифра справа — самый вероятный исход и кэф линии на него. Это аналитика, а не гарантия. 18+.</p>
+  </div>
+</main>
+
+<script src="../../../assets/nav.js"></script>
+<script src="../../../assets/footer.js"></script>
+<script src="../../../data/today.js"></script>
+<script src="../../../data/lines.js"></script>
+<script src="../../../data/model.js"></script>
+<script src="../../../assets/lines.js"></script>
+<script src="../common.js"></script>
+<script src="home-b.js"></script>
+</body>
+</html>
