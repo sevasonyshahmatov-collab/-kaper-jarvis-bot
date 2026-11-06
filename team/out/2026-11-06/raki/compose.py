@@ -72,14 +72,14 @@ def put(base, im, box, alpha=1.0, k=0.62, bright=0.9):
 
 
 base = Image.open(os.path.join(D, "base.png")).convert("RGB")
-rak = pick(["boiled crayfish", "cooked crayfish plate", "crayfish party"])
-rak2 = pick(["crayfish dish", "boiled crawfish", "kräftskiva"], skip={rak["title"]})
+rak = pick(["boiled red crab", "cooked crab plate", "king crab cooked"])
+rak2 = pick(["steamed crab", "Dungeness crab cooked", "crab legs"], skip={rak["title"]})
 beer = pick(["beer mug foam", "glass of beer lager", "beer stein"])
 
-put(base, rak2["img"], (560, -160, 720, 720), alpha=0.75)
-put(base, rak["img"], (-200, 700, 900, 900), k=0.7)
-put(base, beer["img"], (560, 640, 680, 860), k=0.7, bright=0.95)
-put(base, rak2["img"], (-260, 120, 620, 620), alpha=0.55)
+put(base, rak2["img"], (480, -260, 860, 860), alpha=0.85, k=0.72)
+put(base, rak2["img"], (-340, 40, 760, 760), alpha=0.6, k=0.7)
+put(base, rak["img"], (-260, 560, 1080, 1080), k=0.8)
+put(base, beer["img"], (600, 600, 640, 860), k=0.72, bright=0.95)
 
 fg = Image.open(os.path.join(D, "fg.png")).convert("RGBA")
 out = base.convert("RGBA")
