@@ -511,3 +511,6 @@ html.efir[data-sport=hockey] .plwrap:focus-visible{outline-color:#fff}
 html.efir[data-sport=hockey] .pav,html.efir[data-sport=hockey] .pla{border-radius:0}
 html.efir[data-sport=hockey] .plgo{color:#fff;font-family:var(--ef-d)}
 html.efir[data-sport=hockey] .tmstreak{background:none;border-left-color:#fff;border-radius:0}
+html.efir[data-sport=hockey] .g .rs{min-width:30px;clip-path:none;transform:skewX(-8deg);border-radius:0}
+html.efir[data-sport=hockey] .gd b{white-space:nowrap}
+@media(max-width:620px){html.efir[data-sport=hockey] .g{padding:10px 12px 10px 18px}html.efir[data-sport=hockey] .g .sc{font-size:18px}html.efir[data-sport=hockey] .g .op{font-size:15px}html.efir[data-sport=hockey] .g .gd{min-width:56px}}

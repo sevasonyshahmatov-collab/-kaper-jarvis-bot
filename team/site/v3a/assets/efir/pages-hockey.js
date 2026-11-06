@@ -36,6 +36,22 @@ boot.index=function(){
   if(f)W.JVEfir.setPageColors(f);
   watchMatches();
 };
+/* метки разделов: тексты по id секции; секции рисует JS страницы, поэтому следим за появлением */
+function tagSections(map){
+  function run(){
+    Object.keys(map).forEach(function(id){
+      var sec=D.getElementById(id);if(!sec)return;
+      var h=$('.sec-head',sec);if(!h||h.querySelector('.ef-tagw'))return;
+      h.insertAdjacentHTML('afterbegin',W.JVEfir.tag(map[id]));
+    });
+  }
+  run();
+  $$('main').forEach(function(m){new MutationObserver(run).observe(m,{childList:true,subtree:true})});
+}
+boot.club=function(){
+  tagSections({table:'Таблица · сезон',trends:'Тренды · форма',totals:'Тоталы · шайбы',next:'Следующий матч',games:'Матчи сезона',players:'Игроки',picks:'Наши прогнозы'});
+  watchMatches();
+};
 function start(){var f=boot[page];if(f)f()}
 waitFor(function(){return W.JVEfir},start);
 })();
