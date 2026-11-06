@@ -13,20 +13,14 @@ if(touchy)$('.cd-hint').innerHTML='Проведи пальцем по карто
 (()=>{
  const H=window.HOME;if(!H||!H.J)return;
  const e=H.esc,all=H.all();
- $('#cd-date').textContent=H.dateStr();$('#cd-upd').textContent=H.upd();
+ $('#cd-date').textContent=H.dateStr();
  const fmt=n=>n.toFixed(1).replace('.',',');
- const k=(m)=>m.ln&&m.bi>=0?[m.ln.p1,m.ln.x,m.ln.p2][m.bi]:null;
- const li=m=>{
-  const p=m.md?`${H.pct(m.best)}<small>${m.bi===1?'ничья':e(m.who)}${k(m)?', кэф '+H.f2(k(m)):''}</small>`:'<small>расчёт скоро</small>';
-  return `<li><a href="${m.href}"><time>${m.hm}<small>${m.day==='сегодня'?m.lgn:m.day}</small></time><span class="nm"><span>${e(m.hn)}</span><span>${e(m.an)}</span></span><span class="pk${m.best>=.6?' hi':''}">${p}</span></a></li>`;
- };
- [['hk',true,'#cd-h-list'],['fb',false,'#cd-f-list']].forEach(([c,hk,sel])=>{
+ [['hk',true],['fb',false]].forEach(([c,hk])=>{
   const list=all.filter(m=>m.hockey===hk),td=list.filter(m=>m.day==='сегодня'),use=td.length?td:list;
   const n=use.length,el=$('.card.'+c);
   el.querySelector('[data-cnt]').textContent=n?(td.length?`${n} ${H.pl(n,'матч','матча','матчей')} сегодня`:`${n} ${H.pl(n,'матч','матча','матчей')} впереди`):'сегодня матчей нет';
   const lam=use.map(m=>m.md&&m.md.lam?m.md.lam[0]+m.md.lam[1]:null).filter(v=>v!=null);
   if(lam.length)el.querySelector('[data-stat]').textContent='ср. тотал по модели '+fmt(lam.reduce((a,b)=>a+b,0)/lam.length);
-  $(sel).innerHTML=list.length?list.slice(0,5).map(li).join(''):'<li class="none">Матчей пока нет.</li>';
  });
 })();
 
