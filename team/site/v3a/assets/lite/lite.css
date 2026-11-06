@@ -1,0 +1,94 @@
+/* JARVIS · «Лайт» (?theme=lite). Старый вид сайта + три приёма из «Эфира». Всё под html.lite, префикс lt-.
+   1) стеклянное табло матча дня (.lt-glass на главной, .board на главных хоккея и футбола);
+   2) клинья клубных цветов в шапках клубов (.lt-wedge внутри .tmhero);
+   3) лёгкая реакция карточек на наведение (подъём 2–3 px, тень, блик, нажатие .98) — только hover:hover, без анимаций при reduced-motion. */
+
+/* ——— 1. стекло ——— */
+html.lite{--lt-ease:cubic-bezier(.2,.7,.2,1);--lt-edge:rgba(255,255,255,.26);--lt-mute:rgba(235,242,255,.78)}
+html.lite .lt-rcol{display:grid;gap:16px;min-width:0}
+html.lite .lt-glass{position:relative;display:block;font-family:var(--display,inherit);color:#fff;text-decoration:none;border:1px solid var(--lt-edge);border-radius:6px;overflow:hidden;
+  background:
+    radial-gradient(120% 90% at 0 0,color-mix(in srgb,var(--lt-a,#4a78c9) 42%,transparent),transparent 62%),
+    radial-gradient(120% 90% at 100% 100%,color-mix(in srgb,var(--lt-b,#c94a5e) 38%,transparent),transparent 62%),
+    linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.05));
+  box-shadow:0 14px 40px -18px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.18);
+  -webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);
+  transition:transform .3s var(--lt-ease),box-shadow .3s var(--lt-ease)}
+@media(max-width:899px){html.lite .lt-glass{-webkit-backdrop-filter:none;backdrop-filter:none;
+  background:
+    radial-gradient(120% 90% at 0 0,color-mix(in srgb,var(--lt-a,#4a78c9) 40%,transparent),transparent 62%),
+    radial-gradient(120% 90% at 100% 100%,color-mix(in srgb,var(--lt-b,#c94a5e) 36%,transparent),transparent 62%),
+    linear-gradient(180deg,rgba(28,38,62,.96),rgba(18,26,46,.97))}}
+html.lite .lt-glass__top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 16px;font:600 12px/1.2 var(--display,inherit);color:var(--lt-mute);border-bottom:1px solid var(--lt-edge)}
+html.lite .lt-glass__top b{color:#fff;font:700 12px/1.2 var(--display,inherit);letter-spacing:.04em;text-transform:uppercase}
+html.lite .lt-glass__names{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:10px;padding:16px 16px 6px;font:800 clamp(15px,2vw,20px)/1.15 var(--display,inherit)}
+html.lite .lt-glass__names>span{display:flex;align-items:center;gap:10px;min-width:0}
+html.lite .lt-glass__names>span:last-child{flex-direction:row-reverse;text-align:right}
+html.lite .lt-glass__names i{font-style:normal;min-width:0;overflow-wrap:anywhere}
+html.lite .lt-glass__names img{width:34px;height:34px;flex:none;object-fit:contain;border-radius:50%;background:rgba(255,255,255,.92);padding:2px}
+html.lite .lt-glass__names em{font:700 11px/1 var(--display,inherit);font-style:normal;color:#000;background:#fff;padding:6px 9px;border-radius:3px}
+html.lite .lt-glass__clock{display:block;text-align:center;padding:4px 16px 14px}
+html.lite .lt-glass__clock small{display:block;color:var(--lt-mute);font-size:12px}
+html.lite .lt-glass__clock b{display:block;font:700 clamp(24px,3.6vw,34px)/1.15 var(--display,inherit);white-space:nowrap;font-variant-numeric:tabular-nums}
+html.lite .lt-glass__p{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--lt-edge)}
+html.lite .lt-glass__p div{position:relative;padding:10px 6px 12px;text-align:center;border-right:1px solid var(--lt-edge)}
+html.lite .lt-glass__p div:last-child{border-right:0}
+html.lite .lt-glass__p small{display:block;font-size:11px;color:var(--lt-mute)}
+html.lite .lt-glass__p b{font:700 clamp(18px,2.4vw,24px)/1.15 var(--display,inherit)}
+html.lite .lt-glass__p .mx{background:rgba(255,255,255,.16)}
+html.lite .lt-glass__p .mx::after{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:#fff}
+html.lite .lt-glass__foot{display:flex;justify-content:space-between;gap:10px;padding:9px 16px;font-size:13px;color:var(--lt-mute);background:rgba(8,12,24,.42)}
+html.lite .lt-glass__foot b{color:#fff;font-weight:600}
+
+/* главные хоккея и футбола: существующее табло «Прогноз дня» (.board) — то же стекло, разметка не тронута */
+html.lite .hero .board,html.lite .hero .board.khl,html.lite .hero .board.nhl{
+  background:
+    radial-gradient(110% 80% at 0 0,rgba(86,140,255,.26),transparent 60%),
+    radial-gradient(110% 80% at 100% 100%,rgba(255,120,150,.18),transparent 60%),
+    linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.04)) !important;
+  border:1px solid var(--lt-edge);
+  box-shadow:0 14px 40px -18px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.18);
+  -webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2)}
+html.lite[data-sport=football] .hero .board,html.lite[data-sport=football] .hero .board.khl{
+  background:
+    radial-gradient(110% 80% at 0 0,rgba(52,214,126,.24),transparent 60%),
+    radial-gradient(110% 80% at 100% 100%,rgba(70,150,255,.18),transparent 60%),
+    linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.04)) !important}
+html.lite .hero .board::before{display:none}
+@media(max-width:899px){html.lite .hero .board{-webkit-backdrop-filter:none;backdrop-filter:none;background:linear-gradient(180deg,rgba(28,38,62,.95),rgba(18,26,46,.97)) !important}}
+
+/* ——— 2. клинья в шапке клуба ——— */
+html.lite .tmhero{position:relative;overflow:hidden}
+html.lite .tmhero>.wrap{position:relative;z-index:1}
+html.lite .lt-wedge{position:absolute;z-index:0;pointer-events:none;top:0;bottom:0;
+  --lt-c1:var(--lt-a,var(--k-a1,var(--cacc,#4a78c9)));--lt-c2:var(--lt-b,var(--k-dk,var(--k-a2,#fff)))}
+html.lite .lt-wedge--1{left:-9%;width:46%;clip-path:polygon(24% 0,100% 0,76% 100%,0 100%);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--lt-c1) 36%,transparent),color-mix(in srgb,var(--lt-c1) 6%,transparent))}
+html.lite .lt-wedge--2{right:-6%;width:22%;clip-path:polygon(34% 0,100% 0,66% 100%,0 100%);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--lt-c2) 55%,transparent),color-mix(in srgb,var(--lt-c2) 8%,transparent))}
+@media(max-width:760px){
+  html.lite .lt-wedge--1{left:-24%;width:90%}
+  html.lite .lt-wedge--2{right:-14%;width:34%}}
+
+/* ——— 3. карточки: подъём, тень, блик, нажатие ——— */
+@media(hover:hover) and (pointer:fine){
+  html.lite :is(.hm-row,.match:not(.open),.fc-m,.lgm,.plcard,.crest,.hm-door,.door,.me-card,.me-m,.me-tm,.lgtab,.lt-glass,.hero .board){
+    position:relative;transition:transform .28s var(--lt-ease),box-shadow .28s var(--lt-ease),background-color .25s ease}
+  html.lite :is(.hm-row,.match:not(.open),.fc-m,.lgm,.plcard,.crest,.hm-door,.door,.me-card,.me-m,.me-tm,.lgtab,.lt-glass):hover{
+    transform:translateY(-3px);box-shadow:0 12px 28px -12px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.18)}
+  html.lite .lt-glass:hover{box-shadow:0 20px 44px -16px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.22)}
+  html.lite :is(.hm-row,.match:not(.open),.fc-m,.lgm,.plcard,.crest,.hm-door,.door,.me-card,.me-m,.me-tm,.lgtab,.lt-glass):active{
+    transform:scale(.98);transition-duration:.08s}
+  /* блик — своим слоем поверх карточки, ничего не обрезает */
+  html.lite :is(.hm-row,.fc-m,.lgm,.plcard,.hm-door,.door,.me-card,.me-m,.me-tm,.lgtab,.lt-glass)::after{
+    content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;opacity:0;
+    background:linear-gradient(100deg,transparent 38%,rgba(255,255,255,.11) 50%,transparent 62%);background-size:260% 100%;background-position:150% 0}
+  html.lite :is(.hm-row,.fc-m,.lgm,.plcard,.hm-door,.door,.me-card,.me-m,.me-tm,.lgtab,.lt-glass):hover::after{
+    opacity:1;animation:ltGlint .8s var(--lt-ease) 1 both}
+}
+@keyframes ltGlint{from{background-position:150% 0}to{background-position:-50% 0}}
+@media(prefers-reduced-motion:reduce){
+  html.lite :is(.hm-row,.match,.fc-m,.lgm,.plcard,.crest,.hm-door,.door,.me-card,.me-m,.me-tm,.lgtab,.lt-glass,.hero .board){transition:none!important}
+  html.lite :is(.hm-row,.match,.fc-m,.lgm,.plcard,.crest,.hm-door,.door,.me-card,.me-m,.me-tm,.lgtab,.lt-glass):is(:hover,:active){transform:none!important}
+  html.lite :is(.hm-row,.fc-m,.lgm,.plcard,.hm-door,.door,.me-card,.me-m,.me-tm,.lgtab,.lt-glass)::after{animation:none!important;opacity:0!important}
+}

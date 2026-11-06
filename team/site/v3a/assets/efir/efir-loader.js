@@ -1,14 +1,27 @@
 /* JARVIS · «Эфир»: загрузчик темы. Подключается в <head> ПЕРЕД assets/palettes.js (одной строкой).
-   ?theme=efir включает тему (помнится до закрытия вкладки), ?theme=off сбрасывает. Без параметра сайт как раньше. */
+   ?theme=efir включает тему (помнится до закрытия вкладки), ?theme=off сбрасывает. Без параметра сайт как раньше.
+   ?theme=lite — «Лайт»: старый вид + стеклянное табло матча дня, клинья в шапках клубов, лёгкий подъём карточек (assets/lite/). */
 (function(){
   var K='jv-theme',q='',on=false,d=document.documentElement;
   try{q=new URLSearchParams(location.search).get('theme')||''}catch(e){}
   try{
-    if(q==='efir')sessionStorage.setItem(K,'efir');else if(q==='off')sessionStorage.removeItem(K);
-    on=sessionStorage.getItem(K)==='efir'
-  }catch(e){on=q==='efir'}
-  if(q==='off')on=false;
-  if(!on)return;
+    if(q==='efir'||q==='lite')sessionStorage.setItem(K,q);else if(q==='off')sessionStorage.removeItem(K);
+    on=sessionStorage.getItem(K)
+  }catch(e){on=(q==='efir'||q==='lite')?q:''}
+  if(q==='off')on='';
+  if(on==='lite'){
+    d.classList.add('lite');
+    var sl=document.currentScript,bl=sl.src.replace(/efir\/efir-loader\.js.*$/,'')+'lite/';
+    if(document.readyState==='loading'){
+      document.write('<link rel="stylesheet" href="'+bl+'lite.css">');
+      document.write('<script defer src="'+bl+'lite.js"><\/script>');
+    }else{
+      var ll=document.createElement('link');ll.rel='stylesheet';ll.href=bl+'lite.css';document.head.appendChild(ll);
+      var lj=document.createElement('script');lj.src=bl+'lite.js';document.head.appendChild(lj);
+    }
+    return
+  }
+  if(on!=='efir')return;
   d.classList.add('efir');d.setAttribute('data-efir','1');
   var s=document.currentScript,base=s.src.replace(/efir-loader\.js.*$/,'');
   try{var m=document.querySelector('meta[name=theme-color]');if(m)m.content='#2c374d'}catch(e){}
