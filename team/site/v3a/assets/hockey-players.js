@@ -4,7 +4,7 @@
 const LG=document.documentElement.dataset.league||'nhl';
 const TMK={"dinamo_msk":["Динамо Москва","#003da5"],"avangard":["Авангард","#c8102e"],"amur":["Амур","#f26522"],"cska":["ЦСКА","#e30613"],"spartak":["Спартак","#d7141a"],"torpedo":["Торпедо","#1e3a93"],"sibir":["Сибирь","#1b325a"],"lokomotiv":["Локомотив","#e30613"],"traktor":["Трактор","#aaaaaa"],"metallurg":["Металлург","#f5a623"],"salavat":["Салават Юлаев","#d4af37"],"neftekhimik":["Нефтехимик","#1c3f6e"],"dinamo_minsk":["Динамо Минск","#4db2ec"],"akbars":["Ак Барс","#007a48"],"severstal":["Северсталь","#ffcc00"],"ska":["СКА","#e31e24"],"barys":["Барыс","#2aa7b8"],"avtomobilist":["Автомобилист","#e30613"],"admiral":["Адмирал","#c8a96a"],"lada":["Лада","#0f4c81"],"sochi":["Сочи","#f5b400"],"shanghai":["Шанхайские Драконы","#ff5a00"]};
 const TMN={"CAR":["Каролина","#cc0000"],"EDM":["Эдмонтон","#ff4c00"],"BOS":["Бостон","#ffb81c"],"MTL":["Монреаль","#af1e2d"],"VGK":["Вегас","#b4975a"],"OTT":["Оттава","#c8102e"],"TBL":["Тампа-Бэй","#123e8c"],"NJD":["Нью-Джерси","#ce1126"],"FLA":["Флорида","#c8102e"],"UTA":["Юта","#71afe5"],"TOR":["Торонто","#103c8c"],"COL":["Колорадо","#822d48"],"SEA":["Сиэтл","#006080"],"BUF":["Баффало","#003087"],"WSH":["Вашингтон","#c8102e"],"NYI":["Айлендерс","#00539b"],"STL":["Сент-Луис","#002f87"],"DET":["Детройт","#ce1126"],"NSH":["Нэшвилл","#ffb81c"],"NYR":["Рейнджерс","#0038a8"],"SJS":["Сан-Хосе","#006d75"],"ANA":["Анахайм","#f47a38"],"CGY":["Калгари","#d2001c"],"PIT":["Питтсбург","#fcb514"],"PHI":["Филадельфия","#f74902"],"WPG":["Виннипег","#16386e"],"CBJ":["Коламбус","#143c82"],"LAK":["Лос-Анджелес","#828c91"],"CHI":["Чикаго","#cf0a2c"],"VAN":["Ванкувер","#003e82"],"DAL":["Даллас","#006847"],"MIN":["Миннесота","#154734"]};
-const TM=LG==='khl'?TMK:TMN,JY=window.JV_JERSEY;
+const TM=LG==='khl'?TMK:TMN;let JY=window.JV_JERSEY;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const em=ab=>(ab=String(ab??'').replace(/[^\w-]/g,''),LG==='khl'?`../assets/em/${ab}.webp`:ab==='MIN'?'../assets/em/minnesota.webp':ab==='DAL'?'../assets/em/dallas.webp':`../assets/em/nhl_${ab.toLowerCase()}.webp`);
@@ -23,6 +23,8 @@ fetch(`data/plite_${LG}.json`).then(r=>r.json()).then(D=>{
  $('tm').innerHTML='<option value="">Все</option>'+Object.keys(TM).sort((a,b)=>tn(a).localeCompare(tn(b),'ru')).map(a=>`<option value="${a}"${a===st.tm?' selected':''}>${esc(tn(a))}</option>`).join('');
  const P=D.players.map(p=>{const L=p.log=p.log.map(r=>[r[0],'',r[1],r[2],r[3],r[4],r[5],r[6]]),n=L.length;return{...p,gp:n,G:L.reduce((s,r)=>s+r[4],0),A:L.reduce((s,r)=>s+r[5],0),S:L.reduce((s,r)=>s+r[6],0),toi:p.ts!=null?p.ts:(n?L.reduce((s,r)=>s+(r[7]||0),0)/n:0)}});
  function render(){
+  /* цвета клубов (club/jersey.js): если файл не успел/не смог загрузиться — догружаем и перерисовываем (владелец 07.11: плашки были без цветов) */
+  JY=window.JV_JERSEY;if(!JY&&!render.j){render.j=1;const sc=document.createElement('script');sc.src='../assets/club/jersey.js?r=2';sc.onload=()=>render();document.head.appendChild(sc)}
   const M=MK[st.m],q=st.q.trim().toLowerCase();
   let L=P.filter(p=>(!st.pos||(st.pos==='D'?p.pos==='D':p.pos!=='D'))&&(!st.tm||p.t===st.tm)&&(!q||p.n.toLowerCase().includes(q)));
   L=L.map(p=>{const lg=st.ha?p.log.filter(r=>r[3]===(st.ha==='home'?1:0)):p.log;const k=lg.filter(M.f).length;return{p,h:[k,(!st.ha&&p.gp)?Math.max(p.gp,k):lg.length]}}).filter(x=>x.h[0]>0&&x.h[1]>=(st.ha?3:5));
