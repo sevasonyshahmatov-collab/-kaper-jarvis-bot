@@ -51,7 +51,7 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
   <div class="pp-txt">
    <p class="pp-crumbs"><a href="${teamHref}" title="Страница клуба"><img src="${em(P.t)}" alt="" onerror="this.remove()">${esc(tn(P.t))}</a><a class="lg" href="league.html?lg=${LG}" title="Страница лиги">${lgName}</a></p>
    <p class="pp-pos">${esc(POS[P.pos]||P.pos||'')}${P.no!=null?' · №'+esc(P.no):''}</p>
-   <h1>${small?esc(small)+' ':''}<b>${esc(big)}</b></h1>
+   <h1>${small?esc(small)+' ':''}<b${String(big).length>9?` style="--fz:${(9/String(big).length).toFixed(3)}"`:''}>${esc(big)}</b></h1>
    <p class="pp-sub">${G}+${A}=${G+A} в ${gp} ${pl(gp,'матче','матчах','матчах')} сезона</p>
   </div>
   <div class="pp-photo"><span class="pp-ini" aria-hidden="true">${esc(ini)}</span>${photo}</div>
