@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JARVIS: протокол дня</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#e9e7e2">
+<link rel="stylesheet" href="../../../assets/v3a.css">
+<link rel="stylesheet" href="../../../assets/nav.css">
+<link rel="stylesheet" href="protocol.css">
+<link rel="icon" href="../../../favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="../../../index.html" aria-label="JARVIS, главная">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="../../../hockey/index.html">Хоккей</a>
+      <a href="../../../football/index.html">Футбол</a>
+    </nav>
+    <nav class="nav" aria-label="Разделы"><a href="#scene">Сегодня</a><a href="../../../index.html#model">Модель</a></nav>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Получать прогнозы — бесплатно</span></a>
+  </div>
+</header>
+
+<main id="main">
+<section class="pr-scene" id="scene" aria-labelledby="pr-h">
+  <div class="pr-stage" id="stage">
+    <div class="pr-left">
+      <h1 id="pr-h">Прогнозы<br>по&nbsp;расчёту</h1>
+      <div class="pr-bt">
+      <p class="pr-lede">Модель разыгрывает каждый матч тысячи раз. Прокрутите: ниже протокол дня — исход, вероятность и кэф по каждой игре.</p>
+      <div class="pr-meta" aria-label="Сводка">
+        <p><span id="pr-date">Сегодня</span><br><span id="pr-upd">модель обновлена</span></p>
+        <p id="pr-lg">КХЛ · НХЛ<br>топ-футбол</p>
+        <p class="pr-cnt" aria-hidden="true">напечатано<br><b id="pr-n">00</b> / <span id="pr-N">00</span></p>
+      </div>
+      </div>
+    </div>
+    <div class="pr-rc" id="rc">
+      <div class="pr-sway">
+        <div class="pr-feed" id="feed">
+          <i class="pr-clip" aria-hidden="true"></i>
+          <div class="pr-zig top" aria-hidden="true"></div>
+          <article class="pr-sheet" id="sheet" aria-label="Протокол дня">
+            <div class="pr-body" id="body"><p class="pr-r pr-none">Загружаем матчи…</p></div>
+          </article>
+          <div class="pr-zig" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pr-doors" aria-label="Разделы">
+  <div class="wrap">
+    <a class="pr-door" href="../../../hockey/index.html"><span class="pr-dn">Хоккей</span><span class="pr-dc" id="cnt-h">КХЛ · НХЛ</span><svg viewBox="0 0 40 20" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M0 10h37M30 3l7 7-7 7"/></svg></a>
+    <a class="pr-door" href="../../../football/index.html"><span class="pr-dn">Футбол</span><span class="pr-dc" id="cnt-f">топ-лиги Европы</span><svg viewBox="0 0 40 20" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M0 10h37M30 3l7 7-7 7"/></svg></a>
+    <p class="pr-legal">18+. Аналитика, а не призыв делать ставки. Выигрыш не гарантирован.</p>
+  </div>
+</section>
+</main>
+
+<script src="../../../assets/nav.js"></script>
+<script src="../../../assets/footer.js"></script>
+<script src="../../../data/today.js"></script>
+<script src="../../../data/lines.js"></script>
+<script src="../../../data/model.js"></script>
+<script src="../../../assets/lines.js"></script>
+<script src="../common.js"></script>
+<script src="protocol.js"></script>
+</body>
+</html>
