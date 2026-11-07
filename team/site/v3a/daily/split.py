@@ -53,15 +53,6 @@ def nhl_abbr(slug):
 
 
 # ───────────────────────────── хоккей ─────────────────────────────
-def _kst(st, *pats):
-    """показатель КХЛ из p['st'] по подстроке имени (приложение отдаёт id вида hits, blocked_shots и т.п.)"""
-    for k, v in (st or {}).items():
-        kl = str(k).lower()
-        if any(x in kl for x in pats) and isinstance(v, (int, float)):
-            return float(v)
-    return None
-
-
 def skills(lg, players):
     """Пятиугольник навыков как в играх EA NHL (владелец 07.11): Катание, Бросок, Руки, Силовая, Оборона. Свои рейтинги из
     статистики лиги (рейтинги EA не копируем): процентиль 0–100 среди игроков своей лиги и группы (защитники / нападающие),
@@ -103,14 +94,16 @@ def skills(lg, players):
         else:
             st = p.get('st') or {}
             gp = p.get('gp') or n
-            hit = _kst(st, 'hit'); blk = _kst(st, 'block', 'blk'); shots = _kst(st, 'shot')
-            pim = _kst(st, 'pim', 'penalt'); pm = _kst(st, 'plus', 'pm'); fo = _kst(st, 'faceoff', 'fo_')
-            c['Катание'] = {'toi': (toi, 1)}                                     # скорости нет — время на льду
-            c['Бросок'] = {'g': (g / n, 1), 'sog': (shots / gp if shots is not None else None, 1)}   # бросков в приложении нет — голы за игру
-            c['Руки'] = {'a': (a / n, 1)}
-            c['Силовая'] = {'hit': (hit / gp if hit is not None else None, 1), 'pim': (pim / gp if pim is not None else None, .3 if hit is not None else 1)}
-            c['Оборона'] = {'blk': (blk / gp if blk is not None else None, 1), 'pm': (pm, 1),
-                            'fo': (fo if p.get('pos') == 'C' else None, 1)}
+            # приложение КХЛ отдаёт: top_speed (км/ч), distance_travelled (км за сезон), fow (выигранные вбрасывания, штуки), pim, pm,
+            # sft_avg (средняя смена, с), toi_avg. Силовых приёмов, блок-шотов, бросков, отборов/потерь НЕТ — замены ниже.
+            spd = st.get('top_speed') or None; dist = st.get('distance_travelled') or None
+            fow = st.get('fow'); pim = st.get('pim'); pm = st.get('pm')
+            c['Катание'] = {'spd': (spd, 1), 'dist': (dist / gp if dist else None, 1), 'toi': (toi, .5)}      # скорость + пробег за игру + время
+            c['Бросок'] = {'g': (g / n, 1)}                                       # бросков нет — голы за игру
+            c['Руки'] = {'a': (a / n, 1), 'pts': ((g + a) / n, .5)}               # отборов/потерь нет — передачи и очки за игру
+            c['Силовая'] = {'pim': (pim / gp if pim is not None else None, 1)}   # силовых нет — штрафные минуты за игру (слабая замена)
+            c['Оборона'] = {'pm': (pm, 1), 'toi': (toi if grp == 'D' else None, .5),     # блоков нет — плюс-минус (+ время у защитников)
+                            'fo': (fow / gp if grp == 'F' and (fow or 0) >= 30 else None, 1)}   # позиции C в приложении нет: центр = от 30 выигранных вбрасываний
         raw[pid] = {'grp': grp, 'n': n, 'c': c}
     out = {}
     for grp in ('D', 'F'):
