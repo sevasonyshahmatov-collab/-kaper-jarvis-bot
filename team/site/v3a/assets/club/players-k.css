@@ -84,3 +84,14 @@ html[data-white] body{background:#fff}
 
 /* Логотип того же цвета, что фон (Тампа, Торонто, Динамо Москва…): белая обводка-«наклейка», чуть заметнее (владелец 07.11) */
 .pr.k .wm[src*="/nhl_tbl."],.pr.k .wm[src*="/dinamo_msk."],.pr.k .wm[src*="/shanghai."],.pr.k .wm[src*="/nhl_tor."],.pr.k .wm[src*="/nhl_cgy."],.pr.k .wm[src*="/nhl_van."],.pr.k .wm[src*="/minnesota."],.pr.k .wm[src*="/sochi."],.pr.k .wm[src*="/nhl_buf."]{opacity:.55;filter:drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff) drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff) drop-shadow(0 6px 14px rgba(0,0,0,.3))}
+
+/* Очки «9+31=40» у всех игроков (владелец 07.11) */
+.pr.k{grid-template-columns:28px 84px minmax(0,1fr) auto}
+.pr.k .pts{text-align:right;white-space:nowrap;position:relative;z-index:1}
+.pr.k .pts b{display:block;font:900 30px/1 var(--display);letter-spacing:-.01em;color:var(--ko)}
+.pr.k .pts small{display:block;margin-top:4px;font:600 11px/1.2 var(--display);text-transform:uppercase;letter-spacing:.06em;color:var(--ko2)}
+@media (max-width:900px){
+  .pr.k,.pr.k.t1,.pr.k.t2,.pr.k.t3{grid-template-columns:20px 56px minmax(0,1fr)}
+  .pr.k .pts{grid-column:3;text-align:left;margin-top:-4px}
+  .pr.k .pts b{font-size:20px}.pr.k .pts small{display:none}
+}
