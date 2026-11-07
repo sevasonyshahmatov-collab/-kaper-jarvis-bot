@@ -94,3 +94,5 @@ h2 sup{font-size:.28em;letter-spacing:0;vertical-align:top;margin-left:.2em;font
 .ft-in{display:flex;flex-wrap:wrap;gap:6px 24px;padding-block:20px 28px}
 .ft-in span:first-child{font-weight:900;margin-right:auto}
 @media(prefers-reduced-motion:reduce){.b{transition:none}}
+/* колонка с кнопкой начинается ровно там, где блок ничьей (ширина П1 задаётся из JS) */
+@media(min-width:900px){.hero-txt.al{grid-template-columns:minmax(0,var(--p1)) minmax(0,1fr);column-gap:0}.hero-txt.al>:first-child{padding-right:32px}}

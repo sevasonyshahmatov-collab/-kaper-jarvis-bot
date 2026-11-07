@@ -58,6 +58,7 @@ if (feat) {
   const cells = ln ? `<div class="cells" aria-hidden="false">${['p1', 'x', 'p2'].map((k, i) => `<span style="--p:${([d.p1, d.x, d.p2][i] / tot * 100).toFixed(2)}">${i === 0 ? '<em>кэф</em>' : ''}${f2(ln[k])}</span>`).join('')}</div>` : '';
   $('#poster').innerHTML = `<a class="bar" href="${href(feat)}" aria-label="${esc(feat.hn)} — ${esc(feat.an)}: подробности">${blocks(feat, true)}</a>${cells}`;
   grow($('#poster .bar'));
+  { const p1 = d.p1 / tot * 100, ht = $('.hero-txt'); if (ht && p1 >= 55) { ht.style.setProperty('--p1', p1.toFixed(2) + '%'); ht.classList.add('al'); } }
   /* a.bar — контейнер, кэфы вне него */
 }
 
