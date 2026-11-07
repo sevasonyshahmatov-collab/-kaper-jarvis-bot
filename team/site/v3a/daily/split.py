@@ -53,6 +53,24 @@ def nhl_abbr(slug):
 
 
 # ───────────────────────────── хоккей ─────────────────────────────
+# Веса компонентов и масштаб осей (рейтинг = a + b·Z, Z — нормированная по группе ось; медиана по лиге ≈ 74, 95+ — редкость).
+# Веса подобраны так, чтобы шкала была похожа на игровую. W[лига][группа F/D][ось][компонент] = вес; S[лига][группа][ось] = (a, b).
+_NF = {'Катание': {'bur': .75, 'toi2': 1}, 'Бросок': {'shot': 1, 'shp': .25, 'sog': 1}, 'Руки': {'p60': 1, 'tk': .25},
+       'Интеллект': {'a60': .5, 'inv': 1}, 'Оборона': {'blk': 1, 'fo': .25, 'tk': .25, 'toi': 1}}
+_ND = {'Катание': {'bur': .75, 'spd': .25, 'toi2': 1}, 'Бросок': {'shot': .5, 'sog': 1}, 'Руки': {'p60': 1},
+       'Интеллект': {'a60': .25, 'inv': 1}, 'Оборона': {'blk': 1, 'pm': .25, 'toi': .5}}
+_KH = {'Катание': {'spd': 1, 'dist': 1, 'toi': .5}, 'Бросок': {'g': 1}, 'Руки': {'pts': 1},
+       'Интеллект': {'a': 1, 'inv': 1}, 'Оборона': {'pm': 1, 'toi': .5, 'fo': 1}}      # КХЛ: веса по смыслу
+W = {'nhl': {'F': _NF, 'D': _ND}, 'khl': {'F': _KH, 'D': _KH}}
+_AX = ('Катание', 'Бросок', 'Руки', 'Интеллект', 'Оборона')
+S = {'nhl': {'F': dict(zip(_AX, [(74, 9), (74, 9), (75, 8), (76, 8), (74, 7)])),
+             'D': dict(zip(_AX, [(75, 8), (75, 7), (75, 6), (76, 7), (74, 6)]))},
+     'khl': {g: {a: (74, 8) for a in _AX} for g in 'FD'}}
+
+
+DBG = None          # для подбора весов: словарь, куда складываются z компонентов
+
+
 def skills(lg, players, tgf=None):
     """Пятиугольник навыков как в играх EA NHL (владелец 07.11): Катание, Бросок, Руки, Интеллект, Оборона
     (Интеллект вместо Силовой — владелец 07.11: «находить передачи, интеллектуальная работа»). Свои рейтинги из
@@ -81,41 +99,40 @@ def skills(lg, players, tgf=None):
         tg_ = [tgf(r[1], r[0][:10]) for r in L] if tgf else []
         tgs = sum(x for x in tg_ if x is not None)
         inv = (g + a) / tgs if tgs >= 10 else None
-        c = {}                                   # компоненты: ось -> {имя: (значение, вес)}
+        c = {}                                   # компоненты: ось -> {имя: значение}; веса — таблица W ниже
         if lg == 'nhl':
             e = sk.get(str(pid)) or {}
             gp = e.get('gp') or n
             m60 = (e.get('toi') or toi * 60) * gp / 3600.0 or None      # минуты на льду за сезон / 60
             def r60(k):
                 return e[k] / m60 if e.get(k) is not None and m60 else None
-            tg = (e['tk'] - e['gv']) / m60 if e.get('tk') is not None and e.get('gv') is not None and m60 else None
-            c['Катание'] = {'spd': (e.get('spd'), 1), 'bur': (e['bur'] / gp if e.get('bur') is not None else None, 1),
-                            'toi': (toi if e.get('spd') is None else None, 1)}    # без EDGE — время на льду
-            c['Бросок'] = {'sog': (sh / n, 1), 'shp': (g / sh if sh >= 5 else None, 1), 'shot': (e.get('shot'), 1)}
-            c['Руки'] = {'p60': ((g + a) / m60 if m60 else None, 1), 'tk': (r60('tk'), .5)}  # владение: очки за 60 мин + отборы (потери не штрафуем — у лидеров много касаний)
-            c['Интеллект'] = {'a60': (a / m60 if m60 else None, 1), 'inv': (inv, 1),  # передачи за 60 мин + участие в голах команды
-                              'tk': (r60('tk'), .5), 'gv': (-r60('gv') if r60('gv') is not None else None, .5)}  # чтение игры: отборы, мало потерь
-            c['Оборона'] = {'blk': (r60('blk'), 1), 'tk': (r60('tk'), 1), 'pm': (e.get('pm'), 1),
-                            'fo': (e.get('fo') if p.get('pos') == 'C' and (e.get('fon') or 0) >= 100 else None, 1)}
+            c['Катание'] = {'spd': e.get('spd'), 'bur': e['bur'] / gp if e.get('bur') is not None else None,
+                            'toi': toi if e.get('spd') is None else None, 'toi2': toi}   # без EDGE — время на льду
+            c['Бросок'] = {'sog': sh / n, 'shp': g / sh if sh >= 5 else None, 'shot': e.get('shot'), 'g60': g / m60 if m60 else None}
+            c['Руки'] = {'p60': (g + a) / m60 if m60 else None, 'tk': r60('tk'), 'gv': -r60('gv') if r60('gv') is not None else None}
+            c['Интеллект'] = {'a60': a / m60 if m60 else None, 'inv': inv, 'tk': r60('tk'),
+                              'gv': -r60('gv') if r60('gv') is not None else None}
+            c['Оборона'] = {'blk': r60('blk'), 'tk': r60('tk'), 'pm': e.get('pm'), 'hit': r60('hit'), 'toi': toi,
+                            'fo': e.get('fo') if p.get('pos') == 'C' and (e.get('fon') or 0) >= 100 else None}
         else:
             st = p.get('st') or {}
             gp = p.get('gp') or n
             # приложение КХЛ отдаёт: top_speed (км/ч), distance_travelled (км за сезон), fow (выигранные вбрасывания, штуки), pim, pm,
             # sft_avg (средняя смена, с), toi_avg. Силовых приёмов, блок-шотов, бросков, отборов/потерь НЕТ — замены ниже.
             spd = st.get('top_speed') or None; dist = st.get('distance_travelled') or None
-            fow = st.get('fow'); pim = st.get('pim'); pm = st.get('pm')
-            c['Катание'] = {'spd': (spd, 1), 'dist': (dist / gp if dist else None, 1), 'toi': (toi, .5)}      # скорость + пробег за игру + время
-            c['Бросок'] = {'g': (g / n, 1)}                                       # бросков нет — голы за игру
-            c['Руки'] = {'pts': ((g + a) / n, 1)}                                 # отборов/потерь нет — очки за игру
-            c['Интеллект'] = {'a': (a / n, 1), 'inv': (inv, 1)}                   # передачи за игру + участие в голах команды
-            c['Оборона'] = {'pm': (pm, 1), 'toi': (toi if grp == 'D' else None, .5),     # блоков нет — плюс-минус (+ время у защитников)
-                            'fo': (fow / gp if grp == 'F' and (fow or 0) >= 30 else None, 1)}   # позиции C в приложении нет: центр = от 30 выигранных вбрасываний
+            fow = st.get('fow'); pm = st.get('pm')
+            c['Катание'] = {'spd': spd, 'dist': dist / gp if dist else None, 'toi': toi}      # скорость + пробег за игру + время
+            c['Бросок'] = {'g': g / n}                                            # бросков нет — голы за игру
+            c['Руки'] = {'pts': (g + a) / n}                                      # отборов/потерь нет — очки за игру
+            c['Интеллект'] = {'a': a / n, 'inv': inv}                             # передачи за игру + участие в голах команды
+            c['Оборона'] = {'pm': pm, 'toi': toi if grp == 'D' else None,         # блоков нет — плюс-минус (+ время у защитников)
+                            'fo': fow / gp if grp == 'F' and (fow or 0) >= 30 else None}   # позиции C в приложении нет: центр = от 30 выигранных вбрасываний
         raw[pid] = {'grp': grp, 'n': n, 'c': c}
     out = {}
     AX = ('Катание', 'Бросок', 'Руки', 'Интеллект', 'Оборона')
     # Шкала как у рейтингов в играх (владелец 07.11: «у Маккиннона почти всё 100 — непропорционально»): не процентиль, а
     # рейтинг по отклонению от среднего группы: компонент -> z (выбросы обрезаны ±3), ось = взвешенное среднее z,
-    # затем ось ещё раз нормируется по группе и переводится в 35–99: среднее 65, +1 σ = +11. Звёзды — 85–97, слабая сторона видна.
+    # затем ось ещё раз нормируется по группе и переводится в 35–99 по таблице S (медиана ≈ 74). Звёзды — 85–97, слабая сторона видна.
     def zs(vals):
         m = sum(vals) / len(vals)
         sd = (sum((x - m) ** 2 for x in vals) / len(vals)) ** .5 or 1.0
@@ -128,8 +145,9 @@ def skills(lg, players, tgf=None):
         for name in AX:
             comp = {}
             for k, v in pool.items():
-                for cn, (val, w) in v['c'][name].items():
-                    if val is not None:
+                for cn, val in v['c'][name].items():
+                    w = W[lg][grp][name].get(cn, 0)
+                    if val is not None and w > 0:
                         comp.setdefault(cn, []).append((k, val, w))
             acc = {}
             for cn, arr in comp.items():
@@ -137,7 +155,10 @@ def skills(lg, players, tgf=None):
                     continue
                 m, sd = zs([x[1] for x in arr])
                 for k, val, w in arr:
-                    acc.setdefault(k, []).append((max(-3.0, min(3.0, (val - m) / sd)), w))
+                    zc = max(-3.0, min(3.0, (val - m) / sd))
+                    acc.setdefault(k, []).append((zc, w))
+                    if DBG is not None:
+                        DBG.setdefault((lg, grp, name), {}).setdefault(k, {})[cn] = zc
             zz = {k: sum(z * w for z, w in v) / sum(w for _, w in v) for k, v in acc.items()}
             if zz:
                 m, sd = zs(list(zz.values()))
@@ -151,7 +172,8 @@ def skills(lg, players, tgf=None):
                 if k not in a_:
                     row = None
                     break
-                row.append([name, int(max(35, min(99, round(65 + 11 * a_[k]))))])
+                a0, b0 = S[lg][grp][name]
+                row.append([name, int(max(35, min(99, round(a0 + b0 * a_[k]))))])
             if row:
                 out[k] = row
     return out
