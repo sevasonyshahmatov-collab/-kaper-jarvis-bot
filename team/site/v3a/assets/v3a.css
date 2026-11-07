@@ -947,3 +947,6 @@ body{font-variant-numeric:tabular-nums lining-nums}
 .h2l li[hidden]{display:none}
 .h2l .d small{font-size:11px;color:var(--ink-3)}
 .x-h2h .h2l li{grid-template-columns:62px minmax(0,1fr) auto minmax(0,1fr)}
+.x-h2h .h2l .sc{position:relative;display:grid;grid-template-columns:1fr auto 1fr;width:76px;justify-self:center;text-align:center}
+.x-h2h .h2l .sc b:first-child{text-align:right}.x-h2h .h2l .sc b:last-of-type{text-align:left}.x-h2h .h2l .sc i{font-style:normal}
+.x-h2h .h2l .sc small{position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:2px}

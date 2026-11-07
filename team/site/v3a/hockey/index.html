@@ -394,9 +394,8 @@ function h2hList(m){const cur=det(m).h2h.map(g=>({d:g.d,h:g.h,gf:g.gf,ga:g.ga,x:
 function h2hBox(m){const L=h2hList(m),many=!!((TD[m.h]||{}).h2h);
  const head=`<h4>Личные встречи <span class="note">${many?'за 3 сезона':'в этом сезоне'}</span></h4>`;
  if(!L.length)return head+`<p class="none">${many?'За 3 сезона не встречались.':'В этом сезоне ещё не встречались.'}</p>`;
- const wA=L.filter(g=>g.gf>g.ga).length,wB=L.length-wA;
- return head+`<p class="h2t"><span>${CS(m.h)}${esc(m.hn)}</span><b class="num">${wA} — ${wB}</b><span>${esc(m.an)}${CS(m.a)}</span></p><ul class="h2l">${L.map(g=>{const hs=g.h?g.gf:g.ga,as=g.h?g.ga:g.gf,hh=g.h?m.h:m.a,aa=g.h?m.a:m.h,aw=g.gf>g.ga;
-   return `<li class="${aw?'wa':'wb'}"><span class="d">${dd(g.d)}${g.d.slice(0,4)<'2026'||g.d.slice(0,7)<'2026-09'?`<small>.${g.d.slice(2,4)}</small>`:''}</span><span class="pp">${CS(hh)}<span class="${hs>as?'wn':''}">${esc(nmS(hh))}</span></span><span class="sc num"><b class="${hs>as?'wn':''}">${hs}</b>:<b class="${as>hs?'wn':''}">${as}</b>${g.x?`<small>${g.x}</small>`:''}</span><span class="pp aw">${CS(aa)}<span class="${as>hs?'wn':''}">${esc(nmS(aa))}</span></span></li>`}).join('')}</ul>`}
+ return head+`<ul class="h2l">${L.map(g=>{const hs=g.h?g.gf:g.ga,as=g.h?g.ga:g.gf,hh=g.h?m.h:m.a,aa=g.h?m.a:m.h,aw=g.gf>g.ga;
+   return `<li class="${aw?'wa':'wb'}"><span class="d">${dd(g.d)}${g.d.slice(0,4)<'2026'||g.d.slice(0,7)<'2026-09'?`<small>.${g.d.slice(2,4)}</small>`:''}</span><span class="pp">${CS(hh)}<span class="${hs>as?'wn':''}">${esc(nmS(hh))}</span></span><span class="sc num"><b class="${hs>as?'wn':''}">${hs}</b><i>:</i><b class="${as>hs?'wn':''}">${as}</b>${g.x?`<small>${g.x}</small>`:''}</span><span class="pp aw">${CS(aa)}<span class="${as>hs?'wn':''}">${esc(nmS(aa))}</span></span></li>`}).join('')}</ul>`}
 const CLUBJS={};
 function loadH2H(li,m){const T=TD[m.h];if(!T||T.h2h){fitLast(li);return}
  const done=()=>{const box=li.querySelector('.x-h2h');if(box)box.innerHTML=h2hBox(m);fitLast(li)};
