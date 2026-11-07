@@ -18,10 +18,10 @@ const err=m=>{MAIN.innerHTML=`<p class="pp-err">${m} <a href="${LG==='khl'?'play
 const shade=h=>{const m=/^#([0-9a-f]{6})$/i.exec(h||'');if(!m)return '#3a4a6a';const n=parseInt(m[1],16),r=n>>16,g=n>>8&255,b=n&255;
  const L=(.2126*r+.7152*g+.0722*b)/255;if(L<=.5)return h;const k=.5/L;return '#'+[r,g,b].map(v=>Math.round(v*k).toString(16).padStart(2,'0')).join('')};
 const MK=[
- {k:'pt',n:'Очко',w:'очко',f:r=>r[3]+r[4]>0,v:r=>r[3]+r[4]},
+ {k:'pt',n:'Гол+пас',w:'очко',f:r=>r[3]+r[4]>0,v:r=>r[3]+r[4]},
  {k:'g',n:'Гол',w:'гол',f:r=>r[3]>0,v:r=>r[3]},
- {k:'a',n:'Передача',w:'передачи',f:r=>r[4]>0,v:r=>r[4]},
- {k:'s3',n:'3+ броска',w:'броски в створ',f:r=>r[5]>=3,v:r=>r[5]||0,nhl:1}];
+ {k:'a',n:'Пас',w:'передачи',f:r=>r[4]>0,v:r=>r[4]},
+ {k:'s3',n:'Броски',w:'броски в створ',f:r=>(r[5]||0)>0,v:r=>r[5]||0,nhl:1}];
 if(!ID){err('Не указан игрок.');return}
 fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).then(P=>{
  const T=TT[P.t]||{},col=shade((T.colors||[])[0]);
