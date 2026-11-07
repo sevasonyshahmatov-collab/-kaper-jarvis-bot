@@ -1,72 +1,51 @@
 {
+ "lok": {
+  "cats": [
+   "Category:HC Lokomotiv Yaroslavl",
+   "Category:Lokomotiv Yaroslavl players",
+   "Category:HC Lokomotiv Yaroslavl players"
+  ],
+  "depth": 2,
+  "maxc": 25,
+  "qs": [
+   "Lokomotiv Yaroslavl",
+   "Локомотив Ярославль",
+   "Lokomotiv Yaroslavl hockey",
+   "HC Lokomotiv",
+   "Локомотив хоккей",
+   "Lokomotiv KHL",
+   "Lokomotiv Yaroslavl 2025",
+   "Lokomotiv Yaroslavl 2024",
+   "Lokomotiv Yaroslavl 2026",
+   "Локомотив Ярославль 2025",
+   "Локомотив Ярославль 2024"
+  ],
+  "filter": "Lokomotiv|Locomotive|Локомотив|Loko|Yaroslavl|Ярослав|KHL|КХЛ",
+  "skip": "bandy|football|soccer|railway|Bahnhof|train|тепловоз|электровоз|футбол"
+ },
  "car": {
   "cats": [
    "Category:Carolina Hurricanes players",
-   "Category:Carolina Hurricanes",
-   "Category:Carolina Hurricanes games"
+   "Category:Carolina Hurricanes"
   ],
+  "depth": 1,
+  "maxc": 12,
   "qs": [
-   "Carolina Hurricanes skating",
-   "Carolina Hurricanes 2024",
-   "Carolina Hurricanes 2025",
-   "Carolina Hurricanes 2023",
-   "Carolina Hurricanes warmup",
-   "Hurricanes forward skating towards camera",
-   "Carolina Hurricanes Lenovo Center",
-   "Carolina Hurricanes Stanley Cup playoffs",
-   "Carolina Hurricanes Raleigh",
-   "Hurricanes Capitals 2024",
-   "Hurricanes Rangers 2024",
-   "Hurricanes Panthers 2025",
+   "Carolina Hurricanes",
+   "Canes-Kraken 2023-10-19",
+   "Carolina Hurricanes at Seattle Kraken",
+   "Hurricanes hockey",
+   "Seth Jarvis",
    "Sebastian Aho Hurricanes",
-   "Andrei Svechnikov Hurricanes",
-   "Seth Jarvis Hurricanes",
-   "Jaccob Slavin Hurricanes",
+   "Andrei Svechnikov",
+   "Jaccob Slavin",
    "Martin Necas Hurricanes",
-   "Teuvo Teravainen Hurricanes",
-   "Brent Burns Hurricanes",
    "Jordan Staal Hurricanes",
-   "Frederik Andersen Hurricanes",
-   "Jesperi Kotkaniemi Hurricanes",
-   "Jordan Martinook Hurricanes",
-   "Taylor Hall Hurricanes",
-   "Jackson Blake Hurricanes",
-   "Logan Stankoven Hurricanes",
-   "Shayne Gostisbehere Hurricanes",
-   "Nikolaj Ehlers Hurricanes",
-   "Jalen Chatfield Hurricanes",
-   "Pyotr Kochetkov Hurricanes",
-   "Brady Skjei Hurricanes",
-   "Brett Pesce Hurricanes",
-   "Mark Jankowski Hurricanes",
-   "Jack Drury Hurricanes",
-   "Eric Robinson Hurricanes"
-  ]
- },
- "lok": {
-  "cats": [
-   "Category:HC Lokomotiv Yaroslavl players",
-   "Category:Lokomotiv Yaroslavl players",
-   "Category:HC Lokomotiv Yaroslavl",
-   "Category:Lokomotiv Yaroslavl",
-   "Category:HC Lokomotiv Yaroslavl matches",
-   "Category:KHL matches 2025",
-   "Category:KHL matches 2024",
-   "Category:KHL matches 2023"
+   "Hurricanes NHL 2024",
+   "Hurricanes NHL 2025",
+   "Hurricanes NHL 2026"
   ],
-  "qs": [
-   "Lokomotiv Yaroslavl hockey player",
-   "Локомотив Ярославль хоккеист",
-   "Локомотив Ярославль матч 2025",
-   "Локомотив Ярославль 2024",
-   "Lokomotiv Yaroslavl 2023",
-   "Lokomotiv Yaroslavl skating",
-   "Lokomotiv KHL game",
-   "Локомотив Ярославль КХЛ",
-   "Локомотив форвард",
-   "Lokomotiv Yaroslavl 2026",
-   "Locomotive Yaroslavl hockey",
-   "KHL Lokomotiv 2025 hockey"
-  ]
+  "filter": "Hurricanes|Canes|Carolina|Aho|Svechnikov|Jarvis|Slavin|Nečas|Necas|Teräväinen|Burns|Staal|Kotkaniemi|Martinook|Orlov|Stankoven|Ehlers|Andersen|Kochetkov|Pesce|Skjei|Jankowski|Drury|Chatfield|Gostisbehere",
+  "skip": "Calder|Hurricane (Helene|Sandy|Hugo|Florence|Ian)|Aftermath|Marine|Army|Guard|Census|Thunderbird"
  }
 }

@@ -40,8 +40,13 @@ def files(cat, depth=3, maxc=60):
 
 
 def search(q):
-    j = api(action='query', list='search', srsearch=q, srnamespace=6, srlimit=100)
-    return [m['title'] for m in (j.get('query') or {}).get('search', [])]
+    out = []
+    for off in (0, 50, 100, 150):
+        j = api(action='query', list='search', srsearch=q, srnamespace=6, srlimit=50, sroffset=off)
+        r = [m['title'] for m in (j.get('query') or {}).get('search', [])]
+        out += r
+        if len(r) < 50: break
+    return out
 
 
 def strip(s): return html.unescape(re.sub(r'<[^>]+>', '', s or '')).strip()
@@ -50,9 +55,11 @@ def strip(s): return html.unescape(re.sub(r'<[^>]+>', '', s or '')).strip()
 cfg = json.load(open(os.path.join(H, 'discover.json'), encoding='utf-8'))
 for key, c in cfg.items():
     t = []
-    for cat in c.get('cats', []): t += files(cat)
+    for cat in c.get('cats', []): t += files(cat, c.get('depth', 1), c.get('maxc', 12))
     for q in c.get('qs', []): t += search(q)
-    t = list(dict.fromkeys(t)); print(key, 'найдено', len(t), flush=True)
+    t = list(dict.fromkeys(t))
+    if c.get('filter'): t = [x for x in t if re.search(c['filter'], x, re.I) and not re.search(c.get('skip', '^$'), x, re.I)]
+    print(key, 'найдено', len(t), flush=True)
     ok = []
     for k in range(0, len(t), 40):
         j = api(action='query', prop='imageinfo', iiprop='url|size|mime|extmetadata', iiurlwidth=360, titles='|'.join(t[k:k + 40]))
@@ -76,5 +83,5 @@ for key, c in cfg.items():
             except Exception as e:  # noqa: BLE001
                 print('err', a, repr(e)[:80])
             ImageDraw.Draw(sheet).text(((i % 6) * cw + 3, (i // 6) * ch + 3), '%03d %s' % (sn + i, a[5:40]), fill=(255, 255, 0))
-            time.sleep(.5)
+            time.sleep(.15)
         sheet.save(os.path.join(OUT, 'dsheet-%s-%02d.jpg' % (key, sn // per)), quality=80)
