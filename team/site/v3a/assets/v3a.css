@@ -940,3 +940,10 @@ h1,h2,h3,.btn,.seg a,.nav a{letter-spacing:-.01em!important}
 body{font-variant-numeric:tabular-nums lining-nums}
 /* Inter шире прежнего шрифта: на маленьких телефонах (≤ 400 px) длинные заголовки переносятся, ничего не вылезает вбок */
 @media (max-width:400px){h1,h2,h3{overflow-wrap:anywhere;hyphens:auto}html,body{overflow-x:clip}}
+
+/* карточка матча: «Последние матчи» по высоте соседнего «Расчёта модели» (владелец 07.11) */
+@media (min-width:981px){.x-last,.x-h2h{contain:size;overflow:hidden}}
+.l3 li[hidden]{display:none}
+.h2l li[hidden]{display:none}
+.h2l .d small{font-size:11px;color:var(--ink-3)}
+.x-h2h .h2l li{grid-template-columns:62px minmax(0,1fr) auto minmax(0,1fr)}

@@ -387,20 +387,30 @@ function det(m){if(m.det)return m.det;const A=TD[m.h]||null,B=TD[m.a]||null;
  const st=T=>T?[['Шайбы за игру',(T.gf/T.gp).toFixed(1).replace('.',',')],['Пропущено за игру',(T.ga/T.gp).toFixed(1).replace('.',',')],['Очки',T.pts],['Победы — поражения',`${T.w} — ${T.l}`],['Место в конференции',T.place]]:[];
  const h2h=A?games(A).filter(g=>g.o===m.a):[];
  return m.det={A:{slug:m.h,name:m.hn,g:games(A),st:st(A)},B:{slug:m.a,name:m.an,g:games(B),st:st(B)},h2h}}
+/* личные встречи: этот сезон (из матчей) + прошлые сезоны (assets/data/club/<хозяева>.js, грузится при раскрытии); счёт с точки зрения хозяев */
+function h2hList(m){const cur=det(m).h2h.map(g=>({d:g.d,h:g.h,gf:g.gf,ga:g.ga,x:g.x||''})),seen=new Set(cur.map(g=>g.d.slice(0,10)));
+ const old=(((TD[m.h]||{}).h2h||{})[m.a]||[]).map(r=>({d:r[0],h:r[1],gf:r[2],ga:r[3],x:r[4]||''})).filter(g=>!seen.has(g.d.slice(0,10)));
+ return cur.concat(old).sort((a,b)=>a.d<b.d?1:-1)}
+function h2hBox(m){const L=h2hList(m),many=!!((TD[m.h]||{}).h2h);
+ const head=`<h4>Личные встречи <span class="note">${many?'за 3 сезона':'в этом сезоне'}</span></h4>`;
+ if(!L.length)return head+`<p class="none">${many?'За 3 сезона не встречались.':'В этом сезоне ещё не встречались.'}</p>`;
+ const wA=L.filter(g=>g.gf>g.ga).length,wB=L.length-wA;
+ return head+`<p class="h2t"><span>${CS(m.h)}${esc(m.hn)}</span><b class="num">${wA} — ${wB}</b><span>${esc(m.an)}${CS(m.a)}</span></p><ul class="h2l">${L.map(g=>{const hs=g.h?g.gf:g.ga,as=g.h?g.ga:g.gf,hh=g.h?m.h:m.a,aa=g.h?m.a:m.h,aw=g.gf>g.ga;
+   return `<li class="${aw?'wa':'wb'}"><span class="d">${dd(g.d)}${g.d.slice(0,4)<'2026'||g.d.slice(0,7)<'2026-09'?`<small>.${g.d.slice(2,4)}</small>`:''}</span><span class="pp">${CS(hh)}<span class="${hs>as?'wn':''}">${esc(nmS(hh))}</span></span><span class="sc num"><b class="${hs>as?'wn':''}">${hs}</b>:<b class="${as>hs?'wn':''}">${as}</b>${g.x?`<small>${g.x}</small>`:''}</span><span class="pp aw">${CS(aa)}<span class="${as>hs?'wn':''}">${esc(nmS(aa))}</span></span></li>`}).join('')}</ul>`}
+const CLUBJS={};
+function loadH2H(li,m){const T=TD[m.h];if(!T||T.h2h){fitLast(li);return}
+ const done=()=>{const box=li.querySelector('.x-h2h');if(box)box.innerHTML=h2hBox(m);fitLast(li)};
+ if(CLUBJS[m.h]){CLUBJS[m.h].then(done);return}
+ CLUBJS[m.h]=new Promise(r=>{const sc=document.createElement('script');sc.src='../assets/data/club/'+encodeURIComponent(m.h)+'.js';sc.onload=sc.onerror=r;document.head.append(sc)});CLUBJS[m.h].then(done)}
 function back(m){const {A,B,h2h}=det(m);
- const last=t=>`<div class="l3"><h5>${CS(t.slug)}${esc(t.name)}</h5><ul>${t.g.slice(0,3).map(g=>{const r=rOf(g);return `<li><b class="rs ${r}" title="${RESF[r]}">${RES[r]}</b><span class="op">${CS(g.o)}${esc(nmS(g.o))}</span><span class="sc num">${g.gf}:${g.ga}${g.x?`<small>${g.x}</small>`:''}</span><span class="d">${dd(g.d)}</span></li>`}).join('')||'<li class="none">Нет данных</li>'}</ul></div>`;
+ const last=t=>`<div class="l3"><h5>${CS(t.slug)}${esc(t.name)}</h5><ul>${t.g.slice(0,12).map(g=>{const r=rOf(g);return `<li><b class="rs ${r}" title="${RESF[r]}">${RES[r]}</b><span class="op">${CS(g.o)}${esc(nmS(g.o))}</span><span class="sc num">${g.gf}:${g.ga}${g.x?`<small>${g.x}</small>`:''}</span><span class="d">${dd(g.d)}</span></li>`}).join('')||'<li class="none">Нет данных</li>'}</ul></div>`;
  const form=t=>`<div class="fm"><span>${CS(t.slug)}${esc(t.name)}</span><span class="dots" aria-label="форма: ${esc(t.g.slice(0,5).reverse().map(g=>(rOf(g)==='w'?'победа над ':'поражение от ')+nmS(g.o)+' '+g.gf+':'+g.ga).join(', '))}">${t.g.slice(0,5).reverse().map(g=>{const r=rOf(g),o=nmS(g.o),sc=`${g.gf}:${g.ga}`,ex=g.x?(g.x==='Б'?' по буллитам':' в овертайме'):'',tt=r==='w'?`Победа над ${o} ${sc}${ex}`:`Поражение от ${o} ${sc}${ex}`;return `<i class="${r}" title="${esc(tt)}"><img src="../assets/em/${esc(g.o)}.webp" alt="" loading="lazy"></i>`}).join('')}</span></div>`;
- /* личные встречи: счёт с точки зрения хозяев матча */
- const wA=h2h.filter(g=>g.gf>g.ga).length,wB=h2h.length-wA;
- const h2hHTML=h2h.length?`<p class="h2t"><span>${CS(m.h)}${esc(m.hn)}</span><b class="num">${wA} — ${wB}</b><span>${esc(m.an)}${CS(m.a)}</span></p><ul class="h2l">${h2h.map(g=>{const hs=g.h?g.gf:g.ga,as=g.h?g.ga:g.gf,hh=g.h?m.h:m.a,aa=g.h?m.a:m.h,aw=g.gf>g.ga;
-   return `<li class="${aw?'wa':'wb'}"><span class="d">${dd(g.d)}</span><span class="pp">${CS(hh)}<span class="${hs>as?'wn':''}">${esc(nmS(hh))}</span></span><span class="sc num"><b class="${hs>as?'wn':''}">${hs}</b>:<b class="${as>hs?'wn':''}">${as}</b>${g.x?`<small>${g.x}</small>`:''}</span><span class="pp aw">${CS(aa)}<span class="${as>hs?'wn':''}">${esc(nmS(aa))}</span></span></li>`}).join('')}</ul>`
-  :`<p class="none">В этом сезоне ещё не встречались.</p>`;
+ const h2hHTML=h2hBox(m);
  return `<div class="xd">${JVL.why(m)}
-  <section class="xb x-last"><h4>Последние 3 матча</h4><div class="two">${last(A)}${last(B)}</div></section>
-  <section class="xb x-form"><h4>Форма <span class="note">последние 5: слева раньше, справа последняя; в кружке — соперник</span></h4>${form(A)}${form(B)}</section>
+  <section class="xb x-last"><h4>Последние матчи</h4><div class="two">${last(A)}${last(B)}</div></section>
+  <section class="xb x-h2h">${h2hHTML}</section>
   <section class="xb x-stat"><h4>Статистика команды <span class="note">сезон 2026/27</span></h4><table class="st"><thead><tr><th></th><th>${CS(A.slug)}<span>${esc(A.name)}</span></th><th>${CS(B.slug)}<span>${esc(B.name)}</span></th></tr></thead>
    <tbody>${A.st.map((r,i)=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${B.st[i]?B.st[i][1]:'—'}</td></tr>`).join('')}</tbody></table></section>
-  <section class="xb x-h2h"><h4>Личные встречи в этом сезоне</h4>${h2hHTML}</section>
   <p class="note xn">Линия и расчёт модели — по данным на ${upd||'последнее обновление'}; матчи и статистика — по данным сезона.</p></div>`}
 function row(m){const L=LG[m.lg];
  return `<li class="match ${m.lg}"><button class="mhead" type="button" aria-expanded="false">
@@ -414,9 +424,13 @@ function render(l){const sel=(l==='all'?D:D.filter(m=>m.lg===l));
  let html='',prev='';sel.forEach(m=>{const d=m.t.slice(0,10);if(d!==prev){prev=d;html+=`<li class="dayh" aria-hidden="true">${dayLabel(d)}</li>`}html+=row(m)});
  list.innerHTML=html||'<li class="note" style="padding:18px 4px">Матчей в этой лиге нет.</li>';
  list.querySelectorAll('.match').forEach((li,i)=>{const b=li.querySelector('.mhead'),body=li.querySelector('.mbody>div');
-  b.addEventListener('click',()=>{if(!body.innerHTML)body.innerHTML=back(sel[i]);requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o)})})});
+  b.addEventListener('click',()=>{if(!body.innerHTML)body.innerHTML=back(sel[i]);requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o);if(o){fitLast(li);loadH2H(li,sel[i])}})})});
  if(!RM)list.querySelectorAll('.match').forEach((li,i)=>li.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:Math.min(i,12)*55,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}));
  requestAnimationFrame(()=>list.querySelectorAll('.match').forEach(li=>li.classList.add('in')));tick()}
+/* «Последние матчи»: столько строк, сколько влезает в квадрат рядом с расчётом модели (на узком экране — 5) */
+function fitLast(root){root.querySelectorAll('.x-last .l3 ul, .x-h2h .h2l').forEach(ul=>{const box=ul.closest('.xb'),wide=getComputedStyle(box).contain.includes('size'),ls=[...ul.children];
+ ls.forEach((l,k)=>l.hidden=!wide&&k>=5);if(!wide)return;const lim=box.getBoundingClientRect().bottom-parseFloat(getComputedStyle(box).paddingBottom)+1;ls.forEach(l=>{if(l.getBoundingClientRect().bottom>lim)l.hidden=true})})}
+addEventListener('resize',()=>document.querySelectorAll('.match.open').forEach(fitLast));
 function tick(){document.querySelectorAll('.cd[data-t]').forEach(e=>e.textContent=JV.inMin(JV.left(e.dataset.t)));if(shown)cdSet(JV.left(picks[cur].t))}
 ltabs.addEventListener('click',e=>{const t=e.target.closest('.tab');if(t)render(t.dataset.l)});
 render('all');setInterval(tick,1000);
