@@ -60,7 +60,6 @@ function build(SE,PL){
  /* таблица */
  let mode='conf';
  $('tableBox').innerHTML=`
-  <div class="period" data-rv><p><span class="pn">1</span><span class="pw">-й тайм</span><span class="pt">Таблица</span><span class="pc num">${gpMax}</span></p></div>
   <div class="sec-head" data-rv><h2>Турнирная таблица</h2><p>${lgp(LG)}${L.name}, сезон ${esc(PL.season||'2026/27')}</p></div>
   <div class="lgsw tabs" role="tablist" id="tbSw" aria-label="Вид таблицы"><button class="tab" role="tab" type="button" data-m="conf" aria-selected="true">По конференциям</button><button class="tab" role="tab" type="button" data-m="all" aria-selected="false">Вся лига</button></div>
   <div id="tbBody"></div><ul class="lkey" id="tbKey"></ul>`;
@@ -79,10 +78,10 @@ function build(SE,PL){
    <span class="s num${fut?' vs':''}">${fut?'—':m.gf+':'+m.ga+(m.x?`<small>${m.x==='Б'?'буллиты':'овертайм'}</small>`:'')}</span>
    <a class="t a" href="${thref(m.a)}">${em(m.a)}<span class="${aw?'w':''}">${esc(nm(m.a))}</span></a></li>`};
  let html='',prev='';list.slice(0,40).forEach(m=>{const dk=m.t.slice(0,10);if(dk!==prev){prev=dk;const d=day(m.t);html+=`<li class="dayh" aria-hidden="true">${d.wd}, ${d.d} ${d.mon}</li>`}html+=row(m,true)});
- $('nextBox').innerHTML=`<div class="period" data-rv><p><span class="pn">1</span><span class="pw">-й тайм</span><span class="pt">Ближайшие матчи</span><span class="pc num">${list.length||''}</span></p></div>
+ $('nextBox').innerHTML=`
   <div class="sec-head" data-rv><h2>Ближайшие матчи</h2><p>${lgp(LG)}${L.name}: ${list.length?`${list.length} ${plural(list.length,'матч','матча','матчей')}, ${head}. Время московское.`:'расписание появится позже.'}</p></div>
   ${list.length?`<ul class="lgml" data-rv>${html}</ul>`:'<p class="lgempty">В ближайшие дни матчей нет.</p>'}`;
- {const STEP=10;let n=STEP;$('resultsBox').innerHTML=`<div class="period" data-rv><p><span class="pn">2</span><span class="pw">-й тайм</span><span class="pt">Последние результаты</span><span class="pc num">${M.length}</span></p></div>
+ {const STEP=10;let n=STEP;$('resultsBox').innerHTML=`
   <div class="sec-head" data-rv><h2>Последние результаты</h2><p>${lgp(LG)}${L.name}: сыгранные матчи, новые сверху. Жирным выделен победитель; под счётом — овертайм или буллиты.</p></div>
   <ul class="lgml" id="rsList"></ul><div class="lgmore"><button class="btn btn-line" type="button" id="rsMore" hidden></button></div>`;
   const ul=$('rsList'),more=$('rsMore');const dr=()=>{ul.innerHTML=M.slice(0,n).map(m=>row(m,false)).join('')||'<li class="lgempty">Сыгранных матчей пока нет.</li>';more.hidden=n>=M.length;more.textContent=`Показать ещё ${Math.min(STEP,M.length-n)}`};
@@ -114,7 +113,7 @@ function build(SE,PL){
  let sortK='pts';
  const SK=[['pts','По очкам'],['g','По голам'],['a','По передачам']];
  const withP=PS.map(p=>({...p,pts:p.g+p.a}));
- $('playersBox').innerHTML=`<div class="period" data-rv><p><span class="pn">2</span><span class="pw">-й тайм</span><span class="pt">Игроки</span></p></div>
+ $('playersBox').innerHTML=`
   <div class="sec-head" data-rv><h2>Бомбардиры и лидеры</h2><p>${lgp(LG)}${L.name}, сезон ${esc(PL.season||'2026/27')}: очки (голы + передачи), броски и время на льду. Данные матчей клубов.</p></div>
   <div class="lgsw tabs" role="tablist" id="plSw" aria-label="Сортировка">${SK.map(([k,t])=>`<button class="tab" role="tab" type="button" data-k="${k}" aria-selected="${k===sortK}">${t}</button>`).join('')}</div>
   <div class="tabscroll" id="plTop" style="max-width:1000px"></div>

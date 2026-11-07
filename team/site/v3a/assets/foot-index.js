@@ -29,10 +29,10 @@ const dayWin={};LGK.forEach(k=>{dayWin[k]=[...new Set(FUT.filter(m=>m.lg===k).ma
 const UP=FUT.filter(m=>(dayWin[m.lg]||[]).includes(m.t.slice(0,10)));
 const today=mskDay(now),isToday=UP.some(m=>m.t.slice(0,10)===today);
 {const f=UP[0];
- if(!UP.length){$('mh').textContent='Ближайшие матчи';$('mpt').textContent='Ближайшие матчи';$('mlead').textContent='Расписание обновится в начале следующего тура.'}
- else if(!isToday){const d=day(f.t);$('mh').textContent='Ближайшие матчи';$('mpt').textContent='Ближайшие матчи';
+ if(!UP.length){$('mh').textContent='Ближайшие матчи';$('mlead').textContent='Расписание обновится в начале следующего тура.'}
+ else if(!isToday){const d=day(f.t);$('mh').textContent='Ближайшие матчи';
   $('mlead').textContent=`Сегодня матчей лиг нет, ближайший тур — с ${d.d} ${d.mon}. Нажми на строку: форма, последние матчи и личные встречи сезона.`}
- if(f)$('mpc').textContent=f.t.slice(11);$('lpc').textContent=f?f.t.slice(11):''}
+ }
 
 /* бегущая строка */
 {const L=UP.slice(0,10);

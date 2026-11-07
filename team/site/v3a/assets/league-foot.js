@@ -63,7 +63,6 @@ function rowsFor(mode){
 let mode='all';
 const MODES=[['all','Общая'],['home','Дома'],['away','В гостях']];
 $('tableBox').innerHTML=`
- <div class="period" data-rv><p><span class="pn">1</span><span class="pw">-й тайм</span><span class="pt">Таблица</span><span class="pc num">${gpMax}${CUP?' из 8':''}</span></p></div>
  <div class="sec-head" data-rv><h2>${CUP?'Общий этап':'Турнирная таблица'}</h2><p>${LGP(LG)}${esc(LN)}, сезон ${esc(D.season)}. Нажмите на клуб: матчи сезона, тренды, сила, игроки. Данные — ESPN.</p></div>
  <div class="lgsw tabs" role="tablist" id="tbSw" aria-label="Какая таблица">${MODES.map(([k,t])=>`<button class="tab" role="tab" type="button" data-m="${k}" aria-selected="${k===mode}">${t}</button>`).join('')}</div>
  <div class="tabscroll lgtbl" id="tbBody"></div><ul class="lkey" id="tbKey"></ul>`;
@@ -97,13 +96,12 @@ function mrow(m,fut){const hw=!fut&&m.gf>m.ga,aw=!fut&&m.ga>m.gf,left=fut?JV.lef
  let html='',prev='';const CAP=40;
  list.slice(0,CAP).forEach(m=>{const dk=m.t.slice(0,10);if(dk!==prev){prev=dk;const d=day(m.t);html+=`<li class="dayh" aria-hidden="true">${d.wd}, ${d.d} ${d.mon}</li>`}html+=mrow(m,true)});
  $('nextBox').innerHTML=`
-  <div class="period" data-rv><p><span class="pn">1</span><span class="pw">-й тайм</span><span class="pt">Ближайший тур</span><span class="pc num">${list.length||''}</span></p></div>
   <div class="sec-head" data-rv><h2>Ближайший тур</h2><p>${list.length?`${LGP(LG)}${esc(LN)}: ${plural(list.length,'матч','матча','матчей')} ${head}. Время московское.`:`${LGP(LG)}${esc(LN)}: расписание появится в начале следующего тура.`}</p></div>
   ${list.length?`<ul class="lgml" data-rv>${html}</ul>${list.length>CAP?`<p class="note lgnote">Показаны первые ${CAP} матчей.</p>`:''}`:'<p class="lgempty">В ближайшие дни матчей нет.</p>'}`}
 
 /* ── последние результаты ── */
 {const STEP=10;let n=STEP;const box=$('resultsBox');
- box.innerHTML=`<div class="period" data-rv><p><span class="pn">2</span><span class="pw">-й тайм</span><span class="pt">Последние результаты</span><span class="pc num">${M.length}</span></p></div>
+ box.innerHTML=`
   <div class="sec-head" data-rv><h2>Последние результаты</h2><p>${LGP(LG)}${esc(LN)}: сыгранные матчи, новые сверху. Жирным выделен победитель.</p></div>
   <ul class="lgml" id="rsList"></ul><div class="lgmore"><button class="btn btn-line" type="button" id="rsMore" hidden></button></div>`;
  const ul=$('rsList'),more=$('rsMore');
@@ -132,7 +130,7 @@ function mrow(m,fut){const hw=!fut&&m.gf>m.ga,aw=!fut&&m.ga>m.gf,left=fut?JV.lef
 
 /* ── игроки: бомбардиры и карточки (данные подгружаем отдельно: файл тяжёлый) ── */
 const pbox=$('playersBox');
-pbox.innerHTML=`<div class="period" data-rv><p><span class="pn">2</span><span class="pw">-й тайм</span><span class="pt">Игроки</span></p></div>
+pbox.innerHTML=`
  <div class="sec-head" data-rv><h2>Бомбардиры и карточки</h2><p>${LGP(LG)}${esc(LN)}, сезон ${esc(D.season)}: лучшие по голам и дисциплине. Имена — как у ESPN.</p></div>
  <div class="lgcard" id="plCols"><div><h3>Бомбардиры</h3><p class="lgempty">Загружаем игроков…</p></div></div>`;
 const ini=n=>{const w=String(n).replace(/[^\p{L}\s'-]/gu,'').split(/[\s-]+/).filter(Boolean);return ((w[0]||'')[0]||'').toUpperCase()+((w.length>1?w[w.length-1]:'')[0]||'').toUpperCase()};
