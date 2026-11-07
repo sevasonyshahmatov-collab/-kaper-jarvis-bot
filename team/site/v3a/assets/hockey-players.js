@@ -39,9 +39,10 @@ fetch(`data/plite_${LG}.json`).then(r=>r.json()).then(D=>{
    return `<article class="pr${jv?' k'+(lt?' lt':'')+(i<3?' t'+(i+1):''):''}" role="listitem"${jv?` style="${jv}"`:''}>${jv?`<img class="wm" src="${em(p.t)}" alt="" aria-hidden="true" loading="lazy" onerror="this.remove()">${p.no!=null?`<span class="no" aria-hidden="true">${esc(p.no)}</span>`:''}`:''}<span class="rk">${i+1}</span>
     <div class="av" style="--c:${c}">${p.img?`<img class="ph" src="${esc(p.img)}" alt="" loading="lazy" onerror="this.remove()">`:''}<img class="bd" src="${em(p.t)}" alt="" loading="lazy" onerror="this.remove()"></div>
     <div class="nm"><b>${p.id!=null?`<a href="player.html?lg=${LG}&id=${p.id}" title="Профиль игрока">${esc(p.n)}</a>`:esc(p.n)}</b><span>${esc(tn(p.t))} · ${p.pos==='D'?'защитник':'нападающий'}</span></div>
-    ${st.m==='pt'?`<div class="pts" aria-hidden="true"><b>${p.G}+${p.A}</b></div>`:''}<div class="tot" aria-label="${st.m==='g'?'голов':st.m==='a'?'передач':'очков'}: ${tot(p)}">${tot(p)}</div>
+    ${st.m==='pt'?`<div class="pts pin" aria-hidden="true"><b>${p.G}+${p.A}</b></div>`:''}<div class="tot" aria-label="${st.m==='g'?'голов':st.m==='a'?'передач':'очков'}: ${tot(p)}">${tot(p)}</div>
     ${p.img?`<img class="cut" src="${esc(p.img)}" alt="" aria-hidden="true" loading="lazy" onerror="this.remove()">`:''}
-   </article>`}).join('');
+   </article>${st.m==='pt'?`<div class="ga${jv?' k':''}"${jv?` style="${jv}"`:''} aria-label="${p.G} голов и ${p.A} передач">${p.G}+${p.A}</div>`:''}`}).join('');
+  $('list').classList.toggle('two',st.m==='pt');
   $('more').hidden=L.length<=st.lim}
  $('mk').onclick=e=>{const b=e.target.closest('button');if(!b)return;st.m=b.dataset.m;st.lim=30;$('mk').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()};
  $('lg').onclick=e=>{const b=e.target.closest('button');if(!b)return;st.pos=b.dataset.l;st.lim=30;$('lg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()};
