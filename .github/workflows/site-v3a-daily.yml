@@ -38,6 +38,7 @@ jobs:
           git add -A team/site/v3a/data team/site/v3a/assets/data team/site/v3a/team/season.json team/site/v3a/football/data team/site/v3a/hockey/data team/site/v3a/sitemap.xml team/site/v3a/robots.txt team/site/v3a/*.html team/site/v3a/hockey/*.html team/site/v3a/football/*.html
           git diff --cached --quiet && { echo "данные не изменились"; exit 0; }
           git commit -q -m "Данные v3a: ежедневное обновление $(TZ=Europe/Moscow date '+%d.%m %H:%M') МСК (run ${{ github.run_number }})"
+          git stash -q -u || true  # остатки конвейера вне git add мешали rebase (runs 6–10)
           for i in 1 2 3 4 5; do
             git fetch -q --depth=50 origin "$GITHUB_REF_NAME" && git rebase -q FETCH_HEAD && git push && exit 0
             git rebase --abort 2>/dev/null; sleep 10
