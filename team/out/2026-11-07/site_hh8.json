@@ -1,0 +1,10 @@
+{
+ "day": "2026-11-07",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Шапка разделов ?hh=8 «Арена» (библиотека shaders): хоккей — иней по краям, лучи, туман, зерно; футбол — низкий туман. Кнопки новые, без жёлтых таблеток. Выравнивание проверил замером.\nХоккей: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/a0b73fd4c5779df4181f2497fb435d2aaadbbc8a/team/site/v3a/hockey/index.html?hh=8\nФутбол: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/a0b73fd4c5779df4181f2497fb435d2aaadbbc8a/team/site/v3a/football/index.html?hh=8\nАнимация работает в Chrome на компьютере (WebGPU). Где его нет — статичный фон.\nЕщё починил обновление данных на сайте: с 05.11 матчи дня не сохранялись."
+  }
+ ]
+}
