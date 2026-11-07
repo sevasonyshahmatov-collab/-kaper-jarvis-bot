@@ -1,0 +1,21 @@
+{
+ "day": "2026-11-07",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-07/nhl_tbl_1440.png"
+   ],
+   "text": "Таблица НХЛ: Восток и Запад рядом на компьютере — столбцы одинаковые, строки на одной линии (проверено замером). На телефоне — друг под другом, без прокрутки вбок. Так же и в КХЛ.\nНХЛ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/bba4e348bbff6e80af5f8c6898d38fc7453a2f47/team/site/v3a/hockey/league.html?lg=nhl\nКХЛ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/bba4e348bbff6e80af5f8c6898d38fc7453a2f47/team/site/v3a/hockey/league.html?lg=khl"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-07/nhl_tbl_390.png"
+   ],
+   "text": "Телефон, 390"
+  }
+ ]
+}
