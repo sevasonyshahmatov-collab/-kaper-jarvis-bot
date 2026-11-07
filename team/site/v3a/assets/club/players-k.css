@@ -104,3 +104,7 @@ html[data-white] body{background:#fff}
   .pr.k .pts{position:static;transform:none;width:auto;text-align:left;margin-top:-2px}
   .pr.k .pts b{font-size:20px;opacity:1}
 }
+/* Очки — тем же начертанием и цветом, что номер игрока, но приглушённо (владелец 07.11) */
+.pr.k .pts b{font:900 50px/1 var(--display);letter-spacing:-.03em;color:var(--kx);opacity:.6;
+  text-shadow:0 2px 0 color-mix(in srgb,var(--kt) 40%,transparent)}
+@media (max-width:900px){.pr.k .pts b{font-size:22px;opacity:.75}}
