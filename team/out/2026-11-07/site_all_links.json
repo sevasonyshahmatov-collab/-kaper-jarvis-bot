@@ -1,0 +1,10 @@
+{
+ "day": "2026-11-07",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Сайт со всеми правками за сегодня (последняя версия):\n\nХоккей: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/d6fa9fd5d137f7a1b3169bb37520d0341a0ee603/team/site/v3a/hockey/index.html\n— карточки КХЛ/НХЛ горизонтальные на всю ширину (раздел «Лиги и клубы»), без плашек «-й период», карточка матча: 10 последних матчей + личные встречи за 3 сезона.\nХоккей, шапка-плитки: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/d6fa9fd5d137f7a1b3169bb37520d0341a0ee603/team/site/v3a/hockey/index.html?hh=9\n\nКлуб (Каролина): https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/d6fa9fd5d137f7a1b3169bb37520d0341a0ee603/team/site/v3a/team/index.html?id=nhl_car\n— «Следующий матч» после таблицы с градиентом цветов клубов, фото лидеров, без описания у «Матчей сезона».\n\nТаблица КХЛ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/d6fa9fd5d137f7a1b3169bb37520d0341a0ee603/team/site/v3a/hockey/league.html?lg=khl\nТаблица НХЛ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/d6fa9fd5d137f7a1b3169bb37520d0341a0ee603/team/site/v3a/hockey/league.html?lg=nhl\n— конференции рядом.\n\nФутбол: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/d6fa9fd5d137f7a1b3169bb37520d0341a0ee603/team/site/v3a/football/index.html\n\nКХЛ-карточка: свободного фото игрока Локомотива нет — пришли своё фото (игрок едет на камеру), вырежем фон."
+  }
+ ]
+}
