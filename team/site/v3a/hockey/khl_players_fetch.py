@@ -66,10 +66,12 @@ with ThreadPoolExecutor(6) as ex:
             if 'goal' in role or not stt.get('gp'):
                 continue
             r = {'id': p['id'], 'n': p.get('name') or '', 't': SLUG[tid], 'img': p.get('image'), 'no': p.get('shirt_number'),
-                 'pos': 'D' if 'def' in role else 'F', 'gp': stt.get('gp'), 'toi_avg': stt.get('toi_avg'), 'log': []}
+                 'pos': 'D' if 'def' in role else 'F', 'gp': stt.get('gp'), 'toi_avg': stt.get('toi_avg'),
+                 'st': {k: v for k, v in stt.items() if v is not None}, 'log': []}  # st — все показатели приложения (для навыков)
             P[p['id']] = r
             by_num[(tid, p.get('shirt_number'))] = r
 print('KHLP players', len(P), flush=True)
+print('KHLP stat ids', sorted({k for r in P.values() for k in r['st']}), flush=True)  # какие показатели отдаёт приложение
 
 # ── матчи этапа
 events = []

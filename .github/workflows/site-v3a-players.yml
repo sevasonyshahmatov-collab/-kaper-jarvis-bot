@@ -24,6 +24,8 @@ jobs:
       - run: python team/site/v3a/hockey/nhl_players_fetch.py
       - run: python team/site/v3a/hockey/khl_players_fetch.py
         continue-on-error: true
+      - run: python team/site/v3a/hockey/skills_fetch.py
+        continue-on-error: true
       - run: python team/site/v3a/football/players_photos_fetch.py
         continue-on-error: true
       - run: python team/site/v3a/football/players_lineups_fetch.py
