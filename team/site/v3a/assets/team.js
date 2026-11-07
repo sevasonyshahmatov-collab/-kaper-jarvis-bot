@@ -207,7 +207,7 @@ const gsum=`<ul class="gsum" aria-label="Итоги сыгранных матч�
   <li class="l"><b class="num">${lossReg+lossOt}</b><span>${plural(lossReg+lossOt,'поражение','поражения','поражений')}${lossOt?`, из них ${lossOt} в ОТ/по буллитам`:''}</span></li>
   <li><b class="num">${gfS}:${gaS}</b><span>шайбы забито : пропущено</span></li></ul>`;
 document.getElementById('gamesBox').innerHTML=`
- <div class="sec-head" data-rv><h2>Матчи сезона</h2><p>${played.length} ${plural(played.length,'матч сыгран','матча сыграно','матчей сыграно')}, ${wins} ${plural(wins,'победа','победы','побед')}. Плашка справа: В / П — основное время, ВО / ПО — овертайм, ВБ / ПБ — буллиты. Впереди — время по Москве и линия: первая цифра — победа команды ${esc(T.name)}, вторая — ничья в основное время, третья — победа соперника.</p></div>
+ <div class="sec-head" data-rv><h2>Матчи сезона</h2></div>
  ${gsum}
  <div class="gfilter" role="group" aria-label="Какие матчи показать" data-rv><div class="seg"><button type="button" aria-pressed="true" data-f="all">Все</button><button type="button" aria-pressed="false" data-f="home">Дома</button><button type="button" aria-pressed="false" data-f="away">В гостях</button></div></div>
  <div class="glist" id="glist" data-f="all">

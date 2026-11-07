@@ -143,7 +143,7 @@ const row=g=>{const t=day(g.d),opp=`<a class="op" href="${teamHref(g.o,g.c||CUP)
 const wins=real.filter(g=>g.gf>g.ga).length,draws=real.filter(g=>g.gf===g.ga).length,losses=real.length-wins-draws;
 const gfS=real.reduce((a,g)=>a+g.gf,0),gaS=real.reduce((a,g)=>a+g.ga,0);
 $('gamesBox').innerHTML=`
- <div class="sec-head" data-rv><h2>Матчи сезона</h2><p>${real.length} ${plural(real.length,'матч сыгран','матча сыграно','матчей сыграно')}. Впереди — время по Москве и линия: первая цифра — победа ${esc(T.n)}, вторая — ничья, третья — победа соперника. Если линии ещё нет — вероятности модели, в процентах.</p></div>
+ <div class="sec-head" data-rv><h2>Матчи сезона</h2></div>
  <ul class="gsum" aria-label="Итоги сыгранных матчей" data-rv>
   <li><b class="num">${real.length}</b><span>${plural(real.length,'матч','матча','матчей')} сыграно</span></li>
   <li class="w"><b class="num">${wins}</b><span>${plural(wins,'победа','победы','побед')}</span></li>
