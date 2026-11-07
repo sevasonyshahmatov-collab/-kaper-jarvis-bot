@@ -108,3 +108,6 @@ html[data-white] body{background:#fff}
 .pp-sk .dt{stroke:var(--kb,#0a5bc4)}
 @media (max-width:620px){.pp-sk .ax{font-size:15px}.pp-sk .vl{font-size:22px}}
 @media (max-width:620px){.pp-sk .ax{font-size:17px}.pp-sk .vl{font-size:24px}}
+/* Фото уходит под нижний край шапки с запасом: при наклоне (фото сдвигается вверх до ~13 px) снизу нет пустоты (владелец 07.11) */
+.pp-hero .pp-photo{margin-bottom:-30px}
+.pp-hero .pp-photo img.ph{transform:scale(1.06);transform-origin:50% 100%}
