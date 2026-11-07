@@ -1,5 +1,5 @@
 {
- "event": "401915383",
+ "event": "401879242",
  "top_keys": [
   "article",
   "boxscore",
@@ -33,15 +33,15 @@
  "roster0": {
   "active": true,
   "starter": true,
-  "jersey": "91",
+  "jersey": "1",
   "athlete": {
-   "id": "175264",
-   "uid": "s:600~a:175264",
-   "guid": "217df50c-9b53-830e-beb3-e21ea39ffd0c",
-   "lastName": "Brignoli",
-   "fullName": "Alberto Brignoli",
-   "displayName": "Alberto Brignoli",
-   "shortName": "A. Brignoli",
+   "id": "159443",
+   "uid": "s:600~a:159443",
+   "guid": "2f35ae2e-81ad-5bae-f4f3-11a1b8e6a184",
+   "lastName": "Pickford",
+   "fullName": "Jordan Pickford",
+   "displayName": "Jordan Pickford",
+   "shortName": "J. Pickford",
    "links": [
     {
      "language": "en-US",
@@ -50,7 +50,7 @@
       "desktop",
       "athlete"
      ],
-     "href": "https://www.espn.com/soccer/player/_/id/175264/alberto-brignoli",
+     "href": "https://www.espn.com/soccer/player/_/id/159443/jordan-pickford",
      "text": "Player Card",
      "shortText": "Player Card",
      "isExternal": false,
@@ -59,7 +59,7 @@
    ],
    "jerseyImages": [
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/uefa.champions/events/401915383/athletes/175264/jersey.png?darkMode=false",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879242/athletes/159443/jersey.png?darkMode=false",
      "rel": [
       "full",
       "default"
@@ -68,7 +68,7 @@
      "height": 1440
     },
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/uefa.champions/events/401915383/athletes/175264/jersey.png?darkMode=true",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879242/athletes/159443/jersey.png?darkMode=true",
      "rel": [
       "full",
       "dark"
@@ -157,8 +157,8 @@
     "shortDisplayName": "GA",
     "description": "The number of goals allowed by the goalkeeper.",
     "abbreviation": "GA",
-    "value": 3.0,
-    "displayValue": "3"
+    "value": 1.0,
+    "displayValue": "1"
    },
    {
     "name": "saves",
@@ -166,8 +166,8 @@
     "shortDisplayName": "SV",
     "description": "The number of times a goalkeeper makes a save.",
     "abbreviation": "SV",
-    "value": 5.0,
-    "displayValue": "5"
+    "value": 3.0,
+    "displayValue": "3"
    },
    {
     "name": "shotsFaced",
@@ -219,15 +219,15 @@
  "roster_sub": {
   "active": true,
   "starter": false,
-  "jersey": "10",
+  "jersey": "15",
   "athlete": {
-   "id": "228267",
-   "uid": "s:600~a:228267",
-   "guid": "68f1c30e-8bea-ac39-c710-478dcdb9a00c",
-   "lastName": "Zubkov",
-   "fullName": "Oleksandr Zubkov",
-   "displayName": "Oleksandr Zubkov",
-   "shortName": "O. Zubkov",
+   "id": "283586",
+   "uid": "s:600~a:283586",
+   "guid": "aeb6c589-1c15-0d05-3a67-43ea58ea660a",
+   "lastName": "O'Brien",
+   "fullName": "Jake O'Brien",
+   "displayName": "Jake O'Brien",
+   "shortName": "J. O'Brien",
    "links": [
     {
      "language": "en-US",
@@ -236,7 +236,7 @@
       "desktop",
       "athlete"
      ],
-     "href": "https://www.espn.com/soccer/player/_/id/228267/oleksandr-zubkov",
+     "href": "https://www.espn.com/soccer/player/_/id/283586/jake-obrien",
      "text": "Player Card",
      "shortText": "Player Card",
      "isExternal": false,
@@ -245,7 +245,7 @@
    ],
    "jerseyImages": [
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/uefa.champions/events/401915383/athletes/228267/jersey.png?darkMode=false",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879242/athletes/283586/jersey.png?darkMode=false",
      "rel": [
       "full",
       "default"
@@ -254,7 +254,7 @@
      "height": 1440
     },
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/uefa.champions/events/401915383/athletes/228267/jersey.png?darkMode=true",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879242/athletes/283586/jersey.png?darkMode=true",
      "rel": [
       "full",
       "dark"
@@ -343,8 +343,8 @@
     "shortDisplayName": "GA",
     "description": "The number of goals allowed by the goalkeeper.",
     "abbreviation": "GA",
-    "value": 1.0,
-    "displayValue": "1"
+    "value": 0.0,
+    "displayValue": "0"
    },
    {
     "name": "shotsFaced",
@@ -402,10 +402,10 @@
    }
   ],
   "subbedInFor": {
-   "jersey": "9",
+   "jersey": "34",
    "athlete": {
-    "id": "221332",
-    "displayName": "Luka Jovic",
+    "id": "311963",
+    "displayName": "Merlin Röhl",
     "links": [
      {
       "language": "en-US",
@@ -414,7 +414,7 @@
        "desktop",
        "athlete"
       ],
-      "href": "https://www.espn.com/soccer/player/_/id/221332/luka-jovic",
+      "href": "https://www.espn.com/soccer/player/_/id/311963/merlin-rohl",
       "text": "Player Card",
       "shortText": "Player Card",
       "isExternal": false,
@@ -426,7 +426,7 @@
   "plays": [
    {
     "clock": {
-     "displayValue": "88'"
+     "displayValue": "73'"
     },
     "scoringPlay": false,
     "substitution": true,
@@ -438,37 +438,37 @@
   ]
  },
  "keyEvent_sub": {
-  "id": "54801628",
+  "id": "54903991",
   "type": {
    "id": "76",
    "text": "Substitution",
    "type": "substitution"
   },
-  "text": "Substitution, AEK Athens. Zine replaces Lovro Majer.",
-  "shortText": "Zini Substitution",
+  "text": "Substitution, Everton. Jake O'Brien replaces Merlin Röhl.",
+  "shortText": "Jake O'Brien Substitution",
   "period": {
    "number": 2
   },
   "clock": {
-   "value": 3153.0,
-   "displayValue": "53'"
+   "value": 4330.0,
+   "displayValue": "73'"
   },
   "scoringPlay": false,
   "team": {
-   "id": "887",
-   "displayName": "AEK Athens"
+   "id": "368",
+   "displayName": "Everton"
   },
   "participants": [
    {
     "athlete": {
-     "id": "297754",
-     "displayName": "Zini"
+     "id": "283586",
+     "displayName": "Jake O'Brien"
     }
    },
    {
     "athlete": {
-     "id": "237549",
-     "displayName": "Lovro Majer"
+     "id": "311963",
+     "displayName": "Merlin Röhl"
     }
    }
   ],
@@ -476,15 +476,15 @@
    "id": "38",
    "description": "SA.ENVOY"
   },
-  "wallclock": "2026-11-04T18:57:15Z",
+  "wallclock": "2026-11-06T21:31:12Z",
   "shootout": false
  },
  "parsed": {
-  "887": [
+  "368": [
    [
-    "175264",
+    "159443",
     1,
-    95,
+    97,
     0,
     0,
     0,
@@ -493,9 +493,20 @@
     0
    ],
    [
-    "324593",
+    "286965",
     1,
-    95,
+    89,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0
+   ],
+   [
+    "155226",
+    1,
+    97,
     0,
     0,
     0,
@@ -504,42 +515,20 @@
     0
    ],
    [
-    "218951",
+    "262594",
     1,
-    95,
+    97,
     1,
     1,
-    0,
+    1,
     0,
     0,
     0
    ],
    [
-    "285427",
+    "311963",
     1,
-    95,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "302487",
-    1,
-    95,
-    0,
-    0,
-    0,
-    3,
-    0,
-    0
-   ],
-   [
-    "235669",
-    1,
-    60,
+    73,
     0,
     0,
     0,
@@ -548,62 +537,95 @@
     0
    ],
    [
-    "260554",
+    "252389",
     1,
-    95,
-    0,
-    0,
-    0,
+    97,
     3,
     1,
-    0
-   ],
-   [
-    "237549",
-    1,
-    53,
-    0,
-    0,
     0,
     0,
     0,
     0
    ],
    [
-    "260026",
+    "276220",
     1,
-    95,
+    97,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "378458",
+    1,
+    73,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "301166",
+    1,
+    97,
+    6,
+    2,
+    1,
+    2,
+    0,
+    0
+   ],
+   [
+    "368864",
+    1,
+    90,
     3,
     1,
+    0,
     1,
     0,
-    0,
-    1
+    0
    ],
    [
-    "192943",
+    "340640",
     1,
-    60,
+    73,
     1,
-    1,
+    0,
+    0,
+    2,
+    0,
+    0
+   ],
+   [
+    "283586",
+    0,
+    24,
+    0,
+    0,
     0,
     0,
     0,
     0
    ],
    [
-    "221332",
-    1,
-    88,
-    1,
-    1,
-    1,
-    1,
+    "4946",
+    0,
+    8,
+    0,
+    0,
+    0,
+    0,
     0,
     0
    ],
    [
-    "228267",
+    "302162",
     0,
     7,
     0,
@@ -614,20 +636,9 @@
     0
    ],
    [
-    "239738",
+    "291307",
     0,
-    35,
-    2,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "297754",
-    0,
-    42,
+    24,
     0,
     0,
     0,
@@ -636,22 +647,22 @@
     0
    ],
    [
-    "246666",
+    "282978",
     0,
-    35,
-    0,
-    0,
+    24,
+    1,
+    1,
     0,
     1,
     0,
     0
    ]
   ],
-  "86": [
+  "388": [
    [
-    "134283",
+    "307069",
     1,
-    95,
+    97,
     0,
     0,
     0,
@@ -660,9 +671,9 @@
     0
    ],
    [
-    "169438",
+    "241093",
     1,
-    95,
+    97,
     0,
     0,
     0,
@@ -671,40 +682,51 @@
     0
    ],
    [
-    "228402",
+    "374220",
     1,
-    95,
-    2,
+    97,
     1,
+    0,
     0,
     1,
     0,
     0
    ],
    [
-    "259910",
+    "206172",
     1,
-    81,
-    2,
+    97,
     1,
-    1,
-    5,
-    1,
-    0
-   ],
-   [
-    "213248",
-    1,
-    95,
-    1,
-    1,
-    1,
-    1,
+    0,
+    0,
+    0,
     0,
     0
    ],
    [
-    "291281",
+    "281139",
+    1,
+    97,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "286967",
+    1,
+    86,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "256015",
     1,
     86,
     3,
@@ -715,112 +737,101 @@
     0
    ],
    [
-    "285150",
+    "387659",
     1,
-    95,
+    97,
     0,
     0,
     0,
-    6,
+    1,
+    1,
+    0
+   ],
+   [
+    "194686",
+    1,
+    87,
+    1,
+    0,
+    0,
+    1,
     0,
     0
    ],
    [
-    "199833",
+    "277383",
     1,
-    67,
-    1,
-    0,
-    0,
-    1,
-    0,
-    0
-   ],
-   [
-    "231388",
-    1,
-    95,
-    7,
+    73,
     3,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "252107",
-    1,
-    81,
-    3,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "402479",
-    1,
-    67,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "310637",
-    0,
-    14,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0
-   ],
-   [
-    "380286",
-    0,
-    9,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "246532",
-    0,
-    14,
-    1,
-    0,
-    1,
-    0,
-    0,
-    0
-   ],
-   [
-    "235818",
-    0,
-    28,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "346612",
-    0,
-    28,
     2,
     0,
-    0,
     1,
+    0,
+    0
+   ],
+   [
+    "302002",
+    1,
+    86,
+    1,
+    1,
+    0,
+    2,
+    0,
+    0
+   ],
+   [
+    "366817",
+    0,
+    10,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "324541",
+    0,
+    11,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "191337",
+    0,
+    11,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "236912",
+    0,
+    11,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "240495",
+    0,
+    24,
+    1,
+    0,
+    0,
+    0,
     0,
     0
    ]
