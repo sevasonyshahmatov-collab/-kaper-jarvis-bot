@@ -1,7 +1,7 @@
 /* Карточки лиг (КХЛ, НХЛ) для раздела «Лиги и клубы». Те же приёмы, что в proto/home/cards: 3D-наклон, слои по глубине,
    игрок выступает из рамки, переворот по нажатию. Без стекла и без пятна света у курсора: фольга сдержанная и зависит от угла наклона. */
-.lc-deck{--cw:min(400px,40vw,calc((100svh - 240px) * .714));display:flex;justify-content:center;gap:clamp(24px,5vw,80px);margin:clamp(40px,4.4vw,64px) 0 0;padding:0 8px}
-.lc-credit{margin:22px auto 0;max-width:62ch;text-align:center;font:400 12px/1.5 var(--text);color:var(--ink-3)}
+.lc-deck{--cw:min(400px,40vw,calc((100svh - 240px) * .714));display:flex;justify-content:flex-start;gap:clamp(24px,5vw,80px);margin:clamp(40px,4.4vw,64px) 0 0;padding:0}
+.lc-credit{margin:22px 0 0;max-width:62ch;text-align:left;font:400 12px/1.5 var(--text);color:var(--ink-3)}
 .lc-credit a{color:inherit;text-underline-offset:2px}
 
 .lcard{--rx:0;--ry:0;--hi:.3;--fx:50;--s:1;--c1:#d6001c;--c2:#0a2a5e;--c3:#fff;--ac:#e31e32;
@@ -61,7 +61,7 @@
 .lcard .cg a:focus-visible{outline:2px solid var(--signal,#ffd54d)}
 .lcard .bk .open{align-self:flex-start;margin-top:auto}
 
-@media (max-width:820px){.lc-deck{flex-direction:column;align-items:center;gap:68px;padding:0;--cw:min(86vw,360px)}}
+@media (max-width:600px){.lc-deck{flex-direction:column;align-items:flex-start;gap:68px;padding:0;--cw:min(calc(100vw - 32px),360px)}}
 @media (prefers-reduced-motion:reduce){.lcard .flip{transition:none}.lcard .tilt{will-change:auto}}
 .lcard .pl.sl{height:116cqw;left:56%;top:-12cqw}
 .lcard .pl.emb{width:62cqw;top:11cqw}
