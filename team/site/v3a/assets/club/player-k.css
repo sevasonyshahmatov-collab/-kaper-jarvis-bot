@@ -47,3 +47,14 @@ html[data-white] body{background:#fff}
 .pp-hero .pp-no,.pp-hero .pp-txt,.pp-hero .pp-photo{will-change:translate}
 
 .pp.k .pp-no{color:var(--kx);-webkit-text-stroke:0;opacity:.95;text-shadow:0 3px 0 color-mix(in srgb,var(--kt) 50%,transparent)}
+/* Таблица матчей игрока — крупнее текст и цифры (владелец 07.11) */
+.pp-gm th{font-size:14px;padding:12px}
+.pp-gm td{font-size:20px;padding:13px 12px}
+.pp-gm .op{gap:12px}
+.pp-gm .op img{width:34px;height:34px}
+.pp-gm .op small{font-size:14px;margin-top:2px}
+.pp-gm .pt b{font-size:20px;padding:5px 10px;border-radius:9px;min-width:2.4em}
+@media (max-width:620px){
+  .pp-gm td{font-size:16px;padding:10px 6px}.pp-gm th{font-size:12px;padding:9px 6px}
+  .pp-gm .op img{width:26px;height:26px}.pp-gm .op small{font-size:12px}.pp-gm .pt b{font-size:16px}
+}
