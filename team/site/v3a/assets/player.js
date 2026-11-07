@@ -26,9 +26,9 @@ const MK=[
 const radar=sk=>{if(!sk||sk.length<3)return'';const n=sk.length,R=120,C=170,pt=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[C+r*Math.cos(a),C+r*Math.sin(a)]},
  poly=r=>sk.map((_,i)=>pt(i,r).map(v=>v.toFixed(1)).join(',')).join(' ');
  const grid=[.25,.5,.75,1].map(f=>`<polygon class="gr" points="${poly(R*f)}"/>`).join('')+sk.map((_,i)=>{const[x,y]=pt(i,R);return`<line class="gr" x1="${C}" y1="${C}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/>`}).join('');
- const val=sk.map(([,v],i)=>pt(i,R*Math.max(.04,v/100)).map(x=>x.toFixed(1)).join(',')).join(' ');
+ const val=sk.map(([,v],i)=>pt(i,R*Math.max(.04,Math.min(1,(v-30)/70))).map(x=>x.toFixed(1)).join(',')).join(' ');
  const lab=sk.map(([nm,v],i)=>{const[x,y]=pt(i,R+30),an=Math.abs(x-C)<8?'middle':x>C?'start':'end';return`<text x="${x.toFixed(1)}" y="${(y-6).toFixed(1)}" text-anchor="${an}" class="ax">${esc(nm)}</text><text x="${x.toFixed(1)}" y="${(y+14).toFixed(1)}" text-anchor="${an}" class="vl">${v}</text>`}).join('');
- return `<section class="pp-sec" aria-labelledby="h-k"><h2 id="h-k">Навыки</h2><div class="pp-sk"><svg viewBox="-120 0 580 345" role="img" aria-label="${esc(sk.map(([a,v])=>a+' '+v).join(', '))}">${grid}<polygon class="vv" points="${val}"/>${sk.map(([,v],i)=>{const[x,y]=pt(i,R*Math.max(.04,v/100));return`<circle class="dt" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5"/>`}).join('')}${lab}</svg></div></section>`};
+ return `<section class="pp-sec" aria-labelledby="h-k"><h2 id="h-k">Навыки</h2><div class="pp-sk"><svg viewBox="-120 0 580 345" role="img" aria-label="${esc(sk.map(([a,v])=>a+' '+v).join(', '))}">${grid}<polygon class="vv" points="${val}"/>${sk.map(([,v],i)=>{const[x,y]=pt(i,R*Math.max(.04,Math.min(1,(v-30)/70)));return`<circle class="dt" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5"/>`}).join('')}${lab}</svg></div></section>`};
 if(!ID){err('Не указан игрок.');return}
 fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).then(P=>{
  const T=TT[P.t]||{},col=shade((T.colors||[])[0]);
