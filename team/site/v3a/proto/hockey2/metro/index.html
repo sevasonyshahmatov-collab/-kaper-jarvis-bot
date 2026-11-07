@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Хоккей сегодня — схема дня | JARVIS</title>
+<meta name="description" content="Матчи КХЛ и НХЛ ближайшего игрового дня как схема метро: две линии, станции-матчи, вероятности модели JARVIS.">
+<meta name="theme-color" content="#eef0f2">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&amp;display=swap">
+<link rel="icon" href="../../../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="metro.css">
+<script src="../../../data/today.js"></script><script src="../../../data/model.js"></script><script src="../../../data/lines.js"></script>
+<script src="metro.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd"><div class="wrap hdrow">
+  <a class="logo" href="../../../index.html" aria-label="JARVIS, на главную">JARVIS</a>
+  <input type="checkbox" id="mt" class="mt-in" aria-label="Меню"><label for="mt" class="mt" aria-hidden="true"><i></i></label>
+  <nav class="nav" aria-label="Разделы">
+    <a href="../../../hockey/index.html" aria-current="page">Хоккей</a>
+    <a href="../../../football/index.html">Футбол</a>
+    <a href="#matches">Матчи</a>
+    <a href="../../../hockey/league.html?lg=khl">КХЛ</a>
+    <a href="../../../hockey/league.html?lg=nhl">НХЛ</a>
+    <a href="../../../hockey/players.html">Игроки</a>
+  </nav>
+</div></header>
+
+<main id="main">
+<section class="hero"><div class="wrap">
+  <div class="hrow">
+    <h1>Хоккей сегодня</h1>
+    <a class="btn" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a>
+  </div>
+  <div class="sch" id="sch" aria-label="Схема игрового дня">
+    <svg class="lines" id="lines" aria-hidden="true"></svg>
+    <div class="stl" id="stl"></div>
+    <div class="card" id="card" role="region" aria-live="polite" hidden></div>
+  </div>
+  <p class="legend" id="legend">Жирным выделен фаворит модели, % — его шанс победы в основное время.</p>
+</div></section>
+
+<section class="sec" id="matches"><div class="wrap">
+  <h2>Все матчи дня</h2>
+  <ul class="list" id="list"></ul>
+</div></section>
+
+<section class="sec" id="leagues"><div class="wrap">
+  <h2>Лиги</h2>
+  <div class="lgs" id="lgs"></div>
+</div></section>
+</main>
+
+<footer class="ft"><div class="wrap">
+  <a class="logo" href="../../../index.html">JARVIS</a>
+  <p>Прогнозы на хоккей и футбол по расчёту модели. Данные обновляются дважды в день.</p>
+  <a class="tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Telegram @jarvibet</a>
+</div></footer>
+<noscript><p class="wrap" style="padding:20px 0">Схема требует JavaScript. Матчи — в <a href="https://t.me/jarvibet">Telegram</a>.</p></noscript>
+</body>
+</html>
