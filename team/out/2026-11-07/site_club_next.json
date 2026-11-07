@@ -1,0 +1,13 @@
+{
+ "day": "2026-11-07",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-07/club_next.png"
+   ],
+   "text": "Клубы: «Следующий матч» перенесён вниз — после таблицы, трендов, тоталов, матчей сезона и игроков (перед «Нашими ставками»). В подменю тоже по порядку. Все клубы КХЛ, НХЛ и футбола.\nКаролина: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/6975accf48f912d3c2a1e0b4458d8c80626c5894/team/site/v3a/team/index.html?id=nhl_car#next\nАрсенал: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/6975accf48f912d3c2a1e0b4458d8c80626c5894/team/site/v3a/football/team.html?id=arsenal#next"
+  }
+ ]
+}
