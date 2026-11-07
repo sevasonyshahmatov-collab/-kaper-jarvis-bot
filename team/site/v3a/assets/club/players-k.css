@@ -143,3 +143,7 @@ html[data-white] body{background:#fff}
 .ga i{text-align:center}
 .gah span:first-child{text-align:right;padding-right:10px}.gah span:last-child{text-align:left;padding-left:10px}
 .ga i{padding:0 3px}
+/* Ровно: число–плюс–число одной группой по центру, равные отступы, цифры одинаковой ширины (владелец 07.11) */
+.ga{display:flex;justify-content:center;align-items:center;gap:7px;padding:0 10px;font-variant-numeric:tabular-nums lining-nums}
+.ga span:first-child,.ga span:last-child{text-align:center}
+.ga i{padding:0;line-height:1;transform:translateY(-.04em)}
