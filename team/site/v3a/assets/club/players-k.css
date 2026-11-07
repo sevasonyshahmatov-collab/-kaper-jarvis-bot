@@ -127,3 +127,12 @@ html[data-white] body{background:#fff}
   .ga{display:none}
   .pr.k .pts.pin{display:block}
 }
+
+/* Г и П над плашкой (владелец 07.11, рисунок) */
+.ga,.gah{grid-template-columns:1fr 18px 1fr;column-gap:2px;padding:0 10px}
+.ga{display:grid;place-items:center stretch}
+.ga span{text-align:center}.ga i{font-style:normal;text-align:center;opacity:.6}
+.gah{display:grid;align-self:end;font:800 15px/1 var(--display);color:var(--ink-3);letter-spacing:.04em}
+.gah span{text-align:center}
+.gah0{height:0}
+@media (max-width:900px){.gah,.gah0{display:none}}

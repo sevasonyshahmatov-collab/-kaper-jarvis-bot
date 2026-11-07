@@ -30,7 +30,7 @@ fetch(`data/plite_${LG}.json`).then(r=>r.json()).then(D=>{
   const val=x=>st.so==='n'?x.h[0]:st.so==='G'?tot(x.p):st.so==='toi'?x.p.toi:x.h[0]/x.h[1];
   L.sort((a,b)=>val(b)-val(a)||b.h[0]-a.h[0]||a.p.n.localeCompare(b.p.n));
   $('meta').textContent=`${L.length} ${pl(L.length,'игрок','игрока','игроков')} · ${M.w} хотя бы в одном матче${st.ha==='home'?' дома':st.ha==='away'?' в гостях':''} · данные на ${D.built}`;
-  $('list').innerHTML=L.slice(0,st.lim).map((x,i)=>{const p=x.p,h=x.h,pc=Math.round(100*h[0]/h[1]),c=(TM[p.t]||[])[1]||'#334';
+  $('list').innerHTML=(st.m==='pt'?'<div class="gah0" aria-hidden="true"></div><div class="gah" aria-hidden="true"><span>Г</span><i></i><span>П</span></div>':'')+L.slice(0,st.lim).map((x,i)=>{const p=x.p,h=x.h,pc=Math.round(100*h[0]/h[1]),c=(TM[p.t]||[])[1]||'#334';
    const L10=p.log.slice(-10),mx=Math.max(st.m==='s3'?4:2,...L10.map(M.v)),hit=a=>a.filter(M.f).length,L5=L10.slice(-5);
    const strip=`<div class="bars">${L10.map(r=>{const ok=M.f(r),v=M.v(r);return `<i class="${ok?'g':''}" style="--h:${Math.max(.08,v/mx)}" title="${esc(r[0].slice(8,10)+'.'+r[0].slice(5,7)+' '+(r[3]?'дома, ':'в гостях, ')+tn(r[2]))}: ${r[4]}+${r[5]}${r[6]!=null?', бросков '+r[6]:''}"><b>${v}</b></i>`}).join('')}</div><small>5 матчей: <b>${hit(L5)}/${L5.length}</b> · 10: <b>${hit(L10)}/${L10.length}</b></small>`;
    const sp=a=>{const lg=p.log.filter(r=>r[3]===a);return`${lg.filter(M.f).length}/${lg.length}`};
@@ -41,7 +41,7 @@ fetch(`data/plite_${LG}.json`).then(r=>r.json()).then(D=>{
     <div class="nm"><b>${p.id!=null?`<a href="player.html?lg=${LG}&id=${p.id}" title="Профиль игрока">${esc(p.n)}</a>`:esc(p.n)}</b><span>${esc(tn(p.t))} · ${p.pos==='D'?'защитник':'нападающий'}</span></div>
     ${st.m==='pt'?`<div class="pts pin" aria-hidden="true"><b>${p.G}+${p.A}</b></div>`:''}<div class="tot" aria-label="${st.m==='g'?'голов':st.m==='a'?'передач':'очков'}: ${tot(p)}">${tot(p)}</div>
     ${p.img?`<img class="cut" src="${esc(p.img)}" alt="" aria-hidden="true" loading="lazy" onerror="this.remove()">`:''}
-   </article>${st.m==='pt'?`<div class="ga${jv?' k':''}"${jv?` style="${jv}"`:''} aria-label="${p.G} голов и ${p.A} передач">${p.G}+${p.A}</div>`:''}`}).join('');
+   </article>${st.m==='pt'?`<div class="ga${jv?' k':''}"${jv?` style="${jv}"`:''} aria-label="${p.G} голов и ${p.A} передач"><span>${p.G}</span><i>+</i><span>${p.A}</span></div>`:''}`}).join('');
   $('list').classList.toggle('two',st.m==='pt');
   $('more').hidden=L.length<=st.lim}
  $('mk').onclick=e=>{const b=e.target.closest('button');if(!b)return;st.m=b.dataset.m;st.lim=30;$('mk').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()};
