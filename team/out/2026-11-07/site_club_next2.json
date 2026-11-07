@@ -1,0 +1,10 @@
+{
+ "day": "2026-11-07",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "«Следующий матч» у клубов теперь между «Местом в таблице» и «Трендами» (все клубы КХЛ, НХЛ, футбол). Подменю по порядку: Таблица · Статистика · Матч · Тренды · …\nКаролина: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/a358d469949636794f55a8eaeefac7c6f85ab158/team/site/v3a/team/index.html?id=nhl_car#next\nАрсенал: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/a358d469949636794f55a8eaeefac7c6f85ab158/team/site/v3a/football/team.html?id=arsenal#next"
+  }
+ ]
+}
