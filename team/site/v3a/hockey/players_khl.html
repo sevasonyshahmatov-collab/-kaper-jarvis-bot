@@ -47,20 +47,18 @@
   <section class="pl-hero">
     <p class="pl-kicker">КХЛ · сезон <span id="season"></span></p>
     <h1>Игроки КХЛ</h1>
-    <p class="pl-lead">Очко, гол, передача: «n из N» — в скольких своих матчах игрок это сделал (N — его игры в сезоне, в списке — от 5). Форма — последние 10 матчей команды, время на льду, дом и выезд, следующий соперник.</p>
   </section>
   <section class="pl-ctrl" aria-label="Фильтры">
     <div class="pl-tabs" role="group" aria-label="Рынок" id="mk">
-      <button type="button" data-m="pt" aria-pressed="true">Очко</button>
+      <button type="button" data-m="pt" aria-pressed="true">Гол+пас</button>
       <button type="button" data-m="g" aria-pressed="false">Гол</button>
-      <button type="button" data-m="a" aria-pressed="false">Передача</button>
-      <button type="button" data-m="s3" aria-pressed="false">3+ броска</button>
+      <button type="button" data-m="a" aria-pressed="false">Пас</button>
     </div>
-    <div class="pl-chips" role="group" aria-label="Позиция" id="lg"></div>
+    <div class="pl-chips" role="group" aria-label="Позиция" id="lg" hidden></div>
     <div class="pl-row">
       <label>Команда <select id="tm"><option value="">Все</option></select></label>
       <label>Где <select id="ha"><option value="">Все матчи</option><option value="home">Дома</option><option value="away">В гостях</option></select></label>
-      <label>Сортировка <select id="so"><option value="rate">Доля матчей</option><option value="n">Число матчей</option><option value="G">Очки / голы / броски</option><option value="toi">Время на льду</option></select></label>
+      <label>Сортировка <select id="so"><option value="G">Очки</option><option value="rate">Доля матчей</option><option value="n">Число матчей</option><option value="toi">Время на льду</option></select></label>
       <label class="pl-q">Игрок <input id="q" type="search" placeholder="Имя"></label>
     </div>
   </section>

@@ -95,3 +95,12 @@ html[data-white] body{background:#fff}
   .pr.k .pts{grid-column:3;text-align:left;margin-top:-4px}
   .pr.k .pts b{font-size:20px}.pr.k .pts small{display:none}
 }
+#lg[hidden]{display:none!important}
+/* Очки без подписи, крупно на фоне слева от логотипа клуба (владелец 07.11) */
+.pr.k{grid-template-columns:28px 84px minmax(0,1fr)}
+.pr.k .pts{position:absolute;z-index:0;right:auto;left:calc(52% - 300px);width:290px;top:50%;transform:translateY(-50%);text-align:right;pointer-events:none}
+.pr.k .pts b{font-size:46px;opacity:.9;letter-spacing:-.02em}
+@media (max-width:900px){
+  .pr.k .pts{position:static;transform:none;width:auto;text-align:left;margin-top:-2px}
+  .pr.k .pts b{font-size:20px;opacity:1}
+}

@@ -14,7 +14,7 @@ const MK={pt:{f:r=>r[4]+r[5]>0,v:r=>r[4]+r[5],w:'набирал очко'},g:{f:
 const POS={'':'Все',F:'Нападающие',D:'Защитники'};
 const URLT=new URLSearchParams(location.search).get('team')||'';
 const URLQ=(new URLSearchParams(location.search).get('q')||'').slice(0,60);
-const st={m:'pt',pos:'',tm:URLT in TM?URLT:'',ha:'',so:'rate',q:URLQ,lim:30};
+const st={m:'pt',pos:'',tm:URLT in TM?URLT:'',ha:'',so:'G',q:URLQ,lim:30};
 const mmss=s=>`${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
 const pl=(n,a,b,c)=>{n=Math.abs(n)%100;const k=n%10;return n>10&&n<20?c:k===1?a:k>1&&k<5?b:c};
 fetch(`data/plite_${LG}.json`).then(r=>r.json()).then(D=>{
@@ -39,7 +39,7 @@ fetch(`data/plite_${LG}.json`).then(r=>r.json()).then(D=>{
    return `<article class="pr${jv?' k'+(lt?' lt':'')+(i<3?' t'+(i+1):''):''}" role="listitem"${jv?` style="${jv}"`:''}>${jv?`<img class="wm" src="${em(p.t)}" alt="" aria-hidden="true" loading="lazy" onerror="this.remove()">${p.no!=null?`<span class="no" aria-hidden="true">${esc(p.no)}</span>`:''}`:''}<span class="rk">${i+1}</span>
     <div class="av" style="--c:${c}">${p.img?`<img class="ph" src="${esc(p.img)}" alt="" loading="lazy" onerror="this.remove()">`:''}<img class="bd" src="${em(p.t)}" alt="" loading="lazy" onerror="this.remove()"></div>
     <div class="nm"><b>${p.id!=null?`<a href="player.html?lg=${LG}&id=${p.id}" title="Профиль игрока">${esc(p.n)}</a>`:esc(p.n)}</b><span>${esc(tn(p.t))} · ${p.pos==='D'?'защитник':'нападающий'}</span></div>
-    <div class="pts" aria-label="${p.G} голов, ${p.A} передач, ${p.G+p.A} очков"><b>${p.G}+${p.A}=${p.G+p.A}</b><small>голы + передачи = очки</small></div>
+    <div class="pts" aria-label="${p.G} голов, ${p.A} передач, ${p.G+p.A} очков"><b>${p.G}+${p.A}=${p.G+p.A}</b></div>
     ${p.img?`<img class="cut" src="${esc(p.img)}" alt="" aria-hidden="true" loading="lazy" onerror="this.remove()">`:''}
    </article>`}).join('');
   $('more').hidden=L.length<=st.lim}
