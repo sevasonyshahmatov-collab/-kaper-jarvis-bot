@@ -108,3 +108,9 @@ html[data-white] body{background:#fff}
 .pr.k .pts b{font:900 50px/1 var(--display);letter-spacing:-.03em;color:var(--kx);opacity:.6;
   text-shadow:0 2px 0 color-mix(in srgb,var(--kt) 40%,transparent)}
 @media (max-width:900px){.pr.k .pts b{font-size:22px;opacity:.75}}
+
+/* Отдельная плашка справа: очки (Гол+пас), голы (Гол) или передачи (Пас) — владелец 07.11 */
+.pr.k .tot{position:absolute;z-index:2;left:calc(52% + 168px);top:50%;transform:translateY(-50%);min-width:68px;padding:10px 14px;border-radius:14px;
+  font:900 34px/1 var(--display);letter-spacing:-.02em;text-align:center;color:var(--ko);
+  background:color-mix(in srgb,var(--kb) 70%,#000);box-shadow:inset 0 0 0 2px var(--kx),0 8px 18px -10px rgba(0,0,0,.6)}
+@media (max-width:900px){.pr.k .tot{left:auto;right:10px;top:10px;transform:none;min-width:0;padding:6px 9px;border-radius:10px;font-size:20px}}
