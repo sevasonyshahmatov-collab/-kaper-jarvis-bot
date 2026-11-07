@@ -120,5 +120,25 @@ function v7(hero,M,S){
  document.head.append(s);
 }
 
-H.mount=(N,hero,M,S)=>{(N===6?v6:v7)(hero,M,S)};
+/* ═══ 8. Арена: shaders (WebGPU) + CSS-фолбэк, новые кнопки ═══ */
+function v8(hero,M,S){
+ const [l1,l2]=M.h,w=l2.split(' '),last=w.pop(),t=M.top,kind=S==='football'?'pitch':'ice';
+ const h1=`${esc(l1)}:<br>${esc(w.join(' '))}${w.length?' ':''}<em>${esc(last)}</em>`;
+ const arrow='<svg viewBox="0 0 22 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M0 6h20M15 1l5 5-5 5"/></svg>';
+ const root=document.createElement('div');root.className='h8';root.dataset.sp=S;
+ const strip=()=>{const x=nextOf(M);return `${M.nowDay?'Сегодня':'В ближайший день'} ${ru(M.total)}${x?` · ближайший через ${cdStr(x)}`:''}`};
+ const day=!t?'':`<a class="sh-md" href="#matches"><span class="sh-mt"><time class="num">${t.t.slice(11,16)}</time>${LGP(t.lg)}</span><b class="sh-mm">${esc(t.hn)} — ${esc(t.an)}</b><span class="sh-mo">${esc(t.top.word)}</span><span class="sh-mp num">${pct(t.top.p)} %</span><span class="sh-mk num">${f2(t.top.k)}</span></a>`;
+ root.innerHTML=`<div class="sh-top" data-kind="${kind}"><div class="sh-fb" aria-hidden="true"><i class="sh-haze"></i><i class="sh-ray a"></i><i class="sh-ray b"></i><i class="sh-ray c"></i><i class="sh-frost"></i><i class="sh-mist"></i><i class="sh-grain"></i></div>
+  <canvas class="sh-cv" aria-hidden="true"></canvas>
+  <div class="sh-in"><div class="sh-copy"><h1 class="sh-h">${h1}</h1><p>Вероятность каждого исхода считает модель. Прогнозы приходят в Telegram до матча.</p>
+   <div class="sh-cta"><a class="sh-b sh-b1" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Получать прогнозы — бесплатно</span>${arrow}</a><a class="sh-b sh-b2" href="#matches"><span>Матчи дня</span></a></div></div></div>
+  <div class="sh-foot"><p class="sh-strip" id="sh-strip">${strip()}</p>${day}</div></div><div class="sh-fade" aria-hidden="true"></div>`;
+ hero.append(root);
+ const el=$(root,'#sh-strip');setInterval(()=>{if(!document.hidden)el.textContent=strip()},30000);
+ const top=$(root,'.sh-top'),s=document.createElement('script');s.src=BASE+'hero8.js';
+ s.onload=()=>{if(window.JVSh)window.JVSh.mount(top,$(root,'.sh-cv'),kind)};
+ document.head.append(s);
+}
+
+H.mount=(N,hero,M,S)=>{(N===6?v6:N===8?v8:v7)(hero,M,S)};
 })();

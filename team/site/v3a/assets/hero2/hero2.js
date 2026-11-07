@@ -7,20 +7,20 @@
 let q=null,P=null;try{P=new URLSearchParams(location.search);q=P.get('hh')}catch(e){}
 if(q===null)return;
 const SCR=document.currentScript,BASE=SCR&&SCR.src?new URL('.',SCR.src).href:'';
-const HOME=!/\/(hockey|football)\//.test(location.pathname);   // на главной работают только 0, 6, 7
-const N0=/^[0-7]$/.test(q)?+q:0,N=HOME&&N0<6?0:N0,de=document.documentElement;
+const HOME=!/\/(hockey|football)\//.test(location.pathname);   // на главной работают только 0, 6, 7 (8 — только хоккей и футбол)
+const N0=/^[0-8]$/.test(q)?+q:0,N=HOME&&(N0<6||N0>7)?0:N0,de=document.documentElement;
 const BG={4:'2'};            // фон по умолчанию для вариантов: 1 «Колода лиг», у «Колоды» — «Свет арены» (карточки не спорят с фоном)
 if(N>=6&&P.get('hbg')!==null){try{P.delete('hbg');history.replaceState(null,'',location.pathname+(P.toString()?'?'+P.toString():'')+location.hash)}catch(e){}}
 if(N&&N<6&&P.get('hbg')===null){try{P.set('hbg',BG[N]||'1');history.replaceState(null,'',location.pathname+'?'+P.toString()+location.hash)}catch(e){}}
 if(N)de.dataset.hh=N;
 
-const NAMES=['Как сейчас','Игрок','Бенто','Лента матчей','Колода','Центр','Протокол','Космос'];
+const NAMES=['Как сейчас','Игрок','Бенто','Лента матчей','Колода','Центр','Протокол','Космос','Арена'];
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const HOVER=matchMedia('(hover:hover) and (pointer:fine)').matches;
 
 function switcher(){
  const el=document.createElement('nav');el.className='hh-sw';el.setAttribute('aria-label','Вариант первого блока');
- el.innerHTML='<span>Шапка</span>'+NAMES.map((t,i)=>HOME&&i>0&&i<6?'':`<a href="#" data-n="${i}" title="${i} — ${t}"${i===N?' aria-current="true"':''}>${i}</a>`).join('')+`<em>${N} — ${NAMES[N]}</em>`;
+ el.innerHTML='<span>Шапка</span>'+NAMES.map((t,i)=>HOME&&((i>0&&i<6)||i>7)?'':`<a href="#" data-n="${i}" title="${i} — ${t}"${i===N?' aria-current="true"':''}>${i}</a>`).join('')+`<em>${N} — ${NAMES[N]}</em>`;
  el.addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;e.preventDefault();
   const u=new URL(location.href);u.searchParams.set('hh',a.dataset.n);if(+a.dataset.n>=6||a.dataset.n==='0')u.searchParams.delete('hbg');else if(u.searchParams.get('hbg')===null)u.searchParams.set('hbg',BG[a.dataset.n]||'1');location.href=u.toString()});
  document.body.append(el);
@@ -232,7 +232,7 @@ function build(){
 if(N>=6){
  window.JVH2={esc,f2,pct,plural,left,mskDay,MON,LGN,LGP,BTN:'<a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a>',cdStr,BASE,RM,HOME};
  const add=(t,a)=>{const e=document.createElement(t);Object.assign(e,a);document.head.append(e);return e};
- add('link',{rel:'stylesheet',href:BASE+'hero2b.css'});
+ add('link',{rel:'stylesheet',href:BASE+(N===8?'hero8.css':'hero2b.css')});
  if(N===7)add('link',{rel:'stylesheet',href:'https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@1,7..72,300;1,7..72,400&display=swap'});
 }
 document.addEventListener('DOMContentLoaded',()=>{
