@@ -469,6 +469,8 @@ body .g.h2g.nx{grid-template-columns:110px 32px minmax(0,1fr) auto}
 .plead li.has-ph .lph{display:block;position:absolute;right:12px;bottom:0;width:30%;max-width:150px;aspect-ratio:1;pointer-events:none}
 .plead .lph img{display:block;width:100%;height:100%;object-fit:contain;object-position:bottom}
 .plead li.has-ph>:not(.lph){position:relative;z-index:1}
-@media (max-width:980px){.plead li.has-ph{grid-template-columns:64px minmax(0,1fr) auto;grid-template-areas:"p l v" "p n v" "p s v"}
- .plead li.has-ph .lph{position:static;grid-area:p;width:64px;height:64px;max-width:none;border-radius:50%;background:var(--sep);overflow:hidden;align-self:center}
+@media (max-width:980px){.plead li.has-ph{grid-template-columns:56px minmax(0,1fr) auto;grid-template-areas:"p l l" "p n n" "s s v";row-gap:6px}
+ .plead li.has-ph .lph{position:static;grid-area:p;width:56px;height:56px;max-width:none;border-radius:50%;background:var(--sep);overflow:hidden;align-self:center}
  .plead li.has-ph .lph img{object-fit:cover;object-position:top}}
+.plead .pln small{white-space:nowrap}
+@media (max-width:980px){.plead li.has-ph .ss{align-self:end;padding-bottom:4px}}
