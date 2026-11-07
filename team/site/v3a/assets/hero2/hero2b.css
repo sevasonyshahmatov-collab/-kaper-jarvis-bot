@@ -1,0 +1,133 @@
+/* Шапки ?hh=6 «Протокол» и ?hh=7 «Космос» (макет, 07.11). Грузится из hero2.js только при hh=6 или 7.
+   Правила владельца: без стекла и бликов-пятен, фон не следует за мышью, мало подписей; наведение — только @media (hover:hover);
+   prefers-reduced-motion — статичный кадр. Блок полноширинный, края текста — по сетке сайта (--ed). */
+
+html[data-hh="6"] section.hero,html[data-hh="7"] section.hero,html[data-hh="6"] section.hm,html[data-hh="7"] section.hm{
+ display:block;min-height:0;padding:0;overflow:visible;isolation:auto;--ed:max(var(--m),calc((100% - var(--max)) / 2 + var(--m)))}
+html[data-hh="6"] .hm>.hm-bg,html[data-hh="6"] .hm>.hm-grid,html[data-hh="7"] .hm>.hm-bg,html[data-hh="7"] .hm>.hm-grid{display:none}
+html[data-hh="6"] .hero>.wrap:not(.h6),html[data-hh="7"] .hero>.wrap:not(.h7){display:none}
+
+/* ═══ 6. Протокол: светлый монохром ═══ */
+html[data-hh="6"] section.hero,html[data-hh="6"] section.hm{
+ padding-bottom:clamp(60px,9vw,120px);color:#111110;
+ background:linear-gradient(#e9e7e2 calc(100% - clamp(60px,9vw,120px)),rgba(233,231,226,0))}
+.h6{--pi:#111110;--pi2:#3a3935;--pi3:#6a6862;--ps:#fbfaf6;--mono:ui-monospace,"SF Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;--hh:110px;color:var(--pi)}
+.h6 *{box-sizing:border-box}
+.h6 a{color:inherit;text-decoration:none}
+.pr-scene{position:relative;height:calc(var(--sh,700px) + var(--run,900px))}
+.pr-stage{position:sticky;top:var(--hh);height:var(--sh,700px);min-height:520px;max-width:var(--max);margin:0 auto;padding:0 var(--m);
+ display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:clamp(16px,3vw,56px);overflow:hidden}
+.pr-left{display:flex;flex-direction:column;justify-content:space-between;padding:clamp(24px,5vh,56px) 0 clamp(24px,5vh,48px);min-width:0}
+.h6 h1.pr-ht{margin:0;max-width:none;font:200 120px/.94 var(--display);letter-spacing:-.055em;text-transform:uppercase;white-space:nowrap;color:var(--pi)}
+.h6 h1.pr-ht span{display:block}
+.h6 h1.pr-ht::first-line{color:var(--pi)}
+.pr-lede{margin:0 0 22px;max-width:38ch;font:400 13px/1.65 var(--mono);letter-spacing:.01em;color:var(--pi)}
+.pr-bt{min-width:0}
+.pr-meta{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:8px clamp(24px,4vw,64px);font:400 12px/1.6 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--pi2)}
+.pr-meta p{margin:0}
+.pr-meta b{font-weight:400;color:var(--pi);font-variant-numeric:tabular-nums}
+.pr-rc{position:relative;overflow:hidden;padding:0 18px;margin:0 -18px}
+.pr-sway{transform-origin:50% 0;animation:pr-sway 7s ease-in-out infinite alternate;will-change:transform}
+@keyframes pr-sway{from{transform:rotate(-.55deg)}to{transform:rotate(.55deg)}}
+.pr-feed{position:relative;will-change:transform;padding-top:14px}
+.pr-clip{position:absolute;z-index:3;left:50%;top:0;width:54px;height:26px;margin-left:-27px;background:var(--pi);border-radius:3px 3px 1px 1px}
+.pr-zig{height:6px;background:var(--ps);-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.pr-zig.top{transform:scaleY(-1)}
+.pr-sheet{background:var(--ps);overflow:hidden;box-shadow:0 14px 26px -22px rgba(17,17,16,.55)}
+.h6 .pr-sheet{height:0}
+.pr-body{padding:34px 22px 0;font:400 11.5px/1.35 var(--mono);color:var(--pi);font-variant-numeric:tabular-nums}
+.pr-r{display:block;margin:0;padding:0}
+.pr-top{text-align:center;padding:6px 0 12px}
+.pr-top b{display:block;font:500 13px/1.3 var(--mono);letter-spacing:.14em}
+.pr-top span{display:block;font-size:10.5px;letter-spacing:.1em;color:var(--pi3);text-transform:uppercase}
+.pr-h{display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--pi3);padding:8px 0 3px;border-top:1px dashed rgba(17,17,16,.5);margin-top:6px}
+.pr-m{display:grid;grid-template-columns:3.4em minmax(0,1fr) auto;column-gap:10px;align-items:center;padding:4px 0}
+.pr-m time{color:var(--pi3);font:inherit}
+.pr-m .tm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-m .pk{display:flex;gap:8px;justify-content:flex-end;white-space:nowrap}
+.pr-m .pk b{font-weight:500;padding:0 4px}
+.pr-m.hi .pk b{background:var(--pi);color:var(--ps)}
+.pr-m .pk i{font-style:normal;color:var(--pi3);min-width:3.2em;text-align:right}
+.pr-tot{margin-top:10px;padding:10px 0 4px;border-top:1px dashed rgba(17,17,16,.5);font-size:12px;letter-spacing:.04em;text-transform:uppercase;line-height:1.55}
+.pr-tot b{font-weight:500}
+.pr-bar{padding:10px 0 4px;text-align:center}
+.pr-bar svg{display:block;width:100%;height:46px}
+.pr-bar span{display:block;margin-top:5px;font-size:10.5px;letter-spacing:.3em;color:var(--pi3)}
+.pr-cta{padding:12px 0 22px}
+.pr-cta .btn{display:flex;justify-content:center;width:100%;border-radius:3px;font-size:15px;padding:14px 10px;text-align:center;line-height:1.2}
+.pr-cta .btn svg{flex:none;width:18px;height:18px}
+.pr-none{padding:10px 0 22px;color:var(--pi3)}
+/* двери (главная) */
+.pr-doors{max-width:var(--max);margin:0 auto;padding:clamp(32px,5vw,64px) var(--m) 0;display:grid;grid-template-columns:1fr 1fr;gap:0 clamp(16px,4vw,64px)}
+.pr-door{display:grid;grid-template-columns:1fr auto;align-items:end;gap:6px 16px;padding:22px 0 20px;border-top:1px solid var(--pi)}
+.pr-dn{font:200 clamp(2.6rem,6.4vw,5.6rem)/.95 var(--display);letter-spacing:-.05em;text-transform:uppercase;grid-column:1}
+.pr-dc{font:400 12px/1.5 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--pi2);grid-column:1;grid-row:2}
+.pr-door svg{grid-column:2;grid-row:1/3;align-self:end;width:56px;height:28px;transition:transform .35s var(--out)}
+@media (hover:hover){.pr-door:hover svg{transform:translateX(8px)}}
+@media (max-width:900px){
+ .pr-stage{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:10px;min-height:0}
+ .pr-left{padding:18px 0 0;gap:12px;justify-content:flex-start}
+ .pr-meta{gap:4px 16px;font-size:10px}
+ .pr-lede{display:none}
+ .pr-m{grid-template-columns:auto 1fr;grid-template-areas:"m m" "t p";row-gap:1px;padding:5px 0}
+ .pr-m .tm{grid-area:m;font-weight:500;white-space:normal}
+ .pr-m time{grid-area:t}
+ .pr-m .pk{grid-area:p}
+ .pr-rc{width:min(100%,330px);margin:0 auto;padding:0 12px;box-sizing:content-box}
+ .pr-body{padding:30px 16px 0;font-size:11px}
+}
+@media (max-width:560px){
+ .pr-meta p:nth-child(2){display:none}
+ .pr-meta{grid-template-columns:auto auto;justify-content:space-between}
+ .pr-doors{grid-template-columns:1fr}
+ .pr-door:last-child{border-bottom:1px solid var(--pi)}
+}
+@media (prefers-reduced-motion:reduce){
+ .pr-sway{animation:none}
+ .pr-scene{height:auto}
+ .pr-stage{position:static;height:auto;overflow:visible;padding-bottom:40px}
+ .pr-rc{overflow:visible}
+ .pr-door svg{transition:none}
+}
+
+/* ═══ 7. Космос: тёмная шапка с лентой ═══ */
+html[data-hh="7"] section.hero,html[data-hh="7"] section.hm{overflow:clip}
+.h7{--cs-bg:#07090c;--cs-ink:#eceef1;--cs-mute:#8d949d;--cs-line:rgba(255,255,255,.12);--serif:var(--text);color:var(--cs-ink)}
+.h7 *{box-sizing:border-box}
+.h7 a{text-decoration:none;color:inherit}
+.cs-top{position:relative;display:flex;min-height:clamp(520px,calc(100svh - 218px),780px);background:var(--cs-bg);overflow:hidden}
+.cs-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+.cs-in{position:relative;z-index:2;flex:1;display:flex;align-items:center;padding:clamp(40px,7vw,96px) var(--ed) clamp(72px,8vw,96px)}
+.cs-copy{max-width:min(92vw,880px)}
+.h7 h1.cs-h{margin:0;max-width:none;text-transform:none;font:500 clamp(40px,5.7vw,92px)/.98 var(--display);letter-spacing:-.04em;text-wrap:balance;color:var(--cs-ink)}
+.h7 h1.cs-h em{font:italic 300 1.04em/1 var(--serif);letter-spacing:-.03em;color:#dfe8f2;padding-right:.04em}
+.h7 h1.cs-h::first-line{color:var(--cs-ink)}
+.h7[data-sp="football"] h1.cs-h em{color:#dcecde}
+.cs-copy p{margin:26px 0 30px;max-width:36ch;font:400 17px/1.5 var(--display);color:#a3a9b1}
+.cs-strip{position:absolute;z-index:2;left:var(--ed);right:var(--m);bottom:26px;margin:0;font:500 13px/1.3 var(--display);letter-spacing:.02em;color:var(--cs-mute);font-variant-numeric:tabular-nums}
+.cs-bar{background:var(--cs-bg);border-top:1px solid var(--cs-line);padding:0 var(--ed);display:flex;align-items:center;justify-content:space-between;gap:16px 32px;flex-wrap:wrap}
+.cs-md{flex:1;min-width:0;display:grid;grid-template-columns:auto minmax(0,1.3fr) minmax(0,1fr) auto auto;align-items:center;gap:16px clamp(14px,2.4vw,36px);padding:16px 0;font:500 15px/1.2 var(--display);font-variant-numeric:tabular-nums}
+.cs-mt{display:flex;align-items:center;gap:10px}
+.cs-mt time{font:600 15px/1 var(--display);color:var(--cs-ink)}
+.cs-mt .lgp{--s:18px}
+.cs-mm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cs-mo{color:#b4bac2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cs-mp{font-weight:700;text-align:right}
+.cs-mk{font-weight:800;color:var(--signal);text-align:right;min-width:2.6ch}
+@media (hover:hover){.cs-md:hover .cs-mm{text-decoration:underline;text-underline-offset:4px}}
+.cs-go{display:flex;gap:10px;padding:10px 0}
+.cs-go a{display:inline-flex;gap:8px;align-items:center;font:500 15px/1 var(--display);padding:11px 18px;border-radius:999px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);transition:background .2s ease,color .2s ease}
+@media (hover:hover){.cs-go a:hover{background:var(--cs-ink);color:#0b0c0e}}
+.cs-fade{height:clamp(64px,8vw,120px);background:linear-gradient(var(--cs-bg),rgba(7,9,12,0))}
+html[data-hh="7"] section.hero,html[data-hh="7"] section.hm{padding-bottom:0}
+.nogl .cs-top,.cs-top.nogl{background:radial-gradient(60% 50% at 70% 50%,#26313d,transparent 70%),var(--cs-bg)}
+@media (max-width:760px){
+ .cs-top{min-height:clamp(540px,calc(100svh - 190px),720px)}
+ .cs-in{align-items:flex-start;padding-top:48px}
+ .cs-h{font-size:clamp(36px,10.4vw,52px)}
+ .cs-copy p{font-size:16px;margin:18px 0 22px}
+ .cs-md{grid-template-columns:auto minmax(0,1fr) auto;gap:6px 12px;padding:14px 0}
+ .cs-mm{grid-column:2;grid-row:1}.cs-mo{grid-column:2;grid-row:2;font-size:14px}
+ .cs-mp{grid-column:3;grid-row:1}.cs-mk{grid-column:3;grid-row:2}
+ .cs-go{padding:0 0 14px}
+}

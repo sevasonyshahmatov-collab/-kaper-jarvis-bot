@@ -6,20 +6,23 @@
 'use strict';
 let q=null,P=null;try{P=new URLSearchParams(location.search);q=P.get('hh')}catch(e){}
 if(q===null)return;
-const N=/^[0-5]$/.test(q)?+q:0,de=document.documentElement;
+const SCR=document.currentScript,BASE=SCR&&SCR.src?new URL('.',SCR.src).href:'';
+const HOME=!/\/(hockey|football)\//.test(location.pathname);   // на главной работают только 0, 6, 7
+const N0=/^[0-7]$/.test(q)?+q:0,N=HOME&&N0<6?0:N0,de=document.documentElement;
 const BG={4:'2'};            // фон по умолчанию для вариантов: 1 «Колода лиг», у «Колоды» — «Свет арены» (карточки не спорят с фоном)
-if(N&&P.get('hbg')===null){try{P.set('hbg',BG[N]||'1');history.replaceState(null,'',location.pathname+'?'+P.toString()+location.hash)}catch(e){}}
+if(N>=6&&P.get('hbg')!==null){try{P.delete('hbg');history.replaceState(null,'',location.pathname+(P.toString()?'?'+P.toString():'')+location.hash)}catch(e){}}
+if(N&&N<6&&P.get('hbg')===null){try{P.set('hbg',BG[N]||'1');history.replaceState(null,'',location.pathname+'?'+P.toString()+location.hash)}catch(e){}}
 if(N)de.dataset.hh=N;
 
-const NAMES=['Как сейчас','Игрок','Бенто','Лента матчей','Колода','Центр'];
+const NAMES=['Как сейчас','Игрок','Бенто','Лента матчей','Колода','Центр','Протокол','Космос'];
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const HOVER=matchMedia('(hover:hover) and (pointer:fine)').matches;
 
 function switcher(){
  const el=document.createElement('nav');el.className='hh-sw';el.setAttribute('aria-label','Вариант первого блока');
- el.innerHTML='<span>Шапка</span>'+NAMES.map((t,i)=>`<a href="#" data-n="${i}" title="${i} — ${t}"${i===N?' aria-current="true"':''}>${i}</a>`).join('')+`<em>${N} — ${NAMES[N]}</em>`;
+ el.innerHTML='<span>Шапка</span>'+NAMES.map((t,i)=>HOME&&i>0&&i<6?'':`<a href="#" data-n="${i}" title="${i} — ${t}"${i===N?' aria-current="true"':''}>${i}</a>`).join('')+`<em>${N} — ${NAMES[N]}</em>`;
  el.addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;e.preventDefault();
-  const u=new URL(location.href);u.searchParams.set('hh',a.dataset.n);if(a.dataset.n!=='0'&&u.searchParams.get('hbg')===null)u.searchParams.set('hbg',BG[a.dataset.n]||'1');location.href=u.toString()});
+  const u=new URL(location.href);u.searchParams.set('hh',a.dataset.n);if(+a.dataset.n>=6||a.dataset.n==='0')u.searchParams.delete('hbg');else if(u.searchParams.get('hbg')===null)u.searchParams.set('hbg',BG[a.dataset.n]||'1');location.href=u.toString()});
  document.body.append(el);
 }
 
@@ -31,7 +34,7 @@ const plural=(n,a,b,c)=>{const k=n%100,j=n%10;return k>10&&k<20?c:j===1?a:j>1&&j
 const left=t=>Math.round((Date.parse(t.replace(' ','T')+':00+03:00')-Date.now())/1000);
 const mskDay=ms=>new Date(ms+3*3600e3).toISOString().slice(0,10);
 const MON=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
-const LGP=id=>`<span class="lgp ${esc(id)}"><img src="../assets/lg/${esc(id)}.webp" alt=""></span>`;
+const LGP=id=>`<span class="lgp ${esc(id)}"><img src="${BASE}../lg/${esc(id)}.webp" alt=""></span>`;
 
 function hockey(){
  const {TD,L,M}=window.JVL;
@@ -57,8 +60,21 @@ function football(){
  return {list,leagues:LGK.map(k=>[k,D.leagues[k].name]),three:true};
 }
 
+const LGN={khl:'КХЛ',nhl:'НХЛ',epl:'АПЛ',laliga:'Ла Лига',seriea:'Серия А',bundesliga:'Бундеслига',ligue1:'Лига 1',rpl:'РПЛ',ucl:'Лига чемпионов',uel:'Лига Европы'};
+function home(){
+ const {TD,L,M}=window.JVL;
+ const all=(TD.matches||[]).filter(m=>m.t&&m.h&&m.a).sort((a,b)=>a.t<b.t?-1:1);
+ const fresh=all.filter(m=>left(m.t)>-3*3600),src=fresh.length?fresh:all;
+ const list=src.map(m=>{const md=M[m.key]||null,ln=L[m.key]||null;let top=null,pr=null;
+  if(md&&md.p1!=null){pr=[md.p1,md.x,md.p2];const i=pr.indexOf(Math.max(...pr));
+   top={i,p:pr[i],s:['П1','Х','П2'][i],word:i===0?`${m.hn} — победа`:i===2?`${m.an} — победа`:'Ничья в основное время',k:ln?[ln.p1,ln.x,ln.p2][i]:null}}
+  return {lg:m.lg,t:m.t,hn:m.hn,an:m.an,pr,k:ln?[ln.p1,ln.x,ln.p2]:null,top,sp:m.lg==='khl'||m.lg==='nhl'?'h':'f'}});
+ const ids=[...new Set(list.map(m=>m.lg))];
+ return {list,leagues:ids.map(k=>[k,LGN[k]||k]),three:true};
+}
 function model(sport){
- const d=sport==='football'?football():hockey();
+ const d=sport==='home'?home():sport==='football'?football():hockey();
+ d.list.forEach(m=>{if(!m.sp)m.sp=sport==='football'?'f':'h'});
  const up=d.list.filter(m=>left(m.t)>0),base=up.length?up:d.list;
  const d0=base.length?base[0].t.slice(0,10):'';
  let day=base.filter(m=>m.t.slice(0,10)===d0);if(day.length<3)day=base.slice(0,6);
@@ -69,7 +85,7 @@ function model(sport){
  const rest=day.filter(m=>m!==top);
  const today=mskDay(Date.now());
  const lgs=d.leagues.filter(([k])=>day.some(m=>m.lg===k));
- return {...d,day,top,byConf,rest,total,nowDay:d0===today,d0,next:up[0]||null,lgs,nModel:day.filter(m=>m.top).length};
+ return {...d,base,day,top,byConf,rest,total,nowDay:d0===today,d0,next:up[0]||null,lgs,nModel:day.filter(m=>m.top).length};
 }
 
 /* ── кирпичики ── */
@@ -196,12 +212,13 @@ function v5(M,S){
 
 /* ── сборка ── */
 function build(){
- const hero=document.querySelector('section.hero');if(!hero||!N)return;
- const S=document.body.dataset.field==='football'?'football':'hockey';
+ const hero=document.querySelector(HOME?'section.hm':'section.hero');if(!hero||!N)return;
+ const S=HOME?'home':document.body.dataset.field==='football'?'football':'hockey';
  const old=hero.querySelector('h1');
- const lines=old?[...old.querySelectorAll('.ln')].map(x=>x.textContent.trim()):[];
+ const lines=old&&!HOME?[...old.querySelectorAll('.ln')].map(x=>x.textContent.trim()):[];
  let M;try{M=model(S)}catch(e){console.warn('hero2: нет данных',e);M={day:[],rest:[],byConf:[],top:null,leagues:[],lgs:[],total:0,nModel:0,next:null,list:[]}}
- M.h=lines.length===2?lines:(S==='football'?['Футбол:','топ-лиги и РПЛ']:['Хоккей:','КХЛ и НХЛ']);
+ M.h=S==='home'?['Прогнозы','по расчёту']:lines.length===2?lines:(S==='football'?['Футбол:','топ-лиги и РПЛ']:['Хоккей:','КХЛ и НХЛ']);
+ if(N>=6){M.h=M.h.map(x=>x.replace(/:$/,''));window.JVH2.mount(N,hero,M,S);return}
  const root=document.createElement('div');root.className=`h2 h2-v${N}`;root.dataset.sp=S;
  root.innerHTML=[null,v1,v2,v3,v4,v5][N](M,S);
  hero.append(root);
@@ -211,5 +228,15 @@ function build(){
   root.querySelectorAll('[data-in]').forEach(el=>{const v=inStr({t:el.dataset.in});if(el.textContent!==v)el.textContent=v})};
  if(root.querySelector('[data-cd],[data-in]'))setInterval(()=>{if(!document.hidden)tick()},20000);
 }
-document.addEventListener('DOMContentLoaded',()=>{try{build()}catch(e){console.warn('hero2:',e)}switcher()});
+/* варианты 6 и 7 лежат в отдельных файлах: общий код — hero2b.js, лента WebGL — ribbon.js (только для 7) */
+if(N>=6){
+ window.JVH2={esc,f2,pct,plural,left,mskDay,MON,LGN,LGP,BTN:'<a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a>',cdStr,BASE,RM,HOME};
+ const add=(t,a)=>{const e=document.createElement(t);Object.assign(e,a);document.head.append(e);return e};
+ add('link',{rel:'stylesheet',href:BASE+'hero2b.css'});
+ if(N===7)add('link',{rel:'stylesheet',href:'https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@1,7..72,300;1,7..72,400&display=swap'});
+}
+document.addEventListener('DOMContentLoaded',()=>{
+ const go=()=>{try{build()}catch(e){console.warn('hero2:',e)}switcher()};
+ if(N>=6){const s=document.createElement('script');s.src=BASE+'hero2b.js';s.onload=go;s.onerror=switcher;document.head.append(s)}else go();
+});
 })();
