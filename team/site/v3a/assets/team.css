@@ -474,3 +474,18 @@ body .g.h2g.nx{grid-template-columns:110px 32px minmax(0,1fr) auto}
  .plead li.has-ph .lph img{object-fit:cover;object-position:top}}
 .plead .pln small{white-space:nowrap}
 @media (max-width:980px){.plead li.has-ph .ss{align-self:end;padding-bottom:4px}}
+
+/* «Следующий матч»: градиент клубов как у карточек «Матчи дня», стык по центру колонки с датой (--mx из team.js) */
+.nmatch.grad{color:#fff;background:
+  linear-gradient(180deg,rgba(4,8,18,.4),rgba(4,8,18,.56)),
+  repeating-linear-gradient(45deg,rgba(255,255,255,.05) 0 1px,transparent 1px 3px),
+  repeating-linear-gradient(-45deg,rgba(0,0,0,.12) 0 1px,transparent 1px 3px),
+  linear-gradient(100deg,var(--h1) 0%,var(--h1) calc(var(--mx,50%) - 26%),color-mix(in srgb,var(--h1) 50%,var(--h2)) var(--mx,50%),var(--h2) calc(var(--mx,50%) + 26%),var(--h2) 100%)}
+.nmatch.grad :is(.nmdt b,.nmdt small,.nmteams b,.nmteams span){color:#fff}
+.nmatch.grad .nmside .sl{color:rgba(255,255,255,.78)}
+.nmatch.grad .nmgo{color:#fff;border-color:rgba(255,255,255,.85);background:transparent}
+.nmatch.grad .kx li{background:rgba(255,255,255,.92);color:#10161f}.nmatch.grad .kx li small{color:#4f5d6c}
+.nmatch.grad .nmside,.nmatch.grad .nmside *{color:#fff}
+.nmatch.grad .nmside .sl,.nmatch.grad .nmside :is(span,small):not(.kx *){color:rgba(255,255,255,.8)}
+.nmatch.grad .kx li,.nmatch.grad .kx li b{color:#10161f}.nmatch.grad .kx li small{color:#4f5d6c}
+.nmatch.grad .kx li:first-child{background:#10161f}.nmatch.grad .kx li:first-child,.nmatch.grad .kx li:first-child b,.nmatch.grad .kx li:first-child small{color:#fff}

@@ -261,6 +261,19 @@ if(nextG){
   </article>
   <details class="nmh2h" id="nmh2h" hidden></details>`;
  document.getElementById('next').hidden=false;
+ /* градиент цветов клубов как у карточек «Матчи дня» (слева хозяева, справа гости); стык — по центру колонки с датой (владелец 07.11) */
+ {const box=document.querySelector('#nextBox .nmatch'),mid=box&&box.querySelector('.nmmid');
+  const h2r=h=>{h=String(h||'').replace('#','');if(h.length===3)h=h.replace(/./g,'$&$&');const n=parseInt(h,16);return isNaN(n)||h.length!==6?null:[n>>16&255,n>>8&255,n&255]};
+  const hsl=([r,g,b])=>{r/=255;g/=255;b/=255;const x=Math.max(r,g,b),n=Math.min(r,g,b),l=(x+n)/2;let h=0,s=0;if(x!==n){const d=x-n;s=l>.5?d/(2-x-n):d/(x+n);h=x===r?(g-b)/d+(g<b?6:0):x===g?(b-r)/d+2:(r-g)/d+4;h*=60}return [h,s,l]};
+  const sc=([h,s,l])=>s>=.25&&l>.1&&l<.93?s*(1-Math.abs(l-.42)):-1,hd=(a,b)=>{const d=Math.abs(a-b)%360;return d>180?360-d:d};
+  const cands=id=>[].concat((window.JV_CLUBS||{})[id]||[],(D.teams[id]||{}).colors||[]).map(h2r).filter(Boolean).map(hsl).sort((x,y)=>sc(y)-sc(x));
+  const H=oh?ID:nextG.o,A=oh?nextG.o:ID,CA=cands(H),CB=cands(A);
+  let a=CA[0]&&sc(CA[0])>0?CA[0]:[218,.3,.34],b=CB[0]&&sc(CB[0])>0?CB[0]:[222,.3,.26];
+  if(hd(a[0],b[0])<32&&Math.abs(a[2]-b[2])<.2){const alt=CB.find(c=>sc(c)>0&&hd(a[0],c[0])>=40);b=alt||[b[0]+34,b[1],b[2]+.1]}
+  const nm_=([h,s,l])=>`hsl(${Math.round(h)} ${Math.round(Math.min(.85,Math.max(.55,s))*100)}% ${Math.round(Math.min(.40,Math.max(.30,l))*100)}%)`;
+  if(box&&mid){box.classList.add('grad');box.style.setProperty('--h1',nm_(a));box.style.setProperty('--h2',nm_(b));
+   const fit=()=>{const r=box.getBoundingClientRect(),q=mid.getBoundingClientRect();if(r.width)box.style.setProperty('--mx',((q.left+q.width/2-r.left)/r.width*100).toFixed(1)+'%')};
+   fit();addEventListener('resize',fit);if(document.fonts)document.fonts.ready.then(fit)}}
  const cdv=document.getElementById('nmcdv'),st0=startMs(nextG.d);
  const tick=()=>{const df=st0-Date.now();
   if(isNaN(st0)||df<=0){cdv.textContent=isNaN(st0)?'—':'матч начался';return}
