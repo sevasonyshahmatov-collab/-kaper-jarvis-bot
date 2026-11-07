@@ -61,15 +61,15 @@ function build(SE,PL){
  let mode='conf';
  $('tableBox').innerHTML=`
   <div class="period" data-rv><p><span class="pn">1</span><span class="pw">-й тайм</span><span class="pt">Таблица</span><span class="pc num">${gpMax}</span></p></div>
-  <div class="sec-head" data-rv><h2>Турнирная таблица</h2><p>${lgp(LG)}${L.name}, сезон ${esc(PL.season||'2026/27')}. Нажмите на клуб: матчи сезона, сила, игроки.</p></div>
+  <div class="sec-head" data-rv><h2>Турнирная таблица</h2><p>${lgp(LG)}${L.name}, сезон ${esc(PL.season||'2026/27')}</p></div>
   <div class="lgsw tabs" role="tablist" id="tbSw" aria-label="Вид таблицы"><button class="tab" role="tab" type="button" data-m="conf" aria-selected="true">По конференциям</button><button class="tab" role="tab" type="button" data-m="all" aria-selected="false">Вся лига</button></div>
   <div id="tbBody"></div><ul class="lkey" id="tbKey"></ul>`;
  const tbl=(rows,zone)=>`<div class="tabscroll lgtbl"><table class="ltab"><thead><tr><th>#</th><th>Клуб</th><th>И</th><th class="hm">В</th><th class="hm">П</th><th>Шайбы</th><th class="hm">РШ</th><th>О</th></tr></thead><tbody>${rows.map((t,i)=>{const d=t.gf-t.ga;
   return `<tr class="${zone&&i<8?'z1':''}"><td>${i+1}</td><td><a href="${thref(t.id)}">${em(t.id)}<span>${esc(t.name)}</span></a></td><td>${t.gp}</td><td class="hm">${t.w}</td><td class="hm">${t.l}</td><td>${t.gf}:${t.ga}</td><td class="hm gd">${d>0?'+'+d:d}</td><td class="pt">${t.pts}</td></tr>`}).join('')}</tbody></table></div>`;
  const draw=()=>{
-  if(mode==='conf')$('tbBody').innerHTML=L.conf.map(c=>`<h3 class="lgconf">Конференция «${c}»</h3>${tbl(TM.filter(t=>t.conf===c).sort((a,b)=>a.place-b.place),true)}`).join('');
+  if(mode==='conf')$('tbBody').innerHTML=`<div class="confs">${L.conf.map(c=>`<section class="conf"><h3 class="lgconf">${c}</h3>${tbl(TM.filter(t=>t.conf===c).sort((a,b)=>a.place-b.place),true)}</section>`).join('')}</div>`;
   else $('tbBody').innerHTML=tbl(TM.slice().sort((a,b)=>b.pts-a.pts||b.w-a.w||a.gp-b.gp||(b.gf-b.ga)-(a.gf-a.ga)),false);
-  $('tbKey').innerHTML=(mode==='conf'?'<li><i style="background:#1c63c4"></i>Зона плей-офф (1–8 в конференции)</li>':'')+`<li>И — игры, В — победы, П — поражения (с овертаймом и буллитами), РШ — разница шайб, О — очки</li>`};
+  $('tbKey').innerHTML=mode==='conf'?'<li><i style="background:#0d7a48"></i>Плей-офф</li>':''};
  $('tbSw').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b||b.dataset.m===mode)return;mode=b.dataset.m;$('tbSw').querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x===b));draw()});draw();
 
  /* строки матчей */

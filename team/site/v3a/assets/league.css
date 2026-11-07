@@ -143,3 +143,15 @@ body{--sep:color-mix(in srgb,var(--ink) 13%,transparent)}
   .lgst li{padding:12px 12px 10px}
 }
 .lgml{max-width:1000px}
+
+/* по конференциям: две таблицы рядом на компьютере, одинаковые столбцы, строки на одной линии (владелец 07.11) */
+.confs{display:grid;gap:clamp(22px,3vw,34px);margin-top:clamp(24px,3vw,36px)}
+.confs .tabscroll{max-width:none}
+.confs .ltab{table-layout:fixed}
+.confs .ltab th:nth-child(1),.confs .ltab td:nth-child(1){width:40px}
+.confs .ltab th:nth-child(n+3),.confs .ltab td:nth-child(n+3){width:52px}
+.confs .ltab th:nth-child(6),.confs .ltab td:nth-child(6){width:72px}
+.confs .ltab td:nth-child(2) span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.confs .ltab td:nth-child(2) a{min-width:0}
+@media (min-width:1100px){.confs{grid-template-columns:1fr 1fr;column-gap:32px}.confs .lgconf{margin-top:0}}
+@media (max-width:620px){.confs .ltab th:nth-child(1),.confs .ltab td:nth-child(1){width:30px}.confs .ltab th:nth-child(n+3),.confs .ltab td:nth-child(n+3){width:34px}.confs .ltab th:nth-child(6),.confs .ltab td:nth-child(6){width:58px}}
