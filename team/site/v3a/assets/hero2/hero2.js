@@ -1,4 +1,4 @@
-/* Варианты первого блока страниц «Хоккей» и «Футбол» (макет, 07.11): ?hh=1..5. Без параметра файл ничего не делает.
+/* Варианты первого блока страниц «Хоккей» и «Футбол» (макет, 07.11): ?hh=1..9 (9 «Плитки» — только хоккей, hero9.js). Без параметра файл ничего не делает.
    1 Игрок · 2 Бенто · 3 Лента матчей · 4 Колода · 5 Центр. hh=0 — как сейчас (виден только переключатель).
    Данные те же, что у старой шапки: хоккей — JVL (today.js + lines.js + model.js), футбол — JVF.D.up после foot-index.js.
    Подключён в <head> ДО herobg.js: если в адресе нет hbg, дописывает его (фон «Колода лиг»), и herobg.js его подхватывает. */
@@ -8,19 +8,20 @@ let q=null,P=null;try{P=new URLSearchParams(location.search);q=P.get('hh')}catch
 if(q===null)return;
 const SCR=document.currentScript,BASE=SCR&&SCR.src?new URL('.',SCR.src).href:'';
 const HOME=!/\/(hockey|football)\//.test(location.pathname);   // на главной работают только 0, 6, 7 (8 — только хоккей и футбол)
-const N0=/^[0-8]$/.test(q)?+q:0,N=HOME&&(N0<6||N0>7)?0:N0,de=document.documentElement;
+const HK=/\/hockey\//.test(location.pathname);   // 9 «Плитки» — только хоккей
+const N0=/^[0-9]$/.test(q)?+q:0,N=HOME&&(N0<6||N0>7)||N0===9&&!HK?0:N0,de=document.documentElement;
 const BG={4:'2'};            // фон по умолчанию для вариантов: 1 «Колода лиг», у «Колоды» — «Свет арены» (карточки не спорят с фоном)
 if(N>=6&&P.get('hbg')!==null){try{P.delete('hbg');history.replaceState(null,'',location.pathname+(P.toString()?'?'+P.toString():'')+location.hash)}catch(e){}}
 if(N&&N<6&&P.get('hbg')===null){try{P.set('hbg',BG[N]||'1');history.replaceState(null,'',location.pathname+'?'+P.toString()+location.hash)}catch(e){}}
 if(N)de.dataset.hh=N;
 
-const NAMES=['Как сейчас','Игрок','Бенто','Лента матчей','Колода','Центр','Протокол','Космос','Арена'];
+const NAMES=['Как сейчас','Игрок','Бенто','Лента матчей','Колода','Центр','Протокол','Космос','Арена','Плитки'];
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const HOVER=matchMedia('(hover:hover) and (pointer:fine)').matches;
 
 function switcher(){
  const el=document.createElement('nav');el.className='hh-sw';el.setAttribute('aria-label','Вариант первого блока');
- el.innerHTML='<span>Шапка</span>'+NAMES.map((t,i)=>HOME&&((i>0&&i<6)||i>7)?'':`<a href="#" data-n="${i}" title="${i} — ${t}"${i===N?' aria-current="true"':''}>${i}</a>`).join('')+`<em>${N} — ${NAMES[N]}</em>`;
+ el.innerHTML='<span>Шапка</span>'+NAMES.map((t,i)=>(HOME&&((i>0&&i<6)||i>7))||(i===9&&!HK)?'':`<a href="#" data-n="${i}" title="${i} — ${t}"${i===N?' aria-current="true"':''}>${i}</a>`).join('')+`<em>${N} — ${NAMES[N]}</em>`;
  el.addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;e.preventDefault();
   const u=new URL(location.href);u.searchParams.set('hh',a.dataset.n);if(+a.dataset.n>=6||a.dataset.n==='0')u.searchParams.delete('hbg');else if(u.searchParams.get('hbg')===null)u.searchParams.set('hbg',BG[a.dataset.n]||'1');location.href=u.toString()});
  document.body.append(el);
@@ -43,7 +44,7 @@ function hockey(){
  const list=src.map(m=>{const md=M[m.key]||null,ln=L[m.key]||null;let top=null,pr=null;
   if(md){pr=[md.p1,md.x,md.p2];const i=pr.indexOf(Math.max(...pr));
    top={i,p:pr[i],s:['П1','Х','П2'][i],word:i===0?`${m.hn} — победа`:i===2?`${m.an} — победа`:'Ничья в основное время',k:ln?[ln.p1,ln.x,ln.p2][i]:null}}
-  return {lg:m.lg,t:m.t,hn:m.hn,an:m.an,hc:`../assets/em/${m.h}.webp`,ac:`../assets/em/${m.a}.webp`,pr,k:ln?[ln.p1,ln.x,ln.p2]:null,lam:md&&md.lam||null,top,xl:'Ничья'}});
+  return {key:m.key,lg:m.lg,t:m.t,hn:m.hn,an:m.an,hc:`../assets/em/${m.h}.webp`,ac:`../assets/em/${m.a}.webp`,pr,k:ln?[ln.p1,ln.x,ln.p2]:null,lam:md&&md.lam||null,top,xl:'Ничья'}});
  const leagues=[['khl','КХЛ'],['nhl','НХЛ']];
  return {list,leagues,three:true};
 }
@@ -218,7 +219,7 @@ function build(){
  const lines=old&&!HOME?[...old.querySelectorAll('.ln')].map(x=>x.textContent.trim()):[];
  let M;try{M=model(S)}catch(e){console.warn('hero2: нет данных',e);M={day:[],rest:[],byConf:[],top:null,leagues:[],lgs:[],total:0,nModel:0,next:null,list:[]}}
  M.h=S==='home'?['Прогнозы','по расчёту']:lines.length===2?lines:(S==='football'?['Футбол:','топ-лиги и РПЛ']:['Хоккей:','КХЛ и НХЛ']);
- if(N>=6){M.h=M.h.map(x=>x.replace(/:$/,''));window.JVH2.mount(N,hero,M,S);return}
+ if(N>=6){if(N!==9)M.h=M.h.map(x=>x.replace(/:$/,''));window.JVH2.mount(N,hero,M,S);return}
  const root=document.createElement('div');root.className=`h2 h2-v${N}`;root.dataset.sp=S;
  root.innerHTML=[null,v1,v2,v3,v4,v5][N](M,S);
  hero.append(root);
@@ -232,11 +233,11 @@ function build(){
 if(N>=6){
  window.JVH2={esc,f2,pct,plural,left,mskDay,MON,LGN,LGP,BTN:'<a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a>',cdStr,BASE,RM,HOME};
  const add=(t,a)=>{const e=document.createElement(t);Object.assign(e,a);document.head.append(e);return e};
- add('link',{rel:'stylesheet',href:BASE+(N===8?'hero8.css':'hero2b.css')});
+ add('link',{rel:'stylesheet',href:BASE+(N===8?'hero8.css':N===9?'hero9.css':'hero2b.css')});
  if(N===7)add('link',{rel:'stylesheet',href:'https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@1,7..72,300;1,7..72,400&display=swap'});
 }
 document.addEventListener('DOMContentLoaded',()=>{
  const go=()=>{try{build()}catch(e){console.warn('hero2:',e)}switcher()};
- if(N>=6){const s=document.createElement('script');s.src=BASE+'hero2b.js';s.onload=go;s.onerror=switcher;document.head.append(s)}else go();
+ if(N>=6){const s=document.createElement('script');s.src=BASE+(N===9?'hero9.js':'hero2b.js');s.onload=go;s.onerror=switcher;document.head.append(s)}else go();
 });
 })();

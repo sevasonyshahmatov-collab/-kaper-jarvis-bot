@@ -1,0 +1,83 @@
+/* Шапка ?hh=9 «Плитки» (макет, 07.11), только хоккей. Правила владельца: без стекла и размытия, без пятна при наведении и ореола у курсора,
+   фон неподвижный; наведение — только подъём и рамка (@media (hover:hover)). Фон: синий вертикальный градиент, разметка площадки линиями, зерно. */
+html[data-hh="9"] section.hero{display:block;min-height:0;padding:0;overflow:clip;position:relative;isolation:isolate;
+ background:linear-gradient(180deg,#0b3590 0%,#1450c4 100%)}
+html[data-hh="9"] .hero>.wrap:not(.h9){display:none}
+.h9{--t-bg:#0a2a73;--t-bg2:#103a8d;--t-line:rgba(255,255,255,.14);--ye:var(--signal,#ffc21a);--g:14px;position:relative;color:#fff}
+.h9 *{box-sizing:border-box}
+.h9 a{color:inherit;text-decoration:none}
+.h9 .btn-tg{color:var(--signal-ink,#1a1400)}
+.h9-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.h9-bg::after{content:"";position:absolute;inset:0;opacity:.06;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.4 -.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.h9-rink{position:absolute;left:50%;top:50%;width:max(100%,1180px);height:100%;transform:translate(-50%,-50%);color:rgba(255,255,255,.08)}
+.h9-in{position:relative;z-index:1;max-width:var(--max);margin:0 auto;padding:clamp(32px,4vw,56px) var(--m);display:grid;grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);gap:clamp(24px,4vw,56px);align-items:center}
+.h9-l{min-width:0}
+
+/* левая колонка */
+.h9-h{margin:0;font:900 clamp(44px,5.6vw,84px)/.92 var(--display);letter-spacing:-.02em;text-transform:uppercase;color:#fff}
+.h9-h span{display:block}
+.h9-sub{margin:clamp(14px,1.6vw,22px) 0 0;font:500 clamp(17px,1.4vw,20px)/1.35 var(--display);color:#d4e1ff}
+.h9 .btn-tg{margin-top:clamp(20px,2.2vw,28px)}
+.h9-pills{display:grid;grid-template-columns:1fr 1fr;gap:var(--g);margin-top:var(--g);max-width:460px}
+.h9-pill{display:flex;align-items:center;gap:10px;min-width:0;padding:13px 16px;border-radius:14px;background:var(--t-bg);border:1px solid var(--t-line);font:700 16px/1.1 var(--display);transition:transform .2s ease,border-color .2s ease}
+.h9-pill b{font-weight:800}
+.h9-pill span{margin-left:auto;font-weight:600;font-size:14px;color:#b8cbf3;white-space:nowrap}
+.h9-li{width:20px;height:20px;object-fit:contain;flex:none}
+
+/* сетка плиток */
+.h9-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--g);min-width:0}
+.h9-t{position:relative;display:grid;min-width:0;border-radius:18px;background:var(--t-bg);border:1px solid var(--t-line);padding:16px;transition:transform .2s ease,border-color .2s ease}
+.h9-t:focus-visible{outline:3px solid var(--ye);outline-offset:3px}
+.h9-grid.odd>.h9-sm:last-child{grid-column:1/-1}
+.h9-e{display:grid;place-items:center;flex:none;width:var(--ew,40px);height:var(--ew,40px);border-radius:50%;background:#fff;padding:calc(var(--ew,40px) * .1)}
+.h9-e img{width:100%;height:100%;object-fit:contain;display:block}
+.h9-pair{display:flex;align-items:center;gap:6px}
+
+/* большая плитка */
+.h9-big{grid-column:1/-1;justify-items:center;text-align:center;padding:24px 24px 20px;gap:0}
+.h9-big .h9-pair{--ew:76px;gap:14px}
+.h9-bn{margin-top:14px;font:800 clamp(22px,2vw,30px)/1.1 var(--display);letter-spacing:.005em;max-width:100%}
+.h9-bm{margin-top:6px;font:600 15px/1.2 var(--display);color:#b8cbf3}
+.h9-cs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--g);width:100%;margin-top:18px}
+.h9-c{display:grid;gap:4px;justify-items:center;padding:12px 8px 10px;border-radius:12px;background:var(--t-bg2)}
+.h9-c i{font:700 14px/1 var(--display);font-style:normal;color:#b8cbf3;letter-spacing:.04em}
+.h9-c b{font:900 clamp(34px,3.4vw,50px)/1 var(--display);color:#fff}
+.h9-c b small,.h9-pc small{font-size:.5em;font-weight:800;margin-left:2px}
+.h9-c.hit b{color:var(--ye)}
+
+/* малая плитка */
+.h9-sm{--ew:40px;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"p tm" "p mt" "pc bt";gap:2px 12px;align-items:center}
+.h9-sm .h9-pair{grid-area:p;gap:0}
+.h9-sm .h9-pair .h9-e+.h9-e{margin-left:-10px}
+.h9-sm .h9-pair .h9-e{box-shadow:0 0 0 2px var(--t-bg)}
+.h9-tm{grid-area:tm;font:800 17px/1.15 var(--display);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;align-self:end}
+.h9-mt{grid-area:mt;font:600 13px/1.2 var(--display);color:#b8cbf3;align-self:start}
+.h9-pc{grid-area:pc;margin-top:12px;font:900 36px/1 var(--display);color:var(--ye)}
+.h9-pc.none{color:#b8cbf3}
+.h9-bt{grid-area:bt;margin-top:12px;justify-self:end;text-align:right;display:grid;gap:3px;min-width:0;max-width:100%}
+.h9-bt i{font:600 13px/1.1 var(--display);font-style:normal;color:#b8cbf3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.h9-bt b{font:800 20px/1 var(--display);color:#fff}
+.h9-none{min-height:280px;place-items:center;font:800 24px/1.2 var(--display);text-align:center;grid-column:1/-1}
+
+@media (hover:hover) and (pointer:fine){
+ .h9-t:hover,.h9-pill:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.4)}
+}
+@media (max-width:900px){
+ .h9-in{grid-template-columns:1fr;align-items:start;gap:28px}
+ .h9-pills{max-width:none}
+}
+@media (max-width:560px){
+ .h9-in{padding-top:28px;padding-bottom:28px}
+ .h9{--g:12px}
+ .h9 .btn-tg{width:100%;justify-content:center}
+ .h9-pill{padding:12px;font-size:15px;gap:8px}
+ .h9-pill span{font-size:12.5px}
+ .h9-big{padding:20px 14px 14px}
+ .h9-big .h9-pair{--ew:60px}
+ .h9-sm{padding:14px;grid-template-areas:"p mt" "tm tm" "pc bt";gap:8px 8px;--ew:34px}
+ .h9-mt{justify-self:end;text-align:right;align-self:center;white-space:nowrap}
+ .h9-tm{align-self:start;font-size:16px;min-height:2.3em}
+ .h9-pc{font-size:32px;margin-top:0}
+ .h9-bt{margin-top:0}
+}
