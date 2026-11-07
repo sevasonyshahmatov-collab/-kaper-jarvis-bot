@@ -81,3 +81,6 @@ html[data-white] body{background:#fff}
   .pr.k .cut{right:28px;max-width:120px}
   .pr.k .wm{display:none}
 }
+
+/* Логотип того же цвета, что фон (Тампа, Торонто, Динамо Москва…): белая обводка-«наклейка», чуть заметнее (владелец 07.11) */
+.pr.k .wm[src*="/nhl_tbl."],.pr.k .wm[src*="/dinamo_msk."],.pr.k .wm[src*="/shanghai."],.pr.k .wm[src*="/nhl_tor."],.pr.k .wm[src*="/nhl_cgy."],.pr.k .wm[src*="/nhl_van."],.pr.k .wm[src*="/minnesota."],.pr.k .wm[src*="/sochi."],.pr.k .wm[src*="/nhl_buf."]{opacity:.55;filter:drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff) drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff) drop-shadow(0 6px 14px rgba(0,0,0,.3))}
