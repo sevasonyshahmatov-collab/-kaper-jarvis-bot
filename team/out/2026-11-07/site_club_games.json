@@ -1,0 +1,13 @@
+{
+ "day": "2026-11-07",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-07/club_games.png"
+   ],
+   "text": "Описание под «Матчами сезона» убрано у всех клубов (хоккей и футбол).\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/d52f7fae7029d7b1b3fde6f975ec523e150a184f/team/site/v3a/team/index.html?id=nhl_car#games"
+  }
+ ]
+}
