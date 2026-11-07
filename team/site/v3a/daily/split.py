@@ -53,7 +53,40 @@ def nhl_abbr(slug):
 
 
 # ───────────────────────────── хоккей ─────────────────────────────
-def write_profile(ppdir, lg, p, slug, sl, nx, tpl, games=None):
+def skills(lg, players):
+    """Шестиугольник (НХЛ) / пятиугольник (КХЛ) навыков игрока (владелец 07.11): процентиль 0–100 среди игроков своей лиги
+    и своей группы (защитники / нападающие), у кого от 5 матчей. Оси: голы и передачи за игру, броски за игру (только НХЛ),
+    время на льду, форма (очки за игру в последних 10), стабильность (доля матчей с очком)."""
+    axes = [('Голы', 'g'), ('Передачи', 'a')] + ([('Броски', 's')] if lg == 'nhl' else []) + \
+           [('Время', 't'), ('Форма', 'f'), ('Стабильность', 'st')]
+    m = {}
+    for p in players:
+        L = p.get('log', [])
+        n = len(L)
+        if not n:
+            continue
+        g = sum(r[4] or 0 for r in L); a = sum(r[5] or 0 for r in L)
+        sh = sum(r[6] or 0 for r in L)
+        tv = [r[7] for r in L if r[7]]
+        t = (sum(tv) / len(tv) / 60) if tv else (p.get('toi_avg') or 0)
+        l10 = L[-10:]
+        m[p.get('id')] = {'grp': 'D' if p.get('pos') == 'D' else 'F', 'n': n,
+                          'g': g / n, 'a': a / n, 's': sh / n, 't': t,
+                          'f': sum((r[4] or 0) + (r[5] or 0) for r in l10) / len(l10),
+                          'st': sum(1 for r in L if (r[4] or 0) + (r[5] or 0) > 0) / n}
+    out = {}
+    for grp in ('D', 'F'):
+        pool = [v for v in m.values() if v['grp'] == grp and v['n'] >= 5]
+        if len(pool) < 10:
+            continue
+        for k, v in m.items():
+            if v['grp'] != grp:
+                continue
+            out[k] = [[name, round(100 * sum(1 for x in pool if x[key] < v[key]) / len(pool))] for name, key in axes]
+    return out
+
+
+def write_profile(ppdir, lg, p, slug, sl, nx, tpl, games=None, sk=None):
     """Профиль одного игрока: hockey/data/pp/<лига>/<id>.json.
     log: [дата, соперник(slug), дома, г, п, броски, toi сек, штраф, (счёт [свои, чужие, ОТ/Б])]; итоги +/-, штраф, броски — из таблицы клуба (teams.json pl.sk),
     если игрок там найден по имени (иначе считаются по логу, +/- тогда нет)."""
@@ -82,6 +115,8 @@ def write_profile(ppdir, lg, p, slug, sl, nx, tpl, games=None):
             break
     if nx:
         q['nx'] = {'o': sl(nx['o']), 'h': nx['h'], 'd': nx['d'][:16]}
+    if sk:
+        q['sk'] = sk
     write(os.path.join(ppdir, lg, '%s.json' % p['id']), jd(q))
     return 1
 
@@ -120,6 +155,7 @@ def hockey():
         out, byteam, idteam = [], {}, {}
         sl = (lambda a: slug_of.get(a, a)) if lg == 'nhl' else (lambda a: a)
         nxt = j.get('next', {})
+        SK = skills(lg, j.get('players', []))
         for p in j.get('players', []):
             log = [[r[0][:10], r[2], r[3], r[4], r[5], r[6], r[7]] for r in p.get('log', [])]
             q = {'n': p['n'], 't': p['t'], 'pos': p.get('pos'), 'log': log}
@@ -136,7 +172,7 @@ def hockey():
                 byteam.setdefault(slug, {})[p['n']] = p['img']
             if slug and p.get('id') is not None:
                 idteam.setdefault(slug, {})[p['n']] = p['id']
-                ppn += write_profile(ppdir, lg, p, slug, sl, nxt.get(p['t']), d['teams'].get(slug, {}).get('pl'), d['teams'].get(slug, {}).get('games'))
+                ppn += write_profile(ppdir, lg, p, slug, sl, nxt.get(p['t']), d['teams'].get(slug, {}).get('pl'), d['teams'].get(slug, {}).get('games'), SK.get(p.get('id')))
         lj = {'built': j.get('built'), 'season': j.get('season'), 'next': j.get('next', {}), 'players': out}
         write(os.path.join(hd, 'plite_%s.json' % lg), jd(lj))
         for slug, m in byteam.items():

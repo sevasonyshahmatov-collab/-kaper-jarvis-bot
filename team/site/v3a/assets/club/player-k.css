@@ -89,3 +89,22 @@ html[data-white] body{background:#fff}
 /* Длинная фамилия не рвётся посреди слова — шрифт уменьшается под длину (07.11) */
 .pp h1 b{overflow-wrap:normal;word-break:keep-all;font-size:calc(clamp(44px,9vw,110px)*var(--fz,1))}
 @media (max-width:620px){.pp h1 b{font-size:calc(clamp(26px,7.2vw,60px)*var(--fz,1))}}
+
+/* Навыки — шестиугольник / пятиугольник (владелец 07.11) */
+.pp-sk{max-width:560px;margin:6px auto 0}
+.pp-sk svg{width:100%;height:auto;display:block;overflow:visible}
+.pp-sk .gr{fill:none;stroke:var(--rule);stroke-width:1}
+.pp-sk polygon.gr:last-of-type{stroke:var(--rule-2,#c9d3df)}
+.pp-sk .vv{fill:color-mix(in srgb,var(--kg,#0a5bc4) 26%,transparent);stroke:var(--kg,#0a5bc4);stroke-width:3;stroke-linejoin:round;
+  transform-origin:170px 170px;animation:skin .9s cubic-bezier(.23,1,.32,1) both}
+.pp-sk .dt{fill:#fff;stroke:var(--kg,#0a5bc4);stroke-width:3;animation:skdot .9s cubic-bezier(.23,1,.32,1) both}
+.pp-sk .ax{font:700 13px/1 var(--display);fill:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}
+.pp-sk .vl{font:900 20px/1 var(--display);fill:var(--ink)}
+@keyframes skin{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}
+@keyframes skdot{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.pp-sk .vv,.pp-sk .dt{animation:none}}
+/* цвет фигуры — основной цвет клуба (акцент у части клубов белый и пропадал на белом фоне) */
+.pp-sk .vv{fill:color-mix(in srgb,var(--kb,#0a5bc4) 24%,transparent);stroke:var(--kb,#0a5bc4)}
+.pp-sk .dt{stroke:var(--kb,#0a5bc4)}
+@media (max-width:620px){.pp-sk .ax{font-size:15px}.pp-sk .vl{font-size:22px}}
+@media (max-width:620px){.pp-sk .ax{font-size:17px}.pp-sk .vl{font-size:24px}}
