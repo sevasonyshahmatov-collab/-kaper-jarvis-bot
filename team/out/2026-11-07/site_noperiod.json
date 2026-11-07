@@ -1,0 +1,21 @@
+{
+ "day": "2026-11-07",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-07/noper_hockey.png"
+   ],
+   "text": "Плашки «1 | -й тайм | …» и «2 | -й период | …» убраны со всех страниц: хоккей, футбол, Лига чемпионов, страницы лиг. Отступы над заголовками ровные.\nХоккей: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/55c5511b5c1d7d6dd0a6ebdbfd81da56a4dc8fd8/team/site/v3a/hockey/index.html\nФутбол: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/55c5511b5c1d7d6dd0a6ebdbfd81da56a4dc8fd8/team/site/v3a/football/index.html\nЛига НХЛ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/55c5511b5c1d7d6dd0a6ebdbfd81da56a4dc8fd8/team/site/v3a/hockey/league.html?lg=nhl"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-07/noper_football.png"
+   ],
+   "text": "Футбол"
+  }
+ ]
+}
