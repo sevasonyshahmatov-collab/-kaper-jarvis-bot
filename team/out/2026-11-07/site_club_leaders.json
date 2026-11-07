@@ -1,0 +1,10 @@
+{
+ "day": "2026-11-07",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Клубы: в карточках «Лучший бомбардир / снайпер / вратарь» теперь фото игрока (на компьютере справа внизу, на телефоне кружком у имени). Фото вратарей добавлены в данные НХЛ и КХЛ.\nКаролина: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/64cb51d385fd0ddb3490536255d7d07f78a0ef25/team/site/v3a/team/index.html?id=nhl_car#players\nЛокомотив: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/64cb51d385fd0ddb3490536255d7d07f78a0ef25/team/site/v3a/team/index.html?id=lokomotiv#players"
+  }
+ ]
+}
