@@ -1,0 +1,13 @@
+{
+ "day": "2026-11-07",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-07/h2h.png"
+   ],
+   "text": "Личные встречи: общий счёт сверху убран, счёт матчей по центру (двоеточия на одной линии), ОТ/Б — сбоку, не сдвигает.\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/0c0e2dd01169c96e0dcff18b059cfd682c6bc126/team/site/v3a/hockey/index.html#matches\n\n«Следующий матч» у клубов уже перенесён вниз (после «Игроков»). Если видишь его наверху — это старая ссылка, вот свежие:\nКаролина: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/0c0e2dd01169c96e0dcff18b059cfd682c6bc126/team/site/v3a/team/index.html?id=nhl_car\nАрсенал: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/0c0e2dd01169c96e0dcff18b059cfd682c6bc126/team/site/v3a/football/team.html?id=arsenal"
+  }
+ ]
+}
