@@ -1,0 +1,6 @@
+{"day": "2026-11-06",
+ "make": ["team/picks/express_result.py --manual team/out/2026-11-06/express_coupons.json 4 out/express/2026-11-06 team/out/2026-11-07/exres_nhl.json 0611-e4",
+          "team/picks/express_result.py --manual team/out/2026-11-06/express_coupons.json 5 out/express/2026-11-06 team/out/2026-11-07/exres_nhl.json 0611-e5",
+          "team/picks/express_result.py --manual team/out/2026-11-06/express_coupons.json 6 out/express/2026-11-06 team/out/2026-11-07/exres_nhl.json 0611-e6",
+          "team/picks/express_result.py --manual team/out/2026-11-06/express_owner_coupons.json 7 out/express/2026-11-06 team/out/2026-11-07/exres_nhl.json 0611-e7"],
+ "messages": []}
