@@ -27,10 +27,10 @@
   background:repeating-linear-gradient(115deg,#ff8ad0 0%,#ffe58a 7%,#8affd0 14%,#8ac4ff 21%,#c98aff 28%,#ff8ad0 35%);background-size:260% 260%;
   background-position:calc(var(--fx)*1%) calc(var(--fx)*.6%)}
 /* игрок: низ у нижней кромки, голова выступает над рамкой */
-.lcard .pl{position:absolute;display:block;max-width:none;height:84cqw;width:auto;left:73%;bottom:1.2cqw;
+.lcard .pl{position:absolute;display:block;max-width:none;height:86cqw;width:auto;left:69%;bottom:-6cqw;clip-path:inset(-30% -30% 6cqw -30%);
   transform:translateZ(46px) translate(calc(-50% + var(--ry)*.25cqw),calc(var(--rx)*-.25cqw));
   filter:drop-shadow(0 1.6cqw 2.4cqw rgba(0,0,0,.45));pointer-events:none;user-select:none}
-.lcard .pl.emb{height:auto;width:34cqw;left:73%;bottom:auto;top:12cqw;filter:drop-shadow(0 1.6cqw 3cqw rgba(0,0,0,.5))}
+.lcard .pl.emb{height:auto;width:34cqw;left:73%;bottom:auto;top:12cqw;clip-path:none;filter:drop-shadow(0 1.6cqw 3cqw rgba(0,0,0,.5))}
 .lcard .frame{position:absolute;inset:0;border-radius:3.2cqw;padding:.8cqw;transform:translateZ(24px);pointer-events:none;
   background:linear-gradient(calc(120deg + var(--ry)*3deg),#e9eef7 0%,#8795ad 22%,#f4f7fc 45%,#7d8aa3 68%,#dfe6f2 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
@@ -62,7 +62,7 @@
 .lcard .cg a:focus-visible{outline:2px solid var(--signal,#ffd54d)}
 .lcard.nhl .bk{background:repeating-linear-gradient(45deg,#220b11 0 2cqw,#150609 2cqw 4cqw)}
 
-@media (max-width:600px){.lc-deck{grid-template-columns:minmax(0,1fr);gap:76px}
+@media (max-width:600px){.lc-deck{grid-template-columns:minmax(0,1fr);gap:76px}.lcard .pl:not(.emb){left:75%;height:80cqw;bottom:-5cqw;clip-path:inset(-30% -30% 5cqw -30%)}
  .lcard .txt{width:54cqw}.lcard .txt h3{font-size:max(44px,18cqw)}.lcard .cn{font-size:max(13px,3.4cqw)}.lcard .open{font-size:max(12px,3cqw);padding:2cqw 3.2cqw}
  .lcard .bk{grid-template-columns:24cqw minmax(0,1fr);gap:4cqw}.lcard .bh .open{font-size:max(11px,2.8cqw);padding:1.8cqw 2.6cqw}}
 @media (prefers-reduced-motion:reduce){.lcard .flip{transition:none}.lcard .tilt{will-change:auto}}
