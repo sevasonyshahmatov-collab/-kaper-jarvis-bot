@@ -3,6 +3,12 @@
 Новый чат по сайту читает этот файл первым. Здесь отмечаем, что сделано (`[x]`), что в работе (`[~]`) и что выбрал владелец (⭐).
 Каждый чат обновляет файл перед закрытием. Полный разбор идей лежит в `team/site/review/IDEAS_0511.md` в ветке v3a (там своя нумерация).
 
+## ⭐ Актуальная версия (владелец 07.11): `d6fa9fd5d137f7a1b3169bb37520d0341a0ee603`
+Метка git `site-v3a-actual-2026-11-07`. Все правки и новые шаблоны — поверх неё; откат — к этой метке.
+- Хоккей: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/d6fa9fd5d137f7a1b3169bb37520d0341a0ee603/team/site/v3a/hockey/index.html (шапка-плитки `?hh=9` — вариант, не выбран); клуб: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/d6fa9fd5d137f7a1b3169bb37520d0341a0ee603/team/site/v3a/team/index.html?id=nhl_car; таблицы: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/d6fa9fd5d137f7a1b3169bb37520d0341a0ee603/team/site/v3a/hockey/league.html?lg=khl
+- Что вошло (07.11): карточки КХЛ/НХЛ горизонтальные на всю колонку (НХЛ — Теравяйнен, Jenn G, CC BY-SA 2.0; КХЛ — эмблема, ждём фото владельца); плашки «-й период/тайм» убраны везде; таблицы лиг — конференции рядом; клуб: «Следующий матч» между «Местом в таблице» и «Трендами» с градиентом клубов (стык по колонке с датой), фото лидеров (вкл. вратарей), без описания «Матчей сезона»; карточка матча: последние матчи по высоте блока, «Форма» → личные встречи за 3 сезона, счёт по центру, ОТ/Б сбоку.
+- Футбол: клуб и карточка матча — ещё старые (градиент/личные встречи не перенесены).
+
 ## Где сайт
 - Макет: ветка `claude/team-dev-site-v3a`, папка `team/site/v3a`. Код команды — ветка `claude/project-migration-old-account-6e31vz`. В `main` — только через PR.
 - Просмотр: `https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/<полный хэш>/team/site/v3a/index.html`.
