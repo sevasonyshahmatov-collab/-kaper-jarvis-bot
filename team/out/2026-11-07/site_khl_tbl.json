@@ -1,0 +1,13 @@
+{
+ "day": "2026-11-07",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-07/khl_tbl_1440.png"
+   ],
+   "text": "КХЛ уже в новом формате — Запад и Восток рядом. На скрине была старая ссылка (с «Нажмите на клуб…»). Свежие:\nКХЛ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/00dd556cc8fb8df64e9ede0def609138a1f48805/team/site/v3a/hockey/league.html?lg=khl\nНХЛ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/00dd556cc8fb8df64e9ede0def609138a1f48805/team/site/v3a/hockey/league.html?lg=nhl"
+  }
+ ]
+}
