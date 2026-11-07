@@ -439,7 +439,7 @@ const sb=document.getElementById('simbars'),sel=document.getElementById('simsel'
 
 /* лиги и клубы: две коллекционные карточки (assets/leaguecards), на обороте — эмблемы клубов */
 const TQ=(t=>/^(arena|a|b|c)$/.test(t||'')?'&theme='+t:'')(new URLSearchParams(location.search).get('theme'));
-const LCP={khl:{photo:null,photoCls:'',club:'../assets/em/lokomotiv.webp',cols:5},nhl:{photo:'../assets/leaguecards/car-slavin.webp',photoCls:'sl',club:'../assets/em/nhl_car.webp',cols:6}};
+const LCP={khl:{photo:null,photoCls:'',club:'../assets/em/lokomotiv.webp',cols:8},nhl:{photo:'../assets/leaguecards/car-slavin.webp',photoCls:'sl',club:'../assets/em/nhl_car.webp',cols:8}};
 LeagueCards.mount(document.getElementById('lcdeck'),Object.entries(LG).map(([id,l])=>{const n=cnt(id),list=id==='khl'?KHL_CLUBS:NHL_CLUBS;
  return {id,name:l.name,cnt:`${n} ${plural(n,'матч','матча','матчей')} в ближайшие дни`,href:`league.html?lg=${id}${TQ}`,logo:LGI(id),...LCP[id],
   pl:k=>plural(k,'клуб','клуба','клубов'),clubs:list.map(([cn,slug])=>({n:cn,src:`../assets/em/${slug}.webp`,href:`../team/index.html?id=${slug}${TQ}`}))}}));
