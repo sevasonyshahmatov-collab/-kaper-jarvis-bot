@@ -53,36 +53,99 @@ def nhl_abbr(slug):
 
 
 # ───────────────────────────── хоккей ─────────────────────────────
+def _kst(st, *pats):
+    """показатель КХЛ из p['st'] по подстроке имени (приложение отдаёт id вида hits, blocked_shots и т.п.)"""
+    for k, v in (st or {}).items():
+        kl = str(k).lower()
+        if any(x in kl for x in pats) and isinstance(v, (int, float)):
+            return float(v)
+    return None
+
+
 def skills(lg, players):
-    """Шестиугольник (НХЛ) / пятиугольник (КХЛ) навыков игрока (владелец 07.11): процентиль 0–100 среди игроков своей лиги
-    и своей группы (защитники / нападающие), у кого от 5 матчей. Оси: голы и передачи за игру, броски за игру (только НХЛ),
-    время на льду, форма (очки за игру в последних 10), стабильность (доля матчей с очком)."""
-    axes = [('Голы', 'g'), ('Передачи', 'a')] + ([('Броски', 's')] if lg == 'nhl' else []) + \
-           [('Время', 't'), ('Форма', 'f'), ('Стабильность', 'st')]
-    m = {}
+    """Пятиугольник навыков как в играх EA NHL (владелец 07.11): Катание, Бросок, Руки, Силовая, Оборона. Свои рейтинги из
+    статистики лиги (рейтинги EA не копируем): процентиль 0–100 среди игроков своей лиги и группы (защитники / нападающие),
+    у кого от 5 матчей. Ось = взвешенное среднее процентилей компонентов, затем процентиль итога по группе.
+    НХЛ: данные hockey/data/nhl_skills.json (stats API + NHL EDGE). КХЛ: приложение отдаёт только игры, голы, передачи, время
+    (+ что окажется в p['st']): недостающие компоненты заменены ближайшими (комментарии ниже)."""
+    sk = {}
+    if lg == 'nhl':
+        try:
+            sk = load(os.path.join(V3A, 'hockey', 'data', 'nhl_skills.json')).get('p', {})
+        except Exception:  # noqa: BLE001
+            sk = {}
+    raw = {}
     for p in players:
         L = p.get('log', [])
         n = len(L)
         if not n:
             continue
-        g = sum(r[4] or 0 for r in L); a = sum(r[5] or 0 for r in L)
-        sh = sum(r[6] or 0 for r in L)
+        pid = p.get('id')
+        grp = 'D' if p.get('pos') == 'D' else 'F'
+        g = sum(r[4] or 0 for r in L); a = sum(r[5] or 0 for r in L); sh = sum(r[6] or 0 for r in L)
         tv = [r[7] for r in L if r[7]]
-        t = (sum(tv) / len(tv) / 60) if tv else (p.get('toi_avg') or 0)
-        l10 = L[-10:]
-        m[p.get('id')] = {'grp': 'D' if p.get('pos') == 'D' else 'F', 'n': n,
-                          'g': g / n, 'a': a / n, 's': sh / n, 't': t,
-                          'f': sum((r[4] or 0) + (r[5] or 0) for r in l10) / len(l10),
-                          'st': sum(1 for r in L if (r[4] or 0) + (r[5] or 0) > 0) / n}
+        toi = (sum(tv) / len(tv) / 60) if tv else (p.get('toi_avg') or 0)
+        c = {}                                   # компоненты: ось -> {имя: (значение, вес)}
+        if lg == 'nhl':
+            e = sk.get(str(pid)) or {}
+            gp = e.get('gp') or n
+            m60 = (e.get('toi') or toi * 60) * gp / 3600.0 or None      # минуты на льду за сезон / 60
+            def r60(k):
+                return e[k] / m60 if e.get(k) is not None and m60 else None
+            tg = (e['tk'] - e['gv']) / m60 if e.get('tk') is not None and e.get('gv') is not None and m60 else None
+            c['Катание'] = {'spd': (e.get('spd'), 1), 'bur': (e['bur'] / gp if e.get('bur') is not None else None, 1),
+                            'toi': (toi if e.get('spd') is None else None, 1)}    # без EDGE — время на льду
+            c['Бросок'] = {'sog': (sh / n, 1), 'shp': (g / sh if sh >= 5 else None, 1), 'shot': (e.get('shot'), 1)}
+            c['Руки'] = {'a': (a / n, 1), 'tkgv': (tg, 1)}
+            c['Силовая'] = {'hit': (r60('hit'), 1), 'pim': (e['pim'] / gp if e.get('pim') is not None else None, .3)}
+            c['Оборона'] = {'blk': (r60('blk'), 1), 'tk': (r60('tk'), 1), 'pm': (e.get('pm'), 1),
+                            'fo': (e.get('fo') if p.get('pos') == 'C' and (e.get('fon') or 0) >= 100 else None, 1)}
+        else:
+            st = p.get('st') or {}
+            gp = p.get('gp') or n
+            hit = _kst(st, 'hit'); blk = _kst(st, 'block', 'blk'); shots = _kst(st, 'shot')
+            pim = _kst(st, 'pim', 'penalt'); pm = _kst(st, 'plus', 'pm'); fo = _kst(st, 'faceoff', 'fo_')
+            c['Катание'] = {'toi': (toi, 1)}                                     # скорости нет — время на льду
+            c['Бросок'] = {'g': (g / n, 1), 'sog': (shots / gp if shots is not None else None, 1)}   # бросков в приложении нет — голы за игру
+            c['Руки'] = {'a': (a / n, 1)}
+            c['Силовая'] = {'hit': (hit / gp if hit is not None else None, 1), 'pim': (pim / gp if pim is not None else None, .3 if hit is not None else 1)}
+            c['Оборона'] = {'blk': (blk / gp if blk is not None else None, 1), 'pm': (pm, 1),
+                            'fo': (fo if p.get('pos') == 'C' else None, 1)}
+        raw[pid] = {'grp': grp, 'n': n, 'c': c}
     out = {}
     for grp in ('D', 'F'):
-        pool = [v for v in m.values() if v['grp'] == grp and v['n'] >= 5]
+        pool = {k: v for k, v in raw.items() if v['grp'] == grp and v['n'] >= 5}
         if len(pool) < 10:
             continue
-        for k, v in m.items():
+        ax = {}                                  # ось -> {id: взвешенное среднее процентилей компонентов}
+        for name in ('Катание', 'Бросок', 'Руки', 'Силовая', 'Оборона'):
+            comp = {}
+            for k, v in pool.items():
+                for cn, (val, w) in v['c'][name].items():
+                    if val is not None:
+                        comp.setdefault(cn, []).append((k, val, w))
+            sc = {}
+            for cn, arr in comp.items():
+                if len(arr) < 10:
+                    continue
+                vals = [x[1] for x in arr]
+                for k, val, w in arr:             # процентиль со средним рангом при равенстве (иначе нули у «пустых» показателей)
+                    lo = sum(1 for x in vals if x < val); eq = sum(1 for x in vals if x == val)
+                    sc.setdefault(k, []).append((100.0 * (lo + (eq - 1) / 2.0) / (len(vals) - 1), w))
+            ax[name] = {k: sum(p * w for p, w in v) / sum(w for _, w in v) for k, v in sc.items()}
+        for k, v in raw.items():
             if v['grp'] != grp:
                 continue
-            out[k] = [[name, round(100 * sum(1 for x in pool if x[key] < v[key]) / len(pool))] for name, key in axes]
+            row = []
+            for name in ('Катание', 'Бросок', 'Руки', 'Силовая', 'Оборона'):
+                a_ = ax.get(name, {})
+                if k not in a_:
+                    row = None
+                    break
+                allv = list(a_.values())
+                row.append([name, round(100 * sum(1 for x in allv if x < a_[k]) / len(allv))])
+            if row:
+                out[k] = row
     return out
 
 
