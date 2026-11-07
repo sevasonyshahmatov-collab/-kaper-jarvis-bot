@@ -24,7 +24,10 @@ jobs:
           path: ~/.u2net
           key: rembg-isnet-v1
       - run: pip install rembg onnxruntime pillow requests
-      - run: python team/site/v3a/assets/leaguecards/lc_players.py
+      - name: Поиск (если есть discover.json)
+        run: if [ -f team/site/v3a/assets/leaguecards/discover.json ]; then python team/site/v3a/assets/leaguecards/lc_discover.py; fi
+      - name: Вырезки (если нет discover.json)
+        run: if [ ! -f team/site/v3a/assets/leaguecards/discover.json ]; then python team/site/v3a/assets/leaguecards/lc_players.py; fi
       - name: Закоммитить вырезки
         if: always()
         run: |
