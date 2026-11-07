@@ -1,0 +1,13 @@
+{
+ "day": "2026-11-07",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-07/hockey2_sheet.jpg"
+   ],
+   "text": "Хоккей с чистого листа — 3 новых шаблона (слева компьютер, справа телефон), данные живые:\n1 Газета — первая полоса: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/b12cc86bbb088534f490940bc4f5297f314522fd/team/site/v3a/proto/hockey2/gazeta/index.html\n2 Плакат — ширина блоков = вероятности: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/b12cc86bbb088534f490940bc4f5297f314522fd/team/site/v3a/proto/hockey2/plakat/index.html\n3 Схема дня — матчи как станции метро: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/b12cc86bbb088534f490940bc4f5297f314522fd/team/site/v3a/proto/hockey2/metro/index.html\nКакой развиваем?"
+  }
+ ]
+}
