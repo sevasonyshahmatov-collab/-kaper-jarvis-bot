@@ -19,6 +19,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <link rel="stylesheet" href="../assets/nav.css">
 <link rel="stylesheet" href="../assets/obj.css">
 <link rel="stylesheet" href="../assets/lines.css">
+<link rel="stylesheet" href="../assets/leaguecards/lc.css">
 <style>
 .trends{margin-top:2px}
 .trends b{display:block;font:800 clamp(44px,4.4vw,68px)/.9 var(--display);color:var(--sport);font-variant-numeric:tabular-nums;margin-bottom:8px}
@@ -43,6 +44,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <script src="../assets/efir/efir-loader.js"></script>
 <script src="../assets/palettes.js"></script>
 <script src="../assets/hero2/hero2.js"></script>
+<script src="../assets/leaguecards/lc.js"></script>
 <link rel="stylesheet" href="../assets/herobg/herobg.css">
 <link rel="stylesheet" href="../assets/hero2/hero2.css">
 <script src="../assets/herobg/herobg.js"></script>
@@ -118,9 +120,8 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
   <div class="wrap">
     <div class="period" data-rv><p><span class="pn">2</span><span class="pw">-й период</span><span class="pt">Лиги, клубы и таблица</span><span class="pc num">20:00</span></p></div>
     <div class="sec-head" data-rv><h2>Лиги и клубы</h2><p>Две лиги, одна модель. <span class="lgp khl"><img src="../assets/lg/khl.webp" alt=""></span>КХЛ — днём и вечером, <span class="lgp nhl"><img src="../assets/lg/nhl.webp" alt=""></span>НХЛ — ночью: ночные матчи собраны в один игровой день.</p></div>
-    <div class="leagues two" id="flags" role="tablist" aria-label="Выбор лиги" data-rv></div>
-    <div id="wallbox" role="tabpanel" aria-live="polite"><h3 class="wallh" id="wallh"></h3><div class="wall" id="wall"></div></div>
-    <p class="note">Эмблемы — собственность клубов, показаны для навигации.</p>
+    <div class="lc-deck" id="lcdeck" data-rv></div>
+    <p class="lc-credit" id="lccredit">Нажми на карточку, чтобы увидеть клубы лиги. Эмблемы — собственность клубов, показаны для навигации.</p>
   </div>
 </section>
 
@@ -439,25 +440,12 @@ const sb=document.getElementById('simbars'),sel=document.getElementById('simsel'
   document.getElementById('simnote').textContent=`Основное время: П1 — победа ${m.hn}, Х — ничья, П2 — победа ${m.an}. ${m.md.lam?`Ожидаемые голы ${f1(m.md.lam[0],1)} : ${f1(m.md.lam[1],1)}.`:''}`};
  if(L.length){sel.addEventListener('change',()=>showSim(+sel.value));showSim(0)}else{sel.hidden=true;sb.innerHTML='<p class="note">Расчёт появится после обновления данных.</p>'}}
 
-/* лиги и клубы: две большие плашки — переключатель, ниже эмблемы выбранной лиги */
-const flags=document.getElementById('flags'),wallEl=document.getElementById('wall'),wallH=document.getElementById('wallh');
-const CLUBS={khl:KHL_CLUBS,nhl:NHL_CLUBS};let curLg='';
-/* эмблема на стене — ссылка на страницу команды (team/index.html?id=<файл эмблемы>); тема из адреса сохраняется */
+/* лиги и клубы: две коллекционные карточки (assets/leaguecards), на обороте — эмблемы клубов */
 const TQ=(t=>/^(arena|a|b|c)$/.test(t||'')?'&theme='+t:'')(new URLSearchParams(location.search).get('theme'));
-flags.innerHTML=Object.entries(LG).map(([id,l])=>{const n=cnt(id);
- return `<button type="button" role="tab" class="lgtab ${id}" id="lg-${id}" data-lg="${id}" aria-selected="false" aria-controls="wallbox"><img class="lgbg" src="${LGI(id)}" alt=""><span class="lgtx"><span class="lgn">${l.name}</span><span class="lgf">${l.full}</span><span class="nt">Матчи ${l.when}</span><span class="cnt">${n} ${plural(n,'матч','матча','матчей')} в ближайшие дни</span></span></button>`}).join('');
-function pickLg(lg,anim=true){if(lg===curLg)return;curLg=lg;
- flags.querySelectorAll('.lgtab').forEach(b=>b.setAttribute('aria-selected',b.dataset.lg===lg));
- const list=CLUBS[lg],put=()=>{wallH.innerHTML=`${LGP(lg)}<span>${LG[lg].name}</span><span>${list.length} ${plural(list.length,'клуб','клуба','клубов')}</span><a class="lglink" href="league.html?lg=${lg}${TQ}">Страница лиги →</a>`;
-  wallEl.dataset.lg=lg;wallEl.innerHTML=list.map(([n,slug],i)=>`<a class="crest" style="--i:${i}" href="../team/index.html?id=${slug}${TQ}" title="${esc(n)} · ${LG[lg].name}: страница команды">${CI(n)}<span>${esc(n)}</span></a>`).join('');
-  if(anim&&!RM)wallEl.querySelectorAll('.crest').forEach((c,i)=>c.animate([{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'none'}],{duration:420,delay:Math.min(i,32)*18,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}))};
- if(anim&&!RM&&wallEl.innerHTML){wallEl.animate([{opacity:1},{opacity:0,transform:'translateY(6px)'}],{duration:160,easing:'ease-in'}).finished.then(put)}else put()}
-flags.addEventListener('click',e=>{const b=e.target.closest('.lgtab');if(b)pickLg(b.dataset.lg)});
-flags.addEventListener('keydown',e=>{if(!/Arrow(Left|Right)/.test(e.key))return;const t=[...flags.querySelectorAll('.lgtab')],i=t.findIndex(b=>b.dataset.lg===curLg),n=t[(i+(e.key==='ArrowRight'?1:t.length-1))%t.length];n.focus();pickLg(n.dataset.lg)});
-pickLg('khl',false);
-/* ссылки на #lg-khl / #lg-nhl (чипы, тикер, строки матчей) переключают лигу */
-document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#lg-"]');if(!a)return;const lg=a.getAttribute('href').slice(4);if(LG[lg]){pickLg(lg)}});
-if(/^#lg-(khl|nhl)$/.test(location.hash))pickLg(location.hash.slice(4),false);
+const LCP={khl:{photo:null,photoCls:'',club:'../assets/em/lokomotiv.webp',cols:5},nhl:{photo:null,photoCls:'',club:'../assets/em/nhl_car.webp',cols:6}};
+LeagueCards.mount(document.getElementById('lcdeck'),Object.entries(LG).map(([id,l])=>{const n=cnt(id),list=id==='khl'?KHL_CLUBS:NHL_CLUBS;
+ return {id,name:l.name,cnt:`${n} ${plural(n,'матч','матча','матчей')} в ближайшие дни`,href:`league.html?lg=${id}${TQ}`,logo:LGI(id),...LCP[id],
+  pl:k=>plural(k,'клуб','клуба','клубов'),clubs:list.map(([cn,slug])=>({n:cn,src:`../assets/em/${slug}.webp`,href:`../team/index.html?id=${slug}${TQ}`}))}}));
 
 /* аналитическая таблица: 6 листов, как на лендинге — точки-вкладки, стрелки, свайп, клавиатура */
 {const tour=document.getElementById('tour'),steps=[...tour.querySelectorAll('.tstep')],tcs=[...tour.querySelectorAll('.tc')],tvs=[...tour.querySelectorAll('.tv')],tabs=[...tour.querySelectorAll('.win-tabs span')],cnt=document.getElementById('tcount');
