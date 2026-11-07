@@ -53,11 +53,19 @@ def nhl_abbr(slug):
 
 
 # ───────────────────────────── хоккей ─────────────────────────────
-def write_profile(ppdir, lg, p, slug, sl, nx, tpl):
+def write_profile(ppdir, lg, p, slug, sl, nx, tpl, games=None):
     """Профиль одного игрока: hockey/data/pp/<лига>/<id>.json.
-    log: [дата, соперник(slug), дома, г, п, броски, toi сек, штраф]; итоги +/-, штраф, броски — из таблицы клуба (teams.json pl.sk),
+    log: [дата, соперник(slug), дома, г, п, броски, toi сек, штраф, (счёт [свои, чужие, ОТ/Б])]; итоги +/-, штраф, броски — из таблицы клуба (teams.json pl.sk),
     если игрок там найден по имени (иначе считаются по логу, +/- тогда нет)."""
     log = [[r[0][:10], sl(r[2]), r[3], r[4], r[5], r[6], r[7], r[8] if len(r) > 8 else 0] for r in p.get('log', [])]
+    # счёт матча клуба (владелец 07.11: «результат матча слева и справа»): [забил клуб, пропустил, 'ОТ'/'Б'/''] по дате и сопернику
+    gm = {}
+    for g in games or []:
+        gm.setdefault((g.get('d', '')[:10], g.get('o')), g)
+    for r in log:
+        g = gm.get((r[0], r[1]))
+        if g and g.get('gf') is not None and g.get('ga') is not None:
+            r.append([g['gf'], g['ga'], g.get('x') or ''])
     q = {'n': p['n'], 't': slug, 'pos': p.get('pos'), 'log': log}
     for k in ('no', 'img', 'gp'):
         if p.get(k) not in (None, ''):
@@ -128,7 +136,7 @@ def hockey():
                 byteam.setdefault(slug, {})[p['n']] = p['img']
             if slug and p.get('id') is not None:
                 idteam.setdefault(slug, {})[p['n']] = p['id']
-                ppn += write_profile(ppdir, lg, p, slug, sl, nxt.get(p['t']), d['teams'].get(slug, {}).get('pl'))
+                ppn += write_profile(ppdir, lg, p, slug, sl, nxt.get(p['t']), d['teams'].get(slug, {}).get('pl'), d['teams'].get(slug, {}).get('games'))
         lj = {'built': j.get('built'), 'season': j.get('season'), 'next': j.get('next', {}), 'players': out}
         write(os.path.join(hd, 'plite_%s.json' % lg), jd(lj))
         for slug, m in byteam.items():

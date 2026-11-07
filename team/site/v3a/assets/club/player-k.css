@@ -58,3 +58,15 @@ html[data-white] body{background:#fff}
   .pp-gm td{font-size:16px;padding:10px 6px}.pp-gm th{font-size:12px;padding:9px 6px}
   .pp-gm .op img{width:26px;height:26px}.pp-gm .op small{font-size:12px}.pp-gm .pt b{font-size:16px}
 }
+
+/* Таблица матчей: Г+П по центру, слева результат В/П, справа счёт (владелец 07.11) */
+.pp-gm .ct{text-align:center}
+.pp-gm .rs{width:44px;padding-right:0;text-align:center}
+.pp-gm .rs b{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:8px;font:900 17px/1 var(--display);color:#fff}
+.pp-gm .rs b.w{background:#0c8a4a}.pp-gm .rs b.l{background:#c8102e}
+.pp-gm .sc{white-space:nowrap;font-weight:800}
+.pp-gm .sc small{margin-left:5px;font:700 13px/1 var(--display);color:var(--ink-3)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (max-width:620px){.pp-gm .rs{width:30px}.pp-gm .rs b{width:24px;height:24px;font-size:14px}.pp-gm .sc small{display:none}}
+@media (max-width:620px){.pp-gm .tm{display:none}.pp-gm td,.pp-gm th{padding-left:5px;padding-right:5px}}
+@media (max-width:620px){.pp-gm .br{display:none}.pp-gm .op img{width:22px;height:22px}.pp-gm .op{gap:7px}}
