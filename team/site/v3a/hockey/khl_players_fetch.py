@@ -55,7 +55,7 @@ def club(tid):
     return tid, allp
 
 
-P, by_num = {}, {}
+P, by_num, GIMG = {}, {}, {}
 with ThreadPoolExecutor(6) as ex:
     for tid, allp in ex.map(club, list(SLUG)):
         for p in allp:
@@ -63,6 +63,8 @@ with ThreadPoolExecutor(6) as ex:
                 continue
             stt = {s.get('id'): s.get('val') for s in p.get('stats') or []}
             role = str(p.get('role_key') or '')
+            if 'goal' in role and p.get('image'):
+                GIMG.setdefault(SLUG[tid], {})[p.get('name') or ''] = p['image']   # фото вратарей для «Лучший вратарь»
             if 'goal' in role or not stt.get('gp'):
                 continue
             r = {'id': p['id'], 'n': p.get('name') or '', 't': SLUG[tid], 'img': p.get('image'), 'no': p.get('shirt_number'),
@@ -129,7 +131,7 @@ for tid, gs in team_games.items():
             r['log'].append([day, SLUG[tid], SLUG[op], home, g, a, None, None, 0])
 
 out = [r for r in P.values() if r['log']]
-res = {'built': datetime.now(MSK).strftime('%Y-%m-%d %H:%M'), 'season': '2026/27', 'league': 'khl', 'next': nxt, 'players': out,
+res = {'built': datetime.now(MSK).strftime('%Y-%m-%d %H:%M'), 'season': '2026/27', 'league': 'khl', 'next': nxt, 'players': out, 'gimg': GIMG,
        'err': err[:30], 'note': 'log — все матчи команды (кто играл в каком матче, приложение не отдаёт); gp — игры игрока'}
 os.makedirs(os.path.join(H, 'data'), exist_ok=True)
 with open(os.path.join(H, 'data', 'khl_players.json'), 'w', encoding='utf-8') as f:

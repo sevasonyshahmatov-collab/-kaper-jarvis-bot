@@ -275,6 +275,10 @@ def hockey():
             if slug and p.get('id') is not None:
                 idteam.setdefault(slug, {})[p['n']] = p['id']
                 ppn += write_profile(ppdir, lg, p, slug, sl, nxt.get(p['t']), d['teams'].get(slug, {}).get('pl'), d['teams'].get(slug, {}).get('games'), SK.get(p.get('id')))
+        for t_, m_ in (j.get('gimg') or {}).items():                  # фото вратарей (лучший вратарь на странице клуба)
+            slug = t_ if lg == 'khl' else slug_of.get(t_)
+            if slug:
+                byteam.setdefault(slug, {}).update(m_)
         lj = {'built': j.get('built'), 'season': j.get('season'), 'next': j.get('next', {}), 'players': out}
         write(os.path.join(hd, 'plite_%s.json' % lg), jd(lj))
         for slug, m in byteam.items():

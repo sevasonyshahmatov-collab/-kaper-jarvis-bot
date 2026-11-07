@@ -453,7 +453,7 @@ else{
   document.querySelectorAll('#plTabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===st.tab));
  };
  pbox.innerHTML=`<div class="sec-head" data-rv><h2>Игроки</h2><p>Статистика сезона ${lgp(lg)}${L.name}: ${sk.length} ${plural(sk.length,'полевой игрок','полевых игрока','полевых игроков')} и ${gk.length} ${plural(gk.length,'вратарь','вратаря','вратарей')}. Нажмите на заголовок столбца — таблица отсортируется.</p></div>
-  <ul class="plead" data-rv>${lead.map(([lab,p,fn])=>{const v=fn(p);return `<li><span class="sl">${lab}</span><b class="pln"><span data-pn="${esc(p.n)}">${esc(p.n)}</span>${p.no!=null?`<small class="num">№${p.no}</small>`:''}</b><span class="plv"><b class="num">${v[0]}</b><small>${esc(v[1])}</small></span><span class="ss">${esc(v[2])}</span></li>`}).join('')}</ul>
+  <ul class="plead" data-rv>${lead.map(([lab,p,fn])=>{const v=fn(p);return `<li><span class="lph" data-n="${esc(p.n)}" aria-hidden="true"></span><span class="sl">${lab}</span><b class="pln"><span data-pn="${esc(p.n)}">${esc(p.n)}</span>${p.no!=null?`<small class="num">№${p.no}</small>`:''}</b><span class="plv"><b class="num">${v[0]}</b><small>${esc(v[1])}</small></span><span class="ss">${esc(v[2])}</span></li>`}).join('')}</ul>
   <div class="gfilter" role="group" aria-label="Кого показать" data-rv><div class="seg" id="plTabs">${sk.length?`<button type="button" aria-pressed="true" data-t="sk">Полевые<small>${sk.length}</small></button>`:''}${gk.length?`<button type="button" aria-pressed="false" data-t="gk">Вратари<small>${gk.length}</small></button>`:''}</div></div>
   <div class="plwrap" id="plTable" data-rv tabindex="0" role="region" aria-label="Таблица игроков, листается вбок"></div>
   <p class="note plnote">${lg==='khl'?'Данные приложения КХЛ':'Данные НХЛ'}, регулярный сезон. Нап — нападающий, Защ — защитник${lg==='nhl'?', Цен — центр, ЛН / ПН — левый и правый нападающий':''}; «КН» — коэффициент надёжности вратаря, «Сух» — сухие матчи.</p>`;
@@ -469,5 +469,6 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('a[da
 fetch('../hockey/data/pid/'+encodeURIComponent(ID)+'.json').then(r=>r.ok?r.json():null).then(m=>{if(!m)return;Object.assign(PID,m);linkPn(document)}).catch(()=>{});
 /* фото лидеров в плашке «Игроки» — из данных раздела «Игроки» (подгружаются после страницы) */
 fetch('../hockey/data/players/'+encodeURIComponent(ID)+'.json').then(r=>r.ok?r.json():null).then(by=>{if(!by)return;
- document.querySelectorAll('.plcard .pav').forEach(el=>{const u=by[el.dataset.n];if(u){const im=new Image();im.alt='';im.onload=()=>{el.textContent='';el.appendChild(im)};im.src=u}})}).catch(()=>{});
+ document.querySelectorAll('.plcard .pav').forEach(el=>{const u=by[el.dataset.n];if(u){const im=new Image();im.alt='';im.onload=()=>{el.textContent='';el.appendChild(im)};im.src=u}});
+ document.querySelectorAll('.plead .lph').forEach(el=>{const u=by[el.dataset.n];if(u){const im=new Image();im.alt='';im.decoding='async';im.onload=()=>{el.appendChild(im);el.closest('li').classList.add('has-ph')};im.src=u}})}).catch(()=>{});
 })();

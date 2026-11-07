@@ -98,7 +98,11 @@ for pid, r in P.items():
     r['t'] = ro.get('t') or r['log'][-1][1]
     r['img'] = ro.get('img'); r['n'] = ro.get('n') or r['n']; r['no'] = ro.get('no'); r['pos'] = ro.get('pos') or r['pos']
     out.append(r)
-res = {'built': datetime.now(MSK).strftime('%Y-%m-%d %H:%M'), 'season': '2026/27', 'next': nxt, 'players': out, 'err': err[:30],
+GIMG = {}  # фото вратарей {клуб: {имя: фото}} — для карточки «Лучший вратарь» на странице клуба
+for r_ in roster.values():
+    if r_.get('pos') == 'G' and r_.get('img'):
+        GIMG.setdefault(r_['t'], {})[r_['n'].strip()] = r_['img']
+res = {'built': datetime.now(MSK).strftime('%Y-%m-%d %H:%M'), 'season': '2026/27', 'next': nxt, 'players': out, 'gimg': GIMG, 'err': err[:30],
        'cols': ['d', 'team', 'opp', 'home', 'g', 'a', 'sog', 'toi_sec', 'pim']}
 os.makedirs(os.path.join(H, 'data'), exist_ok=True)
 with open(os.path.join(H, 'data', 'nhl_players.json'), 'w', encoding='utf-8') as f:
