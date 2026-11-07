@@ -1,0 +1,21 @@
+{
+ "day": "2026-11-07",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-07/hh_sheet_hockey.jpg"
+   ],
+   "text": "Хоккей, первый экран: 0 — исходная, 1–8 — варианты шапки. Какой берём?"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-07/hh_sheet_football.jpg"
+   ],
+   "text": "Футбол, первый экран: 0 — исходная, 1–8."
+  }
+ ]
+}
