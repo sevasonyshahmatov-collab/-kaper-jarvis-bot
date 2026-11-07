@@ -22,7 +22,7 @@ TARGETS = {
             ['Lokomotiv Yaroslavl hockey player', 'Локомотив Ярославль хоккей', 'Lokomotiv KHL game']),
 }
 OK_LIC = re.compile(r'^(cc[- ]by(-sa)?[- ]\d|cc0|pd|public domain)', re.I)
-PER = 12
+PER = 24
 want = {}
 if os.path.exists(os.path.join(H, 'want.json')):
     want = json.load(open(os.path.join(H, 'want.json'), encoding='utf-8'))
