@@ -1,5 +1,5 @@
 {
- "event": "401879242",
+ "event": "401878758",
  "top_keys": [
   "article",
   "boxscore",
@@ -35,13 +35,13 @@
   "starter": true,
   "jersey": "1",
   "athlete": {
-   "id": "159443",
-   "uid": "s:600~a:159443",
-   "guid": "2f35ae2e-81ad-5bae-f4f3-11a1b8e6a184",
-   "lastName": "Pickford",
-   "fullName": "Jordan Pickford",
-   "displayName": "Jordan Pickford",
-   "shortName": "J. Pickford",
+   "id": "307118",
+   "uid": "s:600~a:307118",
+   "guid": "694fc5d8-064a-3109-a82f-0cbf9e3a252e",
+   "lastName": "Trafford",
+   "fullName": "James Trafford",
+   "displayName": "James Trafford",
+   "shortName": "J. Trafford",
    "links": [
     {
      "language": "en-US",
@@ -50,7 +50,7 @@
       "desktop",
       "athlete"
      ],
-     "href": "https://www.espn.com/soccer/player/_/id/159443/jordan-pickford",
+     "href": "https://www.espn.com/soccer/player/_/id/307118/james-trafford",
      "text": "Player Card",
      "shortText": "Player Card",
      "isExternal": false,
@@ -59,7 +59,7 @@
    ],
    "jerseyImages": [
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879242/athletes/159443/jersey.png?darkMode=false",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401878758/athletes/307118/jersey.png?darkMode=false",
      "rel": [
       "full",
       "default"
@@ -68,7 +68,7 @@
      "height": 1440
     },
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879242/athletes/159443/jersey.png?darkMode=true",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401878758/athletes/307118/jersey.png?darkMode=true",
      "rel": [
       "full",
       "dark"
@@ -157,8 +157,8 @@
     "shortDisplayName": "GA",
     "description": "The number of goals allowed by the goalkeeper.",
     "abbreviation": "GA",
-    "value": 1.0,
-    "displayValue": "1"
+    "value": 0.0,
+    "displayValue": "0"
    },
    {
     "name": "saves",
@@ -166,8 +166,8 @@
     "shortDisplayName": "SV",
     "description": "The number of times a goalkeeper makes a save.",
     "abbreviation": "SV",
-    "value": 3.0,
-    "displayValue": "3"
+    "value": 4.0,
+    "displayValue": "4"
    },
    {
     "name": "shotsFaced",
@@ -219,15 +219,15 @@
  "roster_sub": {
   "active": true,
   "starter": false,
-  "jersey": "15",
+  "jersey": "6",
   "athlete": {
-   "id": "283586",
-   "uid": "s:600~a:283586",
-   "guid": "aeb6c589-1c15-0d05-3a67-43ea58ea660a",
-   "lastName": "O'Brien",
-   "fullName": "Jake O'Brien",
-   "displayName": "Jake O'Brien",
-   "shortName": "J. O'Brien",
+   "id": "232325",
+   "uid": "s:600~a:232325",
+   "guid": "0b99aa6e-00bc-ebbb-7fa0-918c1d288994",
+   "lastName": "Rodon",
+   "fullName": "Joe Rodon",
+   "displayName": "Joe Rodon",
+   "shortName": "J. Rodon",
    "links": [
     {
      "language": "en-US",
@@ -236,7 +236,7 @@
       "desktop",
       "athlete"
      ],
-     "href": "https://www.espn.com/soccer/player/_/id/283586/jake-obrien",
+     "href": "https://www.espn.com/soccer/player/_/id/232325/joe-rodon",
      "text": "Player Card",
      "shortText": "Player Card",
      "isExternal": false,
@@ -245,7 +245,7 @@
    ],
    "jerseyImages": [
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879242/athletes/283586/jersey.png?darkMode=false",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401878758/athletes/232325/jersey.png?darkMode=false",
      "rel": [
       "full",
       "default"
@@ -254,7 +254,7 @@
      "height": 1440
     },
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879242/athletes/283586/jersey.png?darkMode=true",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401878758/athletes/232325/jersey.png?darkMode=true",
      "rel": [
       "full",
       "dark"
@@ -402,10 +402,10 @@
    }
   ],
   "subbedInFor": {
-   "jersey": "34",
+   "jersey": "2",
    "athlete": {
-    "id": "311963",
-    "displayName": "Merlin Röhl",
+    "id": "243408",
+    "displayName": "Jayden Bogle",
     "links": [
      {
       "language": "en-US",
@@ -414,7 +414,7 @@
        "desktop",
        "athlete"
       ],
-      "href": "https://www.espn.com/soccer/player/_/id/311963/merlin-rohl",
+      "href": "https://www.espn.com/soccer/player/_/id/243408/jayden-bogle",
       "text": "Player Card",
       "shortText": "Player Card",
       "isExternal": false,
@@ -426,7 +426,7 @@
   "plays": [
    {
     "clock": {
-     "displayValue": "73'"
+     "displayValue": "90'+3'"
     },
     "scoringPlay": false,
     "substitution": true,
@@ -438,37 +438,37 @@
   ]
  },
  "keyEvent_sub": {
-  "id": "54903991",
+  "id": "54935943",
   "type": {
    "id": "76",
    "text": "Substitution",
    "type": "substitution"
   },
-  "text": "Substitution, Everton. Jake O'Brien replaces Merlin Röhl.",
-  "shortText": "Jake O'Brien Substitution",
+  "text": "Substitution, Tottenham Hotspur. Dominic Solanke replaces Mathys Tel because of an injury.",
+  "shortText": "Dominic Solanke Substitution",
   "period": {
-   "number": 2
+   "number": 1
   },
   "clock": {
-   "value": 4330.0,
-   "displayValue": "73'"
+   "value": 2545.0,
+   "displayValue": "43'"
   },
   "scoringPlay": false,
   "team": {
-   "id": "368",
-   "displayName": "Everton"
+   "id": "367",
+   "displayName": "Tottenham Hotspur"
   },
   "participants": [
    {
     "athlete": {
-     "id": "283586",
-     "displayName": "Jake O'Brien"
+     "id": "194115",
+     "displayName": "Dominic Solanke"
     }
    },
    {
     "athlete": {
-     "id": "311963",
-     "displayName": "Merlin Röhl"
+     "id": "325042",
+     "displayName": "Mathys Tel"
     }
    }
   ],
@@ -476,15 +476,15 @@
    "id": "38",
    "description": "SA.ENVOY"
   },
-  "wallclock": "2026-11-06T21:31:12Z",
+  "wallclock": "2026-11-07T13:13:02Z",
   "shootout": false
  },
  "parsed": {
-  "368": [
+  "357": [
    [
-    "159443",
+    "307118",
     1,
-    97,
+    95,
     0,
     0,
     0,
@@ -493,42 +493,31 @@
     0
    ],
    [
-    "286965",
+    "212237",
     1,
-    89,
-    0,
-    0,
-    0,
+    95,
     1,
-    1,
-    0
-   ],
-   [
-    "155226",
-    1,
-    97,
     0,
     0,
-    0,
-    0,
+    3,
     0,
     0
    ],
    [
-    "262594",
+    "318390",
     1,
-    97,
-    1,
-    1,
-    1,
+    95,
+    0,
+    0,
+    0,
     0,
     0,
     0
    ],
    [
-    "311963",
+    "231863",
     1,
-    73,
+    95,
     0,
     0,
     0,
@@ -537,9 +526,53 @@
     0
    ],
    [
-    "252389",
+    "253173",
     1,
-    97,
+    77,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "241317",
+    1,
+    95,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "250166",
+    1,
+    45,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0
+   ],
+   [
+    "243408",
+    1,
+    93,
+    3,
+    0,
+    0,
+    3,
+    0,
+    0
+   ],
+   [
+    "197717",
+    1,
+    95,
     3,
     1,
     0,
@@ -548,65 +581,32 @@
     0
    ],
    [
-    "276220",
+    "258956",
     1,
-    97,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0
-   ],
-   [
-    "378458",
-    1,
-    73,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "301166",
-    1,
-    97,
-    6,
+    77,
     2,
     1,
-    2,
+    0,
+    0,
     0,
     0
    ],
    [
-    "368864",
+    "251658",
     1,
-    90,
-    3,
+    93,
     1,
-    0,
     1,
     0,
+    1,
+    1,
     0
    ],
    [
-    "340640",
-    1,
-    73,
-    1,
-    0,
+    "232325",
     0,
     2,
     0,
-    0
-   ],
-   [
-    "283586",
-    0,
-    24,
-    0,
     0,
     0,
     0,
@@ -614,55 +614,55 @@
     0
    ],
    [
-    "4946",
+    "270641",
     0,
-    8,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "302162",
-    0,
-    7,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "291307",
-    0,
-    24,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "282978",
-    0,
-    24,
+    18,
     1,
     1,
     0,
+    0,
     1,
+    0
+   ],
+   [
+    "265923",
+    0,
+    50,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "30116",
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "194801",
+    0,
+    18,
+    0,
+    0,
+    0,
+    0,
     0,
     0
    ]
   ],
-  "388": [
+  "367": [
    [
-    "307069",
+    "324393",
     1,
-    97,
+    95,
     0,
     0,
     0,
@@ -671,21 +671,32 @@
     0
    ],
    [
-    "241093",
+    "296512",
     1,
-    97,
+    95,
     0,
     0,
+    0,
+    1,
+    1,
+    0
+   ],
+   [
+    "282583",
+    1,
+    95,
+    1,
+    1,
     0,
     0,
     0,
     0
    ],
    [
-    "374220",
+    "104943",
     1,
-    97,
-    1,
+    95,
+    0,
     0,
     0,
     1,
@@ -693,87 +704,54 @@
     0
    ],
    [
-    "206172",
+    "268533",
     1,
-    97,
-    1,
+    65,
     0,
     0,
     0,
-    0,
-    0
-   ],
-   [
-    "281139",
-    1,
-    97,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "286967",
-    1,
-    86,
-    3,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "256015",
-    1,
-    86,
     3,
     1,
+    0
+   ],
+   [
+    "346820",
+    1,
+    65,
+    0,
+    0,
     0,
     0,
     0,
     0
    ],
    [
-    "387659",
+    "328050",
     1,
-    97,
-    0,
-    0,
-    0,
-    1,
-    1,
-    0
-   ],
-   [
-    "194686",
-    1,
-    87,
+    95,
     1,
     0,
     0,
-    1,
+    0,
     0,
     0
    ],
    [
-    "277383",
+    "261047",
     1,
-    73,
-    3,
+    95,
+    0,
+    0,
+    0,
     2,
-    0,
     1,
-    0,
     0
    ],
    [
-    "302002",
+    "303745",
     1,
-    86,
-    1,
+    65,
+    2,
     1,
     0,
     2,
@@ -781,57 +759,79 @@
     0
    ],
    [
-    "366817",
-    0,
-    10,
-    0,
-    0,
+    "325042",
+    1,
+    43,
     0,
     0,
+    0,
+    3,
     0,
     0
    ],
    [
-    "324541",
-    0,
-    11,
+    "266599",
+    1,
+    83,
+    1,
     1,
     0,
     0,
     0,
-    0,
     0
    ],
    [
-    "191337",
+    "215772",
     0,
-    11,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "236912",
-    0,
-    11,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "240495",
-    0,
-    24,
+    30,
+    1,
     1,
     0,
     0,
     0,
+    0
+   ],
+   [
+    "395939",
+    0,
+    12,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "272695",
+    0,
+    30,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "266696",
+    0,
+    30,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "194115",
+    0,
+    52,
+    0,
+    0,
+    0,
+    1,
     0,
     0
    ]
