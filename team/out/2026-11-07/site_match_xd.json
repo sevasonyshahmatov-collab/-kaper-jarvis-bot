@@ -1,0 +1,13 @@
+{
+ "day": "2026-11-07",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-07/match_xd.png"
+   ],
+   "text": "Карточка матча (раскрыть матч на странице «Хоккей»): «Последние матчи» — сколько влезает рядом с расчётом модели (обычно 10, на телефоне 5). Вместо «Формы» — личные встречи за 3 сезона со счётом серии.\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/a45d24f2e99030b080818feea6dd100fc3fbe081/team/site/v3a/hockey/index.html#matches"
+  }
+ ]
+}
