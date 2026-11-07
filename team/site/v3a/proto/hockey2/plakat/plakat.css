@@ -1,0 +1,96 @@
+/* «Плакат»: швейцарская типографика. Плоские цвета, без градиентов/теней/стекла. Цвет только у клубов. */
+:root{--ink:#0a0a0a;--paper:#fff;--grey:#eeeeec;--mid:#6b6b68;--x:#d9d9d6;--g:16px;--wrap:1320px;--fs:'Inter Tight','Arial Narrow',Arial,sans-serif}
+@media(min-width:768px){:root{--g:32px}}
+*{box-sizing:border-box;margin:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--paper);color:var(--ink);font:500 16px/1.35 var(--fs);overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img{display:block}
+.wrap{width:100%;max-width:var(--wrap);margin-inline:auto;padding-inline:var(--g)}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.skip{position:absolute;left:-999px}.skip:focus{left:var(--g);top:8px;background:var(--ink);color:#fff;padding:8px 12px;z-index:9}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+
+/* шапка */
+.hd{border-bottom:2px solid var(--ink)}
+.hd-in{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 24px;padding-block:14px}
+.logo{font-weight:900;font-size:26px;letter-spacing:-.03em;line-height:1}
+.nav{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px;font-weight:600}
+.nav a{padding-block:4px;border-bottom:2px solid transparent}
+.nav a:hover,.nav a[aria-current]{border-bottom-color:var(--ink)}
+
+/* первый экран */
+.hero{padding-block:18px 40px}
+.kick{display:grid;grid-template-columns:1fr auto;align-items:end;gap:0 16px;margin-bottom:14px;font-weight:800;line-height:1}
+.k-sp{font-size:14px;text-transform:uppercase;letter-spacing:.08em;display:grid;gap:6px;padding-bottom:6px}
+.k-lg{color:var(--mid)}
+.k-tm{font-size:clamp(44px,9vw,104px);letter-spacing:-.05em;font-variant-numeric:tabular-nums;font-weight:900}
+.k-tm small{font-size:.22em;letter-spacing:0;font-weight:800;margin-left:.3em}
+
+/* полоса вероятностей: ширина блока = вероятность */
+.bar{display:flex;container-type:size;overflow:hidden;background:var(--grey)}
+.b{position:relative;flex:none;width:0;overflow:hidden;background:var(--bg);color:var(--fg);transition:width .6s cubic-bezier(.2,.7,.2,1)}
+.bar.in .b{width:calc(var(--p)*1cqw)}
+.b>.bi{position:absolute;inset:0 auto 0 0;width:calc(var(--p)*1cqw);padding:10px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start}
+.b.x{--bg:var(--x);--fg:var(--ink)}
+.b.fav .n{font-weight:900}
+.n{font-variant-numeric:tabular-nums;font-weight:800;letter-spacing:-.05em;line-height:.8;white-space:nowrap}
+.n i{font-style:normal;font-size:.28em;letter-spacing:0;font-weight:800;margin-left:.08em;vertical-align:top;position:relative;top:.06em}
+.em{width:min(64px,100%);height:auto;aspect-ratio:1}
+
+.poster-slot .bar{height:clamp(320px,52svh,520px)}
+.poster-slot .b>.bi{padding:12px}
+.poster-slot .n{font-size:min(calc(var(--p)*.6cqw),64cqh)}
+.poster-slot .b:not(.fav) .n{font-size:min(calc(var(--p)*.6cqw),30cqh)}
+.poster-slot .b.rot .n{writing-mode:vertical-rl;transform:rotate(180deg);align-self:flex-start;font-size:min(calc((var(--p)*1cqw - 26px)*1.25),30cqh)}
+.poster-slot .b.rot .n i{top:0;margin-left:0;margin-bottom:.08em}
+.cells{display:flex;margin-top:8px;font-variant-numeric:tabular-nums;font-weight:800;font-size:15px}
+.cells span{flex:none;width:calc(var(--p)*1%);white-space:nowrap}
+.cells em{font-style:normal;font-weight:500;color:var(--mid);margin-right:.4em}
+
+.hero-txt{display:grid;gap:18px 32px;margin-top:22px}
+h1{font-size:clamp(34px,5.2vw,76px);font-weight:900;letter-spacing:-.045em;line-height:.95;text-wrap:balance}
+.hero-act{display:grid;gap:14px;align-content:start;justify-items:start}
+.hero-act p{font-size:17px;max-width:30ch}
+.btn{display:inline-block;background:var(--ink);color:#fff;font-weight:800;font-size:17px;padding:16px 22px;line-height:1.1;border:2px solid var(--ink)}
+.btn:hover{background:#fff;color:var(--ink)}
+@media(min-width:900px){.hero-txt{grid-template-columns:minmax(0,8fr) minmax(0,4fr);align-items:end}}
+
+/* матчи */
+.games{padding-block:0 56px}
+h2{font-size:clamp(44px,8vw,120px);font-weight:900;letter-spacing:-.05em;line-height:.9;margin-bottom:28px;border-top:2px solid var(--ink);padding-top:28px}
+.leagues h2{border:0;padding:0;margin:0}
+h2 sup{font-size:.28em;letter-spacing:0;vertical-align:top;margin-left:.2em;font-weight:800}
+.grid{display:grid;grid-template-columns:1fr;gap:32px var(--g)}
+@media(min-width:768px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1100px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.card{display:block;border-top:4px solid var(--ink);padding-top:10px}
+.card:hover .nmz{text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:4px}
+.c-hd{display:flex;justify-content:space-between;align-items:baseline;font-weight:800;font-variant-numeric:tabular-nums}
+.c-hd b{font-size:32px;letter-spacing:-.04em;line-height:1;font-weight:900}
+.c-hd b small{font-size:12px;letter-spacing:0;margin-left:6px;color:var(--mid)}
+.c-hd span{font-size:14px}.c-hd span em{font-style:normal;color:var(--mid);margin-right:6px;font-weight:500}
+.nmz{display:grid;gap:4px;margin:10px 0 12px;font-size:22px;font-weight:800;letter-spacing:-.025em;line-height:1.1}
+.nmz span{display:flex;align-items:center;gap:10px}
+.nmz img{width:28px;height:28px}
+.card .bar{height:64px}
+.card .b>.bi{padding:0 8px;flex-direction:row;align-items:center;justify-content:flex-start}
+.card .n{font-size:22px;letter-spacing:-.04em}
+.card .n i{display:none}
+.card .b.small .n{display:none}
+
+/* лиги */
+.leagues{background:var(--grey);padding-block:var(--g)}
+.lg-grid{display:grid;gap:var(--g);grid-template-columns:1fr}
+@media(min-width:768px){.lg-grid{grid-template-columns:1fr 1fr}}
+.lgc{display:flex;flex-direction:column;justify-content:space-between;min-height:clamp(240px,34vw,460px);padding:16px var(--g);background:var(--ink);color:#fff;border:2px solid var(--ink)}
+.lgc.nhl{background:#fff;color:var(--ink)}
+.lgc .t{font-size:clamp(96px,17vw,260px);font-weight:900;letter-spacing:-.06em;line-height:.8}
+.lgc .f{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:17px;border-top:2px solid currentColor;padding-top:12px}
+.lgc img{width:56px;height:56px;margin-bottom:12px}
+.lgc:hover .f span:last-child{text-decoration:underline;text-underline-offset:4px}
+
+.ft{border-top:2px solid var(--ink);font-size:13px;font-weight:600}
+.ft-in{display:flex;flex-wrap:wrap;gap:6px 24px;padding-block:20px 28px}
+.ft-in span:first-child{font-weight:900;margin-right:auto}
+@media(prefers-reduced-motion:reduce){.b{transition:none}}

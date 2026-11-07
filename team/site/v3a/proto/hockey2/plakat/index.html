@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Хоккей: прогнозы КХЛ и НХЛ | JARVIS</title>
+<meta name="description" content="Прогнозы на матчи КХЛ и НХЛ по собственной модели: вероятности исходов в пропорциях плаката.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#ffffff">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;800;900&amp;display=swap">
+<link rel="stylesheet" href="plakat.css">
+<script src="../../../data/today.js"></script><script src="../../../data/model.js"></script><script src="../../../data/lines.js"></script>
+<script src="../../../assets/club/jersey.js"></script>
+<script src="plakat.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd"><div class="wrap hd-in">
+  <a class="logo" href="../../../index.html" aria-label="JARVIS, главная">JARVIS</a>
+  <nav class="nav" aria-label="Разделы">
+    <a href="index.html" aria-current="page">Хоккей</a><a href="../../../football/index.html">Футбол</a><a href="../../../matches.html">Матчи</a><a href="../../../hockey/league.html?lg=khl">КХЛ</a><a href="../../../hockey/league.html?lg=nhl">НХЛ</a><a href="../../../hockey/players.html">Игроки</a>
+  </nav>
+</div></header>
+
+<main id="main">
+<section class="hero wrap" aria-labelledby="h1">
+  <div class="kick"><span class="k-sp">Хоккей<span class="k-lg" id="hLg"></span></span><b class="k-tm" id="hTm"></b></div>
+  <div id="poster" class="poster-slot"></div>
+  <div class="hero-txt">
+    <h1 id="h1">Матч дня</h1>
+    <div class="hero-act">
+      <p>Прогноз на каждый матч от собственной модели.</p>
+      <a class="btn" href="https://t.me/jarvibet" rel="noopener">Получать прогнозы — бесплатно</a>
+    </div>
+  </div>
+</section>
+
+<section class="games wrap" aria-labelledby="h2">
+  <h2 id="h2">Матчи<sup id="gN"></sup></h2>
+  <div class="grid" id="grid"></div>
+</section>
+
+<section class="leagues" aria-labelledby="h3"><div class="wrap">
+  <h2 id="h3" class="vh">Лиги</h2>
+  <div class="lg-grid" id="lgs"></div>
+</div></section>
+</main>
+
+<footer class="ft"><div class="wrap ft-in"><span>JARVIS</span><span>Вероятности собственной модели, не гарантия исхода.</span><span id="built"></span></div></footer>
+</body>
+</html>
