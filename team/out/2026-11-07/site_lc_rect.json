@@ -1,0 +1,21 @@
+{
+ "day": "2026-11-07",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-07/lc_rect_1440.png"
+   ],
+   "text": "Прямоугольные карточки КХЛ/НХЛ готовы — на всю ширину раздела, края по заголовку и по колонке (замер 84 / 1356). НХЛ — Теравяйнен (Каролина) лицом в камеру. КХЛ — пока эмблема Локомотива: свободного фото игрока нет, пришли своё.\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/d6fa9fd5d137f7a1b3169bb37520d0341a0ee603/team/site/v3a/hockey/index.html#leagues"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-07/lc_rect_390.png"
+   ],
+   "text": "Телефон"
+  }
+ ]
+}
