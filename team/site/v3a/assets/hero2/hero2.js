@@ -76,11 +76,11 @@ function model(sport){
 const tm=m=>m.t.slice(11,16);
 const when=m=>{const d=m.t.slice(0,10);return d===mskDay(Date.now())?tm(m):`${+d.slice(8)} ${MON[+d.slice(5,7)-1]} · ${tm(m)}`};
 const E=(src,cls='')=>`<span class="e ${cls}"><img src="${esc(src)}" alt="" width="64" height="64"></span>`;
-const bar=p=>`<span class="pb"><i style="--w:${pct(p)}%"></i></span>`;
+const bar=p=>`<span class="hpb"><i style="--w:${pct(p)}%"></i></span>`;
 const BTN='<a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a>';
 function cdStr(m){const s=left(m.t);if(s<=0)return '00:00';const h=Math.floor(s/3600),mi=Math.floor(s%3600/60);return String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0')}
 function inStr(m){const s=left(m.t),mi=Math.floor(s/60);return mi<60?`${mi} мин`:`${Math.floor(mi/60)} ч ${String(mi%60).padStart(2,'0')} мин`}
-const heading=(h,cls='')=>`<p class="t ${cls}" role="heading" aria-level="1"><span>${esc(h[0])}</span> <i>${esc(h[1])}</i></p>`;
+const heading=(h,cls='')=>`<p class="ht ${cls}" role="heading" aria-level="1"><span>${esc(h[0])}</span> <i>${esc(h[1])}</i></p>`;
 const link=(cls,inner)=>`<a class="${cls}" href="#matches">${inner}</a>`;
 const noData='<p class="nod">Матчи появятся после обновления данных.</p>';
 
@@ -88,19 +88,19 @@ const noData='<p class="nod">Матчи появятся после обновл
 const stripIn=m=>{const t=m.top;return `<a class="st-in" href="#matches">
    <span class="st-when">${LGP(m.lg)}<time class="num">${esc(when(m))}</time></span>
    <span class="st-teams">${E(m.hc)}<b>${esc(m.hn)}</b><s>—</s><b>${esc(m.an)}</b>${E(m.ac)}</span>
-   ${t?`<span class="st-bet"><b>${esc(t.word)}</b><span class="pm">${bar(t.p)}<em class="num">${pct(t.p)} %</em></span></span><span class="st-k num">${f2(t.k)}</span>`:'<span class="st-bet"><b>Расчёта пока нет</b></span>'}</a>`};
+   ${t?`<span class="st-bet"><b>${esc(t.word)}</b><span class="hpm">${bar(t.p)}<em class="num">${pct(t.p)} %</em></span></span><span class="st-k num">${f2(t.k)}</span>`:'<span class="st-bet"><b>Расчёта пока нет</b></span>'}</a>`};
 function v1(M,S){
  const pic=S==='football'?'../proto/home/players/football.webp':'../proto/home/players/hockey.webp';
  const feat=M.byConf.filter(m=>m.top).slice(0,4);
- return `<div class="stage"><div class="disc" aria-hidden="true"></div>
-  <div class="txt">${heading(M.h)}<div class="cta">${BTN}</div></div>
-  <img class="plr" src="${pic}" alt="" draggable="false"></div>
-  <div class="strip" id="v1s">${feat.length?stripIn(feat[0]):noData}${feat.length>1?`<div class="dots" role="group" aria-label="Другие матчи">${feat.map((m,i)=>`<button type="button" aria-pressed="${i===0}" aria-label="${esc(m.hn)} — ${esc(m.an)}"></button>`).join('')}</div>`:''}</div>
-  ${S==='football'?'<p class="cr">Фото: Kylian Mbappé — Bryan Berlin, CC BY-SA 4.0, Wikimedia Commons</p>':''}`;
+ return `<div class="stage">
+  <div class="txt">${heading(M.h)}<div class="hcta">${BTN}</div></div>
+  <div class="hpl"><i class="disc" aria-hidden="true"></i><img class="plr" src="${pic}" alt="" draggable="false"></div></div>
+  <div class="strip" id="v1s">${feat.length?stripIn(feat[0]):noData}${feat.length>1?`<div class="hdots" role="group" aria-label="Другие матчи">${feat.map((m,i)=>`<button type="button" aria-pressed="${i===0}" aria-label="${esc(m.hn)} — ${esc(m.an)}"></button>`).join('')}</div>`:''}</div>
+  ${S==='football'?'<p class="hcr">Фото: Kylian Mbappé — Bryan Berlin, CC BY-SA 4.0, Wikimedia Commons</p>':''}`;
 }
 function v1init(root,M){
  const feat=M.byConf.filter(m=>m.top).slice(0,4),box=root.querySelector('#v1s');if(feat.length<2)return;
- box.querySelector('.dots').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+ box.querySelector('.hdots').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   const i=[...b.parentNode.children].indexOf(b),t=document.createElement('div');t.innerHTML=stripIn(feat[i]);box.querySelector('.st-in').replaceWith(t.firstChild);
   [...b.parentNode.children].forEach((x,j)=>x.setAttribute('aria-pressed',j===i))});
 }
@@ -112,26 +112,26 @@ function v2(M,S){
   ?`<div class="bt lgs"><ul>${M.leagues.map(([k,n])=>`<li><a href="league.html?lg=${esc(k)}" title="${esc(n)}" aria-label="${esc(n)}">${LGP(k)}</a></li>`).join('')}</ul></div>`
   :M.leagues.map(([k,n])=>`<a class="bt lg ${k}" href="league.html?lg=${k}">${LGP(k)}<b>${esc(n)}</b><span class="num">${M.day.filter(m=>m.lg===k).length}</span></a>`).join('');
  return `<div class="bento">
-  <div class="bt ttl">${heading(M.h)}<div class="cta">${BTN}</div></div>
+  <div class="bt ttl">${heading(M.h)}<div class="hcta">${BTN}</div></div>
   <a class="bt big" href="#matches">${t?`<div class="bh">${LGP(t.lg)}<time class="num">${esc(when(t))}</time></div>
-   <div class="bm">${E(t.hc,'xl')}<s>—</s>${E(t.ac,'xl')}</div>
+   <div class="bmt">${E(t.hc,'xl')}<s>—</s>${E(t.ac,'xl')}</div>
    <div class="bn"><b>${esc(t.hn)}</b><b>${esc(t.an)}</b></div>
-   <div class="bb"><b>${esc(t.top.word)}</b><span class="pm">${bar(t.top.p)}<em class="num">${pct(t.top.p)} %</em></span><span class="k num">${f2(t.top.k)}</span></div>`:noData}</a>
+   <div class="bb"><b>${esc(t.top.word)}</b><span class="hpm">${bar(t.top.p)}<em class="num">${pct(t.top.p)} %</em></span><span class="hk num">${f2(t.top.k)}</span></div>`:noData}</a>
   <div class="bt num1"><b class="num">${M.total}</b><span>${plural(M.total,'матч','матча','матчей')} ${M.nowDay?'сегодня':'в ближайший день'}</span></div>
   ${lgTiles}
-  <div class="bt cd">${nx?`<span>Следующий матч через</span><b class="num" data-cd="${esc(nx.t)}">${cdStr(nx)}</b>`:'<span>Ближайших матчей пока нет</span>'}</div>
+  <div class="bt cdt">${nx?`<span>Следующий матч через</span><b class="num" data-cd="${esc(nx.t)}">${cdStr(nx)}</b>`:'<span>Ближайших матчей пока нет</span>'}</div>
  </div>`;
 }
 
 /* ── 3. Лента ── */
 function v3(M,S){
  const card=(m,big)=>{const t=m.top;return `<a class="mc${big?' big':''}" href="#matches">
-   <span class="mh">${LGP(m.lg)}<time class="num">${esc(when(m))}</time>${big?'<em>Уверенней всего</em>':''}</span>
-   <span class="mt">${E(m.hc)}<b>${esc(m.hn)}</b></span><span class="mt">${E(m.ac)}<b>${esc(m.an)}</b></span>
-   ${t?`<span class="mb"><b>${esc(t.word)}</b><span class="pm">${bar(t.p)}<em class="num">${pct(t.p)} %</em></span><span class="k num">${f2(t.k)}</span></span>`:'<span class="mb"><b>Расчёта пока нет</b></span>'}</a>`};
+   <span class="mh">${LGP(m.lg)}<time class="num">${esc(when(m))}</time></span>
+   <span class="mtm">${E(m.hc)}<b>${esc(m.hn)}</b></span><span class="mtm">${E(m.ac)}<b>${esc(m.an)}</b></span>
+   ${t?`<span class="mb"><b>${esc(t.word)}</b><span class="hpm">${bar(t.p)}<em class="num">${pct(t.p)} %</em></span><span class="hk num">${f2(t.k)}</span></span>`:'<span class="mb"><b>Расчёта пока нет</b></span>'}</a>`};
  const arrows='<span class="ar"><button type="button" data-d="-1" aria-label="Назад"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 3L5 8l5 5"/></svg></button><button type="button" data-d="1" aria-label="Вперёд"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3l5 5-5 5"/></svg></button></span>';
  const ord=M.top?[M.top,...M.rest]:M.rest;
- return `<div class="head">${heading(M.h)}<div class="cta">${BTN}${arrows}</div></div>
+ return `<div class="head">${heading(M.h)}<div class="hcta">${BTN}${arrows}</div></div>
   <div class="lane" id="v3l" tabindex="0" aria-label="Матчи дня">${ord.length?ord.map((m,i)=>card(m,i===0&&!!m.top)).join(''):noData}</div>`;
 }
 function v3init(root){
@@ -152,30 +152,30 @@ const LGC={khl:['#17408f','#0a1632'],nhl:['#2a3340','#0b0e14'],epl:['#4a2582','#
 function v4(M,S){
  const deck=(M.top?[M.top,...M.rest]:M.rest).slice(0,5);
  const face=m=>{const c=LGC[m.lg]||LGC.khl,t=m.top;
-  return `<div class="kc" style="--c1:${c[0]};--c2:${c[1]}"><div class="kt"><div class="in">
+  return `<div class="kc" style="--c1:${c[0]};--c2:${c[1]}"><div class="ktl"><div class="inn">
    <div class="fc fr"><span class="kh">${LGP(m.lg)}<time class="num">${esc(when(m))}</time></span>
     <span class="kp">${E(m.hc,'xl')}<b>${esc(m.hn)}</b></span><s>—</s><span class="kp">${E(m.ac,'xl')}<b>${esc(m.an)}</b></span>
     <button type="button" class="kf" aria-label="Перевернуть карточку"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8a6 6 0 0 1 10.5-3M16 12a6 6 0 0 1-10.5 3M14.5 2v3h-3M5.5 18v-3h3"/></svg></button></div>
-   <div class="fc bk">${m.pr?`<span class="kh"><b>${esc(m.hn)} — ${esc(m.an)}</b></span><div class="pr3">${[['П1',0],['Х',1],['П2',2]].map(([l,i])=>`<span class="${t&&t.i===i?'on':''}"><i style="--h:${pct(m.pr[i])}%"></i><b class="num">${pct(m.pr[i])}</b><em>${l}</em><small class="num">${m.k?f2(m.k[i]):'—'}</small></span>`).join('')}</div>
+   <div class="fc bk">${m.pr?`<span class="kh"><b>${esc(m.hn)} — ${esc(m.an)}</b></span><div class="pr3">${[['П1',0],['Х',1],['П2',2]].map(([l,i])=>`<span class="${t&&t.i===i?'hit':''}"><i style="--h:${pct(m.pr[i])}%"></i><b class="num">${pct(m.pr[i])}</b><em>${l}</em><small class="num">${m.k?f2(m.k[i]):'—'}</small></span>`).join('')}</div>
     ${t?`<p class="kw"><b>${esc(t.word)}</b><span class="num">${f2(t.k)}</span></p>`:''}`:'<span class="kh"><b>Расчёта пока нет</b></span>'}
     <button type="button" class="kf" aria-label="Перевернуть карточку"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8a6 6 0 0 1 10.5-3M16 12a6 6 0 0 1-10.5 3M14.5 2v3h-3M5.5 18v-3h3"/></svg></button></div>
   </div></div></div>`};
  const facts=`<ul class="facts"><li><b class="num">${M.total}</b><span>${plural(M.total,'матч','матча','матчей')} ${M.nowDay?'сегодня':'впереди'}</span></li><li><b class="num">${M.nModel}</b><span>с расчётом модели</span></li><li><b class="num">${M.lgs.length||M.leagues.length}</b><span>${plural(M.lgs.length||M.leagues.length,'лига','лиги','лиг')}</span></li></ul>`;
- return `<div class="lft">${heading(M.h)}<div class="cta">${BTN}</div>${facts}</div>
+ return `<div class="lft">${heading(M.h)}<div class="hcta">${BTN}</div>${facts}</div>
   <div class="fan" id="v4f">${deck.length?deck.map(face).join(''):noData}</div>`;
 }
 function v4init(root){
  const fan=root.querySelector('#v4f'),cs=[...fan.querySelectorAll('.kc')];if(!cs.length)return;
  let order=cs.slice();
- const place=()=>order.forEach((c,i)=>{c.dataset.p=i;c.style.zIndex=10-i;c.classList.toggle('top',i===0);if(i)c.classList.remove('fl')});
+ const place=()=>order.forEach((c,i)=>{c.dataset.p=i;c.style.zIndex=10-i;c.classList.toggle('is-top',i===0);if(i)c.classList.remove('flipped')});
  place();
  cs.forEach(c=>c.addEventListener('click',e=>{
-  if(c.dataset.p==='0'){c.classList.toggle('fl');return}
+  if(c.dataset.p==='0'){c.classList.toggle('flipped');return}
   order=[c,...order.filter(x=>x!==c)];place()}));
  /* наклон верхней карточки за курсором: только мышь, ±10°, без свечения */
  if(!HOVER||RM)return;
  let tx=0,ty=0,cx=0,cy=0,raf=0;
- const set=()=>{const t=order[0].querySelector('.kt');cx+=(tx-cx)*.14;cy+=(ty-cy)*.14;t.style.transform=`rotateX(${cx.toFixed(2)}deg) rotateY(${cy.toFixed(2)}deg)`;
+ const set=()=>{const t=order[0].querySelector('.ktl');cx+=(tx-cx)*.14;cy+=(ty-cy)*.14;t.style.transform=`rotateX(${cx.toFixed(2)}deg) rotateY(${cy.toFixed(2)}deg)`;
   raf=(Math.abs(tx-cx)>.02||Math.abs(ty-cy)>.02)?requestAnimationFrame(set):0};
  root.addEventListener('pointermove',e=>{const r=order[0].getBoundingClientRect();
   const px=Math.max(-1,Math.min(1,(e.clientX-(r.left+r.width/2))/(r.width*1.4))),py=Math.max(-1,Math.min(1,(e.clientY-(r.top+r.height/2))/(r.height*1.4)));
@@ -188,10 +188,10 @@ function v5(M,S){
  const t=M.top,nx=M.next;
  const chips=(M.lgs.length?M.lgs:M.leagues).map(([k,n])=>`<li><a href="league.html?lg=${esc(k)}">${LGP(k)}${esc(n)}</a></li>`).join('');
  return `${heading(M.h)}
-  <div class="row"><ul class="chips">${chips}</ul>${nx?`<p class="nx">Ближайший матч через <b class="num" data-in="${esc(nx.t)}">${inStr(nx)}</b></p>`:''}</div>
+  <div class="hrow"><ul class="hchips">${chips}</ul>${nx?`<p class="nx">Ближайший матч через <b class="num" data-in="${esc(nx.t)}">${inStr(nx)}</b></p>`:''}</div>
   ${t?`<a class="mc" href="#matches"><span class="c3"><span class="tt">${E(t.hc,'xl')}<b>${esc(t.hn)}</b></span>
    <span class="mid">${LGP(t.lg)}<time class="num">${esc(when(t))}</time></span><span class="tt">${E(t.ac,'xl')}<b>${esc(t.an)}</b></span></span>
-   <span class="mb"><b>${esc(t.top.word)}</b><span class="pm">${bar(t.top.p)}<em class="num">${pct(t.top.p)} %</em></span><span class="k num">${f2(t.top.k)}</span></span></a>`:noData}`;
+   <span class="mb"><b>${esc(t.top.word)}</b><span class="hpm">${bar(t.top.p)}<em class="num">${pct(t.top.p)} %</em></span><span class="hk num">${f2(t.top.k)}</span></span></a>`:noData}`;
 }
 
 /* ── сборка ── */
@@ -202,7 +202,7 @@ function build(){
  const lines=old?[...old.querySelectorAll('.ln')].map(x=>x.textContent.trim()):[];
  let M;try{M=model(S)}catch(e){console.warn('hero2: нет данных',e);M={day:[],rest:[],byConf:[],top:null,leagues:[],lgs:[],total:0,nModel:0,next:null,list:[]}}
  M.h=lines.length===2?lines:(S==='football'?['Футбол:','топ-лиги и РПЛ']:['Хоккей:','КХЛ и НХЛ']);
- const root=document.createElement('div');root.className=`wrap h2 h2-v${N}`;root.dataset.sp=S;
+ const root=document.createElement('div');root.className=`h2 h2-v${N}`;root.dataset.sp=S;
  root.innerHTML=[null,v1,v2,v3,v4,v5][N](M,S);
  hero.append(root);
  ({1:v1init,3:v3init,4:v4init}[N]||(()=>{}))(root,M);
