@@ -88,6 +88,26 @@ def find(o, *names):
 shown = [0]
 
 
+def paths(o, pre='', out=None):
+    """пути к числовым полям ответа EDGE (без overlay / leagueAvg) — чтобы увидеть структуру в логе"""
+    out = [] if out is None else out
+    if isinstance(o, dict):
+        for k, v in o.items():
+            if k not in ('overlay', 'leagueAvg', 'player', 'team'):
+                paths(v, pre + '.' + k, out)
+    elif isinstance(o, (int, float)):
+        out.append('%s=%s' % (pre, o))
+    return out
+
+
+def burst(j):
+    """число рывков 20+ миль/ч за сезон: skatingSpeed.burstsOver20 (или похожее по имени)"""
+    for k, v in (j.get('skatingSpeed') or {}).items():
+        if 'burst' in k.lower() and '20' in k:
+            return num(v)
+    return find(j, 'burst', '20')
+
+
 def edge(pid):
     time.sleep(0.15)
     j = None
@@ -99,9 +119,8 @@ def edge(pid):
         return pid, None
     if shown[0] < 2:
         shown[0] += 1
-        print('SKILLS edge sample', pid, json.dumps(j, ensure_ascii=False)[:1800], flush=True)
-    return pid, {'spd': find(j, 'topskatingspeed'), 'bur': find(j, 'burst', '20') or find(j, 'bursts'),
-                 'shot': find(j, 'topshotspeed') or find(j, 'shotspeed')}
+        print('SKILLS edge paths', pid, ' '.join(paths(j)), flush=True)
+    return pid, {'spd': find(j, 'speedmax'), 'bur': burst(j), 'shot': find(j, 'topshotspeed')}
 
 
 todo = [pid for pid, v in P.items() if (v.get('gp') or 0) >= 5]
