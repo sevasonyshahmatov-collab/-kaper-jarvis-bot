@@ -92,7 +92,7 @@ def skills(lg, players, tgf=None):
             c['Катание'] = {'spd': (e.get('spd'), 1), 'bur': (e['bur'] / gp if e.get('bur') is not None else None, 1),
                             'toi': (toi if e.get('spd') is None else None, 1)}    # без EDGE — время на льду
             c['Бросок'] = {'sog': (sh / n, 1), 'shp': (g / sh if sh >= 5 else None, 1), 'shot': (e.get('shot'), 1)}
-            c['Руки'] = {'tkgv': (tg, 1), 'pts': ((g + a) / n, .5)}                 # владение: отборы минус потери + очки
+            c['Руки'] = {'p60': ((g + a) / m60 if m60 else None, 1), 'tk': (r60('tk'), .5)}  # владение: очки за 60 мин + отборы (потери не штрафуем — у лидеров много касаний)
             c['Интеллект'] = {'a60': (a / m60 if m60 else None, 1), 'inv': (inv, 1),  # передачи за 60 мин + участие в голах команды
                               'tk': (r60('tk'), .5), 'gv': (-r60('gv') if r60('gv') is not None else None, .5)}  # чтение игры: отборы, мало потерь
             c['Оборона'] = {'blk': (r60('blk'), 1), 'tk': (r60('tk'), 1), 'pm': (e.get('pm'), 1),
@@ -112,37 +112,46 @@ def skills(lg, players, tgf=None):
                             'fo': (fow / gp if grp == 'F' and (fow or 0) >= 30 else None, 1)}   # позиции C в приложении нет: центр = от 30 выигранных вбрасываний
         raw[pid] = {'grp': grp, 'n': n, 'c': c}
     out = {}
+    AX = ('Катание', 'Бросок', 'Руки', 'Интеллект', 'Оборона')
+    # Шкала как у рейтингов в играх (владелец 07.11: «у Маккиннона почти всё 100 — непропорционально»): не процентиль, а
+    # рейтинг по отклонению от среднего группы: компонент -> z (выбросы обрезаны ±3), ось = взвешенное среднее z,
+    # затем ось ещё раз нормируется по группе и переводится в 35–99: среднее 65, +1 σ = +11. Звёзды — 85–97, слабая сторона видна.
+    def zs(vals):
+        m = sum(vals) / len(vals)
+        sd = (sum((x - m) ** 2 for x in vals) / len(vals)) ** .5 or 1.0
+        return m, sd
     for grp in ('D', 'F'):
         pool = {k: v for k, v in raw.items() if v['grp'] == grp and v['n'] >= 5}
         if len(pool) < 10:
             continue
-        ax = {}                                  # ось -> {id: взвешенное среднее процентилей компонентов}
-        for name in ('Катание', 'Бросок', 'Руки', 'Интеллект', 'Оборона'):
+        axz = {}
+        for name in AX:
             comp = {}
             for k, v in pool.items():
                 for cn, (val, w) in v['c'][name].items():
                     if val is not None:
                         comp.setdefault(cn, []).append((k, val, w))
-            sc = {}
+            acc = {}
             for cn, arr in comp.items():
                 if len(arr) < 10:
                     continue
-                vals = [x[1] for x in arr]
-                for k, val, w in arr:             # процентиль со средним рангом при равенстве (иначе нули у «пустых» показателей)
-                    lo = sum(1 for x in vals if x < val); eq = sum(1 for x in vals if x == val)
-                    sc.setdefault(k, []).append((100.0 * (lo + (eq - 1) / 2.0) / (len(vals) - 1), w))
-            ax[name] = {k: sum(p * w for p, w in v) / sum(w for _, w in v) for k, v in sc.items()}
+                m, sd = zs([x[1] for x in arr])
+                for k, val, w in arr:
+                    acc.setdefault(k, []).append((max(-3.0, min(3.0, (val - m) / sd)), w))
+            zz = {k: sum(z * w for z, w in v) / sum(w for _, w in v) for k, v in acc.items()}
+            if zz:
+                m, sd = zs(list(zz.values()))
+                axz[name] = {k: (z - m) / sd for k, z in zz.items()}
         for k, v in raw.items():
             if v['grp'] != grp:
                 continue
             row = []
-            for name in ('Катание', 'Бросок', 'Руки', 'Интеллект', 'Оборона'):
-                a_ = ax.get(name, {})
+            for name in AX:
+                a_ = axz.get(name, {})
                 if k not in a_:
                     row = None
                     break
-                allv = list(a_.values())
-                row.append([name, round(100 * sum(1 for x in allv if x < a_[k]) / len(allv))])
+                row.append([name, int(max(35, min(99, round(65 + 11 * a_[k]))))])
             if row:
                 out[k] = row
     return out
