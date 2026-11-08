@@ -173,12 +173,4 @@ if(MODE&&$('resl')){const L=D.leagues[MODE],rows=[];
  const last=rows.filter(r=>Date.parse(r.d.slice(0,10))>=lim);
  $('resl').innerHTML=last.length?last.map(r=>{const t=day(r.d);return `<li><span class="d">${t.d} ${t.mon}<br>${esc(r.d.slice(11))}</span><a class="t" href="${teamHref(r.h,MODE)}">${CI(r.h)}<span class="${r.gf>r.ga?'w':''}">${esc(nm(r.h))}</span></a><span class="s num">${r.gf}:${r.ga}</span><a class="t a" href="${teamHref(r.a,MODE)}">${CI(r.a)}<span class="${r.ga>r.gf?'w':''}">${esc(nm(r.a))}</span></a></li>`}).join(''):'<li class="note">Сыгранных матчей пока нет.</li>'}
 
-/* «Прогноз модели» (#model): все матчи окна данных — вероятности модели рядом с линией */
-{const W=(window.JV_TODAY&&JV_TODAY.matches||[]).filter(m=>m.lg!=='khl'&&m.lg!=='nhl').map(m=>m.key),byKey=Object.fromEntries(D.up.map(m=>[m.key,m]));
- let items=W.map(k=>byKey[k]).filter(Boolean).sort((a,b)=>a.t<b.t?-1:1);
- const fut=items.filter(m=>JV.left(m.t)>-2*3600);if(fut.length)items=fut;
- const dl=d=>{const x=day(d);return `${x.wd}, ${x.d} ${x.mon}${d===today?' · сегодня':''}`};
- JVL.section($('modelbox'),items.map(m=>({...m,lgHtml:LGP(m.lg)+esc(D.leagues[m.lg].name),home:`${CI(m.h)}<span>${esc(nm(m.h))}</span>`,away:`${CI(m.a)}<span>${esc(nm(m.a))}</span>`,dayLabel:dl})),
-  {btts:true,noLine:'Линии пока нет',explain:`<p>Рейтинг каждого клуба считается по модели Дикси — Коулса: это пуассоновская модель голов с поправкой на малые счета (0:0, 1:0, 0:1, 1:1). Из рейтингов получаются ожидаемые голы каждой команды, а из них — вероятности победы, ничьей, тотала и «обе забьют».</p>
-  <p>Затем расчёт смешивается с линией рынка — так же, как в прогнозах команды. Поэтому на футболе расхождения с линией небольшие, а модель не независима от рынка. Шкала и пометка «расходится» показывают, где итоговая вероятность всё же заметно отличается от доли линии.</p>`})}
 })();

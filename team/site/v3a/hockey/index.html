@@ -29,13 +29,6 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 #honest .honest{grid-template-columns:minmax(0,.75fr) minmax(0,1.7fr)}
 @media (max-width:980px){#honest .honest{grid-template-columns:1fr}}
 .kt{position:relative;height:16px;display:block}.kt span{position:absolute;transform:translateX(-50%)}.kt span:first-child{transform:none}.kt span:last-child{transform:translateX(-100%)}
-.simbars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end;height:200px;margin:8px 0 14px}
-.simbars div{display:grid;grid-template-rows:auto 1fr auto;height:100%;text-align:center;gap:6px;font:600 15px/1 var(--display)}
-.simbars b{font:800 32px/1 var(--display);font-variant-numeric:tabular-nums}
-.simbars em{display:flex;align-items:flex-end;background:var(--paper-2);border-radius:3px;overflow:hidden}
-.simbars em i{display:block;width:100%;height:var(--h,0%);background:var(--ink-3);transition:height .5s var(--out)}
-.simbars .pk em i{background:var(--sport)}
-.simbars .pk b{color:var(--sport)}
 </style>
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
@@ -180,27 +173,21 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 
 <section class="sec" id="model" data-zone="p3">
   <div class="wrap">
-    <div class="sec-head" data-rv><h2>Прогноз модели</h2></div>
-    <div id="modelbox"></div>
-    <div class="sec-head" data-rv style="margin-top:46px"><h2>Как думает модель</h2></div>
+    <div class="sec-head" data-rv><h2>Как думает модель</h2></div>
     <ol class="steps" data-rv>
       <li><h3>Форма</h3><p>Результаты, сила атаки и обороны, броски в створ и шайбы сверх ожидания, вратарь и два матча за два дня.</p></li>
       <li><h3>Линия</h3><p>Кэфы рынка сравниваются с вероятностью модели. Большое расхождение — повод перепроверить данные, а не готовый вывод.</p></li>
       <li><h3>Выбор</h3><p>Ставка, у которой модель даёт от 60 % при кэфе от 1,6. Нет такой ставки — разбор без выбора.</p></li>
     </ol>
-    <div class="lab" data-rv>
+    <div class="lab" data-rv style="grid-template-columns:1fr">
       <div>
         <h3>Почему 1,6–2,3</h3>
         <div class="corr"><div class="track"><i></i></div><input id="k" type="range" min="1.2" max="3.2" step="0.05" value="1.85" aria-label="Коэффициент"><span class="puck" id="puck"></span></div>
         <div class="ticks kt"><span style="left:0">1,2</span><span style="left:20%">1,6</span><span style="left:55%">2,3</span><span style="left:100%">3,2</span></div>
         <p class="kout" id="kout" aria-live="polite"></p>
       </div>
-      <div>
-        <h3 id="simh">Расчёт модели</h3>
-        <select class="simsel" id="simsel" aria-label="Матч"></select>
-        <div class="simbars" id="simbars"></div>
-      </div>
     </div>
+    <p class="more-link" style="margin:22px 0 0"><a href="../model.html">Подробнее о модели →</a></p>
   </div>
 </section>
 
@@ -432,21 +419,6 @@ addEventListener('resize',()=>document.querySelectorAll('.match.open').forEach(f
 function tick(){document.querySelectorAll('.cd[data-t]').forEach(e=>e.textContent=JV.inMin(JV.left(e.dataset.t)));if(shown)cdSet(JV.left(picks[cur].t))}
 ltabs.addEventListener('click',e=>{const t=e.target.closest('.tab');if(t)render(t.dataset.l)});
 render('all');setInterval(tick,1000);
-
-/* «Прогноз модели» (#model): все матчи окна — вероятности модели рядом с линией */
-JVL.section(document.getElementById('modelbox'),D.map(m=>({...m,lgHtml:LGP(m.lg)+LG[m.lg].name,home:`${CS(m.h)}<span>${esc(m.hn)}</span>`,away:`${CS(m.a)}<span>${esc(m.an)}</span>`,dayLabel})),
- {noLine:'Линии пока нет',explain:`<p>Для каждой команды модель ведёт рейтинг: он учитывает результаты, качество бросков (ожидаемые голы), игру вратаря и усталость — два матча за два дня. Из рейтингов выходит ожидаемое число голов у каждой стороны, а из него по модели Пуассона — вероятности победы в основное время, ничьей и тотала.</p>
- <p>Итоговая вероятность — среднее двух оценок: расчёта по счёту и того, как часто заканчивают игры сами эти команды. Линия рынка в расчёт не входит, поэтому расхождение с ней — это разница оценок, а не ошибка одной из сторон.</p>`});
-
-/* реальный расчёт вместо розыгрыша: вероятности модели по выбранному матчу */
-const sb=document.getElementById('simbars'),sel=document.getElementById('simsel');
-{const L=D.filter(m=>m.md);
- sel.innerHTML=L.map((m,i)=>`<option value="${i}">${esc(m.t.slice(8,10)+'.'+m.t.slice(5,7)+' '+m.t.slice(11))} · ${esc(m.hn)} — ${esc(m.an)}</option>`).join('');
- const showSim=i=>{const m=L[i];if(!m)return;const r=[m.md.p1,m.md.x,m.md.p2],mx=Math.max(...r);
-  document.getElementById('simh').textContent=`Расчёт модели: ${m.hn} — ${m.an}`;
-  sb.innerHTML=['П1','Х','П2'].map((l,j)=>`<div class="${r[j]===mx?'pk':''}"><b>${pc(r[j])}</b><em><i style="--h:0%"></i></em><span>${l}</span></div>`).join('');
-  requestAnimationFrame(()=>requestAnimationFrame(()=>sb.querySelectorAll('i').forEach((el,j)=>el.style.setProperty('--h',(r[j]*100/0.7).toFixed(1)+'%'))))};
- if(L.length){sel.addEventListener('change',()=>showSim(+sel.value));showSim(0)}else{sel.hidden=true;sb.innerHTML='<p class="note">Расчёт появится после обновления данных.</p>'}}
 
 /* лиги и клубы: две коллекционные карточки (assets/leaguecards), на обороте — эмблемы клубов */
 const TQ=(t=>/^(arena|a|b|c)$/.test(t||'')?'&theme='+t:'')(new URLSearchParams(location.search).get('theme'));
