@@ -1,0 +1,164 @@
+/* Образец единого стиля JARVIS (08.11, по аудиту). Одна основа — тёмная «ночной лёд», один шрифт Inter (JV Display) для всего,
+   хоккей и футбол различаются цветом (голубой / зелёный) и фактурой (лёд / газон), а не разными стилями.
+   Жёлтый — только то, на что нажимают. Без стекла, без засвета при наведении. */
+@font-face{font-family:"JV Display";font-style:normal;font-weight:100 900;font-display:swap;src:url(../../assets/vendor/fonts/inter-latin.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"JV Display";font-style:normal;font-weight:100 900;font-display:swap;src:url(../../assets/vendor/fonts/inter-cyrillic.woff2) format("woff2");
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+:root{
+  --bg:#0a1220;--surface:#111b2e;--surface-2:#16223a;--line:#24324f;--line-2:#2f4064;
+  --ink:#eaf1fb;--ink-2:#b9c5d9;--ink-3:#8f9cb4;
+  --signal:#ffc21a;--signal-ink:#1a1400;
+  --hk:#4cc2ff;--fb:#3ddc97;--win:#34d27f;--loss:#ff5d6c;--draw:#8f9cb4;
+  --f:"JV Display","Inter","Helvetica Neue",Arial,sans-serif;
+  --display:var(--f);--text:var(--f);
+  --r:16px;--r-s:10px;--m:clamp(16px,3.2vw,44px);--max:1280px;
+  /* совместимость с карточкой матча из proto/home/merge */
+  --card:var(--surface);--rule:var(--line);--rule-2:var(--line-2);--paper:var(--bg);
+  color-scheme:dark
+}
+*{box-sizing:border-box}
+html{background:var(--bg);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--f);font-feature-settings:"tnum" 0}
+img{max-width:100%}
+a{color:inherit}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 var(--m)}
+.num{font-variant-numeric:tabular-nums lining-nums}
+
+/* шрифт: одна гарнитура, иерархия весом и размером */
+.h1{margin:0;font:900 clamp(40px,6vw,84px)/.92 var(--f);letter-spacing:-.025em;text-transform:uppercase}
+.h2{margin:0;font:900 clamp(28px,3.4vw,46px)/.95 var(--f);letter-spacing:-.02em;text-transform:uppercase}
+.h3{margin:0;font:800 clamp(19px,1.7vw,22px)/1.2 var(--f);letter-spacing:-.01em}
+.lead{margin:0;font:400 clamp(17px,1.4vw,20px)/1.55 var(--f);color:var(--ink-2);max-width:56ch}
+.small{font:500 13px/1.4 var(--f);color:var(--ink-3)}
+.kick{margin:0 0 10px;font:800 12px/1 var(--f);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+
+/* шапка: одна строка, на телефоне — логотип, кнопка, меню */
+.sh{position:sticky;top:0;z-index:20;background:rgba(10,18,32,.96);border-bottom:1px solid var(--line)}
+.sh .wrap{display:flex;align-items:center;gap:14px;height:64px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font:900 21px/1 var(--f);letter-spacing:.2em}
+.mark{width:34px;height:34px;flex:none}
+.seg{display:flex;padding:3px;border-radius:999px;background:var(--surface-2)}
+.seg a{padding:8px 14px;border-radius:999px;font:700 14px/1 var(--f);text-decoration:none;color:var(--ink-2)}
+.seg a.on{background:var(--ink);color:var(--bg)}
+.nav{display:flex;gap:4px;margin-left:8px}
+.nav a{padding:10px;font:600 15px/1 var(--f);text-decoration:none;color:var(--ink-2);position:relative}
+.nav a.on{color:var(--ink)}.nav a.on::after{content:"";position:absolute;left:10px;right:10px;bottom:2px;height:3px;border-radius:2px;background:var(--hk)}
+.sp{margin-left:auto}
+.ib{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:0;background:var(--surface-2);color:var(--ink);cursor:pointer}
+.ib svg{width:18px;height:18px}
+@media (max-width:980px){.nav{display:none}}
+@media (max-width:560px){.seg,.sh .ib.s{display:none}.logo span{display:none}}
+
+/* кнопки и чипы */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:48px;padding:0 22px;border-radius:999px;border:0;cursor:pointer;
+  font:800 16px/1 var(--f);text-decoration:none;transition:background .15s ease}
+.btn svg{width:18px;height:18px}
+.btn-tg{background:var(--signal);color:var(--signal-ink)}
+.btn-tg:hover{background:#ffd453}
+.btn-2{background:var(--surface-2);color:var(--ink);border:1px solid var(--line-2)}
+.btn-2:hover{border-color:var(--ink-3)}
+.btn-s{min-height:38px;padding:0 14px;font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line-2);background:transparent;color:var(--ink-2);font:700 14px/1 var(--f);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip i{font-style:normal;font-weight:600;opacity:.6}
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:6px;font:800 11px/1 var(--f);letter-spacing:.08em;text-transform:uppercase;background:var(--surface-2);color:var(--ink-2)}
+.tag.hk{color:var(--hk)}.tag.fb{color:var(--fb)}
+
+/* разделы образца */
+.blk{padding:clamp(40px,6vw,80px) 0;border-top:1px solid var(--line)}
+.blk-h{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:clamp(18px,2.6vw,30px)}
+.blk-h .small{max-width:52ch}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px}
+
+/* первый экран образца */
+.hero{padding:clamp(36px,6vw,84px) 0 clamp(30px,5vw,64px);background:
+  radial-gradient(60% 80% at 85% 0%,rgba(76,194,255,.14),transparent 60%),radial-gradient(50% 70% at 100% 100%,rgba(61,220,151,.10),transparent 60%)}
+.hero .wrap{display:grid;gap:22px}
+.hero .act{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+
+/* палитра */
+.sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.sw div{border-radius:var(--r-s);border:1px solid var(--line);overflow:hidden;background:var(--surface)}
+.sw i{display:block;height:64px}
+.sw b{display:block;padding:10px 12px 2px;font:800 14px/1.2 var(--f)}
+.sw span{display:block;padding:0 12px 12px;font:500 12px/1.35 var(--f);color:var(--ink-3)}
+.type{display:grid;gap:18px}
+.type>div{display:grid;grid-template-columns:120px 1fr;gap:16px;align-items:baseline;padding-bottom:16px;border-bottom:1px dashed var(--line)}
+@media (max-width:560px){.type>div{grid-template-columns:1fr;gap:6px}}
+
+/* строка матча (компактная — для лент, клуба, «Прогноза на сегодня») */
+.rows{list-style:none;margin:0;padding:0;border-radius:var(--r);overflow:hidden;border:1px solid var(--line)}
+.mrow{display:grid;grid-template-columns:64px minmax(0,1.3fr) minmax(0,1fr) auto;align-items:center;gap:16px;padding:14px 18px;background:var(--surface);border-top:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.rows li:first-child .mrow{border-top:0}
+.mrow:hover{background:var(--surface-2)}
+.mrow.hk{box-shadow:inset 3px 0 0 var(--hk)}.mrow.fb{box-shadow:inset 3px 0 0 var(--fb)}
+.mrow time{font:900 20px/1 var(--f)}.mrow time small{display:block;margin-top:4px;font:700 10px/1 var(--f);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.mrow .tms{display:grid;gap:6px;min-width:0}
+.mrow .tm{display:flex;align-items:center;gap:9px;min-width:0;font:700 16px/1.15 var(--f)}
+.mrow .tm img{width:24px;height:24px;object-fit:contain;flex:none}
+.mrow .tm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pbar{display:grid;gap:5px;min-width:0}
+.pbar .b{display:flex;gap:2px;height:8px}
+.pbar .b i{border-radius:3px;background:var(--line-2)}
+.mrow.hk .pbar .b i.on{background:var(--hk)}.mrow.fb .pbar .b i.on{background:var(--fb)}
+.pbar .t{display:flex;justify-content:space-between;font:700 12px/1 var(--f);color:var(--ink-3)}
+.pbar .t b{color:var(--ink)}
+.kq{display:flex;gap:6px}
+.kq i{display:grid;justify-items:center;gap:3px;min-width:50px;padding:6px 8px;border-radius:9px;background:var(--surface-2);font:800 16px/1 var(--f);font-style:normal}
+.kq i small{font:700 10px/1 var(--f);color:var(--ink-3)}
+.kq i.fav{box-shadow:inset 0 0 0 2px var(--signal)}
+@media (max-width:760px){
+  .mrow{grid-template-columns:52px minmax(0,1fr) auto;row-gap:10px;padding:12px 14px}
+  .mrow .pbar{grid-column:2/-1;grid-row:2}
+  .mrow .kq i{min-width:42px;padding:5px 6px;font-size:14px}
+}
+@media (max-width:420px){.mrow .kq{display:none}}
+
+/* показатели */
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.st{padding:18px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line)}
+.st .l{font:600 13px/1.3 var(--f);color:var(--ink-3)}
+.st .v{display:block;margin:8px 0 10px;font:900 40px/1 var(--f);letter-spacing:-.02em}
+.st .v small{font-size:.45em;font-weight:800;color:var(--ink-3);margin-left:2px}
+.st .bar{height:6px;border-radius:3px;background:var(--line-2);overflow:hidden}.st .bar i{display:block;height:100%;background:var(--hk)}
+.st .s{margin-top:8px;font:500 12px/1.3 var(--f);color:var(--ink-3)}
+
+/* таблица */
+.tbl{width:100%;border-collapse:collapse;border-radius:var(--r);overflow:hidden;background:var(--surface);border:1px solid var(--line)}
+.tbl th{padding:10px 12px;font:700 12px/1 var(--f);color:var(--ink-3);text-align:left;border-bottom:1px solid var(--line)}
+.tbl td{padding:11px 12px;font:600 15px/1.2 var(--f);border-bottom:1px solid var(--line)}
+.tbl tr:last-child td{border-bottom:0}
+.tbl .r{text-align:right}.tbl .p{font-weight:900}
+.tbl .cl{display:flex;align-items:center;gap:10px}.tbl .cl img{width:24px;height:24px;object-fit:contain}
+.tbl .pl{font-weight:900;color:var(--ink-3);width:36px}
+.tbl tr.top .pl{color:var(--hk)}
+.form{display:flex;gap:4px}
+.form i{display:grid;place-items:center;width:22px;height:22px;border-radius:6px;font:800 11px/1 var(--f);font-style:normal}
+.form .w{background:var(--win);color:#03200f}.form .l{background:var(--loss);color:#2b0409}
+@media (max-width:560px){.tbl .hs{display:none}}
+
+/* карточки лиг */
+.lgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.lg{position:relative;display:grid;gap:10px;justify-items:start;padding:16px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line);text-decoration:none;overflow:hidden}
+.lg.hk{background:linear-gradient(160deg,#16253d,#111c2f)}.lg.fb{background:linear-gradient(160deg,#13281f,#102019)}
+.lg::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:var(--sp)}
+.lg.hk{--sp:var(--hk)}.lg.fb{--sp:var(--fb)}
+.lg img{width:44px;height:44px;object-fit:contain}
+.lg b{font:900 18px/1 var(--f);text-transform:uppercase}
+.lg span{font:600 12px/1.2 var(--f);color:var(--ink-3)}
+
+/* пустое состояние — честно и с выходом, без «Скоро» */
+.empty{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:20px 22px;border-radius:var(--r);border:1px dashed var(--line-2);background:transparent}
+.empty p{margin:0;max-width:52ch;color:var(--ink-2)}
+
+/* подвал */
+.ft{padding:36px 0 48px;border-top:1px solid var(--line);color:var(--ink-3)}
+.ft .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center}
+.ft p{margin:0;font:500 13px/1.5 var(--f)}
+
+/* «Ближайшие матчи» из новой главной — шрифт образца */
+#today .mt1 .tm b,#today .mt1 .mid time,#today .mt1 .bar b{font-family:var(--f)}
+#today .mt1 dd,#today .mt1 dt,#today .mt1 .meta,#today .mt1 .go{font-family:var(--f)}
+@media (min-width:761px){.mrow>.kq,.mrow>div:last-child{min-width:172px;justify-content:flex-end}}
