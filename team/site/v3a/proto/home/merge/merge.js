@@ -20,6 +20,11 @@ if(!cards.length)return;
   el.querySelector('[data-cnt]').textContent=n?`${n} ${H.pl(n,'матч','матча','матчей')} ${td.length?'сегодня':'впереди'}`:'сегодня матчей нет';
   const lam=use.map(m=>{const md=m.md||H.J.M[m.key];return md&&md.lam?md.lam[0]+md.lam[1]:null}).filter(v=>v!=null);
   if(lam.length)el.querySelector('[data-stat]').textContent='ср. тотал по модели '+fmt(lam.reduce((a,b)=>a+b,0)/lam.length);
+  /* ближайший матч раздела на карточке (аудит 08.11: первый экран отвечает «что сегодня») */
+  const up=all.filter(m=>m.hockey===hk&&Date.parse(m.t.replace(' ','T')+':00+03:00')>Date.now()).sort((a,b)=>a.t<b.t?-1:1)[0],nx=el.querySelector('[data-next]');
+  if(up&&nx){const ms=Date.parse(up.t.replace(' ','T')+':00+03:00')-Date.now(),h=Math.floor(ms/36e5),mi=Math.floor(ms%36e5/6e4);
+   const when=h>=24?`${up.day}, ${up.hm}`:h?`через ${h} ч ${mi} мин`:`через ${mi} мин`;
+   nx.innerHTML=`<b>${H.esc(up.hn)} — ${H.esc(up.an)}</b><span>${when}${up.pr?` · ${['П1','Х','П2'][up.bi]} ${H.pct(up.best)} %`:''}</span>`}
  });
 })();
 

@@ -40,13 +40,15 @@ function more(m){
  return `<div class="more"><dl>${rows.map(r=>`<div><dt>${e(r[0])}</dt><dd>${r[1]}</dd></div>`).join('')}</dl>
   <p class="meta">${e(left(m))}${ar?' · '+e(ar):''}</p><span class="go">Разбор матча →</span></div>`;
 }
+/* живой счёт (assets/live.js): атрибуты как в seo/build_seo.py lv_attrs */
+const lv=m=>`data-lv data-lv-lg="${e(m.lg)}" data-lv-t="${e(m.t.replace(' ','T'))}:00+03:00" data-lv-h="${e(m.h)}" data-lv-a="${e(m.a)}" data-lv-hn="${e(m.hn)}" data-lv-an="${e(m.an)}"`;
 function card1(m){
  const pr=m.pr;
  const bar=pr?`<div class="bar">${pr.map((p,i)=>p==null?'':`<i class="${i===m.bi?'on':''}" style="flex:${Math.max(p,.06)}"><b>${pc(p)}%</b><small>${OUT[i]}${kef(m,i)?' · '+kef(m,i):''}</small></i>`).join('')}</div>`:'<div class="bar none">расчёт скоро</div>';
  return `<li class="${m.hockey?'hk':'fb'}"><a href="${m.page}" data-fb="${m.href}"><div class="main">
    <div class="fo">
     <span class="tm">${crest(m.hc,'cr')}<b>${e(m.hn)}</b></span>
-    <span class="mid"><time>${when(m)}</time><em>${e(m.lgn)}</em></span>
+    <span class="mid" ${lv(m)}><time>${when(m)}</time><em>${e(m.lgn)}</em></span>
     <span class="tm aw">${crest(m.ac,'cr')}<b>${e(m.an)}</b></span>
    </div>${bar}</div>${more(m)}</a></li>`;
 }
@@ -98,6 +100,7 @@ box.innerHTML=[v1,v2,v3][V-1]();
 const seen={};function fixLinks(){box.querySelectorAll('a[data-fb]').forEach(a=>{const u=a.getAttribute('href');
  (seen[u]||(seen[u]=fetch(u,{method:'HEAD'}).then(r=>r.ok).catch(()=>false))).then(ok=>{if(!ok)a.setAttribute('href',a.dataset.fb)})})}
 fixLinks();
+document.dispatchEvent(new Event('jv:rows'));
 if(V===1){wire1();let n0=box.querySelector('.mt1').dataset.n;
- addEventListener('resize',()=>{const n=innerWidth>=981?3:innerWidth>=640?2:1;if(String(n)!==n0){n0=String(n);box.innerHTML=v1();wire1();fixLinks()}})}
+ addEventListener('resize',()=>{const n=innerWidth>=981?3:innerWidth>=640?2:1;if(String(n)!==n0){n0=String(n);box.innerHTML=v1();wire1();fixLinks();document.dispatchEvent(new Event('jv:rows'))}})}
 })();

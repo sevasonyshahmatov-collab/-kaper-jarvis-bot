@@ -120,3 +120,7 @@
   .mt3>li>time{font-size:28px}
   .mt3 .ch{flex-basis:100%}
 }
+/* живой счёт под временем, в столбик — не распирает карточку */
+.mt1 .mid .lv{display:grid;justify-items:center;gap:3px;margin:2px 0 0;max-width:120px}
+.mt1 .mid .lv .lv-st{font-size:11px;line-height:1.2;white-space:normal;text-align:center}
+.mt1 .mid .lv:not([hidden])~em,.mt1 .mid:has(.lv:not([hidden])) em{display:none}
