@@ -1,0 +1,20 @@
+{
+ "day": "2026-11-08",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-08/site_noexpl_car1.jpg",
+    "team/out/2026-11-08/site_noexpl_car2.jpg",
+    "team/out/2026-11-08/site_noexpl_hockey.jpg"
+   ],
+   "text": "Сайт: без пояснений под блоками"
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Пояснения под блоками убраны по всему сайту (хоккей, футбол, клубы, лиги, страницы матчей). Оставил только короткие строки с цифрами, а также Модель, FAQ, лицензии фото и 18+.\nПроверка: ошибок нет, на хоккее было 13 пояснений → 4, на клубе 12 → 1.\n\nХоккей: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/beb056b26c6b0f9a403e10e8ceb481dbdf89450c/team/site/v3a/hockey/index.html\nКаролина: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/beb056b26c6b0f9a403e10e8ceb481dbdf89450c/team/site/v3a/team/index.html?id=nhl_car\n\nВопрос: подзаголовок первого экрана (под большим заголовком) и блок «Как считает модель» не трогали — убрать и их?"
+  }
+ ]
+}
