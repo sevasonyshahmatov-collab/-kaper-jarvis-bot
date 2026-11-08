@@ -1,0 +1,21 @@
+{
+ "day": "2026-11-08",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-08/col_hockey_index_html.jpg",
+    "team/out/2026-11-08/col_team_index_html_id_nhl_car.jpg",
+    "team/out/2026-11-08/col_hockey_players_html.jpg",
+    "team/out/2026-11-08/col_football_index_html.jpg"
+   ],
+   "text": "Цвета: вариант 1 (слева) и 2 (справа) — хоккей, клуб, игроки, футбол"
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Два варианта цветов на текущем сайте (вёрстка та же, меняются только цвета). На снимках слева 1, справа 2.\n\n1 — Текущий: тёмный первый экран, дальше один светлый фон до конца страницы (раньше он менялся: арена → лёд → бумага).\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/5c93c06799a6020332930ac78d501a8d592a4f75/team/site/v3a/hockey/index.html?col=1\n\n2 — Как новая главная: весь сайт тёмно-синий, клубы и игроки тоже на тёмном, цвета клубов сохраняются.\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/5c93c06799a6020332930ac78d501a8d592a4f75/team/site/v3a/hockey/index.html?col=2\n\nВнизу страницы переключатель «1 · Текущий / 2 · Как главная / Было» — выбор сохраняется при переходах, можно пройтись по всему сайту.\n\nКакой оставляем — 1 или 2?"
+  }
+ ]
+}
