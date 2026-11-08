@@ -950,3 +950,5 @@ body{font-variant-numeric:tabular-nums lining-nums}
 .x-h2h .h2l .sc{position:relative;display:grid;grid-template-columns:1fr auto 1fr;width:76px;justify-self:center;text-align:center}
 .x-h2h .h2l .sc b:first-child{text-align:right}.x-h2h .h2l .sc b:last-of-type{text-align:left}.x-h2h .h2l .sc i{font-style:normal}
 .x-h2h .h2l .sc small{position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:2px}
+/* строка над табло не шире карточки (аудит 08.11: ЛЧ 1024 → 1064 px) */
+.board-top{flex-wrap:wrap;row-gap:6px}.board-top .bwhen{flex-wrap:wrap;white-space:normal;min-width:0}
