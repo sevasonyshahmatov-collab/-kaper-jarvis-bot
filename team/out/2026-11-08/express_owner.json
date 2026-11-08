@@ -1,0 +1,19 @@
+{
+ "day": "2026-11-08",
+ "make": [
+  "team/picks/express_render.py team/out/2026-11-08/express_owner_coupons.json out/express/2026-11-08-owner"
+ ],
+ "messages": [
+  {
+   "to": "owner",
+   "type": "animation",
+   "html": true,
+   "files": [
+    "out/express/2026-11-08-owner/e1_anim.mp4"
+   ],
+   "text": "КХЛ · 8 ноября · экспресс\n\n1. <b>Трактор — Автомобилист</b>, 14:00 МСК\nтотал матча меньше 6,5 в основное время · 1,25\n2. <b>Нефтехимик — Локомотив</b>, 14:00 МСК\nЛокомотив не проиграет в основное время и тотал матча больше 3,5 · 1,64\n\nОбщий кэф: <b>2,05</b>\n\n#кхл #экспресс #jarvibet",
+   "buttons": "post",
+   "pid": "0811-e4"
+  }
+ ]
+}
