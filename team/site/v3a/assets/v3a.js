@@ -202,3 +202,17 @@ document.addEventListener('DOMContentLoaded',()=>{keepTheme();arena();chrome();w
   const k=document.body.dataset.field;if(k&&!document.documentElement.dataset.hbg)JV.field(k);
 });
 })();
+
+/* Крупные заголовки помещаются в строку без переноса внутри слова (аудит 08.11: «ЛИГА ЧЕМПИОНОЕ», «КАРО-ЛИНА»):
+   шрифт уменьшается шагами, пока самое длинное слово не влезет. */
+(function(){
+ const SEL='.tmname h1,.hero h1';
+ function over(h){if(h.scrollWidth>h.clientWidth+1)return true;
+  for(const s of h.querySelectorAll('.ln'))if(s.scrollWidth>s.clientWidth+1)return true;return false}
+ function fit(){document.querySelectorAll(SEL).forEach(h=>{h.style.fontSize='';
+  let fs=parseFloat(getComputedStyle(h).fontSize),n=0;while(over(h)&&fs>22&&n<30){fs*=.95;h.style.fontSize=fs+'px';n++}})}
+ const run=()=>{fit();setTimeout(fit,400);setTimeout(fit,1500)};
+ if(document.readyState!=='loading')run();else document.addEventListener('DOMContentLoaded',run);
+ addEventListener('load',run);let t;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(fit,150)});
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
+})();
