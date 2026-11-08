@@ -1,0 +1,16 @@
+/* Шаблон «Главная + карточки»: первый экран главной (текст слева), справа две голо-карточки разделов из proto/home/cards.
+   Без наклона и блика за курсором (правило владельца 07.11): карточки сами медленно покачиваются. */
+.hm-grid{align-items:center}
+.mg-right{display:flex;flex-direction:column;align-items:center;min-width:0}
+.mg-deck{--cw:min(300px,21vw);margin:0;padding:12px 0 0;gap:clamp(14px,2vw,28px)}
+.mg-deck .card{cursor:pointer}
+.mg-credit{margin:14px 0 0;font:400 12px/1.4 var(--text);color:var(--ink-3);opacity:.75;text-align:center}
+/* ближайшие матчи — сразу под первым экраном, на всю ширину, в две колонки */
+.mg-today{padding:clamp(18px,3vw,40px) 0 clamp(8px,2vw,24px)}
+.mg-today .hm-today{max-width:none}
+@media (min-width:981px){.mg-today .hm-list{display:grid;grid-template-columns:1fr 1fr;column-gap:clamp(20px,3vw,44px)}}
+@media (max-width:980px){
+  .mg-right{margin-top:8px}
+  .mg-deck{--cw:min(300px,40vw)}
+}
+@media (max-width:560px){.mg-deck{--cw:44vw;gap:10px}}

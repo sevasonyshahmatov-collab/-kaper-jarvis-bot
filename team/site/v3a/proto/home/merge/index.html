@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ru" data-theme="a">
+<head>
+<meta charset="utf-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JARVIS: главная + карточки</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0a1220">
+<script>/* вариант первого экрана: ?v=1 (ночная арена, по умолчанию) или ?v=2 (газетный, светлый); палитра: ?theme=a|b|c */
+(()=>{const q=new URLSearchParams(location.search),v=q.get('v')==='2'?2:1,t=q.get('theme')||(v===2?'c':''),d=document.documentElement;d.dataset.v=v;if(/^[abc]$/.test(t||''))d.dataset.theme=t;
+document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84',c:'#e3eff9'}[d.dataset.theme]||'#0a1220'})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="stylesheet" href="../../../assets/v3a.css">
+<link rel="stylesheet" href="../../../assets/nav.css">
+<link rel="stylesheet" href="../../../assets/home.css">
+<link rel="stylesheet" href="../../../assets/obj.css">
+<link rel="stylesheet" href="../cards/cards.css">
+<link rel="stylesheet" href="merge.css">
+<style>.soon{background:var(--card);border:1px solid var(--rule-2);border-radius:14px;padding:clamp(20px,3vw,32px);display:grid;gap:12px;justify-items:start;max-width:640px}.soon b{font:800 30px/1 var(--display);color:var(--signal)}[data-theme=c] .soon b{color:var(--ink)}.soon p{margin:0;color:var(--ink-2)}</style>
+<link rel="icon" href="../../../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../../favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+<link rel="manifest" href="../../../site.webmanifest">
+<script src="../../../assets/efir/efir-loader.js"></script>
+<script src="../../../assets/palettes.js"></script>
+<!--seo:begin-->
+<meta name="description" content="Прогнозы на КХЛ, НХЛ и топ-лиги Европы по собственной модели: вероятности исходов, ожидаемые голы, таблицы и клубы. Обновляется дважды в день.">
+<meta property="og:url" content="https://jarvibet.example/index.html">
+<meta property="og:type" content="website"><meta property="og:site_name" content="JARVIS"><meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="JARVIS: прогнозы на хоккей и футбол по собственной модели"><meta property="og:description" content="Прогнозы на КХЛ, НХЛ и топ-лиги Европы по собственной модели: вероятности исходов, ожидаемые голы, таблицы и клубы. Обновляется дважды в день.">
+<meta property="og:image" content="https://jarvibet.example/assets/og/og-home.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="JARVIS: прогнозы на хоккей и футбол по собственной модели"><meta name="twitter:description" content="Прогнозы на КХЛ, НХЛ и топ-лиги Европы по собственной модели: вероятности исходов, ожидаемые голы, таблицы и клубы. Обновляется дважды в день."><meta name="twitter:image" content="https://jarvibet.example/assets/og/og-home.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://jarvibet.example/#org","name":"JARVIS","url":"https://jarvibet.example/index.html","logo":"https://jarvibet.example/icon-512.png","sameAs":["https://t.me/jarvibet"]},{"@type":"WebSite","@id":"https://jarvibet.example/#site","name":"JARVIS","url":"https://jarvibet.example/index.html","inLanguage":"ru","publisher":{"@id":"https://jarvibet.example/#org"},"potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://jarvibet.example/index.html?q={search_term_string}"},"query-input":"required name=search_term_string"}}]}</script>
+<!--seo:end-->
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="../../../index.html" aria-label="JARVIS, главная">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="../../../hockey/index.html">Хоккей</a>
+      <a href="../../../football/index.html">Футбол</a>
+    </nav>
+    <nav class="nav" aria-label="Разделы"><a href="#today">Сегодня</a><a href="#model">Модель</a><a href="#honest">Итоги</a><a href="#faq">Вопросы</a></nav>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Получать прогнозы — бесплатно</span></a>
+  </div>
+</header>
+
+<main id="main">
+<section class="hm" aria-labelledby="hm-h">
+  <div class="hm-bg" aria-hidden="true"><i class="hb hb1"></i><i class="hb hb2"></i><i class="hb hb3"></i><i class="hg hg1"></i><i class="hg hg2"></i><i class="hd"></i><i class="hd hd2"></i></div>
+  <div class="wrap hm-grid">
+    <div class="hm-lead">
+      <p class="hm-date"><span id="hm-date">Сегодня</span></p>
+      <h1 id="hm-h">Прогнозы на хоккей и футбол — по расчёту, а не наугад</h1>
+      <p class="hm-sub">На каждый матч КХЛ, НХЛ и топ-лиг Европы: вероятность нашей модели рядом с реальной линией. Для тех, кто смотрит матч дня и хочет знать шансы заранее.</p>
+      <ul class="hm-proof" aria-label="Почему верить"><li>Собственная модель, не чужие скриншоты</li><li>Линия с источником указана</li><li>Без VIP и промокодов</li></ul>
+      <div class="hm-act">
+        <a class="btn btn-tg hm-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>Получать прогнозы — бесплатно</a>
+        <p class="hm-micro">Бесплатно. Прогнозы выходят до начала матча. <a href="#model">Как считает модель</a></p>
+      </div>
+    </div>
+    <div class="mg-right">
+<div class="cd-deck mg-deck" aria-label="Разделы">
+<a class="card hk" href="../../../hockey/index.html" data-k="hk" aria-label="Хоккей: открыть раздел">
+ <div class="shd"></div>
+ <div class="tilt"><div class="flip">
+  <div class="face front">
+   <div class="art"><svg class="tex" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="ig" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1d4f86"/><stop offset=".55" stop-color="#0c2a52"/><stop offset="1" stop-color="#071426"/></linearGradient></defs><rect width="100" height="140" fill="url(#ig)"/><g class="l" fill="none" stroke="#bfe4ff" stroke-linecap="round"><path d="M-5 40C25 28 60 52 105 30" stroke-opacity=".16" stroke-width=".5"/><path d="M-5 70C30 55 55 85 105 60" stroke-opacity=".12" stroke-width=".4"/><path d="M-5 100C20 84 70 112 105 92" stroke-opacity=".14" stroke-width=".5"/><path d="M10 -5C30 40 15 90 40 145" stroke-opacity=".1" stroke-width=".4"/><path d="M70 -5C55 50 90 80 75 145" stroke-opacity=".1" stroke-width=".5"/><path d="M-5 20C40 15 70 30 105 14" stroke-opacity=".1" stroke-width=".3"/></g><circle cx="50" cy="52" r="26" fill="none" stroke="#e0313f" stroke-opacity=".28" stroke-width=".8"/><path d="M0 74H100" stroke="#4cc2ff" stroke-opacity=".3" stroke-width="1.2"/></svg><i class="holo"></i><i class="holo2"></i></div>
+   <img class="pl" src="../cards/hockey.webp" alt="" draggable="false">
+   <i class="plsh"></i>
+   <div class="frame"></div>
+   <div class="top"><span>№ 01</span><span>КХЛ · НХЛ</span></div>
+   <div class="txt">
+    <h2>Хоккей</h2>
+    <p class="cnt" data-cnt>матчи загружаются</p>
+    <p class="stat" data-stat></p>
+    <span class="open">Открыть раздел <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M3 10h13M11 4l6 6-6 6"/></svg></span>
+   </div>
+  </div>
+  <div class="face back"><div class="bk"><b>JAR<i>V</i>IS</b><span>Хоккей</span><em>Открываем раздел…</em></div></div>
+ </div></div>
+</a>
+<a class="card fb" href="../../../football/index.html" data-k="fb" aria-label="Футбол: открыть раздел">
+ <div class="shd"></div>
+ <div class="tilt"><div class="flip">
+  <div class="face front">
+   <div class="art"><svg class="tex" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f5a3a"/><stop offset="1" stop-color="#06281a"/></linearGradient></defs><rect width="100" height="140" fill="url(#gg)"/><g fill="#fff" fill-opacity=".055"><rect y="0" width="100" height="14"/><rect y="28" width="100" height="14"/><rect y="56" width="100" height="14"/><rect y="84" width="100" height="14"/><rect y="112" width="100" height="14"/></g><g fill="none" stroke="#d9ffe9" stroke-opacity=".22" stroke-width=".7"><circle cx="50" cy="62" r="20"/><path d="M0 62H100"/><rect x="22" y="-2" width="56" height="26"/><rect x="22" y="116" width="56" height="26"/></g></svg><i class="holo"></i><i class="holo2"></i></div>
+   <img class="pl" src="../cards/football.webp" alt="" draggable="false">
+   <i class="plsh"></i>
+   <div class="frame"></div>
+   <div class="top"><span>№ 02</span><span>ТОП-ЛИГИ</span></div>
+   <div class="txt">
+    <h2>Футбол</h2>
+    <p class="cnt" data-cnt>матчи загружаются</p>
+    <p class="stat" data-stat></p>
+    <span class="open">Открыть раздел <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M3 10h13M11 4l6 6-6 6"/></svg></span>
+   </div>
+  </div>
+  <div class="face back"><div class="bk"><b>JAR<i>V</i>IS</b><span>Футбол</span><em>Открываем раздел…</em></div></div>
+ </div></div>
+</a></div>
+     <p class="mg-credit">Фото: Kylian Mbappé — Bryan Berlin, CC BY-SA 4.0, Wikimedia Commons</p>
+    </div>
+  </div>
+</section>
+
+<section class="mg-today" aria-label="Ближайшие матчи">
+  <div class="wrap">
+    <aside class="hm-today" id="today" aria-labelledby="hm-th">
+      <div class="hm-th"><h2 id="hm-th">Ближайшие матчи</h2><span class="hm-upd" id="hm-upd"></span></div>
+      <ul class="hm-list" id="hm-list" aria-live="polite"><li class="hm-soon">Загружаем матчи…</li></ul>
+      <p class="hm-note">Это аналитика, не гарантия.</p>
+    </aside>
+  </div>
+</section>
+
+<section class="sec obj" id="doubts">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Частые сомнения</h2></div>
+    <div class="obj-grid" data-rv>
+      <details open><summary>Это бесплатно?</summary><p>Да. Канал @jarvibet бесплатный, прогнозы выходят до начала матча. Без VIP, без предоплаты, без «верняков».</p></details>
+      <details><summary>Почему верить?</summary><p>Верить на слово не нужно: собственная модель, а не чужие скриншоты. У каждого прогноза вероятность модели и линия рынка, время публикации указано. Блок «Итоги» на сайте скоро. <a href="#model">Как считает модель</a></p></details>
+      <details><summary>Чем вы отличаетесь?</summary><p>Мы считаем, а не угадываем: объясняем, откуда цифра, а не просто «ставь». На каждый матч вероятность модели и реальная линия. Без промокодов и рекламы букмекеров.</p></details>
+      <details><summary>А если не сработает?</summary><p>Гарантий нет: прогноз — оценка вероятности, и у любой модели бывают плохие серии. Поэтому цифры и линия всегда рядом, а решать вам.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="model">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Как думает модель</h2></div>
+    <ol class="steps" data-rv>
+      <li><h3>Форма</h3><p>Последние игры, сила атаки и обороны, место в таблице.</p></li>
+      <li><h3>Линия</h3><p>Кэфы рынка сравниваются с вероятностью модели.</p></li>
+      <li><h3>Выбор</h3><p>Самое вероятное событие в коридоре кэфов 1,6–2,3. В футболе — от 60 % по модели.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="sec" id="honest">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2>Честные итоги</h2></div>
+    <div class="soon" data-rv><b>Скоро</b><p>Сводку по месяцам и таблицу всех прогнозов выложим здесь, когда накопится проверяемая история. Пока итоги дня — в Telegram.</p><a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a></div>
+  </div>
+</section>
+
+<section class="sub" id="subscribe">
+  <div class="wrap" data-rv>
+    <div><h2>Все прогнозы&nbsp;— в Telegram</h2>
+      <div class="cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a></div></div>
+    <ul>
+      <li><b>Посты на каждый матч</b><span>С кэфом и вероятностью по модели.</span></li>
+      <li><b>Ролики</b><span>Матчи дня и тренды коротко.</span></li>
+      <li><b>Итоги дня</b><span>Все прогнозы подряд. Подписка бесплатная.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="sec" id="faq">
+  <div class="wrap faq">
+    <div data-rv><h2>Вопросы</h2></div>
+    <div data-rv>
+      <details><summary>Где посмотреть итоги?</summary><p>Каждое утро в канале и здесь, в разделе «Итоги»: все прогнозы подряд, с номером поста и счётом матча.</p></details>
+      <details><summary>Какие лиги?</summary><p>Хоккей: КХЛ и НХЛ. Футбол: АПЛ, Ла Лига, Серия А, Бундеслига, Лига 1, Португалия и Лига чемпионов.</p></details>
+      <details><summary>Что такое «ВЫБОР»?</summary><p>Ставка, у которой модель даёт от 60 % при кэфе от 1,6. Остальные матчи — разбор без выбора.</p></details>
+      <details><summary>Почему кэф 1,6–2,3?</summary><p>Ниже — мало смысла рисковать, выше — больше случайности, чем расчёта.</p></details>
+      <p class="legal">18+. Аналитика, а не призыв делать ставки. Выигрыш не гарантирован.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Получать прогнозы — бесплатно</span><span aria-hidden="true">›</span></a>
+
+<script src="../../../assets/nav.js"></script>
+<script src="../../../assets/footer.js"></script>
+<script src="../../../data/today.js"></script>
+<script src="../../../data/lines.js"></script>
+<script src="../../../data/model.js"></script>
+<script src="../../../assets/lines.js"></script>
+<script src="../../../assets/v3a.js"></script>
+<script src="home.js"></script>
+<script src="../common.js"></script>
+<script src="../cards/vendor/gsap.min.js"></script>
+<script src="merge.js"></script>
+</body>
+</html>
