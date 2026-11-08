@@ -12,12 +12,19 @@
 #mt time small{display:block;margin-top:3px;font:600 11px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
 #mt .hk{--sp:var(--hk)}#mt .fb{--sp:var(--fb)}
 
-/* 1 — лицом к лицу */
-.mt1{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,380px),1fr));gap:14px}
-.mt1 a{display:block;height:100%;padding:18px 18px 16px;border-radius:16px;background:var(--card);border:1px solid var(--rule-2);border-top:3px solid var(--sp)}
+/* 1 — лицом к лицу; наведение — матч шире, соседи по ряду уже, справа подробности */
+.mt1{display:grid;gap:14px}
+.mt1 .row{list-style:none;margin:0;padding:0;display:flex;gap:14px}
+.mt1 li.probe,.mt1 li.probe *{transition:none!important}
+.mt1 li{flex:1 1 0;min-width:0;transition:flex-grow .45s cubic-bezier(.2,.7,.2,1),opacity .3s ease}
+.mt1 .row.act li{flex-grow:.72;opacity:.55}
+.mt1 .row.act li.on{flex-grow:2.1;opacity:1}
+.mt1 a{display:flex;height:100%;min-height:var(--mh,0px);border-radius:16px;background:var(--card);border:1px solid var(--rule-2);border-top:3px solid var(--sp);overflow:hidden}
+.mt1 li.on a{border-color:var(--sp)}
+.mt1 .main{flex:1 1 auto;min-width:0;padding:18px 18px 16px;display:flex;flex-direction:column;justify-content:center}
 .mt1 .fo{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:8px}
 .mt1 .tm{display:grid;justify-items:center;gap:8px;text-align:center;min-width:0}
-#mt .mt1 .tm img{width:56px;height:56px}
+#mt .mt1 .tm img{width:56px;height:56px;transition:width .35s,height .35s}
 .mt1 .tm b{font:700 15px/1.15 var(--display);hyphens:auto;overflow-wrap:normal;max-width:100%}
 .mt1 .mid{display:grid;justify-items:center;gap:6px;padding-top:8px}
 .mt1 .mid time{font:900 28px/1 var(--display);text-align:center}
@@ -30,6 +37,31 @@
 .mt1 .bar i.on b{color:var(--ink)}
 .mt1 .bar small{font:600 11px/1 var(--display);color:var(--ink-3);white-space:nowrap}
 .mt1 .bar.none{display:block;font:500 13px/1 var(--display);color:var(--ink-3)}
+/* сузившийся сосед: без имён и подписей под полосой */
+.mt1 .row.act li:not(.on) .tm b,.mt1 .row.act li:not(.on) .bar small,.mt1 .row.act li:not(.on) .mid em{display:none}
+.mt1 .row.act li:not(.on) .tm img{width:40px;height:40px}
+.mt1 .row.act li:not(.on) .mid time{font-size:22px}
+/* подробности */
+.mt1 .more{flex:0 0 0;min-width:0;max-height:0;overflow:hidden;opacity:0;padding:0;display:flex;flex-direction:column;gap:12px;
+  border-left:1px solid transparent;transition:flex-basis .45s cubic-bezier(.2,.7,.2,1),opacity .2s ease,padding .45s}
+.mt1 li.on .more{flex-basis:46%;max-height:none;opacity:1;padding:18px 20px;border-left-color:var(--rule-2);transition:flex-basis .45s cubic-bezier(.2,.7,.2,1),opacity .3s ease .18s,padding .45s}
+.mt1 dl{margin:0;display:grid;gap:10px}
+.mt1 dl div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;white-space:nowrap}
+.mt1 dt{font:500 13px/1.2 var(--display);color:var(--ink-3)}
+.mt1 dd{margin:0;font:800 16px/1 var(--display);color:var(--ink)}
+.mt1 .meta{margin:0;font:500 12px/1.35 var(--display);color:var(--ink-3)}
+.mt1 .go{margin-top:auto;align-self:flex-start;padding:8px 12px;border-radius:999px;background:var(--signal);color:var(--signal-ink);font:800 13px/1 var(--display);white-space:nowrap}
+@media (max-width:639px){
+  .mt1 .row.act li{opacity:1}
+  .mt1 a{flex-direction:column}
+  .mt1 .more{flex:none;max-height:0;padding:0 18px}
+  .mt1 li.on .more{flex:none;max-height:320px;padding:4px 18px 18px;border-left:0;border-top:1px solid var(--rule-2)}
+  .mt1 .row.act li:not(.on) .tm b,.mt1 .row.act li:not(.on) .mid em{display:revert}
+  .mt1 .row.act li:not(.on) .bar small{display:revert}
+  .mt1 .row.act li:not(.on) .tm img{width:56px;height:56px}
+  .mt1 .row.act li:not(.on) .mid time{font-size:28px}
+}
+@media (prefers-reduced-motion:reduce){.mt1 li,.mt1 .more{transition:none}}
 
 /* 2 — билеты */
 .mt2{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:14px}
