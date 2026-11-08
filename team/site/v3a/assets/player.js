@@ -100,7 +100,15 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
 }).catch(()=>err('Игрок не найден или данные ещё не собраны.'));
 
 function nextMatch(P){
- const box=document.getElementById('next'),nx=P.nx;
+ const box=document.getElementById('next');let nx=P.nx;
+ /* матч из данных уже прошёл (данные от утра) — ищем следующий в today.js, иначе «не объявлен» (аудит 08.11) */
+ const past=n=>n&&Date.parse(n.d.slice(0,16).replace(' ','T')+':00+03:00')<Date.now()-3*3600e3;
+ if(past(nx)){
+  const T=((window.JV_TODAY||{}).matches||[]).filter(m=>(m.h===P.t||m.a===P.t)&&Date.parse(m.t.replace(' ','T')+':00+03:00')>Date.now()-3*3600e3).sort((a,b)=>a.t<b.t?-1:1)[0];
+  if(T){nextMatch(Object.assign({},P,{nx:{d:T.t,h:T.h===P.t,o:T.h===P.t?T.a:T.h}}));return}
+  if(!window.JV_TODAY&&!P._lt){const s=document.createElement('script');s.src='../data/today.js';s.onload=s.onerror=()=>nextMatch(Object.assign({},P,{_lt:1}));document.head.appendChild(s);return}
+  nx=null;
+ }
  if(!nx){box.innerHTML='<p class="hint" style="margin:0">Ближайший матч клуба пока не объявлен.</p>';return}
  const d=nx.d,when=`${+d.slice(8,10)} ${MON[+d.slice(5,7)-1]}, ${d.slice(11,16)} МСК`;
  const hs=nx.h?P.t:nx.o,as=nx.h?nx.o:P.t,key=`${LG}|${d.slice(0,10)}|${hs}|${as}`;

@@ -45,7 +45,9 @@ function pcs(p){return p.map(v=>Math.round(v*100)).join(' · ')+' %'}
 function best(m){const A=nm(m.h),B=nm(m.a),c=[{p:m.pr[0],t:`${A} — победа`,s:'П1',k:m.k&&m.k[0]},{p:m.pr[2],t:`${B} — победа`,s:'П2',k:m.k&&m.k[2]},
   {p:m.ov,t:`Тотал больше ${fx(m.ot,1)}`,s:'ТБ',k:m.tt&&m.tt[0]===m.ot?m.tt[1]:null},{p:1-m.ov,t:`Тотал меньше ${fx(m.ot,1)}`,s:'ТМ',k:m.tt&&m.tt[0]===m.ot?m.tt[2]:null}];
  const ck=c.filter(x=>x.k);return (ck.length?ck:c).sort((a,b)=>b.p-a.p)[0]}
-const pool=UP.filter(m=>JV.left(m.t)>0);
+const pool0=UP.filter(m=>JV.left(m.t)>0);
+/* первый экран — матчи ближайших 36 ч, если они есть (аудит 08.11: не «до матча 389 ч») */
+const near=pool0.filter(m=>JV.left(m.t)<=36*3600),pool=near.length?near:pool0;
 const withK=pool.filter(m=>m.k);
 const picks=MODE?pool.slice(0,4).map(m=>({m,b:best(m)})):(withK.length>=3?withK:pool).map(m=>({m,b:best(m)})).sort((a,b)=>b.b.p-a.b.p).slice(0,4).sort((a,b)=>a.m.t<b.m.t?-1:1);
 const mcard=$('mcard'),cdv=$('cdv'),boardEl=$('board'),pager=$('pager');
@@ -61,7 +63,10 @@ cdv.innerHTML=['h','m','s'].map((u,i)=>`<span class="cu" data-u="${u}"><b></b><s
 const cu=[...cdv.querySelectorAll('.cu b')],cdWord=document.createElement('b');cdWord.className='cdw';cdv.appendChild(cdWord);
 function cdSet(sec){const on=sec>0;cdv.classList.toggle('over',!on);
  if(!on){cdWord.textContent=JV.over(sec);return}
- const v=[Math.floor(sec/3600),Math.floor(sec%3600/60),sec%60].map(n=>String(n).padStart(2,'0'));
+ /* больше двух суток — дни, часы, минуты («16 дн 4 ч 10 мин»), а не «389 ч» */
+ const big=sec>=48*3600,lb=cdv.querySelectorAll('.cu small');
+ if(lb.length===3){const L=big?['дн','ч','мин']:['ч','мин','с'];lb.forEach((e,i)=>{if(e.textContent!==L[i])e.textContent=L[i]})}
+ const v=(big?[Math.floor(sec/86400),Math.floor(sec%86400/3600),Math.floor(sec%3600/60)]:[Math.floor(sec/3600),Math.floor(sec%3600/60),sec%60]).map((n,i)=>big&&i===0?String(n):String(n).padStart(2,'0'));
  v.forEach((x,i)=>{const el=cu[i];if(el.textContent===x)return;const first=!el.textContent;el.textContent=x;
   if(!first&&!RM&&el.animate)el.animate([{opacity:0,transform:'translateY(-35%)'},{opacity:1,transform:'none'}],{duration:260,easing:'cubic-bezier(.23,1,.32,1)'})})}
 function swap(p,dir){
