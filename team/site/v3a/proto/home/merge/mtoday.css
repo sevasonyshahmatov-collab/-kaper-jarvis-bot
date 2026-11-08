@@ -21,6 +21,14 @@
 .mt1 .row.act li.on{flex-grow:2.1;opacity:1}
 .mt1 a{display:flex;height:100%;min-height:var(--mh,0px);border-radius:16px;background:var(--card);border:1px solid var(--rule-2);border-top:3px solid var(--sp);overflow:hidden}
 .mt1 li.on a{border-color:var(--sp)}
+/* фон по виду спорта (владелец 08.11): хоккей — лёд с разметкой, футбол — газон полосами; чуть-чуть, чтобы различать */
+.mt1 li.hk a{background:linear-gradient(160deg,#16253d 0%,#111c2f 55%,#0f1a2b 100%)}
+.mt1 li.hk .main{background:
+  radial-gradient(circle at 50% 38%,transparent 0 46px,rgba(76,194,255,.10) 47px 48px,transparent 49px),
+  linear-gradient(90deg,transparent calc(50% - 1px),rgba(76,194,255,.09) calc(50% - 1px) calc(50% + 1px),transparent calc(50% + 1px))}
+.mt1 li.fb a{background:
+  repeating-linear-gradient(90deg,rgba(61,220,151,.045) 0 44px,transparent 44px 88px),
+  linear-gradient(160deg,#13281f 0%,#102019 55%,#0e1c17 100%)}
 .mt1 .main{flex:1 1 auto;min-width:0;padding:18px 18px 16px;display:flex;flex-direction:column;justify-content:center}
 .mt1 .fo{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:8px}
 .mt1 .tm{display:grid;justify-items:center;gap:8px;text-align:center;min-width:0}
