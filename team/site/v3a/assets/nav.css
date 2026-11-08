@@ -114,3 +114,16 @@ html{scroll-padding-top:116px}
   .hd .mbtn{gap:0;padding:0;width:44px;justify-content:center}
   .hd .mbtn .mt{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 }
+
+/* Открытое меню ☰ (аудит 08.11, п.10): вторая строка шапки и нижняя плашка Telegram прячутся, остальная страница затемнена —
+   пункты и кнопка Telegram видны один раз */
+html.menu-open .hd .subbar,html.menu-open .tgbar{display:none}
+html.menu-open body::after{content:"";position:fixed;inset:0;z-index:39;background:rgba(3,8,18,.72)}
+/* Резерв места под табло прогноза дня до загрузки данных (CLS ≈ 0,25 → < 0,1, аудит 08.11 п.10) */
+html[data-sport="hockey"] .mstage{min-height:350px}
+html[data-sport="football"] .mstage{min-height:430px}
+@media (max-width:760px){
+  html[data-sport="hockey"] .mstage{min-height:302px}
+  html[data-sport="football"] .mstage{min-height:402px}
+}
+.cdown{min-height:45px}

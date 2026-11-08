@@ -92,7 +92,7 @@ if(local){
 
 /* меню на телефоне */
 const btn=document.getElementById('mbtn'),pn=document.getElementById('mpanel');
-const setOpen=o=>{pn.hidden=!o;btn.setAttribute('aria-expanded',o?'true':'false');hd.classList.toggle('menu-open',o);btn.querySelector('.mt').textContent=o?'Закрыть':'Меню'};
+const setOpen=o=>{pn.hidden=!o;btn.setAttribute('aria-expanded',o?'true':'false');hd.classList.toggle('menu-open',o);document.documentElement.classList.toggle('menu-open',o);btn.querySelector('.mt').textContent=o?'Закрыть':'Меню'};
 btn.addEventListener('click',e=>{e.stopPropagation();setOpen(pn.hidden)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pn.hidden){setOpen(false);btn.focus()}});
 document.addEventListener('click',e=>{if(!pn.hidden&&!pn.contains(e.target))setOpen(false)});

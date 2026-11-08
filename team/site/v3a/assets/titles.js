@@ -1,5 +1,5 @@
 /* JARVIS v3a — анимация крупных заголовков (31.10): буквы выезжают снизу из-под невидимой черты, по очереди,
-   с лёгкой пружинкой. GSAP 3.13 + SplitText (бесплатны с 2025 г., «GSAP Standard License»), грузятся с jsdelivr.
+   с лёгкой пружинкой. GSAP 3.13 + SplitText (бесплатны с 2025 г., «GSAP Standard License»), лежат у нас, assets/vendor/.
    Первый экран — при загрузке, остальные — когда заголовок появляется в экране, один раз.
    Не загрузился GSAP за 1,2 с — заголовки просто видны (первый экран придерживаем невидимым максимум 1,2 с, без мигания).
    prefers-reduced-motion — без анимации. Скринридер читает заголовок целиком: SplitText (aria:'auto') ставит
@@ -12,7 +12,7 @@ if(matchMedia('(max-width: 620px) and (pointer: coarse)').matches)return;   // �
 const FIRST=[...document.querySelectorAll('.hero h1, .tmname h1')];
 const REST=[...document.querySelectorAll('.sec-head h2, .sub h2, .faq h2')].filter(h=>!FIRST.includes(h));
 if(!FIRST.length&&!REST.length)return;
-const CDN='https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/';
+const CDN=new URL('vendor/',(document.currentScript&&document.currentScript.src)||new URL('assets/titles.js',location.href).href).href;
 const st=document.createElement('style');
 st.textContent=`.tw-hold{visibility:hidden}
 .tw-on .tw .ln>span{transform:none!important;transition:none!important}

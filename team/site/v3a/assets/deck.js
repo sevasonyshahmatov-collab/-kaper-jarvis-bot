@@ -27,7 +27,7 @@ const emUrl=(m,s)=>isH(m)?`assets/em/${encodeURIComponent(s)}.webp`:`assets/fc/$
 const lgIcon=m=>`assets/lg/${encodeURIComponent(m.lg)}.webp`;
 const clubHref=(m,s)=>isH(m)?`team/index.html?id=${encodeURIComponent(s)}`:`football/team.html?id=${encodeURIComponent(s)}`;
 const lgHref=m=>isH(m)?`hockey/league.html?lg=${encodeURIComponent(m.lg)}`:(m.lg==='ucl'?'football/ucl.html':`football/league.html?lg=${encodeURIComponent(m.lg)}`);
-const emImg=(m,s,n)=>`<img src="${emUrl(m,s)}" alt="" loading="lazy" decoding="async" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:this.dataset.i}))" data-i="${esc((n||s).slice(0,2).toUpperCase())}">`;
+const emImg=(m,s,n)=>`<img data-src="${emUrl(m,s)}" alt="" decoding="async" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:this.dataset.i}))" data-i="${esc((n||s).slice(0,2).toUpperCase())}">`;
 const D2=n=>String(n).padStart(2,'0');
 const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const dayLabel=t=>{const d=String(t).slice(0,10),days=TD.days||[];if(d===days[0])return 'Сегодня';if(d===days[1])return 'Завтра';return +d.slice(8,10)+' '+MON[+d.slice(5,7)-1]};
@@ -63,7 +63,7 @@ function cardHtml(m,i,n){const {ln,md}=info(m),pk=pick(m,md),fl=J.fair(ln),mx=fl
    ${isH(m)?RINK:PITCH}
    <span class="dk-wm l">${emImg(m,m.h,m.hn)}</span><span class="dk-wm r">${emImg(m,m.a,m.an)}</span>
    <span class="dk-no" aria-hidden="true">№ ${D2(i+1)}</span>
-   <div class="dk-ct"><span class="dk-lg"><img src="${lgIcon(m)}" alt="" onerror="this.remove()">${esc(lgName(m))}</span><span class="dk-dt"><b>${esc(dayLabel(t))}</b> · ${esc(t.slice(11,16))} МСК</span></div>
+   <div class="dk-ct"><span class="dk-lg"><img data-src="${lgIcon(m)}" alt="" decoding="async" onerror="this.remove()">${esc(lgName(m))}</span><span class="dk-dt"><b>${esc(dayLabel(t))}</b> · ${esc(t.slice(11,16))} МСК</span></div>
    <div class="dk-cm">
     <div class="dk-tm"><span class="dk-em">${emImg(m,m.h,m.hn)}</span><b>${esc(m.hn)}</b><i>дома</i></div>
     <span class="dk-vs">—</span>
@@ -87,7 +87,10 @@ function pose(i){
   if(i<0)return {t:FLY(),o:0,z:i===-1?30:0,dim:0,pe:false,fly:true};
   const k=Math.min(i,4),H=W*1.4,sc=1-.05*k;
   return {t:`translate3d(0,${(12*k+H*.05*k).toFixed(1)}px,0) scale(${sc})`,o:i>3?0:1,z:20-i,dim:Math.min(.5,.13*k),pe:i<=3}}
+/* картинки карточек грузим только у видимых и соседних (скорость, аудит 08.11): остальные — когда колода дойдёт */
+function hydrate(){deck.querySelectorAll('.dk-card').forEach((el,k)=>{const i=k-cur;if(i<-1||i>4)return;el.querySelectorAll('img[data-src]').forEach(im=>{im.src=im.dataset.src;im.removeAttribute('data-src')})})}
 function layout(){
+  hydrate();
   deck.querySelectorAll('.dk-card').forEach((el,k)=>{const i=k-cur,p=pose(i);
     el.style.transform=p.t;el.style.opacity=p.o;el.style.zIndex=p.z;el.style.setProperty('--dim',p.dim);el.style.pointerEvents=p.pe?'auto':'none';
     el.classList.toggle('on',i===0);el.classList.toggle('gone',i<0);el.style.transition='';el.setAttribute('aria-hidden',i===0?'false':'true');

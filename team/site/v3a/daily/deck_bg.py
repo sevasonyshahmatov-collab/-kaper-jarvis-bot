@@ -22,7 +22,7 @@ import nhl  # noqa: E402
 
 OUT = os.path.join(V3A, 'data', 'deckbg')
 SIZES = {'': (2560, 1440), '-m': (1170, 2010)}  # чётко на экранах высокой плотности (владелец 04.11: «фон размытый»)
-QUALITY = 86
+QUALITY = {'': 80, '-m': 70}  # телефон 70: файл 320 → 77 КБ при том же размере (аудит 08.11, скорость matches.html)
 DIM = 0.84            # лёгкое затемнение: под колонкой «О встрече» мелкий белый текст читается (подложка плюс это)
 # правки цветов, которые применялись на баннерах (render/fix_pairs.py)
 FIX = {'sochi': (28, 58, 116), 'avtomobilist': (38, 42, 48)}
@@ -131,7 +131,7 @@ def main(only=None):
             idx[key] = {'f': name, 'c': ['#%02x%02x%02x' % c1, '#%02x%02x%02x' % c2]}
             continue
         for suf, (W, H) in SIZES.items():
-            render(c1, c2, seed, W, H).save(os.path.join(OUT, name + suf + '.webp'), 'WEBP', quality=QUALITY, method=5)
+            render(c1, c2, seed, W, H).save(os.path.join(OUT, name + suf + '.webp'), 'WEBP', quality=QUALITY[suf], method=5)
         idx[key] = {'f': name, 'c': ['#%02x%02x%02x' % c1, '#%02x%02x%02x' % c2]}
     for f in os.listdir(OUT):
         if f.endswith('.webp') and f not in want:
