@@ -9,7 +9,7 @@ JOB = os.path.join(ROOT, 'team/out/2026-11-08/exres_0711.json')
 job = json.load(open(JOB, encoding='utf-8'))
 os.environ['EXPRESS_FORCE_LIVE'] = '0'
 # НХЛ
-c, legs, res, st = xr.compute('team/out/2026-11-07/express_nhl3_coupons.json', '1', 'out/express/2026-11-07-nhl3')
+c, legs, res, st = xr.compute('team/out/2026-11-08/exres_nhl3_coupons.json', '1', 'out/express/2026-11-07-nhl3')
 if st == 'pending':
     sys.exit('NHL pending')
 job['messages'].append({'to': 'owner', 'type': 'photo', 'html': True, 'emoji': True, 'files': ['out/express/2026-11-07-nhl3/e1_result.jpg'],
