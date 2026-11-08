@@ -1,0 +1,18 @@
+{
+ "day": "2026-11-08",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "animation",
+   "files": [
+    "team/out/2026-11-08/site_merge_tilt.mp4"
+   ],
+   "text": "Карточки наклоняются за курсором"
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Вернул наклон: карточка наклоняется за курсором и чуть приподнимается, голо-полосы переливаются по углу. На телефоне — под пальцем. Без курсора карточки медленно покачиваются, нажатие — переворот и переход в раздел.\n\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/72a42949806277313fe16ab8c1d5877e6cb1422b/team/site/v3a/proto/home/merge/index.html"
+  }
+ ]
+}
