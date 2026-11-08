@@ -1,0 +1,17 @@
+/* Варианты цветов всего сайта (?col=1|2, assets/palettes.js). Вёрстка не меняется — только цвета. */
+.col-bar{position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:90;display:flex;gap:4px;padding:4px;border-radius:999px;background:#10161f;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.col-bar button{border:0;border-radius:999px;padding:9px 13px;background:transparent;color:#cfd8e6;font:700 13px/1 var(--display);cursor:pointer;white-space:nowrap}
+.col-bar button[aria-pressed="true"]{background:#ffc21a;color:#1a1400}
+
+/* ── вариант 1: один светлый фон после первого экрана; акценты — цвет вида спорта ── */
+[data-col="1"] body{--bgc-fixed:1}
+
+/* ── вариант 2: как новая главная — тёмно-синяя основа, карточки «лёд» / «газон» ── */
+[data-col="2"] body,[data-col="2"][data-white] body{background:#0a1220}
+/* светлые подложки разделов (клуб, игроки) задаются на уровне блоков — в варианте 2 везде тёмные; цвета клубов (--k-*) не трогаем */
+[data-col="2"] body,[data-col="2"] body *{--paper:#0a1220!important;--paper-2:#16223a!important;--paper-3:#22304d!important;--card:#111b2e!important;--card-hi:#18253e!important;
+  --ink:#eaf1fb!important;--ink-2:#b9c5d9!important;--ink-3:#8f9cb4!important;--rule:#2c3b5a!important;--rule-2:#2c3b5a!important;--grain-op:0}
+[data-col="2"] .qc,[data-col="2"] .win,[data-col="2"] .win-tabs span.on{background:#18253e!important;color:#eaf1fb}
+[data-col="2"] .ga{background:#111b2e!important;color:#eaf1fb!important}
+[data-col="2"] .mlist>li,[data-col="2"] .fc-m{background:linear-gradient(160deg,#16253d,#111c2f)}
+[data-col="2"] [data-sport="football"] .mlist>li,[data-col="2"] body.football .mlist>li{background:linear-gradient(160deg,#13281f,#102019)}
