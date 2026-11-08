@@ -1,0 +1,13 @@
+{
+ "day": "2026-11-08",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-08/site_mt_bg.jpg"
+   ],
+   "text": "Хоккей — лёд с разметкой, футбол — газон полосами.\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/56c481d25d45090ebabb1161696e54953ca835fe/team/site/v3a/proto/home/merge/index.html#today"
+  }
+ ]
+}
