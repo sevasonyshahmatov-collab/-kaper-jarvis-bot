@@ -4,6 +4,10 @@
 const J=window.JVL,R='../../../';
 const LG={khl:'КХЛ',nhl:'НХЛ',epl:'АПЛ',laliga:'Ла Лига',seriea:'Серия А',bundesliga:'Бундеслига',ligue1:'Лига 1',rpl:'РПЛ',ucl:'Лига чемпионов',uel:'Лига Европы'};
 const isH=m=>m.lg==='khl'||m.lg==='nhl';
+/* страница матча, как в seo/build_match.py: <лига>/<дата>-<хозяева>-<гости>/index.html (НХЛ — английские названия городов) */
+const NHL_EN={"nhl_car":"carolina","nhl_edm":"edmonton","minnesota":"minnesota","nhl_bos":"boston","nhl_vgk":"vegas","nhl_mtl":"montreal","nhl_tbl":"tampa-bay","nhl_njd":"new-jersey","nhl_uta":"utah","dallas":"dallas","nhl_col":"colorado","nhl_ott":"ottawa","nhl_fla":"florida","nhl_tor":"toronto","nhl_sea":"seattle","nhl_buf":"buffalo","nhl_nsh":"nashville","nhl_nyr":"rangers","nhl_det":"detroit","nhl_wsh":"washington","nhl_nyi":"islanders","nhl_stl":"st-louis","nhl_ana":"anaheim","nhl_sjs":"san-jose","nhl_cgy":"calgary","nhl_wpg":"winnipeg","nhl_cbj":"columbus","nhl_pit":"pittsburgh","nhl_phi":"philadelphia","nhl_lak":"los-angeles","nhl_chi":"chicago","nhl_van":"vancouver"};
+const slug=(m,id)=>m.lg==='nhl'?(NHL_EN[id]||id.replace(/^nhl_/,'').replace(/_/g,'-')):id.replace(/_/g,'-');
+const pageOf=m=>`${R}${m.lg}/${m.t.slice(0,10)}-${slug(m,m.h)}-${slug(m,m.a)}/index.html`;
 const atMs=t=>Date.parse(String(t).replace(' ','T')+':00+03:00');
 const ymd=d=>d.toISOString().slice(0,10);
 const msk=()=>new Date(Date.now()+3*3600e3);
@@ -26,6 +30,7 @@ function all(){
    lgn:LG[m.lg]||m.lg,
    hc:`${R}assets/${hockey?'em':'fc'}/${encodeURIComponent(m.h)}.webp`,
    ac:`${R}assets/${hockey?'em':'fc'}/${encodeURIComponent(m.a)}.webp`,
+   page:pageOf(m),
    href:`${R}${hockey?'hockey':'football'}/index.html#matches`});
  }).sort((a,b)=>atMs(a.t)-atMs(b.t));
 }

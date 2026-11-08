@@ -43,7 +43,7 @@ function more(m){
 function card1(m){
  const pr=m.pr;
  const bar=pr?`<div class="bar">${pr.map((p,i)=>p==null?'':`<i class="${i===m.bi?'on':''}" style="flex:${Math.max(p,.06)}"><b>${pc(p)}%</b><small>${OUT[i]}${kef(m,i)?' · '+kef(m,i):''}</small></i>`).join('')}</div>`:'<div class="bar none">расчёт скоро</div>';
- return `<li class="${m.hockey?'hk':'fb'}"><a href="${m.href}"><div class="main">
+ return `<li class="${m.hockey?'hk':'fb'}"><a href="${m.page}" data-fb="${m.href}"><div class="main">
    <div class="fo">
     <span class="tm">${crest(m.hc,'cr')}<b>${e(m.hn)}</b></span>
     <span class="mid"><time>${when(m)}</time><em>${e(m.lgn)}</em></span>
@@ -94,6 +94,10 @@ function v3(){
   </a>`}).join('')}</div></li>`).join('')}</ol>`;
 }
 box.innerHTML=[v1,v2,v3][V-1]();
+/* страница матча есть не у всех (окно сборки): нет — ведём в раздел */
+const seen={};function fixLinks(){box.querySelectorAll('a[data-fb]').forEach(a=>{const u=a.getAttribute('href');
+ (seen[u]||(seen[u]=fetch(u,{method:'HEAD'}).then(r=>r.ok).catch(()=>false))).then(ok=>{if(!ok)a.setAttribute('href',a.dataset.fb)})})}
+fixLinks();
 if(V===1){wire1();let n0=box.querySelector('.mt1').dataset.n;
- addEventListener('resize',()=>{const n=innerWidth>=981?3:innerWidth>=640?2:1;if(String(n)!==n0){n0=String(n);box.innerHTML=v1();wire1()}})}
+ addEventListener('resize',()=>{const n=innerWidth>=981?3:innerWidth>=640?2:1;if(String(n)!==n0){n0=String(n);box.innerHTML=v1();wire1();fixLinks()}})}
 })();
