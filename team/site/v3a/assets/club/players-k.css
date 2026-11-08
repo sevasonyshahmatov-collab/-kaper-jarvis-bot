@@ -155,3 +155,10 @@ html[data-white] body{background:#fff}
 .gah{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);column-gap:10px;padding:0 14px}
 .gah i{width:.6em}
 .gah span:first-child{text-align:right;padding-right:.35em}.gah span:last-child{text-align:left;padding-left:.35em}
+/* Телефон: плашка «Г+П» внутри строки, отдельной колонки нет — иначе строка сжимается и пропадает имя (аудит 08.11) */
+@media (max-width:900px){
+  .pl-list.two{grid-template-columns:minmax(0,1fr)}
+  .ga,.gah,.gah0{display:none}
+  .pr.k .no{opacity:.28}
+  .pr.k .pts.pin b{opacity:1}
+}

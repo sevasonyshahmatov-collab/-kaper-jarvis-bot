@@ -99,3 +99,18 @@ html{scroll-padding-top:116px}
 @media (max-width:1500px){.hd .hd-me span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.hd .hd-me{padding:0 10px}}
 @media (max-width:1100px){.hd .hd-me{display:none}}
 .mpanel .mme{gap:10px}.mpanel .mme svg{width:20px;height:20px;flex:none;color:var(--signal)}
+/* Шапка не шире экрана (аудит 08.11): до 1366 px верхний ряд ссылок — в меню ☰ (те же пункты есть во второй строке шапки),
+   1367–1500 px — ряд плотнее; до 860 px у «Меню» только значок */
+@media (max-width:1366px){
+  .gnav{display:none}.mbtn{display:inline-flex}.hd .btn-tg{margin-left:auto}
+  .hd .btn-tg + .mbtn{margin-left:0}
+}
+@media (min-width:1367px) and (max-width:1500px){
+  .gnav a{padding:14px 7px;font-size:15px}
+  .gnav a[aria-current]::after{left:7px;right:7px}
+  .hd .wrap.hdrow{gap:10px}
+}
+@media (max-width:860px){
+  .hd .mbtn{gap:0;padding:0;width:44px;justify-content:center}
+  .hd .mbtn .mt{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+}
