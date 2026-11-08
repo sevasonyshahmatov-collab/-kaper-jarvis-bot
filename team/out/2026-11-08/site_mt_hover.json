@@ -1,0 +1,27 @@
+{
+ "day": "2026-11-08",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "animation",
+   "files": [
+    "team/out/2026-11-08/site_mt_hover.mp4"
+   ],
+   "text": "Ближайшие матчи: наведение"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-08/site_mt_hover.jpg",
+    "team/out/2026-11-08/site_mt_phone.jpg"
+   ],
+   "text": "Компьютер и телефон"
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Сделал вариант 1 с наведением: матч расширяется, соседи в ряду сужаются и тускнеют. Справа появляются подробности: ожидаемые голы, тотал по модели с кэфом, «обе забьют» (футбол), победа с ОТ (хоккей), арена, сколько до начала и кнопка «Разбор матча». Высота ряда не прыгает.\nНа телефоне первое касание раскрывает матч, второе открывает разбор.\n\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/7aba550724e5eb13eb90e9ec7f15fc1cb974de36/team/site/v3a/proto/home/merge/index.html#today"
+  }
+ ]
+}
