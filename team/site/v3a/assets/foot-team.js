@@ -58,7 +58,7 @@ const tbl0=Object.fromEntries((D.tables[EFF]||[]).map(r=>[r.id,r])),leagueRows=E
 const cupLab=k=>(D.leagues[k]||{}).short||k;
 const swH=(!cupOnly&&(T.cups||[]).length)?`<ul class="ctxsw" aria-label="Турнир: лига или еврокубок">${[lg,...T.cups].map(k=>{const r=k===lg?T:(D.tables[k]||[]).find(x=>x.id===ID);
   return `<li><a href="${ctxHref(k)}"${k===EFF?' aria-current="page"':''}>${LGP(k)}<span>${esc(D.leagues[k].name)}</span><small>${r?r.place+'-е место':''}</small></a></li>`}).join('')}</ul>`:'';
-const eloLine=CX?`<p class="eloline"><b>${CX.e}</b>Elo · ${CX.r}-е место в рейтинге Европы${CX.est?' (оценка)':''}<small>Рейтинг Club Elo, на ${bdd?bdd.d+' '+bdd.mon:''}${CX.est?'. Клуба нет в открытой части рейтинга: значение оценено по среднему Elo лиги и месту в ней.':''}</small></p>`:'';
+const eloLine=CX?`<p class="eloline"><b>${CX.e}</b>Elo · ${CX.r}-е место в рейтинге Европы${CX.est?' (оценка)':''}<small>Club Elo, на ${bdd?bdd.d+' '+bdd.mon:''}</small></p>`:'';
 /* серия: победы, матчи без поражений или поражения — от 3 */
 const streak=(()=>{const a=real;const run=f=>{let n=0;for(let i=a.length-1;i>=0&&f(a[i]);i--)n++;return n};
  const w=run(g=>g.gf>g.ga),u=run(g=>g.gf>=g.ga),l=run(g=>g.gf<g.ga);
@@ -82,10 +82,9 @@ $('hero').innerHTML=`
   ${streakHtml}
  </header>
  <div class="tmpower" data-rv>
-  <div class="ph"><h2 class="h3">Шестиугольник силы${CUP?' · '+esc(EL.short):''}</h2><span>${CUP?'место среди '+EL.ids.length+' клубов турнира, 0–100':'место в лиге, 0–100'}</span></div>
+  <div class="ph"><h2 class="h3">Шестиугольник силы${CUP?' · '+esc(EL.short):''}</h2></div>
   <div class="rad">${radar([{v:CUP?CX.axes:T.axes,c:acc,name:T.n}],AXS)}</div>
   <div class="legend"><span><i style="border-color:${esc(acc)}"></i>${esc(T.n)}</span><span><i class="d"></i>${CUP?'середина турнира':'середина лиги'}</span></div>${eloLine}
-  ${CUP?`<p class="note">Балл — место клуба среди ${EL.ids.length} участников турнира: 100 — лучший, 0 — худший, цифры сравнимы между лигами. Сила — рейтинг Club Elo. Атака и защита — мячи за игру во внутреннем чемпионате с поправкой на силу лиги (60 %) и в турнире (40 %). Форма — очки в последних 8 матчах всех турниров с поправкой на силу соперников. Дома и в гостях — очки за игру на своём и чужом поле во всех турнирах с той же поправкой.</p>`:`<p class="note">Балл — место клуба среди клубов своей лиги по показателю: 100 — лучший, 0 — худший. Атака и защита — мячи за игру, форма — очки в последних 5 матчах, дома и в гостях — очки за игру на своём и чужом поле, очки — за все матчи сезона.</p>`}
  </div>`;
 
 /* ── плашка «Игроки команды» под формой → football/players.html?team=<id> (владелец 03.11) ── */
@@ -107,7 +106,7 @@ const last5=real.slice(-5);
 const homeG=real.filter(g=>g.h),awayG=real.filter(g=>!g.h);
 const ppg=a=>a.length?a.reduce((s,g)=>s+pts(g),0)/a.length:null;
 $('tableBox').innerHTML=`
- <div class="sec-head" data-rv><h2>Место в таблице</h2><p>${LGP(EFF)}${esc(EN)}${CUP?', общий этап':''} ${asOf}. Очки, игры и мячи — по данным ESPN.${CUP?' Зоны: 1–8 — сразу в 1/8 финала, 9–24 — плей-офф, 25–36 — выбыли.':''}</p></div>
+ <div class="sec-head" data-rv><h2>Место в таблице</h2></div>
  <div class="tmgrid">
   <div class="tmtable" data-rv><table class="table stand">
    <thead><tr><th>#</th><th>Клуб</th><th class="ra">И</th><th class="ra hide-s">В</th><th class="ra hide-s">Н</th><th class="ra hide-s">П</th><th class="ra hide-s">Мячи</th><th class="ra">О</th></tr></thead>
@@ -126,7 +125,7 @@ $('tableBox').innerHTML=`
    </div>
    <div class="formbox"><span class="sl">Форма — последние 5 игр</span>
     <ol class="frm" aria-label="Последние 5 игр, слева раньше">${last5.map(g=>{const r=rOf(g),t=`${RESF[r]}: ${nm(g.o)} ${g.gf}:${g.ga}`;return `<li class="${r}" title="${esc(t)}" aria-label="${esc(t)}"><b><img src="${crest(g.o)}" alt="" loading="lazy"></b><span>${g.gf}:${g.ga}</span></li>`}).join('')}</ol>
-    <p class="ss">Слева — раньше, справа — последняя игра. В кружке — соперник: зелёный — победа, серый — ничья, красный — поражение. За 5 игр — <b>${last5.reduce((s,g)=>s+pts(g),0)} ${plural(last5.reduce((s,g)=>s+pts(g),0),'очко','очка','очков')}</b>.</p></div>
+    <p class="ss">За 5 игр — <b>${last5.reduce((s,g)=>s+pts(g),0)} ${plural(last5.reduce((s,g)=>s+pts(g),0),'очко','очка','очков')}</b>.</p></div>
    ${''/* плашка «Игроки» скрыта до готовности портретов (владелец 04.11): ${plCard()} */}
   </div>
  </div>`;
@@ -161,7 +160,7 @@ document.querySelectorAll('.gfilter button').forEach(b=>b.addEventListener('clic
 
 /* ── 4. наши ставки: боевых итогов по клубам пока нет — честно говорим об этом ── */
 $('picksBox').innerHTML=`
- <div class="sec-head" data-rv><h2>Наши ставки на ${esc(T.n)}</h2><p>Прогнозы JARVIS на матчи клуба появятся здесь вместе с итогами. Выходят в Telegram, когда вероятность от 60 % при кэфе от 1,6.</p></div>
+ <div class="sec-head" data-rv><h2>Наши ставки на ${esc(T.n)}</h2></div>
  <div class="pkempty" data-rv><p>На матчи ${esc(T.n)} ставок канала пока не было. Как только модель найдёт ставку — она появится здесь и в канале.</p><a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a></div>`;
 
 /* ── 2а. следующий матч ── */
@@ -170,7 +169,7 @@ if(nextG){
  const cr2=(sl,cls)=>`<span class="nmc ${cls}"><a href="${teamHref(sl,CUP)}"><span class="nmcr">${CI(sl)}</span><b>${esc(nm(sl))}</b></a></span>`;
  const mdl=nextG.pr?`<p class="mdl" aria-label="Расчёт модели"><span>1Х2: <b>${nextG.pr.map(v=>Math.round(v*100)).join(' · ')} %</b></span><span>тотал больше ${fx(nextG.ot||2.5,1)}: <b>${Math.round(nextG.ov*100)} %</b></span><span>обе забьют: <b>${Math.round(nextG.bt*100)} %</b></span></p>`:'';
  $('nextBox').innerHTML=`
-  <div class="sec-head" data-rv><h2>Следующий матч</h2><p>${LGP(nextG.c||lg)}${esc(D.leagues[nextG.c||lg].name)} · ${oh?'дома':'в гостях'}, время московское.</p></div>
+  <div class="sec-head" data-rv><h2>Следующий матч</h2></div>
   <article class="nmatch" data-rv aria-label="${esc(T.n)} — ${esc(nm(o))}, ${t.d} ${t.mon}, ${t.tm} МСК">
    <div class="nmteams">${cr2(oh?ID:o,'a')}<span class="nmmid"><span class="nmdt"><b>${t.d} ${t.mon}</b><small>${t.wd}${t.tm?' · '+t.tm+' МСК':''}</small></span><span class="nmha ${oh?'h':'a'}">${oh?'Дома':'В гостях'}</span></span>${cr2(oh?o:ID,'b')}</div>
    <div class="nmside">
@@ -209,7 +208,7 @@ if(nextG){
    <span class="trn"><b class="num">${x.n} из ${x.N}</b><small>${esc(scope)}${x.N<5?' · мало матчей':''}</small></span></li>`}).join('')
    :`<li class="tr none">В таком срезе пока нет сыгранных матчей.</li>`};
  if(real.length>=1){
-  box.innerHTML=`<div class="sec-head" data-rv><h2>Тренды${real.length<5?'<span class="fewn">мало матчей</span>':''}</h2><p>Что чаще всего случается в матчах ${esc(T.n)} в этом сезоне. Кружок — один матч: заполнен, если тренд сошёлся; справа — свежие.</p></div>
+  box.innerHTML=`<div class="sec-head" data-rv><h2>Тренды${real.length<5?'<span class="fewn">мало матчей</span>':''}</h2></div>
    <div class="trctl" data-rv><div class="gfilter"><div class="seg" id="trPer" role="group" aria-label="Период"><button type="button" aria-pressed="true" data-v="l10">Последние 10</button><button type="button" aria-pressed="false" data-v="all">Весь сезон</button></div></div>
     <div class="gfilter"><div class="seg" id="trVen" role="group" aria-label="Где играли"><button type="button" aria-pressed="true" data-v="all">Все</button><button type="button" aria-pressed="false" data-v="home">Дома</button><button type="button" aria-pressed="false" data-v="away">В гостях</button></div></div></div>
    <ol class="trs" id="trList" data-rv></ol>`;
@@ -243,7 +242,7 @@ if(nextG){
     ${hist(`Индивидуальный тотал ${T.n}`,sub,a.map(g=>g.gf),['0','1','2','3','4+'],[{t:0.5,pos:1},{t:1.5,pos:2}],N)}
     ${hist('Сколько пропускает',sub,a.map(g=>g.ga),['0','1','2','3','4+'],[{t:0.5,pos:1},{t:1.5,pos:2}],N)}
    </div>`};
- box.innerHTML=`<div class="sec-head" data-rv><h2>Тоталы и дом/выезд${real.length<5?'<span class="fewn">мало матчей</span>':''}</h2><p>Сколько мячей падает в матчах ${esc(T.n)} и чем отличается игра дома и в гостях. Только сыгранные матчи сезона; линии 1,5, 2,5 и 3,5 — на тотал матча, 0,5 и 1,5 — на индивидуальный тотал.</p></div>
+ box.innerHTML=`<div class="sec-head" data-rv><h2>Тоталы и дом/выезд${real.length<5?'<span class="fewn">мало матчей</span>':''}</h2></div>
   <div class="trctl" data-rv><div class="gfilter"><div class="seg" id="tsPer" role="group" aria-label="Период"><button type="button" aria-pressed="true" data-v="all">Весь сезон</button><button type="button" aria-pressed="false" data-v="l10">Последние 10</button></div></div>
    <div class="gfilter"><div class="seg" id="tsVen" role="group" aria-label="Где играли"><button type="button" aria-pressed="true" data-v="all">Все</button><button type="button" aria-pressed="false" data-v="home">Дома</button><button type="button" aria-pressed="false" data-v="away">В гостях</button></div></div></div>
   <div id="tsOut" data-rv></div>
@@ -315,9 +314,9 @@ if(nextG){
  const dt=$('nmh2h');
  dt.innerHTML=`<summary><span class="h2cr">${CI(ID)}${CI(o)}</span><span class="h2st"><b>Сравнение: ${nT} — ${nO}</b><small>${sumCur}${sumAll}</small></span><span class="h2ar" aria-hidden="true">▾</span></summary>
   <div class="h2in cmp">
-   <section class="cmps"><h3>Сила команд${CUP?' в '+esc(EL.short):''}</h3><p class="note">Те же шесть показателей, что в шестиугольнике выше: ${CUP?'балл — место среди участников турнира, цифры сравнимы между лигами (рейтинг Club Elo на '+(bdd?bdd.d+' '+bdd.mon:'')+'), 100 — лучший.':'балл — место среди клубов своей лиги, 100 — лучший.'}${near?' Цвета клубов близки, поэтому '+nO+' — пунктиром.':''}${!CUP&&O.lg!==lg?' Клубы из разных лиг: баллы считаются внутри каждой лиги.':''}</p>${rad}</section>
-   <section class="cmps"><h3>Статистика сезона</h3><div class="cmpw" tabindex="0" role="region" aria-label="Статистика клубов, листается вбок">${tbl}</div><p class="note">Выделено более сильное значение.</p></section>
-   <section class="cmps"><h3>Матчи между клубами</h3>${mt}${oldHtml}${tot?`<p class="note cmpall">С прошлым сезоном: ${tw}–${td}–${tl_} в ${tot} ${plural(tot,'матче','матчах','матчах')}. Счёт — с точки зрения ${nT}.</p>`:''}</section>
+   <section class="cmps"><h3>Сила команд${CUP?' в '+esc(EL.short):''}</h3>${rad}</section>
+   <section class="cmps"><h3>Статистика сезона</h3><div class="cmpw" tabindex="0" role="region" aria-label="Статистика клубов, листается вбок">${tbl}</div></section>
+   <section class="cmps"><h3>Матчи между клубами</h3>${mt}${oldHtml}${tot?`<p class="note cmpall">С прошлым сезоном: ${tw}–${td}–${tl_} в ${tot} ${plural(tot,'матче','матчах','матчах')}.</p>`:''}</section>
   </div>`;
  dt.hidden=false}
 
@@ -335,11 +334,10 @@ if(nextG){
   :`<table class="table pltab"><thead><tr><th class="c1">#</th><th class="c2 tx">Игрок</th><th class="ra">Жёлтые</th><th class="ra">Красные</th></tr></thead>
    <tbody>${cd.map((p,i)=>`<tr><td class="c1 num">${i+1}</td><td class="c2 pn">${esc(p.n)}</td><td class="ra num on">${p.y||'—'}</td><td class="ra num">${p.r||'—'}</td></tr>`).join('')}</tbody></table>`;
   document.querySelectorAll('#plTabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===st.tab))};
- pbox.innerHTML=`<div class="sec-head" data-rv><h2>Игроки</h2><p>Бомбардиры и карточки ${esc(T.n)} по данным матчей ${LGP(EFF)}${esc(EN)} сезона ${esc(D.season)}. Имена — как у ESPN.</p></div>
+ pbox.innerHTML=`<div class="sec-head" data-rv><h2>Игроки</h2></div>
   ${lead}
   <div class="gfilter" role="group" aria-label="Что показать" data-rv><div class="seg" id="plTabs">${sc.length?`<button type="button" aria-pressed="true" data-t="sc">Бомбардиры<small>${sc.length}</small></button>`:''}${cd.length?`<button type="button" aria-pressed="false" data-t="cd">Карточки<small>${cd.length}</small></button>`:''}</div></div>
-  <div class="plwrap" id="plTable" data-rv tabindex="0" role="region" aria-label="Таблица игроков, листается вбок"></div>
-  <p class="note plnote">В списке — до 12 бомбардиров и 8 игроков с карточками. Передач и минут в данных матчей нет.</p>`;
+  <div class="plwrap" id="plTable" data-rv tabindex="0" role="region" aria-label="Таблица игроков, листается вбок"></div>`;
  $('plTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;st.tab=b.dataset.t;render()});
  render()}}
 

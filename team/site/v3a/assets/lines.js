@@ -37,7 +37,7 @@ function quotes(m,opt={}){const {ln,md}=m,fl=fair(ln),pm=md?[md.p1,md.x,md.p2]:n
  const q=['П1','Х','П2'].map((k,j)=>{const v=ln?(j===0?ln.p1:j===1?ln.x:ln.p2):null;
   return `<span class="qc${base&&base[j]===mx?' fav':''}"><small>${k}</small><b class="num">${v?f2(v):'—'}</b><em class="num">${base?p0(base[j])+'%':''}</em></span>`}).join('');
  const tot=ln&&ln.tot!=null&&ln.over?`<div class="qt">Тотал ${f1(ln.tot)} <span>Б <b class="num">${f2(ln.over)}</b></span><span>М <b class="num">${f2(ln.under)}</b></span></div>`:'';
- const src=ln?`<div class="qs">Линия: ${esc(srcLabel(ln))}${fl?' · % под кэфом — доля линии без маржи':''}</div>`
+ const src=ln?`<div class="qs">Линия: ${esc(srcLabel(ln))}</div>`
   :`<div class="qs">${esc(opt.noLine||'Линии пока нет')}</div>`;
  return `<div class="q3">${q}</div>${tot}${md?`<div class="qm">${modelLine(md,opt)}</div>`:''}${dvHtml(ln,md)?`<div class="qd">${dvHtml(ln,md)}</div>`:''}${src}`}
 
@@ -49,13 +49,13 @@ function why(m,opt={}){const {ln,md}=m;if(!md)return '<p class="none">Расчё
  let totals='';
  if(md.totals){const ent=Object.entries(md.totals).sort((a,b)=>a[0]-b[0]);
   totals=`<div class="wsub"><h5>Тотал матча: вероятность «больше»</h5>${ent.map(([t,p])=>bar('Больше '+f1(t),p,ln&&ln.tot===+t?fairTot(ln):null,false)).join('')}
-   ${ln&&ln.tot!=null?`<p class="note">Линия: тотал ${f1(ln.tot)}, больше ${f2(ln.over)} / меньше ${f2(ln.under)}${ent.some(([t])=>+t===ln.tot)?'; метка на шкале — доля линии без маржи':''}.</p>`:''}</div>`}
+</div>`}
  else if(md.over!=null){totals=`<div class="wsub"><h5>Тотал ${f1(md.tot)}</h5>${bar('Больше '+f1(md.tot),md.over,ln&&ln.tot===md.tot?fairTot(ln):null,false)}${bar('Меньше '+f1(md.tot),1-md.over,null,false)}
    ${md.btts!=null?bar('Обе команды забьют',md.btts,null,false):''}</div>`}
  const fin=md.w1!=null&&md.w2!=null?`<div class="wsub"><h5>Итоговая победа, с овертаймом и буллитами</h5>${bar(names[0],md.w1,ln&&ln.fin1&&ln.fin2?(1/ln.fin1)/(1/ln.fin1+1/ln.fin2):null,md.w1>md.w2)}${bar(names[1],md.w2,null,md.w2>md.w1)}</div>`:'';
  const lam=md.lam?`<p class="xlam"><b>Ожидаемые голы:</b> ${esc(names[0])} <b class="num">${f2(md.lam[0])}</b> — ${esc(names[1])} <b class="num">${f2(md.lam[1])}</b>, вместе <b class="num">${f2(md.lam[0]+md.lam[1])}</b>.</p>`:'';
  return `<section class="xb x-model"><h4>Расчёт модели <span class="note">${esc(verName(md.ver))}, ${esc(hhmm(md.t))} МСК</span></h4>
-  <div class="wgrid"><div class="wsub"><h5>Исход в основное время</h5>${rows}${ln?`<p class="note">Метка на шкале — доля линии без маржи.</p>`:'<p class="note">Линии на матч пока нет.</p>'}</div>
+  <div class="wgrid"><div class="wsub"><h5>Исход в основное время</h5>${rows}${ln?'':'<p class="note">Линии на матч пока нет.</p>'}</div>
   ${totals}${fin}</div>${lam}${dvHtml(ln,md)?`<p class="qd">${dvHtml(ln,md)}</p>`:''}
   </section>`}
 
@@ -69,8 +69,8 @@ function section(root,items,cfg){
  root.innerHTML=`<div class="mtoolbar"><div class="tabs" role="tablist" aria-label="Какие матчи показать"><button class="tab" role="tab" aria-selected="true" data-m="all">Все матчи <span class="c">${items.length}</span></button><button class="tab" role="tab" aria-selected="false" data-m="div">Модель расходится с линией <span class="c">${nDiv}</span></button></div></div>
   <ul class="mrows" id="mrows" aria-live="polite"></ul>
   <div class="mexplain"><h3>Как считает модель</h3>${cfg.explain}
-   <p class="note">Расходится — значит, вероятность модели и доля линии без маржи отличаются больше чем на 5 п.п. Это разница оценок, а не сигнал и не гарантия исхода.</p></div>
-  <p class="mver note">Модель: ${esc(ver||'—')}${upd?` · данные обновлены ${upd}`:''} · с расчётом ${hasModel} из ${items.length}. Данные обновляются дважды в день.</p>`;
+</div>
+  <p class="mver note">Модель: ${esc(ver||'—')}${upd?` · данные обновлены ${upd}`:''} · с расчётом ${hasModel} из ${items.length}.</p>`;
  const ul=root.querySelector('#mrows');
  const rowHtml=it=>{const {ln,md}=it,mo=md?[md.p1,md.x,md.p2]:null,mx=mo?Math.max(...mo):0,fl=fair(ln),f=flagged(ln,md);
   const bars=mo?['П1','Х','П2'].map((k,i)=>`<div class="wb${mo[i]===mx?' fav':''}"><span>${k}</span><em><i style="--w:${p0(mo[i])}%"></i>${fl&&(i!==1||ln.x)?`<u style="left:${p0(fl[i])}%" title="линия: ${p0(fl[i])} %"></u>`:''}</em><b class="num">${p0(mo[i])} %</b></div>`).join(''):'<p class="note">Расчёта нет</p>';

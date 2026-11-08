@@ -139,10 +139,9 @@ document.getElementById('hero').innerHTML=`
   ${T.coach?`<p class="tmcoach">Главный тренер — ${esc(T.coach.split(' ').slice(0,2).reverse().join(' '))}</p>`:''}
  </header>
  <div class="tmpower" data-rv>
-  <div class="ph"><h2 class="h3">Шестиугольник силы</h2><span>место в лиге, 0–100</span></div>
+  <div class="ph"><h2 class="h3">Шестиугольник силы</h2></div>
   <div class="rad">${radar([{v:T.axes||[],c:acc,name:T.name}],ax)}</div>
   <div class="legend"><span><i style="border-color:${acc}"></i>${esc(T.name)}</span><span><i class="d"></i>середина лиги</span></div>
-  <p class="note">Балл — место команды в своей лиге по показателю: 100 — лучшая, 10 — худшая. ${lg==='khl'?'Большинство и меньшинство — голы в большинстве и пропущенные в меньшинстве за игру.':'Большинство и меньшинство — реализация и нейтрализация по данным НХЛ.'} Форма — очки за последние 10 игр.</p>
  </div>`;
 
 /* ── плашка «Игроки команды» под формой → раздел «Игроки» с фильтром по этой команде (владелец 03.11) ── */
@@ -164,7 +163,7 @@ const pp=lg==='nhl'?[f(raw[3]*100,1),'%','реализация большинс�
 const pk=lg==='nhl'?[f(raw[4]*100,1),'%','нейтрализация меньшинства']:[f(raw[4]),'','пропускает в меньшинстве за игру'];
 const hm=(T.tr||{}).home,aw=(T.tr||{}).away;
 document.getElementById('tableBox').innerHTML=`
- <div class="sec-head" data-rv><h2>Место в таблице</h2><p>${lgp(lg)}${L.name}, конференция «${esc(conf)}» ${asOf}. Очки, игры и шайбы — настоящие, обновляются вместе с сайтом.</p></div>
+ <div class="sec-head" data-rv><h2>Место в таблице</h2></div>
  <div class="tmgrid">
   <div class="tmtable" data-rv><table class="table stand">
    <thead><tr><th>#</th><th>Клуб</th><th class="ra">И</th><th class="ra hide-s">В</th><th class="ra hide-s">П</th><th class="ra hide-s">Шайбы</th><th class="ra">О</th></tr></thead>
@@ -182,7 +181,7 @@ document.getElementById('tableBox').innerHTML=`
    </div>
    <div class="formbox"><span class="sl">Форма — последние 5 игр</span>
     <ol class="frm" aria-label="Последние 5 игр, слева раньше">${last5.map(g=>{const t=formTitle(g);return `<li class="${RL[res(g)][1]}" title="${esc(t)}" aria-label="${esc(t)}"><b><img src="../assets/em/${esc(g.o)}.webp" alt="" loading="lazy"></b><span>${g.gf}:${g.ga}${g.x?' '+g.x:''}</span></li>`}).join('')}</ol>
-    <p class="ss">Слева — раньше, справа — последняя игра. В кружке — соперник: зелёный — победа, красный — поражение, серый — поражение в овертайме или по буллитам. За 10 игр — <b>${esc(T.l10s||T.l10+' '+plural(T.l10,'очко','очка','очков'))}</b>.</p></div>
+    <p class="ss">За 10 игр — <b>${esc(T.l10s||T.l10+' '+plural(T.l10,'очко','очка','очков'))}</b>.</p></div>
    ${plCard()}
   </div>
  </div>`;
@@ -215,15 +214,14 @@ document.getElementById('gamesBox').innerHTML=`
   <ol class="gs">${future.map(row).join('')}</ol>
   <h3 class="gh">Сыгранные<span>${played.length}</span></h3>
   <ol class="gs">${played.slice().reverse().map(row).join('')}</ol>
- </div>
- ${hasEst||hasSample?`<p class="note smpnote">${hasEst?'Кэфы с пометкой «оценка модели» посчитаны по расчёту модели: реальной линии на эти матчи ещё нет. ':''}Первые три цифры у остальных матчей — линия на день снятия; «модель» — вероятности П1 · Х · П2 нашего расчёта.${hasSample?' Строки с пометкой «пример» дописаны для макета.':''}</p>`:''}`;
+ </div>`;
 document.querySelectorAll('.gfilter button').forEach(b=>b.addEventListener('click',()=>{
  document.querySelectorAll('.gfilter button').forEach(x=>x.setAttribute('aria-pressed',x===b));document.getElementById('glist').dataset.f=b.dataset.f}));
 
 /* ── 4. что заходило в наших ставках ── */
 const pk2=T.picks||[],hit=pk2.filter(p=>p.r==='win').length;
 document.getElementById('picksBox').innerHTML=`
- <div class="sec-head" data-rv><h2>Наши ставки на ${esc(T.name)}</h2><p>Все прогнозы JARVIS на матчи команды — и зашедшие, и нет. Новые выходят в Telegram: КХЛ до 08:00, НХЛ до 14:00 МСК.</p></div>
+ <div class="sec-head" data-rv><h2>Наши ставки на ${esc(T.name)}</h2></div>
  ${pk2.length?`<div class="pkwrap" data-rv>
   <div class="pksum"><b class="num">${hit}<small>из ${pk2.length}</small></b><span>${plural(hit,'прогноз зашёл','прогноза зашло','прогнозов зашло')}</span>
    <span class="pkbar" aria-hidden="true">${pk2.map(p=>`<i class="${p.r==='win'?'ok':'no'}"></i>`).join('')}</span></div>
@@ -247,7 +245,7 @@ if(nextG){
  const kl=['П1','Х','П2'];
  const crest=(sl,cls)=>`<span class="nmc ${cls}">${tl(sl,`<span class="nmcr">${em(sl)}</span><b>${esc(nm(sl))}</b>`)}</span>`;
  document.getElementById('nextBox').innerHTML=`
-  <div class="sec-head" data-rv><h2>Следующий матч</h2><p>${lgp(lg)}${L.name} · ${oh?'дома':'в гостях'}, время московское.</p></div>
+  <div class="sec-head" data-rv><h2>Следующий матч</h2></div>
   <article class="nmatch" data-rv aria-label="${esc(T.name)} — ${esc(nm(nextG.o))}, ${t.d} ${t.mon}, ${t.tm} МСК">
    <div class="nmteams">${crest(oh?ID:nextG.o,'a')}<span class="nmmid"><span class="nmdt"><b>${t.d} ${t.mon}</b><small>${t.wd}${t.tm?' · '+t.tm+' МСК':''}</small></span><span class="nmha ${oh?'h':'a'}">${oh?'Дома':'В гостях'}</span></span>${crest(oh?nextG.o:ID,'b')}</div>
    <div class="nmside">
@@ -309,7 +307,7 @@ if(nextG){
    <span class="trn"><b class="num">${x.n} из ${x.N}</b><small>${esc(scope)}</small></span></li>`}).join('')
    :`<li class="tr none">Для такого среза мало сыгранных матчей — нужно хотя бы 5.</li>`};
  if(real.length>=5){
-  box.innerHTML=`<div class="sec-head" data-rv><h2>Тренды</h2><p>Что чаще всего случается в матчах ${esc(T.name)} в этом сезоне. Кружок — один матч: заполнен, если тренд сошёлся; справа — свежие.</p></div>
+  box.innerHTML=`<div class="sec-head" data-rv><h2>Тренды</h2></div>
    <div class="trctl" data-rv><div class="gfilter"><div class="seg" id="trPer" role="group" aria-label="Период"><button type="button" aria-pressed="true" data-v="l10">Последние 10</button><button type="button" aria-pressed="false" data-v="all">Весь сезон</button></div></div>
     <div class="gfilter"><div class="seg" id="trVen" role="group" aria-label="Где играли"><button type="button" aria-pressed="true" data-v="all">Все</button><button type="button" aria-pressed="false" data-v="home">Дома</button><button type="button" aria-pressed="false" data-v="away">В гостях</button></div></div></div>
    <ol class="trs" id="trList" data-rv></ol>`;
@@ -345,7 +343,7 @@ if(nextG){
     ${hist(`Сколько забивает ${T.name}`,sub,a.map(g=>g.gf),['0','1','2','3','4','5+'],[{t:2.5,pos:3},{t:3.5,pos:4}],N)}
     ${hist('Сколько пропускает',sub,a.map(g=>g.ga),['0','1','2','3','4','5+'],[],N)}
    </div>`};
- box.innerHTML=`<div class="sec-head" data-rv><h2>Тоталы и дом/выезд</h2><p>Сколько шайб падает в матчах ${esc(T.name)} и чем отличается игра дома и в гостях. Только сыгранные матчи сезона.</p></div>
+ box.innerHTML=`<div class="sec-head" data-rv><h2>Тоталы и дом/выезд</h2></div>
   <div class="trctl" data-rv><div class="gfilter"><div class="seg" id="tsPer" role="group" aria-label="Период"><button type="button" aria-pressed="true" data-v="all">Весь сезон</button><button type="button" aria-pressed="false" data-v="l10">Последние 10</button></div></div>
    <div class="gfilter"><div class="seg" id="tsVen" role="group" aria-label="Где играли"><button type="button" aria-pressed="true" data-v="all">Все</button><button type="button" aria-pressed="false" data-v="home">Дома</button><button type="button" aria-pressed="false" data-v="away">В гостях</button></div></div></div>
   <div id="tsOut" data-rv></div>
@@ -424,13 +422,13 @@ if(nextG){
   ${nx?`<span class="rs nxt">следующий</span>`:`<span class="sc num">${g.gf}:${g.ga}${g.x?`<small>${esc(g.x)}</small>`:''}</span><span class="rs ${r[1]}" title="${r[2]}">${r[0]}</span>`}</li>`};
  const mt=cur.length?`<ol class="gs h2l">${cur.map(g=>item(g,0)).join('')}${item(nextG,1)}</ol>`
   :`<p class="cmpno">В этом сезоне ещё не встречались.</p><ol class="gs h2l">${item(nextG,1)}</ol>`;
- const allSum=hasOld&&tot?`<p class="note cmpall">За 3 сезона: ${tw}–${tl_} в ${tot} ${plural(tot,'матче','матчах','матчах')}. Счёт — с точки зрения ${nT}.</p>`:(hasOld?`<p class="note cmpall">За 3 сезона команды не встречались.</p>`:'');
+ const allSum=hasOld&&tot?`<p class="note cmpall">За 3 сезона: ${tw}–${tl_} в ${tot} ${plural(tot,'матче','матчах','матчах')}.</p>`:(hasOld?`<p class="note cmpall">За 3 сезона команды не встречались.</p>`:'');
  const dt=document.getElementById('nmh2h');
  dt.innerHTML=`<summary><span class="h2cr">${em(ID)}${em(o)}</span><span class="h2st"><b>Сравнение: ${nT} — ${nO}</b>
    <small>${sumCur}${sumAll}</small></span><span class="h2ar" aria-hidden="true">▾</span></summary>
   <div class="h2in cmp">
-   <section class="cmps"><h3>Сила команд</h3><p class="note">Те же шесть показателей, что в шестиугольнике выше: балл — место в лиге, 100 — лучшая команда.${near?' Цвета клубов близки, поэтому '+nO+' — пунктиром.':''}</p>${rad}</section>
-   <section class="cmps"><h3>Статистика сезона</h3><div class="cmpw" tabindex="0" role="region" aria-label="Статистика команд, листается вбок">${tbl}</div><p class="note">Выделено более сильное значение.</p></section>
+   <section class="cmps"><h3>Сила команд</h3>${rad}</section>
+   <section class="cmps"><h3>Статистика сезона</h3><div class="cmpw" tabindex="0" role="region" aria-label="Статистика команд, листается вбок">${tbl}</div></section>
    <section class="cmps"><h3>Матчи этого сезона</h3>${mt}${allSum}</section>
   </div>`;
  dt.hidden=false;
@@ -465,11 +463,10 @@ else{
   linkPn(document.getElementById('plTable'));
   document.querySelectorAll('#plTabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===st.tab));
  };
- pbox.innerHTML=`<div class="sec-head" data-rv><h2>Игроки</h2><p>Статистика сезона ${lgp(lg)}${L.name}: ${sk.length} ${plural(sk.length,'полевой игрок','полевых игрока','полевых игроков')} и ${gk.length} ${plural(gk.length,'вратарь','вратаря','вратарей')}. Нажмите на заголовок столбца — таблица отсортируется.</p></div>
+ pbox.innerHTML=`<div class="sec-head" data-rv><h2>Игроки</h2></div>
   <ul class="plead" data-rv>${lead.map(([lab,p,fn])=>{const v=fn(p);return `<li><span class="lph" data-n="${esc(p.n)}" aria-hidden="true"></span><span class="sl">${lab}</span><b class="pln"><span data-pn="${esc(p.n)}">${esc(p.n)}</span>${p.no!=null?`<small class="num">№${p.no}</small>`:''}</b><span class="plv"><b class="num">${v[0]}</b><small>${esc(v[1])}</small></span><span class="ss">${esc(v[2])}</span></li>`}).join('')}</ul>
   <div class="gfilter" role="group" aria-label="Кого показать" data-rv><div class="seg" id="plTabs">${sk.length?`<button type="button" aria-pressed="true" data-t="sk">Полевые<small>${sk.length}</small></button>`:''}${gk.length?`<button type="button" aria-pressed="false" data-t="gk">Вратари<small>${gk.length}</small></button>`:''}</div></div>
-  <div class="plwrap" id="plTable" data-rv tabindex="0" role="region" aria-label="Таблица игроков, листается вбок"></div>
-  <p class="note plnote">${lg==='khl'?'Данные приложения КХЛ':'Данные НХЛ'}, регулярный сезон. Нап — нападающий, Защ — защитник${lg==='nhl'?', Цен — центр, ЛН / ПН — левый и правый нападающий':''}; «КН» — коэффициент надёжности вратаря, «Сух» — сухие матчи.</p>`;
+  <div class="plwrap" id="plTable" data-rv tabindex="0" role="region" aria-label="Таблица игроков, листается вбок"></div>`;
  document.getElementById('plTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;st.tab=b.dataset.t;render()});
  document.getElementById('plTable').addEventListener('click',e=>{const b=e.target.closest('th button');if(!b)return;const k=b.dataset.k,t=st.tab;
   if(st.key[t]===k)st.dir[t]*=-1;else{st.key[t]=k;st.dir[t]=(k==='n'||k==='pos'||k==='gaa')?1:-1}render()});

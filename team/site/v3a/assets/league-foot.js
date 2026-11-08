@@ -63,7 +63,7 @@ function rowsFor(mode){
 let mode='all';
 const MODES=[['all','Общая'],['home','Дома'],['away','В гостях']];
 $('tableBox').innerHTML=`
- <div class="sec-head" data-rv><h2>${CUP?'Общий этап':'Турнирная таблица'}</h2><p>${LGP(LG)}${esc(LN)}, сезон ${esc(D.season)}. Нажмите на клуб: матчи сезона, тренды, сила, игроки. Данные — ESPN.</p></div>
+ <div class="sec-head" data-rv><h2>${CUP?'Общий этап':'Турнирная таблица'}</h2></div>
  <div class="lgsw tabs" role="tablist" id="tbSw" aria-label="Какая таблица">${MODES.map(([k,t])=>`<button class="tab" role="tab" type="button" data-m="${k}" aria-selected="${k===mode}">${t}</button>`).join('')}</div>
  <div class="tabscroll lgtbl" id="tbBody"></div><ul class="lkey" id="tbKey"></ul>`;
 function drawTable(){
@@ -96,13 +96,13 @@ function mrow(m,fut){const hw=!fut&&m.gf>m.ga,aw=!fut&&m.ga>m.gf,left=fut?JV.lef
  let html='',prev='';const CAP=40;
  list.slice(0,CAP).forEach(m=>{const dk=m.t.slice(0,10);if(dk!==prev){prev=dk;const d=day(m.t);html+=`<li class="dayh" aria-hidden="true">${d.wd}, ${d.d} ${d.mon}</li>`}html+=mrow(m,true)});
  $('nextBox').innerHTML=`
-  <div class="sec-head" data-rv><h2>Ближайший тур</h2><p>${list.length?`${LGP(LG)}${esc(LN)}: ${plural(list.length,'матч','матча','матчей')} ${head}. Время московское.`:`${LGP(LG)}${esc(LN)}: расписание появится в начале следующего тура.`}</p></div>
+  <div class="sec-head" data-rv><h2>Ближайший тур</h2></div>
   ${list.length?`<ul class="lgml" data-rv>${html}</ul>${list.length>CAP?`<p class="note lgnote">Показаны первые ${CAP} матчей.</p>`:''}`:'<p class="lgempty">В ближайшие дни матчей нет.</p>'}`}
 
 /* ── последние результаты ── */
 {const STEP=10;let n=STEP;const box=$('resultsBox');
  box.innerHTML=`
-  <div class="sec-head" data-rv><h2>Последние результаты</h2><p>${LGP(LG)}${esc(LN)}: сыгранные матчи, новые сверху. Жирным выделен победитель.</p></div>
+  <div class="sec-head" data-rv><h2>Последние результаты</h2></div>
   <ul class="lgml" id="rsList"></ul><div class="lgmore"><button class="btn btn-line" type="button" id="rsMore" hidden></button></div>`;
  const ul=$('rsList'),more=$('rsMore');
  const draw=()=>{ul.innerHTML=M.length?M.slice(0,n).map(m=>mrow(m,false)).join(''):'<li class="lgempty">Сыгранных матчей пока нет.</li>';
@@ -116,7 +116,7 @@ function mrow(m,fut){const hw=!fut&&m.gf>m.ga,aw=!fut&&m.ga>m.gf,left=fut?JV.lef
  const hp=pc(hw),dp=pc(dr),ap=n?100-hp-dp:0;
  const blank=M.filter(m=>m.gf+m.ga===0).length;
  $('statsBox').innerHTML=`
-  <div class="sec-head" data-rv><h2>Статистика лиги</h2><p>${LGP(LG)}${esc(LN)}, сезон ${esc(D.season)}: считаем по ${n} ${plural(n,'сыгранному матчу','сыгранным матчам','сыгранным матчам')}.</p></div>
+  <div class="sec-head" data-rv><h2>Статистика лиги</h2></div>
   <ul class="lgst" data-rv>
    <li><b class="num">${n?fx(sum/n,2):'—'}</b><span>голов за матч</span><em>всего ${sum}</em></li>
    <li><b class="num">${pc(ov)}<small>%</small></b><span>матчей с тоталом больше 2,5</span><em>${ov} из ${n}</em></li>
@@ -125,13 +125,12 @@ function mrow(m,fut){const hw=!fut&&m.gf>m.ga,aw=!fut&&m.ga>m.gf,left=fut?JV.lef
   </ul>
   <div class="lgbar" data-rv><h3>Чем заканчиваются матчи</h3>
    <div class="bar" role="img" aria-label="Победы хозяев ${hp} %, ничьи ${dp} %, победы гостей ${ap} %"><i class="h" style="flex:${hw||.0001}">${hp>=8?hp+'%':''}</i><i class="d" style="flex:${dr||.0001}">${dp>=8?dp+'%':''}</i><i class="a" style="flex:${aw||.0001}">${ap>=8?ap+'%':''}</i></div>
-   <ul><li style="--k:#1d7a45">Победы хозяев: ${hp}% (${hw})</li><li style="--k:#6b7585">Ничьи: ${dp}% (${dr})</li><li style="--k:#1c63c4">Победы гостей: ${ap}% (${aw})</li></ul></div>
-  <p class="note lgnote">${CUP?'Только матчи общего этапа. ':''}Расчёт по сыгранным матчам сезона ${esc(D.season)}; данные — ESPN.</p>`}
+   <ul><li style="--k:#1d7a45">Победы хозяев: ${hp}% (${hw})</li><li style="--k:#6b7585">Ничьи: ${dp}% (${dr})</li><li style="--k:#1c63c4">Победы гостей: ${ap}% (${aw})</li></ul></div>`}
 
 /* ── игроки: бомбардиры и карточки (данные подгружаем отдельно: файл тяжёлый) ── */
 const pbox=$('playersBox');
 pbox.innerHTML=`
- <div class="sec-head" data-rv><h2>Бомбардиры и карточки</h2><p>${LGP(LG)}${esc(LN)}, сезон ${esc(D.season)}: лучшие по голам и дисциплине. Имена — как у ESPN.</p></div>
+ <div class="sec-head" data-rv><h2>Бомбардиры и карточки</h2></div>
  <div class="lgcard" id="plCols"><div><h3>Бомбардиры</h3><p class="lgempty">Загружаем игроков…</p></div></div>`;
 const ini=n=>{const w=String(n).replace(/[^\p{L}\s'-]/gu,'').split(/[\s-]+/).filter(Boolean);return ((w[0]||'')[0]||'').toUpperCase()+((w.length>1?w[w.length-1]:'')[0]||'').toUpperCase()};
 const loadJS=src=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.body.appendChild(s)});

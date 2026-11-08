@@ -74,7 +74,7 @@
         <div class="board-top"><span class="bmeta"><span id="blg"></span><b id="bmeta"></b></span><span class="bwhen"><i class="lamp"></i><span id="bhead">Прогноз дня</span><span class="bdot">·</span><span id="bdate"></span></span></div>
         <div class="mstage" id="mstage" aria-live="polite"><div class="mcard" id="mcard"></div></div>
         <div class="cdown" role="timer" aria-label="До матча"><span class="cdl">До матча</span><span class="cdv num" id="cdv"></span></div>
-        <div class="board-foot"><p class="note">Расчёт по голам сезона. В канале — ставки на 1Х2 и тотал 2,5, когда они проходят порог.</p><div class="pager" id="pager" aria-label="Другие прогнозы дня"></div></div>
+        <div class="board-foot"><div class="pager" id="pager" aria-label="Другие прогнозы дня"></div></div>
       </div>
       <a class="btn btn-tg get8" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>Получать прогнозы — бесплатно</a>
     </div>
@@ -83,18 +83,19 @@
 
 <section class="sec lt" id="matches" data-zone="p1">
   <div class="wrap">
-    <div class="sec-head" data-rv><h2 id="mh">Сегодня на поле</h2><p id="mlead">Нажми на строку: форма, последние матчи и личные встречи сезона.</p></div>
+    <div class="sec-head" data-rv><h2 id="mh">Сегодня на поле</h2></div>
+    <p class="note dayinfo" id="mlead" aria-live="polite" hidden></p>
     <div class="tabs" role="tablist" id="ltabs" aria-label="Фильтр по лигам"></div>
     <ul class="mlist" id="mlist"></ul>
     <div class="more2"><button class="btn btn-line" type="button" id="moreM" hidden>Показать ещё</button></div>
     <a class="btn btn-ink more" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a>
-    <div class="sec-head" data-rv style="margin-top:34px"><h2>Последний тур</h2><p>Результаты последних сыгранных матчей турнира.</p></div><ul class="resl" id="resl"></ul>
+    <div class="sec-head" data-rv style="margin-top:34px"><h2>Последний тур</h2></div><ul class="resl" id="resl"></ul>
   </div>
 </section>
 
 <section class="sec lt" id="leagues" data-zone="p2">
   <div class="wrap">
-    <div class="sec-head" data-rv><h2>Таблица и клубы</h2><p>Общий этап: 1–8 места идут сразу в 1/8 финала, 9–24 играют плей-офф, 25–36 выбывают. Эмблема ведёт на страницу клуба.</p></div>
+    <div class="sec-head" data-rv><h2>Таблица и клубы</h2></div>
     <div class="leagues two six" id="flags" role="tablist" aria-label="Выбор лиги" data-rv></div>
     <div id="wallbox" role="tabpanel" aria-live="polite"><h3 class="wallh" id="wallh"></h3><div class="wall" id="wall"></div>
       <div class="tabscroll"><table class="ltab" id="ltab"></table></div><ul class="lkey" id="lkey"></ul></div>

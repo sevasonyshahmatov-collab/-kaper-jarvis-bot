@@ -65,17 +65,14 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
  </article>
  <section class="pp-sec" aria-labelledby="h-s"><h2 id="h-s">Сезон</h2><div class="pp-tiles">${tiles.join('')}</div></section>${radar(P.sk)}
  <section class="pp-sec" aria-labelledby="h-m"><h2 id="h-m">В скольких матчах</h2>
-  <p class="hint">«n из N» — в скольких своих матчах игрок это сделал.${nhl?'':' Приложение КХЛ не отдаёт состав матча: в разрезах последних 10, дома и в гостях N — матчи клуба, в сезоне — игры игрока.'}</p>
   <table class="pp-mk"><thead><tr><th scope="col">Рынок</th><th scope="col">Сезон</th><th scope="col">Последние 10</th><th scope="col">Дома</th><th scope="col">В гостях</th></tr></thead><tbody>
   ${mkList.map(m=>`<tr><th scope="row">${m.n}</th>${cell(hit(log,m,1))}${cell(hit(L10,m))}${cell(HM.length?hit(HM,m):[0,0])}${cell(AW.length?hit(AW,m):[0,0])}</tr>`).join('')}
   </tbody></table></section>
  <section class="pp-sec" aria-labelledby="h-f"><h2 id="h-f">Форма</h2>
-  <p class="hint">Последние ${Math.min(15,N)} ${pl(Math.min(15,N),'матч','матча','матчей')} клуба с соперниками. Зелёный столбик — рынок сыграл. «@» — матч в гостях.</p>
   <div class="pp-tabs" id="tabs" role="group" aria-label="Рынок графика">${mkList.map((m,i)=>`<button type="button" data-k="${m.k}" aria-pressed="${!i}">${m.n}</button>`).join('')}</div>
   <div class="pp-chart" id="chart" role="img" aria-label="Форма по последним матчам"></div></section>
  <section class="pp-sec" aria-labelledby="h-n"><h2 id="h-n">Следующий матч</h2><div id="next" class="pp-nx"></div></section>
  <section class="pp-sec" aria-labelledby="h-g"><h2 id="h-g">Все матчи сезона</h2>
-  <p class="hint">${nhl?'Только матчи, которые игрок провёл.':'Все матчи клуба в сезоне; приложение КХЛ не отдаёт, кто играл, поэтому строки без очков — не обязательно сыгранные игроком.'} Сначала свежие.</p>
   <div class="pp-wrap"><table class="pp-gm"><thead><tr><th scope="col" class="res"><span class="sr">Результат</span></th><th scope="col">Дата</th><th scope="col">Соперник</th><th scope="col" class="ct">Г+П</th>${nhl?'<th scope="col" class="rt br">Бр</th><th scope="col" class="rt tm">Время</th>':''}<th scope="col" class="rt">Счёт</th></tr></thead><tbody>
   ${log.slice().reverse().map(r=>{const sc=r[8],w=sc&&sc[0]>sc[1];return `<tr><td class="res">${sc?`<b class="${w?'w':'l'}">${w?'В':'П'}</b>`:''}</td><td>${ddmm(r[0])}</td><td><a class="op" style="color:inherit;text-decoration:none" href="../team/index.html?id=${encodeURIComponent(r[1])}"><img src="${em(r[1])}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(tn(r[1]))}<small>${r[2]?'дома':'в гостях'}</small></span></a></td><td class="ct pt"><b class="${r[3]+r[4]>0?'g':''}">${r[3]}+${r[4]}</b></td>${nhl?`<td class="rt br">${r[5]??'—'}</td><td class="rt tm">${mmss(r[6])}</td>`:''}<td class="rt sc">${sc?`<span class="sg"><small>${sc[2]?esc(sc[2]):''}</small><i>${sc[0]}</i><u>:</u><i>${sc[1]}</i></span>`:'—'}</td></tr>`}).join('')}
   </tbody></table></div></section>
@@ -118,6 +115,6 @@ function nextMatch(P){
    const hn=tn(hs),an=tn(as);let h='';
    if(ln)h+=`<div><h3>Линия</h3><div class="row"><span>${esc(hn)}</span><b>${f2(ln.p1)}</b></div>${ln.x!=null?`<div class="row"><span>Ничья</span><b>${f2(ln.x)}</b></div>`:''}<div class="row"><span>${esc(an)}</span><b>${f2(ln.p2)}</b></div>${ln.tot!=null?`<div class="row"><span>Тотал ${ln.tot}: больше / меньше</span><b>${f2(ln.over)} / ${f2(ln.under)}</b></div>`:''}</div>`;
    if(md)h+=`<div><h3>Модель JARVIS · основное время</h3><div class="row"><span>${esc(hn)}</span><b>${pc(md.p1)}</b></div>${md.x!=null?`<div class="row"><span>Ничья</span><b>${pc(md.x)}</b></div>`:''}<div class="row"><span>${esc(an)}</span><b>${pc(md.p2)}</b></div>${md.w1!=null?`<div class="row"><span>С учётом ОТ и буллитов</span><b>${pc(md.w1)} / ${pc(md.w2)}</b></div>`:''}${md.over!=null&&md.tot!=null?`<div class="row"><span>Тотал ${md.tot} больше</span><b>${pc(md.over)}</b></div>`:''}</div>`;
-   document.getElementById('nxl').innerHTML=`<div class="pp-ln">${h}</div><p class="pp-note">Линия и вероятности модели — справочные данные матча, не рекомендация. Хозяева — ${esc(hn)}.</p>`})});
+   document.getElementById('nxl').innerHTML=`<div class="pp-ln">${h}</div><p class="pp-note">Справочные данные матча, не рекомендация.</p>`})});
 }
 })();

@@ -60,7 +60,7 @@ function build(SE,PL){
  /* таблица */
  let mode='conf';
  $('tableBox').innerHTML=`
-  <div class="sec-head" data-rv><h2>Турнирная таблица</h2><p>${lgp(LG)}${L.name}, сезон ${esc(PL.season||'2026/27')}</p></div>
+  <div class="sec-head" data-rv><h2>Турнирная таблица</h2></div>
   <div class="lgsw tabs" role="tablist" id="tbSw" aria-label="Вид таблицы"><button class="tab" role="tab" type="button" data-m="conf" aria-selected="true">По конференциям</button><button class="tab" role="tab" type="button" data-m="all" aria-selected="false">Вся лига</button></div>
   <div id="tbBody"></div><ul class="lkey" id="tbKey"></ul>`;
  const tbl=(rows,zone)=>`<div class="tabscroll lgtbl"><table class="ltab"><thead><tr><th>#</th><th>Клуб</th><th>И</th><th class="hm">В</th><th class="hm">П</th><th>Шайбы</th><th class="hm">РШ</th><th>О</th></tr></thead><tbody>${rows.map((t,i)=>{const d=t.gf-t.ga;
@@ -79,10 +79,10 @@ function build(SE,PL){
    <a class="t a" href="${thref(m.a)}">${em(m.a)}<span class="${aw?'w':''}">${esc(nm(m.a))}</span></a></li>`};
  let html='',prev='';list.slice(0,40).forEach(m=>{const dk=m.t.slice(0,10);if(dk!==prev){prev=dk;const d=day(m.t);html+=`<li class="dayh" aria-hidden="true">${d.wd}, ${d.d} ${d.mon}</li>`}html+=row(m,true)});
  $('nextBox').innerHTML=`
-  <div class="sec-head" data-rv><h2>Ближайшие матчи</h2><p>${lgp(LG)}${L.name}: ${list.length?`${list.length} ${plural(list.length,'матч','матча','матчей')}, ${head}. Время московское.`:'расписание появится позже.'}</p></div>
+  <div class="sec-head" data-rv><h2>Ближайшие матчи</h2></div>
   ${list.length?`<ul class="lgml" data-rv>${html}</ul>`:'<p class="lgempty">В ближайшие дни матчей нет.</p>'}`;
  {const STEP=10;let n=STEP;$('resultsBox').innerHTML=`
-  <div class="sec-head" data-rv><h2>Последние результаты</h2><p>${lgp(LG)}${L.name}: сыгранные матчи, новые сверху. Жирным выделен победитель; под счётом — овертайм или буллиты.</p></div>
+  <div class="sec-head" data-rv><h2>Последние результаты</h2></div>
   <ul class="lgml" id="rsList"></ul><div class="lgmore"><button class="btn btn-line" type="button" id="rsMore" hidden></button></div>`;
   const ul=$('rsList'),more=$('rsMore');const dr=()=>{ul.innerHTML=M.slice(0,n).map(m=>row(m,false)).join('')||'<li class="lgempty">Сыгранных матчей пока нет.</li>';more.hidden=n>=M.length;more.textContent=`Показать ещё ${Math.min(STEP,M.length-n)}`};
   more.addEventListener('click',()=>{n+=STEP;dr()});dr()}
@@ -90,7 +90,7 @@ function build(SE,PL){
  /* статистика */
  {const n=M.length,sum=M.reduce((a,m)=>a+m.gf+m.ga,0),ot=M.filter(m=>m.x==='ОТ').length,so=M.filter(m=>m.x==='Б').length,hw=M.filter(m=>m.gf>m.ga).length,aw=n-hw,pc=v=>n?Math.round(v/n*100):0;
   const reg=n-ot-so,hp=pc(hw),ap=n?100-hp:0,rp=pc(reg),op=pc(ot),sp=n?100-rp-op:0;
-  $('statsBox').innerHTML=`<div class="sec-head" data-rv><h2>Статистика лиги</h2><p>${lgp(LG)}${L.name}, сезон ${esc(PL.season||'2026/27')}: считаем по ${n} ${plural(n,'сыгранному матчу','сыгранным матчам','сыгранным матчам')}.</p></div>
+  $('statsBox').innerHTML=`<div class="sec-head" data-rv><h2>Статистика лиги</h2></div>
    <ul class="lgst" data-rv>
     <li><b class="num">${n?f1(sum/n,2):'—'}</b><span>голов за матч</span><em>всего ${sum}</em></li>
     <li><b class="num">${pc(ot+so)}<small>%</small></b><span>матчей дошли до овертайма</span><em>${ot} в овертайме, ${so} по буллитам</em></li>
@@ -101,8 +101,7 @@ function build(SE,PL){
     <ul><li style="--k:#1d7a45">Победы хозяев: ${hp}% (${hw})</li><li style="--k:#1c63c4">Победы гостей: ${ap}% (${aw})</li></ul></div>
    <div class="lgbar" data-rv><h3>Как заканчиваются матчи</h3>
     <div class="bar" role="img" aria-label="Основное время ${rp} %, овертайм ${op} %, буллиты ${sp} %"><i class="h" style="flex:${reg||.0001}">${rp>=8?rp+'%':''}</i><i class="o" style="flex:${ot||.0001}">${op>=8?op+'%':''}</i><i class="d" style="flex:${so||.0001}">${sp>=8?sp+'%':''}</i></div>
-    <ul><li style="--k:#1d7a45">Основное время: ${rp}%</li><li style="--k:#b8761a">Овертайм: ${op}%</li><li style="--k:#6b7585">Буллиты: ${sp}%</li></ul></div>
-   <p class="note lgnote">Расчёт по сыгранным матчам сезона ${esc(PL.season||'2026/27')}.</p>`}
+    <ul><li style="--k:#1d7a45">Основное время: ${rp}%</li><li style="--k:#b8761a">Овертайм: ${op}%</li><li style="--k:#6b7585">Буллиты: ${sp}%</li></ul></div>`}
 
  /* игроки */
  const ini=n=>{const w=String(n).replace(/[^\p{L}\s'-]/gu,'').split(/[\s-]+/).filter(Boolean);return ((w[0]||'')[0]||'').toUpperCase()+((w.length>1?w[1]:'')[0]||'').toUpperCase()};
@@ -114,7 +113,7 @@ function build(SE,PL){
  const SK=[['pts','По очкам'],['g','По голам'],['a','По передачам']];
  const withP=PS.map(p=>({...p,pts:p.g+p.a}));
  $('playersBox').innerHTML=`
-  <div class="sec-head" data-rv><h2>Бомбардиры и лидеры</h2><p>${lgp(LG)}${L.name}, сезон ${esc(PL.season||'2026/27')}: очки (голы + передачи), броски и время на льду. Данные матчей клубов.</p></div>
+  <div class="sec-head" data-rv><h2>Бомбардиры и лидеры</h2></div>
   <div class="lgsw tabs" role="tablist" id="plSw" aria-label="Сортировка">${SK.map(([k,t])=>`<button class="tab" role="tab" type="button" data-k="${k}" aria-selected="${k===sortK}">${t}</button>`).join('')}</div>
   <div class="tabscroll" id="plTop" style="max-width:1000px"></div>
   <div class="lgcard" style="margin-top:clamp(28px,3.4vw,48px)" id="plMore"></div>

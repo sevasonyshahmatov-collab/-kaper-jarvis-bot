@@ -521,8 +521,7 @@ def forecast_page(lg):
     if sport == 'football' and lg == 'uel':
         lg_link = 'league.html?lg=uel'
     body = ('<section class="fc-top"><div class="wrap">\n%s\n<h1>Прогноз на сегодня:<br><span>%s</span></h1>\n'
-            '<p class="lead">Матчи ближайшего игрового дня и расчёт модели JARVIS: вероятность победы хозяев, ничьей и гостей, тотал и ожидаемые голы. '
-            'Цифры считает модель, а не эксперт, и они не гарантируют результат.</p>\n<p class="fc-upd"><time datetime="%s">%s</time></p>\n'
+            '<p class="lead">Цифры считает модель, а не эксперт, и они не гарантируют результат.</p>\n<p class="fc-upd"><time datetime="%s">%s</time></p>\n'
             '<ul class="fc-sw" aria-label="Лиги">%s</ul>\n</div></section>\n\n'
             '<section class="fc-sec" aria-labelledby="fc-day"><div class="wrap">\n<h2 id="fc-day">%s</h2>\n%s\n'
             '<p class="fc-links"><a href="%s">Таблица и результаты: %s</a> · <a href="%s">Все матчи дня колодой</a> · <a href="%s">Тренды дня</a></p>\n</div></section>\n\n'
@@ -559,8 +558,7 @@ def hub_page():
             items.append('<li><a href="%s"><b>%s</b>%s</a></li>' % (esc(fc_rel(lg)), esc(LG_NAME[lg]), cnt))
         cards.append('<div class="fc-hub-col"><h2>%s</h2><ul class="fc-hub">%s</ul></div>' % (SPORT_RU[sport], ''.join(items)))
     body = ('<section class="fc-top"><div class="wrap">\n%s\n<h1>Прогноз<br><span>на сегодня</span></h1>\n'
-            '<p class="lead">Выберите лигу: на странице матчи ближайшего игрового дня и расчёт модели по каждому. '
-            'Если сегодня матчей нет, покажем ближайший день с матчами.</p>\n<p class="fc-upd"><time datetime="%s">%s</time></p>\n</div></section>\n\n'
+            '<p class="fc-upd"><time datetime="%s">%s</time></p>\n</div></section>\n\n'
             '<section class="fc-sec"><div class="wrap fc-hubs">%s</div></section>'
             % (crumbs_html(P['crumbs'], rel), esc(BUILT.replace(' ', 'T') + ':00+03:00'), esc(upd_text()), ''.join(cards)))
     return rel, shell(rel, '', body), []

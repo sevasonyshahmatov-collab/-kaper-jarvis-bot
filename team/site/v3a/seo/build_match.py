@@ -358,11 +358,11 @@ def h2h_block(m):
                    % (r['d'][8:10], r['d'][5:7], r['d'][:4], esc(home), sc, esc((' ' + r['x']) if r['x'] else ''), esc(away)))
     return ('<section class="fc-sec" aria-labelledby="mt-h2h"><div class="wrap"><h2 id="mt-h2h">Личные встречи</h2>'
             '<div class="mt-tw"><table class="mt-tab"><thead><tr><th scope="col">Дата</th><th scope="col">Хозяева</th><th scope="col">Счёт</th><th scope="col">Гости</th></tr></thead>'
-            '<tbody>%s</tbody></table></div><p class="mt-note">Последние встречи из данных сайта; ОТ и Б — овертайм и буллиты.</p></div></section>' % ''.join(trs)) \
+            '<tbody>%s</tbody></table></div></div></section>' % ''.join(trs)) \
         if m['sport'] == 'hockey' else \
         ('<section class="fc-sec" aria-labelledby="mt-h2h"><div class="wrap"><h2 id="mt-h2h">Личные встречи</h2>'
          '<div class="mt-tw"><table class="mt-tab"><thead><tr><th scope="col">Дата</th><th scope="col">Хозяева</th><th scope="col">Счёт</th><th scope="col">Гости</th></tr></thead>'
-         '<tbody>%s</tbody></table></div><p class="mt-note">Последние встречи из данных сайта.</p></div></section>' % ''.join(trs))
+         '<tbody>%s</tbody></table></div></div></section>' % ''.join(trs))
 
 
 def table_block(m):
@@ -376,10 +376,8 @@ def table_block(m):
         return '<tr><th scope="row">%s</th>%s</tr>' % (esc(name), ''.join('<td>%s</td>' % esc(c) for c in cells))
     head = ['Место', 'И', 'В'] + ([] if hock else ['Н']) + ['П', 'Голы', 'Очки']
     return ('<section class="fc-sec" aria-labelledby="mt-tbl"><div class="wrap"><h2 id="mt-tbl">Положение в таблице</h2>'
-            '<div class="mt-tw"><table class="mt-tab"><thead><tr><th scope="col">Команда</th>%s</tr></thead><tbody>%s%s</tbody></table></div>'
-            '<p class="mt-note">%s</p></div></section>'
-            % (''.join('<th scope="col">%s</th>' % c for c in head), row(m['hn'], sh), row(m['an'], sa),
-               'И — игры, В — победы, ' + ('' if hock else 'Н — ничьи, ') + 'П — поражения' + (' (в основное и дополнительное время)' if hock else '') + '.'))
+            '<div class="mt-tw"><table class="mt-tab"><thead><tr><th scope="col">Команда</th>%s</tr></thead><tbody>%s%s</tbody></table></div></div></section>'
+            % (''.join('<th scope="col">%s</th>' % c for c in head), row(m['hn'], sh), row(m['an'], sa)))
 
 
 def odds_block(m):
@@ -390,8 +388,7 @@ def odds_block(m):
     s = '<ul class="fc-nums mt-odds">%s</ul>' % ''.join('<li><small>%s</small><b>%s</b></li>' % (c, f2(v)) for c, v in cells)
     if ln.get('tot') is not None and ln.get('over') and ln.get('under'):
         s += '<p class="fc-ext">Тотал %s: больше <b>%s</b>, меньше <b>%s</b></p>' % (f1(ln['tot']), f2(ln['over']), f2(ln['under']))
-    return ('<div class="mt-odds-wrap"><h3>Кэфы на матч</h3>%s<p class="mt-note">Основное время; кэфы на момент последнего обновления данных, до матча они меняются. '
-            'Это справка, не рекомендация.</p></div>' % s)
+    return ('<div class="mt-odds-wrap"><h3>Кэфы на матч</h3>%s<p class="mt-note">Это справка, не рекомендация.</p></div>' % s)
 
 
 def other_matches(m, from_dir):

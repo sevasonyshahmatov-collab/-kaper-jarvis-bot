@@ -39,7 +39,7 @@ function render(){
   const tot=p=>st.m==='cr'?p.y+2*p.r:st.m==='st'?p.SoT:st.m==='s2'?p.S:st.m==='ga'?p.G+p.A:p.G;
   const val=x=>st.so==='n'?x.h[0]:st.so==='G'?tot(x.p):x.h[0]/x.h[1];
   L.sort((a,b)=>val(b)-val(a)||b.h[0]-a.h[0]||a.p.n.localeCompare(b.p.n));
-  $('meta').textContent=`${L.length} игроков · ${MN[st.m]} хотя бы в одном матче${st.ha==='home'?' дома':st.ha==='away'?' в гостях':''} · данные на ${D.built}`;
+  $('meta').textContent=`${L.length} игроков · данные на ${D.built}`;
   $('list').innerHTML=L.slice(0,st.lim).map((x,i)=>{const p=x.p,T=D.teams[p.t]||{},h=x.h,pc=Math.round(100*h[0]/h[1]);
     const F=[...(LU?p.ff[st.m]:p.f)],ok=c=>LU?c==='1':st.m==='cr'?c==='c':c==='g',F5=F.slice(-5),pl_=F.filter(c=>c!=='x').length;
     const strip=`<div class="bars">${F.map((c,j)=>{const o=D.teams[p.fo[j]];const t=(o?o.n:'')+(c==='x'?' — не играл':ok(c)?' — '+(MN[st.m]).replace(/^\S+/,'да'):' — нет');
@@ -65,8 +65,6 @@ $('so').onchange=e=>{st.so=e.target.value;render()};
 $('q').oninput=e=>{st.q=e.target.value;st.lim=30;render()};
 $('more').onclick=()=>{st.lim+=30;render()};
 if(!LU)$('mk').querySelectorAll('button').forEach(b=>{if(!['sg','cr'].includes(b.dataset.m))b.hidden=true});
-$('lead').textContent=LU?'Кто забивает, бьёт в створ, отдаёт пасы и получает карточки: «n из N» — в скольких матчах игрока (где он вышел на поле) это случилось, в списке — от 6 матчей. Форма — последние 10 матчей команды (серым — не играл), минуты, дом и выезд, следующий соперник.':'Кто забивает и кто получает карточки: «n из N» — в скольких матчах команды это случилось (в списке — от 6 матчей). Форма — последние 10 матчей, дом и выезд, следующий соперник.';
-$('note').insertAdjacentHTML('beforeend',LU?' Минуты — по заменам, могут отличаться на добавленное время.':' N — матчи команды: составы подключаются.');
 teamOpts();render();
 fetch('data/headshots.json').then(r=>r.ok?r.json():{}).then(j=>{PH=j||{};render()}).catch(()=>{});
 })();

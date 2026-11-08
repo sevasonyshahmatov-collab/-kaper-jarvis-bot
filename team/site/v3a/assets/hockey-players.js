@@ -31,7 +31,7 @@ fetch(`data/plite_${LG}.json`).then(r=>r.json()).then(D=>{
   const tot=p=>st.m==='g'?p.G:st.m==='a'?p.A:st.m==='s3'?p.S:p.G+p.A;
   const val=x=>st.so==='n'?x.h[0]:st.so==='G'?tot(x.p):st.so==='toi'?x.p.toi:x.h[0]/x.h[1];
   L.sort((a,b)=>val(b)-val(a)||b.h[0]-a.h[0]||a.p.n.localeCompare(b.p.n));
-  $('meta').textContent=`${L.length} ${pl(L.length,'игрок','игрока','игроков')} · ${M.w} хотя бы в одном матче${st.ha==='home'?' дома':st.ha==='away'?' в гостях':''} · данные на ${D.built}`;
+  $('meta').textContent=`${L.length} ${pl(L.length,'игрок','игрока','игроков')} · данные на ${D.built}`;
   $('list').innerHTML=(st.m==='pt'?'<div class="gah0" aria-hidden="true"></div><div class="gah" aria-hidden="true"><span>Г</span><i></i><span>П</span></div>':'')+L.slice(0,st.lim).map((x,i)=>{const p=x.p,h=x.h,pc=Math.round(100*h[0]/h[1]),c=(TM[p.t]||[])[1]||'#334';
    const L10=p.log.slice(-10),mx=Math.max(st.m==='s3'?4:2,...L10.map(M.v)),hit=a=>a.filter(M.f).length,L5=L10.slice(-5);
    const strip=`<div class="bars">${L10.map(r=>{const ok=M.f(r),v=M.v(r);return `<i class="${ok?'g':''}" style="--h:${Math.max(.08,v/mx)}" title="${esc(r[0].slice(8,10)+'.'+r[0].slice(5,7)+' '+(r[3]?'дома, ':'в гостях, ')+tn(r[2]))}: ${r[4]}+${r[5]}${r[6]!=null?', бросков '+r[6]:''}"><b>${v}</b></i>`}).join('')}</div><small>5 матчей: <b>${hit(L5)}/${L5.length}</b> · 10: <b>${hit(L10)}/${L10.length}</b></small>`;

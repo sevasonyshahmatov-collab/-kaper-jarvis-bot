@@ -29,9 +29,9 @@ const dayWin={};LGK.forEach(k=>{dayWin[k]=[...new Set(FUT.filter(m=>m.lg===k).ma
 const UP=FUT.filter(m=>(dayWin[m.lg]||[]).includes(m.t.slice(0,10)));
 const today=mskDay(now),isToday=UP.some(m=>m.t.slice(0,10)===today);
 {const f=UP[0];
- if(!UP.length){$('mh').textContent='Ближайшие матчи';$('mlead').textContent='Расписание обновится в начале следующего тура.'}
+ if(!UP.length){$('mh').textContent='Ближайшие матчи';$('mlead').textContent='Расписание обновится в начале следующего тура.';$('mlead').hidden=false}
  else if(!isToday){const d=day(f.t);$('mh').textContent='Ближайшие матчи';
-  $('mlead').textContent=`Сегодня матчей лиг нет, ближайший тур — с ${d.d} ${d.mon}. Нажми на строку: форма, последние матчи и личные встречи сезона.`}
+  $('mlead').textContent=`Сегодня матчей лиг нет, ближайший тур — с ${d.d} ${d.mon}.`;$('mlead').hidden=false}
  }
 
 /* бегущая строка */
@@ -107,13 +107,13 @@ function back(m){const {A,B,h}=det(m),nA=nm(m.h),nB=nm(m.a);
   :`<p class="none">Эти клубы ещё не встречались в лиге в сезонах 2025/26 и 2026/27.</p>`;
  return `<div class="xd">${JVL.why(m)}
   <section class="xb x-last"><h4>Последние 3 матча</h4><div class="two">${last(A)}${last(B)}</div></section>
-  <section class="xb x-form"><h4>Форма <span class="note">последние 5: слева раньше, справа последняя; в кружке — соперник</span></h4>${form(A)}${form(B)}</section>
+  <section class="xb x-form"><h4>Форма</h4>${form(A)}${form(B)}</section>
   <section class="xb x-stat"><h4>Статистика команды <span class="note">сезон 2026/27</span></h4><table class="st"><thead><tr><th></th><th>${CI(m.h)}<span>${esc(nA)}</span></th><th>${CI(m.a)}<span>${esc(nB)}</span></th></tr></thead><tbody>
    ${row('Место в таблице',TA.place,TB.place)}${row('Очки',TA.pts,TB.pts)}${row('Победы — ничьи — поражения',`${TA.w} — ${TA.d} — ${TA.l}`,`${TB.w} — ${TB.d} — ${TB.l}`)}
    ${row('Мячи за игру',f1(A.st.gf),f1(B.st.gf))}${row('Пропущено за игру',f1(A.st.ga),f1(B.st.ga))}${row('Удары за игру',f1(A.st.sh),f1(B.st.sh))}${row('Угловые за игру',f1(A.st.cor),f1(B.st.cor))}
    ${row('Матчей с тоталом больше 2,5',p0(A.st.ov),p0(B.st.ov))}${row('Матчей, где забили обе',p0(A.st.bt),p0(B.st.bt))}</tbody></table></section>
   <section class="xb x-h2h"><h4>Личные встречи <span class="note">лига, два сезона</span></h4>${h2hHTML}</section>
-  <p class="note xn">Матчи и статистика — ESPN, сезон 2026/27. Страница клуба — по ссылке с эмблемы в разделе «Лиги и клубы».</p></div>`}
+</div>`}
 function rowHTML(m){const L=D.leagues[m.lg];
  return `<li class="match ${esc(m.lg)}"><button class="mhead" type="button" aria-expanded="false">
   <div class="mt"><time>${esc(m.t.slice(11))}</time><span class="cd" data-t="${esc(m.t)}"></span></div>

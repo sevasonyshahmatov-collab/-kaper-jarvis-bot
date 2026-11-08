@@ -98,7 +98,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
         <div class="board-top"><span class="bmeta"><span id="blg"></span><b id="bmeta">КХЛ · 10:30 МСК</b></span><span class="bwhen"><i class="lamp"></i><span id="bhead">Прогноз дня</span><span class="bdot">·</span><span id="bdate"></span></span></div>
         <div class="mstage" id="mstage" aria-live="polite"><div class="mcard" id="mcard"></div></div>
         <div class="cdown" role="timer" aria-label="До матча"><span class="cdl">До матча</span><span class="cdv num" id="cdv"></span></div>
-        <div class="board-foot"><p class="note" id="boardnote">Посты с прогнозами выходят в канале: КХЛ — до 08:00 МСК, НХЛ — до 14:00.</p><div class="pager" id="pager" aria-label="Другие прогнозы дня"></div></div>
+        <div class="board-foot"><div class="pager" id="pager" aria-label="Другие прогнозы дня"></div></div>
       </div>
       <a class="btn btn-tg get8" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>Получать прогнозы — бесплатно</a>
     </div>
@@ -107,7 +107,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 
 <section class="sec" id="matches" data-zone="p1">
   <div class="wrap">
-    <div class="sec-head" data-rv><h2>Сегодня на льду</h2><p>Матчи дня <span class="lgp khl"><img src="../assets/lg/khl.webp" alt=""></span>КХЛ и <span class="lgp nhl"><img src="../assets/lg/nhl.webp" alt=""></span>НХЛ. Нажми на строку: расчёт модели, тотал, форма и личные встречи.</p></div>
+    <div class="sec-head" data-rv><h2>Сегодня на льду</h2></div>
     <p class="note dayinfo" id="daynote" aria-live="polite"></p>
     <div class="tabs" role="tablist" id="ltabs" aria-label="Фильтр по лигам"></div>
     <ul class="mlist" id="mlist"></ul>
@@ -117,7 +117,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 
 <section class="sec" id="leagues" data-zone="p2">
   <div class="wrap">
-    <div class="sec-head" data-rv><h2>Лиги и клубы</h2><p>Две лиги, одна модель. <span class="lgp khl"><img src="../assets/lg/khl.webp" alt=""></span>КХЛ — днём и вечером, <span class="lgp nhl"><img src="../assets/lg/nhl.webp" alt=""></span>НХЛ — ночью: ночные матчи собраны в один игровой день.</p></div>
+    <div class="sec-head" data-rv><h2>Лиги и клубы</h2></div>
     <div class="lc-deck" id="lcdeck" data-rv></div>
     <p class="lc-credit" id="lccredit">Фото НХЛ: <a href="https://commons.wikimedia.org/wiki/File:Carolina_Hurricanes_at_Seattle_Kraken_-_October_17,_2022_-_Teuvo_Ter%C3%A4v%C3%A4inen_(52438503593)_(1).jpg" target="_blank" rel="noopener">Jenn G, CC BY-SA 2.0</a>.</p>
   </div>
@@ -180,9 +180,9 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 
 <section class="sec" id="model" data-zone="p3">
   <div class="wrap">
-    <div class="sec-head" data-rv><h2>Прогноз модели</h2><p>Все матчи КХЛ и НХЛ ближайших дней: вероятности модели рядом с линией. Отметка на шкале — доля линии без маржи.</p></div>
+    <div class="sec-head" data-rv><h2>Прогноз модели</h2></div>
     <div id="modelbox"></div>
-    <div class="sec-head" data-rv style="margin-top:46px"><h2>Как думает модель</h2><p>Три шага от данных к выбору. Выбор для канала делает человек по правилам ниже, а не сама модель.</p></div>
+    <div class="sec-head" data-rv style="margin-top:46px"><h2>Как думает модель</h2></div>
     <ol class="steps" data-rv>
       <li><h3>Форма</h3><p>Результаты, сила атаки и обороны, броски в створ и шайбы сверх ожидания, вратарь и два матча за два дня.</p></li>
       <li><h3>Линия</h3><p>Кэфы рынка сравниваются с вероятностью модели. Большое расхождение — повод перепроверить данные, а не готовый вывод.</p></li>
@@ -199,7 +199,6 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
         <h3 id="simh">Расчёт модели</h3>
         <select class="simsel" id="simsel" aria-label="Матч"></select>
         <div class="simbars" id="simbars"></div>
-        <p class="note" id="simnote"></p>
       </div>
     </div>
   </div>
@@ -207,14 +206,14 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 
 <section class="sec" id="honest" data-zone="p3">
   <div class="wrap">
-    <div class="sec-head" data-rv><h2>Честные итоги</h2><p>Каждое утро в канале — итоги вчерашних матчей, и зашедшие, и нет. У каждого прогноза номер поста: любой можно проверить.</p></div>
+    <div class="sec-head" data-rv><h2>Честные итоги</h2></div>
     <div class="soon honest-soon" data-rv><b>Скоро</b><span>Итоги по месяцам появятся на сайте, когда мы подключим его к базе итогов. Пока цифр здесь нет, чтобы не показывать примерные.</span><a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a></div>
   </div>
 </section>
 
 <section class="sec obj" id="doubts" data-zone="p3">
   <div class="wrap">
-    <div class="sec-head" data-rv><h2>Частые сомнения</h2><p>Коротко о главном.</p></div>
+    <div class="sec-head" data-rv><h2>Частые сомнения</h2></div>
     <div class="obj-grid" data-rv>
       <details open><summary>Это бесплатно?</summary><p>Да. Канал @jarvibet бесплатный, прогнозы выходят до начала матча. Без VIP, без предоплаты, без «верняков».</p></details>
       <details><summary>Почему верить?</summary><p>Верить на слово не нужно: собственная модель, а не чужие скриншоты. У каждого прогноза вероятность модели и линия рынка, время публикации указано. Блок «Итоги» на сайте скоро. <a href="#model">Как считает модель</a></p></details>
@@ -308,7 +307,7 @@ const upd=TDY.built?`${JVL.ddmm(TDY.built)} в ${TDY.built.slice(11,16)} МСК`
 {const $=id=>document.getElementById(id),wl=D.filter(m=>m.ln).length;
  $('fN').dataset.count=D.length;$('fN').textContent=D.length;$('fNl').textContent=`${plural(D.length,'матч','матча','матчей')} в ближайшие дни`;
  $('fP').dataset.count=wl;$('fP').textContent=wl;$('fPl').textContent=`с линией и расчётом модели`;
- $('boardnote').textContent=upd?`Линия и расчёт модели обновлены ${upd}. Посты с прогнозами выходят в канале: КХЛ — до 08:00 МСК, НХЛ — до 14:00.`:'Посты с прогнозами выходят в канале: КХЛ — до 08:00 МСК, НХЛ — до 14:00.'}
+}
 const cnt=id=>D.filter(m=>m.lg===id).length;
 const chev='<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5l5 5 5-5"/></svg>';
 
@@ -410,7 +409,7 @@ function back(m){const {A,B,h2h}=det(m);
   <section class="xb x-h2h">${h2hHTML}</section>
   <section class="xb x-stat"><h4>Статистика команды <span class="note">сезон 2026/27</span></h4><table class="st"><thead><tr><th></th><th>${CS(A.slug)}<span>${esc(A.name)}</span></th><th>${CS(B.slug)}<span>${esc(B.name)}</span></th></tr></thead>
    <tbody>${A.st.map((r,i)=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${B.st[i]?B.st[i][1]:'—'}</td></tr>`).join('')}</tbody></table></section>
-  <p class="note xn">Линия и расчёт модели — по данным на ${upd||'последнее обновление'}; матчи и статистика — по данным сезона.</p></div>`}
+  </div>`}
 function row(m){const L=LG[m.lg];
  return `<li class="match ${m.lg}"><button class="mhead" type="button" aria-expanded="false">
   <div class="mt"><time>${esc(m.t.slice(11))}</time><span class="cd" data-t="${esc(m.t)}"></span></div>
@@ -446,8 +445,7 @@ const sb=document.getElementById('simbars'),sel=document.getElementById('simsel'
  const showSim=i=>{const m=L[i];if(!m)return;const r=[m.md.p1,m.md.x,m.md.p2],mx=Math.max(...r);
   document.getElementById('simh').textContent=`Расчёт модели: ${m.hn} — ${m.an}`;
   sb.innerHTML=['П1','Х','П2'].map((l,j)=>`<div class="${r[j]===mx?'pk':''}"><b>${pc(r[j])}</b><em><i style="--h:0%"></i></em><span>${l}</span></div>`).join('');
-  requestAnimationFrame(()=>requestAnimationFrame(()=>sb.querySelectorAll('i').forEach((el,j)=>el.style.setProperty('--h',(r[j]*100/0.7).toFixed(1)+'%'))));
-  document.getElementById('simnote').textContent=`Основное время: П1 — победа ${m.hn}, Х — ничья, П2 — победа ${m.an}. ${m.md.lam?`Ожидаемые голы ${f1(m.md.lam[0],1)} : ${f1(m.md.lam[1],1)}.`:''}`};
+  requestAnimationFrame(()=>requestAnimationFrame(()=>sb.querySelectorAll('i').forEach((el,j)=>el.style.setProperty('--h',(r[j]*100/0.7).toFixed(1)+'%'))))};
  if(L.length){sel.addEventListener('change',()=>showSim(+sel.value));showSim(0)}else{sel.hidden=true;sb.innerHTML='<p class="note">Расчёт появится после обновления данных.</p>'}}
 
 /* лиги и клубы: две коллекционные карточки (assets/leaguecards), на обороте — эмблемы клубов */

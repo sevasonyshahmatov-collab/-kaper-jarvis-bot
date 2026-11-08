@@ -138,7 +138,7 @@ function matchLink(m){const u=(window.JV_MATCHLINKS||{})[m.key||`${m.lg}|${Strin
 function infoHtml(m){const {ln,md}=info(m);let h='';
   const t=String(m.t||'');
   h+=`<div class="dk-ihead"><img class="dk-lgwm" src="assets/lg/${esc(LGLOGO[m.lg]||m.lg+'.webp')}" alt="" aria-hidden="true" onerror="this.remove()"><p class="dk-ik">О встрече</p><h2 class="dk-ih">${esc(m.hn)} — ${esc(m.an)}<small>${esc(lgFull(m))} · ${esc(dayLabel(t))}, ${esc(t.slice(11,16))} МСК${m.arena&&m.arena.name?' · '+esc(m.arena.name)+(m.arena.city?', '+esc(m.arena.city):''):''}</small></h2>${matchLink(m)}</div>`;
-  h+=`<div class="dk-blk"><h3>Таблица и форма</h3>${teamRow(m,m.h,m.hn)}${teamRow(m,m.a,m.an)}<p class="dk-note">Форма — последние 5 матчей, слева раньше: зелёный — победа, красный — поражение.</p></div>`;
+  h+=`<div class="dk-blk"><h3>Таблица и форма</h3>${teamRow(m,m.h,m.hn)}${teamRow(m,m.a,m.an)}</div>`;
   if(md){
     const rows=[[md.p1,'П1 · '+m.hn],[md.x,isH(m)?'Х · ничья в осн. время':'Х · ничья'],[md.p2,'П2 · '+m.an]].filter(r=>r[0]!=null),mx=Math.max(...rows.map(r=>r[0]));
     h+=`<div class="dk-blk"><h3>Модель JARVIS · вероятности</h3>${rows.map(r=>`<div class="dk-pb${r[0]===mx?' top':''}"><span title="${esc(r[1])}">${esc(r[1])}</span><em><i style="--w:${p0(r[0])}%"></i></em><b>${p0(r[0])} %</b></div>`).join('')}`;
@@ -153,7 +153,7 @@ function infoHtml(m){const {ln,md}=info(m);let h='';
     const hasX=!!ln.x;
     h+=`<div class="dk-blk"><h3>Линия</h3><div class="dk-lnq"><span><small>П1</small><b>${f2(ln.p1)}</b></span>${hasX?`<span><small>Х</small><b>${f2(ln.x)}</b></span>`:''}<span><small>П2</small><b>${f2(ln.p2)}</b></span>`+
      (ln.tot!=null&&ln.over?`<span><small>ТБ ${f1(ln.tot)}</small><b>${f2(ln.over)}</b></span><span><small>ТМ ${f1(ln.tot)}</small><b>${f2(ln.under)}</b></span>`:'')+`</div>
-     <p class="dk-note">Линия: ${esc(J.srcLabel(ln))}. Основное время.</p></div>`}
+     <p class="dk-note">Линия: ${esc(J.srcLabel(ln))}</p></div>`}
   else h+=`<div class="dk-blk"><h3>Линия</h3><p class="dk-note" style="margin:0">Линии на этот матч пока нет.</p></div>`;
   h+=`<button type="button" class="dk-more" id="dk-more">Подробная статистика<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
   return h}
@@ -320,7 +320,7 @@ function radarHtml(m){const ax=axesFor(m);if(!ax)return '';
    <svg class="dk-radar" viewBox="-10 -4 320 308" role="img" aria-label="Шестиугольник силы: ${esc(m.hn)} и ${esc(m.an)}">${rings}${spokes}
     <polygon class="pa" style="--c:${cB};animation-delay:.08s" points="${poly(B)}"/><polygon class="pa" style="--c:${cA}" points="${poly(A)}"/>${labs}</svg>
    <div class="dk-axv">${Array.from({length:n},(_,i)=>`<span>${esc(names[i])}: <b style="color:${cA}">${Math.round(A[i])}</b> / <b style="color:${cB}">${Math.round(B[i])}</b></span>`).join('')}</div>
-   <p class="dk-note">Шкала 0–100 внутри ${isH(m)?'лиги':'выборки клубов'}; чем дальше от центра, тем сильнее.</p></section>`}
+   </section>`}
 
 /* личные встречи */
 function h2hRows(m){
@@ -350,7 +350,7 @@ function leadersHtml(m,d){
 /* последние 5 матчей */
 function lastHtml(m){const fa=formOf(m,m.h),fb=formOf(m,m.a);if(!fa&&!fb)return '';
   const col=(s,n,f,c)=>f?`<div><h4 style="--c:${c}"><i></i>${esc(n)}</h4><ul class="dk-lg5">${f.slice().reverse().map(x=>`<li class="${x.r}"><span><small>${shortDate(x.d)}</small>${x.h?'':'@ '}${esc(nameOf(m,x.o))}</span><b>${x.gf}:${x.ga}${x.x?' '+esc(x.x):''}</b></li>`).join('')}</ul></div>`:'';
-  return `<section class="dk-sec"><h3>Последние 5 матчей</h3><div class="dk-two">${col(m.h,m.hn,fa,'var(--dk-ca,#ffc21a)')}${col(m.a,m.an,fb,isH(m)?'var(--dk-cb,#4cc2ff)':'var(--dk-cb,#3dd68c)')}</div><p class="dk-note">Счёт — за команду, которой посвящён столбец. «@» — матч в гостях.</p></section>`}
+  return `<section class="dk-sec"><h3>Последние 5 матчей</h3><div class="dk-two">${col(m.h,m.hn,fa,'var(--dk-ca,#ffc21a)')}${col(m.a,m.an,fb,isH(m)?'var(--dk-cb,#4cc2ff)':'var(--dk-cb,#3dd68c)')}</div></section>`}
 
 function linksHtml(m){return `<section class="dk-sec"><h3>Страницы сайта</h3><div class="dk-links">
   <a href="${clubHref(m,m.h)}">${esc(m.hn)}</a><a href="${clubHref(m,m.a)}">${esc(m.an)}</a><a href="${lgHref(m)}">${esc(lgFull(m))}</a></div></section>`}
@@ -366,7 +366,7 @@ function detailHtml(m,d){return radarHtml(m)+h2hHtml(m)+leadersHtml(m,d)+lastHtm
 /* ── запуск ── */
 function init(){
   const sub=$('dk-sub');
-  sub.textContent=ALL.length?`${ALL.length} ${pl(ALL.length,['матч','матча','матчей'])} на сегодня и завтра по Москве · линии и модель от ${(TD.built||'').slice(11,16)||'—'} МСК`:'';
+  sub.textContent=ALL.length?`${ALL.length} ${pl(ALL.length,['матч','матча','матчей'])} на сегодня и завтра`:'';
   applyFilter();
   const k=q.get('k');if(k){const i=list.findIndex(m=>m.key===k);if(i>=0)cur=i}
   counts();build();renderInfo(false);applyBg(0);
