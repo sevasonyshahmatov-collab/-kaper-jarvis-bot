@@ -1,0 +1,19 @@
+{
+ "day": "2026-11-08",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-08/site_merge_big1.jpg",
+    "team/out/2026-11-08/site_merge_big2.jpg"
+   ],
+   "text": "Карточки крупнее"
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Карточки крупнее: на широком экране 460 px вместо 300 (заходят на свободное поле справа), на ноутбуке 1440 — 364 px. Заголовок слева не сжимается.\n\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/687b548f72d8353dd227e4e183defa7545b38a2a/team/site/v3a/proto/home/merge/index.html"
+  }
+ ]
+}
