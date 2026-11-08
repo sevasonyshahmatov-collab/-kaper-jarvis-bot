@@ -66,7 +66,7 @@ function row(m){
   <div class="hm-info"><span class="hm-tag">${esc(LG[m.lg]||m.lg)}</span>${info}</div></a></li>`;
 }
 function render(){
- const list=$('hm-list');
+ const list=$('hm-list');if(!list)return;
  if(!J||!all.length){list.innerHTML='<li class="hm-soon">Скоро: матчи с расчётом модели появятся после ближайшего обновления данных.</li>';return}
  list.innerHTML=pick().map(row).join('');
  const b=TDAT.built;

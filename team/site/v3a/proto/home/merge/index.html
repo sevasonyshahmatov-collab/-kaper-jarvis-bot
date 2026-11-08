@@ -19,6 +19,7 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
 <link rel="stylesheet" href="../../../assets/obj.css">
 <link rel="stylesheet" href="../cards/cards.css">
 <link rel="stylesheet" href="merge.css">
+<link rel="stylesheet" href="mtoday.css">
 <style>.soon{background:var(--card);border:1px solid var(--rule-2);border-radius:14px;padding:clamp(20px,3vw,32px);display:grid;gap:12px;justify-items:start;max-width:640px}.soon b{font:800 30px/1 var(--display);color:var(--signal)}[data-theme=c] .soon b{color:var(--ink)}.soon p{margin:0;color:var(--ink-2)}</style>
 <link rel="icon" href="../../../favicon.svg" type="image/svg+xml">
 <link rel="icon" href="../../../favicon-32.png" sizes="32x32" type="image/png">
@@ -109,13 +110,11 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
   </div>
 </section>
 
-<section class="mg-today" aria-label="Ближайшие матчи">
+<section class="mg-today" id="today" aria-labelledby="mt-h">
   <div class="wrap">
-    <aside class="hm-today" id="today" aria-labelledby="hm-th">
-      <div class="hm-th"><h2 id="hm-th">Ближайшие матчи</h2><span class="hm-upd" id="hm-upd"></span></div>
-      <ul class="hm-list" id="hm-list" aria-live="polite"><li class="hm-soon">Загружаем матчи…</li></ul>
-      <p class="hm-note">Это аналитика, не гарантия.</p>
-    </aside>
+    <div class="mt-head"><h2 id="mt-h">Ближайшие матчи</h2><span class="mt-upd" id="mt-upd"></span>
+      <nav class="mt-sw" aria-label="Вид блока (макет)"><a href="?m=1" data-m="1">1</a><a href="?m=2" data-m="2">2</a><a href="?m=3" data-m="3">3</a></nav></div>
+    <div id="mt" aria-live="polite"><p class="mt-none">Загружаем матчи…</p></div>
   </div>
 </section>
 
@@ -188,5 +187,6 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
 <script src="../common.js"></script>
 <script src="../cards/vendor/gsap.min.js"></script>
 <script src="merge.js"></script>
+<script src="mtoday.js"></script>
 </body>
 </html>
