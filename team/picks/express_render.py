@@ -41,7 +41,7 @@ def main(src, out):
             continue
         legs = [dict(home=x['home'], away=x['away'], time=x['time'], bet=x['bet_short'], kef=x['kef'], league=x['league'])
                 for x in c['legs']]
-        kw = dict(date_title=date_title(c['legs']), total=c['kef'])     # владелец 31.10: только события и общий кэф
+        kw = dict(date_title=date_title(c['legs']), total=c['kef'], title=c.get('title') or 'ЭКСПРЕСС')  # владелец 31.10: только события и общий кэф; 08.11: свой заголовок
         for fmt in ('feed', 'story'):
             p = ec.render(legs, os.path.join(out, 'e%d_%s.jpg' % (k, fmt)), fmt=fmt,
                           cta='Все прогнозы — в Telegram @jarvibet' if fmt == 'story' else None, **kw)
