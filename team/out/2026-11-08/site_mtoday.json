@@ -1,0 +1,21 @@
+{
+ "day": "2026-11-08",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-08/site_mtj1.jpg",
+    "team/out/2026-11-08/site_mtj2.jpg",
+    "team/out/2026-11-08/site_mtj3.jpg",
+    "team/out/2026-11-08/site_mtj_phone.jpg"
+   ],
+   "text": "«Ближайшие матчи»: 3 варианта (последний снимок — телефон)"
+  },
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Три новых вида блока «Ближайшие матчи», выбери номер:\n\n1 — Лицом к лицу: эмблемы крупно, полоса шансов П1 / Х / П2 по модели, кэф под каждым исходом.\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/9d6d2da6d084ba04d079ed3d710017e8244ed84f/team/site/v3a/proto/home/merge/index.html?m=1#today\n\n2 — Билеты: корешок со временем и лигой, команды, справа исход модели крупно и кэф.\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/9d6d2da6d084ba04d079ed3d710017e8244ed84f/team/site/v3a/proto/home/merge/index.html?m=2#today\n\n3 — Табло по времени: матчи сгруппированы по часу начала.\nhttps://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/9d6d2da6d084ba04d079ed3d710017e8244ed84f/team/site/v3a/proto/home/merge/index.html?m=3#today\n\nХоккей — голубой, футбол — зелёный. Переключатель 1/2/3 справа от заголовка (только в макете)."
+  }
+ ]
+}
