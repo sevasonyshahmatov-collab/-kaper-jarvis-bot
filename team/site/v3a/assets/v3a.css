@@ -967,3 +967,12 @@ body{font-variant-numeric:tabular-nums lining-nums}
 @media (max-width:620px) and (pointer:coarse){
   .js .hero [data-rv]>*,.js .hero[data-rv]>*,.js .tmhero [data-rv]>*,.js .lghero [data-rv]>*{opacity:1!important;transform:none!important;transition:none!important}
 }
+/* личные встречи в карточке матча: счёт «В — Н — П» в одну строку, длинные названия — с многоточием (футбол на телефоне, 09.11) */
+.h2t b{white-space:nowrap}
+.h2l .pp{min-width:0;overflow:hidden}
+.h2l .pp>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.l3 .op{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.h2t b{flex:none}
+.h2t span{flex:1 1 0;overflow:hidden}
+.h2t span:last-child{justify-content:flex-end;text-align:right}
+@media (max-width:480px){.h2t{font-size:14px}.h2t b{font-size:22px}}

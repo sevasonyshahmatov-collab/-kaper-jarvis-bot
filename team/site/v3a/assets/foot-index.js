@@ -103,24 +103,26 @@ function det(m){return m.det||(m.det={A:{s:m.h,g:gamesOf(m.h),st:stats(m.h)},B:{
 /* удары и угловые по матчам — отдельный файл, только когда матч раскрыли (09.11, скорость) */
 let xyP=null;const loadXY=()=>window.JV_XY?Promise.resolve():(xyP=xyP||new Promise(ok=>{const sc=document.createElement('script');sc.src='data/games-xy.js';sc.onload=sc.onerror=()=>ok();document.head.appendChild(sc)}));
 function back(m){const {A,B,h}=det(m),nA=nm(m.h),nB=nm(m.a);
- const last=t=>`<div class="l3"><h5>${CI(t.s)}${esc(nm(t.s))}</h5><ul>${t.g.slice(0,3).map(g=>{const r=rOf(g);return `<li><b class="rs ${r}" title="${RESF[r]}">${RES[r]}</b><span class="op">${CI(g.o)}${esc(nm(g.o))}</span><span class="sc num">${g.gf}:${g.ga}</span><span class="d">${g.h?'дома':'в гостях'} · ${dd(g.d)}</span></li>`}).join('')||'<li class="none">Нет данных</li>'}</ul></div>`;
- const form=t=>`<div class="fm"><span>${CI(t.s)}${esc(nm(t.s))}</span>${dots(t.s)}</div>`;
- const row=(lab,a,b)=>`<tr><td>${lab}</td><td class="num">${a}</td><td class="num">${b}</td></tr>`;
+ const last=t=>`<div class="l3"><h5>${CI(t.s)}${esc(nm(t.s))}</h5><ul>${t.g.slice(0,12).map(g=>{const r=rOf(g);return `<li><b class="rs ${r}" title="${RESF[r]}">${RES[r]}</b><span class="op">${CI(g.o)}${esc(nm(g.o))}</span><span class="sc num">${g.gf}:${g.ga}</span><span class="d">${g.h?'дома':'в гостях'} · ${dd(g.d)}</span></li>`}).join('')||'<li class="none">Нет данных</li>'}</ul></div>`;
+  const row=(lab,a,b)=>`<tr><td>${lab}</td><td class="num">${a}</td><td class="num">${b}</td></tr>`;
  const f1=v=>fx(v,1),p0=v=>v==null?'—':Math.round(v*100)+' %';
  const TA=T[m.h],TB=T[m.a];
  const wA=h.filter(g=>(g.h===m.h?g.hs>g.as:g.as>g.hs)).length,wB=h.filter(g=>(g.h===m.h?g.as>g.hs:g.hs>g.as)).length,dr=h.length-wA-wB;
- const h2hHTML=h.length?`<p class="h2t"><span>${CI(m.h)}${esc(nA)}</span><b class="num">${wA} — ${dr} — ${wB}</b><span>${esc(nB)}${CI(m.a)}</span></p><ul class="h2l">${h.slice(0,6).map(g=>{const home=g.h,away=g.h===m.h?m.a:m.h;
-   return `<li><span class="d">${dd(g.d)}<small class="smp">${esc(g.s)}</small></span><span class="pp">${CI(home)}<span class="${g.hs>g.as?'wn':''}">${esc(nm(home))}</span></span><span class="sc num"><b class="${g.hs>g.as?'wn':''}">${g.hs}</b>:<b class="${g.as>g.hs?'wn':''}">${g.as}</b></span><span class="pp aw">${CI(away)}<span class="${g.as>g.hs?'wn':''}">${esc(nm(away))}</span></span></li>`}).join('')}</ul>`
+ const h2hHTML=h.length?`<p class="h2t"><span>${CI(m.h)}${esc(nA)}</span><b class="num">${wA} — ${dr} — ${wB}</b><span>${esc(nB)}${CI(m.a)}</span></p><ul class="h2l">${h.slice(0,12).map(g=>{const home=g.h,away=g.h===m.h?m.a:m.h;
+   return `<li><span class="d">${dd(g.d)}${g.d.slice(0,7)<'2026-07'?`<small>.${g.d.slice(2,4)}</small>`:''}</span><span class="pp">${CI(home)}<span class="${g.hs>g.as?'wn':''}">${esc(nm(home))}</span></span><span class="sc num"><b class="${g.hs>g.as?'wn':''}">${g.hs}</b>:<b class="${g.as>g.hs?'wn':''}">${g.as}</b></span><span class="pp aw">${CI(away)}<span class="${g.as>g.hs?'wn':''}">${esc(nm(away))}</span></span></li>`}).join('')}</ul>`
   :`<p class="none">Эти клубы ещё не встречались в лиге в сезонах 2025/26 и 2026/27.</p>`;
  return `<div class="xd">${JVL.why(m)}
-  <section class="xb x-last"><h4>Последние 3 матча</h4><div class="two">${last(A)}${last(B)}</div></section>
-  <section class="xb x-form"><h4>Форма</h4>${form(A)}${form(B)}</section>
+  <section class="xb x-last"><h4>Последние матчи</h4><div class="two">${last(A)}${last(B)}</div></section>
+  <section class="xb x-h2h"><h4>Личные встречи <span class="note">лига, два сезона</span></h4>${h2hHTML}</section>
   <section class="xb x-stat"><h4>Статистика команды <span class="note">сезон 2026/27</span></h4><table class="st"><thead><tr><th></th><th>${CI(m.h)}<span>${esc(nA)}</span></th><th>${CI(m.a)}<span>${esc(nB)}</span></th></tr></thead><tbody>
    ${row('Место в таблице',TA.place,TB.place)}${row('Очки',TA.pts,TB.pts)}${row('Победы — ничьи — поражения',`${TA.w} — ${TA.d} — ${TA.l}`,`${TB.w} — ${TB.d} — ${TB.l}`)}
    ${row('Мячи за игру',f1(A.st.gf),f1(B.st.gf))}${row('Пропущено за игру',f1(A.st.ga),f1(B.st.ga))}${row('Удары за игру',f1(A.st.sh),f1(B.st.sh))}${row('Угловые за игру',f1(A.st.cor),f1(B.st.cor))}
    ${row('Матчей с тоталом больше 2,5',p0(A.st.ov),p0(B.st.ov))}${row('Матчей, где забили обе',p0(A.st.bt),p0(B.st.bt))}</tbody></table></section>
-  <section class="xb x-h2h"><h4>Личные встречи <span class="note">лига, два сезона</span></h4>${h2hHTML}</section>
 </div>`}
+/* «Последние матчи» и личные встречи: сколько строк влезает рядом с расчётом модели (на узком экране — 5), как у хоккея (владелец 09.11) */
+function fitLast(root){root.querySelectorAll('.x-last .l3 ul, .x-h2h .h2l').forEach(ul=>{const box=ul.closest('.xb'),wide=getComputedStyle(box).contain.includes('size'),ls=[...ul.children];
+ ls.forEach((l,k)=>l.hidden=!wide&&k>=5);if(!wide)return;const lim=box.getBoundingClientRect().bottom-parseFloat(getComputedStyle(box).paddingBottom)+1;ls.forEach(l=>{if(l.getBoundingClientRect().bottom>lim)l.hidden=true})})}
+addEventListener('resize',()=>document.querySelectorAll('.match.open').forEach(fitLast));
 function rowHTML(m){const L=D.leagues[m.lg];
  return `<li class="match ${esc(m.lg)}"><button class="mhead" type="button" aria-expanded="false">
   <div class="mt"><time>${esc(m.t.slice(11))}</time><span class="cd" data-t="${esc(m.t)}"></span><span class="lvslot" data-lv data-lv-lg="${esc(m.lg)}" data-lv-t="${esc(m.t.replace(' ','T'))}:00+03:00" data-lv-h="${esc(m.h)}" data-lv-a="${esc(m.a)}" data-lv-hn="${esc(nm(m.h))}" data-lv-an="${esc(nm(m.a))}"></span></div>
@@ -134,7 +136,7 @@ function render(l,more){if(!more){curTab=l;shownN=LIM}
  vis.forEach(m=>{const dk=m.t.slice(0,10);if(dk!==prev){prev=dk;const d=day(m.t);html+=`<li class="dayh" aria-hidden="true">${d.wd}, ${d.d} ${d.mon}${dk===today?' · сегодня':''}</li>`}html+=rowHTML(m)});
  list.innerHTML=html||'<li class="note" style="padding:18px 4px">В этой лиге ближайших матчей пока нет.</li>';
  list.querySelectorAll('.match').forEach((li,i)=>{const b=li.querySelector('.mhead'),body=li.querySelector('.mbody>div');
-  b.addEventListener('click',()=>{const open=()=>requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o)});
+  b.addEventListener('click',()=>{const open=()=>requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o);if(o)fitLast(li)});
    if(body.innerHTML)return open();loadXY().then(()=>{vis[i].det=null;body.innerHTML=back(vis[i]);open()})})});
  if(!RM&&!more)list.querySelectorAll('.match').forEach((li,i)=>li.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:Math.min(i,10)*55,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}));
  requestAnimationFrame(()=>list.querySelectorAll('.match').forEach(li=>li.classList.add('in')));
