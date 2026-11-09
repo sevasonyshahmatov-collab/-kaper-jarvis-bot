@@ -1,0 +1,26 @@
+{
+ "day": "2026-11-09",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Личные встречи: теперь в каждой карточке на фоне растянута эмблема того, кто выиграл этот матч. Выиграл Ак Барс — Ак Барс, выиграло Торпедо — Торпедо. Ничья — без эмблемы. Общий фон блока убрал.\n\nПосмотреть: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/05b5ddcd05b4d3691cdf6469e97e34b03a8b2c93/team/site/v3a/proto/match-1/index.html и https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/05b5ddcd05b4d3691cdf6469e97e34b03a8b2c93/team/site/v3a/proto/match-4/index.html\n\nРаскатывать вид 2 на все страницы матчей или ещё поработаем?"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-09/mx_h2h2_pc.png"
+   ],
+   "text": "Компьютер: Ак Барс — Торпедо"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "team/out/2026-11-09/mx_h2h2_m.png"
+   ],
+   "text": "Телефон: Бостон — Флорида"
+  }
+ ]
+}
