@@ -835,6 +835,7 @@ def match_page(m):
     if V2:
         js += '<link rel="stylesheet" href="%sassets/matchx.css">\n' % pre
         body += CD_JS
+        body += '<script src="%sassets/flagwave.js" defer></script>\n' % pre
     text = B.shell(rel, sport, body, extra_css='match.css', head_js=js,
                    extra_scripts='' if fin else '<script src="%sassets/live.js" defer></script>\n' % pre)
     # JSON-LD SportsEvent
