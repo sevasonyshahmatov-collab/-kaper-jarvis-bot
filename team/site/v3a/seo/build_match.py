@@ -400,7 +400,11 @@ def other_matches(m, from_dir):
     if not same:
         return ''
     pre = '../' * B.depth(from_dir)
-    lis = ''.join('<li><a href="%s"><b>%s — %s</b><small>%s МСК</small></a></li>' % (esc(pre + x['rel']), esc(x['hn']), esc(x['an']), esc(x['t'][11:16])) for x in same[:8])
+    def em(tid, nm):   # эмблемы клубов в «Других матчах» (владелец 09.11)
+        e = B.emblem(m['sport'], tid, from_dir)
+        return ('<img src="%s" alt="" width="36" height="36" loading="lazy">' % esc(e)) if e else '<i class="mt-oe0">%s</i>' % esc(nm[:2])
+    lis = ''.join('<li><a href="%s"><span class="mt-oe">%s%s</span><b><span>%s</span> — <span>%s</span></b><small>%s МСК</small></a></li>'
+                  % (esc(pre + x['rel']), em(x['h'], x['hn']), em(x['a'], x['an']), esc(x['hn']), esc(x['an']), esc(x['t'][11:16])) for x in same[:8])
     return ('<section class="fc-sec" aria-labelledby="mt-oth"><div class="wrap"><h2 id="mt-oth">Другие матчи %s в этот день</h2><ul class="fc-hub mt-oth">%s</ul></div></section>'
             % (esc(lg_name(m['lg'])), lis))
 
@@ -626,10 +630,26 @@ def v2_form(m, from_dir):
             '<div class="mx-form">%s</div></div></section>' % ''.join(cols))
 
 
-def v2_h2h(m):
+def v2_h2h(m, from_dir):
     rows = h2h_rows(m)[:6]
     if not rows:
         return ''
+    # фон — растянутая эмблема того, кто выиграл противостояние (владелец 09.11): по победам в этих встречах, при равенстве — по голам;
+    # совсем поровну — две эмблемы, каждая со своей стороны
+    wh = sum(1 for r in rows if r['gf'] > r['ga']); wa = sum(1 for r in rows if r['ga'] > r['gf'])
+    gh = sum(r['gf'] for r in rows); ga = sum(r['ga'] for r in rows)
+    lead = 'h' if (wh, gh) > (wa, ga) else 'a' if (wa, ga) > (wh, gh) else ''
+    eh, ea = B.emblem(m['sport'], m['h'], from_dir), B.emblem(m['sport'], m['a'], from_dir)
+    if lead:
+        e, nm = (eh, m['hn']) if lead == 'h' else (ea, m['an'])
+        bg = ('<i class="mx-h2bg" aria-hidden="true"><img src="%s" alt="" loading="lazy"></i>' % esc(e)) if e else ''
+        w = max(wh, wa)
+        why = ('%d %s из %d' % (w, 'победа' if w == 1 else 'победы' if 2 <= w <= 4 else 'побед', len(rows))) if wh != wa \
+            else 'победы поровну (%d:%d), по голам %d:%d' % (wh, wa, max(gh, ga), min(gh, ga))
+        sub = '<p class="mx-h2s">Сильнее в личных встречах — <b>%s</b>: %s</p>' % (esc(nm), why)
+    else:
+        bg = ('<i class="mx-h2bg mx-h2bg2" aria-hidden="true"><img src="%s" alt="" loading="lazy"><img src="%s" alt="" loading="lazy"></i>' % (esc(eh), esc(ea))) if eh and ea else ''
+        sub = '<p class="mx-h2s">В личных встречах поровну: %d:%d по победам</p>' % (wh, wa)
     cards = []
     for r in rows:
         home, away = (m['hn'], m['an']) if r['home'] else (m['an'], m['hn'])
@@ -638,8 +658,8 @@ def v2_h2h(m):
         cards.append('<li><time>%s.%s.%s</time><span class="%s">%s</span><b>%d:%d%s</b><span class="%s">%s</span></li>'
                      % (r['d'][8:10], r['d'][5:7], r['d'][2:4], 'w' if win == 'h' else '', esc(home), hg, ag,
                         ('<small>%s</small>' % esc(r['x'])) if r['x'] else '', 'w' if win == 'a' else '', esc(away)))
-    return ('<section class="fc-sec" aria-labelledby="mt-h2h"><div class="wrap"><h2 id="mt-h2h">Личные встречи</h2>'
-            '<ul class="mx-h2h">%s</ul></div></section>' % ''.join(cards))
+    return ('<section class="fc-sec mx-h2sec" aria-labelledby="mt-h2h">%s<div class="wrap"><h2 id="mt-h2h">Личные встречи</h2>%s'
+            '<ul class="mx-h2h">%s</ul></div></section>' % (bg, sub, ''.join(cards)))
 
 
 def v2_summary(m):
@@ -828,7 +848,7 @@ def match_page(m):
             ink = lambda c: '#141a24' if _lum(c.lstrip('#')) > .55 else '#ffffff'  # noqa: E731
             cols = (bgc[0], bgc[1], ink(bgc[0]), ink(bgc[1]))
         top = v2_top(m, from_dir, fin, name, h1b, dm, wd, ar_txt, crumbs, rel, cols)
-        body = top + v2_model(m, fin, pre, cols) + prev + v2_form(m, from_dir) + v2_h2h(m) + table_block(m) + other_matches(m, from_dir) + links
+        body = top + v2_model(m, fin, pre, cols) + prev + v2_form(m, from_dir) + v2_h2h(m, from_dir) + table_block(m) + other_matches(m, from_dir) + links
     else:
         body = top + mdl + prev + form_block(m, from_dir) + h2h_block(m) + table_block(m) + other_matches(m, from_dir) + links
     js = '<script>window.JV_ACT=%s;</script>\n' % json.dumps('khl' if lg == 'khl' else 'nhl' if lg == 'nhl' else 'ucl' if lg == 'ucl' else '' if sport == 'hockey' else 'lg')
