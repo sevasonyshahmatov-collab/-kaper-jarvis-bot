@@ -26,3 +26,16 @@
 .me-m>.lv{margin:4px 0 0}
 .lv[hidden]{display:none!important}
 .mt-odds-wrap[hidden]{display:none!important}
+
+/* живой счёт в строке матча на хоккее и футболе (09.11): под временем */
+.mt .lvslot{display:block}
+.mt .lvslot>.lv{margin:4px 0 0;gap:4px 6px}
+.mt .lvslot .lv-tag{font-size:10px;padding:2px 6px}
+.mt .lvslot .lv-sc{font-size:15px;padding:0 2px}
+.mt .lvslot .lv-st{display:none}
+/* живой счёт на карточке «Матчей дня» (09.11): между командами */
+.dk-vs{display:flex;flex-direction:column;align-items:center}
+.dk-vs .lvslot>.lv{flex-direction:column;align-items:center;margin:6px 0 0;gap:4px}
+.dk-vs .lvslot .lv-sc{font-size:24px;color:#fff}
+.dk-vs:has(.lvslot .lv:not([hidden])){font-size:0}   /* идёт матч — вместо «—» счёт */
+.dk-vs .lvslot .lv-st{font-size:12px;color:#dbe4f0}

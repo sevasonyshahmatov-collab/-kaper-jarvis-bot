@@ -66,7 +66,7 @@ function cardHtml(m,i,n){const {ln,md}=info(m),pk=pick(m,md),fl=J.fair(ln),mx=fl
    <div class="dk-ct"><span class="dk-lg"><img data-src="${lgIcon(m)}" alt="" decoding="async" onerror="this.remove()">${esc(lgName(m))}</span><span class="dk-dt"><b>${esc(dayLabel(t))}</b> · ${esc(t.slice(11,16))} МСК</span></div>
    <div class="dk-cm">
     <div class="dk-tm"><span class="dk-em">${emImg(m,m.h,m.hn)}</span><b>${esc(m.hn)}</b><i>дома</i></div>
-    <span class="dk-vs">—</span>
+    <span class="dk-vs">—<span class="lvslot" data-lv data-lv-lg="${esc(m.lg)}" data-lv-t="${esc(t.slice(0,16).replace(' ','T'))}:00+03:00" data-lv-h="${esc(m.h)}" data-lv-a="${esc(m.a)}" data-lv-hn="${esc(m.hn)}" data-lv-an="${esc(m.an)}"></span></span>
     <div class="dk-tm"><span class="dk-em">${emImg(m,m.a,m.an)}</span><b>${esc(m.an)}</b><i>в гостях</i></div>
    </div>
   </div>
