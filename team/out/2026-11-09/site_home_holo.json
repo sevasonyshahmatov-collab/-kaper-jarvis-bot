@@ -1,0 +1,5 @@
+{"day": "2026-11-09",
+ "messages": [
+  {"to": "owner", "type": "photo", "files": ["team/out/2026-11-09/home_holo_1440.png", "team/out/2026-11-09/home_holo_390.png"],
+   "text": "Сайт: вернул главную с голографическими карточками Хоккей / Футбол — теперь это основная страница (index.html). Компьютер и телефон, ошибок нет.\n\nСмотреть: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/7d084201df822854f1d5800ee4b6d34c1093254a/team/site/v3a/index.html\n\nПрежняя главная сохранена (index-old.html) — вернуть можно в любой момент.\n\nЕщё жду: цвета 1 или 2; этап 3 аудита; проверка задач из Telegram раз в час."}
+ ]}
