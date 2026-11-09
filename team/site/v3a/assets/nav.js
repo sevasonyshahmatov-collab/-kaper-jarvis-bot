@@ -12,9 +12,9 @@ const q=new URLSearchParams(location.search);
 const sport=document.documentElement.dataset.sport||'';
 
 const SECTIONS={
- hockey:[['m','Матчи','hockey/index.html'],['deck','Матчи дня','matches.html?s=h'],['khl','КХЛ','hockey/league.html?lg=khl'],['nhl','НХЛ','hockey/league.html?lg=nhl'],
+ hockey:[['m','Матчи','hockey/index.html'],['deck','Матчи дня','matches.html?s=h'],['fc','Прогноз дня','hockey/forecast-khl.html'],['khl','КХЛ','hockey/league.html?lg=khl'],['nhl','НХЛ','hockey/league.html?lg=nhl'],
          ['pl','Игроки','hockey/players.html'],['tr','Тренды','hockey/trends.html'],['mod','Модель','model.html?s=h']],
- football:[['m','Матчи','football/index.html'],['deck','Матчи дня','matches.html?s=f'],['lg','Лиги','football/league.html?lg=epl'],['ucl','Лига чемпионов','football/ucl.html'],
+ football:[['m','Матчи','football/index.html'],['deck','Матчи дня','matches.html?s=f'],['fc','Прогноз дня','football/forecast-epl.html'],['lg','Лиги','football/league.html?lg=epl'],['ucl','Лига чемпионов','football/ucl.html'],
          /* ['pl','Игроки','football/players.html'], — скрыто до готовности портретов (владелец 04.11) */['tr','Тренды','football/trends.html'],['mod','Модель','model.html?s=f']]
 };
 /* какой пункт активен */
@@ -25,6 +25,7 @@ function active(){
     return T&&T.lg==='nhl'||/^nhl_/.test(id)?'nhl':'khl'}
   if(file==='team.html')return 'lg';
   if(file==='matches.html')return 'deck';
+  if(/^forecast-/.test(file))return 'fc';   /* «Прогноз на сегодня» в меню разделов (владелец 09.11: «как туда попасть?») */
   if(file==='index.html')return 'm';
   if(file==='ucl.html')return 'ucl';
   if(file==='league.html'){const l=q.get('lg')||'';return sport==='hockey'?(l==='nhl'?'nhl':'khl'):(l==='ucl'?'ucl':'lg')}
@@ -68,6 +69,10 @@ hd.innerHTML=`<div class="wrap hdrow">
 </div>
 <div class="mpanel" id="mpanel" hidden>${mseg}<a class="mme" href="${esc(U('me/index.html'))}">${STAR}<span>Мой JARVIS</span></a>${panel}<button type="button" class="msearch" id="msearch">Поиск по сайту</button><a class="mtg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Получать прогнозы — бесплатно</span></a></div>`;
 /* на телефоне в шапке место отдано кнопке подписки: переключатель спорта и поиск живут в меню */
+/* шапка всегда в одну строку (09.11: на 1440–1920 px кнопка уезжала за край): если не влезает — компактнее по шагам, в крайнем случае пункты в «Меню» */
+{const row=hd.querySelector('.hdrow'),L=['hd-c1','hd-c2','hd-c3'];
+ const fit=()=>{if(!row)return;row.classList.remove(...L);if(innerWidth<=1100)return;for(const c of L){if(row.scrollWidth<=row.clientWidth+1)break;row.classList.add(c)}};
+ fit();addEventListener('resize',fit);if(document.fonts)document.fonts.ready.then(fit)}
 {const ms=document.getElementById('msearch');if(ms)ms.addEventListener('click',()=>{const sb=hd.querySelector('.sbtn');if(sb){document.getElementById('mbtn').click();sb.click()}})}
 
 /* поиск (assets/search.js + search.css) — единственная точка подключения */
