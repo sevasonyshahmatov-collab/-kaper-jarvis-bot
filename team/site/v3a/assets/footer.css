@@ -24,3 +24,5 @@ footer.jvf{margin-top:clamp(64px,9vw,130px);padding:clamp(28px,4vw,44px) 0 calc(
  .jvf-cols div:nth-child(3){grid-column:1/-1}
  footer.jvf{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))} /* место под плавающую кнопку Telegram */
 }
+/* страницы «Игроки»: у main свой отступ снизу — подвал ближе, без пустоты в ~200 px (09.11) */
+main:has(.pl-note)~footer.jvf{margin-top:clamp(24px,3vw,40px)}
