@@ -634,30 +634,16 @@ def v2_h2h(m, from_dir):
     rows = h2h_rows(m)[:6]
     if not rows:
         return ''
-    # в каждой карточке на фоне — растянутая эмблема победителя этого матча (владелец 09.11); ничья — без эмблемы
-    em = {'h': B.emblem(m['sport'], m['h'], from_dir), 'a': B.emblem(m['sport'], m['a'], from_dir)}
-    wh = sum(1 for r in rows if r['gf'] > r['ga']); wa = sum(1 for r in rows if r['ga'] > r['gf'])
-    gh = sum(r['gf'] for r in rows); ga = sum(r['ga'] for r in rows)
-    lead = 'h' if (wh, gh) > (wa, ga) else 'a' if (wa, ga) > (wh, gh) else ''
-    if lead:
-        w = max(wh, wa)
-        why = ('%d %s из %d' % (w, 'победа' if w == 1 else 'победы' if 2 <= w <= 4 else 'побед', len(rows))) if wh != wa \
-            else 'победы поровну (%d:%d), по голам %d:%d' % (wh, wa, max(gh, ga), min(gh, ga))
-        sub = '<p class="mx-h2s">Сильнее в личных встречах — <b>%s</b>: %s</p>' % (esc(m['hn'] if lead == 'h' else m['an']), why)
-    else:
-        sub = '<p class="mx-h2s">В личных встречах поровну: %d:%d по победам</p>' % (wh, wa)
     cards = []
     for r in rows:
         home, away = (m['hn'], m['an']) if r['home'] else (m['an'], m['hn'])
         hg, ag = (r['gf'], r['ga']) if r['home'] else (r['ga'], r['gf'])
         win = 'h' if hg > ag else 'a' if ag > hg else ''
-        club = 'h' if r['gf'] > r['ga'] else 'a' if r['ga'] > r['gf'] else ''   # победитель: клуб m['h'] или m['a']
-        bg = ('<i class="mx-cbg" aria-hidden="true"><img src="%s" alt="" loading="lazy"></i>' % esc(em[club])) if club and em[club] else ''
-        cards.append('<li%s>%s<time>%s.%s.%s</time><span class="%s">%s</span><b>%d:%d%s</b><span class="%s">%s</span></li>'
-                     % (' class="has-cbg"' if bg else '', bg, r['d'][8:10], r['d'][5:7], r['d'][2:4], 'w' if win == 'h' else '', esc(home), hg, ag,
+        cards.append('<li><time>%s.%s.%s</time><span class="%s">%s</span><b>%d:%d%s</b><span class="%s">%s</span></li>'
+                     % (r['d'][8:10], r['d'][5:7], r['d'][2:4], 'w' if win == 'h' else '', esc(home), hg, ag,
                         ('<small>%s</small>' % esc(r['x'])) if r['x'] else '', 'w' if win == 'a' else '', esc(away)))
-    return ('<section class="fc-sec" aria-labelledby="mt-h2h"><div class="wrap"><h2 id="mt-h2h">Личные встречи</h2>%s'
-            '<ul class="mx-h2h">%s</ul></div></section>' % (sub, ''.join(cards)))
+    return ('<section class="fc-sec" aria-labelledby="mt-h2h"><div class="wrap"><h2 id="mt-h2h">Личные встречи</h2>'
+            '<ul class="mx-h2h">%s</ul></div></section>' % ''.join(cards))
 
 
 def v2_summary(m):
