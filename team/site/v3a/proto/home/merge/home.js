@@ -15,7 +15,7 @@ const ymd=d=>d.toISOString().slice(0,10);
 const atMs=t=>Date.parse(String(t).replace(' ','T')+':00+03:00');
 const isH=m=>m.lg==='khl'||m.lg==='nhl';
 const LG={khl:'КХЛ',nhl:'НХЛ',epl:'АПЛ',laliga:'Ла Лига',seriea:'Серия А',bundesliga:'Бундеслига',ligue1:'Лига 1',rpl:'РПЛ',ucl:'Лига чемпионов',uel:'Лига Европы'};
-const R='../../../';
+const R=window.JV_ROOT??'../../../';
 const crest=(m,s)=>`${R}assets/${isH(m)?'em':'fc'}/${encodeURIComponent(s)}.webp`;
 const dayLbl=(t,today)=>{const d=t.slice(0,10);if(d===today)return '';const tm=ymd(new Date(Date.parse(today+'T00:00:00Z')+864e5));return d===tm?'завтра':J.ddmm(t)};
 

@@ -17,6 +17,10 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
 <link rel="stylesheet" href="assets/nav.css">
 <link rel="stylesheet" href="assets/home.css">
 <link rel="stylesheet" href="assets/obj.css">
+<link rel="stylesheet" href="proto/home/cards/cards.css">
+<link rel="stylesheet" href="proto/home/merge/merge.css">
+<link rel="stylesheet" href="proto/home/merge/mtoday.css">
+<link rel="stylesheet" href="assets/live.css">
 <style>.soon{background:var(--card);border:1px solid var(--rule-2);border-radius:14px;padding:clamp(20px,3vw,32px);display:grid;gap:12px;justify-items:start;max-width:640px}.soon b{font:800 30px/1 var(--display);color:var(--signal)}[data-theme=c] .soon b{color:var(--ink)}.soon p{margin:0;color:var(--ink-2)}</style>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
@@ -62,16 +66,58 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
         <a class="btn btn-tg hm-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>Получать прогнозы — бесплатно</a>
         <p class="hm-micro">Бесплатно. Прогнозы выходят до начала матча. <a href="#model">Как считает модель</a></p>
       </div>
-      <div class="hm-doors" id="fork">
-        <a class="hm-door hk" href="hockey/index.html"><span class="hm-dn">Хоккей</span><span class="hm-dc" id="cnt-h">КХЛ и НХЛ</span><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 10h13M11 4l6 6-6 6"/></svg></a>
-        <a class="hm-door fb" href="football/index.html"><span class="hm-dn">Футбол</span><span class="hm-dc" id="cnt-f">топ-лиги Европы</span><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 10h13M11 4l6 6-6 6"/></svg></a>
-      </div>
     </div>
-    <aside class="hm-today" id="today" aria-labelledby="hm-th">
-      <div class="hm-th"><h2 id="hm-th">Ближайшие матчи</h2><span class="hm-upd" id="hm-upd"></span></div>
-      <ul class="hm-list" id="hm-list" aria-live="polite"><li class="hm-soon">Загружаем матчи…</li></ul>
-      <p class="hm-note">Это аналитика, не гарантия.</p>
-    </aside>
+    <div class="mg-right">
+<div class="cd-deck mg-deck" aria-label="Разделы">
+<a class="card hk" href="hockey/index.html" data-k="hk" aria-label="Хоккей: открыть раздел">
+ <div class="shd"></div>
+ <div class="tilt"><div class="flip">
+  <div class="face front">
+   <div class="art"><svg class="tex" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="ig" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1d4f86"/><stop offset=".55" stop-color="#0c2a52"/><stop offset="1" stop-color="#071426"/></linearGradient></defs><rect width="100" height="140" fill="url(#ig)"/><g class="l" fill="none" stroke="#bfe4ff" stroke-linecap="round"><path d="M-5 40C25 28 60 52 105 30" stroke-opacity=".16" stroke-width=".5"/><path d="M-5 70C30 55 55 85 105 60" stroke-opacity=".12" stroke-width=".4"/><path d="M-5 100C20 84 70 112 105 92" stroke-opacity=".14" stroke-width=".5"/><path d="M10 -5C30 40 15 90 40 145" stroke-opacity=".1" stroke-width=".4"/><path d="M70 -5C55 50 90 80 75 145" stroke-opacity=".1" stroke-width=".5"/><path d="M-5 20C40 15 70 30 105 14" stroke-opacity=".1" stroke-width=".3"/></g><circle cx="50" cy="52" r="26" fill="none" stroke="#e0313f" stroke-opacity=".28" stroke-width=".8"/><path d="M0 74H100" stroke="#4cc2ff" stroke-opacity=".3" stroke-width="1.2"/></svg><i class="holo"></i><i class="holo2"></i></div>
+   <img class="pl" src="proto/home/cards/hockey.webp" alt="" draggable="false">
+   <i class="plsh"></i>
+   <div class="frame"></div>
+   <div class="top"><span>№ 01</span><span>КХЛ · НХЛ</span></div>
+   <div class="txt">
+    <h2>Хоккей</h2>
+    <p class="cnt" data-cnt>матчи загружаются</p>
+    <p class="stat" data-stat></p>
+    <p class="nx" data-next></p>
+    <span class="open">Открыть раздел <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M3 10h13M11 4l6 6-6 6"/></svg></span>
+   </div>
+  </div>
+  <div class="face back"><div class="bk"><b>JAR<i>V</i>IS</b><span>Хоккей</span><em>Открываем раздел…</em></div></div>
+ </div></div>
+</a>
+<a class="card fb" href="football/index.html" data-k="fb" aria-label="Футбол: открыть раздел">
+ <div class="shd"></div>
+ <div class="tilt"><div class="flip">
+  <div class="face front">
+   <div class="art"><svg class="tex" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f5a3a"/><stop offset="1" stop-color="#06281a"/></linearGradient></defs><rect width="100" height="140" fill="url(#gg)"/><g fill="#fff" fill-opacity=".055"><rect y="0" width="100" height="14"/><rect y="28" width="100" height="14"/><rect y="56" width="100" height="14"/><rect y="84" width="100" height="14"/><rect y="112" width="100" height="14"/></g><g fill="none" stroke="#d9ffe9" stroke-opacity=".22" stroke-width=".7"><circle cx="50" cy="62" r="20"/><path d="M0 62H100"/><rect x="22" y="-2" width="56" height="26"/><rect x="22" y="116" width="56" height="26"/></g></svg><i class="holo"></i><i class="holo2"></i></div>
+   <img class="pl" src="proto/home/cards/football.webp" alt="" draggable="false">
+   <i class="plsh"></i>
+   <div class="frame"></div>
+   <div class="top"><span>№ 02</span><span>ТОП-ЛИГИ</span></div>
+   <div class="txt">
+    <h2>Футбол</h2>
+    <p class="cnt" data-cnt>матчи загружаются</p>
+    <p class="stat" data-stat></p>
+    <p class="nx" data-next></p>
+    <span class="open">Открыть раздел <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M3 10h13M11 4l6 6-6 6"/></svg></span>
+   </div>
+  </div>
+  <div class="face back"><div class="bk"><b>JAR<i>V</i>IS</b><span>Футбол</span><em>Открываем раздел…</em></div></div>
+ </div></div>
+</a></div>
+     <p class="mg-credit">Фото: Kylian Mbappé — Bryan Berlin, CC BY-SA 4.0, Wikimedia Commons</p>
+    </div>
+  </div>
+</section>
+
+<section class="mg-today" id="today" aria-labelledby="mt-h">
+  <div class="wrap">
+    <div class="mt-head"><h2 id="mt-h">Ближайшие матчи</h2><span class="mt-upd" id="mt-upd"></span></div>
+    <div id="mt" aria-live="polite"><p class="mt-none">Загружаем матчи…</p></div>
   </div>
 </section>
 
@@ -135,11 +181,17 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
 
 <script src="assets/nav.js"></script>
 <script src="assets/footer.js"></script>
+<script>window.JV_ROOT=""</script>
 <script src="data/today.js"></script>
 <script src="data/lines.js"></script>
 <script src="data/model.js"></script>
 <script src="assets/lines.js"></script>
 <script src="assets/v3a.js"></script>
-<script src="assets/home.js"></script>
+<script src="proto/home/merge/home.js"></script>
+<script src="proto/home/common.js"></script>
+<script src="proto/home/cards/vendor/gsap.min.js"></script>
+<script src="proto/home/merge/merge.js"></script>
+<script src="proto/home/merge/mtoday.js"></script>
+<script src="assets/live.js"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 /* Общий помощник трёх шаблонов главной: берёт те же данные, что index.html (window.JVL из assets/lines.js), и отдаёт готовый список матчей. */
 (()=>{
 'use strict';
-const J=window.JVL,R=window.JV_ROOT||'../../../';
+const J=window.JVL,R=window.JV_ROOT??'../../../';
 const LG={khl:'КХЛ',nhl:'НХЛ',epl:'АПЛ',laliga:'Ла Лига',seriea:'Серия А',bundesliga:'Бундеслига',ligue1:'Лига 1',rpl:'РПЛ',ucl:'Лига чемпионов',uel:'Лига Европы'};
 const isH=m=>m.lg==='khl'||m.lg==='nhl';
 /* страница матча, как в seo/build_match.py: <лига>/<дата>-<хозяева>-<гости>/index.html (НХЛ — английские названия городов) */
