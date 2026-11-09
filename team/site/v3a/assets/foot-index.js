@@ -49,7 +49,9 @@ const pool0=UP.filter(m=>JV.left(m.t)>0);
 /* первый экран — матчи ближайших 36 ч, если они есть (аудит 08.11: не «до матча 389 ч») */
 const near=pool0.filter(m=>JV.left(m.t)<=36*3600),pool=near.length?near:pool0;
 const withK=pool.filter(m=>m.k);
-const picks=MODE?pool.slice(0,4).map(m=>({m,b:best(m)})):(withK.length>=3?withK:pool).map(m=>({m,b:best(m)})).sort((a,b)=>b.b.p-a.b.p).slice(0,4).sort((a,b)=>a.m.t<b.m.t?-1:1);
+/* перерыв (сборные и т. п.): ближайших 36 ч нет — первые матчи ближайшего тура по времени, а не самый уверенный через две недели (аудит 09.11, п. 9) */
+const far=!near.length&&pool0.length>0;
+const picks=MODE||far?pool.slice().sort((a,b)=>a.t<b.t?-1:1).slice(0,4).map(m=>({m,b:best(m)})):(withK.length>=3?withK:pool).map(m=>({m,b:best(m)})).sort((a,b)=>b.b.p-a.b.p).slice(0,4).sort((a,b)=>a.m.t<b.m.t?-1:1);
 const mcard=$('mcard'),cdv=$('cdv'),boardEl=$('board'),pager=$('pager');
 const lvl=p=>p>=.6?'hi':p>=.5?'mid':'lo';
 const tm=(s,cls)=>{const n=nm(s);return `<div class="tm${n.length>10?' long':''}">${CI(s)}<small>${cls}</small><span>${esc(n)}</span></div>`};
@@ -80,7 +82,7 @@ else{
  pager.innerHTML=picks.map(({m},i)=>`<button type="button" aria-pressed="${i===0}" aria-label="${esc(nm(m.h))} — ${esc(nm(m.a))}"></button>`).join('');
  const show=i=>{const dir=i>=cur?1:-1;cur=i;const p=picks[i],m=p.m;
   $('blg').innerHTML=LGP(m.lg);$('bmeta').textContent=`${D.leagues[m.lg].name} · ${m.t.slice(11)} МСК`;
-  $('bhead').textContent=i===0?`Матч 1 из ${picks.length}`:`Матч ${i+1} из ${picks.length}`;
+  $('bhead').textContent=far?`Перерыв · ${i+1} из ${picks.length}`:`Матч ${i+1} из ${picks.length}`;
   pager.querySelectorAll('button').forEach((b,j)=>b.setAttribute('aria-pressed',j===i));
   swap(p,shown?dir:1);shown=true;cdSet(JV.left(m.t));const d=day(m.t);$('bdate').textContent=`${d.d} ${d.mon}`};
  {let sx=null,sy=0;const z=$('mstage');
