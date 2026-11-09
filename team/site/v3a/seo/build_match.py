@@ -402,6 +402,29 @@ def other_matches(m, from_dir):
             % (esc(lg_name(m['lg'])), lis))
 
 
+def remind_block(m, name, sport):
+    """«Напомнить о матче» (владелец 09.11): событие в календарь телефона (.ics, сигнал за 15 мин), Google Календарь, Telegram."""
+    from urllib.parse import quote
+    st = datetime.datetime.strptime(m['t'][:16], '%Y-%m-%d %H:%M') - datetime.timedelta(hours=3)   # МСК → UTC
+    en = st + datetime.timedelta(minutes=150 if sport == 'hockey' else 120)
+    f = lambda d: d.strftime('%Y%m%dT%H%M%SZ')
+    title = '%s — %s' % (name, lg_name(m['lg']))
+    det = 'Расчёт модели — на сайте JARVIS. Прогнозы дня — в Telegram @jarvibet.'
+    uid = re.sub(r'[^a-z0-9-]', '', (m['t'][:10] + '-' + str(m['h']) + '-' + str(m['a'])).lower().replace('_', '-'))
+    ics = ('BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//JARVIS//match//RU\r\nBEGIN:VEVENT\r\nUID:%s@jarvis\r\nDTSTAMP:%s\r\n'
+           'DTSTART:%s\r\nDTEND:%s\r\nSUMMARY:%s\r\nDESCRIPTION:%s\r\nBEGIN:VALARM\r\nTRIGGER:-PT15M\r\nACTION:DISPLAY\r\n'
+           'DESCRIPTION:%s\r\nEND:VALARM\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n') % (uid, f(st), f(st), f(en), title, det, title)
+    g = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=%s&dates=%s/%s&details=%s' % (quote(title), f(st), f(en), quote(det))
+    bell = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+            '<path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>')
+    return ('<div class="mt-rem">'
+            '<a class="btn mt-rem-b" href="data:text/calendar;charset=utf-8,%s" download="%s.ics">%s<span>Напомнить о матче</span></a>'
+            '<a class="mt-rem-l" href="%s" target="_blank" rel="noopener">Google Календарь</a>'
+            '<a class="mt-rem-l" href="%s" target="_blank" rel="noopener">Прогнозы дня — в Telegram</a>'
+            '<small>Событие в календаре телефона, напоминание за 15 минут до начала.</small></div>\n') % (
+        esc(quote(ics, safe='')), esc(uid), bell, esc(g), esc(B.CFG.TELEGRAM))
+
+
 def match_page(m):
     rel = m['rel']
     from_dir = os.path.dirname(rel)
@@ -446,10 +469,11 @@ def match_page(m):
     if fin:
         facts.insert(0, '<li class="mt-res"><small>Итог матча</small><b>%s</b></li>' % esc(res_txt))
     lv_box = '' if fin else '<div class="lv-box"%s></div>\n' % B.lv_attrs(m)
+    rem = '' if fin else remind_block(m, name, sport)
     top = ('<section class="fc-top"><div class="wrap">\n%s\n<h1>%s<br><span>%s</span></h1>\n'
-           '<div class="mt-teams">%s<span class="mt-vs" aria-hidden="true">—</span>%s</div>\n%s<ul class="mt-facts">%s</ul>\n'
+           '<div class="mt-teams">%s<span class="mt-vs" aria-hidden="true">—</span>%s</div>\n%s<ul class="mt-facts">%s</ul>\n%s'
            '<p class="fc-upd"><time datetime="%s">%s</time></p>\n</div></section>\n'
-           % (B.crumbs_html(crumbs, rel), esc(name), esc(h1b), team_link(m, 'h', from_dir), team_link(m, 'a', from_dir), lv_box, ''.join(facts),
+           % (B.crumbs_html(crumbs, rel), esc(name), esc(h1b), team_link(m, 'h', from_dir), team_link(m, 'a', from_dir), lv_box, ''.join(facts), rem,
               esc(B.BUILT.replace(' ', 'T') + ':00+03:00'), esc(B.upd_text())))
     # расчёт и кэфы
     mdl = ''

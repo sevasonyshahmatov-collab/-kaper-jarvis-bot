@@ -16,6 +16,18 @@ JV.hms=s=>s>0?`${JV.two(Math.floor(s/3600))}:${JV.two(Math.floor(s%3600/60))}:${
 JV.over=s=>{if(s>-7200)return 'идёт';if(s>-86400)return 'завершён';const d=new Date(Date.now()+s*1000+3*3600e3).toISOString();return 'матч '+d.slice(8,10)+'.'+d.slice(5,7)};
 JV.inMin=s=>{const m=Math.floor(s/60);return s<=0?JV.over(s):m<60?`через ${m} мин`:m<2880?`через ${Math.floor(m/60)} ч ${m%60} мин`:`через ${Math.floor(m/1440)} дн ${Math.floor(m%1440/60)} ч`};
 
+/* страница матча (как seo/build_match.py): <лига>/<дата>-<хозяева>-<гости>/index.html; НХЛ — английские названия городов (09.11) */
+{const NHL_EN={"nhl_car":"carolina","nhl_edm":"edmonton","minnesota":"minnesota","nhl_bos":"boston","nhl_vgk":"vegas","nhl_mtl":"montreal","nhl_tbl":"tampa-bay","nhl_njd":"new-jersey","nhl_uta":"utah","dallas":"dallas","nhl_col":"colorado","nhl_ott":"ottawa","nhl_fla":"florida","nhl_tor":"toronto","nhl_sea":"seattle","nhl_buf":"buffalo","nhl_nsh":"nashville","nhl_nyr":"rangers","nhl_det":"detroit","nhl_wsh":"washington","nhl_nyi":"islanders","nhl_stl":"st-louis","nhl_ana":"anaheim","nhl_sjs":"san-jose","nhl_cgy":"calgary","nhl_wpg":"winnipeg","nhl_cbj":"columbus","nhl_pit":"pittsburgh","nhl_phi":"philadelphia","nhl_lak":"los-angeles","nhl_chi":"chicago","nhl_van":"vancouver"};
+ JV.mslug=(lg,id)=>lg==='nhl'?(NHL_EN[id]||String(id).replace(/^nhl_/,'').replace(/_/g,'-')):String(id).replace(/_/g,'-');
+ JV.matchPage=(root,lg,day,h,a)=>`${root}${lg}/${String(day).slice(0,10)}-${JV.mslug(lg,h)}-${JV.mslug(lg,a)}/index.html`;}
+/* «Напомнить о матче»: событие для календаря телефона (.ics, сигнал за 15 мин); t — «ГГГГ-ММ-ДД ЧЧ:ММ» МСК (09.11) */
+JV.ics=(title,t,min)=>{const st=new Date(Date.parse(String(t).slice(0,16).replace(' ','T')+':00+03:00'));if(isNaN(st))return '';
+ const f=d=>d.toISOString().replace(/[-:]/g,'').slice(0,15)+'Z',en=new Date(st.getTime()+(min||150)*6e4);
+ const s=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//JARVIS//match//RU','BEGIN:VEVENT','UID:'+f(st)+'-'+title.length+'@jarvis','DTSTAMP:'+f(st),'DTSTART:'+f(st),'DTEND:'+f(en),
+  'SUMMARY:'+title,'DESCRIPTION:Расчёт модели — на сайте JARVIS. Прогнозы дня — в Telegram @jarvibet.','BEGIN:VALARM','TRIGGER:-PT15M','ACTION:DISPLAY','DESCRIPTION:'+title,'END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
+ return 'data:text/calendar;charset=utf-8,'+encodeURIComponent(s)};
+JV.BELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
+
 /* ── split-flap ─────────────────────────────────────────────── */
 const CH='АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЭЮЯ0123456789';
 const cellHTML=c=>`<span class="t"><i>${c}</i></span><span class="b"><i>${c}</i></span><span class="ft"><i>${c}</i></span><span class="fb"><i>${c}</i></span>`;

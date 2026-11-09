@@ -254,11 +254,13 @@ if(nextG){
      :`<div class="nmline"><span class="sl">Линия появится ближе к матчу</span></div>`}
     <div class="nmcd" id="nmcd"><span class="sl">До начала</span><b class="num" id="nmcdv">—</b></div>
     ${pick?`<div class="nmpick"><span class="sl">Наш прогноз</span><b>${esc(String(pick.pick||'').replace(/(\d)\.(\d)/g,'$1,$2'))}</b><small>кэф ${esc(pick.k)}</small></div>`:''}
-    <a class="btn btn-line nmgo" href="../hockey/index.html${THEME?'?theme='+encodeURIComponent(THEME):''}#matches">Разбор матча</a>
+    <div class="nmrow"><a class="btn btn-line nmgo" id="nmgo" href="${JV.matchPage('../',T.lg,nextG.d,oh?ID:nextG.o,oh?nextG.o:ID)}" data-fb="../hockey/index.html${THEME?'?theme='+encodeURIComponent(THEME):''}#matches">Разбор матча</a>
+     <a class="nmrem" href="${JV.ics((oh?T.name:nm(nextG.o))+' — '+(oh?nm(nextG.o):T.name)+' · '+(T.lg==='nhl'?'НХЛ':'КХЛ'),nextG.d,150)}" download="match.ics" title="Событие в календаре телефона, напоминание за 15 минут">${JV.BELL}<span>Напомнить</span></a></div>
    </div>
   </article>
   <details class="nmh2h" id="nmh2h" hidden></details>`;
  document.getElementById('next').hidden=false;
+ {const go=document.getElementById('nmgo');if(go)fetch(go.href,{method:'HEAD'}).then(r=>{if(!r.ok)go.href=go.dataset.fb}).catch(()=>{go.href=go.dataset.fb})}   /* страницы матча нет — в раздел */
  /* градиент цветов клубов как у карточек «Матчи дня» (слева хозяева, справа гости); стык — по центру колонки с датой (владелец 07.11) */
  {const box=document.querySelector('#nextBox .nmatch'),mid=box&&box.querySelector('.nmmid');
   const h2r=h=>{h=String(h||'').replace('#','');if(h.length===3)h=h.replace(/./g,'$&$&');const n=parseInt(h,16);return isNaN(n)||h.length!==6?null:[n>>16&255,n>>8&255,n&255]};

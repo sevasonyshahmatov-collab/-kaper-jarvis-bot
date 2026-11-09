@@ -176,7 +176,8 @@ if(nextG){
     ${k?`<div class="nmline"><span class="sl">${nextG.kn?esc(nextG.kn):'Линия на матч'}</span><ol class="kx" aria-label="Линия: ${esc(T.n)} ${kf(k[0])}, ничья ${kf(k[1])}, ${esc(nm(o))} ${kf(k[2])}">${k.map((v,i)=>`<li><b class="num">${kf(v)}</b><small>${['П1','Х','П2'][i]}</small></li>`).join('')}</ol>${mdl}</div>`
      :`<div class="nmline"><span class="sl">Линия появится ближе к матчу</span>${mdl}</div>`}
     <div class="nmcd" id="nmcd"><span class="sl">До начала</span><b class="num" id="nmcdv">—</b></div>
-    <a class="btn btn-line nmgo" href="index.html#matches">Все матчи тура</a>
+    <div class="nmrow"><a class="btn btn-line nmgo" href="index.html#matches">Все матчи тура</a>
+     <a class="nmrem" href="${JV.ics((oh?T.n:nm(o))+' — '+(oh?nm(o):T.n),nextG.d,120)}" download="match.ics" title="Событие в календаре телефона, напоминание за 15 минут">${JV.BELL}<span>Напомнить</span></a></div>
    </div></article>
   <details class="nmh2h" id="nmh2h" hidden></details>`;
  $('next').hidden=false;
