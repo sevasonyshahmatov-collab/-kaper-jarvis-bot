@@ -489,3 +489,5 @@ body .g.h2g.nx{grid-template-columns:110px 32px minmax(0,1fr) auto}
 .nmatch.grad .nmside .sl,.nmatch.grad .nmside :is(span,small):not(.kx *){color:rgba(255,255,255,.8)}
 .nmatch.grad .kx li,.nmatch.grad .kx li b{color:#10161f}.nmatch.grad .kx li small{color:#4f5d6c}
 .nmatch.grad .kx li:first-child{background:#10161f}.nmatch.grad .kx li:first-child,.nmatch.grad .kx li:first-child b,.nmatch.grad .kx li:first-child small{color:#fff}
+/* место под первый экран клуба до загрузки данных — страница не прыгает (CLS, 09.11) */
+.tmhero #hero:empty{min-height:calc(100vh - 110px)}

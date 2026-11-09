@@ -127,3 +127,13 @@ html[data-sport="football"] .mstage{min-height:430px}
   html[data-sport="football"] .mstage{min-height:402px}
 }
 .cdown{min-height:45px}
+
+/* кнопка поиска — стили здесь, чтобы шапка не сдвигалась, пока грузится search.css (CLS, 09.11) */
+.hd .sbtn{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:44px;height:44px;padding:0 12px;border:0;border-radius:999px;cursor:pointer;background:var(--paper-2);color:var(--ink);font:700 14px/1 var(--display)}
+.hd .sbtn svg{width:20px;height:20px}
+.hd .sbtn kbd{font:600 12px/1 var(--display);padding:3px 6px;border-radius:5px;border:1px solid var(--rule-2);color:var(--ink-3)}
+.hd .sbtn:hover{background:var(--paper-3)}
+@media (min-width:1101px){.hd .sbtn{margin-left:4px}.gnav-sp + .sbtn{margin-left:auto}}
+@media (max-width:1100px){.hd .sbtn{margin-left:auto}.hd .sbtn ~ .btn-tg,.hd .sbtn ~ .mbtn{margin-left:0}.hd .sbtn kbd{display:none}.hd .sbtn{padding:0;width:44px}}
+/* вторая полоса меню до работы nav.js: место под неё сразу (CLS, 09.11) */
+.hd:not(:has(.hdrow)):has(.nav){min-height:110px}

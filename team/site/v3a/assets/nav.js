@@ -62,6 +62,7 @@ hd.innerHTML=`<div class="wrap hdrow">
   </nav>
   ${sec?`<nav class="gnav" aria-label="Разделы сайта">${sec.map(s=>link(s,act)).join('')}</nav>`:'<span class="gnav-sp"></span>'}
   <a class="hd-me" href="${esc(U('me/index.html'))}"${file==='index.html'&&dir==='me'?' aria-current="page"':''} title="Мой JARVIS — избранные клубы">${STAR}<span>Мой JARVIS</span></a>
+  <button type="button" class="sbtn" aria-label="Поиск по сайту" aria-haspopup="dialog" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><kbd aria-hidden="true">/</kbd></button>
   <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener" aria-label="Получать прогнозы в Telegram — бесплатно">${TG}<span>Получать прогнозы<span class="tl"> — бесплатно</span></span></a>
   <button type="button" class="mbtn" id="mbtn" aria-expanded="false" aria-controls="mpanel"><span class="mi" aria-hidden="true"></span><span class="mt">Меню</span></button>
 </div>

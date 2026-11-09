@@ -1,5 +1,5 @@
 /* JARVIS v3a — страница хоккейной лиги: hockey/league.html?lg=<khl|nhl>.
-   Данные: assets/data/teams.js (таблица), team/season.json (матчи сезона), hockey/data/{khl,nhl}_players.json (игроки). Время матчей московское. Без кэфов и ставок. */
+   Данные: assets/data/teams.js (таблица), hockey/data/lgp_<лига>.json (матчи сезона и итоги игроков, режет daily/split.py). Время матчей московское. Без кэфов и ставок. */
 (()=>{
 'use strict';
 const D=window.JV_TEAMS||{teams:{}};
@@ -105,9 +105,8 @@ function build(SE,PL){
 
  /* игроки */
  const ini=n=>{const w=String(n).replace(/[^\p{L}\s'-]/gu,'').split(/[\s-]+/).filter(Boolean);return ((w[0]||'')[0]||'').toUpperCase()+((w.length>1?w[1]:'')[0]||'').toUpperCase()};
- const PS=(PL.players||[]).map(p=>{const lg=p.log||[];const s=i=>lg.reduce((a,r)=>a+(r[i]||0),0);
-  const tid=LG==='nhl'?ABBR[p.t]:p.t,toiG=LG==='nhl'?(()=>{const t=lg.filter(r=>r[7]);return t.length?t.reduce((a,r)=>a+r[7],0)/t.length/60:null})():p.toi_avg;
-  return {n:p.n,t:tid,img:p.img,gp:LG==='nhl'?lg.length:(p.gp||0),g:s(4),a:s(5),sog:s(6),pim:s(8),toi:toiG}}).filter(p=>p.t&&D.teams[p.t]);
+ const PS=(PL.players||[]).map(p=>{const s=p.s||[0,0,0,0];  /* lgp_<лига>.json: итоги уже посчитаны в daily/split.py */
+  return {n:p.n,t:LG==='nhl'?ABBR[p.t]:p.t,img:p.img,gp:p.gp||0,g:s[0],a:s[1],sog:s[2],pim:s[3],toi:p.toi}}).filter(p=>p.t&&D.teams[p.t]);
  const who=(p,big)=>`<span class="pc"><span class="av">${esc(ini(p.n))}${p.img?`<img src="${esc(p.img)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:''}</span><span><b>${esc(p.n)}</b><a href="${thref(p.t)}">${em(p.t)}<span>${esc(nm(p.t))}</span></a></span></span>`;
  let sortK='pts';
  const SK=[['pts','По очкам'],['g','По голам'],['a','По передачам']];
@@ -131,7 +130,7 @@ function build(SE,PL){
  $('plMore').querySelectorAll('.av img').forEach(i=>i.addEventListener('error',()=>i.remove()));
  JV.reveal();
 }
-Promise.all([fetch('../team/season.json').then(r=>r.json()),fetch('data/'+L.json).then(r=>r.json()).catch(()=>({players:[]}))]).then(([se,pl])=>build(se,pl))
+fetch('data/lgp_'+LG+'.json').then(r=>r.json()).then(d=>build({[LG]:d.se},d))
  .catch(e=>{console.error(e);$('hero').innerHTML='<p class="lgempty">Данные загрузить не удалось.</p>'});
 })();
 

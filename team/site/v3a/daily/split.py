@@ -10,6 +10,7 @@
     hockey/data/plite_khl.json, plite_nhl.json   игроки для hockey/players*.html и трендов: короткий лог [дата, соперник, дома, г, п, б, toi]
     hockey/data/players/<slug>.json  {имя: фото} игроков клуба (плашка «Игроки» на странице клуба)
     hockey/data/pid/<slug>.json      {имя: id} игроков клуба (ссылки на профиль из таблицы клуба)
+    hockey/data/lgp_<лига>.json      страница лиги: матчи сезона (хозяева) и итоги игроков без лога
     hockey/data/pp/<лига>/<id>.json  профиль одного игрока (hockey/player.html, 1–4 КБ): шапка, итоги, полный лог сезона, следующий матч
   Футбол
     football/data/football-lite.js   JV_FOOT без games / sc / cd / scx / cdx / cx у клубов и без h2h (таблицы, клубы, лиги, up)
@@ -286,7 +287,38 @@ def hockey():
         for slug, m in idteam.items():
             write(os.path.join(iddir, slug + '.json'), jd(m))
         tot += len(out)
-    return 'хоккей: клубов %d, игроков %d, профилей %d' % (len(d['teams']), tot, ppn)
+    lgp = league_pages()
+    return 'хоккей: клубов %d, игроков %d, профилей %d, лиги %s' % (len(d['teams']), tot, ppn, ', '.join(lgp))
+
+
+def league_pages():
+    """hockey/data/lgp_<лига>.json — всё для страницы лиги (hockey/league.html) одним маленьким файлом (09.11):
+    матчи сезона только со стороны хозяев (из team/season.json) и итоги игроков без полного лога (из <лига>_players.json)."""
+    se = load(os.path.join(V3A, 'team', 'season.json'))
+    out = []
+    for lg in ('khl', 'nhl'):
+        pp = os.path.join(V3A, 'hockey', 'data', lg + '_players.json')
+        pl = load(pp) if os.path.exists(pp) else {'players': []}
+        ps = []
+        for x in pl.get('players') or []:
+            lgl = x.get('log') or []
+            sm = lambda i: sum((r[i] or 0) for r in lgl if len(r) > i and isinstance(r[i], (int, float)))
+            if lg == 'nhl':
+                gp = len(lgl)
+                t = [r[7] for r in lgl if len(r) > 7 and r[7]]
+                toi = round(sum(t) / len(t) / 60, 3) if t else None
+            else:
+                gp = int(x.get('gp') or 0)
+                toi = round(float(x['toi_avg']), 3) if x.get('toi_avg') else None
+            st = [sm(4), sm(5), sm(6), sm(8)]
+            if not gp and not any(st):
+                continue
+            ps.append({'n': x.get('n'), 't': x.get('t'), 'img': x.get('img') or '', 'gp': gp, 's': st, 'toi': toi})
+        games = {name: {'games': [g for g in (t.get('games') or []) if g.get('h') == 1]} for name, t in (se.get(lg) or {}).items()}
+        write(os.path.join(V3A, 'hockey', 'data', 'lgp_' + lg + '.json'),
+              jd({'season': pl.get('season'), 'next': pl.get('next'), 'players': ps, 'se': games}))
+        out.append('%s %d' % (lg, len(ps)))
+    return out
 
 
 # ───────────────────────────── футбол ─────────────────────────────

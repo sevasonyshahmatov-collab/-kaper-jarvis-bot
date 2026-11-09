@@ -84,9 +84,11 @@ function search1(raw){
 /* ---- интерфейс ---- */
 const LUPA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>';
 const row=hd.querySelector('.hdrow');if(!row)return;
-const sb=document.createElement('button');sb.type='button';sb.className='sbtn';sb.setAttribute('aria-label','Поиск по сайту');sb.setAttribute('aria-haspopup','dialog');sb.setAttribute('aria-expanded','false');
+/* кнопку рисует nav.js сразу (без сдвига шапки); если её нет — создаём */
+let sb=row.querySelector('.sbtn');
+if(!sb){sb=document.createElement('button');sb.type='button';sb.className='sbtn';sb.setAttribute('aria-label','Поиск по сайту');sb.setAttribute('aria-haspopup','dialog');sb.setAttribute('aria-expanded','false');
 sb.innerHTML=LUPA+'<kbd aria-hidden="true">/</kbd>';
-const anchor=row.querySelector('.btn-tg')||row.querySelector('.mbtn');row.insertBefore(sb,anchor);
+const anchor=row.querySelector('.btn-tg')||row.querySelector('.mbtn');row.insertBefore(sb,anchor)}
 
 const box=document.createElement('div');box.className='jsq';box.hidden=true;box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');box.setAttribute('aria-label','Поиск');
 box.innerHTML=`<div class="sp-bg" data-x></div><div class="sp-pn"><form class="sp-top" role="search" autocomplete="off">${LUPA}<input id="sp-q" type="search" inputmode="search" enterkeyhint="search" placeholder="${ZONE==='h'?'Хоккей: клуб, матч, лига или игрок':ZONE==='f'?'Футбол: клуб, матч или лига':'Клуб, матч, лига или игрок'}" aria-label="Запрос" aria-controls="sp-res" autocapitalize="off" autocorrect="off" spellcheck="false"><button type="button" class="sp-x" data-x aria-label="Закрыть поиск">Закрыть</button></form><div class="sp-res" id="sp-res" role="listbox" aria-label="Результаты"></div></div>`;
