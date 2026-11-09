@@ -427,6 +427,171 @@ def remind_block(m, name, sport):
         esc(quote(ics, safe='')), esc(uid), bell, esc(g), esc(B.CFG.TELEGRAM))
 
 
+# ───────────────────────── страница матча, вид 2 (09.11, образец; включается V2=True) ─────────────────────────
+# Двухцветное поле в цвета клубов с крупными эмблемами, вероятности модели полосой в тех же цветах,
+# форма — кружками, личные встречи — карточками. Стили — assets/matchx.css.
+V2 = False
+import colorsys  # noqa: E402
+
+
+def _hex(c):
+    c = str(c or '').lstrip('#')
+    return c if re.match(r'^[0-9a-fA-F]{6}$', c) else None
+
+
+def club_cols(sport, tid):
+    if sport == 'hockey':
+        cs = (B.TEAMS['teams'].get(tid) or {}).get('colors') or []
+    else:
+        cs = (B.FOOT['teams'].get(tid) or {}).get('c') or []
+    return [x for x in (_hex(c) for c in cs) if x]
+
+
+def _hls(h):
+    r, g, b = (int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))
+    return colorsys.rgb_to_hls(r, g, b)
+
+
+def _lum(c):
+    r, g, b = (int(c[i:i + 2], 16) / 255 for i in (0, 2, 4))
+    return .2126 * r + .7152 * g + .0722 * b
+
+
+def _tone(h):
+    """Цвет клуба для поля: тёмные и насыщенные — в среднюю яркость с белыми буквами; светлые (жёлтый, золото) остаются
+    яркими, буквы на них тёмные. Возвращает (цвет, цвет букв)."""
+    hh, ll, ss = _hls(h)
+    if _lum(h) > .42 and ss > .25:
+        ll, ink, ss = min(max(ll, .46), .56), '#141a24', min(ss, .82)
+    else:
+        ll, ink = min(max(ll, .16 if ss < .12 else .28), .44), '#ffffff'
+        ss = max(ss, .45) if ss > .12 else ss
+    r, g, b = colorsys.hls_to_rgb(hh, ll, ss)
+    return '#%02x%02x%02x' % (round(r * 255), round(g * 255), round(b * 255)), ink
+
+
+def pair_cols(m):
+    """Цвета хозяев и гостей: первый цвет клуба (не белый); если у гостей он похож на цвет хозяев — следующий цвет гостей."""
+    def pick(cs, skip=None):
+        good = [c for c in cs if .04 < _hls(c)[1] < .93] or cs
+        for c in good:
+            if skip is None or abs(_hls(c)[0] - _hls(skip)[0]) > .07 or abs(_hls(c)[1] - _hls(skip)[1]) > .22:
+                return c
+        return good[0] if good else None
+    h = pick(club_cols(m['sport'], m['h'])) or '2b4a8a'
+    a = pick(club_cols(m['sport'], m['a']), h) or '6b2b3a'
+    (hc, hi), (ac, ai) = _tone(h), _tone(a)
+    return hc, ac, hi, ai
+
+
+def v2_top(m, from_dir, fin, name, h1b, dm, wd, ar_txt, crumbs, rel, cols):
+    sport = m['sport']
+    hc, ac, hi, ai = cols
+
+    def team(side):
+        tid, nm = (m['h'], m['hn']) if side == 'h' else (m['a'], m['an'])
+        em = B.emblem(sport, tid, from_dir)
+        st = standing(m, tid)
+        sub = ('дома' if side == 'h' else 'в гостях') + ((', %d-е место' % st['place']) if st and st.get('place') else '')
+        img = '<img src="%s" alt="" width="160" height="160">' % esc(em) if em else ''
+        return ('<a class="mx-team mx-%s" href="%s"><span class="mx-crest">%s</span><b>%s</b><small>%s</small></a>'
+                % (side, esc(B.club_href(sport, tid, from_dir)), img, esc(nm), esc(sub)))
+    if fin:
+        r = m['res']
+        mid = ('<div class="mx-mid"><span class="mx-score">%d<i>:</i>%d</span><span class="mx-when">%s%s</span></div>'
+               % (r[0], r[1], 'итог матча' + ((', ' + r[2]) if r[2] else ''), ''))
+    else:
+        mid = ('<div class="mx-mid"><span class="mx-time">%s</span><span class="mx-when">%s, %s · МСК</span>'
+               '<span class="mx-cd" data-t="%s"></span><div class="lv-box"%s></div></div>'
+               % (esc(m['t'][11:16]), esc(dm), esc(wd), esc(m['t'][:16]), B.lv_attrs(m)))
+    facts = []
+    if ar_txt:
+        facts.append('<li><small>Арена</small><b>%s</b></li>' % esc(ar_txt))
+    facts.append('<li><small>Турнир</small><b><a href="%s">%s</a></b></li>' % (esc(lg_link(m, from_dir)), esc(lg_name(m['lg']))))
+    facts.append('<li><small>Когда</small><b>%s, %s, %s МСК</b></li>' % (esc(dm), esc(wd), esc(m['t'][11:16])))
+    rem = '' if fin else remind_block(m, name, sport)
+    return ('<section class="mx-hero" style="--hc:%s;--ac:%s;--hi:%s;--ai:%s" aria-label="%s">\n'
+            '<div class="wrap mx-crumbs">%s</div>\n'
+            '<div class="mx-field"><div class="wrap mx-stage">%s%s%s</div></div>\n'
+            '<div class="wrap mx-head"><h1 class="mx-h1">%s <span>%s</span></h1>\n<ul class="mx-facts">%s</ul>\n%s'
+            '<p class="fc-upd"><time datetime="%s">%s</time></p></div>\n</section>\n'
+            % (hc, ac, hi, ai, esc(name), B.crumbs_html(crumbs, rel), team('h'), mid, team('a'), esc(name), esc(h1b), ''.join(facts), rem,
+               esc(B.BUILT.replace(' ', 'T') + ':00+03:00'), esc(B.upd_text())))
+
+
+def v2_model(m, fin, pre, cols):
+    md = m.get('md') or {}
+    if md.get('p1') is None:
+        o = odds_block(m)
+        return ('<section class="fc-sec"><div class="wrap"><div class="mt-md">%s</div></div></section>\n' % o) if o else ''
+    sport = m['sport']
+    p = [round(md['p1'] * 100), round((md.get('x') or 0) * 100), round(md['p2'] * 100)]
+    lab = [m['hn'], 'ничья' + (' в осн. время' if sport == 'hockey' else ''), m['an']]
+    mx = max(p)
+    seg = ''.join('<i class="mx-s%s%s" style="flex:%d"><b>%d %%</b><small>%s</small></i>'
+                  % (k, ' on' if v == mx else '', max(v, 1), v, esc(t)) for k, v, t in zip(('h', 'x', 'a'), p, lab))
+    f1_ = lambda v: ('%.1f' % v).replace('.', ',')  # noqa: E731
+    stats = []
+    if md.get('lam'):
+        stats.append('<li><b>%s : %s</b><span>ожидаемые голы</span></li>' % (f1_(md['lam'][0]), f1_(md['lam'][1])))
+    if md.get('tot') is not None and md.get('over') is not None:
+        stats.append('<li><b>%d %%</b><span>тотал больше %s</span></li>' % (round(md['over'] * 100), f1_(md['tot'])))
+    if md.get('btts') is not None:
+        stats.append('<li><b>%d %%</b><span>обе забьют</span></li>' % round(md['btts'] * 100))
+    return ('<section class="fc-sec mx-model" style="--hc:%s;--ac:%s;--hi:%s;--ai:%s" aria-labelledby="mt-md"><div class="wrap"><h2 id="mt-md">%s</h2>\n'
+            '<div class="mx-bar" role="img" aria-label="Победа %s %d %%, %s %d %%, победа %s %d %%">%s</div>\n'
+            '<ul class="mx-stats">%s</ul>%s\n'
+            '<p class="mt-note">Цифры считает модель по данным сайта, а не эксперт. Это вероятности, а не гарантия исхода. '
+            '<a href="%smodel.html?s=%s">Как считает модель</a> · <a href="%sglossary.html">словарь терминов</a>.</p></div></section>\n'
+            % (cols[0], cols[1], cols[2], cols[3], 'Расчёт модели до матча' if fin else 'Расчёт модели', esc(m['hn']), p[0], esc(lab[1]), p[1], esc(m['an']), p[2], seg,
+               ''.join(stats), odds_block(m), pre, 'h' if sport == 'hockey' else 'f', pre))
+
+
+def v2_form(m, from_dir):
+    names = B.TEAMS['names'] if m['sport'] == 'hockey' else {k: v.get('n', k) for k, v in B.FOOT['teams'].items()}
+    cols = []
+    for side in ('h', 'a'):
+        tid, nm = (m['h'], m['hn']) if side == 'h' else (m['a'], m['an'])
+        gs = form5(m, tid)
+        if not gs:
+            continue
+        lis = []
+        for g in gs:
+            o = outcome(g)
+            ot = (' ' + g['x']) if isinstance(g.get('x'), str) and g['x'] else ''
+            lis.append('<li class="r-%s" title="%s, %s %s: %d:%d%s"><b>%s</b><span>%d:%d</span></li>'
+                       % (o, g['d'][8:10] + '.' + g['d'][5:7], 'дома' if g.get('h') else 'в гостях', names.get(g['o'], g['o']), g['gf'], g['ga'], ot,
+                          {'w': 'В', 'd': 'Н', 'l': 'П'}[o], g['gf'], g['ga']))
+        w = sum(1 for g in gs if outcome(g) == 'w')
+        cols.append('<div class="mx-fc"><h3>%s <small>%d %s из %d</small></h3><ol class="mx-dots" aria-label="Последние матчи, свежие справа">%s</ol></div>'
+                    % (esc(nm), w, 'победа' if w == 1 else 'победы' if 2 <= w <= 4 else 'побед', len(gs), ''.join(lis)))
+    if not cols:
+        return ''
+    return ('<section class="fc-sec" aria-labelledby="mt-form"><div class="wrap"><h2 id="mt-form">Форма: последние матчи</h2>'
+            '<div class="mx-form">%s</div></div></section>' % ''.join(cols))
+
+
+def v2_h2h(m):
+    rows = h2h_rows(m)[:6]
+    if not rows:
+        return ''
+    cards = []
+    for r in rows:
+        home, away = (m['hn'], m['an']) if r['home'] else (m['an'], m['hn'])
+        hg, ag = (r['gf'], r['ga']) if r['home'] else (r['ga'], r['gf'])
+        win = 'h' if hg > ag else 'a' if ag > hg else ''
+        cards.append('<li><time>%s.%s.%s</time><span class="%s">%s</span><b>%d:%d%s</b><span class="%s">%s</span></li>'
+                     % (r['d'][8:10], r['d'][5:7], r['d'][2:4], 'w' if win == 'h' else '', esc(home), hg, ag,
+                        ('<small>%s</small>' % esc(r['x'])) if r['x'] else '', 'w' if win == 'a' else '', esc(away)))
+    return ('<section class="fc-sec" aria-labelledby="mt-h2h"><div class="wrap"><h2 id="mt-h2h">Личные встречи</h2>'
+            '<ul class="mx-h2h">%s</ul></div></section>' % ''.join(cards))
+
+
+CD_JS = ('<script>/* отсчёт до начала (вид 2) */(function(){var e=document.querySelector(".mx-cd");if(!e)return;function f(){var t=Date.parse(e.dataset.t.replace(" ","T")+":00+03:00"),'
+         's=Math.round((t-Date.now())/1000);if(s<=0){e.textContent=s>-3*3600?"идёт сейчас":"";return}var m=Math.floor(s/60),d=Math.floor(m/1440),h=Math.floor(m%1440/60),mi=m%60;'
+         'e.textContent="через "+(d?d+" дн "+h+" ч":h?h+" ч "+mi+" мин":mi+" мин")}f();setInterval(f,30000)})();</script>\n')
+
+
 def match_page(m):
     rel = m['rel']
     from_dir = os.path.dirname(rel)
@@ -501,8 +666,16 @@ def match_page(m):
              '<p class="fc-legal">Материалы носят информационный характер и не гарантируют результат. Реклама букмекеров на сайте не размещается. Сайт только для совершеннолетних (18+).</p>'
              '</div></section>' % (' · '.join(cl), esc(lg_link(m, from_dir)), esc(lg_name(lg)), esc(pre + B.fc_rel(lg)), esc(lg_name(lg)),
                                    esc(pre + 'matches.html?s=' + ('h' if sport == 'hockey' else 'f')), B.CFG.TELEGRAM, B.TGSVG))
-    body = top + mdl + prev + form_block(m, from_dir) + h2h_block(m) + table_block(m) + other_matches(m, from_dir) + links
+    if V2:
+        cols = pair_cols(m)
+        top = v2_top(m, from_dir, fin, name, h1b, dm, wd, ar_txt, crumbs, rel, cols)
+        body = top + v2_model(m, fin, pre, cols) + prev + v2_form(m, from_dir) + v2_h2h(m) + table_block(m) + other_matches(m, from_dir) + links
+    else:
+        body = top + mdl + prev + form_block(m, from_dir) + h2h_block(m) + table_block(m) + other_matches(m, from_dir) + links
     js = '<script>window.JV_ACT=%s;</script>\n' % json.dumps('khl' if lg == 'khl' else 'nhl' if lg == 'nhl' else 'ucl' if lg == 'ucl' else '' if sport == 'hockey' else 'lg')
+    if V2:
+        js += '<link rel="stylesheet" href="%sassets/matchx.css">\n' % pre
+        body += CD_JS
     text = B.shell(rel, sport, body, extra_css='match.css', head_js=js,
                    extra_scripts='' if fin else '<script src="%sassets/live.js" defer></script>\n' % pre)
     # JSON-LD SportsEvent
