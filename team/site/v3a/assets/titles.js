@@ -14,10 +14,11 @@ const REST=[...document.querySelectorAll('.sec-head h2, .sub h2, .faq h2')].filt
 if(!FIRST.length&&!REST.length)return;
 const CDN=new URL('vendor/',(document.currentScript&&document.currentScript.src)||new URL('assets/titles.js',location.href).href).href;
 const st=document.createElement('style');
-st.textContent=`.tw-hold{visibility:hidden}
+st.textContent=`/* SplitText называет обёртку слова «tw-mask-w-mask»: запас сверху — для Й, Ё и ударений, снизу — для Д, Ц, Щ, р, у (09.11) */
+.tw-hold{visibility:hidden}
 .tw-on .tw .ln>span{transform:none!important;transition:none!important}
 .tw-on [data-rv]>.tw{opacity:1!important;transform:none!important;transition:none!important}
-.tw-w-mask{padding:.14em .02em .08em;margin:-.14em -.02em -.08em;vertical-align:top}
+.tw-w-mask,.tw [class$="-w-mask"]{padding:.3em .04em .14em;margin:-.3em -.04em -.14em;vertical-align:top}
 .tw-c{will-change:transform}`;
 document.head.appendChild(st);
 FIRST.forEach(h=>h.classList.add('tw-hold'));
