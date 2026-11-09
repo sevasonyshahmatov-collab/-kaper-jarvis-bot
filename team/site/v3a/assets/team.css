@@ -500,7 +500,7 @@ body .g.h2g.nx{grid-template-columns:110px 32px minmax(0,1fr) auto}
 /* узкий телефон: «ОТ/Б» под счётом — шире место для имени соперника (09.11) */
 @media (max-width:400px){.g .sc{display:flex;flex-direction:column;align-items:flex-end;line-height:1}.g .sc small{margin:3px 0 0;vertical-align:0;font-size:11px}.g{column-gap:8px}}
 /* телефон: лига и конференция — две строки, без висящей точки «НХЛ → ·» (09.11) */
-@media (max-width:620px){.tmlg .dot{display:none}.tmlg .lglnk{margin-right:100%}}
+@media (max-width:620px){.tmlg .dot{display:none}.tmlg:has(.dot) .lglnk{margin-right:100%}}
 
 /* «Напомнить о матче» в карточке следующего матча (09.11) */
 .nmrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
@@ -511,3 +511,14 @@ body .g.h2g.nx{grid-template-columns:110px 32px minmax(0,1fr) auto}
 /* название клуба (09.11): каждая строка целиком, размер подгоняет JV.fitH1 */
 .tmname h1.tmh1{max-width:100%}
 .tmh1 .l{display:block}
+/* телефон (09.11): эмблема рядом с плашками лиги, название клуба — отдельной строкой во всю ширину (влезает в одну строку чаще) */
+@media (max-width:620px){
+  .tmrow{grid-template-columns:72px minmax(0,1fr);column-gap:14px;row-gap:12px;align-items:center}
+  .tmname{display:contents}
+  .tmcrest{width:72px;grid-column:1;grid-row:1/span 2}
+  .tmrow:not(:has(.ctxsw)) .tmcrest{grid-row:1}
+  .tmname>.ctxsw,.tmname>.tmlg{grid-column:2;margin:0}
+  .tmname>h1{grid-column:1/-1;margin-top:2px}
+}
+/* две строки названия: место под «Й», «Ё» и хвосты «Д», «Ц» — строки не налезают друг на друга (09.11) */
+.tmname h1.tmh1{line-height:1}
