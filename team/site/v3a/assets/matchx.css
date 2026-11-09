@@ -9,8 +9,7 @@
   background:linear-gradient(105deg,var(--hc) 0 49.6%,rgba(255,255,255,.18) 49.6% 50.4%,var(--ac) 50.4% 100%)}
 /* глубина: темнее к краям и к низу, лёгкая фактура — поле, а не плашка */
 .mx-field::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
-  background:radial-gradient(120% 90% at 50% 0%,rgba(255,255,255,.10),transparent 60%),linear-gradient(180deg,transparent 40%,rgba(0,0,0,.38)),
-  repeating-linear-gradient(105deg,rgba(255,255,255,.035) 0 2px,transparent 2px 22px)}
+  background:radial-gradient(120% 90% at 50% 0%,rgba(255,255,255,.10),transparent 60%),linear-gradient(180deg,transparent 40%,rgba(0,0,0,.38))}
 .mx-stage{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:clamp(12px,3vw,48px);
   padding-top:clamp(26px,4.5vw,64px);padding-bottom:clamp(24px,4vw,56px)}
 
@@ -109,3 +108,29 @@
 .mx-h small,.mx-a small{opacity:.82}
 .mx-bar .mx-sh{color:var(--hi,#fff)}
 .mx-bar .mx-sa{color:var(--ai,#fff)}
+
+/* форма (09.11): в кружке — эмблема соперника, рамка цвета результата, буква В/Н/П в углу (как на странице клуба) */
+.mx-dots b{position:relative;background:#f3f6fb!important;box-shadow:inset 0 0 0 3px var(--rc);width:48px;height:48px}
+.mx-dots .r-w{--rc:#1d8a52}.mx-dots .r-d{--rc:#68758c}.mx-dots .r-l{--rc:#c4303b}
+.mx-dots b img{width:30px;height:30px;object-fit:contain}
+.mx-dots b i{font:800 13px/1 var(--display);font-style:normal;color:#24304a}
+.mx-dots b em{position:absolute;right:-4px;bottom:-4px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;
+  font:800 11px/1 var(--display);font-style:normal;color:#fff;background:var(--rc);box-shadow:0 0 0 2px var(--paper,#0b1424)}
+@media (max-width:620px){.mx-dots b{width:42px;height:42px}.mx-dots b img{width:26px;height:26px}}
+
+/* ── живой фон поля (09.11): плывущая фактура, луч прожектора, дыхание стыка. Двигаются только слои (transform/opacity) ── */
+.mx-fx,.mx-sheen,.mx-seam{position:absolute;pointer-events:none;z-index:-1}
+.mx-fx{inset:-10% -40%;background:repeating-linear-gradient(105deg,rgba(255,255,255,.045) 0 2px,transparent 2px 22px)}
+.mx-sheen{top:-20%;bottom:-20%;left:0;width:38%;opacity:0;
+  background:linear-gradient(105deg,transparent,rgba(255,255,255,.07) 40%,rgba(255,255,255,.16) 50%,rgba(255,255,255,.07) 60%,transparent)}
+.mx-seam{top:-10%;bottom:-10%;left:50%;width:14px;margin-left:-7px;transform:skewX(-15deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);opacity:.25;filter:blur(2px)}
+@media (max-width:620px){.mx-seam{transform:skewX(-22deg)}}
+@media (prefers-reduced-motion:no-preference){
+  .mx-fx{animation:mxDrift 26s linear infinite}
+  .mx-sheen{animation:mxSheen 7.5s cubic-bezier(.45,0,.25,1) 1.2s infinite}
+  .mx-seam{animation:mxSeam 3.6s ease-in-out infinite}
+  @keyframes mxDrift{from{transform:translateX(0)}to{transform:translateX(22.8px)}}
+  @keyframes mxSheen{0%{transform:translateX(-110%);opacity:0}12%{opacity:1}55%{opacity:1}70%,100%{transform:translateX(290%);opacity:0}}
+  @keyframes mxSeam{0%,100%{opacity:.18}50%{opacity:.5}}
+}

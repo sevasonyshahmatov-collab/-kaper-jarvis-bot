@@ -512,7 +512,7 @@ def v2_top(m, from_dir, fin, name, h1b, dm, wd, ar_txt, crumbs, rel, cols):
     rem = '' if fin else remind_block(m, name, sport)
     return ('<section class="mx-hero" style="--hc:%s;--ac:%s;--hi:%s;--ai:%s" aria-label="%s">\n'
             '<div class="wrap mx-crumbs">%s</div>\n'
-            '<div class="mx-field"><div class="wrap mx-stage">%s%s%s</div></div>\n'
+            '<div class="mx-field"><i class="mx-fx" aria-hidden="true"></i><i class="mx-sheen" aria-hidden="true"></i><i class="mx-seam" aria-hidden="true"></i><div class="wrap mx-stage">%s%s%s</div></div>\n'
             '<div class="wrap mx-head"><h1 class="mx-h1">%s <span>%s</span></h1>\n<ul class="mx-facts">%s</ul>\n%s'
             '<p class="fc-upd"><time datetime="%s">%s</time></p></div>\n</section>\n'
             % (hc, ac, hi, ai, esc(name), B.crumbs_html(crumbs, rel), team('h'), mid, team('a'), esc(name), esc(h1b), ''.join(facts), rem,
@@ -559,9 +559,12 @@ def v2_form(m, from_dir):
         for g in gs:
             o = outcome(g)
             ot = (' ' + g['x']) if isinstance(g.get('x'), str) and g['x'] else ''
-            lis.append('<li class="r-%s" title="%s, %s %s: %d:%d%s"><b>%s</b><span>%d:%d</span></li>'
-                       % (o, g['d'][8:10] + '.' + g['d'][5:7], 'дома' if g.get('h') else 'в гостях', names.get(g['o'], g['o']), g['gf'], g['ga'], ot,
-                          {'w': 'В', 'd': 'Н', 'l': 'П'}[o], g['gf'], g['ga']))
+            em = B.emblem(m['sport'], g['o'], from_dir)
+            on = names.get(g['o'], g['o'])
+            pic = ('<img src="%s" alt="" width="34" height="34" loading="lazy">' % esc(em)) if em else '<i>%s</i>' % esc(on[:2])
+            lis.append('<li class="r-%s" title="%s, %s, %s: %d:%d%s"><b aria-label="%s, соперник %s">%s<em>%s</em></b><span>%d:%d</span></li>'
+                       % (o, g['d'][8:10] + '.' + g['d'][5:7], 'дома' if g.get('h') else 'в гостях', on, g['gf'], g['ga'], ot,
+                          {'w': 'победа', 'd': 'ничья', 'l': 'поражение'}[o], esc(on), pic, {'w': 'В', 'd': 'Н', 'l': 'П'}[o], g['gf'], g['ga']))
         w = sum(1 for g in gs if outcome(g) == 'w')
         cols.append('<div class="mx-fc"><h3>%s <small>%d %s из %d</small></h3><ol class="mx-dots" aria-label="Последние матчи, свежие справа">%s</ol></div>'
                     % (esc(nm), w, 'победа' if w == 1 else 'победы' if 2 <= w <= 4 else 'побед', len(gs), ''.join(lis)))
@@ -585,6 +588,106 @@ def v2_h2h(m):
                         ('<small>%s</small>' % esc(r['x'])) if r['x'] else '', 'w' if win == 'a' else '', esc(away)))
     return ('<section class="fc-sec" aria-labelledby="mt-h2h"><div class="wrap"><h2 id="mt-h2h">Личные встречи</h2>'
             '<ul class="mx-h2h">%s</ul></div></section>' % ''.join(cards))
+
+
+def v2_summary(m):
+    """«Коротко о матче», вид 2 (владелец 09.11): не перечень мест в таблице, а сводка — о чём матч. Из данных:
+    серии, голы за и против в последних матчах, дом и выезд, частота тотала, последняя очная встреча, расчёт модели.
+    Названия клубов — только в именительном (через двоеточие и тире), без склонений."""
+    k, h, a, sp = m['key'], m['hn'], m['an'], m['sport']
+    line = 5.5 if sp == 'hockey' else 2.5
+    fw = lambda n: '%d %s' % (n, pl(n, ('победа', 'победы', 'побед')))  # noqa: E731
+    fl = lambda n: '%d %s' % (n, pl(n, ('поражение', 'поражения', 'поражений')))  # noqa: E731
+    gh, ga = team_games(m, m['h']), team_games(m, m['a'])
+    s = []
+    if m['res'] is not None:
+        r = m['res']
+        md = m.get('md') or {}
+        res = 'h' if r[0] > r[1] else 'a' if r[1] > r[0] else 'd'
+        s.append('Итог: %s — %s %d:%d%s.' % (h, a, r[0], r[1], (' (%s)' % r[2]) if r[2] else ''))
+        if md.get('p1') is not None:
+            pr = {'h': md['p1'], 'd': md.get('x') or 0, 'a': md['p2']}
+            fav = max(pr, key=pr.get)
+            s.append('Модель до матча считала самым вероятным исходом %s (%d %%) — %s.'
+                     % ({'h': 'победу хозяев', 'a': 'победу гостей', 'd': 'ничью'}[fav], round(pr[fav] * 100),
+                        'так и вышло' if fav == res else 'вышло иначе'))
+        gh, ga = [g for g in gh if g['d'][:10] < m['t'][:10]], [g for g in ga if g['d'][:10] < m['t'][:10]]
+
+    def streak(gs):
+        if not gs:
+            return 0, ''
+        o = outcome(gs[-1])
+        n = 0
+        for g in reversed(gs):
+            if outcome(g) != o:
+                break
+            n += 1
+        return n, o
+
+    # 1) главное по форме: длинная серия или контраст
+    f5h, f5a = gh[-5:], ga[-5:]
+    wh, wa = sum(outcome(g) == 'w' for g in f5h), sum(outcome(g) == 'w' for g in f5a)
+    sh_, sa_ = streak(gh), streak(ga)
+    form = []
+    for nm, (n, o) in ((h, sh_), (a, sa_)):
+        if n >= 3 and o in ('w', 'l'):
+            form.append('%s: %s подряд' % (nm, fw(n) if o == 'w' else fl(n)))
+    if form:
+        s.append(pick(k, 'v2f', ['Серии перед матчем — %s.', 'Обе команды подходят с серией: %s.' if len(form) == 2 else 'Перед матчем серия — %s.']) % '; '.join(form))
+    elif len(f5h) >= 4 and len(f5a) >= 4 and abs(wh - wa) >= 2:
+        hi, lo = ((h, wh), (a, wa)) if wh > wa else ((a, wa), (h, wh))
+        s.append('По форме разница заметна: %s — %s в последних 5, %s — %s.' % (hi[0], fw(hi[1]), lo[0], fw(lo[1])))
+    elif len(f5h) >= 4 and len(f5a) >= 4:
+        s.append('По форме команды близки: %s — %s в последних 5, %s — %s.' % (h, fw(wh), a, fw(wa)))
+
+    # 2) голы: атака одних против обороны других
+    def avg(gs, key):
+        return sum(g[key] for g in gs) / len(gs) if gs else None
+    if len(f5h) >= 4 and len(f5a) >= 4:
+        hf, ha_, af, aa = avg(f5h, 'gf'), avg(f5h, 'ga'), avg(f5a, 'gf'), avg(f5a, 'ga')
+        if max(hf, af) - min(ha_, aa) > 0 and (ha_ >= (2.9 if sp == 'hockey' else 1.6) or aa >= (2.9 if sp == 'hockey' else 1.6)):
+            leak = (h, ha_) if ha_ >= aa else (a, aa)
+            s.append('%s в последних 5 матчах пропускает %s за игру — у соперника будут моменты.' % (leak[0], f1(leak[1])))
+        else:
+            s.append('Голы за игру в последних 5: %s — %s забито и %s пропущено, %s — %s и %s.' % (h, f1(hf), f1(ha_), a, f1(af), f1(aa)))
+        # тотал: как часто в их матчах больше линии
+        last = gh[-8:] + ga[-8:]
+        if len(last) >= 10:
+            ov = sum(1 for g in last if g['gf'] + g['ga'] > line)
+            share = ov / len(last)
+            if share >= .65:
+                s.append('Обе команды играют результативно: больше %s голов было в %d из %d их последних матчей.' % (f1(line), ov, len(last)))
+            elif share <= .35:
+                s.append('Матчи этих команд обычно скупые: больше %s голов — лишь в %d из %d последних.' % (f1(line), ov, len(last)))
+
+    # 3) дом и выезд
+    hh = [g for g in gh if g.get('h')][-10:]
+    aw = [g for g in ga if not g.get('h')][-10:]
+    if len(hh) >= 4 and len(aw) >= 4:
+        hw_, aw_ = sum(outcome(g) == 'w' for g in hh), sum(outcome(g) == 'w' for g in aw)
+        if hw_ / len(hh) >= .65 or aw_ / len(aw) <= .3 or hw_ / len(hh) <= .3 or aw_ / len(aw) >= .65:
+            s.append('Дома %s: %s в %d матчах; в гостях %s: %s в %d.' % (h, fw(hw_), len(hh), a, fw(aw_), len(aw)))
+
+    # 4) последняя очная встреча
+    hr = h2h_rows(m)
+    if hr:
+        r = sorted(hr, key=lambda x: x['d'])[-1]
+        hg, ag = (r['gf'], r['ga']) if r['home'] else (r['ga'], r['gf'])
+        home, away = (h, a) if r['home'] else (a, h)
+        s.append('Последняя очная встреча — %s.%s.%s: %s — %s %d:%d%s.' % (r['d'][8:10], r['d'][5:7], r['d'][:4], home, away, hg, ag, (' ' + r['x']) if r['x'] else ''))
+
+    # 5) модель (до матча)
+    md = m.get('md') or {}
+    if m['res'] is None and md.get('p1') is not None:
+        p1, p2 = md['p1'], md['p2']
+        gap = abs(p1 - p2)
+        lead, lp = (h, p1) if p1 >= p2 else (a, p2)
+        if gap < .06:
+            s.append('Модель не видит фаворита: шансы почти равны.')
+        else:
+            s.append('Модель чуть выше оценивает: %s — %d %%.' % (lead, round(lp * 100)) if gap < .15 else 'Фаворит по модели: %s — %d %%.' % (lead, round(lp * 100)))
+        s.append('Это оценка по данным, а не обещание исхода.')
+    return ' '.join(s)
 
 
 CD_JS = ('<script>/* отсчёт до начала (вид 2) */(function(){var e=document.querySelector(".mx-cd");if(!e)return;function f(){var t=Date.parse(e.dataset.t.replace(" ","T")+":00+03:00"),'
@@ -653,7 +756,7 @@ def match_page(m):
         o = odds_block(m)
         if o:
             mdl = '<section class="fc-sec"><div class="wrap"><div class="mt-md">%s</div></div></section>\n' % o
-    pv = preview_text(m)
+    pv = v2_summary(m) if V2 else preview_text(m)
     prev = ('<section class="fc-sec" aria-labelledby="mt-pv"><div class="wrap"><h2 id="mt-pv">Коротко о матче</h2>'
             '<!-- превью собрано по шаблонам из данных (seo/build_match.py, preview_text); до запуска сайта тексты читает человек -->'
             '<p class="mt-prev">%s</p></div></section>\n' % esc(pv)) if pv else ''
