@@ -1,0 +1,5 @@
+{"day": "2026-11-09",
+ "messages": [
+  {"to": "owner", "type": "photo", "files": ["team/out/2026-11-09/site_match_bg.jpg"], "text": "Страница матча: фон — тот же, что на баннерах в Telegram и в «Матчах дня»: перелив цветов двух клубов с фактурой холста, тем же кодом и в тех же цветах. Справа — телефон. Полоса вероятностей модели теперь в этих же цветах.\n\nКартинка своя у каждого матча, весит 40 КБ (на телефоне 14 КБ), рисуется один раз."},
+  {"to": "owner", "type": "animation", "files": ["team/out/2026-11-09/site_match_bg.mp4"], "text": "Фон медленно «дышит» (в видео ускорено в 2,5 раза, чтобы было заметно), по нему проходит луч.\n\nСмотреть: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/d5a0090d07e25685e4bd2a0a5920274ae3510cab/team/site/v3a/proto/match-1/ · https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/d5a0090d07e25685e4bd2a0a5920274ae3510cab/team/site/v3a/proto/match-2/\nНравится — включаю на всех страницах матчей."}
+ ]}
