@@ -604,6 +604,8 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 /* 1-й период — полусвет: светлый лёд */
 [data-theme="arena"] [data-zone="p1"]{--paper:#d6e2ee; --paper-2:#c6d5e5; --paper-3:#b5c7db; --card:#eef4fa; --card-hi:#fff; --ink-3:#4f5d6c}
 [data-theme="arena"] #matches .wrap>:not(.period){opacity:clamp(0,calc(var(--lit) * 2 - .4),1)}
+/* первый раздел после героя на других страницах (лига, клуб): пока свет не включён — не показываем тёмный текст на тёмном (09.11) */
+[data-theme="arena"] .hero+.sec:not(#matches)>.wrap{opacity:clamp(0,calc(var(--lit) * 2 - .4),1)}
 /* 2-й период — газета; «Лиги и клубы» на мягких полосах цветов КХЛ (синий, красный) и НХЛ (чёрный, серебро) */
 [data-theme="arena"] #leagues::before{content:"";position:absolute;inset:-6vh 0 -4vh;z-index:-1;pointer-events:none;
   background:linear-gradient(100deg,rgba(17,70,184,.13) 0,rgba(17,70,184,.07) 22%,rgba(215,43,58,.08) 30%,transparent 46%,transparent 54%,rgba(12,14,18,.06) 64%,rgba(150,165,182,.26) 100%);

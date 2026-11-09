@@ -165,6 +165,11 @@ body[data-lg="nhl"]{--lgc:var(--nhl);--lgc2:var(--nhl-2)}
   .g{grid-template-columns:62px 26px minmax(0,1fr) auto 34px;grid-template-areas:"d h o s r" "d h o m m";gap:4px 10px;padding:10px 12px}
   .g .gd{grid-area:d}.g .ha{grid-area:h;width:24px;height:24px;font-size:13px}.g .op{grid-area:o;font-size:17px}.g .op .em{width:28px;height:28px}
   .g .sc{grid-area:s;font-size:21px}.g .rs{grid-area:r;width:32px;height:28px}
+  /* имя соперника целиком: до двух строк, значок турнира (ЛЧ) — под именем, а не «Бав…» (09.11) */
+  .g .op{display:grid;grid-template-columns:28px minmax(0,1fr);column-gap:10px;row-gap:3px;align-items:center}
+  .g .op .em{grid-row:1/span 2}.g .op .cupb{grid-column:2;justify-self:start;height:18px;font-size:10px}
+  .g .op span:not(.cupb){white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.15;overflow-wrap:normal;hyphens:auto;padding-bottom:1px}
+  .g .op{font-size:15.5px}
   .g .smp{grid-area:m;justify-self:end}
   .g.fut{grid-template-columns:62px 26px minmax(0,1fr) auto;grid-template-areas:"d h o o" "k k k m";row-gap:8px}
   .g.fut .kx{grid-area:k;justify-self:stretch}
@@ -491,3 +496,8 @@ body .g.h2g.nx{grid-template-columns:110px 32px minmax(0,1fr) auto}
 .nmatch.grad .kx li:first-child{background:#10161f}.nmatch.grad .kx li:first-child,.nmatch.grad .kx li:first-child b,.nmatch.grad .kx li:first-child small{color:#fff}
 /* место под первый экран клуба до загрузки данных — страница не прыгает (CLS, 09.11) */
 .tmhero #hero:empty{min-height:calc(100vh - 110px)}
+
+/* узкий телефон: «ОТ/Б» под счётом — шире место для имени соперника (09.11) */
+@media (max-width:400px){.g .sc{display:flex;flex-direction:column;align-items:flex-end;line-height:1}.g .sc small{margin:3px 0 0;vertical-align:0;font-size:11px}.g{column-gap:8px}}
+/* телефон: лига и конференция — две строки, без висящей точки «НХЛ → ·» (09.11) */
+@media (max-width:620px){.tmlg .dot{display:none}.tmlg .lglnk{margin-right:100%}}

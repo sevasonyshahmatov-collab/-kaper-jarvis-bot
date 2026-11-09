@@ -46,7 +46,7 @@ const listAll=(CUP||cupOnly)?ctxAll:all;
 const hm=t=>{const m=Date.parse(t);return isNaN(m)?'':new Date(m+3*36e5).toISOString().slice(11,16)};
 T.games.filter(g=>!played(g)).forEach(g=>{const hh=g.h?ID:g.o,aa=g.h?g.o:ID,key=`${g.c||lg}|${g.d.slice(0,10)}|${hh}|${aa}`,ln=(window.JV_LINES||{})[key],md=(window.JV_MODEL||{})[key],sw=a=>g.h?a:[a[2],a[1],a[0]];
  if(ln){g.k=sw([ln.p1,ln.x,ln.p2]);g.kn=`Линия, ${hm(ln.t)}`}
- else if(g.k)g.kn='Линия: ESPN';
+ else if(g.k)g.kn='Линия на матч';  /* источник не называем (владелец 05.11) */
  if(md){g.pr=sw([md.p1,md.x,md.p2]);g.ov=md.over;g.ot=md.tot;g.bt=md.btts}});
 const startMs=d=>Date.parse(d.slice(0,10)+'T'+(d.slice(11,16)||'00:00')+':00+03:00');
 const nextG=future.find(g=>startMs(g.d)>Date.now()-3*36e5)||future[0];
