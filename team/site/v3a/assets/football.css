@@ -115,3 +115,6 @@
 .kxw{display:grid;gap:5px;justify-items:end;grid-column:4/-1;justify-self:end}
 .kn{font:500 12px/1.2 var(--display);color:var(--ink-3);text-align:right}
 @media (max-width:760px){.g.fut .kxw{grid-column:1/-1;justify-self:stretch;justify-items:stretch}.g.fut .kn{text-align:left}}
+
+.lghint{margin:clamp(18px,2.4vw,28px) 0 0;font:600 17px/1.4 var(--display);color:var(--ink-2)}
+#wallbox{scroll-margin-top:110px}

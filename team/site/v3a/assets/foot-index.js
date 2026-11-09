@@ -150,6 +150,7 @@ const ZONE=lg=>({epl:[[1,4,'z1','Лига чемпионов'],[5,5,'z2','Лиг
  ligue1:[[1,3,'z1','Лига чемпионов'],[4,5,'z2','Лига Европы'],[16,16,'z3','Стыковые матчи'],[17,18,'z4','Вылет']],rpl:[[1,3,'z1','Еврокубки по рейтингу'],[15,16,'z4','Вылет']],
  ucl:[[1,8,'z1','Сразу в 1/8 финала'],[9,24,'z2','Плей-офф'],[25,36,'z4','Выбыли']],uel:[[1,8,'z1','Сразу в 1/8 финала'],[9,24,'z2','Плей-офф'],[25,36,'z4','Выбыли']]})[lg]||[];
 function pickLg(lg,anim=true){if(lg===curLg||!D.leagues[lg])return;curLg=lg;
+ const wb=$('wallbox');if(wb.hidden){wb.hidden=false;document.querySelector('.lghint')?.remove();if(anim&&wb.getBoundingClientRect().top>innerHeight*.75)setTimeout(()=>wb.scrollIntoView({behavior:RM?'auto':'smooth',block:'start'}),60)}
  flags.querySelectorAll('.lgtab').forEach(b=>b.setAttribute('aria-selected',b.dataset.lg===lg));
  const L=D.leagues[lg],tb=D.tables[lg]||[],pl=Object.fromEntries(tb.map(r=>[r.id,r])),rows=L.ids.map(s=>({...T[s],...(pl[s]||{place:99,gp:0,w:0,d:0,l:0,gf:0,ga:0,pts:0})})).sort((a,b)=>a.place-b.place),z=ZONE(lg);
  const put=()=>{wallH.innerHTML=`${LGP(lg)}<span>${esc(L.name)}</span><span>${rows.length} ${plural(rows.length,'клуб','клуба','клубов')}</span><a class="lglink" href="league.html?lg=${esc(lg)}">Страница лиги →</a>`;
@@ -162,7 +163,10 @@ function pickLg(lg,anim=true){if(lg===curLg||!D.leagues[lg])return;curLg=lg;
  if(anim&&!RM&&wallEl.innerHTML){wallEl.animate([{opacity:1},{opacity:0,transform:'translateY(6px)'}],{duration:160,easing:'ease-in'}).finished.then(put).catch(put)}else put()}
 flags.addEventListener('click',e=>{const b=e.target.closest('.lgtab');if(b)pickLg(b.dataset.lg)});
 flags.addEventListener('keydown',e=>{if(!/Arrow(Left|Right)/.test(e.key))return;const t=[...flags.querySelectorAll('.lgtab')],i=t.findIndex(b=>b.dataset.lg===curLg),n=t[(i+(e.key==='ArrowRight'?1:t.length-1))%t.length];n.focus();pickLg(n.dataset.lg)});
-pickLg(MODE||(/^#lg-/.test(location.hash)&&D.leagues[location.hash.slice(4)]?location.hash.slice(4):LGK[0]),false);
+/* владелец 09.11: лига не выбрана заранее — таблица и клубы появляются после выбора */
+const wbox=$('wallbox'),hint=document.createElement('p');hint.className='lghint';hint.textContent='Выберите лигу — покажем таблицу и все клубы.';
+const first=MODE||(/^#lg-/.test(location.hash)&&D.leagues[location.hash.slice(4)]?location.hash.slice(4):'');
+if(first)pickLg(first,false);else{wbox.hidden=true;wbox.before(hint)}
 if(MODE)flags.hidden=true;
 document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#lg-"]');if(!a)return;pickLg(a.getAttribute('href').slice(4))});
 
