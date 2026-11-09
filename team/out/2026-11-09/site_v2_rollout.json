@@ -1,0 +1,10 @@
+{
+ "day": "2026-11-09",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Сайт: новая страница матча теперь на всех 178 матчах (КХЛ, НХЛ, футбол).\n\n• Флаг на первом экране, эмблемы в «Других матчах», сводка «Коротко о матче», форма с эмблемами соперников.\n• Проверил 20 страниц разных лиг на 4 ширинах: ошибок нет, ничего не вылезает, страница не прыгает при загрузке.\n• Прочитал сводки 15 матчей разных лиг: всё по делу. У сыгранных матчей поправил формулировку — «пропускал», а не «у соперника будут моменты».\n• Ежедневное обновление само делает страницы и фоны для новых матчей.\n\nСтарые матчи 2–4 ноября (78 страниц) остались в прежнем виде: их уже нет в данных, пересобрать не из чего.\n\nПосмотреть:\nКХЛ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/9a4c16f841cb3bf97d6edcfd2d9506d950ae491b/team/site/v3a/khl/2026-11-10-dinamo-minsk-avangard/index.html\nНХЛ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/9a4c16f841cb3bf97d6edcfd2d9506d950ae491b/team/site/v3a/nhl/2026-11-11-ottawa-washington/index.html\nАПЛ: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/9a4c16f841cb3bf97d6edcfd2d9506d950ae491b/team/site/v3a/epl/2026-11-07-nottingham-forest-manchester-city/index.html\n\nДальше могу: 2) футбол — клуб и карточка матча в новом виде; 3) клуб на телефоне короче; 4) ускорить «Тренды». Какой номер?"
+  }
+ ]
+}
