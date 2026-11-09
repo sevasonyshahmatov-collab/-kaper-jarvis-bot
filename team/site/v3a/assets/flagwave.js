@@ -14,8 +14,8 @@
   if (!gl) return;
 
   const VS = 'attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
-  /* плавно, без видимых линий (владелец 09.11): картинка заранее размыта (её фактура не «плывёт»), только широкие медленные
-     волны, тени мягкие без обрезки и бликов, зерно и дизеринг неподвижны поверх — градиент без ступенек */
+  /* плавно, без видимых линий (владелец 09.11): саму картинку не сдвигаем — иначе ползут её 8-битные ступеньки градиента и зерно
+     (их и видно как бегущие линии). Волна — только мягкий свет/тень поверх (float + дизеринг) и колышущиеся края полотна. */
   const FS = `#ifdef GL_FRAGMENT_PRECISION_HIGH
   precision highp float;
   #else
@@ -31,10 +31,9 @@
     float d=(.55*cos(a1)*5.0+.45*cos(a2)*2.6)*k/4.0;                  /* наклон, примерно −1…1 */
     float y=uv.y+h*.016;                                              /* края полотна мягко гуляют */
     float edge=smoothstep(0.,.008,y)*smoothstep(1.,.992,y);
-    vec3 col=texture2D(tex,(vec2(uv.x+h*.006,y)-.5)*sc+.5).rgb;
-    col*=1.+.13*d;                                                    /* мягкий свет и тень складки */
-    float n=hash(gl_FragCoord.xy);
-    col+=(n-.5)*(.035+1.5/255.);                                      /* неподвижное зерно + дизеринг */
+    vec3 col=texture2D(tex,(uv-.5)*sc+.5).rgb;                        /* картинка НЕ двигается: её ступеньки и зерно стоят на месте */
+    col*=1.+.10*d;                                                    /* по ней ходят только мягкий свет и тень складки */
+    col+=(hash(gl_FragCoord.xy)-.5)/255.;                             /* дизеринг — без полос на свете/тени */
     gl_FragColor=vec4(mix(bg,col,edge),1.);
   }`;
   const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null; };
@@ -55,12 +54,7 @@
     const tx = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tx);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    /* размытие без ctx.filter (его нет в старом Safari): уменьшить в 6 раз и растянуть обратно со сглаживанием */
-    const bw = Math.min(1280, img.width), bh = Math.round(bw * img.height / img.width), sm = document.createElement('canvas'), bc = document.createElement('canvas');
-    sm.width = Math.round(bw / 6); sm.height = Math.round(bh / 6); bc.width = bw; bc.height = bh;
-    const sx = sm.getContext('2d'), bx = bc.getContext('2d'); sx.imageSmoothingQuality = bx.imageSmoothingQuality = 'high';
-    sx.drawImage(img, 0, 0, sm.width, sm.height); bx.drawImage(sm, 0, 0, bw, bh);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, bc);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
     field.insertBefore(cv, field.firstChild);
     let vis = true, raf = 0, t0 = performance.now();
     const size = () => {
