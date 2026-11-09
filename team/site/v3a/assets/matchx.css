@@ -134,3 +134,16 @@
   @keyframes mxSheen{0%{transform:translateX(-110%);opacity:0}12%{opacity:1}55%{opacity:1}70%,100%{transform:translateX(290%);opacity:0}}
   @keyframes mxSeam{0%,100%{opacity:.18}50%{opacity:.5}}
 }
+
+/* фон как у баннеров Telegram и «Матчей дня» (bg.webp рядом со страницей): медленно «дышит»; буквы белые с тенью */
+.mx-field.has-bg{background:#0d1626}
+.mx-field.has-bg .mx-fx{inset:-4%;background-position:center;background-size:cover;background-repeat:no-repeat}
+.mx-field.has-bg .mx-fm{display:none}
+.mx-field.has-bg .mx-seam{display:none}
+.mx-field.has-bg::before{background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.30))}
+.mx-field.has-bg .mx-team,.mx-field.has-bg .mx-team small{color:#fff!important;text-shadow:0 2px 14px rgba(0,0,0,.45)}
+@media (max-width:620px){.mx-field.has-bg .mx-fd{display:none}.mx-field.has-bg .mx-fm{display:block}}
+@media (prefers-reduced-motion:no-preference){
+  .mx-field.has-bg .mx-fx{animation:mxBreath 22s ease-in-out infinite alternate}
+  @keyframes mxBreath{from{transform:scale(1) translateX(0)}to{transform:scale(1.07) translateX(-1.5%)}}
+}

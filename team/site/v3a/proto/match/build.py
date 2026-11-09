@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Образец страницы матча, вид 2 (09.11): собирает матчи в proto/match-<n>/index.html тем же кодом, что и сайт
 (seo/build_match.py, V2=True). Остальные страницы матчей не трогает. Запуск: python3 team/site/v3a/proto/match/build.py"""
-import os, sys
+import os, shutil, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 SEO = os.path.normpath(os.path.join(HERE, '..', '..', 'seo'))
 sys.path.insert(0, SEO)
@@ -25,4 +25,8 @@ for n, m in enumerate(pick, 1):
     out = os.path.join(HERE, '..', 'match-%d' % n, 'index.html')   # та же глубина, что <лига>/<матч>/
     os.makedirs(os.path.dirname(out), exist_ok=True)
     open(out, 'w', encoding='utf-8').write(html.replace('<meta name="robots"', '<meta name="robots" content="noindex"><meta name="x-proto"', 1))
+    for f in ('bg.webp', 'bg-m.webp'):   # фон лежит рядом со страницей матча — копия рядом с образцом
+        src = os.path.join(os.path.dirname(os.path.join(B.ROOT, m['rel'])), f)
+        if os.path.exists(src):
+            shutil.copy(src, os.path.join(os.path.dirname(out), f))
     print(n, m['rel'])

@@ -20,6 +20,7 @@ import json
 import os
 import re
 import shutil
+import sys
 import zlib
 
 import og_match  # картинка-превью матча og.jpg (09.11)
@@ -484,9 +485,55 @@ def pair_cols(m):
     return hc, ac, hi, ai
 
 
+# фон поля — тот же, что у баннеров Telegram и в «Матчах дня» (daily/deck_bg.py: перелив цветов клубов + холст), полосой под первый экран
+BG_SIZES = {'bg': (1920, 600), 'bg-m': (900, 780)}
+_DBG = None
+
+
+def _deck():
+    global _DBG
+    if _DBG is None:
+        try:
+            sys.path.insert(0, os.path.join(og_match.V3A, 'daily'))
+            import deck_bg as D
+            fb = (D.jload_js(os.path.join(og_match.V3A, 'football', 'data', 'football-lite.js')) or {}).get('teams', {})
+            try:
+                tl = D.jload_js(os.path.join(og_match.V3A, 'assets', 'data', 'teams-lite.js')).get('teams', {})
+            except Exception:  # noqa: BLE001
+                tl = {}
+            _DBG = (D, D._maps(), fb, tl)
+        except Exception as e:  # noqa: BLE001
+            print('фон матча: deck_bg недоступен — %r' % e)
+            _DBG = False
+    return _DBG
+
+
+def v2_bg(m, from_dir):
+    """Рисует <матч>/bg.webp и bg-m.webp, если их ещё нет (рисунок стабилен от ключа матча). Возвращает ((c1, c2) hex) или None."""
+    dk = _deck()
+    if not dk:
+        return None
+    D, HM, FB, TL = dk
+    try:
+        c1, c2 = D.colors_for(m, HM, FB, TL)
+        seed = zlib.crc32(m['key'].encode()) % 997
+        for name, (W, H) in BG_SIZES.items():
+            f = os.path.join(og_match.V3A, from_dir, name + '.webp')
+            if not os.path.exists(f):
+                D.render(c1, c2, seed, W, H).save(f, 'WEBP', quality=74, method=5)
+        return '#%02x%02x%02x' % tuple(c1), '#%02x%02x%02x' % tuple(c2)
+    except Exception as e:  # noqa: BLE001
+        print('фон матча не нарисован %s: %r' % (m['key'], e))
+        return None
+
+
 def v2_top(m, from_dir, fin, name, h1b, dm, wd, ar_txt, crumbs, rel, cols):
     sport = m['sport']
     hc, ac, hi, ai = cols
+    bg = v2_bg(m, from_dir)
+    fld = ' has-bg' if bg else ''
+    fxl = ('<i class="mx-fx mx-fd" aria-hidden="true" style="background-image:url(bg.webp)"></i>'
+           '<i class="mx-fx mx-fm" aria-hidden="true" style="background-image:url(bg-m.webp)"></i>') if bg else '<i class="mx-fx" aria-hidden="true"></i>'
 
     def team(side):
         tid, nm = (m['h'], m['hn']) if side == 'h' else (m['a'], m['an'])
@@ -512,10 +559,10 @@ def v2_top(m, from_dir, fin, name, h1b, dm, wd, ar_txt, crumbs, rel, cols):
     rem = '' if fin else remind_block(m, name, sport)
     return ('<section class="mx-hero" style="--hc:%s;--ac:%s;--hi:%s;--ai:%s" aria-label="%s">\n'
             '<div class="wrap mx-crumbs">%s</div>\n'
-            '<div class="mx-field"><i class="mx-fx" aria-hidden="true"></i><i class="mx-sheen" aria-hidden="true"></i><i class="mx-seam" aria-hidden="true"></i><div class="wrap mx-stage">%s%s%s</div></div>\n'
+            '<div class="mx-field%s">%s<i class="mx-sheen" aria-hidden="true"></i><i class="mx-seam" aria-hidden="true"></i><div class="wrap mx-stage">%s%s%s</div></div>\n'
             '<div class="wrap mx-head"><h1 class="mx-h1">%s <span>%s</span></h1>\n<ul class="mx-facts">%s</ul>\n%s'
             '<p class="fc-upd"><time datetime="%s">%s</time></p></div>\n</section>\n'
-            % (hc, ac, hi, ai, esc(name), B.crumbs_html(crumbs, rel), team('h'), mid, team('a'), esc(name), esc(h1b), ''.join(facts), rem,
+            % (hc, ac, hi, ai, esc(name), B.crumbs_html(crumbs, rel), fld, fxl, team('h'), mid, team('a'), esc(name), esc(h1b), ''.join(facts), rem,
                esc(B.BUILT.replace(' ', 'T') + ':00+03:00'), esc(B.upd_text())))
 
 
@@ -771,6 +818,10 @@ def match_page(m):
                                    esc(pre + 'matches.html?s=' + ('h' if sport == 'hockey' else 'f')), B.CFG.TELEGRAM, B.TGSVG))
     if V2:
         cols = pair_cols(m)
+        bgc = v2_bg(m, from_dir)
+        if bgc:   # цвета баннера Telegram — и для полосы вероятностей; буквы тёмные только на очень светлом
+            ink = lambda c: '#141a24' if _lum(c.lstrip('#')) > .55 else '#ffffff'  # noqa: E731
+            cols = (bgc[0], bgc[1], ink(bgc[0]), ink(bgc[1]))
         top = v2_top(m, from_dir, fin, name, h1b, dm, wd, ar_txt, crumbs, rel, cols)
         body = top + v2_model(m, fin, pre, cols) + prev + v2_form(m, from_dir) + v2_h2h(m) + table_block(m) + other_matches(m, from_dir) + links
     else:
