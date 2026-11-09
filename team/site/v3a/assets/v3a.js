@@ -247,3 +247,21 @@ document.addEventListener('DOMContentLoaded',()=>{keepTheme();JV.fitWords('.hero
 })();
 
 /* (08.11) старая подгонка заголовков заменена на JV.fitWords / JV.fitH1 (09.11): две подгонки перебивали друг друга */
+
+/* страница клуба на телефоне короче (владелец 09.11): длинный раздел (таблица, тоталы, матчи сезона, игроки, тренды) — примерно на экран,
+   с затуханием и кнопкой «Показать полностью»; разделы и порядок те же. Содержимое рисуется скриптами позже — следим за размером. */
+(()=>{if(!document.querySelector('section.tmsec')||!matchMedia('(max-width:620px)').matches)return;
+ const cap=()=>Math.round(Math.max(560,innerHeight*.95)),ids=['table','trends','totals','games','players'];
+ ids.forEach(id=>{const box=document.getElementById(id+'Box');if(!box)return;let btn=null;
+  const chk=()=>{if(box.classList.contains('fold-open'))return;let c=cap();
+   const me=id==='table'&&box.querySelector('tr.me');if(me){const y=me.getBoundingClientRect().bottom-box.getBoundingClientRect().top;if(y+120>c)c=Math.round(y+160)}   /* строка клуба — всегда видна */
+   const need=box.scrollHeight>c+260;
+   box.classList.toggle('fold',need);box.style.setProperty('--fold',c+'px');
+   if(need&&!btn){btn=document.createElement('button');btn.type='button';btn.className='fold-more';btn.setAttribute('aria-expanded','false');btn.setAttribute('aria-controls',box.id);
+    btn.textContent='Показать полностью';box.after(btn);
+    btn.onclick=()=>{const o=!box.classList.contains('fold-open');box.classList.toggle('fold-open',o);btn.setAttribute('aria-expanded',o);btn.textContent=o?'Свернуть':'Показать полностью';
+     if(!o)box.closest('section').scrollIntoView({block:'start'})}}
+   if(btn)btn.hidden=!need};
+  if('ResizeObserver' in window)new ResizeObserver(chk).observe(box);chk();
+  /* переход по меню к разделу или поиск по странице — раскрыть */
+  addEventListener('hashchange',()=>{if(location.hash==='#'+id&&btn&&!box.classList.contains('fold-open'))btn.click()})})})();

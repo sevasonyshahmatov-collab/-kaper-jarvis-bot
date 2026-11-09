@@ -522,3 +522,9 @@ body .g.h2g.nx{grid-template-columns:110px 32px minmax(0,1fr) auto}
 }
 /* две строки названия: место под «Й», «Ё» и хвосты «Д», «Ц» — строки не налезают друг на друга (09.11) */
 .tmname h1.tmh1{line-height:1}
+/* клуб на телефоне: свёрнутые длинные разделы (assets/v3a.js, владелец 09.11) */
+@media (max-width:620px){
+ .fold:not(.fold-open){max-height:var(--fold,800px);overflow:hidden;-webkit-mask:linear-gradient(#000 calc(100% - 140px),transparent);mask:linear-gradient(#000 calc(100% - 140px),transparent)}
+ .fold-more{display:block;margin:8px auto 0;padding:13px 24px;border-radius:999px;border:0;background:#fff;color:#0d1626;font:700 15px/1 var(--display,inherit);cursor:pointer;box-shadow:0 6px 18px -6px rgba(0,0,0,.45),0 0 0 1px rgba(13,22,38,.12)}
+ .fold-more[hidden]{display:none}
+}
