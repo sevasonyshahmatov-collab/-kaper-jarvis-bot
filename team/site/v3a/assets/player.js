@@ -77,7 +77,7 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
   <div class="pp-wrap"><table class="pp-gm"><thead><tr><th scope="col" class="res"><span class="sr">Результат</span></th><th scope="col">Дата</th><th scope="col">Соперник</th><th scope="col" class="ct">Г+П</th>${nhl?'<th scope="col" class="rt br">Бр</th><th scope="col" class="rt tm">Время</th>':''}<th scope="col" class="rt">Счёт</th></tr></thead><tbody>
   ${log.slice().reverse().map(r=>{const sc=r[8],w=sc&&sc[0]>sc[1];return `<tr><td class="res">${sc?`<b class="${w?'w':'l'}">${w?'В':'П'}</b>`:''}</td><td>${ddmm(r[0])}</td><td><a class="op" style="color:inherit;text-decoration:none" href="../team/index.html?id=${encodeURIComponent(r[1])}"><img src="${em(r[1])}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(tn(r[1]))}<small>${r[2]?'дома':'в гостях'}</small></span></a></td><td class="ct pt"><b class="${r[3]+r[4]>0?'g':''}">${r[3]}+${r[4]}</b></td>${nhl?`<td class="rt br">${r[5]??'—'}</td><td class="rt tm">${mmss(r[6])}</td>`:''}<td class="rt sc">${sc?`<span class="sg"><small>${sc[2]?esc(sc[2]):''}</small><i>${sc[0]}</i><u>:</u><i>${sc[1]}</i></span>`:'—'}</td></tr>`}).join('')}
   </tbody></table></div></section>
- <div class="pp-cta"><p>Разборы матчей и прогнозы по хоккею — в нашем Telegram-боте.</p><a href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a></div>`;
+ <div class="pp-cta"><p>Разборы матчей и прогнозы по хоккею — в нашем Telegram-канале.</p><a href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a></div>`;
  MAIN.innerHTML=html;
  MAIN.style.setProperty('--c',col);
  /* клубные цвета профиля (06.11): переменные --kb… из club/jersey.js; --kg — акцент для графиков на фоне страницы */
@@ -114,7 +114,7 @@ function nextMatch(P){
  const d=nx.d,when=`${+d.slice(8,10)} ${MON[+d.slice(5,7)-1]}, ${d.slice(11,16)} МСК`;
  const hs=nx.h?P.t:nx.o,as=nx.h?nx.o:P.t,key=`${LG}|${d.slice(0,10)}|${hs}|${as}`;
  box.innerHTML=`<div class="vs"><a class="cl" href="../team/index.html?id=${encodeURIComponent(nx.o)}"><img src="${em(nx.o)}" alt="" onerror="this.remove()"></a>
-  <a class="cl" href="../team/index.html?id=${encodeURIComponent(nx.o)}"><b>${nx.h?'Дома против':'В гостях у'} ${esc(tn(nx.o))}</b><span>${when}</span></a></div><div id="nxl"></div>`;
+  <a class="cl" href="../team/index.html?id=${encodeURIComponent(nx.o)}"><b>${nx.h?'Дома':'В гостях'} — ${esc(tn(nx.o))}</b><span>${when}</span></a></div><div id="nxl"></div>`;
  const load=src=>new Promise(ok=>{const s=document.createElement('script');s.src=src;s.onload=s.onerror=()=>ok();document.head.appendChild(s)});
  load('../data/today.js').then(()=>{
   const m=((window.JV_TODAY||{}).matches||[]).find(x=>x.key===key);if(!m)return;

@@ -79,3 +79,6 @@ body.fc a:focus-visible{outline:3px solid var(--ice);outline-offset:2px}
 }
 @media (prefers-reduced-motion:no-preference){.gl-t{transition:border-color .2s ease,box-shadow .2s ease}}
 .fc-mlink{margin-top:2px;font:700 14px/1.3 var(--display);color:var(--acc);text-underline-offset:3px}
+/* телефон (09.11): время не налезает на эмблемы; «3,2 : 1,8» не разрывается */
+@media (max-width:620px){.fc-m{grid-template-columns:70px minmax(0,1fr)}.fc-time b{font-size:24px}}
+.fc-ext b{white-space:nowrap}

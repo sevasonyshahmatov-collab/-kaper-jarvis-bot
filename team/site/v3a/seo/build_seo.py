@@ -474,7 +474,7 @@ def shell(rel, sport, body, extra_scripts='', extra_css='', head_js=''):
             '<link rel="stylesheet" href="%sassets/forecast.css">\n%s%s<link rel="icon" href="%sfavicon.svg" type="image/svg+xml">\n'
             '<link rel="icon" href="%sfavicon-32.png" sizes="32x32" type="image/png">\n<link rel="apple-touch-icon" href="%sapple-touch-icon.png">\n'
             '<link rel="manifest" href="%ssite.webmanifest">\n<script src="%sassets/efir/efir-loader.js"></script>\n<script src="%sassets/palettes.js"></script>\n</head>\n<body class="fc"%s>\n<a class="skip" href="#main">К содержанию</a>\n%s\n\n<main id="main">\n%s\n</main>\n\n'
-            '<footer><div class="wrap"><p id="foot">Макет v3a · © JARVIS, @jarvibet</p></div></footer>\n\n'
+            '<footer><div class="wrap"><p id="foot">© JARVIS, @jarvibet</p></div></footer>\n\n'
             '<script src="%sassets/nav.js"></script>\n<script src="%sassets/footer.js"></script>\n%s</body>\n</html>\n'
             % (sattr, FONTS, pre, pre, pre, ('<link rel="stylesheet" href="%sassets/%s">\n' % (pre, extra_css)) if extra_css else '', head_js, pre, pre, pre, pre, pre, pre, ' data-field="%s"' % sport if sport else '', header, body, pre, pre, extra_scripts))
 
