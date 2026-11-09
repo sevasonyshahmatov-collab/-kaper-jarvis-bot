@@ -18,16 +18,16 @@
   void main(){
     vec2 uv=vec2(v.x,1.-v.y);
     float k=smoothstep(0.,.35,uv.x)*.75+.25;                         /* у «древка» слева слабее */
-    float ph=uv.x*20.0-t*3.0+uv.y*3.0;                                /* 3 складки бегут по диагонали */
-    float ph2=uv.x*9.0-t*1.7-uv.y*1.5+sin(t*.5);                      /* крупная медленная волна */
+    float ph=uv.x*12.0-t*1.6+uv.y*2.0;                                /* 2 широкие складки плавно бегут по диагонали */
+    float ph2=uv.x*6.0-t*1.0-uv.y*1.2+sin(t*.35);                      /* крупная медленная волна */
     float h=(.6*sin(ph)+.4*sin(ph2))*k;                               /* высота ткани */
-    float d=(.6*cos(ph)*20.0+.4*cos(ph2)*9.0)*k;                      /* наклон по ширине */
-    float y=uv.y+h*.028;                                              /* края полотна гуляют вверх-вниз */
+    float d=(.6*cos(ph)*12.0+.4*cos(ph2)*6.0)*k;                      /* наклон по ширине */
+    float y=uv.y+h*.022;                                              /* края полотна гуляют вверх-вниз */
     float edge=smoothstep(0.,.006,y)*smoothstep(1.,.994,y);
     vec2 tc=(vec2(uv.x+h*.010,y)-.5)*sc+.5;
     vec3 col=texture2D(tex,tc).rgb;
-    float s=1.+clamp(d*.03,-.5,.32);                                  /* тень во впадине, свет на склоне */
-    float spec=pow(clamp(d/15.,0.,1.),6.)*.28;                        /* блик на гребне */
+    float s=1.+clamp(d*.04,-.38,.26);                                  /* тень во впадине, свет на склоне */
+    float spec=pow(clamp(d/9.6,0.,1.),4.)*.2;                        /* блик на гребне */
     col=col*s+spec;
     gl_FragColor=vec4(mix(bg,col,edge),1.);
   }`;
