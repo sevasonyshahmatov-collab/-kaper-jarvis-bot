@@ -486,7 +486,9 @@ def pair_cols(m):
 
 
 # фон поля — тот же, что у баннеров Telegram и в «Матчах дня» (daily/deck_bg.py: перелив цветов клубов + холст), полосой под первый экран
-BG_SIZES = {'bg': (1920, 600), 'bg-m': (900, 780)}
+BG_SIZES = {'bg': (2560, 800), 'bg-m': (1170, 1000)}   # чётко на экранах высокой плотности — не хуже «Матчей дня» (владелец 09.11)
+BG_Q = {'bg': 84, 'bg-m': 78}
+BG_VER = 2   # сменить число — фоны перерисуются
 _DBG = None
 
 
@@ -519,8 +521,11 @@ def v2_bg(m, from_dir):
         seed = zlib.crc32(m['key'].encode()) % 997
         for name, (W, H) in BG_SIZES.items():
             f = os.path.join(og_match.V3A, from_dir, name + '.webp')
-            if not os.path.exists(f):
-                D.render(c1, c2, seed, W, H).save(f, 'WEBP', quality=74, method=5)
+            mark = os.path.join(og_match.V3A, from_dir, '.bgv')
+            fresh = os.path.exists(f) and os.path.exists(mark) and open(mark).read().strip() == str(BG_VER)
+            if not fresh:
+                D.render(c1, c2, seed, W, H).save(f, 'WEBP', quality=BG_Q[name], method=6)
+        open(os.path.join(og_match.V3A, from_dir, '.bgv'), 'w').write(str(BG_VER))
         return '#%02x%02x%02x' % tuple(c1), '#%02x%02x%02x' % tuple(c2)
     except Exception as e:  # noqa: BLE001
         print('фон матча не нарисован %s: %r' % (m['key'], e))
