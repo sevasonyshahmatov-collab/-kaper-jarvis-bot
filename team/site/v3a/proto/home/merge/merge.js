@@ -10,12 +10,12 @@ if(!cards.length)return;
 /* счётчики матчей на карточках */
 (()=>{
  const H=window.HOME;if(!H||!H.J)return;
- /* «N матчей сегодня» — все матчи сегодняшнего дня по Москве, как на текущей главной (аудит 08.11: одно правило везде) */
+ /* «N матчей сегодня» — игровой день (06:00–06:00 МСК, ночь НХЛ — к вечеру накануне), все матчи дня: то же правило, что «Прогноз на сегодня» и «Хоккей» (09.11) */
  const all=H.all(),fmt=n=>n.toFixed(1).replace('.',',');
  const T=new Date(Date.now()+3*3600e3).toISOString().slice(0,10);
  const raw=((H.J.TD&&H.J.TD.matches)||[]).filter(m=>m.t&&m.h&&m.a);
  [['hk',true],['fb',false]].forEach(([c,hk])=>{
-  const list=all.filter(m=>m.hockey===hk),td=raw.filter(m=>H.isH(m)===hk&&m.t.slice(0,10)===T),use=td.length?td:list;
+  const list=all.filter(m=>m.hockey===hk),td=raw.filter(m=>H.isH(m)===hk&&H.J.isToday(m)),use=td.length?td:list;
   const n=use.length,el=$('.mg-deck .card.'+c);if(!el)return;
   el.querySelector('[data-cnt]').textContent=n?`${n} ${H.pl(n,'матч','матча','матчей')} ${td.length?'сегодня':'впереди'}`:'сегодня матчей нет';
   const lam=use.map(m=>{const md=m.md||H.J.M[m.key];return md&&md.lam?md.lam[0]+md.lam[1]:null}).filter(v=>v!=null);

@@ -16,17 +16,17 @@ function all(){
  if(!J)return [];
  const raw=((J.TD&&J.TD.matches)||[]).filter(m=>m.t&&m.h&&m.a);
  const now=Date.now(),fresh=raw.filter(m=>atMs(m.t)>now-2*3600e3),src=fresh.length?fresh:raw;
- const today=ymd(msk()),tm=ymd(new Date(Date.parse(today+'T00:00:00Z')+864e5));
+ const today=J.gdayNow(),tm=J.gdayNow(1);   // игровой день 06:00–06:00 МСК (09.11)
  return src.map(m=>{
   const ln=J.L[m.key],md=J.M[m.key],hockey=isH(m);
   const pr=md?[md.p1,md.x,md.p2]:null;
   let bi=-1;if(pr)pr.forEach((p,i)=>{if(p!=null&&(bi<0||p>pr[bi]))bi=i});
-  const d=m.t.slice(0,10);
+  const d=J.gday(m.t);
   return Object.assign({},m,{hockey,ln,md,pr,bi,
    best:pr?pr[bi]:0,
    who:bi===0?m.hn:bi===2?m.an:'ничья',
    hm:m.t.slice(11,16),
-   day:d===today?'сегодня':d===tm?'завтра':J.ddmm(m.t),
+   day:d===today?(m.t.slice(11,13)<'06'?'ночью':'сегодня'):d===tm?'завтра':J.ddmm(m.t),
    lgn:LG[m.lg]||m.lg,
    hc:`${R}assets/${hockey?'em':'fc'}/${encodeURIComponent(m.h)}.webp`,
    ac:`${R}assets/${hockey?'em':'fc'}/${encodeURIComponent(m.a)}.webp`,

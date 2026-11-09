@@ -92,5 +92,10 @@ function section(root,items,cfg){
 window.JVL={L,M,TD,esc,SRC,f1,f2,p0,key,hhmm,ddmm,srcLabel,verName,fair,fairTot,diffs,flagged,dvHtml,modelLine,quotes,why,section,
  line:k=>L[k]||null,model:k=>M[k]||null,
  /* дата начала матча по Москве — для подписи «сегодня/завтра» */
- mskDay:ms=>new Date(ms+3*3600e3).toISOString().slice(0,10)};
+ mskDay:ms=>new Date(ms+3*3600e3).toISOString().slice(0,10),
+ /* игровой день — одно правило на весь сайт (владелец 09.11): с 06:00 МСК до 06:00 следующего дня, ночь НХЛ — к вечеру накануне.
+    gday('ГГГГ-ММ-ДД ЧЧ:ММ' МСК) → 'ГГГГ-ММ-ДД'; gdayNow(+дни) — текущий игровой день; isToday(m) — матч сегодняшнего игрового дня (все, включая сыгранные: «сегодня N матчей» везде одно число) */
+ gday:t=>new Date(Date.parse(String(t).slice(0,16).replace(' ','T')+':00Z')-6*3600e3).toISOString().slice(0,10),
+ gdayNow:(add=0)=>new Date(Date.now()+3*3600e3-6*3600e3+add*864e5).toISOString().slice(0,10),
+ isToday:m=>window.JVL.gday(m.t)===window.JVL.gdayNow()};
 })();

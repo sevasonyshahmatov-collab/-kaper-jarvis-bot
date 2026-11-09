@@ -277,7 +277,7 @@ const NMS=(window.JV_TEAMS||{}).names||{};
 const nmS=s=>NMS[s]||s;
 const MONN=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'],WDN=['вс','пн','вт','ср','чт','пт','сб'];
 const dayName=d=>{const [y,m,dd]=d.split('-').map(Number);return `${WDN[new Date(Date.UTC(y,m-1,dd)).getUTCDay()]}, ${dd} ${MONN[m-1]}`};
-const todayD=JVL.mskDay(Date.now()),tmrD=JVL.mskDay(Date.now()+864e5);
+const todayD=JVL.gdayNow(),tmrD=JVL.gdayNow(1);   // игровой день: ночь НХЛ — к вечеру накануне
 const dayLabel=d=>dayName(d)+(d===todayD?' · сегодня':d===tmrD?' · завтра':'');
 /* матчи окна данных: КХЛ и НХЛ из data/today.json; линия и расчёт — по ключу из data/lines.json и data/model.json */
 const ALL=(TDY.matches||[]).filter(m=>m.lg==='khl'||m.lg==='nhl').map(m=>({...m,ln:LN[m.key]||null,md:MDL[m.key]||null})).sort((a,b)=>a.t<b.t?-1:1);
@@ -286,11 +286,12 @@ const D=FRESH.length?FRESH:ALL;
 const dayNote=document.getElementById('daynote');
 if(!ALL.length){dayNote.textContent='В последнем обновлении данных матчей КХЛ и НХЛ нет. Расписание появится после следующего обновления.'}
 else if(!FRESH.length){dayNote.textContent=`Все матчи из последнего обновления (${JVL.ddmm(ALL[ALL.length-1].t)}) уже сыграны, ниже — они же. Новые появятся после обновления данных.`}
-else if(D[0].t.slice(0,10)!==todayD){dayNote.textContent=`Сегодня матчей КХЛ и НХЛ нет. Показаны ближайшие — с ${JVL.ddmm(D[0].t)}.`}
+else if(JVL.gday(D[0].t)!==todayD){dayNote.textContent=`Сегодня матчей КХЛ и НХЛ нет. Показаны ближайшие — с ${JVL.ddmm(D[0].t)}.`}
 else dayNote.hidden=true;
 const upd=TDY.built?`${JVL.ddmm(TDY.built)} в ${TDY.built.slice(11,16)} МСК`:'';
 {const $=id=>document.getElementById(id),wl=D.filter(m=>m.ln).length;
- $('fN').dataset.count=D.length;$('fN').textContent=D.length;$('fNl').textContent=`${plural(D.length,'матч','матча','матчей')} в ближайшие дни`;
+ const tdN=ALL.filter(JVL.isToday).length,fn=tdN||D.length;   // «сегодня» — по тому же правилу, что главная и «Прогноз на сегодня»
+ $('fN').dataset.count=fn;$('fN').textContent=fn;$('fNl').textContent=`${plural(fn,'матч','матча','матчей')} ${tdN?'сегодня':'в ближайшие дни'}`;
  $('fP').dataset.count=wl;$('fP').textContent=wl;$('fPl').textContent=`с линией и расчётом модели`;
 }
 const cnt=id=>D.filter(m=>m.lg===id).length;
@@ -298,7 +299,7 @@ const chev='<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-wi
 
 /* бегущая строка: ближайшие матчи — время, лига, клубы, кэфы П1 · Х · П2 линии (если линии нет — вероятности модели) */
 {const up=D.filter(m=>JV.left(m.t)>0&&JV.left(m.t)<48*3600),L=(up.length?up:D.filter(m=>JV.left(m.t)>0)).slice(0,10);
- if(L.length)JV.ticker(document.getElementById('ticker'),L.map(m=>{const day=m.t.slice(0,10),tag=day===todayD?'':day===tmrD?'<span class="tm2">завтра</span>':`<span class="tm2">${esc(day.slice(8))}.${esc(day.slice(5,7))}</span>`;
+ if(L.length)JV.ticker(document.getElementById('ticker'),L.map(m=>{const day=JVL.gday(m.t),tag=day===todayD?'':day===tmrD?'<span class="tm2">завтра</span>':`<span class="tm2">${esc(day.slice(8))}.${esc(day.slice(5,7))}</span>`;
   const q=m.ln?[m.ln.p1,m.ln.x,m.ln.p2].filter(Boolean).map(v=>f1(v,2)).join(' · '):m.md?[m.md.p1,m.md.x,m.md.p2].map(v=>Math.round(v*100)).join(' · ')+' %':'';
   return `${tag}<time>${esc(m.t.slice(11))}</time>${LGP(m.lg)}${CS(m.h,'tc')}${esc(m.hn)} — ${esc(m.an)}${CS(m.a,'tc')}${q?`<span class="kq">${q}</span>`:''}`}));
  else document.getElementById('ticker').hidden=true}
@@ -404,7 +405,7 @@ function row(m){const L=LG[m.lg];
   <div class="mbody"><div>${''}</div></div></li>`}
 function render(l){const sel=(l==='all'?D:D.filter(m=>m.lg===l));
  ltabs.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.l===l));
- let html='',prev='';sel.forEach(m=>{const d=m.t.slice(0,10);if(d!==prev){prev=d;html+=`<li class="dayh" aria-hidden="true">${dayLabel(d)}</li>`}html+=row(m)});
+ let html='',prev='';sel.forEach(m=>{const d=JVL.gday(m.t);if(d!==prev){prev=d;html+=`<li class="dayh" aria-hidden="true">${dayLabel(d)}</li>`}html+=row(m)});
  list.innerHTML=html||'<li class="note" style="padding:18px 4px">Матчей в этой лиге нет.</li>';
  list.querySelectorAll('.match').forEach((li,i)=>{const b=li.querySelector('.mhead'),body=li.querySelector('.mbody>div');
   b.addEventListener('click',()=>{if(!body.innerHTML)body.innerHTML=back(sel[i]);requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o);if(o){fitLast(li);loadH2H(li,sel[i])}})})});
@@ -443,7 +444,7 @@ LeagueCards.mount(document.getElementById('lcdeck'),Object.entries(LG).map(([id,
   document.getElementById('gtbl').innerHTML=T5.length?'<tr><th>Время</th><th>Матч</th><th>Исход</th><th>Кэф</th><th>Вер.</th></tr>'+T5.map(m=>{const mo=[m.md.p1,m.md.x,m.md.p2],i=mo.indexOf(Math.max(...mo)),kk=[m.ln.p1,m.ln.x,m.ln.p2][i];
    return `<tr><td>${m.t.slice(11)}</td><td>${esc(m.hn)} — ${esc(m.an)}</td><td>${['П1','Х','П2'][i]}</td><td class="k">${kk?f1(kk,2):'—'}</td><td><i class="pb" style="--w:${Math.round(mo[i]*100)}%"></i>${Math.round(mo[i]*100)}%</td></tr>`}).join(''):'<tr><td>Расчёт появится после обновления данных</td></tr>';
   const gm=m=>`<div class="gm"><time>${esc(m.t.slice(11))}</time>${CS(m.h)}<span>${esc(m.hn)} — ${esc(m.an)}</span>${CS(m.a)}</div>`;
-  let cal='',pd='';D.slice(0,5).forEach(m=>{const d=m.t.slice(0,10);if(d!==pd){pd=d;cal+=`<div class="day">${d===todayD?'Сегодня':d===tmrD?'Завтра':dd(d)}</div>`}cal+=gm(m)});
+  let cal='',pd='';D.slice(0,5).forEach(m=>{const d=JVL.gday(m.t);if(d!==pd){pd=d;cal+=`<div class="day">${d===todayD?'Сегодня':d===tmrD?'Завтра':dd(d)}</div>`}cal+=gm(m)});
   /* последние сыгранные матчи — из данных сезона (assets/data/teams.js), по одному разу: берём запись хозяев */
   const done=[];Object.entries(TD).forEach(([sl,T])=>T.games.forEach(g=>{if(g.h===1&&played(g))done.push({d:g.d,h:sl,a:g.o,gf:g.gf,ga:g.ga,x:g.x})}));
   done.sort((a,b)=>a.d<b.d?1:-1);const ld=done.length?done[0].d.slice(0,10):'';

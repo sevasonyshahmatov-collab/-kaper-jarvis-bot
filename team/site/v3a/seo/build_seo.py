@@ -67,6 +67,15 @@ FOOT = jload('football', 'data', 'football.json')
 BUILT = TODAY.get('built') or datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M')  # «ГГГГ-ММ-ДД ЧЧ:ММ» МСК
 BUILT_DAY = BUILT[:10]
 
+
+def gday(t):
+    """Игровой день (владелец 09.11, одно правило на весь сайт): с 06:00 МСК до 06:00 следующего дня —
+    ночные матчи НХЛ (02:00–05:00 МСК) относятся к вечеру накануне, как в прогнозах канала. t — 'ГГГГ-ММ-ДД ЧЧ:ММ' МСК."""
+    return (datetime.datetime.strptime(t[:16], '%Y-%m-%d %H:%M') - datetime.timedelta(hours=6)).strftime('%Y-%m-%d')
+
+
+BUILT_GD = gday(BUILT)
+
 HL = {'khl': 'КХЛ', 'nhl': 'НХЛ'}
 FL = {k: v['name'] for k, v in FOOT['leagues'].items()}
 LG_ALL = list(HL) + list(FL)
@@ -150,8 +159,8 @@ def pick_day(ms):
     left = [m for m in ms if m['t'] >= cut]
     if not left:
         return None, []
-    d = left[0]['t'][:10]
-    return d, [m for m in left if m['t'][:10] == d]
+    d = gday(left[0]['t'])
+    return d, [m for m in left if gday(m['t']) == d]
 
 
 def mdl_block(m, sport):
@@ -198,9 +207,9 @@ def match_li(m, sport, d_out):
     import build_match as BM
     mp = BM.match_rel(m['key'])
     ml = ('<a class="fc-mlink" href="%s">Страница матча ›</a>' % esc('../' * depth(d_out) + mp)) if mp else ''
-    return ('<li class="fc-m" id="%s"%s><div class="fc-time"><b>%s</b><small>МСК</small></div>'
+    return ('<li class="fc-m" id="%s"%s><div class="fc-time"><b>%s</b><small>%sМСК</small></div>'
             '<div class="fc-teams">%s<span class="fc-vs" aria-hidden="true">—</span>%s%s%s</div>%s</li>'
-            % (mid, lv_attrs(m), esc(m['t'][11:16]), team(m['h'], m['hn']), team(m['a'], m['an']), ar, ml, mdl_block(m, sport)))
+            % (mid, lv_attrs(m), esc(m['t'][11:16]), ('ночь на %s.%s, ' % (m['t'][8:10], m['t'][5:7])) if m['t'][11:13] < '06' else '', team(m['h'], m['hn']), team(m['a'], m['an']), ar, ml, mdl_block(m, sport)))
 
 
 # ───────────────────────── JSON-LD ─────────────────────────
@@ -501,7 +510,7 @@ def forecast_page(lg):
     day, ms = pick_day(matches_for(lg))
     if day:
         dm, wd = ru_date(day)
-        if day == BUILT_DAY:
+        if day == BUILT_GD:
             h2 = 'Матчи на сегодня, %s' % dm
             note = ''
         else:
@@ -550,7 +559,7 @@ def hub_page():
             day, ms = pick_day(matches_for(lg))
             if day:
                 dm, _ = ru_date(day)
-                sub = ('сегодня, %d' % len(ms)) if day == BUILT_DAY else ('%s, %d' % (dm, len(ms)))
+                sub = ('сегодня, %d' % len(ms)) if day == BUILT_GD else ('%s, %d' % (dm, len(ms)))
                 cnt = '<small>%s</small>' % esc(sub + ' ' + ('матч' if len(ms) % 10 == 1 and len(ms) != 11 else 'матча' if 2 <= len(ms) % 10 <= 4 and not 12 <= len(ms) % 100 <= 14 else 'матчей'))
             else:
                 cnt = '<small>матчей в данных нет</small>'
