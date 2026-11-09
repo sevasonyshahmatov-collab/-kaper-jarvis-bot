@@ -963,3 +963,7 @@ body{font-variant-numeric:tabular-nums lining-nums}
 .board-top{flex-wrap:wrap;row-gap:6px}.board-top .bwhen{flex-wrap:wrap;white-space:normal;min-width:0}
 /* бегущая строка: место сразу, до загрузки данных — страница не сдвигается (CLS, 09.11) */
 .ticker:empty:not([hidden]){min-height:52px}
+/* телефон: первый экран (шапка клуба, лиги, раздела) виден сразу, без «проявления» — главный блок появляется на ~1 с раньше (09.11, скорость; как titles.js с 04.11) */
+@media (max-width:620px) and (pointer:coarse){
+  .js .hero [data-rv]>*,.js .hero[data-rv]>*,.js .tmhero [data-rv]>*,.js .lghero [data-rv]>*{opacity:1!important;transform:none!important;transition:none!important}
+}

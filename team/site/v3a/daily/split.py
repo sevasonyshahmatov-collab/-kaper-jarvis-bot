@@ -13,8 +13,10 @@
     hockey/data/lgp_<лига>.json      страница лиги: матчи сезона (хозяева) и итоги игроков без лога
     hockey/data/pp/<лига>/<id>.json  профиль одного игрока (hockey/player.html, 1–4 КБ): шапка, итоги, полный лог сезона, следующий матч
   Футбол
+    football/data/football-club.js   то же без up — для страницы клуба (football/team.html и копии <лига>/<клуб>/)
     football/data/football-lite.js   JV_FOOT без games / sc / cd / scx / cdx / cx у клубов и без h2h (таблицы, клубы, лиги, up)
-    football/data/games.js           games всех клубов + личные встречи только для пар из «ближайших матчей» (главная, ЦЛ, лиги)
+    football/data/games.js           games всех клубов без ударов/угловых + личные встречи пар из «ближайших матчей» (футбол, ЛЧ, лиги)
+    football/data/games-xy.js        удары, угловые, владение к games.js — грузится при раскрытии матча (foot-index.js)
     football/data/club/<id>.js       games / sc / cd / scx / cdx / cx клуба + games / cx соперников ближайших матчей + h2h клуба
     football/data/pl/<лига>.js       JV_PLAYERS.players: топ-15 бомбардиров и топ-10 по карточкам лиги (league.html)
     football/data/pl/trends.js       JV_PLAYERS.players: только то, что нужно трендам (t, n, f, sg)
@@ -398,12 +400,18 @@ def football():
     lite['teams'] = {s: {k: v for k, v in t.items() if k not in HEAVY_F} for s, t in teams.items()}
     lite['h2h'] = {}
     write(os.path.join(fd, 'football-lite.js'), 'window.JV_FOOT=' + jd(lite) + ';')
+    # страница клуба: то же без «up» (ближайшие матчи всех лиг, ~70 КБ) — клубу не нужно (09.11, скорость)
+    write(os.path.join(fd, 'football-club.js'), 'window.JV_FOOT=' + jd({k: v for k, v in lite.items() if k != 'up'}) + ';')
     # games.js — для страниц, где нужны матчи всех клубов; h2h — только для пар из ближайших матчей
     pairs = {'|'.join(sorted([m['h'], m['a']])) for m in d.get('up', [])}
     h2h_up = {k: v for k, v in d.get('h2h', {}).items() if k in pairs}
-    g = {s: t['games'] for s, t in teams.items() if t.get('games')}
+    # удары, угловые, владение (x — клуб, y — соперник) нужны только в раскрытом матче (foot-index.js) — отдельным файлом (09.11, скорость)
+    g = {s: [{k: v for k, v in x.items() if k not in ('x', 'y')} for x in t['games']] for s, t in teams.items() if t.get('games')}
+    xy = {s: [[x.get('x'), x.get('y')] for x in t['games']] for s, t in teams.items() if t.get('games')}
     write(os.path.join(fd, 'games.js'),
           '(function(F){var G=%s,H=%s,s;for(s in G)if(F.teams[s])F.teams[s].games=G[s];Object.assign(F.h2h,H)})(window.JV_FOOT);' % (jd(g), jd(h2h_up)))
+    write(os.path.join(fd, 'games-xy.js'),
+          '(function(F){var X=%s,s,i,g;for(s in X)if(F.teams[s]&&F.teams[s].games)for(i=0;i<X[s].length;i++){g=F.teams[s].games[i];if(g){if(X[s][i][0])g.x=X[s][i][0];if(X[s][i][1])g.y=X[s][i][1]}}window.JV_XY=1})(window.JV_FOOT);' % jd(xy))
     # club/<id>.js
     cdir = os.path.join(fd, 'club')
     fresh(cdir)

@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#071225">
 <script>(()=>{const t=new URLSearchParams(location.search).get('theme'),d=document.documentElement;if(/^(arena|a|b|c)$/.test(t||''))d.dataset.theme=t;
 document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a1220',b:'#0b2a84',c:'#e3eff9'}[d.dataset.theme]||'#071225'})();</script>
+<script>/* данные лиги — запрос сразу, не после всех скриптов (09.11, скорость) */(function(){var m=/[?&]lg=(nhl)/i.exec(location.search);document.write('<link rel="preload" as="fetch" crossorigin href="data/lgp_'+(m?'nhl':'khl')+'.json">')})()</script>
 <link rel="preload" as="script" href="../assets/vendor/gsap.min.js" media="(min-width: 621px)">
 <link rel="preload" as="script" href="../assets/vendor/SplitText.min.js" media="(min-width: 621px)">
 <link rel="stylesheet" href="../assets/v3a.css">

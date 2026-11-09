@@ -100,6 +100,8 @@ ltabs.innerHTML=`<button class="tab" role="tab" aria-selected="true" data-l="all
  LGK.filter(k=>cntL(k)).map(k=>`<button class="tab" role="tab" aria-selected="false" data-l="${esc(k)}">${LGP(k)}${esc(D.leagues[k].name)} <span class="c">${cntL(k)}</span></button>`).join('');
 const LIM=14;let curTab='all',shownN=LIM,sel=[];
 function det(m){return m.det||(m.det={A:{s:m.h,g:gamesOf(m.h),st:stats(m.h)},B:{s:m.a,g:gamesOf(m.a),st:stats(m.a)},h:h2h(m.h,m.a)})}
+/* удары и угловые по матчам — отдельный файл, только когда матч раскрыли (09.11, скорость) */
+let xyP=null;const loadXY=()=>window.JV_XY?Promise.resolve():(xyP=xyP||new Promise(ok=>{const sc=document.createElement('script');sc.src='data/games-xy.js';sc.onload=sc.onerror=()=>ok();document.head.appendChild(sc)}));
 function back(m){const {A,B,h}=det(m),nA=nm(m.h),nB=nm(m.a);
  const last=t=>`<div class="l3"><h5>${CI(t.s)}${esc(nm(t.s))}</h5><ul>${t.g.slice(0,3).map(g=>{const r=rOf(g);return `<li><b class="rs ${r}" title="${RESF[r]}">${RES[r]}</b><span class="op">${CI(g.o)}${esc(nm(g.o))}</span><span class="sc num">${g.gf}:${g.ga}</span><span class="d">${g.h?'дома':'в гостях'} · ${dd(g.d)}</span></li>`}).join('')||'<li class="none">Нет данных</li>'}</ul></div>`;
  const form=t=>`<div class="fm"><span>${CI(t.s)}${esc(nm(t.s))}</span>${dots(t.s)}</div>`;
@@ -132,7 +134,8 @@ function render(l,more){if(!more){curTab=l;shownN=LIM}
  vis.forEach(m=>{const dk=m.t.slice(0,10);if(dk!==prev){prev=dk;const d=day(m.t);html+=`<li class="dayh" aria-hidden="true">${d.wd}, ${d.d} ${d.mon}${dk===today?' · сегодня':''}</li>`}html+=rowHTML(m)});
  list.innerHTML=html||'<li class="note" style="padding:18px 4px">В этой лиге ближайших матчей пока нет.</li>';
  list.querySelectorAll('.match').forEach((li,i)=>{const b=li.querySelector('.mhead'),body=li.querySelector('.mbody>div');
-  b.addEventListener('click',()=>{if(!body.innerHTML)body.innerHTML=back(vis[i]);requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o)})})});
+  b.addEventListener('click',()=>{const open=()=>requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o)});
+   if(body.innerHTML)return open();loadXY().then(()=>{vis[i].det=null;body.innerHTML=back(vis[i]);open()})})});
  if(!RM&&!more)list.querySelectorAll('.match').forEach((li,i)=>li.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:Math.min(i,10)*55,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}));
  requestAnimationFrame(()=>list.querySelectorAll('.match').forEach(li=>li.classList.add('in')));
  moreB.hidden=sel.length<=shownN;moreB.textContent=`Показать ещё ${Math.min(LIM,sel.length-shownN)}`;tick()}

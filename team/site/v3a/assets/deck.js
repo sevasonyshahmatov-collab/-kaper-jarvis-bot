@@ -214,7 +214,7 @@ function applyBg(dir){const m=list[cur];if(!m||m.key===bgKey)return;bgKey=m.key;
     else{nxt.style.setProperty('--dx','0vw');nxt.classList.add('on');nxt.style.zIndex=2;if(old){old.classList.remove('on');old.style.zIndex=1}}
     bgCur=(bgCur+1)%2;
     bgPre(cur+1);bgPre(cur-1)};
-  if(url){const im=new Image();im.onload=()=>show(url);im.onerror=()=>show(null);im.src=url}else show(null)}
+  if(url){const im=new Image();if(bgCur<0)im.fetchPriority='high';im.onload=()=>show(url);im.onerror=()=>show(null);im.src=url}else show(null)}
 try{fetch('data/deckbg/index.json').then(r=>r.ok?r.json():null).then(j=>{if(j&&j.bg){BGIDX=j.bg;bgKey='';applyBg(0);deck.querySelectorAll('.dk-card').forEach((el,k)=>list[k]&&cardVars(el,list[k]))}}).catch(()=>{})}catch(e){}
 
 /* ── переключение ── */
