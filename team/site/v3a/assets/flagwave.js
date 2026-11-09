@@ -17,19 +17,17 @@
   const FS = `precision mediump float;varying vec2 v;uniform sampler2D tex;uniform float t;uniform vec2 sc;
   void main(){
     vec2 uv=vec2(v.x,1.-v.y);
-    float a=uv.x*6.2+uv.y*2.2-t*1.5, b=uv.x*10.5-uv.y*3.4-t*2.2, c=uv.x*3.1+uv.y*5.0-t*0.9;
-    float w=sin(a)*.55+sin(b)*.22+sin(c)*.23;                       /* высота ткани */
-    float dx=cos(a)*6.2*.55+cos(b)*10.5*.22+cos(c)*3.1*.23;          /* наклон вдоль флага */
-    float dy=cos(a)*2.2*.55-cos(b)*3.4*.22+cos(c)*5.0*.23;
-    float k=.3+.7*uv.x;                                              /* у «древка» (слева) волна слабее */
-    vec2 d=vec2(w*.014, w*.024+dx*.0022)*k;
-    vec2 tc=(uv+d-.5)*sc+.5;                                         /* cover: картинка заполняет поле */
+    float k=pow(uv.x,.6)*.85+.15;                                    /* от «древка» слева амплитуда растёт */
+    float ph=uv.x*7.0-t*2.3+sin(uv.y*2.6+t*.7)*1.1;                  /* волна бежит по флагу, складки слегка наклонены */
+    float ph2=uv.x*13.0-t*3.4+uv.y*2.0;
+    float h=(sin(ph)+.35*sin(ph2))*k;                                 /* высота ткани */
+    float sl=(cos(ph)*7.0+.35*cos(ph2)*13.0)*k;                       /* наклон */
+    vec2 tc=(uv+vec2(h*.012,h*.035)-.5)*sc+.5;
     vec3 col=texture2D(tex,tc).rgb;
-    vec3 n=normalize(vec3(-dx*.11*k,-dy*.11*k,1.));
-    float dif=dot(n,normalize(vec3(-.45,-.55,.7)));
-    float spec=pow(max(dot(reflect(-normalize(vec3(-.4,-.5,.75)),n),vec3(0.,0.,1.)),0.),18.);
-    col*=.70+.45*dif;                                                /* тени в складках */
-    col+=spec*.22*k;                                                 /* блики на гребнях */
+    float sh=clamp(.80+sl*.045,.42,1.25);                             /* впадины темнее, склоны к свету светлее */
+    float spec=pow(clamp(sl*.09,0.,1.),5.)*.35;                       /* блик на гребне */
+    col=col*sh+spec;
+    col*=.92+.08*h;
     gl_FragColor=vec4(col,1.);
   }`;
   const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null; };
