@@ -175,16 +175,11 @@
 .mt-oe>*+*{margin-left:-8px}
 .mt-oe0{display:grid;place-items:center;font:800 12px/1 var(--display);color:#0d1626;font-style:normal}
 @media (max-width:620px){.mt-oe img,.mt-oe0{width:30px;height:30px}}
-/* «Личные встречи» — фон: растянутая эмблема победителя противостояния (владелец 09.11) */
-.mx-h2sec{position:relative;isolation:isolate;overflow:hidden}
-.mx-h2bg{position:absolute;inset:0;z-index:-1;pointer-events:none;display:flex;align-items:center;justify-content:center}
-.mx-h2bg img{position:absolute;inset:-6% -4%;width:108%;height:112%;object-fit:fill;opacity:.16;filter:blur(2px) saturate(1.25)}
-.mx-h2bg2{justify-content:space-between}
-.mx-h2bg2 img{width:54%}
-.mx-h2bg2 img:last-child{left:auto;right:-4%}
-.mx-h2bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--bg,#0b1220) 0,transparent 18%,transparent 82%,var(--bg,#0b1220))}
+/* «Личные встречи» — в каждой карточке фоном растянутая эмблема победителя этого матча (владелец 09.11) */
+.mx-h2h li{position:relative;isolation:isolate;overflow:hidden}
+.mx-cbg{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.mx-cbg img{position:absolute;inset:-12% -4%;width:108%;height:124%;object-fit:fill;opacity:.22;filter:blur(1.5px) saturate(1.3)}
 .mx-h2s{margin:-6px 0 16px;font:600 15px/1.35 var(--display);color:var(--ink-2)}
 .mx-h2s b{color:var(--ink)}
-.mx-h2h li{background:color-mix(in srgb,var(--card) 82%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .mt-oth a b span{white-space:nowrap}
 .mt-oth a small{flex:none}
