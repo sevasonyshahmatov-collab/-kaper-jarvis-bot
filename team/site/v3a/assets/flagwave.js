@@ -14,21 +14,22 @@
   if (!gl) return;
 
   const VS = 'attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
-  const FS = `precision mediump float;varying vec2 v;uniform sampler2D tex;uniform float t;uniform vec2 sc;
+  const FS = `precision mediump float;varying vec2 v;uniform sampler2D tex;uniform float t;uniform vec2 sc;uniform vec3 bg;
   void main(){
     vec2 uv=vec2(v.x,1.-v.y);
-    float k=pow(uv.x,.6)*.85+.15;                                    /* от «древка» слева амплитуда растёт */
-    float ph=uv.x*7.0-t*2.3+sin(uv.y*2.6+t*.7)*1.1;                  /* волна бежит по флагу, складки слегка наклонены */
-    float ph2=uv.x*13.0-t*3.4+uv.y*2.0;
-    float h=(sin(ph)+.35*sin(ph2))*k;                                 /* высота ткани */
-    float sl=(cos(ph)*7.0+.35*cos(ph2)*13.0)*k;                       /* наклон */
-    vec2 tc=(uv+vec2(h*.012,h*.035)-.5)*sc+.5;
+    float k=smoothstep(0.,.35,uv.x)*.75+.25;                         /* у «древка» слева слабее */
+    float ph=uv.x*20.0-t*3.0+uv.y*3.0;                                /* 3 складки бегут по диагонали */
+    float ph2=uv.x*9.0-t*1.7-uv.y*1.5+sin(t*.5);                      /* крупная медленная волна */
+    float h=(.6*sin(ph)+.4*sin(ph2))*k;                               /* высота ткани */
+    float d=(.6*cos(ph)*20.0+.4*cos(ph2)*9.0)*k;                      /* наклон по ширине */
+    float y=uv.y+h*.028;                                              /* края полотна гуляют вверх-вниз */
+    float edge=smoothstep(0.,.006,y)*smoothstep(1.,.994,y);
+    vec2 tc=(vec2(uv.x+h*.010,y)-.5)*sc+.5;
     vec3 col=texture2D(tex,tc).rgb;
-    float sh=clamp(.80+sl*.045,.42,1.25);                             /* впадины темнее, склоны к свету светлее */
-    float spec=pow(clamp(sl*.09,0.,1.),5.)*.35;                       /* блик на гребне */
-    col=col*sh+spec;
-    col*=.92+.08*h;
-    gl_FragColor=vec4(col,1.);
+    float s=1.+clamp(d*.03,-.5,.32);                                  /* тень во впадине, свет на склоне */
+    float spec=pow(clamp(d/15.,0.,1.),6.)*.28;                        /* блик на гребне */
+    col=col*s+spec;
+    gl_FragColor=vec4(mix(bg,col,edge),1.);
   }`;
   const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null; };
   const vs = sh(gl.VERTEX_SHADER, VS), fs = sh(gl.FRAGMENT_SHADER, FS);
@@ -40,6 +41,8 @@
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
   const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
   const uT = gl.getUniformLocation(pr, 't'), uS = gl.getUniformLocation(pr, 'sc');
+  const bgc = (getComputedStyle(document.body).backgroundColor.match(/\d+/g) || [11, 18, 32]).map(Number);
+  gl.uniform3f(gl.getUniformLocation(pr, 'bg'), bgc[0] / 255, bgc[1] / 255, bgc[2] / 255);
 
   const img = new Image();
   img.onload = () => {
@@ -54,7 +57,7 @@
       cv.width = Math.max(1, Math.round(r.width * dpr)); cv.height = Math.max(1, Math.round(r.height * dpr));
       gl.viewport(0, 0, cv.width, cv.height);
       const ca = r.width / r.height, ia = img.width / img.height;        /* cover с запасом 4 % под волну */
-      gl.uniform2f(uS, (ca > ia ? 1 : ca / ia) * .96, (ca > ia ? ia / ca : 1) * .96);
+      gl.uniform2f(uS, (ca > ia ? 1 : ca / ia) * .97, (ca > ia ? ia / ca : 1) * .9);
     };
     const draw = now => { gl.uniform1f(uT, (now - t0) / 1000); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); raf = vis && !document.hidden ? requestAnimationFrame(draw) : 0; };
     const go = () => { if (!raf && vis && !document.hidden) raf = requestAnimationFrame(draw); };
