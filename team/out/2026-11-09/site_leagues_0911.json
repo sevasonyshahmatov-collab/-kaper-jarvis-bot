@@ -1,0 +1,5 @@
+{"day": "2026-11-09",
+ "messages": [
+  {"to": "owner", "type": "photo", "files": ["team/out/2026-11-09/foot_leagues_0911.jpg"],
+   "text": "Футбол → «Лиги и клубы»: АПЛ больше не выбрана заранее. Сначала только плитки лиг и подсказка «Выберите лигу», после нажатия — клубы и таблица этой лиги, страница сама прокручивает к ним (слева — до выбора, справа — после).\n\nСмотреть: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/adf10ad1eb8634e2faee0d38fab6d67fa4fe8a1f/team/site/v3a/football/index.html#leagues"}
+ ]}
