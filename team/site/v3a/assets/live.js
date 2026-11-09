@@ -213,3 +213,12 @@ document.addEventListener('jv:rows', () => { collect(); tick(); });
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 window.JVLive = {tick, _fromEspn: fromEspn, _fromKhl: fromKhl};
 })();
+
+/* «Прогноз на сегодня»: матч начался больше 3,5 ч назад — помечаем «Сыгран» и приглушаем (аудит 09.11: ночные матчи НХЛ утром выглядели как предстоящие) */
+(() => {
+  const mark = () => document.querySelectorAll('.fc-m[data-lv-t]').forEach(li => {
+    const t = Date.parse(li.dataset.lvT); if (!t || li.classList.contains('fc-done') || Date.now() < t + 3.5 * 36e5) return;
+    li.classList.add('fc-done'); const tm = li.querySelector('.fc-time small'); if (tm) tm.textContent = 'сыгран';
+  });
+  mark(); setInterval(mark, 60000);
+})();

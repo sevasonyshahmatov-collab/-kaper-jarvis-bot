@@ -82,3 +82,6 @@ body.fc a:focus-visible{outline:3px solid var(--ice);outline-offset:2px}
 /* телефон (09.11): время не налезает на эмблемы; «3,2 : 1,8» не разрывается */
 @media (max-width:620px){.fc-m{grid-template-columns:70px minmax(0,1fr)}.fc-time b{font-size:24px}}
 .fc-ext b{white-space:nowrap}
+/* сыгранный матч (live.js): приглушён, внизу подпись «сыгран» */
+.fc-m.fc-done{opacity:.55}
+.fc-m.fc-done .fc-time small{color:var(--ink-2);letter-spacing:.04em}
