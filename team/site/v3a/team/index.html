@@ -10,10 +10,7 @@
 <script>/* палитра как на /hockey/: ?theme=arena (по умолчанию) | a | b | c; команда — ?id=<slug эмблемы> */
 (()=>{const t=new URLSearchParams(location.search).get('theme'),d=document.documentElement;if(/^(arena|a|b|c)$/.test(t||''))d.dataset.theme=t;
 document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a1220',b:'#0b2a84',c:'#e3eff9'}[d.dataset.theme]||'#071225'})();</script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script>(function(){var m=/[?&]id=([a-z0-9_]+)/i.exec(location.search);if(m)document.write('<link rel="preload" as="script" href="../assets/data/club/'+m[1].toLowerCase()+'.js">')})()</script>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
 <link rel="preload" as="script" href="../assets/vendor/gsap.min.js" media="(min-width: 621px)">
 <link rel="preload" as="script" href="../assets/vendor/SplitText.min.js" media="(min-width: 621px)">
 <link rel="stylesheet" href="../assets/v3a.css">

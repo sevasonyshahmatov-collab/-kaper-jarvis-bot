@@ -10,9 +10,6 @@
 <script>/* вариант первого экрана: ?v=1 (ночная арена, по умолчанию) или ?v=2 (газетный, светлый); палитра: ?theme=a|b|c */
 (()=>{const q=new URLSearchParams(location.search),v=q.get('v')==='2'?2:1,t=q.get('theme')||(v===2?'c':''),d=document.documentElement;d.dataset.v=v;if(/^[abc]$/.test(t||''))d.dataset.theme=t;
 document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84',c:'#e3eff9'}[d.dataset.theme]||'#0a1220'})();</script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@500;600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
 <link rel="stylesheet" href="assets/v3a.css">
 <link rel="stylesheet" href="assets/nav.css">
 <link rel="stylesheet" href="assets/home.css">
