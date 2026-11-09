@@ -36,7 +36,8 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
  const G=log.reduce((s,r)=>s+r[3],0),A=log.reduce((s,r)=>s+r[4],0);
  const sog=P.ssog!=null?P.ssog:log.reduce((s,r)=>s+(r[5]||0),0),pim=P.spim!=null?P.spim:log.reduce((s,r)=>s+(r[7]||0),0);
  const gp=nhl?(P.sgp||N):(P.sgp||P.gp||N);
- const parts=P.n.split(/\s+/),big=nhl?parts.slice(1).join(' ')||P.n:parts[0],small=nhl?(parts.length>1?parts[0]:''):parts.slice(1).join(' ');
+ /* имена НХЛ и КХЛ — латиницей «Имя [И.] Фамилия» (09.11): крупно фамилия */
+ const parts=P.n.split(/\s+/),k=parts.length>2&&/\.$/.test(parts[1])?2:1,big=parts.slice(k).join(' ')||P.n,small=parts.length>1?parts.slice(0,k).join(' '):'';
  const ini=parts.map(w=>w[0]).slice(0,2).join('').toUpperCase();
  document.title=`${P.n} — профиль хоккеиста · JARVIS`;
  const mkList=MK.filter(m=>!m.nhl||nhl);

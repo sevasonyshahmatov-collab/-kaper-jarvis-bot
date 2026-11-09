@@ -52,12 +52,26 @@ def club(tid):
         allp += [x.get('player') or x for x in arr]
         if len(arr) < 16:
             break
+    # имена латиницей (владелец 09.11: «все имена английскими») — то же приложение с locale=en; сайт переводит их в daily/split.py
+    for page in range(1, 10):
+        arr = get('players_v2.json?stage_id=%s&q[team_id_eq]=%s&page=%d&locale=en' % (stage, tid, page))
+        if not isinstance(arr, list) or not arr:
+            break
+        for x in arr:
+            q = x.get('player') or x
+            if q.get('id') is not None and q.get('name'):
+                EN_ID[q['id']] = q['name']
+        if len(arr) < 16:
+            break
     return tid, allp
 
 
+EN_ID = {}
 P, by_num, GIMG = {}, {}, {}
+CLUBS = []
 with ThreadPoolExecutor(6) as ex:
     for tid, allp in ex.map(club, list(SLUG)):
+        CLUBS.append((tid, allp))
         for p in allp:
             if ((p.get('team') or {}).get('id')) not in (tid, None):
                 continue
@@ -134,6 +148,18 @@ out = [r for r in P.values() if r['log']]
 res = {'built': datetime.now(MSK).strftime('%Y-%m-%d %H:%M'), 'season': '2026/27', 'league': 'khl', 'next': nxt, 'players': out, 'gimg': GIMG,
        'err': err[:30], 'note': 'log — все матчи команды (кто играл в каком матче, приложение не отдаёт); gp — игры игрока'}
 os.makedirs(os.path.join(H, 'data'), exist_ok=True)
+# таблица имён ru → en для сайта: старые записи остаются (игрок ушёл из клуба — имя всё равно нужно в истории)
+ENF = os.path.join(H, 'data', 'khl_names_en.json')
+try:
+    EN = json.load(open(ENF, encoding='utf-8'))
+except Exception:  # noqa: BLE001
+    EN = {}
+for tid_, allp_ in CLUBS:
+    for q in allp_:
+        if q.get('name') and EN_ID.get(q.get('id')):
+            EN[q['name']] = EN_ID[q['id']]
+with open(ENF, 'w', encoding='utf-8') as f:
+    json.dump(EN, f, ensure_ascii=False, separators=(',', ':'), sort_keys=True)
 with open(os.path.join(H, 'data', 'khl_players.json'), 'w', encoding='utf-8') as f:
     json.dump(res, f, ensure_ascii=False, separators=(',', ':'))
 print('KHLP done players', len(out), 'games', len(done), 'errors', len(err), flush=True)

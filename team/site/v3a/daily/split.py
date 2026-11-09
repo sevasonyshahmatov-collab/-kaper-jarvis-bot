@@ -215,8 +215,69 @@ def write_profile(ppdir, lg, p, slug, sl, nx, tpl, games=None, sk=None):
     return 1
 
 
+# ─────────────── имена КХЛ латиницей (владелец 09.11: «все имена английскими») ───────────────
+# Таблица ru → en: hockey/data/khl_names_en.json (официальное написание приложения КХЛ, locale=en: «Фамилия Имя»,
+# пополняет hockey/khl_players_fetch.py). На сайте — как у НХЛ: «Имя Фамилия». Кого нет в таблице — транслитерация.
+_TR = dict(zip('абвгдезийклмнопрстуфхцчшщыэюя', ['a','b','v','g','d','e','z','i','y','k','l','m','n','o','p','r','s','t','u','f','kh','ts','ch','sh','shch','y','e','yu','ya']))
+_TR.update({'ж': 'zh', 'ё': 'yo', 'ъ': '', 'ь': ''})
+
+
+def _translit(w):
+    out, prev = [], ''
+    for ch in w:
+        lo = ch.lower()
+        if lo in _TR or lo in 'её':
+            r = 'ye' if lo == 'е' and (not prev or prev in 'аеёиоуыэюяьъ') else ('yo' if lo == 'ё' else _TR.get(lo, lo))
+            out.append(r.capitalize() if ch.isupper() else r)
+        else:
+            out.append(ch)
+        prev = lo
+    return re.sub(r'(iy|yy)$', 'y', ''.join(out))
+
+
+_EN = None
+
+
+def en_name(n):
+    """«Блажиевский Артём» → «Artyom Blazhiyevsky» (имя вперёд, как у НХЛ)."""
+    global _EN
+    if not n or not re.search('[А-Яа-яЁё]', n):
+        return n
+    if _EN is None:
+        fp = os.path.join(V3A, 'hockey', 'data', 'khl_names_en.json')
+        _EN = load(fp) if os.path.exists(fp) else {}
+    e = _EN.get(n) or ' '.join(_translit(w) for w in n.split())
+    w = e.split()
+    return ' '.join(w[1:] + w[:1]) if len(w) > 1 else e
+
+
+def en_khl_players(j):
+    for p in j.get('players') or []:
+        p['n'] = en_name(p.get('n'))
+    j['gimg'] = {t: {en_name(k): v for k, v in m.items()} for t, m in (j.get('gimg') or {}).items()}
+    return j
+
+
+COACH_EN = {'Буше Ги': 'Boucher Guy', 'Гордон Скотт': 'Gordon Scott', 'Лав Митч': 'Love Mitch'}   # тренеры-иностранцы
+
+
+def en_khl_teams(d):
+    for t in d.get('teams', {}).values():
+        if t.get('lg') != 'khl':
+            continue
+        if t.get('coach') and re.search('[А-Яа-яЁё]', t['coach']):   # «Фамилия Имя» — team.js сам ставит имя вперёд
+            k = ' '.join(t['coach'].split()[:2])
+            t['coach'] = COACH_EN.get(k) or ' '.join(_translit(w) for w in k.split())
+        for k in ('sk', 'gk'):
+            for r in (t.get('pl') or {}).get(k) or []:
+                if isinstance(r, dict) and r.get('n'):
+                    r['n'] = en_name(r['n'])
+    return d
+
+
 def hockey():
     d = load(os.path.join(V3A, 'assets', 'data', 'teams.json'))
+    en_khl_teams(d)
     heavy = ('pl', 'h2h', 'picks')
     lite = dict(d)
     lite['teams'] = {s: {k: v for k, v in t.items() if k not in heavy} for s, t in d['teams'].items()}
@@ -246,6 +307,8 @@ def hockey():
         if not os.path.exists(src):
             continue
         j = load(src)
+        if lg == 'khl':
+            en_khl_players(j)
         out, byteam, idteam = [], {}, {}
         sl = (lambda a: slug_of.get(a, a)) if lg == 'nhl' else (lambda a: a)
         nxt = j.get('next', {})
@@ -299,6 +362,8 @@ def league_pages():
     for lg in ('khl', 'nhl'):
         pp = os.path.join(V3A, 'hockey', 'data', lg + '_players.json')
         pl = load(pp) if os.path.exists(pp) else {'players': []}
+        if lg == 'khl':
+            en_khl_players(pl)
         ps = []
         for x in pl.get('players') or []:
             lgl = x.get('log') or []

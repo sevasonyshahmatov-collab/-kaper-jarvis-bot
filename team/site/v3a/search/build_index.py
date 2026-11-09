@@ -85,6 +85,10 @@ def now_msk():
     return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) + datetime.timedelta(hours=3)
 
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'daily'))
+from split import en_name  # noqa: E402
+
+
 def main():
     now = now_msk()
     lo = (now - datetime.timedelta(days=DAYS)).strftime('%Y-%m-%d')
@@ -140,10 +144,13 @@ def main():
         if not os.path.exists(p):
             continue
         for pl in json.load(open(p, encoding='utf-8')).get('players', []):
+            ru = ''
+            if lg == 'khl':                      # на сайте имена КХЛ латиницей (09.11); русское — для поиска
+                ru, pl['n'] = pl['n'], en_name(pl['n'])
             t = pl.get('t', '')
             slug = NHL[t][0] if lg == 'nhl' and t in NHL else t
             pts = sum((r[4] or 0) + (r[5] or 0) for r in pl.get('log', []))
-            players.append([pl['n'], lg, slug, pts, pl['id']] if pl.get('id') is not None else [pl['n'], lg, slug, pts])
+            players.append([pl['n'], lg, slug, pts, pl.get('id')] + ([ru] if ru else []))
     players.sort(key=lambda x: -x[3])
 
     out = {'built': now.strftime('%Y-%m-%d %H:%M'), 'c': clubs, 'l': leagues, 'm': matches, 'p': players}
