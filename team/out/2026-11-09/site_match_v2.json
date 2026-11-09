@@ -1,0 +1,7 @@
+{"day": "2026-11-09",
+ "messages": [
+  {"to": "owner", "type": "photo", "files": ["team/out/2026-11-09/site_match_v2_1.jpg"],
+   "text": "Сайт: образец новой страницы матча (слева компьютер, справа телефон).\n\n• первый экран — поле в цветах обоих клубов, крупные эмблемы, по центру время и отсчёт до начала (после матча — крупный счёт);\n• вероятности модели — одна полоса в цветах клубов, жёлтая черта под самым вероятным исходом;\n• форма — кружки В/Н/П со счётом;\n• личные встречи — карточками, победитель выделен.\n\nСмотреть: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/da1d4268f237512c7f137132ee43da4112a6a66a/team/site/v3a/proto/match-1/"},
+  {"to": "owner", "type": "photo", "files": ["team/out/2026-11-09/site_match_v2_2.jpg"],
+   "text": "Цвета берутся у самих клубов: на светлых (Боруссия, Бостон, Вильярреал) буквы тёмные, на тёмных — белые.\n\nСыгранные: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/da1d4268f237512c7f137132ee43da4112a6a66a/team/site/v3a/proto/match-2/ · https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/da1d4268f237512c7f137132ee43da4112a6a66a/team/site/v3a/proto/match-3/ · https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/da1d4268f237512c7f137132ee43da4112a6a66a/team/site/v3a/proto/match-4/\n\nНравится — включу на всех 178 страницах матчей. Если что-то поменять — напишите."}
+ ]}
