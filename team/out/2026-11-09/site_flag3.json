@@ -1,0 +1,26 @@
+{
+ "day": "2026-11-09",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Сайт: фон страницы матча теперь развевается как флаг. Прошлый вариант был одной широкой волной на весь экран, поэтому и выглядел как раньше.\nСейчас: 3 складки бегут по полотну, в складках тени, на гребнях блики, верх и низ полотна волнуются. Ниже два видео: компьютер и телефон.\nПосмотреть вживую: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/538ddaae1159d200c8434c2783f97ccfc5b54d82/team/site/v3a/proto/match-1/index.html и https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/538ddaae1159d200c8434c2783f97ccfc5b54d82/team/site/v3a/proto/match-3/index.html\n\nТак оставляем? Если «да» — раскатываю вид 2 на все страницы матчей (~180)."
+  },
+  {
+   "to": "owner",
+   "type": "animation",
+   "files": [
+    "team/out/2026-11-09/flag3_pc.mp4"
+   ],
+   "text": "Флаг — компьютер"
+  },
+  {
+   "to": "owner",
+   "type": "animation",
+   "files": [
+    "team/out/2026-11-09/flag3_phone.mp4"
+   ],
+   "text": "Флаг — телефон"
+  }
+ ]
+}
