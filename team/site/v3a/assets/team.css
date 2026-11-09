@@ -507,3 +507,7 @@ body .g.h2g.nx{grid-template-columns:110px 32px minmax(0,1fr) auto}
 .nmrem{display:inline-flex;align-items:center;gap:7px;min-height:44px;font:700 15px/1 var(--display);color:inherit;text-decoration:none;opacity:.9}
 .nmrem svg{width:18px;height:18px;flex:none}
 .nmrem:hover span{text-decoration:underline;text-underline-offset:3px}
+
+/* название клуба (09.11): каждая строка целиком, размер подгоняет JV.fitH1 */
+.tmname h1.tmh1{max-width:100%}
+.tmh1 .l{display:block}

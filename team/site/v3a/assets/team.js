@@ -126,7 +126,7 @@ document.getElementById('hero').innerHTML=`
   <div class="tmrow">
    <span class="tmcrest">${em(ID)}</span>
    <div class="tmname"><p class="tmlg"><a class="lglnk" href="../hockey/league.html?lg=${lg}${tq}" title="Страница лиги">${lgp(lg)}<span>${L.name}</span></a><span class="dot">·</span><span>Конференция «${esc(conf)}»</span></p>
-    <h1>${esc(T.name)}</h1></div>
+    <h1 class="tmh1">${(T.lg==='nhl'&&JV.NHL_FULL[ID]?JV.NHL_FULL[ID].split('|'):[T.name]).map(x=>`<span class="l">${esc(x)}</span>`).join(' ')}</h1></div>
   </div>
   <div class="tmplace"><b class="num">${T.place}</b><span>-е место<br>в конференции «${esc(conf)}»</span></div>
   <ul class="tmpills" aria-label="Коротко о сезоне">
@@ -143,6 +143,7 @@ document.getElementById('hero').innerHTML=`
   <div class="rad">${radar([{v:T.axes||[],c:acc,name:T.name}],ax)}</div>
   <div class="legend"><span><i style="border-color:${acc}"></i>${esc(T.name)}</span><span><i class="d"></i>середина лиги</span></div>
  </div>`;
+JV.fitH1(document.querySelector('.tmh1'),30);   /* название клуба без разрыва слова (09.11) */
 
 /* ── плашка «Игроки команды» под формой → раздел «Игроки» с фильтром по этой команде (владелец 03.11) ── */
 const PLCODE=T.lg==='nhl'?(ID==='minnesota'?'MIN':ID==='dallas'?'DAL':ID.replace(/^nhl_/,'').toUpperCase()):ID;

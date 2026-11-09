@@ -16,6 +16,22 @@ JV.hms=s=>s>0?`${JV.two(Math.floor(s/3600))}:${JV.two(Math.floor(s%3600/60))}:${
 JV.over=s=>{if(s>-7200)return 'идёт';if(s>-86400)return 'завершён';const d=new Date(Date.now()+s*1000+3*3600e3).toISOString();return 'матч '+d.slice(8,10)+'.'+d.slice(5,7)};
 JV.inMin=s=>{const m=Math.floor(s/60);return s<=0?JV.over(s):m<60?`через ${m} мин`:m<2880?`через ${Math.floor(m/60)} ч ${m%60} мин`:`через ${Math.floor(m/1440)} дн ${Math.floor(m%1440/60)} ч`};
 
+/* Название клуба в шапке (владелец 09.11): строка не рвётся внутри слова — шрифт уменьшается до ширины колонки
+   (не меньше min); не влезло и так — перенос только между словами. Строки — <span class="l"> (у НХЛ: город / прозвище). */
+JV.fitH1=(h,min)=>{if(!h)return;min=min||30;
+ const over=()=>h.scrollWidth>h.clientWidth+1,shrink=lo=>{let fs=parseFloat(getComputedStyle(h).fontSize);while(fs>lo&&over()){fs-=1;h.style.fontSize=fs+'px'}};
+ const fit=()=>{h.style.fontSize='';h.style.whiteSpace='nowrap';shrink(innerWidth<=620?Math.min(min,26):min);if(!over())return;
+  h.style.fontSize='';h.style.whiteSpace='normal';shrink(20)};   /* не влезло в строку — перенос только между словами, каждое слово целиком */
+ fit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
+ let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(fit,120)})};
+/* НХЛ: полное название двумя строками — город и прозвище (владелец 09.11) */
+JV.NHL_FULL={nhl_car:'Каролина|Харрикейнз',minnesota:'Миннесота|Уайлд',nhl_edm:'Эдмонтон|Ойлерз',nhl_bos:'Бостон|Брюинз',nhl_mtl:'Монреаль|Канадиенс',
+ nhl_tbl:'Тампа-Бэй|Лайтнинг',nhl_njd:'Нью-Джерси|Девилз',nhl_vgk:'Вегас|Голден Найтс',nhl_ott:'Оттава|Сенаторз',dallas:'Даллас|Старз',nhl_col:'Колорадо|Эвеланш',
+ nhl_nsh:'Нэшвилл|Предаторз',nhl_nyr:'Нью-Йорк|Рейнджерс',nhl_uta:'Юта|Мамонт',nhl_fla:'Флорида|Пантерз',nhl_buf:'Баффало|Сейбрз',nhl_sea:'Сиэтл|Кракен',
+ nhl_ana:'Анахайм|Дакс',nhl_wsh:'Вашингтон|Кэпиталз',nhl_tor:'Торонто|Мейпл Лифс',nhl_nyi:'Нью-Йорк|Айлендерс',nhl_det:'Детройт|Ред Уингз',nhl_stl:'Сент-Луис|Блюз',
+ nhl_cgy:'Калгари|Флэймз',nhl_wpg:'Виннипег|Джетс',nhl_sjs:'Сан-Хосе|Шаркс',nhl_cbj:'Коламбус|Блю Джекетс',nhl_pit:'Питтсбург|Пингвинз',nhl_lak:'Лос-Анджелес|Кингз',
+ nhl_phi:'Филадельфия|Флайерз',nhl_chi:'Чикаго|Блэкхокс',nhl_van:'Ванкувер|Кэнакс'};
+
 /* страница матча (как seo/build_match.py): <лига>/<дата>-<хозяева>-<гости>/index.html; НХЛ — английские названия городов (09.11) */
 {const NHL_EN={"nhl_car":"carolina","nhl_edm":"edmonton","minnesota":"minnesota","nhl_bos":"boston","nhl_vgk":"vegas","nhl_mtl":"montreal","nhl_tbl":"tampa-bay","nhl_njd":"new-jersey","nhl_uta":"utah","dallas":"dallas","nhl_col":"colorado","nhl_ott":"ottawa","nhl_fla":"florida","nhl_tor":"toronto","nhl_sea":"seattle","nhl_buf":"buffalo","nhl_nsh":"nashville","nhl_nyr":"rangers","nhl_det":"detroit","nhl_wsh":"washington","nhl_nyi":"islanders","nhl_stl":"st-louis","nhl_ana":"anaheim","nhl_sjs":"san-jose","nhl_cgy":"calgary","nhl_wpg":"winnipeg","nhl_cbj":"columbus","nhl_pit":"pittsburgh","nhl_phi":"philadelphia","nhl_lak":"los-angeles","nhl_chi":"chicago","nhl_van":"vancouver"};
  JV.mslug=(lg,id)=>lg==='nhl'?(NHL_EN[id]||String(id).replace(/^nhl_/,'').replace(/_/g,'-')):String(id).replace(/_/g,'-');

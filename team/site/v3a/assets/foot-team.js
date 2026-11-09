@@ -72,7 +72,7 @@ $('hero').innerHTML=`
  <header class="tmid" data-rv>
   <div class="tmtop"><a class="crumb" href="${CUP==='ucl'?'ucl.html':'index.html#lg-'+encodeURIComponent(EFF)}"><span aria-hidden="true">←</span> ${CUP==='ucl'?'Лига чемпионов':'Лиги и клубы · '+esc(EN)}</a>${followBtn('in-hero')}</div>
   <div class="tmrow"><span class="tmcrest">${CI(ID)}</span>
-   <div class="tmname">${swH?swH+`<p class="tmlg"><a class="lglnk" href="league.html?lg=${esc(EFF)}" title="Страница лиги">${esc(EN)}: страница лиги</a></p>`:`<p class="tmlg"><a class="lglnk" href="league.html?lg=${esc(EFF)}" title="Страница лиги">${LGP(EFF)}<span>${esc(EN)}</span></a><span class="dot">·</span><span>сезон ${esc(D.season)}</span></p>`}<h1>${esc(T.n)}</h1></div></div>
+   <div class="tmname">${swH?swH+`<p class="tmlg"><a class="lglnk" href="league.html?lg=${esc(EFF)}" title="Страница лиги">${esc(EN)}: страница лиги</a></p>`:`<p class="tmlg"><a class="lglnk" href="league.html?lg=${esc(EFF)}" title="Страница лиги">${LGP(EFF)}<span>${esc(EN)}</span></a><span class="dot">·</span><span>сезон ${esc(D.season)}</span></p>`}<h1 class="tmh1"><span class="l">${esc(T.n)}</span></h1></div></div>
   <div class="tmplace"><b class="num">${RC.place}</b><span>-е место<br>${CUP?'в общем этапе':'в лиге'}: ${esc(EN)}</span></div>
   <ul class="tmpills" aria-label="Коротко о сезоне">
    <li><b class="num">${RC.pts}</b><span>${plural(RC.pts,'очко','очка','очков')}</span></li>
@@ -86,6 +86,7 @@ $('hero').innerHTML=`
   <div class="rad">${radar([{v:CUP?CX.axes:T.axes,c:acc,name:T.n}],AXS)}</div>
   <div class="legend"><span><i style="border-color:${esc(acc)}"></i>${esc(T.n)}</span><span><i class="d"></i>${CUP?'середина турнира':'середина лиги'}</span></div>${eloLine}
  </div>`;
+JV.fitH1(document.querySelector('.tmh1'),30);   /* название клуба без разрыва слова (09.11) */
 
 /* ── плашка «Игроки команды» под формой → football/players.html?team=<id> (владелец 03.11) ── */
 const plTop=(T.sc||[]).slice(0,3);
