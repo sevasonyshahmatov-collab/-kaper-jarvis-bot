@@ -125,3 +125,5 @@ body.ctx-cup .tmhero::before{background:linear-gradient(90deg,#9cc8ff 0 64%,#fff
 [data-theme="ucl"] .lt .match .qc.fav small,[data-theme="ucl"] .lt .match .qc.fav em,[data-theme="uel"] .lt .match .qc.fav small,[data-theme="uel"] .lt .match .qc.fav em{color:rgba(255,255,255,.88)}
 /* «ЧЕМПИОНОВ» целиком на широком экране (было «ЧЕМП-ИОНОВ» от 1440 px): колонка ~680 px, слово ≈ 6,65 em (09.11) */
 @media (min-width:1367px){body[data-only="ucl"] .hero h1{font-size:100px}}
+/* ЛЧ на телефоне: подпись табло длинная и всегда в две строки — место сразу, без сдвига (аудит 09.11, CLS 0,137) */
+@media (max-width:620px){body[data-only="ucl"] .board-top{min-height:45px;align-content:flex-start}}
