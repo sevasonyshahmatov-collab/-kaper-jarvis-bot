@@ -961,3 +961,5 @@ body{font-variant-numeric:tabular-nums lining-nums}
 .x-h2h .h2l .sc small{position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:2px}
 /* строка над табло не шире карточки (аудит 08.11: ЛЧ 1024 → 1064 px) */
 .board-top{flex-wrap:wrap;row-gap:6px}.board-top .bwhen{flex-wrap:wrap;white-space:normal;min-width:0}
+/* бегущая строка: место сразу, до загрузки данных — страница не сдвигается (CLS, 09.11) */
+.ticker:empty:not([hidden]){min-height:52px}

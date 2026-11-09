@@ -343,3 +343,7 @@
 .dk-lgwm{position:absolute;z-index:-1;right:-14px;top:50%;height:150%;max-height:150px;width:auto;transform:translateY(-50%) rotate(-8deg);
   opacity:.3;pointer-events:none;user-select:none}
 @media (max-width:560px){.dk-lgwm{height:120%;max-height:110px;right:-8px}}
+/* место под подпись и счётчики фильтра до загрузки данных — страница не сдвигается (CLS, 09.11) */
+.dk-sub{min-height:18.9px}
+#dk-filter small{display:inline-block;min-width:2ch;text-align:left}
+.dk-info:empty{align-self:start}   /* пустая панель не по центру — при заполнении не «прыгает» вверх (CLS, 09.11) */

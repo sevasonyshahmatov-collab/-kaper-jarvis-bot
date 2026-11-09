@@ -75,6 +75,10 @@
       </section>
       <aside class="dk-info" id="dk-info" aria-live="polite" aria-label="О встрече"></aside>
     </div>
+    <script>/* размер карточки — сразу, до загрузки данных (как measure() в assets/deck.js), чтобы колода не сдвигалась (CLS, 09.11) */
+    (function(){try{var st=document.getElementById('dk-stage'),r=document.querySelector('.dk'),mob=matchMedia('(max-width: 980px)').matches,
+      byH=Math.floor((innerHeight-(mob?330:350))/1.61),W=mob?Math.max(220,Math.min(320,document.documentElement.clientWidth-96)):Math.max(270,Math.min(410,Math.round(st.clientWidth*.66),byH));
+      r.style.setProperty('--W',W+'px')}catch(e){}})();</script>
 
     <div class="dk-ctl" id="dk-ctl">
       <div class="dk-count" aria-live="polite"><b id="dk-cur">01</b><span> / </span><span id="dk-tot">01</span></div>
