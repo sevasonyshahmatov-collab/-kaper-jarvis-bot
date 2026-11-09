@@ -35,7 +35,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A team/site/v3a/data team/site/v3a/assets/data team/site/v3a/team/season.json team/site/v3a/football/data team/site/v3a/hockey/data team/site/v3a/sitemap.xml team/site/v3a/robots.txt team/site/v3a/*.html team/site/v3a/hockey/*.html team/site/v3a/football/*.html
+          # страницы матчей и клубов (<лига>/…, seo/build_match.py) — тоже: без них новые матчи не появлялись (09.11)
+          git add -A team/site/v3a/data team/site/v3a/assets/data team/site/v3a/team/season.json team/site/v3a/football/data team/site/v3a/hockey/data team/site/v3a/sitemap.xml team/site/v3a/robots.txt team/site/v3a/*.html team/site/v3a/hockey/*.html team/site/v3a/football/*.html team/site/v3a/team/index.html \
+            team/site/v3a/khl team/site/v3a/nhl team/site/v3a/epl team/site/v3a/laliga team/site/v3a/seriea team/site/v3a/bundesliga team/site/v3a/ligue1 team/site/v3a/rpl team/site/v3a/ucl team/site/v3a/uel
           git diff --cached --quiet && { echo "данные не изменились"; exit 0; }
           git commit -q -m "Данные v3a: ежедневное обновление $(TZ=Europe/Moscow date '+%d.%m %H:%M') МСК (run ${{ github.run_number }})"
           git stash -q -u || true  # остатки конвейера вне git add мешали rebase (runs 6–10)

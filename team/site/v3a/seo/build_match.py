@@ -22,6 +22,8 @@ import re
 import shutil
 import zlib
 
+import og_match  # картинка-превью матча og.jpg (09.11)
+
 B = None  # модуль build_seo (передаётся в init)
 CLUBS = {}      # (sport, id) -> 'khl/ska'
 CLUB_INFO = {}  # 'khl/ska' -> dict
@@ -516,7 +518,13 @@ def match_page(m):
         if ar.get('address'):
             pl_['address'] = ar['address']
         ev['location'] = pl_
-    P = dict(title=title, desc=desc, og='assets/og/og-%s.png' % ('khl' if lg == 'khl' else 'nhl' if lg == 'nhl' else sport),
+    og_rel = from_dir + '/og.jpg'
+    try:
+        og_match.draw(m, os.path.join(og_match.V3A, og_rel), lg_name(lg), '%s, %s · %s МСК' % (dm, wd, m['t'][11:16]))
+    except Exception as e:  # noqa: BLE001
+        print('og.jpg не нарисован %s: %r' % (rel, e))
+        og_rel = 'assets/og/og-%s.png' % ('khl' if lg == 'khl' else 'nhl' if lg == 'nhl' else sport)
+    P = dict(title=title, desc=desc, og=og_rel,
              crumbs=[(n, p if p != rel else rel[:-len('index.html')]) for n, p in crumbs], page_path=rel[:-len('index.html')])
     return text, P, [ev]
 
