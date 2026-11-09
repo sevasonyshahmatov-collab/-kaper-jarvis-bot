@@ -31,6 +31,7 @@ load(CDN+'gsap.min.js').then(()=>load(CDN+'SplitText.min.js')).then(start).catch
 function split(h){
  h.classList.add('tw');
  const s=SplitText.create(h,{type:'words,chars',mask:'words',wordsClass:'tw-w',charsClass:'tw-c',aria:'auto'});
+ if(window.JV&&JV.refit)requestAnimationFrame(JV.refit);   /* после разбиения на буквы — подогнать размер заново (09.11) */
  gsap.set(s.chars,{yPercent:118});
  return s;
 }

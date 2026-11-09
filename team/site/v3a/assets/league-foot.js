@@ -45,6 +45,7 @@ $('hero').innerHTML=`
   <li><b class="num" id="fUp">—</b><span id="fUpl">матчей в ближайшие 7 дней</span></li>
  </ul>
  <ul class="chips" aria-label="Другие лиги" data-rv>${KEYS.map(k=>`<li><a href="league.html?lg=${esc(k)}"${k===LG?' aria-current="page"':''}>${LGP(k)}${esc(D.leagues[k].name)}</a></li>`).join('')}</ul>`;
+JV.fitWords('.lgname h1');   /* длинное название лиги — без разрыва слова (09.11) */
 
 /* ── таблица: общая / дома / в гостях ── */
 const ZONE={epl:[[1,4,'z1','Лига чемпионов'],[5,5,'z2','Лига Европы'],[18,20,'z4','Вылет']],laliga:[[1,4,'z1','Лига чемпионов'],[5,6,'z2','Лига Европы'],[18,20,'z4','Вылет']],

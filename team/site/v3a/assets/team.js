@@ -476,7 +476,7 @@ else{
  render();
 }
 
-document.getElementById('foot').textContent=`Макет v3a · данные ${asOf}${hasSample?', часть — пример':''} · © JARVIS, @jarvibet`;
+document.getElementById('foot').textContent=`Данные ${asOf}${hasSample?', часть — пример':''} · © JARVIS, @jarvibet`;
 // v3a.js (keepTheme) при ?theme= обрезает «?id=» у ссылок на index.html — возвращаем после него
 document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('a[data-href]').forEach(a=>a.setAttribute('href',a.dataset.href)));
 fetch('../hockey/data/pid/'+encodeURIComponent(ID)+'.json').then(r=>r.ok?r.json():null).then(m=>{if(!m)return;Object.assign(PID,m);linkPn(document)}).catch(()=>{});

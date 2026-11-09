@@ -343,5 +343,5 @@ if(nextG){
  $('plTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;st.tab=b.dataset.t;render()});
  render()}}
 
-$('foot').textContent=`Макет v3a · данные ESPN ${asOf} · © JARVIS, @jarvibet`;
+$('foot').textContent=`Данные ESPN ${asOf} · © JARVIS, @jarvibet`;
 })();

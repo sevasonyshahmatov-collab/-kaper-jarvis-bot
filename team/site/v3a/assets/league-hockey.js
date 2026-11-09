@@ -128,7 +128,7 @@ function build(SE,PL){
   :mini('Штрафные минуты · топ-10',PS.filter(p=>p.pim>0).sort((a,b)=>b.pim-a.pim||a.gp-b.gp).slice(0,10),p=>p.pim,p=>`за ${p.gp} ${plural(p.gp,'игру','игры','игр')}`);
  $('plMore').innerHTML=first+mini('Время на льду · топ-10',toiL,p=>{const t=Math.round(p.toi*60);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')},p=>'в среднем за игру');
  $('plMore').querySelectorAll('.av img').forEach(i=>i.addEventListener('error',()=>i.remove()));
- JV.reveal();
+ JV.reveal();JV.fitWords('.lgname h1,.sec-head h2');
 }
 fetch('data/lgp_'+LG+'.json').then(r=>r.json()).then(d=>build({[LG]:d.se},d))
  .catch(e=>{console.error(e);$('hero').innerHTML='<p class="lgempty">Данные загрузить не удалось.</p>'});

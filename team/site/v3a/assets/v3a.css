@@ -441,7 +441,7 @@ footer{margin-top:clamp(80px,11vw,170px);padding-bottom:40px}
 @media (prefers-reduced-motion:no-preference){
   .js [data-rv]>*{opacity:0;transform:translateY(26px);transition:opacity .7s var(--out),transform .9s var(--out);transition-delay:calc(var(--i,0) * 70ms)}
   .js [data-rv].in>*{opacity:1;transform:none}
-  .js h1 .ln{display:block;overflow:hidden;padding-bottom:.04em}
+  .js h1 .ln{display:block;overflow:hidden;padding:.22em 0 .06em;margin:-.22em 0 -.02em}   /* запас сверху — для значка над Й/Ё (09.11) */
   .js h1 .ln>span{display:block;transform:translateY(105%);transition:transform 1s var(--out);transition-delay:calc(var(--i,0) * 90ms + 120ms)}
   .js .ready h1 .ln>span{transform:none}
 }
@@ -591,7 +591,7 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
   --ink:#eaf3ff; --ink-2:#b8c9e4; --ink-3:#8fa6cc; --rule:#1e3460; --rule-2:#2c4675;
   --ice:#3ee0ff; --sport:#3ee0ff; --crest-bg:#eef3fa; --crest-pad:1; --shadow:rgba(0,0,0,.6);
   color:var(--ink)}
-[data-theme="arena"] .hd{background:color-mix(in srgb,var(--bgc) 90%,transparent);transition:color .3s ease}
+[data-theme="arena"] .hd{background:color-mix(in srgb,var(--bgc,var(--paper)) 90%,transparent);transition:color .3s ease}
 [data-theme="arena"] .hero>.wrap{opacity:calc(1 - var(--lit) * 1.6)}
 [data-theme="arena"] .hero{padding-bottom:clamp(64px,9vw,140px)}
 [data-theme="arena"] .hero h1 .ln:last-child{color:var(--ice)}

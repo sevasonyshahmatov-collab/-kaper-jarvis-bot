@@ -16,6 +16,20 @@ JV.hms=s=>s>0?`${JV.two(Math.floor(s/3600))}:${JV.two(Math.floor(s%3600/60))}:${
 JV.over=s=>{if(s>-7200)return 'идёт';if(s>-86400)return 'завершён';const d=new Date(Date.now()+s*1000+3*3600e3).toISOString();return 'матч '+d.slice(8,10)+'.'+d.slice(5,7)};
 JV.inMin=s=>{const m=Math.floor(s/60);return s<=0?JV.over(s):m<60?`через ${m} мин`:m<2880?`через ${Math.floor(m/60)} ч ${m%60} мин`:`через ${Math.floor(m/1440)} дн ${Math.floor(m%1440/60)} ч`};
 
+/* Крупные заголовки: самое длинное слово целиком в колонке — иначе шрифт меньше ровно настолько, чтобы влезло
+   («АНАЛИТИЧЕСКАЯ», «БУНДЕСЛИГА», «ЧЕМПИОНОВ»: без разрыва посреди слова, 09.11) */
+JV.fitWords=sel=>{
+ const one=h=>{const W=h.clientWidth;if(!W)return;h.style.fontSize='';let mx=0;
+  const masks=h.querySelectorAll('[class$="-w-mask"]');   /* слово уже разбито анимацией на буквы — меряем сами блоки (они шире текста) */
+  if(masks.length){const ws=h.style.whiteSpace;h.style.whiteSpace='nowrap';masks.forEach(m=>{mx=Math.max(mx,m.getBoundingClientRect().width)});h.style.whiteSpace=ws}
+  else{const sp=document.createElement('span');sp.style.cssText='position:absolute;visibility:hidden;white-space:nowrap;left:0;top:0';h.appendChild(sp);
+   (h.getAttribute('aria-label')||h.textContent).split(/\s+/).filter(Boolean).forEach(w=>{sp.textContent=w;mx=Math.max(mx,sp.getBoundingClientRect().width)});sp.remove();mx*=1.13}   /* запас под разбиение на буквы */
+  const fs=parseFloat(getComputedStyle(h).fontSize);if(mx>W)h.style.fontSize=Math.floor(fs*W/mx*0.98)+'px'};
+ const run=()=>document.querySelectorAll(sel).forEach(one);run();(JV._fit=JV._fit||[]).push(run);
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(run);
+ let t=0,lw=innerWidth;addEventListener('resize',()=>{if(innerWidth===lw)return;lw=innerWidth;clearTimeout(t);t=setTimeout(run,150)})};   /* только при смене ширины — без качелей из-за полосы прокрутки */
+JV.refit=()=>(JV._fit||[]).forEach(f=>f());
+
 /* Название клуба в шапке (владелец 09.11): строка не рвётся внутри слова — шрифт уменьшается до ширины колонки
    (не меньше min); не влезло и так — перенос только между словами. Строки — <span class="l"> (у НХЛ: город / прозвище). */
 JV.fitH1=(h,min)=>{if(!h)return;min=min||30;
@@ -23,7 +37,7 @@ JV.fitH1=(h,min)=>{if(!h)return;min=min||30;
  const fit=()=>{h.style.fontSize='';h.style.whiteSpace='nowrap';shrink(innerWidth<=620?Math.min(min,26):min);if(!over())return;
   h.style.fontSize='';h.style.whiteSpace='normal';shrink(20)};   /* не влезло в строку — перенос только между словами, каждое слово целиком */
  fit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
- let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(fit,120)})};
+ let t=0,lw=innerWidth;addEventListener('resize',()=>{if(innerWidth===lw)return;lw=innerWidth;clearTimeout(t);t=setTimeout(fit,120)})};
 /* НХЛ: полное название двумя строками — город и прозвище (владелец 09.11) */
 JV.NHL_FULL={nhl_car:'Каролина|Харрикейнз',minnesota:'Миннесота|Уайлд',nhl_edm:'Эдмонтон|Ойлерз',nhl_bos:'Бостон|Брюинз',nhl_mtl:'Монреаль|Канадиенс',
  nhl_tbl:'Тампа-Бэй|Лайтнинг',nhl_njd:'Нью-Джерси|Девилз',nhl_vgk:'Вегас|Голден Найтс',nhl_ott:'Оттава|Сенаторз',dallas:'Даллас|Старз',nhl_col:'Колорадо|Эвеланш',
@@ -225,23 +239,11 @@ function keepTheme(){
     const [p,hash]=h.split('#'),[path,q]=p.split('?'),sp=new URLSearchParams(q||'');sp.set('theme',t);a.setAttribute('href',path+'?'+sp.toString()+(hash?'#'+hash:''))});
 }
 
-document.addEventListener('DOMContentLoaded',()=>{keepTheme();arena();chrome();wipe();
+document.addEventListener('DOMContentLoaded',()=>{keepTheme();JV.fitWords('.hero h1,.sec-head h2,.lgtab .lgn,.dk-h1');arena();chrome();wipe();
   requestAnimationFrame(()=>document.querySelector('.hero,.mast')?.classList.add('ready'));
   JV.reveal();
   const k=document.body.dataset.field;if(k&&!document.documentElement.dataset.hbg)JV.field(k);
 });
 })();
 
-/* Крупные заголовки помещаются в строку без переноса внутри слова (аудит 08.11: «ЛИГА ЧЕМПИОНОЕ», «КАРО-ЛИНА»):
-   шрифт уменьшается шагами, пока самое длинное слово не влезет. */
-(function(){
- const SEL='.tmname h1,.hero h1';
- function over(h){if(h.scrollWidth>h.clientWidth+1)return true;
-  for(const s of h.querySelectorAll('.ln'))if(s.scrollWidth>s.clientWidth+1)return true;return false}
- function fit(){document.querySelectorAll(SEL).forEach(h=>{h.style.fontSize='';
-  let fs=parseFloat(getComputedStyle(h).fontSize),n=0;while(over(h)&&fs>22&&n<30){fs*=.95;h.style.fontSize=fs+'px';n++}})}
- const run=()=>{fit();setTimeout(fit,400);setTimeout(fit,1500)};
- if(document.readyState!=='loading')run();else document.addEventListener('DOMContentLoaded',run);
- addEventListener('load',run);let t;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(fit,150)});
- if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
-})();
+/* (08.11) старая подгонка заголовков заменена на JV.fitWords / JV.fitH1 (09.11): две подгонки перебивали друг друга */
