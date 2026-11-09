@@ -703,7 +703,7 @@ def v2_summary(m):
         hf, ha_, af, aa = avg(f5h, 'gf'), avg(f5h, 'ga'), avg(f5a, 'gf'), avg(f5a, 'ga')
         if max(hf, af) - min(ha_, aa) > 0 and (ha_ >= (2.9 if sp == 'hockey' else 1.6) or aa >= (2.9 if sp == 'hockey' else 1.6)):
             leak = (h, ha_) if ha_ >= aa else (a, aa)
-            s.append(('%s перед матчем пропускал %s за игру в последних 5.' if m['res'] is not None   # сыгран — без будущего времени
+            s.append(('Пропущено за игру в последних 5 перед матчем — %s: %s.' if m['res'] is not None   # сыгран — без будущего времени и без рода глагола
                       else '%s в последних 5 матчах пропускает %s за игру — у соперника будут моменты.') % (leak[0], f1(leak[1])))
         else:
             s.append('Голы за игру в последних 5: %s — %s забито и %s пропущено, %s — %s и %s.' % (h, f1(hf), f1(ha_), a, f1(af), f1(aa)))
