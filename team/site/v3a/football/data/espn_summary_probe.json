@@ -1,5 +1,5 @@
 {
- "event": "401879244",
+ "event": "401879240",
  "top_keys": [
   "article",
   "boxscore",
@@ -35,13 +35,13 @@
   "starter": true,
   "jersey": "1",
   "athlete": {
-   "id": "291609",
-   "uid": "s:600~a:291609",
-   "guid": "25915a25-3933-6769-b4f4-052d205af5b1",
-   "lastName": "Verbruggen",
-   "fullName": "Bart Verbruggen",
-   "displayName": "Bart Verbruggen",
-   "shortName": "B. Verbruggen",
+   "id": "301425",
+   "uid": "s:600~a:301425",
+   "guid": "83b92ff7-5bb8-3a8e-8f0d-42e292cba669",
+   "lastName": "Lammens",
+   "fullName": "Senne Lammens",
+   "displayName": "Senne Lammens",
+   "shortName": "S. Lammens",
    "links": [
     {
      "language": "en-US",
@@ -50,7 +50,7 @@
       "desktop",
       "athlete"
      ],
-     "href": "https://www.espn.com/soccer/player/_/id/291609/bart-verbruggen",
+     "href": "https://www.espn.com/soccer/player/_/id/301425/senne-lammens",
      "text": "Player Card",
      "shortText": "Player Card",
      "isExternal": false,
@@ -59,7 +59,7 @@
    ],
    "jerseyImages": [
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879244/athletes/291609/jersey.png?darkMode=false",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879240/athletes/301425/jersey.png?darkMode=false",
      "rel": [
       "full",
       "default"
@@ -68,7 +68,7 @@
      "height": 1440
     },
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879244/athletes/291609/jersey.png?darkMode=true",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879240/athletes/301425/jersey.png?darkMode=true",
      "rel": [
       "full",
       "dark"
@@ -157,8 +157,8 @@
     "shortDisplayName": "GA",
     "description": "The number of goals allowed by the goalkeeper.",
     "abbreviation": "GA",
-    "value": 0.0,
-    "displayValue": "0"
+    "value": 4.0,
+    "displayValue": "4"
    },
    {
     "name": "saves",
@@ -166,8 +166,8 @@
     "shortDisplayName": "SV",
     "description": "The number of times a goalkeeper makes a save.",
     "abbreviation": "SV",
-    "value": 0.0,
-    "displayValue": "0"
+    "value": 3.0,
+    "displayValue": "3"
    },
    {
     "name": "shotsFaced",
@@ -219,15 +219,15 @@
  "roster_sub": {
   "active": true,
   "starter": false,
-  "jersey": "24",
+  "jersey": "7",
   "athlete": {
-   "id": "238318",
-   "uid": "s:600~a:238318",
-   "guid": "b04e537c-b306-b853-708d-d46404bc1d1e",
-   "lastName": "Kadioglu",
-   "fullName": "Ferdi Kadioglu",
-   "displayName": "Ferdi Kadioglu",
-   "shortName": "F. Kadioglu",
+   "id": "231167",
+   "uid": "s:600~a:231167",
+   "guid": "a0bc8cc9-2c37-180e-316d-6759b97dae5b",
+   "lastName": "Mount",
+   "fullName": "Mason Mount",
+   "displayName": "Mason Mount",
+   "shortName": "M. Mount",
    "links": [
     {
      "language": "en-US",
@@ -236,7 +236,7 @@
       "desktop",
       "athlete"
      ],
-     "href": "https://www.espn.com/soccer/player/_/id/238318/ferdi-kadioglu",
+     "href": "https://www.espn.com/soccer/player/_/id/231167/mason-mount",
      "text": "Player Card",
      "shortText": "Player Card",
      "isExternal": false,
@@ -245,7 +245,7 @@
    ],
    "jerseyImages": [
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879244/athletes/238318/jersey.png?darkMode=false",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879240/athletes/231167/jersey.png?darkMode=false",
      "rel": [
       "full",
       "default"
@@ -254,7 +254,7 @@
      "height": 1440
     },
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879244/athletes/238318/jersey.png?darkMode=true",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879240/athletes/231167/jersey.png?darkMode=true",
      "rel": [
       "full",
       "dark"
@@ -269,7 +269,7 @@
    "displayName": "Substitute",
    "abbreviation": "SUB"
   },
-  "subbedIn": false,
+  "subbedIn": true,
   "subbedOut": false,
   "formationPlace": "0",
   "media": {},
@@ -280,8 +280,8 @@
     "shortDisplayName": "APP",
     "description": "The number of times a player has made an appearance in a match.",
     "abbreviation": "APP",
-    "value": 0.0,
-    "displayValue": "0"
+    "value": 1.0,
+    "displayValue": "1"
    },
    {
     "name": "foulsCommitted",
@@ -325,8 +325,8 @@
     "shortDisplayName": "SUBIN",
     "description": "The number of times a player has come on a sub in a match.",
     "abbreviation": "SUB",
-    "value": 0.0,
-    "displayValue": "0"
+    "value": 1.0,
+    "displayValue": "1"
    },
    {
     "name": "yellowCards",
@@ -397,20 +397,55 @@
     "shortDisplayName": "SHOT",
     "description": "The number of shots attempted.",
     "abbreviation": "SHOT",
-    "value": 0.0,
-    "displayValue": "0"
+    "value": 3.0,
+    "displayValue": "3"
+   }
+  ],
+  "subbedInFor": {
+   "jersey": "18",
+   "athlete": {
+    "id": "193297",
+    "displayName": "Youri Tielemans",
+    "links": [
+     {
+      "language": "en-US",
+      "rel": [
+       "playercard",
+       "desktop",
+       "athlete"
+      ],
+      "href": "https://www.espn.com/soccer/player/_/id/193297/youri-tielemans",
+      "text": "Player Card",
+      "shortText": "Player Card",
+      "isExternal": false,
+      "isPremium": false
+     }
+    ]
+   }
+  },
+  "plays": [
+   {
+    "clock": {
+     "displayValue": "66'"
+    },
+    "scoringPlay": false,
+    "substitution": true,
+    "redCard": false,
+    "yellowCard": false,
+    "penaltyKick": false,
+    "ownGoal": false
    }
   ]
  },
  "keyEvent_sub": {
-  "id": "55075315",
+  "id": "55102305",
   "type": {
    "id": "76",
    "text": "Substitution",
    "type": "substitution"
   },
-  "text": "Substitution, Brentford. Yehor Yarmoliuk replaces Dango Ouattara.",
-  "shortText": "Yehor Yarmoliuk Substitution",
+  "text": "Substitution, Manchester United. Ayden Heaven replaces Harry Maguire.",
+  "shortText": "Ayden Heaven Substitution",
   "period": {
    "number": 2
   },
@@ -420,20 +455,20 @@
   },
   "scoringPlay": false,
   "team": {
-   "id": "337",
-   "displayName": "Brentford"
+   "id": "360",
+   "displayName": "Manchester United"
   },
   "participants": [
    {
     "athlete": {
-     "id": "342029",
-     "displayName": "Yehor Yarmoliuk"
+     "id": "356044",
+     "displayName": "Ayden Heaven"
     }
    },
    {
     "athlete": {
-     "id": "315530",
-     "displayName": "Dango Ouattara"
+     "id": "157073",
+     "displayName": "Harry Maguire"
     }
    }
   ],
@@ -441,15 +476,15 @@
    "id": "38",
    "description": "SA.ENVOY"
   },
-  "wallclock": "2026-11-08T15:05:41Z",
+  "wallclock": "2026-11-08T17:35:33Z",
   "shootout": false
  },
  "parsed": {
-  "331": [
+  "360": [
    [
-    "291609",
+    "301425",
     1,
-    96,
+    99,
     0,
     0,
     0,
@@ -458,76 +493,65 @@
     0
    ],
    [
-    "147106",
-    1,
-    96,
-    0,
-    0,
-    0,
-    1,
-    1,
-    0
-   ],
-   [
-    "364962",
-    1,
-    96,
-    1,
-    0,
-    0,
-    1,
-    0,
-    0
-   ],
-   [
-    "216017",
-    1,
-    96,
-    0,
-    0,
-    0,
-    1,
-    1,
-    0
-   ],
-   [
-    "274285",
-    1,
-    96,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "304242",
-    1,
-    78,
-    4,
-    2,
-    0,
-    1,
-    0,
-    0
-   ],
-   [
-    "387489",
+    "157073",
     1,
     45,
     0,
     0,
     0,
-    2,
-    1,
+    0,
+    0,
     0
    ],
    [
-    "132659",
+    "340206",
     1,
-    96,
+    99,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "238902",
+    1,
+    66,
+    1,
+    0,
+    0,
     2,
+    0,
+    0
+   ],
+   [
+    "239350",
+    1,
+    99,
+    1,
+    0,
+    1,
+    4,
+    0,
+    0
+   ],
+   [
+    "124091",
+    1,
+    99,
+    6,
+    1,
+    1,
+    3,
+    0,
+    0
+   ],
+   [
+    "328466",
+    1,
+    99,
+    1,
     1,
     0,
     2,
@@ -535,9 +559,31 @@
     0
    ],
    [
-    "387655",
+    "193297",
     1,
-    82,
+    66,
+    3,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "271170",
+    1,
+    83,
+    3,
+    1,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "259902",
+    1,
+    99,
     3,
     2,
     0,
@@ -546,20 +592,9 @@
     0
    ],
    [
-    "301327",
+    "291630",
     1,
-    82,
-    3,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "192278",
-    1,
-    93,
+    66,
     3,
     1,
     0,
@@ -568,66 +603,88 @@
     0
    ],
    [
-    "348787",
+    "231167",
     0,
-    14,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "282186",
-    0,
-    51,
-    2,
-    0,
-    0,
-    1,
-    1,
-    0
-   ],
-   [
-    "278061",
-    0,
-    14,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "328011",
-    0,
-    18,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "359097",
-    0,
+    33,
     3,
     0,
     0,
     0,
     0,
+    0
+   ],
+   [
+    "366781",
+    0,
+    33,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0
+   ],
+   [
+    "276327",
+    0,
+    16,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "356044",
+    0,
+    54,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0
+   ],
+   [
+    "358180",
+    0,
+    33,
+    0,
+    0,
+    0,
+    1,
     0,
     0
    ]
   ],
-  "337": [
+  "362": [
    [
-    "275599",
+    "265958",
     1,
-    96,
+    99,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "251100",
+    1,
+    99,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "204679",
+    1,
+    99,
     0,
     0,
     0,
@@ -636,9 +693,9 @@
     0
    ],
    [
-    "270507",
+    "281125",
     1,
-    70,
+    99,
     0,
     0,
     0,
@@ -647,64 +704,42 @@
     0
    ],
    [
-    "206173",
+    "281121",
     1,
-    96,
-    1,
-    0,
-    0,
-    1,
-    1,
-    0
-   ],
-   [
-    "283940",
-    1,
-    45,
+    99,
     0,
     0,
     0,
-    1,
+    2,
     0,
     0
    ],
    [
-    "356640",
+    "162843",
     1,
-    96,
-    0,
-    0,
-    0,
-    0,
+    71,
+    1,
+    1,
+    1,
+    1,
     0,
     0
    ],
    [
-    "225564",
+    "174550",
     1,
-    96,
+    78,
+    1,
+    1,
     0,
-    0,
-    0,
-    0,
+    4,
     0,
     0
    ],
    [
-    "228547",
+    "250936",
     1,
-    59,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "284490",
-    1,
-    59,
+    99,
     1,
     0,
     0,
@@ -713,10 +748,21 @@
     0
    ],
    [
-    "315530",
+    "308524",
     1,
-    45,
+    86,
+    2,
+    1,
+    1,
     0,
+    0,
+    0
+   ],
+   [
+    "386992",
+    1,
+    78,
+    1,
     0,
     0,
     0,
@@ -724,31 +770,20 @@
     0
    ],
    [
-    "310958",
+    "382839",
     1,
-    96,
-    1,
-    0,
-    0,
+    71,
     3,
-    1,
+    2,
+    0,
+    0,
+    0,
     0
    ],
    [
-    "301894",
-    1,
-    96,
-    1,
+    "388522",
     0,
-    0,
-    0,
-    0,
-    1
-   ],
-   [
-    "359796",
-    0,
-    37,
+    21,
     0,
     0,
     0,
@@ -757,9 +792,9 @@
     0
    ],
    [
-    "342029",
+    "401451",
     0,
-    51,
+    13,
     0,
     0,
     0,
@@ -768,9 +803,9 @@
     0
    ],
    [
-    "279780",
+    "366248",
     0,
-    51,
+    28,
     0,
     0,
     0,
@@ -779,20 +814,20 @@
     0
    ],
    [
-    "227472",
+    "152469",
     0,
-    37,
+    28,
+    2,
     1,
-    0,
     0,
     0,
     0,
     0
    ],
    [
-    "138924",
+    "301524",
     0,
-    26,
+    21,
     0,
     0,
     0,
