@@ -1,17 +1,20 @@
 /* JARVIS v3a — фон страницы матча развевается, как флаг (владелец 09.11): WebGL-шейдер над той же картинкой (bg.webp / bg-m.webp).
    Волна сдвигает картинку и даёт объём — светлые гребни и тени в складках. Рисует только пока первый экран виден и вкладка открыта;
-   плотность пикселей ≤ 1,5. Нет WebGL или «уменьшить движение» — остаётся обычная картинка (CSS). */
+   плотность пикселей ≤ 1,5. Нет WebGL или «уменьшить движение» — остаётся неподвижная картинка (без CSS-полос). */
 (() => {
   'use strict';
   const field = document.querySelector('.mx-field.has-bg');
-  if (!field || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  /* метка только на образцах proto/ — чтобы по снимку владельца понять, что он видит; убрать перед раскаткой */
+  const tag = t => { if (field && /\/proto\//.test(location.pathname)) { const b = document.createElement('small'); b.className = 'mx-diag'; b.textContent = t; field.appendChild(b); } return false; };
+  if (!field) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return tag('анимация выкл.: в системе включено «уменьшить движение»');
   const layer = field.querySelector(matchMedia('(max-width: 620px)').matches ? '.mx-fm' : '.mx-fd');
   const m = layer && /url\(["']?([^"')]+)["']?\)/.exec(layer.style.backgroundImage || '');
-  if (!m) return;
+  if (!m) return tag('анимация выкл.: нет картинки фона');
   const cv = document.createElement('canvas');
   cv.className = 'mx-wave'; cv.setAttribute('aria-hidden', 'true');
   const gl = cv.getContext('webgl', {alpha: false, antialias: false, premultipliedAlpha: false});
-  if (!gl) return;
+  if (!gl) return tag('анимация выкл.: браузер не дал WebGL');
 
   const VS = 'attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
   /* плавно, без видимых линий (владелец 09.11): саму картинку не сдвигаем — иначе ползут её 8-битные ступеньки градиента и зерно
@@ -38,9 +41,9 @@
   }`;
   const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null; };
   const vs = sh(gl.VERTEX_SHADER, VS), fs = sh(gl.FRAGMENT_SHADER, FS);
-  if (!vs || !fs) return;
+  if (!vs || !fs) return tag('анимация выкл.: шейдер не собрался');
   const pr = gl.createProgram(); gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
-  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return;
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return tag('анимация выкл.: шейдер не связался');
   gl.useProgram(pr);
   const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
@@ -66,10 +69,11 @@
     };
     const T = 6.283185307, draw = now => { const t = (now - t0) / 1000; gl.uniform3f(uT, t * .55 % T, t * .33 % T, t * .2 % T); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); raf = vis && !document.hidden ? requestAnimationFrame(draw) : 0; };
     const go = () => { if (!raf && vis && !document.hidden) raf = requestAnimationFrame(draw); };
-    size(); field.classList.add('waving'); go();
+    size(); field.classList.add('waving'); go(); tag('анимация работает · версия 7');
     addEventListener('resize', () => { size(); go(); });
     document.addEventListener('visibilitychange', go);
     if ('IntersectionObserver' in window) new IntersectionObserver(es => { vis = es[0].isIntersecting; go(); }).observe(field);
   };
+  img.onerror = () => tag('анимация выкл.: картинка не загрузилась');
   img.src = m[1];
 })();
