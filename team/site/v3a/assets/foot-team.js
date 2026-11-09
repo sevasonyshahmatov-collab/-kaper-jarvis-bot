@@ -25,7 +25,7 @@ const CUP=CTX==='league'?null:CTX,EFF=CUP||lg,EL=D.leagues[EFF],EN=EL.name;
 const inCtx=g=>CUP?g.c===CUP:(cupOnly?true:!g.c);
 const oppCtx=g=>CUP?g.c===CUP:!g.c;
 {const dh=document.documentElement;if(CUP){dh.dataset.theme=CUP;document.body.classList.add('ctx-cup');{const rh={table:'lt',trends:'lt',totals:'lt',next:'band',games:'lt'};Object.keys(rh).forEach(k=>{const e=document.getElementById(k);if(e)e.classList.add(rh[k])})}
- if(CUP==='ucl'){const sg=document.querySelector('.seg');sg.querySelectorAll('a').forEach(x=>x.removeAttribute('aria-current'));sg.querySelector('.seg-ucl').setAttribute('aria-current','page')}const s1=document.createElement('script');s1.src='../assets/ucl-sky.js';document.body.appendChild(s1)}
+ if(CUP==='ucl'){const sg=document.querySelector('.seg'),su=sg&&sg.querySelector('.seg-ucl');if(su){sg.querySelectorAll('a').forEach(x=>x.removeAttribute('aria-current'));su.setAttribute('aria-current','page')};const gu=[...document.querySelectorAll('.gnav a,.mpanel a')].filter(x=>/ucl\.html/.test(x.getAttribute('href')||''));if(gu.length){document.querySelectorAll('.gnav a[aria-current],.mpanel a[aria-current]').forEach(x=>x.removeAttribute('aria-current'));gu.forEach(x=>x.setAttribute('aria-current','page'))}}   /* кнопки «ЛЧ» в шапке больше нет (меню 08.11) — без неё страница падала пустой (09.11) */const s1=document.createElement('script');s1.src='../assets/ucl-sky.js';document.body.appendChild(s1)}
  else if(dh.dataset.theme==='ucl'||dh.dataset.theme==='uel'){dh.dataset.theme='arena'}}
 const ctxHref=k=>k===lg?`team.html?id=${encodeURIComponent(ID)}`:`team.html?id=${encodeURIComponent(ID)}&ctx=${k}`;
 const RC=CUP?(D.tables[CUP]||[]).find(x=>x.id===ID)||{place:0,gp:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}:T;
