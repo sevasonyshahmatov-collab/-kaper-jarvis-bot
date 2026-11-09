@@ -1,0 +1,26 @@
+{
+ "day": "2026-11-09",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Сайт: волны флага сделал плавнее на том же варианте. Складки шире, бегут медленнее, тени мягче. Видео ниже: компьютер и телефон.\nВживую: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/359f53eb020a50f12fcf7d1ed897ffc03bfdbcd3/team/site/v3a/proto/match-1/index.html и https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/359f53eb020a50f12fcf7d1ed897ffc03bfdbcd3/team/site/v3a/proto/match-3/index.html\n\nТак оставляем? Если «да» — раскатываю вид 2 на все страницы матчей (~180)."
+  },
+  {
+   "to": "owner",
+   "type": "animation",
+   "files": [
+    "team/out/2026-11-09/flag4_pc.mp4"
+   ],
+   "text": "Плавнее — компьютер"
+  },
+  {
+   "to": "owner",
+   "type": "animation",
+   "files": [
+    "team/out/2026-11-09/flag4_phone.mp4"
+   ],
+   "text": "Плавнее — телефон"
+  }
+ ]
+}
