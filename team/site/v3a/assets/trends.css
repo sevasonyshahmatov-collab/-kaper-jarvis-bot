@@ -149,3 +149,26 @@ body[data-field="football"] #plates{min-height:47px}
 @media (min-width:1101px) and (max-width:1400px){body[data-field="football"] #fType{min-height:37px}}
 @media (max-width:760px){#fType{min-height:144px}body[data-field="football"] #fType{min-height:194px}}
 @media (max-width:380px){#fType{min-height:194px}body[data-field="football"] #fType{min-height:194px}}
+/* цвет темы (владелец 10.11: «выдели блоки, поиграй цветом»): у каждой темы свой --c — панель, полоса, цифры, точки, метка */
+.c-streak{--c:#ffc21a}.c-pl{--c:#b48cff}.c-tot{--c:#3ee0ff}.c-goals{--c:#ff7a59}.c-wl{--c:#3dd68c}.c-ot{--c:#ff5fa2}
+.c-btts{--c:#3dd68c}.c-cs{--c:#7aa7ff}.c-cor{--c:#ff5fa2}
+.tsec:not(.tsec-top){position:relative;padding:clamp(16px,2.2vw,28px);border-radius:20px;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--c) 13%,transparent),color-mix(in srgb,var(--c) 3%,transparent) 55%),color-mix(in srgb,var(--paper) 70%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 30%,transparent)}
+.tsec:not(.tsec-top)::before{content:"";position:absolute;left:0;top:22px;bottom:22px;width:4px;border-radius:0 4px 4px 0;background:var(--c)}
+.tsec .tsec-h{border-bottom-color:color-mix(in srgb,var(--c) 30%,transparent)}
+.tsec:not(.tsec-top) h2{color:var(--c)}
+.tsec h2 .num{color:color-mix(in srgb,var(--c) 70%,var(--ink-3))}
+.tr[class*="c-"] .tr-t b,.tc[class*="c-"] .tc-t b,.tr[class*="c-"] .tr-n,.tc[class*="c-"] .tr-n{color:var(--c)}
+.tr[class*="c-"] .sdots i.h,.tc[class*="c-"] .sdots i.h{background:var(--c)}
+.tr[class*="c-"] .tg,.tc[class*="c-"] .tg{background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c)}
+.tr[class*="c-"] .tg.s,.tc[class*="c-"] .tg.s{background:var(--c);color:#06101f}
+.tr[class*="c-"].strong{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 70%,transparent),0 0 22px -12px var(--c)}
+.tc[class*="c-"].strong{box-shadow:inset 0 0 0 1px var(--c),0 0 30px -14px var(--c)}
+.tc[class*="c-"]{border-top:4px solid var(--c)}
+.tsec .tsec-more{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 40%,transparent);color:var(--c)}
+.tsec .tsec-more:hover{background:color-mix(in srgb,var(--c) 14%,transparent)}
+.tr-bar .tab .cdot{width:9px;height:9px;border-radius:50%;background:var(--c);flex:none;margin:0 2px 0 4px}
+.tr-bar .tab[aria-pressed="true"][class*="c-"]{background:var(--c);color:#06101f}
+.tr-bar .tab[aria-pressed="true"] .cdot{background:#06101f}
+@media (max-width:760px){.tsec:not(.tsec-top){margin:0 calc(var(--m) * -.5);padding:16px 12px;border-radius:16px}.tsec:not(.tsec-top)::before{top:16px;bottom:16px}}

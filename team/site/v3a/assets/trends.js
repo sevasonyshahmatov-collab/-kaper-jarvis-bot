@@ -223,7 +223,7 @@ function row(t,ctx){
   const em=emb(t);
   const who=t.pl?`${esc(t.who)} (${link(t.slug,t.teamName||'')})`:link(t.slug,t.who);
   const meta=ctx?'':`<span>${lgp(m.lg)} ${link(m.h,H.name)} — ${link(m.a,A.name)}</span><span>${when(m.d)}</span>`;
-  return `<li class="tr${t.strong?' strong':''}">${em}<div class="tr-b"><p class="tr-t">${who}: ${t.html}</p>
+  return `<li class="tr c-${t.cat}${t.strong?' strong':''}">${em}<div class="tr-b"><p class="tr-t">${who}: ${t.html}</p>
 <p class="tr-m"><span class="tg${t.strong?' s':''}">${esc(t.tag)}${t.strong?' · сильный':''}</span>${meta}</p></div>
 <div class="tr-s">${dots(t.seq)}<b class="tr-n num">${t.big}</b></div></li>`;
 }
@@ -235,7 +235,7 @@ function emb(t){
 }
 function card(t){
   const m=t.m,H=S.teams[m.h],A=S.teams[m.a];
-  return `<li class="tc${t.strong?' strong':''}"><div class="tc-h">${emb(t)}<span class="tg${t.strong?' s':''}">${esc(t.tag)}</span></div>
+  return `<li class="tc c-${t.cat}${t.strong?' strong':''}"><div class="tc-h">${emb(t)}<span class="tg${t.strong?' s':''}">${esc(t.tag)}</span></div>
 <p class="tc-w">${t.pl?esc(t.who)+`<small>${link(t.slug,t.teamName||'')}</small>`:link(t.slug,t.who)}</p><p class="tc-t">${t.html}</p>
 <div class="tc-s">${dots(t.seq)}<b class="tr-n num">${t.big}</b></div>
 <p class="tr-m">${lgp(m.lg)} ${link(m.h,H.name)} — ${link(m.a,A.name)} · ${when(m.d)}</p></li>`;
@@ -255,7 +255,7 @@ function renderBar(){
     CFG.lgs.map(id=>chip('',ST.lg===id,lgp(id)+esc(S.lgInfo[id].name),cL(id),`data-lg="${id}"`)).join('');
   const cT=id=>L.filter(t=>pass(t,'type')&&(id==='all'||t.cat===id)).length;
   $('#fType').innerHTML=chip('',ST.type==='all','Все темы',cT('all'),'data-type="all"')+
-    CFG.cats.map(c=>chip('',ST.type===c[0],esc(c[1]),cT(c[0]),`data-type="${c[0]}"`)).join('');
+    CFG.cats.map(c=>chip('c-'+c[0],ST.type===c[0],'<i class="cdot"></i>'+esc(c[1]),cT(c[0]),`data-type="${c[0]}"`)).join('');
   $('#fStrong').setAttribute('aria-pressed',ST.strong);
   $('#fSortP').setAttribute('aria-pressed',ST.sort==='power');
   $('#fSortM').setAttribute('aria-pressed',ST.sort==='match');
@@ -291,7 +291,7 @@ function render(){
       if(ST.type!=='all'&&ST.type!==c[0])continue;
       const L=list.filter(t=>t.cat===c[0]&&!used.has(t.id));if(!L.length)continue;
       const all=ST.type!=='all'||ST.open[c[0]]||L.length<=PER+1,shown=all?L:L.slice(0,PER);
-      html+=`<li class="tsec" id="t-${c[0]}"><div class="tsec-h"><h2>${esc(c[1])}<span class="num">${L.length}</span></h2><p>${esc(c[2])}</p></div>
+      html+=`<li class="tsec c-${c[0]}" id="t-${c[0]}"><div class="tsec-h"><h2>${esc(c[1])}<span class="num">${L.length}</span></h2><p>${esc(c[2])}</p></div>
 <ul class="tlist">${shown.map(t=>row(t,false)).join('')}</ul>${L.length>shown.length?`<button type="button" class="tsec-more" data-open="${c[0]}">Ещё ${L.length-shown.length} · ${esc(c[1].toLowerCase())}</button>`:''}</li>`;
     }
     $('#more').hidden=true;
