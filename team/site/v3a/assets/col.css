@@ -15,3 +15,30 @@
 [data-col="2"] .ga{background:#111b2e!important;color:#eaf1fb!important}
 [data-col="2"] .mlist>li,[data-col="2"] .fc-m{background:linear-gradient(160deg,#16253d,#111c2f)}
 [data-col="2"] [data-sport="football"] .mlist>li,[data-col="2"] body.football .mlist>li{background:linear-gradient(160deg,#13281f,#102019)}
+
+/* ── вариант 3: «роли цветов» (?col=3). Жёлтый — только действие (кнопки в Telegram); синий — всё, что говорит модель;
+   серый — линия букмекера и второстепенный текст; зелёный/красный — только исходы (зашло / не зашло). Вёрстка не меняется. ── */
+/* жёлтый убран с цифр и индикаторов: кэф, время, счётчики — белым, чтобы не спорили с кнопкой */
+[data-col="3"] .bet .k,[data-col="3"] .face .vs time,[data-col="3"] .h2 .hk,[data-col="3"] .sub li b,[data-col="3"] .tab[aria-selected="true"] .c,[data-col="3"] .ticker time{color:#f3f6fb}
+[data-col="3"] .ticker .k{color:#9fb0cc}
+[data-col="3"] .ticker li::after,[data-col="3"] .lamp,[data-col="3"] .board-top .lamp{background:#5b6f92}
+[data-col="3"] .pager button[aria-pressed="true"]{background:#f3f6fb}
+/* тёмные плашки — в синеву первого экрана вместо нейтрально-чёрного */
+[data-col="3"] .ticker{background:#0b1424}
+[data-col="3"] .bet{background:#13213d;box-shadow:none}
+[data-col="3"] .hero .board .bet{box-shadow:none}
+/* расчёт модели — синий, а не зелёный/жёлтый: зелёный оставлен исходам */
+[data-col="3"] .lv-hi,[data-col="3"] .lv-mid{--lv:#7ea8ff}
+[data-col="3"] .lv-lo{--lv:#9fb0cc}
+[data-col="3"] .bet .pm em{background:#22304d}
+[data-col="3"] .bet .bl{color:#9fb0cc}
+/* карточки матчей: один вид для КХЛ и НХЛ, лигу показывает логотип; выбранный исход — один синий, без красной черты */
+[data-col="3"] .match.khl,[data-col="3"] .match.nhl{background:#f1f6fb;box-shadow:none}
+[data-col="3"] .match.khl:hover,[data-col="3"] .match.nhl:hover{background:#fff;box-shadow:0 14px 28px -20px var(--shadow)}
+[data-col="3"] .qc{border-color:#c6d3e3}
+[data-col="3"] .qc.fav{background:#173daf;border-color:#173daf;box-shadow:none}
+/* расхождение модели с линией — синий и серый: «ниже линии» не значит «плохо» */
+[data-col="3"] .dv .up{color:#173daf}
+[data-col="3"] .dv .dn{color:#3b4552}
+/* мелкий серый текст на светлом — темнее */
+[data-col="3"] .sec{--ink-3:#414d5c}

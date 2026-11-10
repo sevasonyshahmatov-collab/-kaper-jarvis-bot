@@ -4,16 +4,16 @@
 (function(){
   var d=document.documentElement,K='jv-col',q='',c='';
   try{q=new URLSearchParams(location.search).get('col')||''}catch(e){}
-  try{if(q==='off')sessionStorage.removeItem(K);else if(q==='1'||q==='2')sessionStorage.setItem(K,q);c=sessionStorage.getItem(K)||''}catch(e){c=(q==='1'||q==='2')?q:''}
+  try{if(q==='off')sessionStorage.removeItem(K);else if(q==='1'||q==='2'||q==='3')sessionStorage.setItem(K,q);c=sessionStorage.getItem(K)||''}catch(e){c=(q==='1'||q==='2'||q==='3')?q:''}
   if(q==='off')c='';
-  if(c!=='1'&&c!=='2')return;
+  if(c!=='1'&&c!=='2'&&c!=='3')return;
   d.dataset.col=c;
   if(c==='2'){d.dataset.themeWas=d.dataset.theme||'';d.dataset.theme='a';var m=document.querySelector('meta[name=theme-color]');if(m)m.content='#0a1220'}
   var s=document.currentScript,base=s.src.replace(/palettes\.js.*$/,'');
   var css=document.createElement('link');css.rel='stylesheet';css.href=base+'col.css';document.head.appendChild(css);
   document.addEventListener('DOMContentLoaded',function(){
     var b=document.createElement('div');b.className='col-bar';b.setAttribute('role','group');b.setAttribute('aria-label','Вариант цветов');
-    b.innerHTML=[['1','1 · Текущий'],['2','2 · Как главная'],['off','Было']].map(function(x){return '<button type="button" data-c="'+x[0]+'" aria-pressed="'+(x[0]===c)+'">'+x[1]+'</button>'}).join('');
+    b.innerHTML=[['1','1 · Текущий'],['2','2 · Как главная'],['3','3 · Роли цветов'],['off','Было']].map(function(x){return '<button type="button" data-c="'+x[0]+'" aria-pressed="'+(x[0]===c)+'">'+x[1]+'</button>'}).join('');
     b.addEventListener('click',function(e){var k=e.target.getAttribute&&e.target.getAttribute('data-c');if(!k)return;var u=new URL(location.href);u.searchParams.set('col',k);location.href=u.toString()});
     document.body.appendChild(b);
   });
