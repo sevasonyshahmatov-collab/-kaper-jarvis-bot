@@ -145,13 +145,13 @@ function teamTrends(m,slug,home){
 function playerTrends(){
   const out=[];const byTeam={};
   S.matches.forEach(m=>{(byTeam[m.h]=byTeam[m.h]||[]).push(m);(byTeam[m.a]=byTeam[m.a]||[]).push(m)});
-  const add=(slug,name,cands,img)=>{ // cands: {id,tag,k,n,seq,f}
+  const add=(slug,name,cands,img,pg)=>{ // pg — адрес страницы игрока // cands: {id,tag,k,n,seq,f}
     const ms=byTeam[slug];if(!ms)return;
     let best=null;
     for(const c of cands){if(c.n<5||c.k/c.n<.7)continue;c.score=wilson(c.k,c.n);if(!best||c.score>best.score)best=c}
     if(!best)return;
     out.push({type:'pl',tag:best.tag,html:best.f,big:best.k+'<small>/'+best.n+'</small>',seq:best.seq,score:best.score,
-      strong:best.k/best.n>=.8,m:ms[0],slug,who:name,pl:true,img:img||'',teamName:S.teams[slug]&&S.teams[slug].name});
+      strong:best.k/best.n>=.8,m:ms[0],slug,who:name,pl:true,img:img||'',pg:pg||'',teamName:S.teams[slug]&&S.teams[slug].name});
   };
   if(FB&&window.JV_PLAYERS){
     for(const p of window.JV_PLAYERS.players){
@@ -174,7 +174,7 @@ function playerTrends(){
         s=l.map(r=>r[6]>=3?1:0);c.push({tag:'3+ броска',k:sum(s),n,seq:s,f:`3 и больше бросков в ${B(sum(s),n)} последних матчей`});
         s=l.map(r=>r[4]>=1?1:0);c.push({tag:'Забивает',k:sum(s),n,seq:s,f:`забивал в ${B(sum(s),n)} последних матчей`});
       }
-      add(S.abbr[p.t],p.n,c,p.img);
+      add(S.abbr[p.t],p.n,c,p.img,p.id?'player.html?lg=nhl&id='+p.id:'');
     }
   }
   if(!FB&&S.khl){
@@ -186,7 +186,7 @@ function playerTrends(){
         let s=l.map(r=>r[4]+r[5]>=1?1:0);c.push({tag:'Очко',k:sum(s),n:w,seq:s,f:`очко в ${B(sum(s),w)} последних матчей`});
         s=l.map(r=>r[4]>=1?1:0);c.push({tag:'Забивает',k:sum(s),n:w,seq:s,f:`забивал в ${B(sum(s),w)} последних матчей`});
       }
-      add(p.t,p.n,c,p.img);
+      add(p.t,p.n,c,p.img,p.id?'player.html?lg=khl&id='+p.id:'');
     }
   }
   /* не больше 4 игроков на клуб */
@@ -221,7 +221,8 @@ function pass(t,skip){
 function row(t,ctx){
   const m=t.m,H=S.teams[m.h],A=S.teams[m.a];
   const em=emb(t);
-  const who=t.pl?`${esc(t.who)} (${link(t.slug,t.teamName||'')})`:link(t.slug,t.who);
+  const pname=t=>t.pg?`<a href="${esc(t.pg)}">${esc(t.who)}</a>`:esc(t.who);
+  const who=t.pl?`${pname(t)} (${link(t.slug,t.teamName||'')})`:link(t.slug,t.who);
   const meta=ctx?'':`<span>${lgp(m.lg)} ${link(m.h,H.name)} — ${link(m.a,A.name)}</span><span>${when(m.d)}</span>`;
   return `<li class="tr c-${t.cat}${t.strong?' strong':''}">${em}<div class="tr-b"><p class="tr-t">${who}: ${t.html}</p>
 <p class="tr-m"><span class="tg${t.strong?' s':''}">${esc(t.tag)}${t.strong?' · сильный':''}</span>${meta}</p></div>
@@ -231,12 +232,13 @@ function row(t,ctx){
 function emb(t){
   if(!t.pl)return `<a class="tr-em" href="${CFG.team(t.slug)}" tabindex="-1" aria-hidden="true">${crest(t.slug)}</a>`;
   if(!t.img)return `<a class="tr-em" href="${CFG.team(t.slug)}" tabindex="-1" aria-hidden="true">${crest(t.slug)}</a>`;
-  return `<span class="tr-em ph" aria-hidden="true"><img class="pf" src="${esc(t.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('nof');this.remove()"><i>${crest(t.slug)}</i></span>`;
+  const tag=t.pg?'a':'span',hr=t.pg?` href="${esc(t.pg)}" tabindex="-1"`:'';
+  return `<${tag} class="tr-em ph"${hr} aria-hidden="true"><img class="pf" src="${esc(t.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('nof');this.remove()"><i>${crest(t.slug)}</i></${tag}>`;
 }
 function card(t){
   const m=t.m,H=S.teams[m.h],A=S.teams[m.a];
   return `<li class="tc c-${t.cat}${t.strong?' strong':''}"><div class="tc-h">${emb(t)}<span class="tg${t.strong?' s':''}">${esc(t.tag)}</span></div>
-<p class="tc-w">${t.pl?esc(t.who)+`<small>${link(t.slug,t.teamName||'')}</small>`:link(t.slug,t.who)}</p><p class="tc-t">${t.html}</p>
+<p class="tc-w">${t.pl?(t.pg?`<a href="${esc(t.pg)}">${esc(t.who)}</a>`:esc(t.who))+`<small>${link(t.slug,t.teamName||'')}</small>`:link(t.slug,t.who)}</p><p class="tc-t">${t.html}</p>
 <div class="tc-s">${dots(t.seq)}<b class="tr-n num">${t.big}</b></div>
 <p class="tr-m">${lgp(m.lg)} ${link(m.h,H.name)} — ${link(m.a,A.name)} · ${when(m.d)}</p></li>`;
 }
