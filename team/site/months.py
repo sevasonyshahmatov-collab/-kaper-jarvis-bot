@@ -259,6 +259,9 @@ def main():
     with open(os.path.join(out, 'odd.json'), 'w', encoding='utf-8') as f:   # полный текст нераспознанных — для разбора формата
         json.dump([dict(id=x['id'], posted=x['posted'].isoformat(), media=x['media'], edited=x['edited'], text=x['text']) for x in odd],
                   f, ensure_ascii=False, indent=0)
+    with open(os.path.join(out, 'feed.json'), 'w', encoding='utf-8') as f:  # вся лента с t0 — итоги сайта v3a (экспрессы, футбол): daily/results.py
+        json.dump([dict(id=x['id'], posted=x['posted'].isoformat(), edited=x['edited'], text=[t for t, _ in x['text']])
+                   for x in seen['v'][0] if x['posted'] and x['posted'] >= t0], f, ensure_ascii=False)
     text = '\n'.join(lines) + '\n'
     with open(os.path.join(out, 'months.md'), 'w', encoding='utf-8') as f:
         f.write(text)
