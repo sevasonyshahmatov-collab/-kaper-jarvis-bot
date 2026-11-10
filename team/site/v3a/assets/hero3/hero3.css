@@ -35,3 +35,6 @@
   [data-hero="2"] .hero .face .tm .em{width:clamp(84px,min(8.4vw,15vh),140px);height:clamp(84px,min(8.4vw,15vh),140px)}
   [data-hero="2"] .hero .face .tm span,[data-hero="2"] .hero .face .tm.long span{font-size:clamp(20px,2vw,30px);min-height:0}
 }
+/* под афишей не должна торчать разметка общего фона (#field): экран афиши — не ниже окна, а разметка проявляется только вместе со светом при прокрутке */
+[data-hero="2"] .hero{min-height:calc(100svh - 108px)}
+[data-hero="2"] #field{opacity:clamp(0,calc(var(--lit,0) * 2.5),1)}
