@@ -107,3 +107,45 @@ body[data-field="football"] #plates{min-height:47px}
 @media (min-width:1101px) and (max-width:1400px){body[data-field="football"] .tr-bar .row:first-child{min-height:58px}}
 @media (max-width:760px){body[data-field="football"] #plates{min-height:117px}}
 @media (max-width:380px){body[data-field="football"] #plates{min-height:140px}}
+/* темы (владелец 10.11): «Сильнее всего сегодня» + блоки тем по 4 строки */
+#tlist:has(.tsec){gap:clamp(30px,4vw,52px)}
+.tsec{list-style:none}
+.tsec h2{font:800 clamp(24px,2.6vw,34px)/1.05 var(--display);margin:0;display:flex;align-items:baseline;gap:10px}
+.tsec h2 .num{font-size:.55em;font-weight:700;color:var(--ink-3)}
+.tsec-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px;margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--rule-2)}
+.tsec-h p{margin:0;font-size:15px;color:var(--ink-3)}
+.tsec-more{margin-top:10px;width:100%;min-height:46px;border:0;border-radius:10px;cursor:pointer;background:transparent;color:var(--ink-2);
+  box-shadow:inset 0 0 0 1px var(--rule-2);font:700 15px/1 var(--display);transition:background .2s ease,color .2s ease}
+.tsec-more:hover{background:var(--paper-2);color:var(--ink)}
+.tsec-more:focus-visible{outline:3px solid var(--ice);outline-offset:2px}
+.tsec-top h2{margin-bottom:14px}
+.tcards{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tc{display:flex;flex-direction:column;gap:8px;padding:18px;border-radius:14px;background:var(--card);box-shadow:inset 0 0 0 1px var(--rule)}
+.tc.strong{box-shadow:inset 0 0 0 1px var(--acc),0 0 30px -14px var(--acc)}
+.tc-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tc-h .tr-em{width:56px;height:56px}
+.tc .tg{font:700 12px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;padding:5px 8px;border-radius:3px;background:var(--paper-3);color:var(--ink-2)}
+.tc .tg.s{background:var(--acc);color:#04140c}
+.tc-w{margin:4px 0 0;font:800 clamp(20px,1.8vw,24px)/1.1 var(--display)}
+.tc-w a{color:var(--ink);text-decoration:none}
+.tc-t{margin:0;font:600 16px/1.3 var(--display);color:var(--ink-2)}
+.tc-t b{color:var(--acc);font-weight:800}
+.tc-s{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:6px}
+.tc-s .tr-n{font-size:34px}
+.tc .tr-m{margin:0;padding-top:10px;border-top:1px solid var(--rule)}
+/* игрок: фото в круге, значок клуба в углу; нет фото — эмблема клуба */
+.tr-em.ph{position:relative;padding:0;border-radius:50%;background:var(--paper-3);overflow:visible}
+.tr-em.ph .pf{width:100%;height:100%;object-fit:cover;object-position:50% 15%;border-radius:50%}
+.tr-em.ph i{position:absolute;right:-5px;bottom:-5px;width:22px;height:22px;border-radius:6px;background:var(--crest-bg);padding:2px;box-shadow:0 0 0 2px var(--card)}
+.tr-em.ph i img{width:100%;height:100%;object-fit:contain}
+.tr-em.ph.nof{border-radius:8px;background:var(--crest-bg);padding:4px}
+.tr-em.ph.nof i{position:static;width:100%;height:100%;padding:0;box-shadow:none;background:none}
+.tc-h .tr-em.ph i{width:26px;height:26px}
+@media (max-width:1000px){.tcards{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 calc(var(--m) * -1);padding:2px var(--m) 6px}.tcards::-webkit-scrollbar{display:none}.tc{flex:0 0 min(82%,360px);scroll-snap-align:start;padding:14px}}
+.tsec-top{margin-top:8px}
+.tc-w small{display:block;margin-top:4px;font:600 15px/1.2 var(--display)}.tc-w small a{color:var(--ink-3)}
+.tsec{min-width:0}.tr-bar .tabs{align-content:flex-start}
+/* темы вместо типов (10.11): высота строки «Тема» по замеру */
+@media (min-width:1101px) and (max-width:1400px){body[data-field="football"] #fType{min-height:37px}}
+@media (max-width:760px){#fType{min-height:144px}body[data-field="football"] #fType{min-height:194px}}
+@media (max-width:380px){#fType{min-height:194px}body[data-field="football"] #fType{min-height:194px}}

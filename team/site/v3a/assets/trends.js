@@ -24,12 +24,17 @@ const when=d=>{const day=d.slice(0,10),t=d.slice(11,16);
 const CFG=FB?{
   lgs:['epl','laliga','seriea','bundesliga','ligue1','rpl','ucl','uel'],
   em:s=>'../assets/fc/'+s+'.webp', team:s=>'team.html?id='+s,
-  types:{streak:'Серии',tb:'ТБ 2,5',tm:'ТМ 2,5',btts:'Обе забьют',cs:'Сухие матчи',fs:'Забивает первым',sc:'Забивает',cor:'Угловые',pl:'Игроки'},
+  /* темы страницы (владелец 10.11: «всё сплошным текстом — разбить по категориям») */
+  cats:[['streak','Серии','победы и поражения подряд',['streak']],['pl','Игроки','кто забивает матч за матчем',['pl']],
+    ['tot','Тоталы','больше или меньше 2,5 гола',['tb','tm']],['btts','Обе забьют','голы в обе стороны',['btts']],
+    ['goals','Голы команды','забивает и открывает счёт',['sc','fs']],['cs','Сухие матчи','матчи без пропущенных',['cs']],['cor','Угловые','10 и больше угловых за матч',['cor']]],
   lgName:{}, 
 }:{
   lgs:['khl','nhl'],
   em:s=>'../assets/em/'+s+'.webp', team:s=>'../team/index.html?id='+s,
-  types:{streak:'Серии',wl:'Дома и в гостях',tb:'ТБ 5,5',tm:'ТМ 5,5',g3:'Забивает 3+',ga3:'Пропускает 3+',ot:'Овертаймы',pl:'Игроки'},
+  cats:[['streak','Серии','победы и поражения подряд',['streak']],['pl','Игроки','очки, голы и броски',['pl']],
+    ['tot','Тоталы','больше или меньше 5,5 шайбы',['tb','tm']],['goals','Голы команды','забивает или пропускает 3 и больше',['g3','ga3']],
+    ['wl','Дома и в гостях','как играет на своём и чужом льду',['wl']],['ot','Овертаймы','матчи, где не хватает 60 минут',['ot']]],
   lgName:{khl:'КХЛ',nhl:'НХЛ'},
 };
 
@@ -140,13 +145,13 @@ function teamTrends(m,slug,home){
 function playerTrends(){
   const out=[];const byTeam={};
   S.matches.forEach(m=>{(byTeam[m.h]=byTeam[m.h]||[]).push(m);(byTeam[m.a]=byTeam[m.a]||[]).push(m)});
-  const add=(slug,name,cands)=>{ // cands: {id,tag,k,n,seq,f}
+  const add=(slug,name,cands,img)=>{ // cands: {id,tag,k,n,seq,f}
     const ms=byTeam[slug];if(!ms)return;
     let best=null;
     for(const c of cands){if(c.n<5||c.k/c.n<.7)continue;c.score=wilson(c.k,c.n);if(!best||c.score>best.score)best=c}
     if(!best)return;
     out.push({type:'pl',tag:best.tag,html:best.f,big:best.k+'<small>/'+best.n+'</small>',seq:best.seq,score:best.score,
-      strong:best.k/best.n>=.8,m:ms[0],slug,who:name,pl:true,teamName:S.teams[slug]&&S.teams[slug].name});
+      strong:best.k/best.n>=.8,m:ms[0],slug,who:name,pl:true,img:img||'',teamName:S.teams[slug]&&S.teams[slug].name});
   };
   if(FB&&window.JV_PLAYERS){
     for(const p of window.JV_PLAYERS.players){
@@ -169,7 +174,7 @@ function playerTrends(){
         s=l.map(r=>r[6]>=3?1:0);c.push({tag:'3+ броска',k:sum(s),n,seq:s,f:`3 и больше бросков в ${B(sum(s),n)} последних матчей`});
         s=l.map(r=>r[4]>=1?1:0);c.push({tag:'Забивает',k:sum(s),n,seq:s,f:`забивал в ${B(sum(s),n)} последних матчей`});
       }
-      add(S.abbr[p.t],p.n,c);
+      add(S.abbr[p.t],p.n,c,p.img);
     }
   }
   if(!FB&&S.khl){
@@ -181,7 +186,7 @@ function playerTrends(){
         let s=l.map(r=>r[4]+r[5]>=1?1:0);c.push({tag:'Очко',k:sum(s),n:w,seq:s,f:`очко в ${B(sum(s),w)} последних матчей`});
         s=l.map(r=>r[4]>=1?1:0);c.push({tag:'Забивает',k:sum(s),n:w,seq:s,f:`забивал в ${B(sum(s),w)} последних матчей`});
       }
-      add(p.t,p.n,c);
+      add(p.t,p.n,c,p.img);
     }
   }
   /* не больше 4 игроков на клуб */
@@ -192,34 +197,48 @@ function build(){
   S.matches.forEach(m=>{S.trends.push(...teamTrends(m,m.h,true),...teamTrends(m,m.a,false))});
   S.trends.push(...playerTrends());
   S.trends.sort((a,b)=>b.score-a.score||a.m.i-b.m.i);
-  S.trends.forEach((t,i)=>{t.id=i});
+  const C={};CFG.cats.forEach(c=>c[3].forEach(ty=>C[ty]=c[0]));
+  S.trends.forEach((t,i)=>{t.id=i;t.cat=C[t.type]||'streak'});
 }
 
 /* ── интерфейс ──────────────────────────────────────────────── */
-const ST={lg:'all',type:'all',strong:Q.get('strong')==='1',sort:Q.get('sort')==='match'?'match':'power',limit:30};
+const ST={lg:'all',type:'all',strong:Q.get('strong')==='1',sort:Q.get('sort')==='match'?'match':'power',limit:30,open:{}};
 if(CFG.lgs.includes(Q.get('lg')))ST.lg=Q.get('lg');
-if(Q.get('type')&&CFG.types[Q.get('type')])ST.type=Q.get('type');
+if(Q.get('type')&&CFG.cats.some(c=>c[0]===Q.get('type')))ST.type=Q.get('type');
+const PER=4; /* строк в теме до «Ещё» */
 const PAGE=30;
 const lgp=id=>`<span class="lgp ${id==='nhl'?'nhl':id==='khl'?'khl':''}"><img src="../assets/lg/${id}.webp" alt=""></span>`;
 const crest=(slug,cls)=>`<img src="${CFG.em(slug)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
 const link=(slug,name)=>`<a href="${CFG.team(slug)}">${esc(name)}</a>`;
-const initials=n=>n.split(/\s+/).map(w=>w[0]).filter(Boolean).slice(0,2).join('').toUpperCase();
 const dots=seq=>`<span class="sdots" role="img" aria-label="Последние матчи: ${seq.map(x=>x===1?'да':x===2?'ничья':'нет').join(', ')}">${seq.map(x=>`<i class="${x===1?'h':x===2?'d':'m'}"></i>`).join('')}</span>`;
 
 function pass(t,skip){
   if(skip!=='lg'&&ST.lg!=='all'&&t.m.lg!==ST.lg)return false;
-  if(skip!=='type'&&ST.type!=='all'&&t.type!==ST.type)return false;
+  if(skip!=='type'&&ST.type!=='all'&&t.cat!==ST.type)return false;
   if(ST.strong&&!t.strong)return false;
   return true;
 }
 function row(t,ctx){
   const m=t.m,H=S.teams[m.h],A=S.teams[m.a];
-  const em=t.pl?`<span class="tr-em pl" aria-hidden="true">${esc(initials(t.who))}</span>`:`<a class="tr-em" href="${CFG.team(t.slug)}" tabindex="-1" aria-hidden="true">${crest(t.slug)}</a>`;
+  const em=emb(t);
   const who=t.pl?`${esc(t.who)} (${link(t.slug,t.teamName||'')})`:link(t.slug,t.who);
   const meta=ctx?'':`<span>${lgp(m.lg)} ${link(m.h,H.name)} — ${link(m.a,A.name)}</span><span>${when(m.d)}</span>`;
   return `<li class="tr${t.strong?' strong':''}">${em}<div class="tr-b"><p class="tr-t">${who}: ${t.html}</p>
 <p class="tr-m"><span class="tg${t.strong?' s':''}">${esc(t.tag)}${t.strong?' · сильный':''}</span>${meta}</p></div>
 <div class="tr-s">${dots(t.seq)}<b class="tr-n num">${t.big}</b></div></li>`;
+}
+/* эмблема строки: игрок — фото и значок клуба (нет фото — эмблема клуба), команда — эмблема */
+function emb(t){
+  if(!t.pl)return `<a class="tr-em" href="${CFG.team(t.slug)}" tabindex="-1" aria-hidden="true">${crest(t.slug)}</a>`;
+  if(!t.img)return `<a class="tr-em" href="${CFG.team(t.slug)}" tabindex="-1" aria-hidden="true">${crest(t.slug)}</a>`;
+  return `<span class="tr-em ph" aria-hidden="true"><img class="pf" src="${esc(t.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('nof');this.remove()"><i>${crest(t.slug)}</i></span>`;
+}
+function card(t){
+  const m=t.m,H=S.teams[m.h],A=S.teams[m.a];
+  return `<li class="tc${t.strong?' strong':''}"><div class="tc-h">${emb(t)}<span class="tg${t.strong?' s':''}">${esc(t.tag)}</span></div>
+<p class="tc-w">${t.pl?esc(t.who)+`<small>${link(t.slug,t.teamName||'')}</small>`:link(t.slug,t.who)}</p><p class="tc-t">${t.html}</p>
+<div class="tc-s">${dots(t.seq)}<b class="tr-n num">${t.big}</b></div>
+<p class="tr-m">${lgp(m.lg)} ${link(m.h,H.name)} — ${link(m.a,A.name)} · ${when(m.d)}</p></li>`;
 }
 function matchHead(m){
   const H=S.teams[m.h],A=S.teams[m.a];
@@ -234,9 +253,9 @@ function renderBar(){
   const cL=id=>L.filter(t=>pass(t,'lg')&&(id==='all'||t.m.lg===id)).length;
   $('#fLg').innerHTML=chip('',ST.lg==='all','Все лиги',cL('all'),'data-lg="all"')+
     CFG.lgs.map(id=>chip('',ST.lg===id,lgp(id)+esc(S.lgInfo[id].name),cL(id),`data-lg="${id}"`)).join('');
-  const cT=id=>L.filter(t=>pass(t,'type')&&(id==='all'||t.type===id)).length;
-  $('#fType').innerHTML=chip('',ST.type==='all','Все типы',cT('all'),'data-type="all"')+
-    Object.keys(CFG.types).map(id=>chip('',ST.type===id,esc(CFG.types[id]),cT(id),`data-type="${id}"`)).join('');
+  const cT=id=>L.filter(t=>pass(t,'type')&&(id==='all'||t.cat===id)).length;
+  $('#fType').innerHTML=chip('',ST.type==='all','Все темы',cT('all'),'data-type="all"')+
+    CFG.cats.map(c=>chip('',ST.type===c[0],esc(c[1]),cT(c[0]),`data-type="${c[0]}"`)).join('');
   $('#fStrong').setAttribute('aria-pressed',ST.strong);
   $('#fSortP').setAttribute('aria-pressed',ST.sort==='power');
   $('#fSortM').setAttribute('aria-pressed',ST.sort==='match');
@@ -263,8 +282,19 @@ function render(){
   }
   const lim=ST.limit;let html='';
   if(ST.sort==='power'){
-    html=list.slice(0,lim).map(t=>row(t,false)).join('');
-    $('#more').hidden=list.length<=lim;
+    /* по темам: сверху 3 самых сильных (разные клубы), дальше блоки тем по 4 строки с «Ещё» */
+    const top=[],seen=new Set();
+    if(ST.type==='all')for(const t of list){if(top.length===3)break;if(!seen.has(t.slug)){seen.add(t.slug);top.push(t)}}
+    const used=new Set(top.map(t=>t.id));
+    if(top.length===3)html+=`<li class="tsec tsec-top"><h2>Сильнее всего сегодня</h2><ul class="tcards">${top.map(card).join('')}</ul></li>`;
+    for(const c of CFG.cats){
+      if(ST.type!=='all'&&ST.type!==c[0])continue;
+      const L=list.filter(t=>t.cat===c[0]&&!used.has(t.id));if(!L.length)continue;
+      const all=ST.type!=='all'||ST.open[c[0]]||L.length<=PER+1,shown=all?L:L.slice(0,PER);
+      html+=`<li class="tsec" id="t-${c[0]}"><div class="tsec-h"><h2>${esc(c[1])}<span class="num">${L.length}</span></h2><p>${esc(c[2])}</p></div>
+<ul class="tlist">${shown.map(t=>row(t,false)).join('')}</ul>${L.length>shown.length?`<button type="button" class="tsec-more" data-open="${c[0]}">Ещё ${L.length-shown.length} · ${esc(c[1].toLowerCase())}</button>`:''}</li>`;
+    }
+    $('#more').hidden=true;
   }else{
     const part=list.slice().sort((a,b)=>a.m.i-b.m.i||b.score-a.score).slice(0,lim);
     let cur=-1;
@@ -288,6 +318,7 @@ function bind(){
     else if(b.id==='fSortP'){ST.sort='power'}
     else if(b.id==='fSortM'){ST.sort='match'}
     else if(b.id==='more'){ST.limit+=PAGE;render();return}
+    else if(b.dataset.open){ST.open[b.dataset.open]=1;render();return}
     else return;
     ST.limit=PAGE;render();sync();
   });
