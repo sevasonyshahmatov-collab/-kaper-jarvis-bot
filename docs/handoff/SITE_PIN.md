@@ -6,6 +6,7 @@
 ## ⭐ Актуальная версия (владелец 07.11): `d6fa9fd5d137f7a1b3169bb37520d0341a0ee603`
 
 **Свежий хэш макета (10.11): `c58fbdeed06f54b6e68862d51258901aa0c81bef`** — фото 2000 px и лёгкое размытие; в «Кино» (`?hv=1`) фото владельца; макет первого экрана разделов с видео `?hv=1..4` (ждёт выбора владельца); хоккей и футбол без повторов («Как считаем» строкой, без «Частых сомнений»); «Коротко» списком, поиск первым в меню, клуб: название выше кнопок, короткие списки на телефоне; расчёт модели на первом экране матча, `forecast.html` с матчами дня, кнопки Telegram без повторов; владелец версию ещё не утверждал.
+Свежая передача: `docs/handoff/HANDOFF_SITE_1011b.md`.
 > 08.11: после неё — правки по аудиту (этапы 1–2), новая главная-кандидат `proto/home/merge`, варианты цветов `?col=1|2` (ждём выбор). Свежий хэш и что ждёт владельца — `docs/handoff/HANDOFF_SITE_0811c.md`.
 Все правки и новые шаблоны — поверх неё; откат — к этому хэшу.
 - Хоккей: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/d6fa9fd5d137f7a1b3169bb37520d0341a0ee603/team/site/v3a/hockey/index.html (шапка-плитки `?hh=9` — вариант, не выбран); клуб: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/d6fa9fd5d137f7a1b3169bb37520d0341a0ee603/team/site/v3a/team/index.html?id=nhl_car; таблицы: https://raw.githack.com/sevasonyshahmatov-collab/-kaper-jarvis-bot/d6fa9fd5d137f7a1b3169bb37520d0341a0ee603/team/site/v3a/hockey/league.html?lg=khl
