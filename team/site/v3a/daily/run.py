@@ -149,6 +149,18 @@ def step_split():
     return split.main()
 
 
+def step_results():
+    """Итоги прогнозов канала: лента t.me/s/jarvibet и счета матчей (team/site/months.py), затем единая запись прогноза —
+    daily/results.py → data/results.json/.js и results-lite.js (страница results.html, полоса итогов на главной)."""
+    out = '/tmp/months'
+    shutil.rmtree(out, ignore_errors=True)
+    sh([PY, os.path.join(C.REPO, 'team', 'site', 'months.py'), '2026-09-01', out], cwd=C.REPO, timeout=1200)
+
+    def build():
+        return sh([PY, os.path.join(C.V3A, 'daily', 'results.py'), out, os.path.join(C.TEAMCODE, 'team')], cwd=C.REPO).strip().split('\n')[-1]
+    return guarded([os.path.join(C.DATA, 'results.json')], build, 0.9)
+
+
 def step_deck_bg():
     import deck_bg
     return deck_bg.main()
@@ -183,7 +195,7 @@ def step_check():
 STEPS = [('teamcode', step_teamcode), ('live', step_live), ('hockey_season', step_hockey_season), ('foot_raw', step_foot_raw),
          ('foot_build', step_foot_build), ('foot_lineups', step_foot_lineups), ('foot_photos', step_foot_photos),
          ('foot_players', step_foot_players), ('foot_trends', step_foot_trends), ('nhl_players', step_nhl_players),
-         ('khl_players', step_khl_players), ('lines_model', step_lines_model), ('teams_build', step_teams_build), ('split', step_split), ('deck_bg', step_deck_bg), ('search', step_search), ('seo', step_seo), ('check', step_check)]
+         ('khl_players', step_khl_players), ('lines_model', step_lines_model), ('teams_build', step_teams_build), ('split', step_split), ('deck_bg', step_deck_bg), ('results', step_results), ('search', step_search), ('seo', step_seo), ('check', step_check)]
 
 
 def write_log():
