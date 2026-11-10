@@ -211,6 +211,7 @@ function arena(){
   const hero=document.querySelector('.hero'),hd=document.getElementById('hd');if(!hero)return;
   const Z={arena:[7,18,37],p1:[214,226,238],p2:[236,238,232],p2b:[221,232,242],p3:[239,233,219]};
   if(doc.dataset.col==='1'){Z.p1=Z.p2b=Z.p3=Z.p2}   /* вариант 1: после первого экрана один светлый фон */
+  if(doc.dataset.hero==='2')Z.arena=Z.p1;   /* афиша (hero3): у неё свой тёмный фон, который сам растворяется книзу — общий фон страницы не мигает из тёмного в светлый */
   const zones=()=>[{el:hero,c:Z.arena},...[...document.querySelectorAll('[data-zone]')].map(el=>({el,c:Z[el.dataset.zone]||Z.p2}))];
   let zs=zones(),tops=[];
   const measure=()=>{zs=zones();tops=zs.map((z,i)=>i?z.el.getBoundingClientRect().top+scrollY:0)};
