@@ -160,3 +160,24 @@ body[data-only="ucl"] .board-top{min-height:45px}
   .msearch{gap:10px;min-height:50px;margin:4px 0 10px;padding:0 16px;border:1px solid var(--rule);border-radius:12px;background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--ink-2);font:600 16px/1 var(--display)}
   .msearch svg{width:20px;height:20px;flex:none}
 }
+/* ?nav=2 — группы с выпадающим списком (assets/nav.js, владелец 10.11) */
+.gdd{position:relative;display:flex;align-items:center}
+.gdd>a{display:inline-flex;align-items:center;gap:4px}
+.hd .gdd .cr{width:12px;height:12px;min-width:12px;flex:none;opacity:.7;transition:transform .2s ease}
+.gdd:hover .cr,.gdd:focus-within .cr,.gdd.open .cr{transform:rotate(180deg)}
+.gdd-m{position:absolute;top:calc(100% - 4px);left:0;min-width:240px;display:flex;flex-direction:column;padding:8px;border-radius:14px;
+  background:var(--paper-2,#14264a);border:1px solid var(--rule);box-shadow:0 18px 40px -16px var(--shadow,rgba(0,0,0,.6));
+  opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .15s ease,transform .15s ease,visibility 0s .15s;z-index:60}
+.gdd:hover .gdd-m,.gdd:focus-within .gdd-m,.gdd.open .gdd-m{opacity:1;visibility:visible;transform:none;transition:opacity .15s ease,transform .15s ease}
+.gnav .gdd-m a{padding:12px 12px;border-radius:10px;font-size:15px}
+.gnav .gdd-m a:hover{background:var(--paper-3,#1e3460)}
+.gnav .gdd-m a[aria-current]::after{display:none}
+.gnav .gdd-m a[aria-current]{box-shadow:inset 3px 0 0 var(--sport)}
+.gdd.on>a{color:var(--ink)}
+.gdd.on>a::after{content:"";position:absolute;left:10px;right:26px;bottom:6px;height:3px;border-radius:2px;background:var(--sport)}
+.hd .hdrow.hd-c1 .gdd.on>a::after{left:7px;right:23px}.hd .hdrow.hd-c2 .gdd.on>a::after{left:5px;right:21px}
+/* ?nav=2: пунктов меньше — ряд ссылок виден и на 1101–1366 px (прежняя шапка там уходила в ☰); не влезет — hd-c3 */
+@media (min-width:1101px) and (max-width:1366px){html.nav2 .hd .hdrow:not(.hd-c3) .gnav{display:flex}html.nav2 .hd .hdrow:not(.hd-c3) .mbtn{display:none}html.nav2 .hd .hdrow:not(.hd-c3) .btn-tg{margin-left:0}}
+.mpanel .msub{display:flex;flex-direction:column;border-bottom:1px solid var(--rule);padding-bottom:6px}
+.mpanel .msub a{padding-left:16px;font-size:17px;min-height:44px;border-bottom:0}
+.mpanel .msub b{padding-top:16px}

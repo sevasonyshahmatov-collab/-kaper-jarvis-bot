@@ -17,6 +17,19 @@ const SECTIONS={
  football:[['m','Матчи','football/index.html'],['deck','Матчи дня','matches.html?s=f'],['fc','Прогноз дня','football/forecast-epl.html'],['lg','Лиги','football/league.html?lg=epl'],['ucl','Лига чемпионов','football/ucl.html'],
          /* ['pl','Игроки','football/players.html'], — скрыто до готовности портретов (владелец 04.11) */['tr','Тренды','football/trends.html'],['mod','Модель','model.html?s=f']]
 };
+/* ?nav=2 — пробная шапка (владелец 10.11): матчи одной группой, лиги одной группой, без второй полосы на главной раздела.
+   Выбор запоминается (?nav=1 — вернуть прежнюю). Пункт: [id, имя, адрес] или [id, имя, адрес, [подпункты]] — группа с выпадающим списком. */
+let NAV2=false;try{const v=q.get('nav');if(v)localStorage.setItem('jv_nav',v);NAV2=(v||localStorage.getItem('jv_nav'))==='2'}catch(e){NAV2=q.get('nav')==='2'}
+if(NAV2){
+  document.documentElement.classList.add('nav2');
+  const FL=[['epl','АПЛ'],['laliga','Ла Лига'],['seriea','Серия А'],['bundesliga','Бундеслига'],['ligue1','Лига 1'],['rpl','РПЛ']];
+  SECTIONS.hockey=[['m','Матчи и прогнозы','hockey/index.html',[['m','Ближайшие матчи','hockey/index.html'],['deck','Матчи дня — карточками','matches.html?s=h'],['fc','Прогноз дня — списком','hockey/forecast-khl.html']]],
+    ['tr','Тренды','hockey/trends.html'],['lg','КХЛ и НХЛ','hockey/league.html?lg=khl',[['khl','КХЛ','hockey/league.html?lg=khl'],['nhl','НХЛ','hockey/league.html?lg=nhl']]],
+    ['pl','Игроки','hockey/players.html'],['mod','Как считаем','model.html?s=h']];
+  SECTIONS.football=[['m','Матчи и прогнозы','football/index.html',[['m','Ближайшие матчи','football/index.html'],['deck','Матчи дня — карточками','matches.html?s=f'],['fc','Прогноз дня — списком','football/forecast-epl.html']]],
+    ['tr','Тренды','football/trends.html'],['lg','Лиги','football/league.html?lg=epl',[...FL.map(([k,n])=>['lg-'+k,n,'football/league.html?lg='+k]),['ucl','Лига чемпионов','football/ucl.html']]],
+    /* Игроки — скрыты до готовности портретов (владелец 04.11) */['mod','Как считаем','model.html?s=f']];
+}
 /* какой пункт активен */
 function active(){
   if(window.JV_ACT!==undefined)return window.JV_ACT; /* страницы по понятным адресам (/khl/ska/, /khl/<матч>/) сами задают раздел */
@@ -28,7 +41,7 @@ function active(){
   if(/^forecast-/.test(file))return 'fc';   /* «Прогноз на сегодня» в меню разделов (владелец 09.11: «как туда попасть?») */
   if(file==='index.html')return 'm';
   if(file==='ucl.html')return 'ucl';
-  if(file==='league.html'){const l=q.get('lg')||'';return sport==='hockey'?(l==='nhl'?'nhl':'khl'):(l==='ucl'?'ucl':'lg')}
+  if(file==='league.html'){const l=q.get('lg')||'';return sport==='hockey'?(l==='nhl'?'nhl':'khl'):(l==='ucl'?'ucl':NAV2?'lg-'+(l||'epl'):'lg')}
   if(/^players/.test(file)||file==='photo-credits.html')return 'pl';
   if(file==='trends.html')return 'tr';
   if(file==='model.html')return 'mod';
@@ -42,6 +55,9 @@ const LSEC=(()=>{if(!sport)return null;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 const home=(file==='index.html'&&!sport&&dir!=='hockey'&&dir!=='football');
 const link=(s,cur)=>`<a href="${esc(U(s[2]))}"${cur===s[0]?' aria-current="page"':''}>${esc(s[1])}</a>`;
+const inG=(s,cur)=>!!s[3]&&(s[0]===cur||s[3].some(x=>x[0]===cur));
+const CARET='<svg class="cr" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const top=(s,cur)=>!s[3]?link(s,cur):`<div class="gdd${inG(s,cur)?' on':''}"><a href="${esc(U(s[2]))}" aria-haspopup="true"${inG(s,cur)?' aria-current="true"':''}>${esc(s[1])}${CARET}</a><div class="gdd-m">${s[3].map(x=>link(x,cur)).join('')}</div></div>`;
 const STAR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.8l2.7 5.9 6.4.7-4.8 4.3 1.4 6.3L12 16.7l-5.7 3.3 1.4-6.3L2.9 9.4l6.4-.7z"/></svg>';
 const TG='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>';
 
@@ -53,7 +69,7 @@ const sec=SECTIONS[sport]||null;
 const mseg=`<div class="mgrp mseg"><a href="${esc(U('hockey/index.html'))}"${sport==='hockey'?' aria-current="true"':''}>Хоккей</a><a href="${esc(U('football/index.html'))}"${sport==='football'?' aria-current="true"':''}>Футбол</a></div>`;
 const panel=(sec?[sec]:[SECTIONS.hockey,SECTIONS.football]).map((list,i)=>{
   const name=sec?'':(i?'Футбол':'Хоккей');
-  return `<div class="mgrp">${name?`<b>${name}</b>`:''}${list.map(s=>link(s,sec?act:'')).join('')}</div>`}).join('');
+  return `<div class="mgrp">${name?`<b>${name}</b>`:''}${list.map(s=>s[3]?`<div class="msub"><b>${esc(s[1])}</b>${s[3].map(x=>link(x,sec?act:'')).join('')}</div>`:link(s,sec?act:'')).join('')}</div>`}).join('');
 
 hd.innerHTML=`<div class="wrap hdrow">
   <a class="logo lg2" href="${esc(U('index.html'))}" aria-label="JARVIS, на главную"><span class="lw">JARVIS</span>${LSEC?`<s aria-hidden="true">|</s><em class="ls-${LSEC[1]}">${esc(LSEC[0])}</em>`:''}</a>
@@ -61,7 +77,7 @@ hd.innerHTML=`<div class="wrap hdrow">
     <a href="${esc(U('hockey/index.html'))}"${sport==='hockey'?' aria-current="true"':''}>Хоккей</a>
     <a href="${esc(U('football/index.html'))}"${sport==='football'?' aria-current="true"':''}>Футбол</a>
   </nav>
-  ${sec?`<nav class="gnav" aria-label="Разделы сайта">${sec.map(s=>link(s,act)).join('')}</nav>`:'<span class="gnav-sp"></span>'}
+  ${sec?`<nav class="gnav" aria-label="Разделы сайта">${sec.map(s=>top(s,act)).join('')}</nav>`:'<span class="gnav-sp"></span>'}
   <a class="hd-me" href="${esc(U('me/index.html'))}"${file==='index.html'&&dir==='me'?' aria-current="page"':''} title="Мой JARVIS — избранные клубы">${STAR}<span>Мой JARVIS</span></a>
   <button type="button" class="sbtn" aria-label="Поиск по сайту" aria-haspopup="dialog" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><kbd aria-hidden="true">/</kbd></button>
   <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener" aria-label="Получать прогнозы в Telegram — бесплатно">${TG}<span>Получать прогнозы<span class="tl"> — бесплатно</span></span></a>
@@ -75,13 +91,17 @@ hd.innerHTML=`<div class="wrap hdrow">
  fit();addEventListener('resize',fit);if(document.fonts)document.fonts.ready.then(fit)}
 {const ms=document.getElementById('msearch');if(ms)ms.addEventListener('click',()=>{const sb=hd.querySelector('.sbtn');if(sb){document.getElementById('mbtn').click();sb.click()}})}
 
+/* ?nav=2: выпадающие группы — на сенсорных экранах первое касание открывает список */
+hd.querySelectorAll('.gdd>a').forEach(a=>a.addEventListener('click',e=>{if(matchMedia('(hover:none)').matches){const g=a.parentNode;if(!g.classList.contains('open')){e.preventDefault();hd.querySelectorAll('.gdd.open').forEach(x=>x.classList.remove('open'));g.classList.add('open')}}}));
+document.addEventListener('click',e=>{if(!e.target.closest('.gdd'))hd.querySelectorAll('.gdd.open').forEach(x=>x.classList.remove('open'))});
 /* поиск (assets/search.js + search.css) — единственная точка подключения */
 try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('search.css',SRC).href;document.head.appendChild(l);
   const s=document.createElement('script');s.src=new URL('search.js',SRC).href;s.defer=true;document.head.appendChild(s)}catch(e){}
 
 /* вторая полоса — якоря страницы */
 let sub=null;
-if(local){
+if(local&&NAV2&&sport&&file==='index.html'&&(dir==='hockey'||dir==='football'))local.remove();
+else if(local){
   sub=document.createElement('div');sub.className='subbar';
   const w=document.createElement('div');w.className='wrap';
   local.setAttribute('aria-label','Разделы страницы');w.appendChild(local);sub.appendChild(w);hd.appendChild(sub);

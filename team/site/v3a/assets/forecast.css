@@ -2,7 +2,7 @@
 body.fc{display:block;--paper:#071225;--paper-2:#14264a;--paper-3:#1e3460;--card:#0f1d38;--card-hi:#16284a;--ink:#eaf3ff;--ink-2:#b8c9e4;--ink-3:#8fa6cc;
   --rule:#1e3460;--rule-2:#2c4675;--acc:var(--signal,#ffc21a);--ice:#3ee0ff;color:var(--ink);background:#071225}
 body.fc .hd{--paper:#071225}
-body.fc a:not(.btn):not(.btn-tg){color:inherit}
+body.fc a:not(.btn):not(.btn-tg):not([aria-current]){color:inherit}
 body.fc a:focus-visible{outline:3px solid var(--ice);outline-offset:2px}
 .fc-top{padding:clamp(24px,4vw,52px) 0 0}
 .fc-top h1{font-size:clamp(40px,6vw,84px);line-height:.94;margin:14px 0 0}
