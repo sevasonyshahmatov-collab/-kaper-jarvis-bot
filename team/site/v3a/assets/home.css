@@ -160,3 +160,8 @@ html[data-theme="a"]:not([data-col]) .mt1 .go{background:var(--sp);color:#fff}
 .steps.s4{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media (max-width:1100px){.steps.s4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:620px){.steps.s4{grid-template-columns:1fr}}
+
+/* Ноутбук: заголовок главной занимал шесть строк, кнопка в Telegram уходила под край окна — заголовок мельче и шире (3–4 строки). */
+@media (min-width:981px) and (max-width:1599px){.hm h1{font-size:clamp(32px,3.25vw,48px);max-width:20ch}.hm-sub{margin-top:14px}.hm-proof{margin-top:14px}}
+/* ссылка на итоги под кнопкой первого экрана */
+.hm-micro a#hm-res{white-space:nowrap}

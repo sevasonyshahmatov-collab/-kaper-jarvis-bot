@@ -2,7 +2,9 @@
    Данные — data/results-lite.js (window.__RESLITE, daily/results.py). Разметка: <div class="rsx" id="rsx" data-root=""></div>;
    нет данных — блок остаётся как был (запасной текст внутри). */
 (()=>{
-const D=window.__RESLITE,box=document.getElementById('rsx');if(!D||!box||!D.sum)return;
+const D=window.__RESLITE,box=document.getElementById('rsx');if(!D||!D.sum)return;
+const hr=document.getElementById('hm-res');if(hr){const a=D.sum.total.all;hr.textContent='Итоги: зашло '+a.w+' из '+(a.w+a.l)}
+if(!box)return;
 const root=box.dataset.root||'';
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 const num=(x,d)=>Number(x).toFixed(d==null?2:d).replace('.',',');

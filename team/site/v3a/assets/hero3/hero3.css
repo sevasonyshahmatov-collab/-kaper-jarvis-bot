@@ -81,3 +81,7 @@ html[data-hero="2"]{--f:clamp(420px,72vh,780px)}
 /* шапка над афишей остаётся тёмной, пока свет не включён (общий фон страницы под афишей теперь светлый) */
 [data-hero="2"]:not(.lit) .hd{background:rgba(7,18,37,.92)}
 [data-hero="2"] .hd{transition:background .35s ease,color .3s ease}
+
+/* Ноутбук (высота окна до 820 px): жёлтая кнопка в Telegram уходила под край окна. Время матча уже стоит в шапке афиши —
+   повтор над расчётом убираем, афиша ниже на ~100 px, кнопка видна без прокрутки. */
+@media (min-width:981px) and (max-height:820px){[data-hero="2"] .hero .mcard .vs{display:none}}
