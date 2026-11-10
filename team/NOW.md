@@ -31,6 +31,7 @@
 | **Б:** «Футбол из betzona — к 09:00 МСК (Б)» `trig_01XFwstYSQEJ1D67NYE9tpQP` (ВЫКЛ 01.11) | ежедн. 08:40 | диспетчер Б → новый чат (Sonnet), `team/picks/BETZONA.md` |
 
 ## Чаты (остальные в архиве с 30.10)
+- «Сайт JARVIS — первый экран разделов и вовлечение (10.11)» — `session_01MtLSohq8hBMCW4oAk8x3GP` (актуальный чат сайта; передача `docs/handoff/HANDOFF_SITE_1011b.md`; прошлый `session_01MtLSofTdpjRB7grLjoGs9k` — Неактуальный).
 - «Игроки как у OddAlerts — разбор и прототип (03.11)» — `session_018beMsDWsak9z4eLaHNPMZi` (Неактуальный с 05.11: сайт продолжает новый чат, закреп `docs/handoff/SITE_PIN.md`).
 - «Безопасность сайта JARVIS» — `session_018beMsGjhqV9jcuz8QoiF2h` (с 03.11, руководитель направления; аудит `team/site/security/AUDIT_2026-11-03.md`, еженедельная проверка `trig_01TrvET6pEJEqMDTrFHPUrah` ср 21:17 — новый чат).
 - «Котировки, экспрессы и футбол — 31.10» — `session_01GakKTNbyX5zH6HJccD73MM` (продолжение чата руководителя 30.10; передача `HANDOFF_LEAD_3110_2.md`).
