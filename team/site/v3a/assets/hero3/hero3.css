@@ -1,6 +1,6 @@
 /* Первый экран «афиша матча» (assets/hero3/hero3.js). Всё, кроме плашки-переключателя, работает только при data-hero="2". */
-@property --ha{syntax:'<color>';inherits:true;initial-value:#3b6fd8}
-@property --aa{syntax:'<color>';inherits:true;initial-value:#36b8d6}
+@property --ha{syntax:'<color>';inherits:true;initial-value:#12203c}
+@property --aa{syntax:'<color>';inherits:true;initial-value:#12203c}
 .h3bar{position:fixed;left:16px;bottom:16px;z-index:90;display:flex;gap:4px;padding:4px;border-radius:999px;background:#10161f;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .h3bar button{border:0;border-radius:999px;padding:9px 13px;background:transparent;color:#cfd8e6;font:700 13px/1 var(--display);cursor:pointer;white-space:nowrap}
 .h3bar button[aria-pressed="true"]{background:#f3f6fb;color:#0a1220}
@@ -51,12 +51,13 @@
 .h3strip b{color:#f3f6fb;font-weight:800}
 .h3strip a{color:#f3f6fb;font-weight:700;text-underline-offset:3px}
 @media (min-width:821px){
-  [data-hero="2"] .hero .mcard{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,1.3fr) minmax(0,1fr);grid-template-areas:"home vs away" "home bet away" "home why away";align-items:center;gap:6px 28px;padding:0}
+  [data-hero="2"] .hero .mcard{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,1.3fr) minmax(0,1fr);grid-template-areas:"home vs away" "home bet away" "home mk away" "home why away";align-items:center;gap:6px 28px;padding:0}
   [data-hero="2"] .hero .mcard .face{display:contents}
   [data-hero="2"] .hero .face .tm:first-child{grid-area:home}
   [data-hero="2"] .hero .face .tm:last-child{grid-area:away}
   [data-hero="2"] .hero .face .vs{grid-area:vs;justify-self:center}
   [data-hero="2"] .hero .mcard .bet{grid-area:bet}
+  [data-hero="2"] .hero .mcard .mk3{grid-area:mk;margin-top:4px}
   [data-hero="2"] .hero .mcard .why{grid-area:why;text-align:center;margin:6px 0 0}
   [data-hero="2"] .hero .face .tm .em{width:clamp(76px,min(8vw,13vh),132px);height:clamp(76px,min(8vw,13vh),132px)}
   [data-hero="2"] .hero .face .tm span,[data-hero="2"] .hero .face .tm.long span{font-size:clamp(19px,1.9vw,28px);min-height:0}

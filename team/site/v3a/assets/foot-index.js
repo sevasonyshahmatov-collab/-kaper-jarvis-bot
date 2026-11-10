@@ -52,6 +52,7 @@ const withK=pool.filter(m=>m.k);
 /* перерыв (сборные и т. п.): ближайших 36 ч нет — первые матчи ближайшего тура по времени, а не самый уверенный через две недели (аудит 09.11, п. 9) */
 const far=!near.length&&pool0.length>0;
 const picks=MODE||far?pool.slice().sort((a,b)=>a.t<b.t?-1:1).slice(0,4).map(m=>({m,b:best(m)})):(withK.length>=3?withK:pool).map(m=>({m,b:best(m)})).sort((a,b)=>b.b.p-a.b.p).slice(0,4).sort((a,b)=>a.m.t<b.m.t?-1:1);
+window.__heroPicks=picks.map(({m,b})=>({t:m.t,h:m.h,a:m.a,hn:nm(m.h),an:nm(m.a),pick:b.t,k:b.k})); /* для афиши (assets/hero3/hero3.js): два следующих матча */
 const mcard=$('mcard'),cdv=$('cdv'),boardEl=$('board'),pager=$('pager');
 const lvl=p=>p>=.6?'hi':p>=.5?'mid':'lo';
 const tm=(s,cls)=>{const n=nm(s);return `<div class="tm${n.length>10?' long':''}">${CI(s)}<small>${cls}</small><span>${esc(n)}</span></div>`};
