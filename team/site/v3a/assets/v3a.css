@@ -1022,3 +1022,10 @@ html[data-theme="arena"]:not([data-col]) .sec{--ink-3:#414d5c}
 .hero .board .cu[data-u="s"]{display:none}
 .hero .face .tm span,.hero .face .tm.long span{font-size:clamp(17px,4.4cqw,22px)}
 .hero .get8{background:var(--signal);color:var(--signal-ink);border-color:var(--signal)}
+
+/* ── Меньше пустоты вокруг первого экрана (владелец 10.11): под карточкой было 140 + 170 px до списка матчей — стало 64 + 96;
+   на мониторах от 1600 px содержимое шире (до 1560 px вместо 1360), заголовок и карточка крупнее, левый столбец по центру карточки. ── */
+[data-theme="arena"] .hero{padding-bottom:clamp(36px,4.4vw,64px)}
+.hero+.sec{padding-top:clamp(56px,6vw,96px)}
+@media (min-width:981px){.hero .wrap{align-items:center}}
+@media (min-width:1600px){:root{--max:min(1560px,86vw)}.hero h1{font-size:112px}.hero .board,.hero .get8{max-width:600px}}
