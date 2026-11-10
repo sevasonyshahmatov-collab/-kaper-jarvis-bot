@@ -977,3 +977,32 @@ body{font-variant-numeric:tabular-nums lining-nums}
 .h2t span:last-child{justify-content:flex-end;text-align:right}
 @media (max-width:480px){.h2t{font-size:14px}.h2t b{font-size:22px}}
 .l3 .op .nm{min-width:0;overflow:hidden;text-overflow:ellipsis}   /* длинное название — с многоточием, не впритык к счёту (аудит 09.11b) */
+
+/* ── Основные цвета, «роли цветов» (владелец 10.11; прежний вид — ?col=off, пробные варианты — ?col=1|2, assets/col.css). Жёлтый — только действие (кнопки в Telegram); цвет вида спорта (хоккей — синий, футбол — зелёный) — всё, что говорит модель;
+   серый — линия букмекера и второстепенный текст; зелёный/красный — только исходы (зашло / не зашло). Вёрстка не меняется. ── */
+/* жёлтый убран с цифр и индикаторов: кэф, время, счётчики — белым, чтобы не спорили с кнопкой */
+html[data-theme="arena"]:not([data-col]) .bet .k,html[data-theme="arena"]:not([data-col]) .face .vs time,html[data-theme="arena"]:not([data-col]) .h2 .hk,html[data-theme="arena"]:not([data-col]) .sub li b,html[data-theme="arena"]:not([data-col]) .tab[aria-selected="true"] .c,html[data-theme="arena"]:not([data-col]) .ticker time{color:#f3f6fb}
+html[data-theme="arena"]:not([data-col]) .ticker .k{color:#9fb0cc}
+html[data-theme="arena"]:not([data-col]) .ticker li::after,html[data-theme="arena"]:not([data-col]) .lamp,html[data-theme="arena"]:not([data-col]) .board-top .lamp{background:#5b6f92}
+html[data-theme="arena"]:not([data-col]) .pager button[aria-pressed="true"]{background:#f3f6fb}
+/* тёмные плашки — в синеву первого экрана вместо нейтрально-чёрного */
+html[data-theme="arena"]:not([data-col]) .ticker{background:#0b1424}
+html[data-theme="arena"]:not([data-col]) .bet{background:#13213d;box-shadow:none}
+html[data-theme="arena"]:not([data-col]) .hero .board .bet{box-shadow:none}
+/* расчёт модели — цветом вида спорта (хоккей — синий, футбол — зелёный газона), а не «светофором» уверенности */
+html[data-theme="arena"][data-sport="hockey"]:not([data-col]) .lv-hi,html[data-theme="arena"][data-sport="hockey"]:not([data-col]) .lv-mid{--lv:#7ea8ff}
+html[data-theme="arena"][data-sport="football"]:not([data-col]) .lv-hi,html[data-theme="arena"][data-sport="football"]:not([data-col]) .lv-mid{--lv:var(--sport)}
+html[data-theme="arena"]:not([data-col]) .lv-lo{--lv:#9fb0cc}
+html[data-theme="arena"]:not([data-col]) .bet .pm em{background:#22304d}
+html[data-theme="arena"]:not([data-col]) .bet .bl{color:#9fb0cc}
+/* карточки матчей: один вид для КХЛ и НХЛ, лигу показывает логотип; выбранный исход — один синий, без красной черты */
+html[data-theme="arena"]:not([data-col]) .match.khl,html[data-theme="arena"]:not([data-col]) .match.nhl{background:#f1f6fb;box-shadow:none}
+html[data-theme="arena"]:not([data-col]) .match.khl:hover,html[data-theme="arena"]:not([data-col]) .match.nhl:hover{background:#fff;box-shadow:0 14px 28px -20px var(--shadow)}
+html[data-theme="arena"]:not([data-col]) .qc{border-color:#c6d3e3}
+html[data-theme="arena"][data-sport="hockey"]:not([data-col]) .qc.fav{background:#173daf;border-color:#173daf;box-shadow:none}
+/* расхождение модели с линией — цвет вида спорта и серый: «ниже линии» не значит «плохо» */
+html[data-theme="arena"][data-sport="hockey"]:not([data-col]) .dv .up{color:#173daf}
+html[data-theme="arena"][data-sport="football"]:not([data-col]) .dv .up{color:var(--sport)}
+html[data-theme="arena"]:not([data-col]) .dv .dn{color:#3b4552}
+/* мелкий серый текст на светлом — темнее */
+html[data-theme="arena"]:not([data-col]) .sec{--ink-3:#414d5c}
