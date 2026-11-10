@@ -100,7 +100,7 @@ const ltabs=$('ltabs'),list=$('mlist'),moreB=$('moreM');
 const cntL=l=>UP.filter(m=>m.lg===l).length;
 ltabs.innerHTML=`<button class="tab" role="tab" aria-selected="true" data-l="all">Все <span class="c">${UP.length}</span></button>`+
  LGK.filter(k=>cntL(k)).map(k=>`<button class="tab" role="tab" aria-selected="false" data-l="${esc(k)}">${LGP(k)}${esc(D.leagues[k].name)} <span class="c">${cntL(k)}</span></button>`).join('');
-const LIM=14;let curTab='all',shownN=LIM,sel=[];
+const LIM=matchMedia('(max-width:760px)').matches?6:14;/* на телефоне список короче: остальное — по «Показать ещё» (10.11) */let curTab='all',shownN=LIM,sel=[];
 function det(m){return m.det||(m.det={A:{s:m.h,g:gamesOf(m.h),st:stats(m.h)},B:{s:m.a,g:gamesOf(m.a),st:stats(m.a)},h:h2h(m.h,m.a)})}
 /* удары и угловые по матчам — отдельный файл, только когда матч раскрыли (09.11, скорость) */
 let xyP=null;const loadXY=()=>window.JV_XY?Promise.resolve():(xyP=xyP||new Promise(ok=>{const sc=document.createElement('script');sc.src='data/games-xy.js';sc.onload=sc.onerror=()=>ok();document.head.appendChild(sc)}));

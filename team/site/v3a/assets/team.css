@@ -528,3 +528,12 @@ body .g.h2g.nx{grid-template-columns:110px 32px minmax(0,1fr) auto}
  .fold-more{display:block;margin:8px auto 0;padding:13px 24px;border-radius:999px;border:0;background:#fff;color:#0d1626;font:700 15px/1 var(--display,inherit);cursor:pointer;box-shadow:0 6px 18px -6px rgba(0,0,0,.45),0 0 0 1px rgba(13,22,38,.12)}
  .fold-more[hidden]{display:none}
 }
+
+/* 10.11: на телефоне сначала клуб и его место, потом кнопки «В избранное» и Telegram */
+@media (max-width:620px){
+  .tmid{display:flex;flex-direction:column}
+  .tmtop{display:contents}
+  .tmtop>.crumb{order:-5;align-self:flex-start}
+  .tmid>.tmrow{order:-4}.tmid>.tmplace{order:-3}.tmid>.tmpills{order:-2}
+  .tmtop>:not(.crumb){order:-1;align-self:flex-start;margin-top:14px}
+}

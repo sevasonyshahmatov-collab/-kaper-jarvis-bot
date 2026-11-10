@@ -67,7 +67,7 @@ hd.innerHTML=`<div class="wrap hdrow">
   <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener" aria-label="Получать прогнозы в Telegram — бесплатно">${TG}<span>Получать прогнозы<span class="tl"> — бесплатно</span></span></a>
   <button type="button" class="mbtn" id="mbtn" aria-expanded="false" aria-controls="mpanel"><span class="mi" aria-hidden="true"></span><span class="mt">Меню</span></button>
 </div>
-<div class="mpanel" id="mpanel" hidden>${mseg}<a class="mme" href="${esc(U('me/index.html'))}">${STAR}<span>Мой JARVIS</span></a>${panel}<button type="button" class="msearch" id="msearch">Поиск по сайту</button><a class="mtg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Получать прогнозы — бесплатно</span></a></div>`;
+<div class="mpanel" id="mpanel" hidden>${mseg}<a class="mme" href="${esc(U('me/index.html'))}">${STAR}<span>Мой JARVIS</span></a><button type="button" class="msearch" id="msearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><span>Поиск: клуб, игрок, матч</span></button>${panel}<a class="mtg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Получать прогнозы — бесплатно</span></a></div>`;
 /* на телефоне в шапке место отдано кнопке подписки: переключатель спорта и поиск живут в меню */
 /* шапка всегда в одну строку (09.11: на 1440–1920 px кнопка уезжала за край): если не влезает — компактнее по шагам, в крайнем случае пункты в «Меню» */
 {const row=hd.querySelector('.hdrow'),L=['hd-c1','hd-c2','hd-c3'];

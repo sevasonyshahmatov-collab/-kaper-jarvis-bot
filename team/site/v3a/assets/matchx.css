@@ -187,3 +187,9 @@
 .mx-stub b{display:block;font:800 clamp(17px,1.6vw,21px)/1.2 var(--display)}
 .mx-stub p{margin:6px 0 0;color:var(--ink-2);max-width:62ch}
 .mt-totn{margin-top:8px}
+
+/* «Коротко о матче» списком */
+.mx-sum{list-style:none;margin:0;padding:0;display:grid;gap:10px;max-width:72ch}
+.mx-sum li{position:relative;padding-left:22px;font-size:18px;line-height:1.5;color:var(--ink-2)}
+.mx-sum li::before{content:"";position:absolute;left:2px;top:.62em;width:8px;height:8px;border-radius:50%;background:var(--signal,#ffc21a)}
+@media (max-width:620px){.mx-sum li{font-size:17px}}

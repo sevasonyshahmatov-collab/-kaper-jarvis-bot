@@ -789,8 +789,8 @@ def v2_summary(m):
             s.append('Модель не видит фаворита: шансы почти равны.')
         else:
             s.append('Модель чуть выше оценивает: %s — %d %%.' % (lead, round(lp * 100)) if gap < .15 else 'Фаворит по модели: %s — %d %%.' % (lead, round(lp * 100)))
-        s.append('Это оценка по данным, а не обещание исхода.')
-    return ' '.join(s)
+        s[-1] += ' Это оценка по данным, а не обещание исхода.'
+    return s
 
 
 CD_JS = ('<script>/* отсчёт до начала (вид 2) */(function(){var e=document.querySelector(".mx-cd");if(!e)return;function f(){var t=Date.parse(e.dataset.t.replace(" ","T")+":00+03:00"),'
@@ -863,7 +863,11 @@ def match_page(m):
         elif o:
             mdl = '<section class="fc-sec"><div class="wrap"><div class="mt-md">%s</div></div></section>\n' % o
     pv = v2_summary(m) if V2 else preview_text(m)
-    prev = ('<section class="fc-sec" aria-labelledby="mt-pv"><div class="wrap"><h2 id="mt-pv">Коротко о матче</h2>'
+    if isinstance(pv, list):   # вид 2: «Коротко о матче» — списком, по одной мысли в строке (владелец 10.11)
+        prev = ('<section class="fc-sec" aria-labelledby="mt-pv"><div class="wrap"><h2 id="mt-pv">Коротко о матче</h2>'
+                '<ul class="mx-sum">%s</ul></div></section>\n' % ''.join('<li>%s</li>' % esc(x) for x in pv)) if pv else ''
+    else:
+      prev = ('<section class="fc-sec" aria-labelledby="mt-pv"><div class="wrap"><h2 id="mt-pv">Коротко о матче</h2>'
             '<!-- превью собрано по шаблонам из данных (seo/build_match.py, preview_text); до запуска сайта тексты читает человек -->'
             '<p class="mt-prev">%s</p></div></section>\n' % esc(pv)) if pv else ''
     cl = []
