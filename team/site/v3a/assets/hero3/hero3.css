@@ -62,12 +62,13 @@
 }
 @media (max-width:820px){.h3next{grid-template-columns:1fr}.h3p{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"t h" "t a" "k k"}.h3p .h3k{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:6px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);text-align:left}}
 /* плавный переход к списку матчей (владелец 10.11): общий фон страницы под афишей сразу светлый (v3a.js: Z.arena=Z.p1),
-   а тёмный цветной фон афиши растворяется в него книзу длинным мягким градиентом — переход «в пространстве», а не вспышкой при прокрутке.
-   Под кнопкой оставлено место, чтобы текст афиши не попадал на светлеющий фон. */
-/* первый экран целиком тёмный: растворение начинается сразу под нижним краем окна, а не на виду */
-[data-hero="2"] .hero{--f:clamp(200px,30vh,320px);min-height:calc(100svh - 108px + var(--f));padding-bottom:var(--f)!important}
-.h3bg{-webkit-mask-image:linear-gradient(180deg,#000 0,#000 calc(100% - var(--f)),rgba(0,0,0,.86) calc(100% - var(--f)*.78),rgba(0,0,0,.6) calc(100% - var(--f)*.55),rgba(0,0,0,.32) calc(100% - var(--f)*.33),rgba(0,0,0,.12) calc(100% - var(--f)*.15),transparent 100%);
-  mask-image:linear-gradient(180deg,#000 0,#000 calc(100% - var(--f)),rgba(0,0,0,.86) calc(100% - var(--f)*.78),rgba(0,0,0,.6) calc(100% - var(--f)*.55),rgba(0,0,0,.32) calc(100% - var(--f)*.33),rgba(0,0,0,.12) calc(100% - var(--f)*.15),transparent 100%)}
+   а тёмный цветной фон афиши растворяется в него книзу длинным градиентом по плавной кривой (smoothstep, 11 ступеней) —
+   без полосы и без вспышки при прокрутке. Первый экран целиком тёмный: растворение начинается под нижним краем окна.
+   Список матчей заходит на светлую половину градиента, чтобы под афишей не было пустого экрана. */
+html[data-hero="2"]{--f:clamp(420px,72vh,780px)}
+[data-hero="2"] .hero{min-height:calc(100svh - 108px + var(--f));padding-bottom:var(--f)!important}
+[data-hero="2"] .hero+.sec{margin-top:calc(var(--f) * -.42)}
+.h3bg{-webkit-mask-image:linear-gradient(180deg,#000 0,rgba(0,0,0,1) calc(100% - var(--f) * 1.0),rgba(0,0,0,0.972) calc(100% - var(--f) * 0.9),rgba(0,0,0,0.896) calc(100% - var(--f) * 0.8),rgba(0,0,0,0.784) calc(100% - var(--f) * 0.7),rgba(0,0,0,0.648) calc(100% - var(--f) * 0.6),rgba(0,0,0,0.5) calc(100% - var(--f) * 0.5),rgba(0,0,0,0.352) calc(100% - var(--f) * 0.4),rgba(0,0,0,0.216) calc(100% - var(--f) * 0.3),rgba(0,0,0,0.104) calc(100% - var(--f) * 0.2),rgba(0,0,0,0.028) calc(100% - var(--f) * 0.1),rgba(0,0,0,0) calc(100% - var(--f) * 0.0));mask-image:linear-gradient(180deg,#000 0,rgba(0,0,0,1) calc(100% - var(--f) * 1.0),rgba(0,0,0,0.972) calc(100% - var(--f) * 0.9),rgba(0,0,0,0.896) calc(100% - var(--f) * 0.8),rgba(0,0,0,0.784) calc(100% - var(--f) * 0.7),rgba(0,0,0,0.648) calc(100% - var(--f) * 0.6),rgba(0,0,0,0.5) calc(100% - var(--f) * 0.5),rgba(0,0,0,0.352) calc(100% - var(--f) * 0.4),rgba(0,0,0,0.216) calc(100% - var(--f) * 0.3),rgba(0,0,0,0.104) calc(100% - var(--f) * 0.2),rgba(0,0,0,0.028) calc(100% - var(--f) * 0.1),rgba(0,0,0,0) calc(100% - var(--f) * 0.0))}
 /* шапка над афишей остаётся тёмной, пока свет не включён (общий фон страницы под афишей теперь светлый) */
 [data-hero="2"]:not(.lit) .hd{background:rgba(7,18,37,.92)}
 [data-hero="2"] .hd{transition:background .35s ease,color .3s ease}
