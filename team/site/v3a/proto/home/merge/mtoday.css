@@ -124,3 +124,14 @@
 .mt1 .mid .lv{display:grid;justify-items:center;gap:3px;margin:2px 0 0;max-width:120px}
 .mt1 .mid .lv .lv-st{font-size:11px;line-height:1.2;white-space:normal;text-align:center}
 .mt1 .mid .lv:not([hidden])~em,.mt1 .mid:has(.lv:not([hidden])) em{display:none}
+
+/* Раскрытая часть плитки (владелец 10.11): строки одной сеткой с разделителями, подписи крупнее, цифры в одну колонку */
+.mt1 dl{gap:0}
+.mt1 dl div{align-items:baseline;gap:14px;padding:6px 0;border-bottom:1px solid var(--rule-2)}
+.mt1 dl div:first-child{padding-top:0}
+.mt1 dt{font:500 14px/1.25 var(--display);color:var(--ink-2)}
+.mt1 dd{font:800 17px/1.25 var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mt1 .meta{font-size:13px;margin:8px 0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt1 .go{padding:9px 15px;font-size:14px}
+.mt1 .more{min-width:0}
+@media (max-width:639px){.mt1 dt{font-size:15px}.mt1 dl div{padding:9px 0}.mt1 .meta{white-space:normal}}

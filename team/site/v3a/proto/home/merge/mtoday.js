@@ -32,10 +32,10 @@ function left(m){const ms=Date.parse(m.t.replace(' ','T')+':00+03:00')-now;if(ms
  const h=Math.floor(ms/36e5),mi=Math.floor(ms%36e5/6e4);return h>=24?`через ${Math.floor(h/24)} ${H.pl(Math.floor(h/24),'день','дня','дней')}`:h?`через ${h} ч ${mi} мин`:`через ${mi} мин`}
 function more(m){
  const md=m.md,ln=m.ln,rows=[];
- if(md&&md.lam)rows.push([m.hockey?'Ожидаемые шайбы':'Ожидаемые голы',`${f1(md.lam[0])} : ${f1(md.lam[1])}`]);
+ if(md&&md.lam)rows.push([m.hockey?'Ожидаемые шайбы':'Ожидаемые голы',`${md.lam[0].toFixed(1).replace('.',',')} : ${md.lam[1].toFixed(1).replace('.',',')}`]);
  if(md&&md.tot!=null&&md.over!=null){const k=ln&&ln.tot===md.tot&&ln.over?` · ${f2(ln.over)}`:'';rows.push([`Тотал больше ${String(md.tot).replace('.',',')}`,`${pc(md.over)}%${k}`])}
  if(md&&md.btts!=null)rows.push(['Обе забьют',`${pc(md.btts)}%`]);
- if(md&&md.w1!=null)rows.push(['Победа с ОТ и буллитами',`${pc(md.w1)}% / ${pc(md.w2)}%`]);
+ if(md&&md.w1!=null)rows.push(['Итоговая победа',`${pc(md.w1)}% / ${pc(md.w2)}%`]);
  const ar=m.arena?(typeof m.arena==='string'?m.arena:[m.arena.name,m.arena.city].filter(Boolean).join(', ')):'';
  return `<div class="more"><dl>${rows.map(r=>`<div><dt>${e(r[0])}</dt><dd>${r[1]}</dd></div>`).join('')}</dl>
   <p class="meta">${e(left(m))}${ar?' · '+e(ar):''}</p><span class="go">Разбор матча →</span></div>`;
