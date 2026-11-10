@@ -137,3 +137,20 @@
 .hm-bg .hd{height:200%}
 @media (max-width:760px){.hm-bg .hb{width:80vw}.hm-bg .hb2{left:10vw}.hm-bg .hg{filter:blur(40px)}.hm-bg .hd2{display:none}}
 @media (prefers-reduced-motion:reduce){.hm-bg .hb,.hm-bg .hg,.hm-bg .hd{animation:none}}
+
+/* ── Главная в общем ряду с разделами (владелец 10.11): тёмный первый экран, дальше светлый «лёд», как на страницах хоккея и футбола.
+   Роли цветов те же: жёлтый — только кнопки в Telegram, цифры и шаги — цветом модели. Прежний вид — ?col=off. ── */
+html[data-theme="a"]:not([data-col]) main>section:not(.hm):not(.sub){--paper:#d6e2ee;--paper-2:#c6d5e5;--paper-3:#b5c7db;--card:#eef4fa;--card-hi:#fff;--ink:#10161f;--ink-2:#3b4552;--ink-3:#414d5c;--rule:#b5c7db;--rule-2:#b5c7db;--sport:#173daf;background:#d6e2ee;color:var(--ink)}
+html[data-theme="a"]:not([data-col]) main>.sec{margin-top:0;margin-bottom:0}
+html[data-theme="a"]:not([data-col]) main>#honest,html[data-theme="a"]:not([data-col]) main>#faq{padding-bottom:clamp(56px,7vw,110px)}
+html[data-theme="a"]:not([data-col]) main>.sub{margin-top:0;background:#0b1730}
+html[data-theme="a"]:not([data-col]) .sub li b{color:#f3f6fb}
+/* плитки ближайших матчей — светлые; хоккей — синий, футбол — зелёный */
+html[data-theme="a"]:not([data-col]) .mg-today{--hk:#173daf;--fb:#1a7342}
+html[data-theme="a"]:not([data-col]) .mt1 li a,html[data-theme="a"]:not([data-col]) .mt1 li.hk a,html[data-theme="a"]:not([data-col]) .mt1 li.fb a{background:#f1f6fb}
+/* шаги модели — одним цветом, без «светофора»; «Скоро» и раскрытый вопрос — без жёлтого */
+html[data-theme="a"]:not([data-col]) .steps>li:nth-child(n)::before{color:var(--sport)}
+html[data-theme="a"]:not([data-col]) main .soon>b{color:var(--ink)}
+html[data-theme="a"]:not([data-col]) .obj details[open]{border-color:#173daf}
+/* на первом экране жёлтая только кнопка в Telegram: «Открыть раздел» — белая */
+html[data-theme="a"]:not([data-col]) .hm .open,html[data-theme="a"]:not([data-col]) .hm .card:hover .open,html[data-theme="a"]:not([data-col]) .hm .card:focus-visible .open{background:#f3f6fb;color:#0a1220}
