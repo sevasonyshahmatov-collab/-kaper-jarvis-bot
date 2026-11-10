@@ -38,6 +38,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <link rel="stylesheet" href="../assets/herobg/herobg.css">
 <link rel="stylesheet" href="../assets/hero2/hero2.css">
 <script src="../assets/herobg/herobg.js"></script>
+<link rel="stylesheet" href="../assets/hero3/hero3.css">
 <script src="../assets/hero3/hero3.js"></script>
 <link rel="stylesheet" href="../assets/herovid/herovid.css">
 <script src="../assets/herovid/herovid.js"></script>
@@ -294,6 +295,7 @@ const chev='<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-wi
 /* карточка на табло: ближайшие матчи — эмблемы, исход, который модель считает самым вероятным, линия и ожидаемые голы.
    Без табло split-flap: обычные табличные цифры, секунда сменяется лёгким сдвигом. */
 const picks=(D.filter(m=>JV.left(m.t)>0&&m.md).length?D.filter(m=>JV.left(m.t)>0&&m.md):D).slice(0,5);
+window.__heroPicks=picks; /* для афиши (assets/hero3/hero3.js): два следующих матча */
 const mcard=document.getElementById('mcard'),cdv=document.getElementById('cdv');
 const lvl=p=>p>=.45?'hi':p>=.38?'mid':'lo';
 const tm=(slug,name,cls)=>`<div class="tm${name.length>10?' long':''}">${CS(slug)}<small>${cls}</small><span>${esc(name)}</span></div>`;

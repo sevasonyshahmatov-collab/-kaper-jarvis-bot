@@ -1,24 +1,43 @@
-/* Пробный первый экран «афиша матча» (владелец 10.11): ?hero=2 включает, ?hero=off возвращает обычный; выбор помнится в sessionStorage.
-   Матч — в центре: хозяева слева, гости справа, расчёт модели между ними. Фон — мягкое свечение в цветах команд (teams-lite.js),
-   меняется вместе с матчем. Только оформление: данные и карточку рисует прежний код страницы. */
+/* Первый экран «афиша матча» (владелец 10.11) — основной вид; ?hero=off возвращает прежний (две колонки), ?hero=2 — обратно. Выбор помнится в sessionStorage.
+   Матч в центре: хозяева слева, гости справа, расчёт модели между ними; под карточкой — два следующих матча и строка «что это за сайт».
+   Фон — мягкое свечение в цветах команд (teams-lite.js), меняется вместе с матчем. Только оформление: карточку и данные рисует код страницы,
+   список матчей табло страница отдаёт в window.__heroPicks. Стили — hero3.css (подключён в <head>, работает только при data-hero="2"). */
 (function(){
-  var d=document.documentElement,K='jv-hero',q='',on=false;
+  var d=document.documentElement,K='jv-hero',q='',off=false;
   try{q=new URLSearchParams(location.search).get('hero')||''}catch(e){}
-  try{if(q==='2')sessionStorage.setItem(K,'2');else if(q==='off'||q==='1')sessionStorage.removeItem(K);on=sessionStorage.getItem(K)==='2'}catch(e){on=q==='2'}
-  if(q==='off'||q==='1')on=false;
-  if(!on)return;
+  try{if(q==='off')sessionStorage.setItem(K,'off');else if(q==='2')sessionStorage.removeItem(K);off=sessionStorage.getItem(K)==='off'}catch(e){off=q==='off'}
+  if(q==='2')off=false;
+  function bar(){var b=document.createElement('div');b.className='h3bar';b.setAttribute('role','group');b.setAttribute('aria-label','Вариант первого экрана');
+    b.innerHTML='<button type="button" data-h="2" aria-pressed="false">Афиша матча</button><button type="button" data-h="off" aria-pressed="true">Как было</button>';
+    b.addEventListener('click',function(e){var k=e.target.getAttribute&&e.target.getAttribute('data-h');if(!k)return;var u=new URL(location.href);u.searchParams.set('hero',k);location.href=u.toString()});
+    document.body.appendChild(b)}
+  if(off){document.addEventListener('DOMContentLoaded',bar);return}
   d.dataset.hero='2';
-  var s=document.currentScript,css=document.createElement('link');css.rel='stylesheet';css.href=s.src.replace(/hero3\.js.*$/,'hero3.css');document.head.appendChild(css);
+  var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+  /* цвет свечения: основной цвет клуба; если он серый или почти чёрный — самый насыщенный из остальных, иначе спокойный запасной */
+    function vivid(cs,fb){var best=null,bs=0;(cs||[]).forEach(function(h,idx){var m=/^#?([0-9a-f]{6})$/i.exec(h||'');if(!m)return;var n=parseInt(m[1],16),r=n>>16&255,g=n>>8&255,b=n&255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),s=mx?(mx-mn)/mx:0,sc=s*(mx/255);if(idx===0&&sc>.22){best='#'+m[1];bs=9}else if(sc>bs){bs=sc;best='#'+m[1]}});return bs>.22?best:fb}
   document.addEventListener('DOMContentLoaded',function(){
-    var hero=document.querySelector('.hero'),card=document.getElementById('mcard');if(!hero||!card)return;
+    var hero=document.querySelector('.hero'),card=document.getElementById('mcard'),pager=document.getElementById('pager'),bcol=hero&&hero.querySelector('.bcol'),board=document.getElementById('board');
+    if(!hero||!card||!bcol||!board)return;
     var bg=document.createElement('div');bg.className='h3bg';bg.setAttribute('aria-hidden','true');bg.innerHTML='<i></i>';hero.prepend(bg);
     var T=(window.JV_TEAMS&&window.JV_TEAMS.teams)||{};
-    function col(img,fb){var m=img&&/\/em\/([^/.]+)\./.exec(img.getAttribute('src')||''),t=m&&T[m[1]],c=t&&t.colors&&t.colors[0];return c||fb}
-    function paint(){var e=card.querySelectorAll('.face .tm .em');if(e.length<2)return;hero.style.setProperty('--ha',col(e[0],'#1653d6'));hero.style.setProperty('--aa',col(e[1],'#3ee0ff'))}
+    function col(img,fb){var m=img&&/\/em\/([^/.]+)\./.exec(img.getAttribute('src')||''),t=m&&T[m[1]];return vivid(t&&t.colors,fb)}
+    /* два следующих матча */
+    var P=window.__heroPicks||[],next=document.createElement('div');next.className='h3next';board.after(next);
+    var k2=function(v){return (Math.round(v*100)/100).toFixed(2).replace('.',',')};
+    function plate(m,i){var md=m.md,ln=m.ln,pick='';
+      if(md){var mo=[md.p1,md.x,md.p2],j=mo.indexOf(Math.max.apply(null,mo)),w=j===0?m.hn+' — победа':j===2?m.an+' — победа':'Ничья',kk=ln?[ln.p1,ln.x,ln.p2][j]:null;pick='<span class="h3k"><small>Расчёт модели</small><b>'+esc(w)+(kk?' · '+k2(kk):'')+'</b></span>'}
+      var em=function(s){return '<img src="../assets/em/'+esc(s)+'.webp" alt="" width="28" height="28" loading="lazy">'};
+      return '<button type="button" class="h3p" data-i="'+i+'"><time>'+esc(m.t.slice(11))+'</time><span class="h3t">'+em(m.h)+esc(m.hn)+'</span><span class="h3t">'+em(m.a)+esc(m.an)+'</span>'+pick+'</button>'}
+    function cur(){var bs=pager?[].slice.call(pager.children):[];for(var i=0;i<bs.length;i++)if(bs[i].getAttribute('aria-pressed')==='true')return i;return 0}
+    function nextUp(){if(P.length<2){next.hidden=true;return}var c=cur(),n=Math.min(2,P.length-1),h='';for(var s=1;s<=n;s++){var i=(c+s)%P.length;h+=plate(P[i],i)}next.innerHTML=h}
+    next.addEventListener('click',function(e){var b=e.target.closest('.h3p');if(!b||!pager)return;var t=pager.children[+b.dataset.i];if(t)t.click()});
+    function paint(){var e=card.querySelectorAll('.face .tm .em');if(e.length>1){hero.style.setProperty('--ha',col(e[0],'#3b6fd8'));hero.style.setProperty('--aa',col(e[1],'#36b8d6'))}nextUp()}
     paint();new MutationObserver(paint).observe(card,{childList:true});
-    var b=document.createElement('div');b.className='h3bar';b.setAttribute('role','group');b.setAttribute('aria-label','Вариант первого экрана');
-    b.innerHTML='<button type="button" data-h="2" aria-pressed="true">Афиша матча</button><button type="button" data-h="off" aria-pressed="false">Как было</button>';
-    b.addEventListener('click',function(e){var k=e.target.getAttribute&&e.target.getAttribute('data-h');if(!k)return;var u=new URL(location.href);u.searchParams.set('hero',k);location.href=u.toString()});
-    document.body.appendChild(b);
+    /* строка «что это за сайт» под кнопкой */
+    var n=(document.getElementById('fN')||{}).textContent||'',nl=(document.getElementById('fNl')||{}).textContent||'';
+    var st=document.createElement('p');st.className='h3strip';
+    st.innerHTML=(n&&nl?'<span><b>'+esc(n)+'</b> '+esc(nl)+'</span>':'')+'<span>КХЛ и НХЛ</span><span>расчёт модели на каждый матч</span><a href="#matches">Все матчи дня ↓</a>';
+    bcol.appendChild(st);
   });
 })();
