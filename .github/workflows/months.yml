@@ -44,6 +44,6 @@ jobs:
       - name: Сохранить в ветку
         if: github.event_name == 'push'
         run: |
-          mkdir -p team/site/months_out && cp out/months/months.json out/months/months.md team/site/months_out/
+          mkdir -p team/site/months_out && cp out/months/months.json out/months/months.md out/months/published.json out/months/odd.json team/site/months_out/
           git config user.name "jarvis-bot"; git config user.email "jarvis-bot@users.noreply.github.com"
           git add team/site/months_out && git commit -qm "Статистика канала по месяцам — результат запуска" && git push origin "HEAD:${GITHUB_REF_NAME}"
