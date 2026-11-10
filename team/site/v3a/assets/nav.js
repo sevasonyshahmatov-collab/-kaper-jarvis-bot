@@ -11,23 +11,16 @@ const dir=path.split('/').slice(-2,-1)[0]||'';
 const q=new URLSearchParams(location.search);
 const sport=document.documentElement.dataset.sport||'';
 
-const SECTIONS={
- hockey:[['m','Матчи','hockey/index.html'],['deck','Матчи дня','matches.html?s=h'],['fc','Прогноз дня','hockey/forecast-khl.html'],['khl','КХЛ','hockey/league.html?lg=khl'],['nhl','НХЛ','hockey/league.html?lg=nhl'],
-         ['pl','Игроки','hockey/players.html'],['tr','Тренды','hockey/trends.html'],['mod','Модель','model.html?s=h']],
- football:[['m','Матчи','football/index.html'],['deck','Матчи дня','matches.html?s=f'],['fc','Прогноз дня','football/forecast-epl.html'],['lg','Лиги','football/league.html?lg=epl'],['ucl','Лига чемпионов','football/ucl.html'],
-         /* ['pl','Игроки','football/players.html'], — скрыто до готовности портретов (владелец 04.11) */['tr','Тренды','football/trends.html'],['mod','Модель','model.html?s=f']]
-};
-/* ?nav=2 — пробная шапка (владелец 10.11): матчи одной группой, лиги одной группой, без второй полосы на главной раздела.
-   Выбор запоминается (?nav=1 — вернуть прежнюю). Пункт: [id, имя, адрес] или [id, имя, адрес, [подпункты]] — группа с выпадающим списком. */
-let NAV2=false;try{const v=q.get('nav');if(v)localStorage.setItem('jv_nav',v);NAV2=(v||localStorage.getItem('jv_nav'))==='2'}catch(e){NAV2=q.get('nav')==='2'}
-if(NAV2){
+const SECTIONS={};
+/* Шапка разделов (владелец 10.11). Пункт: [id, имя, адрес] или [id, имя, адрес, [подпункты]] — группа с выпадающим списком. */
+{
   /* владелец 10.11 (2): Матчи · Лиги (внутри КХЛ и НХЛ с их разделами) · Тренды · Выбрать матч (карусель «Матчи дня»).
      «Как считаем» — в подвале и в тексте разделов; игроки — внутри лиг. Подпункт с [4-м элементом] — колонка лиги со своими разделами. */
   document.documentElement.classList.add('nav2');
   const LS=(lg,base)=>[['Таблица и клубы','#table'],['Матчи','#next'],['Результаты','#results'],['Игроки','#players'],['Статистика','#stats']].map(([n,h])=>['',n,base+lg+h]);
   const FL=[['epl','АПЛ'],['laliga','Ла Лига'],['seriea','Серия А'],['bundesliga','Бундеслига'],['ligue1','Лига 1'],['rpl','РПЛ']];
   SECTIONS.hockey=[['m','Матчи','hockey/index.html',[['m','Ближайшие матчи','hockey/index.html'],['fc','Прогноз на сегодня — списком','hockey/forecast-khl.html']]],
-    ['lg','Лиги','hockey/league.html?lg=khl',[['khl','КХЛ','hockey/league.html?lg=khl',LS('khl','hockey/league.html?lg=')],['nhl','НХЛ','hockey/league.html?lg=nhl',LS('nhl','hockey/league.html?lg=')],['pl','Все игроки КХЛ и НХЛ','hockey/players.html']]],
+    ['lg','Лиги','hockey/league.html?lg=khl',[['khl','КХЛ','hockey/league.html?lg=khl',LS('khl','hockey/league.html?lg=')],['nhl','НХЛ','hockey/league.html?lg=nhl',LS('nhl','hockey/league.html?lg=')]]],
     ['tr','Тренды','hockey/trends.html'],['deck','Выбрать матч','matches.html?s=h']];
   SECTIONS.football=[['m','Матчи','football/index.html',[['m','Ближайшие матчи','football/index.html'],['fc','Прогноз на сегодня — списком','football/forecast-epl.html']]],
     ['lg','Лиги','football/league.html?lg=epl',[...FL.map(([k,n])=>['lg-'+k,n,'football/league.html?lg='+k]),['ucl','Лига чемпионов','football/ucl.html']]],
@@ -44,8 +37,8 @@ function active(){
   if(/^forecast-/.test(file))return 'fc';   /* «Прогноз на сегодня» в меню разделов (владелец 09.11: «как туда попасть?») */
   if(file==='index.html')return 'm';
   if(file==='ucl.html')return 'ucl';
-  if(file==='league.html'){const l=q.get('lg')||'';return sport==='hockey'?(l==='nhl'?'nhl':'khl'):(l==='ucl'?'ucl':NAV2?'lg-'+(l||'epl'):'lg')}
-  if(/^players/.test(file)||file==='photo-credits.html')return 'pl';
+  if(file==='league.html'){const l=q.get('lg')||'';return sport==='hockey'?(l==='nhl'?'nhl':'khl'):(l==='ucl'?'ucl':'lg-'+(l||'epl'))}
+  if(/^players/.test(file)||file==='photo-credits.html')return 'lg'; /* игроки — внутри «Лиг» */
   if(file==='trends.html')return 'tr';
   if(file==='model.html')return 'mod';
   return '';
@@ -78,7 +71,7 @@ const panel=(sec?[sec]:[SECTIONS.hockey,SECTIONS.football]).map((list,i)=>{
   return `<div class="mgrp">${name?`<b>${name}</b>`:''}${list.map(s=>s[3]?`<div class="msub"><b>${esc(s[1])}</b>${s[3].map(x=>link(x,sec?act:'')).join('')}</div>`:link(s,sec?act:'')).join('')}</div>`}).join('');
 
 hd.innerHTML=`<div class="wrap hdrow">
-  <a class="logo lg2" href="${esc(U('index.html'))}" aria-label="JARVIS, на главную"><span class="lw">JARVIS</span>${LSEC?`<s aria-hidden="true">|</s><em class="ls-${LSEC[1]}">${esc(LSEC[0])}</em>`:''}</a>
+  <div class="logo lg2"><a class="lw" href="${esc(U('index.html'))}" aria-label="JARVIS — выбор: хоккей или футбол">JARVIS</a>${LSEC?`<s aria-hidden="true">|</s><a href="${esc(U(sport+'/index.html'))}" aria-label="${sport==='hockey'?'Хоккей':'Футбол'} — главная раздела"><em class="ls-${LSEC[1]}">${esc(LSEC[0])}</em></a>`:''}</div>
   <nav class="seg" aria-label="Вид спорта">
     <a href="${esc(U('hockey/index.html'))}"${sport==='hockey'?' aria-current="true"':''}>Хоккей</a>
     <a href="${esc(U('football/index.html'))}"${sport==='football'?' aria-current="true"':''}>Футбол</a>
@@ -97,7 +90,7 @@ hd.innerHTML=`<div class="wrap hdrow">
  fit();addEventListener('resize',fit);if(document.fonts)document.fonts.ready.then(fit)}
 {const ms=document.getElementById('msearch');if(ms)ms.addEventListener('click',()=>{const sb=hd.querySelector('.sbtn');if(sb){document.getElementById('mbtn').click();sb.click()}})}
 
-/* ?nav=2: выпадающие группы — на сенсорных экранах первое касание открывает список */
+/* выпадающие группы — на сенсорных экранах первое касание открывает список */
 hd.querySelectorAll('.gdd>a').forEach(a=>a.addEventListener('click',e=>{if(matchMedia('(hover:none)').matches){const g=a.parentNode;if(!g.classList.contains('open')){e.preventDefault();hd.querySelectorAll('.gdd.open').forEach(x=>x.classList.remove('open'));g.classList.add('open')}}}));
 document.addEventListener('click',e=>{if(!e.target.closest('.gdd'))hd.querySelectorAll('.gdd.open').forEach(x=>x.classList.remove('open'))});
 /* поиск (assets/search.js + search.css) — единственная точка подключения */
@@ -106,7 +99,7 @@ try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('se
 
 /* вторая полоса — якоря страницы */
 let sub=null;
-if(local&&NAV2&&sport&&file==='index.html'&&(dir==='hockey'||dir==='football'))local.remove();
+if(local&&sport&&file==='index.html'&&(dir==='hockey'||dir==='football'))local.remove();
 else if(local){
   sub=document.createElement('div');sub.className='subbar';
   const w=document.createElement('div');w.className='wrap';
