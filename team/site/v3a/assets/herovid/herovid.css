@@ -80,12 +80,12 @@ html[data-hv] .tgbar{display:none!important}
 
 /* вариант 1 с фото владельца (10.11): предмет сдвинут к центру, чтобы не уходил под табло; медленный наезд */
 .hv-photo{overflow:hidden}
-.hv-photo img{width:100%;height:100%;object-fit:cover;display:block;transform-origin:var(--ox,50%) var(--oy,60%);transform:translateX(var(--tx,0)) scale(var(--s,1.12));animation:hvzoom 22s ease-in-out infinite alternate}
+.hv-photo img{width:100%;height:100%;object-fit:cover;display:block;filter:blur(2.5px) saturate(1.05);transform-origin:var(--ox,50%) var(--oy,60%);transform:translateX(var(--tx,0)) scale(var(--s,1.12));animation:hvzoom 22s ease-in-out infinite alternate}
 @keyframes hvzoom{to{transform:translateX(var(--tx,0)) scale(calc(var(--s,1.12) + .07))}}
 @media (prefers-reduced-motion:reduce){.hv-photo img{animation:none}}
 html[data-hvsp="football"] .hv-photo{--tx:-7%;--s:1.16;--oy:70%}
-html[data-hvsp="hockey"] .hv-photo{--tx:-13%;--s:1.28;--oy:72%}
+html[data-hvsp="hockey"] .hv-photo{--tx:-7%;--s:1.16;--oy:74%}
 @media (max-width:980px){
   html[data-hvsp="football"] .hv-photo img{object-position:64% 50%}html[data-hvsp="football"] .hv-photo{--tx:0%;--s:1.05}
-  html[data-hvsp="hockey"] .hv-photo img{object-position:62% 50%}html[data-hvsp="hockey"] .hv-photo{--tx:0%;--s:1.05}
+  html[data-hvsp="hockey"] .hv-photo img{object-position:70% 50%}html[data-hvsp="hockey"] .hv-photo{--tx:0%;--s:1.05}
 }
