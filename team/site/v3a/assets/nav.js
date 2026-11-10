@@ -21,14 +21,17 @@ const SECTIONS={
    Выбор запоминается (?nav=1 — вернуть прежнюю). Пункт: [id, имя, адрес] или [id, имя, адрес, [подпункты]] — группа с выпадающим списком. */
 let NAV2=false;try{const v=q.get('nav');if(v)localStorage.setItem('jv_nav',v);NAV2=(v||localStorage.getItem('jv_nav'))==='2'}catch(e){NAV2=q.get('nav')==='2'}
 if(NAV2){
+  /* владелец 10.11 (2): Матчи · Лиги (внутри КХЛ и НХЛ с их разделами) · Тренды · Выбрать матч (карусель «Матчи дня»).
+     «Как считаем» — в подвале и в тексте разделов; игроки — внутри лиг. Подпункт с [4-м элементом] — колонка лиги со своими разделами. */
   document.documentElement.classList.add('nav2');
+  const LS=(lg,base)=>[['Таблица и клубы','#table'],['Матчи','#next'],['Результаты','#results'],['Игроки','#players'],['Статистика','#stats']].map(([n,h])=>['',n,base+lg+h]);
   const FL=[['epl','АПЛ'],['laliga','Ла Лига'],['seriea','Серия А'],['bundesliga','Бундеслига'],['ligue1','Лига 1'],['rpl','РПЛ']];
-  SECTIONS.hockey=[['m','Матчи и прогнозы','hockey/index.html',[['m','Ближайшие матчи','hockey/index.html'],['deck','Матчи дня — карточками','matches.html?s=h'],['fc','Прогноз дня — списком','hockey/forecast-khl.html']]],
-    ['tr','Тренды','hockey/trends.html'],['lg','КХЛ и НХЛ','hockey/league.html?lg=khl',[['khl','КХЛ','hockey/league.html?lg=khl'],['nhl','НХЛ','hockey/league.html?lg=nhl']]],
-    ['pl','Игроки','hockey/players.html'],['mod','Как считаем','model.html?s=h']];
-  SECTIONS.football=[['m','Матчи и прогнозы','football/index.html',[['m','Ближайшие матчи','football/index.html'],['deck','Матчи дня — карточками','matches.html?s=f'],['fc','Прогноз дня — списком','football/forecast-epl.html']]],
-    ['tr','Тренды','football/trends.html'],['lg','Лиги','football/league.html?lg=epl',[...FL.map(([k,n])=>['lg-'+k,n,'football/league.html?lg='+k]),['ucl','Лига чемпионов','football/ucl.html']]],
-    /* Игроки — скрыты до готовности портретов (владелец 04.11) */['mod','Как считаем','model.html?s=f']];
+  SECTIONS.hockey=[['m','Матчи','hockey/index.html',[['m','Ближайшие матчи','hockey/index.html'],['fc','Прогноз на сегодня — списком','hockey/forecast-khl.html']]],
+    ['lg','Лиги','hockey/league.html?lg=khl',[['khl','КХЛ','hockey/league.html?lg=khl',LS('khl','hockey/league.html?lg=')],['nhl','НХЛ','hockey/league.html?lg=nhl',LS('nhl','hockey/league.html?lg=')],['pl','Все игроки КХЛ и НХЛ','hockey/players.html']]],
+    ['tr','Тренды','hockey/trends.html'],['deck','Выбрать матч','matches.html?s=h']];
+  SECTIONS.football=[['m','Матчи','football/index.html',[['m','Ближайшие матчи','football/index.html'],['fc','Прогноз на сегодня — списком','football/forecast-epl.html']]],
+    ['lg','Лиги','football/league.html?lg=epl',[...FL.map(([k,n])=>['lg-'+k,n,'football/league.html?lg='+k]),['ucl','Лига чемпионов','football/ucl.html']]],
+    ['tr','Тренды','football/trends.html'],['deck','Выбрать матч','matches.html?s=f']];
 }
 /* какой пункт активен */
 function active(){
@@ -55,9 +58,12 @@ const LSEC=(()=>{if(!sport)return null;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 const home=(file==='index.html'&&!sport&&dir!=='hockey'&&dir!=='football');
 const link=(s,cur)=>`<a href="${esc(U(s[2]))}"${cur===s[0]?' aria-current="page"':''}>${esc(s[1])}</a>`;
-const inG=(s,cur)=>!!s[3]&&(s[0]===cur||s[3].some(x=>x[0]===cur));
+const has=(s,cur)=>s[0]===cur||!!s[3]&&s[3].some(x=>has(x,cur));
+const inG=(s,cur)=>!!s[3]&&has(s,cur);
 const CARET='<svg class="cr" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const top=(s,cur)=>!s[3]?link(s,cur):`<div class="gdd${inG(s,cur)?' on':''}"><a href="${esc(U(s[2]))}" aria-haspopup="true"${inG(s,cur)?' aria-current="true"':''}>${esc(s[1])}${CARET}</a><div class="gdd-m">${s[3].map(x=>link(x,cur)).join('')}</div></div>`;
+const col=(x,cur)=>`<div class="gcol"><a class="gch" href="${esc(U(x[2]))}"${cur===x[0]?' aria-current="page"':''}>${esc(x[1])}</a>${x[3].map(y=>`<a href="${esc(U(y[2]))}">${esc(y[1])}</a>`).join('')}</div>`;
+const top=(s,cur)=>{if(!s[3])return link(s,cur);const cols=s[3].filter(x=>x[3]),rest=s[3].filter(x=>!x[3]);
+  return `<div class="gdd${inG(s,cur)?' on':''}"><a href="${esc(U(s[2]))}" aria-haspopup="true"${inG(s,cur)?' aria-current="true"':''}>${esc(s[1])}${CARET}</a><div class="gdd-m${cols.length?' wide':''}${!cols.length&&rest.length>5?' grid':''}">${cols.length?`<div class="gcols">${cols.map(x=>col(x,cur)).join('')}</div>`:''}${rest.map(x=>link(x,cur)).join('')}</div></div>`};
 const STAR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.8l2.7 5.9 6.4.7-4.8 4.3 1.4 6.3L12 16.7l-5.7 3.3 1.4-6.3L2.9 9.4l6.4-.7z"/></svg>';
 const TG='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>';
 

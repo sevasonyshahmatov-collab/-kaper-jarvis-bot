@@ -181,3 +181,10 @@ body[data-only="ucl"] .board-top{min-height:45px}
 .mpanel .msub{display:flex;flex-direction:column;border-bottom:1px solid var(--rule);padding-bottom:6px}
 .mpanel .msub a{padding-left:16px;font-size:17px;min-height:44px;border-bottom:0}
 .mpanel .msub b{padding-top:16px}
+/* ?nav=2 (2): «Лиги» — колонки КХЛ и НХЛ со своими разделами; футбольные лиги — в 2 столбца */
+.gdd-m.wide{min-width:440px}
+.gcols{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding-bottom:6px;margin-bottom:6px;border-bottom:1px solid var(--rule)}
+.gcol{display:flex;flex-direction:column}
+.gnav .gcol a{padding:8px 12px;font-size:14px;color:var(--ink-2)}
+.gnav .gcol a.gch{font-size:16px;font-weight:800;color:var(--ink);padding:10px 12px 6px}
+.gdd-m.grid{display:grid;grid-template-columns:1fr 1fr;min-width:340px}
