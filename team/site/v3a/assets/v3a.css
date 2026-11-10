@@ -948,7 +948,7 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 h1,h2,h3,.btn,.seg a,.nav a{letter-spacing:-.01em!important}
 body{font-variant-numeric:tabular-nums lining-nums}
 /* Inter шире прежнего шрифта: на маленьких телефонах (≤ 400 px) длинные заголовки переносятся, ничего не вылезает вбок */
-@media (max-width:400px){h1,h2,h3{overflow-wrap:anywhere;hyphens:auto}html,body{overflow-x:clip}}
+@media (max-width:400px){h1,h2,h3{overflow-wrap:break-word;hyphens:manual}html,body{overflow-x:clip}}   /* без «СЛЕДУЮ-ЩИЙ», «Ближ-айшие»: слово рвётся, только если не влезает целиком; длинные — JV.fitWords (аудит 09.11b) */
 
 /* карточка матча: «Последние матчи» по высоте соседнего «Расчёта модели» (владелец 07.11) */
 @media (min-width:981px){.x-last,.x-h2h{contain:size;overflow:hidden}}
@@ -976,3 +976,4 @@ body{font-variant-numeric:tabular-nums lining-nums}
 .h2t span{flex:1 1 0;overflow:hidden}
 .h2t span:last-child{justify-content:flex-end;text-align:right}
 @media (max-width:480px){.h2t{font-size:14px}.h2t b{font-size:22px}}
+.l3 .op .nm{min-width:0;overflow:hidden;text-overflow:ellipsis}   /* длинное название — с многоточием, не впритык к счёту (аудит 09.11b) */

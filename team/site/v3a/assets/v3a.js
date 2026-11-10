@@ -19,11 +19,11 @@ JV.inMin=s=>{const m=Math.floor(s/60);return s<=0?JV.over(s):m<60?`через ${
 /* Крупные заголовки: самое длинное слово целиком в колонке — иначе шрифт меньше ровно настолько, чтобы влезло
    («АНАЛИТИЧЕСКАЯ», «БУНДЕСЛИГА», «ЧЕМПИОНОВ»: без разрыва посреди слова, 09.11) */
 JV.fitWords=sel=>{
- const one=h=>{const W=h.clientWidth;if(!W)return;h.style.fontSize='';let mx=0;
+ const one=h=>{if(h.dataset.fit==='h1')return;const W=h.clientWidth;if(!W)return;h.style.fontSize='';let mx=0;
   const masks=h.querySelectorAll('[class$="-w-mask"]');   /* слово уже разбито анимацией на буквы — меряем сами блоки (они шире текста) */
   if(masks.length){const ws=h.style.whiteSpace;h.style.whiteSpace='nowrap';masks.forEach(m=>{mx=Math.max(mx,m.getBoundingClientRect().width)});h.style.whiteSpace=ws}
   else{const sp=document.createElement('span');sp.style.cssText='position:absolute;visibility:hidden;white-space:nowrap;left:0;top:0';h.appendChild(sp);
-   (h.getAttribute('aria-label')||h.textContent).split(/\s+/).filter(Boolean).forEach(w=>{sp.textContent=w;mx=Math.max(mx,sp.getBoundingClientRect().width)});sp.remove();mx*=1.13}   /* запас под разбиение на буквы */
+   (h.getAttribute('aria-label')||h.textContent).split(/\s+/).filter(Boolean).forEach(w=>{sp.textContent=w;mx=Math.max(mx,sp.getBoundingClientRect().width)});sp.remove();mx+=parseFloat(getComputedStyle(h).fontSize)*.1}   /* запас под разбиение на буквы: обёртка слова шире на .08em (было ×1,13 — лишнее сжатие и прыжок размера, аудит 09.11b) */
   const fs=parseFloat(getComputedStyle(h).fontSize);if(mx>W)h.style.fontSize=Math.floor(fs*W/mx*0.98)+'px'};
  const run=()=>document.querySelectorAll(sel).forEach(one);run();(JV._fit=JV._fit||[]).push(run);
  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(run);
@@ -32,11 +32,12 @@ JV.refit=()=>(JV._fit||[]).forEach(f=>f());
 
 /* Название клуба в шапке (владелец 09.11): строка не рвётся внутри слова — шрифт уменьшается до ширины колонки
    (не меньше min); не влезло и так — перенос только между словами. Строки — <span class="l"> (у НХЛ: город / прозвище). */
-JV.fitH1=(h,min)=>{if(!h)return;min=min||30;
+JV.fitH1=(h,min)=>{if(!h)return;min=min||30;h.dataset.fit='h1';   /* fitWords этот заголовок не трогает — иначе сбрасывал размер (аудит 09.11b) */
  const over=()=>h.scrollWidth>h.clientWidth+1,shrink=lo=>{let fs=parseFloat(getComputedStyle(h).fontSize);while(fs>lo&&over()){fs-=1;h.style.fontSize=fs+'px'}};
  const fit=()=>{h.style.fontSize='';h.style.whiteSpace='nowrap';shrink(innerWidth<=620?Math.min(min,26):min);if(!over())return;
   h.style.fontSize='';h.style.whiteSpace='normal';shrink(20)};   /* не влезло в строку — перенос только между словами, каждое слово целиком */
- fit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
+ fit();(JV._fit=JV._fit||[]).push(fit);   /* и после разбиения на буквы (titles.js → JV.refit) */
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
  let t=0,lw=innerWidth;addEventListener('resize',()=>{if(innerWidth===lw)return;lw=innerWidth;clearTimeout(t);t=setTimeout(fit,120)})};
 /* НХЛ: полное название двумя строками — город и прозвище (владелец 09.11) */
 JV.NHL_FULL={nhl_car:'Каролина|Харрикейнз',minnesota:'Миннесота|Уайлд',nhl_edm:'Эдмонтон|Ойлерз',nhl_bos:'Бостон|Брюинз',nhl_mtl:'Монреаль|Канадиенс',

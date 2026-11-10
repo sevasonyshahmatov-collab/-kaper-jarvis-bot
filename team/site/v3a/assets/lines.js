@@ -14,7 +14,7 @@ const key=(lg,t,h,a)=>`${lg}|${String(t).slice(0,10)}|${h}|${a}`;
 const hhmm=t=>{const ms=Date.parse(t);return isNaN(ms)?'':new Date(ms+3*3600e3).toISOString().slice(11,16)};
 const ddmm=t=>String(t).slice(8,10)+'.'+String(t).slice(5,7);
 const srcLabel=ln=>!ln?'':(ln.t?'обновлена в '+hhmm(ln.t)+' МСК':'рынок');
-const verName=v=>String(v||'').replace(/\s*\(.*\)$/,'');
+const verName=v=>/poisson|jarvis-|-v\d/i.test(String(v||''))?'':String(v||'').replace(/\s*\(.*\)$/,'');   /* технические имена (poisson-v1, jarvis-hockey-v2) людям не показываем (аудит 09.11b) */
 /* доли линии без маржи: из обратных кэфов */
 const fair=ln=>{if(!ln)return null;const inv=[1/ln.p1,ln.x?1/ln.x:0,1/ln.p2],s=inv[0]+inv[1]+inv[2];return inv.map(v=>v/s)};
 const fairTot=ln=>{if(!ln||!ln.over||!ln.under)return null;const a=1/ln.over,b=1/ln.under;return a/(a+b)};
@@ -42,19 +42,19 @@ function quotes(m,opt={}){const {ln,md}=m,fl=fair(ln),pm=md?[md.p1,md.x,md.p2]:n
  return `<div class="q3">${q}</div>${tot}${md?`<div class="qm">${modelLine(md,opt)}</div>`:''}${dvHtml(ln,md)?`<div class="qd">${dvHtml(ln,md)}</div>`:''}${src}`}
 
 /* ── раскрытая строка: расчёт модели ── */
-const bar=(lab,pm,pl,fav)=>`<div class="wb${fav?' fav':''}"><span>${esc(lab)}</span><em><i style="--w:${p0(pm)}%"></i>${pl!=null?`<u style="left:${p0(pl)}%" title="линия: ${p0(pl)} %"></u>`:''}</em><b class="num">${p0(pm)} %</b></div>`;
+const bar=(lab,pm,pl,fav,full)=>`<div class="wb${fav?' fav':''}"><span${full?` title="${esc(full)}"`:''}>${esc(lab)}</span><em><i style="--w:${p0(pm)}%"></i>${pl!=null?`<u style="left:${p0(pl)}%" title="линия: ${p0(pl)} %"></u>`:''}</em><b class="num">${p0(pm)} %</b></div>`;
 function why(m,opt={}){const {ln,md}=m;if(!md)return '<p class="none">Расчёта модели на этот матч нет.</p>';
  const fl=fair(ln),mo=[md.p1,md.x,md.p2],mx=Math.max(...mo),names=[m.hn||'хозяева',m.an||'гости'];
- const rows=['П1 · '+names[0],'Х · ничья в основное время','П2 · '+names[1]].map((l,i)=>bar(l,mo[i],fl&&(i!==1||ln.x)?fl[i]:null,mo[i]===mx)).join('');
+ const full=['победа '+names[0],'ничья в основное время','победа '+names[1]],rows=['П1','Х','П2'].map((l,i)=>bar(l,mo[i],fl&&(i!==1||ln.x)?fl[i]:null,mo[i]===mx,full[i])).join('');
  let totals='';
  if(md.totals){const ent=Object.entries(md.totals).sort((a,b)=>a[0]-b[0]);
-  totals=`<div class="wsub"><h5>Тотал матча: вероятность «больше»</h5>${ent.map(([t,p])=>bar('Больше '+f1(t),p,ln&&ln.tot===+t?fairTot(ln):null,false)).join('')}
+  totals=`<div class="wsub"><h5>Тотал матча: вероятность «больше»</h5>${ent.map(([t,p])=>bar('ТБ '+f1(t),p,ln&&ln.tot===+t?fairTot(ln):null,false)).join('')}
 </div>`}
- else if(md.over!=null){totals=`<div class="wsub"><h5>Тотал ${f1(md.tot)}</h5>${bar('Больше '+f1(md.tot),md.over,ln&&ln.tot===md.tot?fairTot(ln):null,false)}${bar('Меньше '+f1(md.tot),1-md.over,null,false)}
-   ${md.btts!=null?bar('Обе команды забьют',md.btts,null,false):''}</div>`}
+ else if(md.over!=null){totals=`<div class="wsub"><h5>Тотал ${f1(md.tot)}</h5>${bar('ТБ '+f1(md.tot),md.over,ln&&ln.tot===md.tot?fairTot(ln):null,false)}${bar('ТМ '+f1(md.tot),1-md.over,null,false)}
+   ${md.btts!=null?bar('Обе забьют',md.btts,null,false):''}</div>`}
  const fin=md.w1!=null&&md.w2!=null?`<div class="wsub"><h5>Итоговая победа, с овертаймом и буллитами</h5>${bar(names[0],md.w1,ln&&ln.fin1&&ln.fin2?(1/ln.fin1)/(1/ln.fin1+1/ln.fin2):null,md.w1>md.w2)}${bar(names[1],md.w2,null,md.w2>md.w1)}</div>`:'';
  const lam=md.lam?`<p class="xlam"><b>Ожидаемые голы:</b> ${esc(names[0])} <b class="num">${f2(md.lam[0])}</b> — ${esc(names[1])} <b class="num">${f2(md.lam[1])}</b>, вместе <b class="num">${f2(md.lam[0]+md.lam[1])}</b>.</p>`:'';
- return `<section class="xb x-model"><h4>Расчёт модели <span class="note">${esc(verName(md.ver))}, ${esc(hhmm(md.t))} МСК</span></h4>
+ return `<section class="xb x-model"><h4>Расчёт модели${md.t?` <span class="note">от ${esc(hhmm(md.t))} МСК</span>`:md.ver==='poisson-v1'?' <span class="note">по голам сезона</span>':''}</h4>
   <div class="wgrid"><div class="wsub"><h5>Исход в основное время</h5>${rows}${ln?'':'<p class="note">Линии на матч пока нет.</p>'}</div>
   ${totals}${fin}</div>${lam}${dvHtml(ln,md)?`<p class="qd">${dvHtml(ln,md)}</p>`:''}
   </section>`}

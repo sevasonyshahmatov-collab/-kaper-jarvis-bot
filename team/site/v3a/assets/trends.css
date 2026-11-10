@@ -94,3 +94,16 @@ body.tr .plate{color:var(--ink)}
   .tr-lbl{display:none}
 }
 .tr-more [hidden],.tr-more .btn[hidden]{display:none}
+/* место под фильтры и список с первого кадра — без сдвига при загрузке (аудит 09.11b: CLS до 0,9). Высоты — замер после отрисовки */
+.tr-sum{min-height:31px}
+.tlist:has(.tr-wait){min-height:100vh}
+#fLg,#fType{min-height:37px}
+@media (min-width:761px) and (max-width:1100px){#fType{min-height:68px}body[data-field="football"] #fLg{min-height:80px}}
+@media (min-width:1101px) and (max-width:1400px){body[data-field="football"] #fType{min-height:68px}}
+@media (max-width:760px){.tr-sum{min-height:90px}#fLg{min-height:94px}#fType{min-height:244px}body[data-field="football"] #fLg{min-height:194px}body[data-field="football"] #fType{min-height:194px}}
+@media (max-width:380px){body[data-field="football"] #fLg,body[data-field="football"] #fType{min-height:244px}}
+body[data-field="football"] #plates{min-height:47px}
+@media (min-width:761px) and (max-width:1100px){body[data-field="football"] #plates{min-height:71px}body[data-field="football"] .tr-bar .row:first-child{min-height:101px}}
+@media (min-width:1101px) and (max-width:1400px){body[data-field="football"] .tr-bar .row:first-child{min-height:58px}}
+@media (max-width:760px){body[data-field="football"] #plates{min-height:117px}}
+@media (max-width:380px){body[data-field="football"] #plates{min-height:140px}}

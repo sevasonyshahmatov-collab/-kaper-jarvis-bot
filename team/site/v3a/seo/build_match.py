@@ -159,6 +159,13 @@ def lg_name(lg):
     return B.LG_NAME.get(lg, lg)
 
 
+LG_GEN = {'laliga': 'Ла Лиги', 'seriea': 'Серии А', 'bundesliga': 'Бундеслиги', 'ligue1': 'Лиги 1', 'ucl': 'Лиги чемпионов', 'uel': 'Лиги Европы'}
+
+
+def lg_gen(lg):   # «Другие матчи Лиги чемпионов» — родительный падеж (аудит 09.11b)
+    return LG_GEN.get(lg, lg_name(lg))
+
+
 def lg_link(m, from_dir):
     pre = '../' * B.depth(from_dir)
     if m['sport'] == 'hockey':
@@ -406,7 +413,7 @@ def other_matches(m, from_dir):
     lis = ''.join('<li><a href="%s"><span class="mt-oe">%s%s</span><b><span>%s</span> — <span>%s</span></b><small>%s МСК</small></a></li>'
                   % (esc(pre + x['rel']), em(x['h'], x['hn']), em(x['a'], x['an']), esc(x['hn']), esc(x['an']), esc(x['t'][11:16])) for x in same[:8])
     return ('<section class="fc-sec" aria-labelledby="mt-oth"><div class="wrap"><h2 id="mt-oth">Другие матчи %s в этот день</h2><ul class="fc-hub mt-oth">%s</ul></div></section>'
-            % (esc(lg_name(m['lg'])), lis))
+            % (esc(lg_gen(m['lg'])), lis))
 
 
 def remind_block(m, name, sport):

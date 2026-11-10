@@ -1,4 +1,5 @@
 /* Профиль хоккеиста (hockey/player.html) — только классы pp-*, общие стили v3a не трогает. Цвет клуба — переменная --c на .pp */
+main.pp{min-height:100vh}   /* пока грузится профиль, подвал не стоит вверху — без сдвига (аудит 09.11b, CLS 0,4–0,9) */
 body{background:var(--paper);color:var(--ink)}
 .pp{--c:#3a4a6a;padding-top:clamp(12px,2.4vw,28px);padding-bottom:64px}
 .pp-load,.pp-err{font:600 16px/1.5 var(--display);color:var(--ink-2);padding:40px 0}

@@ -11,6 +11,11 @@
 .wsub h5{font:700 14px/1.2 var(--display);color:var(--ink-3);margin:0 0 8px;letter-spacing:.02em}
 .wb{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) 44px;gap:8px;align-items:center;font:600 14px/1.2 var(--display);margin-bottom:5px}
 .wb span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* подписи полос — по содержимому, без многоточия; колонки общие на блок (аудит 09.11b) */
+.x-model .wsub{display:grid;grid-template-columns:max-content minmax(60px,1fr) 44px;gap:5px 10px;align-items:center;align-content:start}
+.x-model .wsub>:not(.wb){grid-column:1/-1}
+.x-model .wb{display:contents}
+.x-model .wb span{overflow:visible;white-space:normal;max-width:11em;line-height:1.2}
 .wb em{position:relative;display:block;height:8px;background:var(--paper-3);border-radius:4px}
 .wb em i{display:block;height:100%;width:var(--w);background:var(--ink-3);border-radius:4px}
 .wb.fav em i{background:var(--sport)}

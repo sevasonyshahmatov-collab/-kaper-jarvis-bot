@@ -149,3 +149,7 @@ html[data-sport="football"] .mstage{min-height:430px}
 .hd .hdrow.hd-c2 .gnav a{font-size:15px;padding:14px 5px}.hd .hdrow.hd-c2 .gnav a[aria-current]::after{left:5px;right:5px}
 .hd .hdrow.hd-c3 .gnav,.hd .hdrow.hd-c3 .hd-me{display:none}
 .hd .hdrow.hd-c3 .mbtn{display:inline-flex}.hd .hdrow.hd-c3 .btn-tg{margin-left:auto}
+/* ЛЧ: длинная строка лиги над табло переносится на вторую строку — место под неё с первого кадра (аудит 09.11b, CLS на компьютере 0,1) */
+body[data-only="ucl"] .board-top{min-height:45px}
+@media (min-width:1025px){body[data-only="ucl"] .cdown{min-height:53px}}
+@media (min-width:1300px){body[data-only="ucl"] .cdown{min-height:56px}}

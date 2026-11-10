@@ -174,5 +174,5 @@
 .mt-oe>*+*{margin-left:-8px}
 .mt-oe0{display:grid;place-items:center;font:800 12px/1 var(--display);color:#0d1626;font-style:normal}
 @media (max-width:620px){.mt-oe img,.mt-oe0{width:30px;height:30px}}
-.mt-oth a b span{white-space:nowrap}
+.mt-oth a b span{display:inline-block;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}   /* длинное название — на свою строку, не на время (аудит 09.11b) */
 .mt-oth a small{flex:none}
