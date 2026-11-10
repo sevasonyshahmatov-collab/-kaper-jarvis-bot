@@ -42,7 +42,7 @@ jobs:
           git commit -q -m "Данные v3a: ежедневное обновление $(TZ=Europe/Moscow date '+%d.%m %H:%M') МСК (run ${{ github.run_number }})"
           git stash -q -u || true  # остатки конвейера вне git add мешали rebase (runs 6–10)
           for i in 1 2 3 4 5; do
-            git fetch -q --depth=50 origin "$GITHUB_REF_NAME" && git rebase -q FETCH_HEAD && git push && exit 0
+            git fetch -q --depth=50 origin "$GITHUB_REF_NAME" && git rebase -q -X theirs FETCH_HEAD && git push && exit 0  # спор в файлах данных — берём свежесобранные (11.11)
             git rebase --abort 2>/dev/null; sleep 10
           done
           exit 1
