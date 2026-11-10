@@ -265,15 +265,18 @@ def foot_outcomes(feed):
     return out
 
 
-def build_football(feed):
+def build_football(feed, skip=(), hockey=False):
+    """Посты-прогнозы вида «Лига · дата · время МСК / A — B / Прогноз: … / Кэф: …». hockey=True — хоккейные посты на ещё не
+    сыгранные матчи (их нет в published.json): без итога, только для метки и ссылки на карточке матча."""
     picks = []
+    lgs = {'КХЛ': 'khl', 'НХЛ': 'nhl'} if hockey else FOOT_LG
     outs = foot_outcomes(feed)
     for x in feed:
         lines = [t.strip() for t in x['text'] if t.strip()]
         if len(lines) < 4:
             continue
         m = FOOT_HEAD.match(lines[0])
-        if not m or m.group('lg').strip() not in FOOT_LG or m.group('m') not in MON:
+        if not m or m.group('lg').strip() not in lgs or m.group('m') not in MON or x['id'] in skip:
             continue
         tm = re.match(r'^(.+?)%s(.+)$' % DASH, lines[1])
         bm = re.match(r'(?i)^прогноз\s*:\s*(.+)$', lines[2])
@@ -285,13 +288,15 @@ def build_football(feed):
         h, a = tm.group(1).strip(), tm.group(2).strip()
         kef = _kef(km.group(1))
         r, sc, rid = _mark(km.group(1)), '', None          # владелец ставит ✅/❌ у кэфа
+        if hockey:
+            r = None                               # итог хоккея — только по счёту (months.py), не по отметке
         for when, mk, score, pid in outs.get(_pair(h, a), []):
-            if timedelta(0) < when - start < timedelta(days=3):
+            if not hockey and timedelta(0) < when - start < timedelta(days=3):
                 r, sc, rid = (r or mk), score, pid
                 break
         bet = _clean(bm.group(1))
         bet = bet[:1].upper() + bet[1:] if not bet.isupper() else bet.capitalize()
-        picks.append(dict(id=x['id'], url='https://t.me/%s/%d' % (CHANNEL, x['id']), sport='football', lg=FOOT_LG[m.group('lg').strip()],
+        picks.append(dict(id=x['id'], url='https://t.me/%s/%d' % (CHANNEL, x['id']), sport='hockey' if hockey else 'football', lg=lgs[m.group('lg').strip()],
                           kind='single', src=None, d=start.strftime('%Y-%m-%d %H:%M'), posted=posted.strftime('%Y-%m-%d %H:%M'),
                           h=h, a=a, bet=bet, kef=kef, pm=None, r=r, sc=sc, u=_units(r, kef), rid=rid))
     return picks
@@ -465,16 +470,41 @@ def build_hockey(published, feed, sent, settle):
     return picks, first_bot
 
 
-def label_football(picks, sent):
+def label_football(picks, sent, settle=None):
     for p in picks:
-        if p['kind'] != 'single' or p['sport'] != 'football':
+        if p['kind'] != 'single':
             continue
         cands = sent.get((_pair(p['h'], p['a']), p['d'][5:10]))
         if cands:
             p['src'] = 'author'
             for c in cands:
-                if _same_bet(None, c['bet'], p['bet'], p['h'], p['a']):
+                if _same_bet(settle, c['bet'], p['bet'], p['h'], p['a']):
                     p['src'], p['pm'] = 'model', c['pm']
+
+
+def match_posts(picks):
+    """Матчи окна сайта (data/today.json, football.json up) → {ключ матча: пост в канале}: метка и ссылка на карточке матча."""
+    idx = {}
+    try:
+        for m in json.loads(_read(os.path.join(V3A, 'data', 'today.json')) or '{}').get('matches') or []:
+            idx[(_pair(m.get('hn'), m.get('an')), m['key'].split('|')[1])] = m['key']
+    except (ValueError, KeyError):
+        pass
+    try:
+        fb = json.loads(_read(os.path.join(V3A, 'football', 'data', 'football.json')) or '{}')
+        tn = {k: v.get('n') for k, v in (fb.get('teams') or {}).items()}
+        for m in fb.get('up') or []:
+            idx[(_pair(tn.get(m['h']), tn.get(m['a'])), m['t'][:10])] = '%s|%s|%s|%s' % (m['lg'], m['t'][:10], m['h'], m['a'])
+    except (ValueError, KeyError):
+        pass
+    out = {}
+    for p in picks:
+        if p['kind'] != 'single':
+            continue
+        k = idx.get((_pair(p['h'], p['a']), p['d'][:10]))
+        if k:
+            out[k] = dict(id=p['id'], url=p['url'], src=p['src'], bet=p['bet'], kef=p['kef'], r=p['r'])
+    return out
 
 
 # ---------------------------------------------------------------- сводка
@@ -540,6 +570,18 @@ def main():
     hockey, first_bot = build_hockey(published, feed, sent, settle)
     foot = build_football(feed)
     label_football(foot, sent)
+    now0 = datetime.now(MSK).strftime('%Y-%m-%d %H:%M')
+    known = {(_pair(p['h'], p['a']), p['d'][:10]) for p in hockey}
+    ahead = [p for p in build_football(feed, skip={p['id'] for p in hockey}, hockey=True)
+             if p['d'] > now0 and (_pair(p['h'], p['a']), p['d'][:10]) not in known]
+    try:
+        from settle import canon
+        for p in ahead:
+            p['h'], p['a'] = canon(p['h']), canon(p['a'])
+    except Exception:  # noqa: BLE001
+        pass
+    label_football(ahead, sent, settle)
+    hockey += ahead
     exp = build_express(feed, _read(os.path.join(team, 'picks', 'EXPRESS_RESULTS.md')))
     nsc = by_score(foot + exp)
     picks = sorted(hockey + foot + exp, key=lambda p: (p['d'], p['id']), reverse=True)
@@ -557,6 +599,10 @@ def main():
                 recent=[dict(r=p['r'], kind=p['kind']) for p in picks if p['r']][:20])
     with open(os.path.join(dd, 'results-lite.js'), 'w', encoding='utf-8') as f:
         f.write('window.__RESLITE=' + json.dumps(lite, ensure_ascii=False, separators=(',', ':')) + ';\n')
+    posts = match_posts(picks)
+    with open(os.path.join(dd, 'posts.js'), 'w', encoding='utf-8') as f:
+        f.write('window.JV_POSTS=' + json.dumps(posts, ensure_ascii=False, separators=(',', ':')) + ';\n')
+    print('RESULTS матчей окна с постом в канале: %d' % len(posts))
     t = out['sum']['total']
     print('RESULTS прогнозов %d: хоккей %d, футбол %d, экспрессы %d; с итогом %d (зашло %d, не зашло %d, возврат %d), без итога %d; '
           'по модели %d, выбор автора %d; итог по счёту (не из канала): %d' % (len(picks), len(hockey), len(foot), len(exp), t['all']['n'], t['all']['w'], t['all']['l'],

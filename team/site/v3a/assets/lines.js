@@ -33,6 +33,8 @@ const modelLine=(md,opt={})=>{if(!md)return '';const a=[`П1 ${p0(md.p1)} %`,`Х
  return `<span class="mlab">Модель JARVIS:</span> ${a.join(' · ')}`};
 
 /* ── блок в строке матча: кэфы линии (доля линии под кэфом), тотал, модель, источник и пометка расхождения ── */
+const PO=window.JV_POSTS||{};
+const postOf=m=>PO[m.key]||PO[key(m.lg,m.t,m.h,m.a)]||null;
 function quotes(m,opt={}){const {ln,md}=m,fl=fair(ln),pm=md?[md.p1,md.x,md.p2]:null,base=fl||pm,mx=base?Math.max(...base):0;
  const q=['П1','Х','П2'].map((k,j)=>{const v=ln?(j===0?ln.p1:j===1?ln.x:ln.p2):null;
   return `<span class="qc${base&&base[j]===mx?' fav':''}"><small>${k}</small><b class="num">${v?f2(v):'—'}</b><em class="num">${base?p0(base[j])+'%':''}</em></span>`}).join('');
@@ -46,7 +48,9 @@ function quotes(m,opt={}){const {ln,md}=m,fl=fair(ln),pm=md?[md.p1,md.x,md.p2]:n
    k=ln?(j===0?ln.p1:j===1?ln.x:ln.p2):null,e=k?pm[j]*k:0,lv=e>=1.15?3:e>=1.08?2:e>=1.02?1:0,
    t=!k?'линии пока нет':lv===3?'сильный перевес над линией':lv===2?'заметный перевес над линией':lv===1?'небольшой перевес над линией':e>=.97?'вровень с линией':'линия оценивает выше';
   qv=`<div class="qv"><span class="qv-t"><small>Расчёт модели</small><b>${esc(w)}</b></span><span class="qv-k num">${k?f2(k):'—'}</span><span class="qv-e" data-l="${lv}"><i></i><i></i><i></i><em>${t}</em></span></div>`}
- return `${qv}<div class="q3">${q}</div>${tot}${md?`<div class="qm">${modelLine(md,opt)}</div>`:''}${dvHtml(ln,md)?`<div class="qd">${dvHtml(ln,md)}</div>`:''}${src}`}
+ /* пост в канале на этот матч (data/posts.js, daily/results.py): чья ставка и какая — метка «По модели» / «Выбор автора» */
+ const po=postOf(m),qp=po?`<div class="qp"><span class="qp-w${po.src==='author'?' au':''}">${po.src==='model'?'По модели':po.src==='author'?'Выбор автора':'В канале'}</span><b>${esc(po.bet)}</b>${po.kef?`<span class="num">${f2(po.kef)}</span>`:''}</div>`:'';
+ return `${qp}${qv}<div class="q3">${q}</div>${tot}${md?`<div class="qm">${modelLine(md,opt)}</div>`:''}${dvHtml(ln,md)?`<div class="qd">${dvHtml(ln,md)}</div>`:''}${src}`}
 
 /* ── раскрытая строка: расчёт модели ── */
 const bar=(lab,pm,pl,fav,full)=>`<div class="wb${fav?' fav':''}"><span${full?` title="${esc(full)}"`:''}>${esc(lab)}</span><em><i style="--w:${p0(pm)}%"></i>${pl!=null?`<u style="left:${p0(pl)}%" title="линия: ${p0(pl)} %"></u>`:''}</em><b class="num">${p0(pm)} %</b></div>`;
@@ -61,9 +65,10 @@ function why(m,opt={}){const {ln,md}=m;if(!md)return '<p class="none">Расчё
    ${md.btts!=null?bar('Обе забьют',md.btts,null,false):''}</div>`}
  const fin=md.w1!=null&&md.w2!=null?`<div class="wsub"><h5>Итоговая победа, с овертаймом и буллитами</h5>${bar(names[0],md.w1,ln&&ln.fin1&&ln.fin2?(1/ln.fin1)/(1/ln.fin1+1/ln.fin2):null,md.w1>md.w2)}${bar(names[1],md.w2,null,md.w2>md.w1)}</div>`:'';
  const lam=md.lam?`<p class="xlam"><b>Ожидаемые голы:</b> ${esc(names[0])} <b class="num">${f2(md.lam[0])}</b> — ${esc(names[1])} <b class="num">${f2(md.lam[1])}</b>, вместе <b class="num">${f2(md.lam[0]+md.lam[1])}</b>.</p>`:'';
+ const po=postOf(m),pl=po?`<p class="qpl">На этот матч вышел прогноз в канале: <b>${esc(po.bet)}</b>${po.kef?`, кэф <b class="num">${f2(po.kef)}</b>`:''}. <a href="${esc(po.url)}" target="_blank" rel="noopener">Открыть пост №${+po.id} →</a></p>`:'';
  return `<section class="xb x-model"><h4>Расчёт модели${md.t?` <span class="note">от ${esc(hhmm(md.t))} МСК</span>`:md.ver==='poisson-v1'?' <span class="note">по голам сезона</span>':''}</h4>
   <div class="wgrid"><div class="wsub"><h5>Исход в основное время</h5>${rows}${ln?'':'<p class="note">Линии на матч пока нет.</p>'}</div>
-  ${totals}${fin}</div>${lam}${dvHtml(ln,md)?`<p class="qd">${dvHtml(ln,md)}</p>`:''}
+  ${totals}${fin}</div>${pl}${lam}${dvHtml(ln,md)?`<p class="qd">${dvHtml(ln,md)}</p>`:''}
   </section>`}
 
 /* ── секция «Прогноз модели» (#model): все матчи окна с вероятностями модели и линией ── */
