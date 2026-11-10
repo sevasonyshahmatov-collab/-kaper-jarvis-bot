@@ -52,7 +52,7 @@ const startMs=d=>Date.parse(d.slice(0,10)+'T'+(d.slice(11,16)||'00:00')+':00+03:
 const nextG=future.find(g=>startMs(g.d)>Date.now()-3*36e5)||future[0];
 const pts=g=>g.gf>g.ga?3:g.gf===g.ga?1:0;
 const TGICO='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.9.8 1.4.4l2.6-2.2 4.8 3.5c.6.4 1.4.1 1.6-.7l3.1-15.1c.2-1-.7-1.7-1.6-1.3z"/></svg>';
-const followBtn=(cls='')=>`<a class="follow ${cls}" href="https://t.me/jarvibet?start=follow_${encodeURIComponent(ID)}" target="_blank" rel="noopener" title="Прогноз и итог матча — в Telegram">${TGICO}<span>Получать прогнозы — бесплатно</span></a>`;
+const followBtn=(cls='')=>`<a class="follow ${cls}" href="https://t.me/jarvibet?start=follow_${encodeURIComponent(ID)}" target="_blank" rel="noopener" title="Прогноз и итог матча — в Telegram">${TGICO}<span>Прогнозы на матчи клуба — в Telegram</span></a>`;
 const bd=(D.built||'').slice(0,10),bdd=bd?day(bd):null,asOf=bdd?`на ${bdd.d} ${bdd.mon}`:'';
 const tbl0=Object.fromEntries((D.tables[EFF]||[]).map(r=>[r.id,r])),leagueRows=EL.ids.map(s=>({...TM[s],...(tbl0[s]||{})})).sort((a,b)=>a.place-b.place);
 const cupLab=k=>(D.leagues[k]||{}).short||k;
@@ -162,7 +162,7 @@ document.querySelectorAll('.gfilter button').forEach(b=>b.addEventListener('clic
 /* ── 4. наши ставки: боевых итогов по клубам пока нет — честно говорим об этом ── */
 $('picksBox').innerHTML=`
  <div class="sec-head" data-rv><h2>Наши ставки на ${esc(T.n)}</h2></div>
- <div class="pkempty" data-rv><p>На матчи ${esc(T.n)} ставок канала пока не было. Как только модель найдёт ставку — она появится здесь и в канале.</p><a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a></div>`;
+ <div class="pkempty" data-rv><p>На матчи ${esc(T.n)} ставок канала пока не было. Как только модель найдёт ставку — она появится здесь и в канале.</p><a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть канал в Telegram</a></div>`;
 
 /* ── 2а. следующий матч ── */
 if(nextG){

@@ -101,7 +101,7 @@
 .mx-mid::before{content:"";position:absolute;inset:-28% -40%;z-index:-1;pointer-events:none;background:radial-gradient(closest-side,rgba(6,12,24,.45),transparent)}
 .mx-time,.mx-score{text-shadow:0 2px 18px rgba(0,0,0,.35)}
 /* телефон: ссылки «Напомнить» — плотно в строку */
-@media (max-width:620px){.mx-head .mt-rem{gap:6px 16px}.mx-head .mt-rem .mt-rem-b{flex-basis:100%;justify-content:center}.mx-head .mt-rem .mt-rem-l{min-height:36px;font-size:14px}}
+@media (max-width:620px){.mx-info .mt-rem{gap:6px 16px}.mx-info .mt-rem .mt-rem-b{flex-basis:100%;justify-content:center}.mx-info .mt-rem .mt-rem-l{min-height:36px;font-size:14px}}
 /* буквы на поле: белые на тёмных цветах клуба, тёмные на светлых (жёлтый, золото) */
 .mx-hero .mx-team.mx-h,.mx-hero .mx-team.mx-h small{color:var(--hi,#fff)}
 .mx-hero .mx-team.mx-a,.mx-hero .mx-team.mx-a small{color:var(--ai,#fff)}
@@ -176,3 +176,14 @@
 @media (max-width:620px){.mt-oe img,.mt-oe0{width:30px;height:30px}}
 .mt-oth a b span{display:inline-block;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}   /* длинное название — на свою строку, не на время (аудит 09.11b) */
 .mt-oth a small{flex:none}
+
+/* ── расчёт сразу под заголовком, справка о матче — отдельным блоком ниже (владелец 10.11) ── */
+.mx-hero{padding-bottom:0}
+.mx-hero+.mx-model{padding-top:clamp(14px,2vw,24px)}
+.mx-hero+.mx-model h2{font-size:clamp(15px,1.3vw,18px);letter-spacing:.06em;color:var(--ink-3);margin-bottom:8px}
+.mx-info .mx-facts{margin-top:0}
+.mx-info .mt-rem{margin-top:16px}
+.mx-stub{padding:16px 18px;border-radius:14px;background:var(--card);border-left:4px solid var(--signal,#ffc21a)}
+.mx-stub b{display:block;font:800 clamp(17px,1.6vw,21px)/1.2 var(--display)}
+.mx-stub p{margin:6px 0 0;color:var(--ink-2);max-width:62ch}
+.mt-totn{margin-top:8px}

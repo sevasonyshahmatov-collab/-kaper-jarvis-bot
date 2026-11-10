@@ -111,7 +111,7 @@ const streak=(()=>{const a=played.slice().sort((x,y)=>String(x.d).localeCompare(
 const streakHtml=streak.n>=3?`<p class="tmstreak ${streak.win?'w':'l'}" aria-label="${streak.win?'Серия побед':'Серия поражений'}: ${streak.n}"><span class="sk">${streak.win?'Серия побед':'Серия поражений'}:</span><b class="num">${streak.n}</b><span class="dots" aria-hidden="true">${streak.last.slice(-10).map(x=>`<i class="${x?'w':'l'}"></i>`).join('')}</span></p>`:'';
 const TGICO='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.9.8 1.4.4l2.6-2.2 4.8 3.5c.6.4 1.4.1 1.6-.7l3.1-15.1c.2-1-.7-1.7-1.6-1.3z"/></svg>';
 /* «Следить за командой»: старт бота с параметром follow_<id> (подписку на команду в боте делают отдельно) */
-const followBtn=(cls='')=>`<a class="follow ${cls}" href="https://t.me/jarvibet?start=follow_${esc(ID)}" target="_blank" rel="noopener" title="Прогноз и итог матча — в Telegram">${TGICO}<span>Получать прогнозы — бесплатно</span></a>`;
+const followBtn=(cls='')=>`<a class="follow ${cls}" href="https://t.me/jarvibet?start=follow_${esc(ID)}" target="_blank" rel="noopener" title="Прогноз и итог матча — в Telegram">${TGICO}<span>Прогнозы на матчи клуба — в Telegram</span></a>`;
 const hasSample=T.games.some(g=>g.s),hasEst=T.games.some(g=>g.ks);
 const otl=Math.max(0,(T.pts||0)-2*(T.w||0));
 const confRows=Object.entries(D.teams).filter(([,x])=>x.lg===lg&&x.conf===conf).sort((a,b)=>a[1].place-b[1].place);
@@ -231,7 +231,7 @@ document.getElementById('picksBox').innerHTML=`
    <span class="pm">${em(p.h)}<span>${esc(nm(p.h))} — ${esc(nm(p.a))}</span>${em(p.a)}</span>
    <span class="pt"><strong>${esc(String(p.pick||'').replace(/(\d)\.(\d)/g,'$1,$2'))}</strong><small>кэф ${esc(p.k)} · счёт ${esc(p.sc)}</small></span>
    <span class="pr" title="${ok?'прогноз зашёл':'прогноз не зашёл'}">${ok?'✓':'✕'}</span></li>`}).join('')}</ol></div>`
- :`<div class="pkempty" data-rv><p>На матчи ${esc(T.name)} прогнозов пока не было. Как только модель найдёт ставку — она появится здесь и в канале.</p><a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a></div>`}
+ :`<div class="pkempty" data-rv><p>На матчи ${esc(T.name)} прогнозов пока не было. Как только модель найдёт ставку — она появится здесь и в канале.</p><a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Открыть канал в Telegram</a></div>`}
 `;
 
 

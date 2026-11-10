@@ -550,26 +550,46 @@ def forecast_page(lg):
 def hub_page():
     rel = 'forecast.html'
     P = PAGES[rel]
-    cards = []
+    # матчи сегодняшнего игрового дня — сразу с вероятностями, лиги — быстрыми ссылками-фильтром сверху (владелец 10.11);
+    # лиги без матчей сегодня — короткой строкой «ближайший день» со ссылкой на свою страницу
+    plural = lambda n: 'матч' if n % 10 == 1 and n != 11 else 'матча' if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14 else 'матчей'  # noqa: E731
+    chips, today, later, ld_ev = [], [], [], []
     for sport in ('hockey', 'football'):
-        items = []
         for lg in LG_ALL:
             if SPORT_OF[lg] != sport:
                 continue
             day, ms = pick_day(matches_for(lg))
-            if day:
-                dm, _ = ru_date(day)
-                sub = ('сегодня, %d' % len(ms)) if day == BUILT_GD else ('%s, %d' % (dm, len(ms)))
-                cnt = '<small>%s</small>' % esc(sub + ' ' + ('матч' if len(ms) % 10 == 1 and len(ms) != 11 else 'матча' if 2 <= len(ms) % 10 <= 4 and not 12 <= len(ms) % 100 <= 14 else 'матчей'))
+            if day and day == BUILT_GD:
+                chips.append('<li><a href="#fc-%s">%s <small>%d</small></a></li>' % (esc(lg), esc(LG_NAME[lg]), len(ms)))
+                today.append('<section class="fc-lg" id="fc-%s" aria-labelledby="fc-h-%s"><h2 id="fc-h-%s"><a href="%s">%s</a> <small>%d %s</small></h2>'
+                             '<ul class="fc-list">%s</ul></section>'
+                             % (esc(lg), esc(lg), esc(lg), esc(fc_rel(lg)), esc(LG_NAME[lg]), len(ms), plural(len(ms)), ''.join(match_li(m, sport, '') for m in ms)))
+                ld_ev += [event_ld(m, sport, rel) for m in ms]
             else:
-                cnt = '<small>матчей в данных нет</small>'
-            items.append('<li><a href="%s"><b>%s</b>%s</a></li>' % (esc(fc_rel(lg)), esc(LG_NAME[lg]), cnt))
-        cards.append('<div class="fc-hub-col"><h2>%s</h2><ul class="fc-hub">%s</ul></div>' % (SPORT_RU[sport], ''.join(items)))
+                if day:
+                    dm, _ = ru_date(day)
+                    cnt = '<small>%s, %d %s</small>' % (esc(dm), len(ms), plural(len(ms)))
+                else:
+                    cnt = '<small>матчей в данных нет</small>'
+                later.append('<li><a href="%s"><b>%s</b>%s</a></li>' % (esc(fc_rel(lg)), esc(LG_NAME[lg]), cnt))
+    if today:
+        main = ('<section class="fc-sec"><div class="wrap">%s%s</div></section>\n'
+                % (('<ul class="fc-sw fc-jump" aria-label="Лиги сегодня">%s</ul>' % ''.join(chips)) if len(chips) > 1 else '', ''.join(today)))
+    else:
+        main = '<section class="fc-sec"><div class="wrap"><p class="fc-note">Сегодня матчей в данных нет. Ниже — ближайшие игровые дни по лигам.</p></div></section>\n'
+    rest = ('<section class="fc-sec" aria-labelledby="fc-later"><div class="wrap"><h2 id="fc-later">%s</h2><ul class="fc-hub">%s</ul></div></section>\n'
+            % ('Ближайшие дни в других лигах' if today else 'Ближайшие игровые дни', ''.join(later))) if later else ''
     body = ('<section class="fc-top"><div class="wrap">\n%s\n<h1>Прогноз<br><span>на сегодня</span></h1>\n'
-            '<p class="fc-upd"><time datetime="%s">%s</time></p>\n</div></section>\n\n'
-            '<section class="fc-sec"><div class="wrap fc-hubs">%s</div></section>'
-            % (crumbs_html(P['crumbs'], rel), esc(BUILT.replace(' ', 'T') + ':00+03:00'), esc(upd_text()), ''.join(cards)))
-    return rel, shell(rel, '', body), []
+            '<p class="lead">Вероятности считает модель, а не эксперт, и они не гарантируют результат.</p>\n'
+            '<p class="fc-upd"><time datetime="%s">%s</time></p>\n</div></section>\n\n%s%s'
+            '<section class="fc-sec fc-how"><div class="wrap"><p class="fc-links"><a href="matches.html">Все матчи дня колодой</a> · <a href="model.html">Как считает модель</a> · '
+            '<a href="glossary.html">Словарь терминов</a></p>\n'
+            '<p class="fc-legal">Материалы носят информационный характер. Реклама букмекеров на сайте не размещается. Сайт только для совершеннолетних (18+).</p></div></section>'
+            % (crumbs_html(P['crumbs'], rel), esc(BUILT.replace(' ', 'T') + ':00+03:00'), esc(upd_text()), main, rest))
+    ld = [{'@type': 'ItemList', 'name': 'Матчи сегодня', 'itemListElement': [
+        {'@type': 'ListItem', 'position': i + 1, 'item': e} for i, e in enumerate(ld_ev)]}] if ld_ev else []
+    live_js = '<script src="assets/live.js" defer></script>\n' if today else ''
+    return rel, shell(rel, '', body, extra_scripts=live_js), ld
 
 
 def glossary_page():

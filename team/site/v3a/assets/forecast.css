@@ -85,3 +85,13 @@ body.fc a:focus-visible{outline:3px solid var(--ice);outline-offset:2px}
 /* сыгранный матч (live.js): приглушён, внизу подпись «сыгран» */
 .fc-m.fc-done{opacity:.55}
 .fc-m.fc-done .fc-time small{color:var(--ink-2);letter-spacing:.04em}
+
+/* ── «Прогноз на сегодня», общая страница: матчи дня сразу, лиги — ссылками-фильтром (владелец 10.11) ── */
+.fc-jump{position:sticky;top:var(--hd-h,64px);z-index:5;margin-bottom:8px;padding:8px 0;background:var(--paper)}
+.fc-jump small{opacity:.7;font-weight:600;margin-left:2px}
+.fc-lg{scroll-margin-top:calc(var(--hd-h,64px) + 64px)}
+.fc-lg+.fc-lg{margin-top:clamp(28px,4vw,44px)}
+.fc-lg h2{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.fc-lg h2 a{color:inherit;text-decoration:none}
+.fc-lg h2 a:hover{text-decoration:underline;text-underline-offset:5px}
+.fc-lg h2 small{font:600 14px/1 var(--display);color:var(--ink-3);letter-spacing:0;text-transform:none}

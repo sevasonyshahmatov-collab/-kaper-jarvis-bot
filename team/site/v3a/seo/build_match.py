@@ -139,6 +139,27 @@ f1 = lambda v: ('%.1f' % v).replace('.', ',')  # noqa: E731
 f2 = lambda v: ('%.2f' % v).replace('.', ',')  # noqa: E731
 
 
+def pct3(md):
+    """Три вероятности в целых процентах с суммой ровно 100 (аудит 09.11b, п. 9): остаток округления — на самый вероятный исход."""
+    v = [md['p1'], md.get('x') or 0, md['p2']]
+    p = [round(x * 100) for x in v]
+    if abs(sum(v) - 1) < .02 and sum(p) != 100:
+        p[v.index(max(v))] += 100 - sum(p)
+    return p
+
+
+def lg_crumb(m):
+    """Крошка лиги (от корня сайта) — для сыгранных матчей вместо «Прогноз на сегодня» (аудит 09.11b, п. 9)."""
+    lg = m['lg']
+    if m['sport'] == 'hockey':
+        return lg_name(lg), 'hockey/league.html?lg=' + lg
+    return lg_name(lg), ('football/ucl.html' if lg == 'ucl' else 'football/league.html?lg=' + lg)
+
+
+def has_md(m):
+    return (m.get('md') or {}).get('p1') is not None
+
+
 def pl(n, forms):
     n = abs(int(n)) % 100
     a = n % 10
@@ -398,6 +419,9 @@ def odds_block(m):
     s = '<ul class="fc-nums mt-odds">%s</ul>' % ''.join('<li><small>%s</small><b>%s</b></li>' % (c, f2(v)) for c, v in cells)
     if ln.get('tot') is not None and ln.get('over') and ln.get('under'):
         s += '<p class="fc-ext">Тотал %s: больше <b>%s</b>, меньше <b>%s</b></p>' % (f1(ln['tot']), f2(ln['over']), f2(ln['under']))
+        mt = (m.get('md') or {}).get('tot')
+        if mt is not None and abs(mt - ln['tot']) > .01:   # модель считает другую линию — подписать, чтобы цифры не спорили
+            s += '<p class="mt-note mt-totn">Линия тотала в кэфах — %s, модель считает вероятность для %s: цифры относятся к разным линиям.</p>' % (f1(ln['tot']), f1(mt))
     return ('<div class="mt-odds-wrap"><h3>Кэфы на матч</h3>%s<p class="mt-note">Это справка, не рекомендация.</p></div>' % s)
 
 
@@ -571,24 +595,37 @@ def v2_top(m, from_dir, fin, name, h1b, dm, wd, ar_txt, crumbs, rel, cols):
     if ar_txt:
         facts.append('<li><small>Арена</small><b>%s</b></li>' % esc(ar_txt))
     facts.append('<li><small>Турнир</small><b><a href="%s">%s</a></b></li>' % (esc(lg_link(m, from_dir)), esc(lg_name(m['lg']))))
-    facts.append('<li><small>Когда</small><b>%s, %s, %s МСК</b></li>' % (esc(dm), esc(wd), esc(m['t'][11:16])))
     rem = '' if fin else remind_block(m, name, sport)
+    # расчёт модели — сразу под полем и заголовком; арена, напоминание и «обновлено» — отдельным блоком ниже (владелец 10.11);
+    # «Когда» убрано: дата и время уже стоят на поле и в заголовке
+    info = ('<section class="fc-sec mx-info" aria-label="О матче"><div class="wrap"><ul class="mx-facts">%s</ul>\n%s'
+            '<p class="fc-upd"><time datetime="%s">%s</time></p></div></section>\n'
+            % (''.join(facts), rem, esc(B.BUILT.replace(' ', 'T') + ':00+03:00'), esc(B.upd_text())))
     return ('<section class="mx-hero" style="--hc:%s;--ac:%s;--hi:%s;--ai:%s" aria-label="%s">\n'
             '<div class="wrap mx-crumbs">%s</div>\n'
             '<div class="mx-field%s">%s<i class="mx-sheen" aria-hidden="true"></i><i class="mx-seam" aria-hidden="true"></i><div class="wrap mx-stage">%s%s%s</div></div>\n'
-            '<div class="wrap mx-head"><h1 class="mx-h1">%s <span>%s</span></h1>\n<ul class="mx-facts">%s</ul>\n%s'
-            '<p class="fc-upd"><time datetime="%s">%s</time></p></div>\n</section>\n'
-            % (hc, ac, hi, ai, esc(name), B.crumbs_html(crumbs, rel), fld, fxl, team('h'), mid, team('a'), esc(name), esc(h1b), ''.join(facts), rem,
-               esc(B.BUILT.replace(' ', 'T') + ':00+03:00'), esc(B.upd_text())))
+            '<div class="wrap mx-head"><h1 class="mx-h1">%s <span>%s</span></h1></div>\n</section>\n'
+            % (hc, ac, hi, ai, esc(name), B.crumbs_html(crumbs, rel), fld, fxl, team('h'), mid, team('a'), esc(name), esc(h1b))), info
+
+
+def model_stub(m, pre, odds=''):
+    """Будущий матч без расчёта (аудит 09.11b, п. 3): честная заглушка — когда появится расчёт и что есть уже сейчас."""
+    return ('<section class="fc-sec mx-model mx-wait" aria-labelledby="mt-md"><div class="wrap"><h2 id="mt-md">Расчёт модели</h2>\n'
+            '<div class="mx-stub"><b>Расчёт появится примерно за 1,5 суток до матча</b>'
+            '<p>Модель считает вероятности, когда известны свежие результаты команд. До этого на странице — форма, личные встречи и таблица.</p></div>%s\n'
+            '<p class="mt-note"><a href="%smodel.html?s=%s">Как считает модель</a> · <a href="%sglossary.html">словарь терминов</a>.</p></div></section>\n'
+            % (odds, pre, 'h' if m['sport'] == 'hockey' else 'f', pre))
 
 
 def v2_model(m, fin, pre, cols):
     md = m.get('md') or {}
     if md.get('p1') is None:
         o = odds_block(m)
-        return ('<section class="fc-sec"><div class="wrap"><div class="mt-md">%s</div></div></section>\n' % o) if o else ''
+        if fin:
+            return ('<section class="fc-sec"><div class="wrap"><div class="mt-md">%s</div></div></section>\n' % o) if o else ''
+        return model_stub(m, pre, o)
     sport = m['sport']
-    p = [round(md['p1'] * 100), round((md.get('x') or 0) * 100), round(md['p2'] * 100)]
+    p = pct3(md)
     lab = [m['hn'], 'ничья' + (' в осн. время' if sport == 'hockey' else ''), m['an']]
     mx = max(p)
     seg = ''.join('<i class="mx-s%s%s" style="flex:%d"><b>%d %%</b><small>%s</small></i>'
@@ -674,6 +711,8 @@ def v2_summary(m):
             s.append('Модель до матча считала самым вероятным исходом %s (%d %%) — %s.'
                      % ({'h': 'победу хозяев', 'a': 'победу гостей', 'd': 'ничью'}[fav], round(pr[fav] * 100),
                         'так и вышло' if fav == res else 'вышло иначе'))
+        else:
+            s.append('Расчёт модели до матча не сохранился.')
         gh, ga = [g for g in gh if g['d'][:10] < m['t'][:10]], [g for g in ga if g['d'][:10] < m['t'][:10]]
 
     def streak(gs):
@@ -779,20 +818,21 @@ def match_page(m):
         h1b = 'итог матча %s' % dm
         res_txt = '%d:%d%s' % (m['res'][0], m['res'][1], (' (%s)' % m['res'][2]) if m['res'][2] else '')
     else:
-        title = '%s: прогноз на матч %s %s, %s' % (name, dm, yr, lg_name(lg))
-        h1b = 'прогноз на матч %s' % dm
+        kind = 'прогноз на матч' if has_md(m) else 'превью матча'   # без расчёта модели слово «прогноз» не пишем (аудит 09.11b, п. 3)
+        title = '%s: %s %s %s, %s' % (name, kind, dm, yr, lg_name(lg))
+        h1b = '%s %s' % (kind, dm)
     if md and md.get('p1') is not None:
-        pr = [round(md['p1'] * 100), round((md.get('x') or 0) * 100), round(md['p2'] * 100)]
+        pr = pct3(md)
         desc = '%s, %s, %s %s, %s МСК%s. Вероятности по модели: победа хозяев %d %%, ничья %d %%, гостей %d %%. Форма команд и личные встречи.' % (
             name, lg_name(lg), dm, wd, m['t'][11:16], (', ' + ar_txt) if ar_txt else '', pr[0], pr[1], pr[2])
         if fin:
             desc = '%s, %s, %s: итог %s. Расчёт модели до матча, форма команд и личные встречи.' % (name, lg_name(lg), dm, res_txt)
     else:
-        desc = '%s, %s, %s %s, %s МСК%s. Форма команд, положение в таблице, личные встречи.' % (name, lg_name(lg), dm, wd, m['t'][11:16], (', ' + ar_txt) if ar_txt else '')
+        desc = '%s, %s, %s %s, %s МСК%s. Форма команд, положение в таблице, личные встречи. Расчёт модели появится примерно за 1,5 суток до матча.' % (name, lg_name(lg), dm, wd, m['t'][11:16], (', ' + ar_txt) if ar_txt else '')
         if fin:
             desc = '%s, %s, %s: итог %s. Форма команд, положение в таблице, личные встречи.' % (name, lg_name(lg), dm, res_txt)
     sp_dir = 'hockey' if sport == 'hockey' else 'football'
-    crumbs = [B.HOME, (B.SPORT_RU[sport], sp_dir + '/index.html'), ('Прогноз на сегодня: ' + lg_name(lg), B.fc_rel(lg)), (name, rel)]
+    crumbs = [B.HOME, (B.SPORT_RU[sport], sp_dir + '/index.html'), lg_crumb(m) if fin else ('Прогноз на сегодня: ' + lg_name(lg), B.fc_rel(lg)), (name, rel)]
     facts = ['<li><small>Когда</small><b>%s, %s</b><span>%s МСК</span></li>' % (esc(dm), esc(wd), esc(m['t'][11:16]))]
     if ar_txt:
         extra = ''
@@ -818,7 +858,9 @@ def match_page(m):
                % ('Расчёт модели до матча' if fin else 'Расчёт модели: вероятности и тотал', B.mdl_block(m, sport), odds_block(m), pre, 'h' if sport == 'hockey' else 'f', pre))
     else:
         o = odds_block(m)
-        if o:
+        if not fin:
+            mdl = model_stub(m, pre, o)
+        elif o:
             mdl = '<section class="fc-sec"><div class="wrap"><div class="mt-md">%s</div></div></section>\n' % o
     pv = v2_summary(m) if V2 else preview_text(m)
     prev = ('<section class="fc-sec" aria-labelledby="mt-pv"><div class="wrap"><h2 id="mt-pv">Коротко о матче</h2>'
@@ -839,8 +881,8 @@ def match_page(m):
         if bgc:   # цвета баннера Telegram — и для полосы вероятностей; буквы тёмные только на очень светлом
             ink = lambda c: '#141a24' if _lum(c.lstrip('#')) > .55 else '#ffffff'  # noqa: E731
             cols = (bgc[0], bgc[1], ink(bgc[0]), ink(bgc[1]))
-        top = v2_top(m, from_dir, fin, name, h1b, dm, wd, ar_txt, crumbs, rel, cols)
-        body = top + v2_model(m, fin, pre, cols) + prev + v2_form(m, from_dir) + v2_h2h(m, from_dir) + table_block(m) + other_matches(m, from_dir) + links
+        top, info = v2_top(m, from_dir, fin, name, h1b, dm, wd, ar_txt, crumbs, rel, cols)
+        body = top + v2_model(m, fin, pre, cols) + info + prev + v2_form(m, from_dir) + v2_h2h(m, from_dir) + table_block(m) + other_matches(m, from_dir) + links
     else:
         body = top + mdl + prev + form_block(m, from_dir) + h2h_block(m) + table_block(m) + other_matches(m, from_dir) + links
     js = '<script>window.JV_ACT=%s;</script>\n' % json.dumps('khl' if lg == 'khl' else 'nhl' if lg == 'nhl' else 'ucl' if lg == 'ucl' else '' if sport == 'hockey' else 'lg')
