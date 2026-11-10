@@ -1,0 +1,159 @@
+<!doctype html>
+<!-- Эскизы видео для первого экрана разделов (10.11). Рисует кадр t∈[0,1) петли: window.draw(variant 1..4, 'hockey'|'football', t).
+     Ролики собирает assets/herovid/src/render.js (Playwright + ffmpeg). Это эскизы кодом, не съёмка. -->
+<meta charset="utf-8">
+<canvas id="c" width="1280" height="720"></canvas>
+<script>
+'use strict';
+const C=document.getElementById('c'),X=C.getContext('2d'),W=C.width,H=C.height,TAU=Math.PI*2;
+const rnd=i=>{const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+const lerp=(a,b,k)=>a+(b-a)*k,cl=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),ss=(a,b,v)=>{const k=cl((v-a)/(b-a));return k*k*(3-2*k)};
+const IMG={};function load(n,src){return new Promise(ok=>{const i=new Image();i.onload=()=>{IMG[n]=i;ok()};i.onerror=()=>ok();i.src=src})}
+window.ready=Promise.all([load('hockey','../../herobg/img/hockey.webp'),load('football','../../herobg/img/football.webp')]);
+
+function glow(x,y,r,col,a){const g=X.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');X.globalAlpha=a;X.fillStyle=g;X.fillRect(x-r,y-r,r*2,r*2);X.globalAlpha=1}
+function bg(c0,c1){const g=X.createLinearGradient(0,0,0,H);g.addColorStop(0,c0);g.addColorStop(1,c1);X.globalCompositeOperation='source-over';X.globalAlpha=1;X.filter='none';X.fillStyle=g;X.fillRect(0,0,W,H)}
+function vignette(a=.55){const g=X.createRadialGradient(W/2,H*.5,H*.25,W/2,H*.5,W*.75);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,`rgba(0,0,0,${a})`);X.fillStyle=g;X.fillRect(0,0,W,H)}
+function bokeh(n,seed,t,cols,y0,y1,rmin,rmax,amp){X.globalCompositeOperation='lighter';
+ for(let i=0;i<n;i++){const x=rnd(seed+i)*W+Math.sin(TAU*(t+rnd(seed+i*3)))*amp,y=lerp(y0,y1,rnd(seed+i*5))*H+Math.cos(TAU*(t+rnd(seed+i*7)))*amp*.5,
+  r=lerp(rmin,rmax,rnd(seed+i*9)),a=.10+.16*(.5+.5*Math.sin(TAU*(t*2+rnd(seed+i*11))));
+  X.globalAlpha=a;X.fillStyle=cols[i%cols.length];X.beginPath();X.arc(x,y,r,0,TAU);X.fill();X.globalAlpha=a*.8;X.lineWidth=2;X.strokeStyle=cols[i%cols.length];X.stroke()}
+ X.globalAlpha=1;X.globalCompositeOperation='source-over'}
+
+/* ───── 1. крупный план ───── */
+function v1h(t){bg('#03070f','#0a2440');
+ bokeh(16,10,t,['#9fd8ff','#e8f6ff','#5aa9ff'],.04,.42,22,70,18);
+ // лёд в перспективе
+ const y0=H*.5;let g=X.createLinearGradient(0,y0,0,H);g.addColorStop(0,'#0e3558');g.addColorStop(.25,'#2a6d9c');g.addColorStop(1,'#cfeaf7');X.fillStyle=g;X.fillRect(0,y0,W,H-y0);
+ g=X.createLinearGradient(0,y0-40,0,y0+60);g.addColorStop(0,'rgba(3,7,15,1)');g.addColorStop(1,'rgba(3,7,15,0)');X.fillStyle=g;X.fillRect(0,y0-40,W,100);
+ X.lineCap='round';for(let i=0;i<70;i++){const k=rnd(i+40),y=y0+20+k*k*(H-y0),x=rnd(i+90)*W,l=(60+rnd(i+3)*340)*(.3+k);X.globalAlpha=.05+.14*k;X.strokeStyle='#fff';X.lineWidth=.6+k*1.6;X.beginPath();X.moveTo(x,y);X.lineTo(x+l,y+(rnd(i+7)-.5)*14*k);X.stroke()}
+ X.globalAlpha=1;
+ // конёк: проход слева направо за 0.12…0.62, след гаснет к концу петли
+ const p=cl((t-.12)/.5),bx=lerp(-.25,1.25,p)*W,by=H*.80,fade=1-ss(.7,.97,t);
+ if(t>.12){const x1=Math.min(bx,W*1.3);g=X.createLinearGradient(-W*.25,0,x1,0);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(1,'rgba(255,255,255,.95)');
+  X.globalAlpha=fade;X.strokeStyle=g;X.lineWidth=5;X.beginPath();X.moveTo(-W*.25,by+6);X.lineTo(x1,by+6);X.stroke();X.lineWidth=16;X.globalAlpha=fade*.18;X.stroke();X.globalAlpha=1}
+ // ледяная крошка
+ X.globalCompositeOperation='lighter';
+ for(let i=0;i<260;i++){const born=.12+rnd(i+500)*.5,age=(t-born)/.38;if(age<0||age>1)continue;const pb=cl((born-.12)/.5),ox=lerp(-.25,1.25,pb)*W;
+  const vx=(-.5+rnd(i+1)*-.9)*220,vy=-(120+rnd(i+2)*420),x=ox+vx*age,y=by+vy*age+620*age*age,r=1+rnd(i+3)*4.5,a=(1-age)*(.5+.5*rnd(i+4));
+  if(y>by+10)continue;X.globalAlpha=a;X.fillStyle=rnd(i+5)>.5?'#fff':'#bfe6ff';X.beginPath();X.arc(x,y,r,0,TAU);X.fill();
+  if(r>4){X.globalAlpha=a*.25;X.beginPath();X.arc(x,y,r*4,0,TAU);X.fill()}}
+ X.globalAlpha=1;X.globalCompositeOperation='source-over';
+ // лезвие и ботинок (ботинок не в фокусе)
+ if(p>0&&p<1){X.save();X.translate(bx,by);X.rotate(-.05);
+  X.filter='blur(9px)';X.fillStyle='#05080d';X.beginPath();X.moveTo(-230,-40);X.quadraticCurveTo(-250,-230,-120,-250);X.lineTo(60,-250);X.quadraticCurveTo(90,-150,250,-110);X.quadraticCurveTo(300,-70,270,-40);X.closePath();X.fill();X.filter='none';
+  X.fillStyle='#0d1520';X.fillRect(-200,-44,90,34);X.fillRect(120,-44,90,34);
+  g=X.createLinearGradient(0,-14,0,10);g.addColorStop(0,'#f4fbff');g.addColorStop(.5,'#8fa7b8');g.addColorStop(1,'#e9f5fb');X.fillStyle=g;X.beginPath();X.moveTo(-290,-14);X.lineTo(300,-14);X.quadraticCurveTo(330,-6,300,8);X.lineTo(-270,8);X.quadraticCurveTo(-310,2,-290,-14);X.fill();
+  X.restore();glow(bx+250,by+4,120,'#ffffff',.5)}
+ vignette(.6)}
+
+function v1f(t){bg('#020806','#06180f');
+ bokeh(14,30,t,['#fff3c4','#ffffff','#bfffd9'],.03,.4,26,80,16);
+ // дальний газон
+ let g=X.createLinearGradient(0,H*.45,0,H);g.addColorStop(0,'#06180f');g.addColorStop(.3,'#0f4a2a');g.addColorStop(1,'#1c7a3f');X.fillStyle=g;X.fillRect(0,H*.45,W,H*.55);
+ const OFF=v1f.c||(v1f.c=document.createElement('canvas'));OFF.width=W;OFF.height=H;const O=OFF.getContext('2d');
+ const blades=(n,seed,yb,hmin,hmax,blur,cols,sw)=>{O.clearRect(0,0,W,H);O.lineCap='round';   // слой рисуем без фильтра, размываем один раз — иначе кадр считается секундами
+  for(let i=0;i<n;i++){const x=rnd(seed+i)*W*1.1-W*.05,h=lerp(hmin,hmax,rnd(seed+i*3)),lean=(rnd(seed+i*5)-.5)*60+Math.sin(TAU*(t+rnd(seed+i*7)))*sw;
+   O.strokeStyle=cols[i%cols.length];O.lineWidth=2+rnd(seed+i*9)*5;O.beginPath();O.moveTo(x,yb);O.quadraticCurveTo(x+lean*.3,yb-h*.6,x+lean,yb-h);O.stroke()}
+  X.filter=blur?`blur(${blur}px)`:'none';X.drawImage(OFF,0,0);X.filter='none'};
+ blades(260,100,H*.80,40,110,3,['#1d7d3f','#17632f','#2a9a52'],6);
+ // мяч: катится слева направо всю петлю, заходит и уходит за кадр
+ const bx=lerp(-.14,1.14,t)*W,by=H*.66,R=92,rot=t*TAU*2.4;
+ glow(bx,by+R*.95,R*1.5,'#000000',.55);
+ X.save();X.translate(bx,by);X.beginPath();X.arc(0,0,R,0,TAU);X.clip();
+ g=X.createRadialGradient(-R*.35,-R*.45,R*.1,0,0,R*1.1);g.addColorStop(0,'#ffffff');g.addColorStop(.6,'#d7dde2');g.addColorStop(1,'#6f7b85');X.fillStyle=g;X.fillRect(-R,-R,R*2,R*2);
+ X.rotate(rot);X.fillStyle='#10161c';const pent=(cx,cy,r)=>{X.beginPath();for(let k=0;k<5;k++){const a=k*TAU/5-Math.PI/2;X.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r)}X.closePath();X.fill()};
+ pent(0,0,R*.3);for(let k=0;k<5;k++){const a=k*TAU/5-Math.PI/2;pent(Math.cos(a)*R*.86,Math.sin(a)*R*.86,R*.26)}
+ X.rotate(-rot);g=X.createRadialGradient(R*.3,R*.4,R*.2,0,0,R);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.55)');X.fillStyle=g;X.fillRect(-R,-R,R*2,R*2);X.restore();
+ // брызги за мячом
+ X.globalCompositeOperation='lighter';
+ for(let i=0;i<180;i++){const born=rnd(i+700),age=((t-born+1)%1)/.22;if(age>1)continue;const ox=lerp(-.14,1.14,born)*W-30;
+  const x=ox-(40+rnd(i)*160)*age,y=by+R*.8-(60+rnd(i+1)*230)*age+420*age*age,r=1+rnd(i+2)*3.2;if(ox<-40||ox>W+40)continue;
+  X.globalAlpha=(1-age)*.8;X.fillStyle='#eaffef';X.beginPath();X.arc(x,y,r,0,TAU);X.fill()}
+ X.globalAlpha=1;X.globalCompositeOperation='source-over';
+ blades(150,300,H+10,120,300,7,['#0d4a24','#136a33','#0a3a1c'],14);
+ vignette(.6)}
+
+/* ───── 2. пустая арена ───── */
+function proj(x,z,pan){const s=.36+.64*z;return [W/2+x*W*.66*s+pan*(.4+.6*z),H*(.50+.44*z)]}
+function quad(pts,fill){X.fillStyle=fill;X.beginPath();pts.forEach((p,i)=>i?X.lineTo(p[0],p[1]):X.moveTo(p[0],p[1]));X.closePath();X.fill()}
+function gline(x0,z0,x1,z1,pan,col,w){const a=proj(x0,z0,pan),b=proj(x1,z1,pan);X.strokeStyle=col;X.lineWidth=w;X.beginPath();X.moveTo(a[0],a[1]);X.lineTo(b[0],b[1]);X.stroke()}
+function gell(x,z,rx,pan,col,w){const c=proj(x,z,pan),s=.36+.64*z;X.strokeStyle=col;X.lineWidth=w;X.beginPath();X.ellipse(c[0],c[1],rx*W*.66*s,rx*H*.44*.9*s,0,0,TAU);X.stroke()}
+function stands(pan,tint){for(let r=0;r<9;r++){const y=H*(.50-.045*(r+1)),h=H*.045;X.fillStyle=`rgba(${tint},${.20+r*.03})`;X.fillRect(0,y,W,h-3);
+  X.fillStyle='rgba(255,255,255,.05)';for(let i=0;i<90;i++){const x=((i*W/88+pan*(.25-r*.015))%W+W)%W;X.fillRect(x,y+h*.35,6,h*.3)}}}
+function lights(t,pan,n,col,yTop,floorY){let on=0;X.globalCompositeOperation='lighter';
+ for(let i=0;i<n;i++){const k=ss(.06+i*.09,.14+i*.09,t)*(1-ss(.9,.99,t));on+=k;const x=W*(.1+.8*i/(n-1))+pan*.2,y=yTop;
+  const fx=W/2+(x-W/2)*.75;X.globalAlpha=.20*k;const g=X.createLinearGradient(0,y,0,floorY);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');X.fillStyle=g;
+  X.beginPath();X.moveTo(x-8,y);X.lineTo(x+8,y);X.lineTo(fx+190,floorY);X.lineTo(fx-190,floorY);X.closePath();X.fill();X.globalAlpha=1;
+  glow(x,y,150,col,.85*k);glow(x,y,26,'#ffffff',k)}
+ X.globalCompositeOperation='source-over';return on/n}
+function v2h(t){bg('#02050b','#050c18');const pan=Math.sin(TAU*t)*46;
+ stands(pan,'40,70,120');
+ const A=proj(-1,0,pan),B=proj(1,0,pan),Cc=proj(1,1.2,pan),D=proj(-1,1.2,pan);
+ let g=X.createLinearGradient(0,A[1],0,H);g.addColorStop(0,'#7fa9c4');g.addColorStop(1,'#eef7fb');quad([A,B,Cc,D],g);
+ gline(0,0,0,1.2,pan,'rgba(210,40,50,.85)',7);gline(-.42,0,-.42,1.2,pan,'rgba(40,90,200,.8)',6);gline(.42,0,.42,1.2,pan,'rgba(40,90,200,.8)',6);
+ gell(0,.55,.16,pan,'rgba(40,90,200,.75)',4);gell(-.7,.35,.11,pan,'rgba(210,40,50,.7)',3);gell(.7,.35,.11,pan,'rgba(210,40,50,.7)',3);gell(-.7,.9,.13,pan,'rgba(210,40,50,.7)',3);gell(.7,.9,.13,pan,'rgba(210,40,50,.7)',3);
+ // борт
+ X.fillStyle='#e9eef2';X.fillRect(0,A[1]-22,W,22);X.fillStyle='#e8b923';X.fillRect(0,A[1]-4,W,4);X.fillStyle='rgba(160,200,230,.18)';X.fillRect(0,A[1]-52,W,30);
+ const on=lights(t,pan,6,'#bfe3ff',H*.06,H*.92);
+ X.fillStyle=`rgba(2,5,11,${.78-.62*on})`;X.fillRect(0,0,W,H);
+ // блик на льду
+ X.globalCompositeOperation='lighter';glow(W/2+pan,H*.86,W*.42,'#ffffff',.16*on);X.globalCompositeOperation='source-over';vignette(.55)}
+function v2f(t){bg('#020608','#04100c');const pan=Math.sin(TAU*t)*46;
+ stands(pan,'40,95,70');
+ const zs=10;for(let i=0;i<zs;i++){const x0=-1+2*i/zs,x1=-1+2*(i+1)/zs;quad([proj(x0,0,pan),proj(x1,0,pan),proj(x1,1.2,pan),proj(x0,1.2,pan)],i%2?'#1f7f3f':'#27934a')}
+ const wl='rgba(255,255,255,.85)';gline(0,0,0,1.2,pan,wl,4);gell(0,.55,.17,pan,wl,4);gline(-1,.02,1,.02,pan,wl,3);
+ [[-1,1],[1,-1]].forEach(([e,d])=>{gline(e,.22,e+d*.3,.22,pan,wl,3);gline(e+d*.3,.22,e+d*.3,.92,pan,wl,3);gline(e,.92,e+d*.3,.92,pan,wl,3)});
+ const A=proj(-1,0,pan);X.fillStyle='#0a1612';X.fillRect(0,A[1]-18,W,18);X.fillStyle='rgba(255,255,255,.10)';for(let i=0;i<16;i++)X.fillRect(((i*90+pan*.4)%W+W)%W,A[1]-15,60,10);
+ const on=lights(t,pan,4,'#fff1c9',H*.07,H*.95);
+ X.fillStyle=`rgba(2,6,8,${.80-.62*on})`;X.fillRect(0,0,W,H);
+ X.globalCompositeOperation='lighter';glow(W/2+pan,H*.84,W*.42,'#fff7d6',.14*on);X.globalCompositeOperation='source-over';vignette(.55)}
+
+/* ───── 3. расчёт на площадке ───── */
+function v3(t,sp){const hk=sp==='hockey',acc=hk?'#35d6ff':'#3fe07f',sig='#ffc21a';bg(hk?'#030814':'#02100a',hk?'#07162e':'#062016');
+ const mx=W*.07,my=H*.12,rw=W-mx*2,rh=H-my*2,k=1-ss(.9,.99,t);
+ X.strokeStyle=acc;X.globalAlpha=.34;X.lineWidth=2.5;X.beginPath();if(hk)X.roundRect(mx,my,rw,rh,rh*.28);else X.rect(mx,my,rw,rh);X.stroke();
+ X.beginPath();X.moveTo(W/2,my);X.lineTo(W/2,my+rh);X.stroke();X.beginPath();X.arc(W/2,H/2,rh*.17,0,TAU);X.stroke();
+ if(hk){[.34,.66].forEach(p=>{X.beginPath();X.moveTo(mx+rw*p,my);X.lineTo(mx+rw*p,my+rh);X.stroke()});[[.17,.3],[.17,.7],[.83,.3],[.83,.7]].forEach(([a,b])=>{X.beginPath();X.arc(mx+rw*a,my+rh*b,rh*.13,0,TAU);X.stroke()})}
+ else{[0,1].forEach(e=>{const x=mx+rw*e,d=e?-1:1;X.strokeRect(Math.min(x,x+d*rw*.16),my+rh*.2,rw*.16,rh*.6);X.strokeRect(Math.min(x,x+d*rw*.06),my+rh*.36,rw*.06,rh*.28)})}
+ X.globalAlpha=1;
+ // сетка
+ X.strokeStyle=acc;X.globalAlpha=.06;X.lineWidth=1;for(let x=0;x<W;x+=64){X.beginPath();X.moveTo(x,0);X.lineTo(x,H);X.stroke()}for(let y=0;y<H;y+=64){X.beginPath();X.moveTo(0,y);X.lineTo(W,y);X.stroke()}X.globalAlpha=1;
+ // броски / удары
+ const goals=[[mx+rw*(hk?.07:.01),H/2],[mx+rw*(hk?.93:.99),H/2]];X.globalCompositeOperation='lighter';X.font='600 15px ui-monospace,Menlo,monospace';
+ for(let i=0;i<34;i++){const side=i%2,born=.03+i*.022,a=cl((t-born)/.05)*k;if(a<=0)continue;const gx=goals[side][0],d=(side?-1:1);
+  const x=gx+d*rw*(.05+rnd(i+11)*.3),y=H/2+(rnd(i+13)-.5)*rh*.62,xg=.03+rnd(i+17)*.3,hit=rnd(i+19)<.22;
+  glow(x,y,26+xg*150,hit?sig:acc,.30*a);
+  X.globalAlpha=a;X.fillStyle=hit?sig:acc;X.beginPath();X.arc(x,y,4+xg*14,0,TAU);X.fill();
+  const ring=cl((t-born)/.12);if(ring<1){X.globalAlpha=(1-ring)*.8*k;X.strokeStyle=hit?sig:acc;X.lineWidth=2;X.beginPath();X.arc(x,y,6+ring*46,0,TAU);X.stroke()}
+  if(hit){const pr=cl((t-born)/.1);X.globalAlpha=.75*a;X.strokeStyle=sig;X.lineWidth=2;X.setLineDash([7,7]);X.beginPath();X.moveTo(x,y);X.lineTo(lerp(x,gx,pr),lerp(y,H/2,pr));X.stroke();X.setLineDash([])}
+  if(i%4===0){X.globalAlpha=.7*a;X.fillStyle='#dff6ff';X.fillText(xg.toFixed(2).replace('.',','),x+14,y-12)}}
+ X.globalAlpha=1;X.globalCompositeOperation='source-over';
+ // строка сканирования
+ const sx=mx+rw*((t*1.0)%1);const g=X.createLinearGradient(sx-120,0,sx,0);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,hk?'rgba(53,214,255,.16)':'rgba(63,224,127,.16)');X.fillStyle=g;X.fillRect(sx-120,my,120,rh);
+ vignette(.6)}
+
+/* ───── 4. силуэт ───── */
+let SIL={};function sil(n){if(SIL[n])return SIL[n];const im=IMG[n];if(!im)return null;const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const x=c.getContext('2d');
+ x.drawImage(im,0,0);x.globalCompositeOperation='source-in';x.fillStyle='#02040a';x.fillRect(0,0,c.width,c.height);return SIL[n]=c}
+function v4(t,sp){const hk=sp==='hockey',col=hk?'#49c9ff':'#ffd98a',col2=hk?'#1b4f9c':'#1f8a4a';bg('#020308','#05070d');
+ const cx=W*.47,cy=H*.44,pulse=.85+.15*Math.sin(TAU*t*2);
+ X.globalCompositeOperation='lighter';glow(cx,cy,H*.95,col2,.75);glow(cx,cy-20,H*.55,col,.8*pulse);glow(cx,cy-40,H*.22,'#ffffff',.9*pulse);
+ // лучи
+ X.save();X.translate(cx,cy-30);for(let i=0;i<14;i++){const a=i/14*TAU+Math.sin(TAU*t)*.06,w=.035+rnd(i+60)*.05;X.globalAlpha=.07+.05*Math.sin(TAU*(t+rnd(i+61)));
+  const g=X.createLinearGradient(0,0,Math.cos(a)*W*.8,Math.sin(a)*W*.8);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');X.fillStyle=g;X.beginPath();X.moveTo(0,0);X.lineTo(Math.cos(a-w)*W,Math.sin(a-w)*W);X.lineTo(Math.cos(a+w)*W,Math.sin(a+w)*W);X.closePath();X.fill()}
+ X.restore();X.globalAlpha=1;X.globalCompositeOperation='source-over';
+ // игрок: чёрный силуэт с контровым светом, медленный наезд
+ const s=sil(sp);if(s){const z=1.0+.05*Math.sin(TAU*t-Math.PI/2)+.05,h=H*1.04*z,w=h*s.width/s.height,x=cx-w/2,y=H-h+H*.06;
+  X.save();X.shadowColor=col;X.shadowBlur=38;X.drawImage(s,x,y,w,h);X.shadowBlur=14;X.shadowColor='#ffffff';X.drawImage(s,x,y,w,h);X.restore()}
+ // дым и пыль
+ X.globalCompositeOperation='lighter';
+ for(let i=0;i<9;i++){const x=((rnd(i+80)+t*(i%2?1:-1))%1+1)%1*W*1.4-W*.2,y=H*(.62+rnd(i+81)*.36);glow(x,y,260+rnd(i+82)*240,hk?'#3b6f9e':'#6a7a5a',.16)}
+ for(let i=0;i<90;i++){const x=rnd(i+200)*W+Math.sin(TAU*(t+rnd(i+201)))*30,y=((rnd(i+202)-t*(.3+rnd(i+203)*.5))%1+1)%1*H,r=1+rnd(i+204)*2.4;
+  X.globalAlpha=.25+.5*rnd(i+205);X.fillStyle='#fff';X.beginPath();X.arc(x,y,r,0,TAU);X.fill()}
+ X.globalAlpha=1;X.globalCompositeOperation='source-over';
+ const g=X.createLinearGradient(0,H*.72,0,H);g.addColorStop(0,'rgba(2,3,8,0)');g.addColorStop(1,'rgba(2,3,8,.92)');X.fillStyle=g;X.fillRect(0,H*.72,W,H*.28);vignette(.7)}
+
+window.draw=(v,sp,t)=>{X.setTransform(1,0,0,1,0,0);X.globalAlpha=1;X.globalCompositeOperation='source-over';X.filter='none';X.shadowBlur=0;
+ const hk=sp==='hockey';if(v===1)(hk?v1h:v1f)(t);else if(v===2)(hk?v2h:v2f)(t);else if(v===3)v3(t,sp);else v4(t,sp);return C.toDataURL('image/jpeg',.93)};
+</script>

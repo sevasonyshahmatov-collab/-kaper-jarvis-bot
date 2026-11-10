@@ -1,0 +1,79 @@
+/* Варианты первого экрана «Хоккей» / «Футбол» с видео (макет, 10.11): ?hv=1..4. Без параметра ничего не меняется.
+   1 Кино · 2 Табло в центре · 3 Панель расчёта · 4 Афиша. Ролики — эскизы кодом (assets/herovid/src), не съёмка. */
+html[data-hv] .hero{position:relative;isolation:isolate;overflow:hidden}
+.hv-bg{position:absolute;inset:0;z-index:-1;background:#03060c center/cover no-repeat}
+.hv-bg video{width:100%;height:100%;object-fit:cover;display:block}
+.hv-bg::after{content:"";position:absolute;inset:0;pointer-events:none}
+html[data-hv] .hero h1,html[data-hv] .hero .lead{text-shadow:0 2px 18px rgba(0,0,0,.55)}
+html[data-hv] .js .hero [data-rv]>*,html[data-hv].js .hero [data-rv]>*{opacity:1!important;transform:none!important}
+html[data-hv] .hero .board{box-shadow:0 30px 80px -30px rgba(0,0,0,.8)}
+
+/* переключатель вариантов (только в макете) */
+.hv-sw{position:fixed;left:12px;bottom:12px;z-index:60;display:flex;flex-wrap:wrap;align-items:center;gap:4px;max-width:calc(100vw - 24px);padding:6px;border-radius:14px;background:rgba(8,12,20,.9);box-shadow:0 10px 30px rgba(0,0,0,.5);font:600 13px/1 Inter,system-ui,sans-serif}
+.hv-sw b{color:#9fb0c8;padding:0 8px;font-weight:600}
+.hv-sw a{color:#eaf3ff;text-decoration:none;padding:9px 11px;border-radius:9px;white-space:nowrap}
+.hv-sw a[aria-current]{background:#ffc21a;color:#141a24}
+.hv-sw a:not([aria-current]):hover{background:rgba(255,255,255,.1)}
+html[data-hv] .tgbar{display:none!important}
+
+@media (min-width:981px){
+  html[data-hv] .hero{min-height:calc(100svh - 168px);display:grid;padding-top:clamp(24px,3vw,44px)!important;padding-bottom:clamp(28px,4vw,56px)!important}
+  html[data-hv] .hero .wrap>div:first-child,html[data-hv] .hero .wrap>div:first-child>[data-rv]{display:contents}
+  html[data-hv] .hero .wrap{width:100%}
+  html[data-hv] .hero h1{grid-area:h1;margin:0}
+  html[data-hv] .hero .lead{grid-area:lead;margin:0}
+  html[data-hv] .hero .hero-cta{grid-area:cta;margin:0}
+  html[data-hv] .hero .facts{grid-area:facts;margin:0}
+  html[data-hv] .hero .chips{grid-area:chips;margin:0}
+  html[data-hv] .hero .bcol{grid-area:board}
+  html[data-hv] .hero .board,html[data-hv] .hero .get8{max-width:none!important;margin-left:0!important}
+
+  /* 1. Кино: картинка во весь экран, текст прижат к низу слева, табло справа */
+  html[data-hv="1"] .hero .wrap{grid-template-columns:minmax(0,1fr) 440px!important;grid-template-areas:". board" "h1 board" "lead board" "cta board";grid-template-rows:1fr auto auto auto;gap:14px 56px;align-items:end}
+  html[data-hv="1"] .hero h1{font-size:clamp(46px,5vw,76px)!important;line-height:.95}
+  html[data-hv="1"] .hero .lead{max-width:44ch}
+  html[data-hv="1"] .hero .facts,html[data-hv="1"] .hero .chips{display:none}
+  html[data-hv="1"] .hero .bcol{align-self:end}
+  html[data-hv="1"] .hv-bg::after{background:linear-gradient(180deg,rgba(3,6,12,.25),rgba(3,6,12,0) 30%,rgba(3,6,12,.82) 100%),linear-gradient(90deg,rgba(3,6,12,.6),rgba(3,6,12,0) 55%)}
+
+  /* 2. Табло в центре: как куб над площадкой — заголовок строкой, главное табло по центру, цифры под ним */
+  html[data-hv="2"] .hero .wrap{grid-template-columns:minmax(0,560px)!important;justify-content:center;justify-items:center;text-align:center;grid-template-areas:"h1" "board" "cta" "facts";gap:16px;align-content:center}
+  html[data-hv="2"] .hero h1{font-size:clamp(26px,2.4vw,36px)!important;line-height:1;letter-spacing:.02em}
+  html[data-hv="2"] .hero h1 .ln{display:inline}
+  html[data-hv="2"] .hero .lead,html[data-hv="2"] .hero .chips,html[data-hv="2"] .hero .get8{display:none}
+  html[data-hv="2"] .hero .bcol{width:100%}
+  html[data-hv="2"] .hero .hero-cta,html[data-hv="2"] .hero .facts{justify-content:center}
+  html[data-hv="2"] .hero .facts b{font-size:34px}
+  html[data-hv="2"] .hv-bg::after{background:radial-gradient(60% 70% at 50% 55%,rgba(3,6,12,.25),rgba(3,6,12,.78))}
+
+  /* 3. Панель расчёта: слева заголовок и цифры плитками, справа табло */
+  html[data-hv="3"] .hero .wrap{grid-template-columns:minmax(0,1fr) 470px!important;grid-template-areas:"h1 board" "lead board" "facts board" "cta board" "chips board";gap:18px 56px;align-content:center;align-items:start}
+  html[data-hv="3"] .hero h1{font-size:clamp(40px,4.2vw,64px)!important;line-height:.95}
+  html[data-hv="3"] .hero .facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:620px}
+  html[data-hv="3"] .hero .facts li{padding:16px 18px;border-radius:14px;background:rgba(6,12,24,.72);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);backdrop-filter:blur(6px)}
+  html[data-hv="3"] .hero .facts b{font-size:40px}
+  html[data-hv="3"] .hero .get8{display:none}
+  html[data-hv="3"] .hv-bg::after{background:linear-gradient(90deg,rgba(3,6,12,.78),rgba(3,6,12,.35) 60%,rgba(3,6,12,.6))}
+
+  /* 4. Афиша: игрок в центре, крупный заголовок слева, табло справа */
+  html[data-hv="4"] .hero .wrap{grid-template-columns:minmax(0,1fr) minmax(180px,.5fr) 420px!important;grid-template-areas:"h1 . board" "lead . board" "cta . board" "chips chips board";gap:16px 24px;align-content:center;align-items:start}
+  html[data-hv="4"] .hero h1{font-size:clamp(52px,5.6vw,92px)!important;line-height:.9}
+  html[data-hv="4"] .hero .lead{max-width:30ch}
+  html[data-hv="4"] .hero .facts{display:none}
+  html[data-hv="4"] .hv-bg::after{background:linear-gradient(90deg,rgba(3,6,12,.72),rgba(3,6,12,0) 42%,rgba(3,6,12,0) 60%,rgba(3,6,12,.55))}
+}
+
+/* телефон и планшет: ролик — полосой за заголовком и верхом табло, первый экран короче */
+@media (max-width:980px){
+  .hv-bg{inset:0 0 auto 0;height:min(64svh,520px)}
+  .hv-bg::after{background:linear-gradient(180deg,rgba(3,6,12,.35),rgba(3,6,12,.15) 40%,var(--paper,#07111f) 100%)}
+  html[data-hv] .hero .facts,html[data-hv] .hero .chips{display:none}
+  html[data-hv="3"] .hero .facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  html[data-hv="3"] .hero .facts li{padding:10px 12px;border-radius:12px;background:rgba(6,12,24,.6);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+  html[data-hv="3"] .hero .facts b{font-size:26px}html[data-hv="3"] .hero .facts li>span{font-size:12px}
+  html[data-hv="2"] .hero h1{text-align:center;font-size:24px!important;letter-spacing:.02em}
+  html[data-hv="2"] .hero h1 .ln{display:inline}
+  html[data-hv="1"] .hero h1,html[data-hv="4"] .hero h1{padding-top:11svh}
+  html[data-hv="2"] .hero .get8,html[data-hv="3"] .hero .get8{display:none}
+  .hv-sw{bottom:8px;left:8px;right:8px;font-size:12px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.hv-sw a{padding:8px 9px}.hv-sw b{display:none}
+}
