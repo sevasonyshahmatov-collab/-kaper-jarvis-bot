@@ -156,3 +156,7 @@ html[data-theme="a"]:not([data-col]) .obj details[open]{border-color:#173daf}
 html[data-theme="a"]:not([data-col]) .hm .open,html[data-theme="a"]:not([data-col]) .hm .card:hover .open,html[data-theme="a"]:not([data-col]) .hm .card:focus-visible .open{background:#f3f6fb;color:#0a1220}
 /* «Разбор матча» — цветом вида спорта: жёлтый оставлен кнопкам в Telegram */
 html[data-theme="a"]:not([data-col]) .mt1 .go{background:var(--sp);color:#fff}
+/* четыре шага «как появляется прогноз»: форма → линия → выбор → автор (владелец 10.11) */
+.steps.s4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:1100px){.steps.s4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){.steps.s4{grid-template-columns:1fr}}
