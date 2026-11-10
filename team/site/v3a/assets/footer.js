@@ -9,7 +9,7 @@ try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('fo
 const COLS=[
  ['Хоккей',[['Матчи','hockey/index.html'],['КХЛ','hockey/league.html?lg=khl'],['НХЛ','hockey/league.html?lg=nhl'],['Игроки','hockey/players.html'],['Тренды','hockey/trends.html'],['Прогноз КХЛ на сегодня','hockey/forecast-khl.html'],['Прогноз НХЛ на сегодня','hockey/forecast-nhl.html']]],
  ['Футбол',[['Матчи','football/index.html'],['Лиги','football/league.html?lg=epl'],['Лига чемпионов','football/ucl.html'],['Тренды','football/trends.html'],['Прогноз АПЛ на сегодня','football/forecast-epl.html']]],
- ['JARVIS',[['Матчи дня','matches.html'],['Мой JARVIS','me/index.html'],['Прогноз на сегодня','forecast.html'],['Как считает модель','model.html'],['Словарь терминов','glossary.html']]]
+ ['JARVIS',[['Матчи дня','matches.html'],['Итоги прогнозов','results.html'],['Мой JARVIS','me/index.html'],['Прогноз на сегодня','forecast.html'],['Как считает модель','model.html'],['Словарь терминов','glossary.html']]]
 ];
 const TG='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>';
 const old=document.querySelector('footer');

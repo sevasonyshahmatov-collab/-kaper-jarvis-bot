@@ -1,0 +1,140 @@
+/* JARVIS v3a — итоги прогнозов: страница results.html и полоса «Честные итоги» на главной / хоккее / футболе.
+   Роли цветов: зелёный и красный — только исход; синий — модель; жёлтый — только кнопки в Telegram. */
+.rsp,.rsx{--rs-win:#1a7342;--rs-loss:#c4303b;--rs-model:#173daf;--rs-line:color-mix(in srgb,var(--ink) 14%,transparent)}
+.rs-num{font:800 1em/1 var(--display);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+
+/* ── первый экран страницы ── */
+.rs-top{padding:clamp(28px,4vw,56px) 0 clamp(36px,4.4vw,64px)}
+.rs-top .crumbs{font:600 14px/1 var(--display);color:var(--ink-3);margin:0 0 18px}
+.rs-top .crumbs a{color:inherit}
+.rs-top h1{font-size:clamp(40px,5vw,84px);line-height:.94;margin:0;text-transform:uppercase;max-width:none}
+.rs-top .lead{margin:16px 0 0;font-size:clamp(17px,1.4vw,20px);color:var(--ink-2);max-width:60ch}
+.rs-kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:clamp(24px,3vw,40px) 0 0;padding:0;list-style:none}
+.rs-kpi li{background:#111b2e;border:1px solid #2c3b5a;border-radius:14px;padding:18px 20px 16px;display:grid;gap:8px;align-content:start}
+.rs-kpi b{font:800 clamp(34px,3.6vw,56px)/1 var(--display);font-variant-numeric:tabular-nums;color:#f3f6fb}
+.rs-kpi b small{font-size:.45em;font-weight:700;color:#b9c5d9;margin-left:4px}
+.rs-kpi span{font:600 15px/1.3 var(--display);color:#b9c5d9}
+.rs-kpi .win b{color:#5fe39a}.rs-kpi .loss b{color:#ff8a94}
+.rs-form{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:22px 0 0;font:600 14px/1.2 var(--display);color:#b9c5d9}
+.rs-dots{display:flex;gap:4px}
+.rs-dots i{width:12px;height:12px;border-radius:3px;background:#5fe39a}
+.rs-dots i.l{background:#ff6b78}.rs-dots i.p{background:#8f9cb4}
+.rs-upd{margin:14px 0 0;font:500 13px/1.3 var(--display);color:#8f9cb4}
+
+/* ── разделы ── */
+.rsp.sec{padding-top:clamp(48px,6vw,88px)}
+.rsp.sec:last-of-type{padding-bottom:clamp(56px,7vw,110px)}
+.rsp h2{font-size:clamp(30px,3.4vw,54px);margin:0 0 clamp(18px,2vw,28px)}
+.rsp .rs-lead2{margin:-8px 0 clamp(18px,2vw,28px);color:var(--ink-2);max-width:70ch}
+.rs-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.rs-card{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:20px 22px;display:grid;gap:12px;align-content:start;min-width:0}
+.rs-card h3{margin:0;font:800 22px/1.1 var(--display);text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rs-card h3 em{font:700 12px/1 var(--display);font-style:normal;letter-spacing:.08em;text-transform:uppercase;background:var(--rs-win);color:#fff;padding:5px 8px;border-radius:4px}
+.rs-big{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.rs-big b{font:800 clamp(34px,3vw,46px)/1 var(--display);font-variant-numeric:tabular-nums}
+.rs-big span{font:600 15px/1.2 var(--display);color:var(--ink-2)}
+.rs-bar{height:8px;border-radius:99px;background:color-mix(in srgb,var(--rs-loss) 75%,#fff);overflow:hidden;display:flex}
+.rs-bar i{background:var(--rs-win);height:100%}
+.rs-bar u{background:#9aa6b6;height:100%}
+.rs-meta{display:flex;flex-wrap:wrap;gap:6px 16px;font:600 14px/1.3 var(--display);color:var(--ink-2);margin:0}
+.rs-meta b{color:var(--ink);font-variant-numeric:tabular-nums}
+.rs-meta .pos{color:var(--rs-win)}.rs-meta .neg{color:var(--rs-loss)}
+.rs-split{margin:2px 0 0;padding:10px 0 0;border-top:1px solid var(--rs-line);display:grid;gap:6px;list-style:none}
+.rs-split li{display:flex;justify-content:space-between;gap:12px;font:600 14px/1.3 var(--display);color:var(--ink-2)}
+.rs-split li b{color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rs-note{font-size:15px;color:var(--ink-2);margin:0;max-width:74ch}
+.rs-card .rs-note{font-size:14.5px}
+
+/* график накопленного результата */
+.rs-chart{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:18px 20px 12px;margin:14px 0 0}
+.rs-chart h3{margin:0 0 2px;font:800 18px/1.2 var(--display);text-transform:none;letter-spacing:0}
+.rs-chart p{margin:0 0 8px;font:500 14px/1.3 var(--display);color:var(--ink-2)}
+.rs-chart svg{display:block;width:100%;height:auto;overflow:visible}
+.rs-chart text{font:600 12px var(--display);fill:#414d5c}
+
+/* калибровка */
+.rs-cal{width:100%;border-collapse:collapse;font:600 15px/1.3 var(--display)}
+.rs-cal th,.rs-cal td{text-align:left;padding:9px 10px 9px 0;border-bottom:1px solid var(--rs-line);font-variant-numeric:tabular-nums}
+.rs-cal th{font-size:13px;color:var(--ink-3);font-weight:600}
+.rs-cal td:not(:first-child),.rs-cal th:not(:first-child){text-align:right;padding-right:0;padding-left:10px}
+
+/* ── список прогнозов ── */
+.rs-filters{display:flex;flex-wrap:wrap;gap:8px 18px;margin:0 0 18px}
+.rs-fg{display:flex;flex-wrap:wrap;gap:6px}
+.rs-fg button,.rs-more{font:700 14px/1 var(--display);padding:10px 14px;border-radius:999px;border:1px solid var(--rule);background:var(--card);color:var(--ink);cursor:pointer;min-height:40px}
+.rs-fg button[aria-pressed="true"]{background:var(--ink);color:#f3f6fb;border-color:var(--ink)}
+.rs-fg button:focus-visible,.rs-more:focus-visible{outline:3px solid var(--rs-model);outline-offset:2px}
+.rs-count{font:600 14px/1.3 var(--display);color:var(--ink-2);margin:0 0 10px}
+.rs-day{margin:22px 0 8px;font:800 15px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);display:flex;gap:12px;align-items:baseline}
+.rs-day span{font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-3)}
+.rs-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.rs-row{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:12px 16px;display:grid;grid-template-columns:54px minmax(0,1.25fr) minmax(0,1.5fr) 58px 76px 112px 86px;gap:6px 14px;align-items:center;font:600 15px/1.3 var(--display)}
+.rs-row .rlg{font:800 12px/1 var(--display);letter-spacing:.06em;color:var(--rs-model)}
+.rs-row .rlg.fb{color:#1a7342}
+.rs-row .rmt{min-width:0}
+.rs-row .rmt small{display:block;font:500 13px/1.2 var(--display);color:var(--ink-3);margin-top:2px}
+.rs-row .rbet{min-width:0;color:var(--ink)}
+.rs-row .rbet .rtag{display:inline-block;font:700 11px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;padding:4px 6px;border-radius:4px;margin-right:6px;vertical-align:1px;background:var(--rs-model);color:#fff}
+.rs-row .rbet .rtag.au{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.rs-row .rbet .rtag.ex{background:var(--paper-3);color:var(--ink)}
+.rs-row .rkef,.rs-row .rsc{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.rs-row .rsc{color:var(--ink-2)}
+.rs-row .rkef i{display:none;font-style:normal;font-weight:500;color:var(--ink-3)}
+.rs-row .rres{justify-self:start;font:800 13px/1 var(--display);padding:7px 9px;border-radius:6px;color:#fff;background:var(--rs-win);white-space:nowrap}
+.rs-row .rres.l{background:var(--rs-loss)}.rs-row .rres.p{background:#5d6773}.rs-row .rres.n{background:transparent;color:var(--ink-2);box-shadow:inset 0 0 0 1px var(--rule);font-weight:600}
+.rs-row .rpost{font:600 13px/1.2 var(--display);color:var(--ink-2);text-align:right;white-space:nowrap;text-underline-offset:3px}
+.rs-row .rpost:hover{color:var(--rs-model)}
+.rs-legs{grid-column:2/-1;margin:4px 0 0;padding:8px 0 0;border-top:1px dashed var(--rs-line);list-style:none;display:grid;gap:4px;font:500 14px/1.35 var(--display);color:var(--ink-2)}
+.rs-legs li{display:flex;gap:8px;flex-wrap:wrap}
+.rs-legs b{color:var(--ink);font-weight:600}
+.rs-legs .w{color:var(--rs-win);font-weight:800}.rs-legs .l{color:var(--rs-loss);font-weight:800}
+.rs-more{display:block;margin:18px auto 0;padding:13px 22px}
+.rs-how{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 40px;margin:0;padding:0;list-style:none}
+.rs-how li{display:grid;gap:4px;align-content:start}
+.rs-how b{font:800 18px/1.2 var(--display)}
+.rs-how span{color:var(--ink-2);font-size:16px}
+.rs-legal{margin:26px 0 0;font-size:14px;color:var(--ink-3)}
+
+/* ── полоса «Честные итоги» на главной и в разделах ── */
+.rsx{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;align-items:stretch}
+.rsx-box{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:20px 22px;display:grid;gap:12px;align-content:start;min-width:0}
+.rsx-box h3{margin:0;font:800 20px/1.15 var(--display);text-transform:none;letter-spacing:0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.rsx-box h3 span{font:600 15px/1.2 var(--display);color:var(--ink-2)}
+.rsx-rows{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.rsx-rows li{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:baseline;padding:8px 0;border-top:1px solid var(--rs-line);font:600 15px/1.3 var(--display)}
+.rsx-rows li:first-child{border-top:0}
+.rsx-rows i{font-style:normal;font-weight:800;color:var(--rs-win)}
+.rsx-rows li.l i{color:var(--rs-loss)}.rsx-rows li.p i{color:#5d6773}
+.rsx-rows small{display:block;font:500 13.5px/1.25 var(--display);color:var(--ink-2)}
+.rsx-rows em{font-style:normal;font-variant-numeric:tabular-nums;color:var(--ink-2);white-space:nowrap}
+.rsx-nums{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px;margin:0}
+.rsx-nums div{display:grid;gap:4px}
+.rsx-nums dt{font:600 14px/1.25 var(--display);color:var(--ink-2);order:2}
+.rsx-nums dd{margin:0;font:800 clamp(28px,2.6vw,40px)/1 var(--display);font-variant-numeric:tabular-nums}
+.rsx-nums dd small{font-size:.5em;font-weight:700;color:var(--ink-2);margin-left:3px}
+.rsx-nums .pos dd{color:var(--rs-win)}.rsx-nums .neg dd{color:var(--rs-loss)}
+.rsx-foot{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-top:4px}
+.rsx-foot p{margin:0;font:500 13.5px/1.3 var(--display);color:var(--ink-3)}
+.rsx .btn{align-self:start}
+
+@media (max-width:1100px){
+  .rs-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rs-row{grid-template-columns:48px minmax(0,1fr) 60px 100px;grid-template-areas:"lg mt kef res" "lg bet sc post"}
+  .rs-row .rlg{grid-area:lg;align-self:start;padding-top:3px}.rs-row .rmt{grid-area:mt}.rs-row .rbet{grid-area:bet}.rs-row .rkef{grid-area:kef}
+  .rs-row .rsc{grid-area:sc}.rs-row .rres{grid-area:res;justify-self:end}.rs-row .rpost{grid-area:post}
+  .rs-legs{grid-column:1/-1}
+}
+@media (max-width:760px){
+  .rs-kpi{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rs-cards,.rsx,.rs-how{grid-template-columns:1fr}
+  .rs-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"mt res" "bet bet" "kef post";padding:12px 14px}
+  .rs-row .rlg{display:none}
+  .rs-row .rkef{text-align:left}
+  .rs-row .rsc{display:none}
+  .rs-row .rkef i{display:inline}
+}
+/* полоса на тёмной подложке (разделы хоккея и футбола) */
+.rsx.dk{--rs-win:#5fe39a;--rs-loss:#ff8a94;--rs-line:rgba(255,255,255,.14)}
+.rsx.dk .rsx-box{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14)}
+.rsx-nums dd{white-space:nowrap}
+@media (max-width:480px){.rsx-nums dd{font-size:25px}.rsx-box{padding:18px 16px}}

@@ -43,6 +43,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <link rel="stylesheet" href="../assets/herovid/herovid.css">
 <script src="../assets/herovid/herovid.js"></script>
 <link rel="stylesheet" href="../assets/live.css">
+<link rel="stylesheet" href="../assets/results.css">
 <!--seo:begin-->
 <meta name="description" content="Матчи КХЛ и НХЛ на ближайшие дни: вероятность победы и тотала по расчёту модели, ожидаемые голы, таблицы и страницы клубов.">
 <link rel="canonical" href="https://jarvibet.example/hockey/index.html">
@@ -155,7 +156,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
               <div class="tv"><table class="gt" id="gtbl"></table></div>
               <div class="tv"><div class="soon"><b>Скоро</b><span>Что заходит у команд: цифры по сезону появятся здесь после подключения данных.</span></div></div>
               <div class="tv"><div class="cal" id="calbox"></div></div>
-              <div class="tv"><div class="soon"><b>Скоро</b><span>История и итоги по месяцам появятся на сайте после подключения базы итогов. Пока — в канале каждое утро.</span></div></div>
+              <div class="tv"><div class="soon"><b>На сайте</b><span>История прогнозов канала по месяцам, со счётом матча и ссылкой на пост.</span><a class="btn btn-ink" href="../results.html">Все прогнозы и итоги</a></div></div>
               <div class="tv"><div class="more">
                 <div><b>Коэффициенты</b><span>линия на ближайшие матчи и итоги прошлых</span></div><div><b>Модель против рынка</b><span>чья оценка точнее</span></div>
                 <div><b>Купон дня</b><span>самые уверенные события дня</span></div><div><b>Мой купон</b><span>собрать свой и посчитать вероятность</span></div>
@@ -192,7 +193,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <section class="sec" id="honest" data-zone="p3">
   <div class="wrap">
     <div class="sec-head" data-rv><h2>Честные итоги</h2></div>
-    <div class="soon honest-soon" data-rv><b>Скоро</b><span>Итоги по месяцам появятся на сайте, когда мы подключим его к базе итогов. Пока цифр здесь нет, чтобы не показывать примерные.</span><a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Итоги дня — в Telegram</a></div>
+    <div class="rsx dk" id="rsx" data-root="../" data-rv><div class="rsx-box"><h3>Итоги прогнозов</h3><p class="rs-note">Все прогнозы канала со счётом матча и ссылкой на пост — на отдельной странице.</p><a class="btn btn-ink" href="../results.html">Все прогнозы и итоги</a></div></div>
   </div>
 </section>
 
@@ -213,7 +214,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
     <div data-rv><h2>Вопросы</h2>
       <div class="swap"><p>Футбол — топ-лиги Европы и Лига чемпионов, та же модель и те же честные итоги.</p><a class="btn btn-ink" href="../football/index.html">Прогнозы на футбол</a></div></div>
     <div data-rv>
-      <details><summary>Где посмотреть итоги?</summary><p>Каждое утро в канале @jarvibet: все прогнозы дня подряд, с номером поста и счётом. Таблица всех прогнозов на сайте появится, когда накопится проверяемая история.</p></details>
+      <details><summary>Где посмотреть итоги?</summary><p>На странице <a href="../results.html">«Итоги прогнозов»</a>: все прогнозы канала со счётом матча и ссылкой на пост, по месяцам. И каждое утро в канале @jarvibet — итоги дня.</p></details>
       <details><summary>Что такое «ВЫБОР»?</summary><p>Ставка, у которой модель даёт от 60 % при кэфе от 1,6. Остальные матчи — разбор без выбора.</p></details>
       <details><summary>Почему кэф от 1,6?</summary><p>Ниже — выигрыш слишком мал для риска. Чем выше кэф, тем больше случайности, поэтому почти все ставки — до 2,3.</p></details>
       <details><summary>Когда выходят прогнозы?</summary><p>КХЛ — до 08:00 по Москве, НХЛ — до 14:00. Ночные матчи НХЛ собраны в один игровой день.</p></details>
@@ -451,5 +452,7 @@ k.addEventListener('input',kv);kv();
 })();
 </script>
 <script src="../assets/live.js" defer></script>
+<script src="../data/results-lite.js"></script>
+<script src="../assets/results-strip.js"></script>
 </body>
 </html>

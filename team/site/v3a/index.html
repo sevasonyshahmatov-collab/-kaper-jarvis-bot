@@ -21,6 +21,7 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
 <link rel="stylesheet" href="proto/home/merge/merge.css">
 <link rel="stylesheet" href="proto/home/merge/mtoday.css">
 <link rel="stylesheet" href="assets/live.css">
+<link rel="stylesheet" href="assets/results.css">
 <style>.soon{background:var(--card);border:1px solid var(--rule-2);border-radius:14px;padding:clamp(20px,3vw,32px);display:grid;gap:12px;justify-items:start;max-width:640px}.soon b{font:800 30px/1 var(--display);color:var(--signal)}[data-theme=c] .soon b{color:var(--ink)}.soon p{margin:0;color:var(--ink-2)}</style>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
@@ -48,7 +49,7 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
       <a href="hockey/index.html">Хоккей</a>
       <a href="football/index.html">Футбол</a>
     </nav>
-    <nav class="nav" aria-label="Разделы"><a href="#today">Сегодня</a><a href="#model">Модель</a><a href="#honest">Итоги</a><a href="#faq">Вопросы</a></nav>
+    <nav class="nav" aria-label="Разделы"><a href="#today">Сегодня</a><a href="#model">Модель</a><a href="results.html">Итоги</a><a href="#faq">Вопросы</a></nav>
     <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Получать прогнозы — бесплатно</span></a>
   </div>
 </header>
@@ -146,7 +147,7 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
 <section class="sec" id="honest">
   <div class="wrap">
     <div class="sec-head" data-rv><h2>Честные итоги</h2></div>
-    <div class="soon" data-rv><b>Скоро</b><p>Сводку по месяцам и таблицу всех прогнозов выложим здесь, когда накопится проверяемая история. Пока итоги дня — в Telegram.</p><a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a></div>
+    <div class="rsx" id="rsx" data-root="" data-rv><div class="rsx-box"><h3>Итоги прогнозов</h3><p class="rs-note">Все прогнозы канала со счётом матча и ссылкой на пост — на отдельной странице.</p><a class="btn btn-ink" href="results.html">Все прогнозы и итоги</a></div></div>
   </div>
 </section>
 
@@ -166,7 +167,7 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
   <div class="wrap faq">
     <div data-rv><h2>Вопросы</h2></div>
     <div data-rv>
-      <details><summary>Где посмотреть итоги?</summary><p>Каждое утро в канале @jarvibet: все прогнозы дня подряд, с номером поста и счётом матча. Таблица всех прогнозов на сайте появится, когда накопится проверяемая история.</p></details>
+      <details><summary>Где посмотреть итоги?</summary><p>На странице <a href="results.html">«Итоги прогнозов»</a>: все прогнозы канала со счётом матча и ссылкой на пост, по месяцам. И каждое утро в канале @jarvibet — итоги дня.</p></details>
       <details><summary>Какие лиги?</summary><p>Хоккей: КХЛ и НХЛ. Футбол: АПЛ, Ла Лига, Серия А, Бундеслига, Лига 1, РПЛ, Лига чемпионов и Лига Европы.</p></details>
       <details><summary>Что такое «ВЫБОР»?</summary><p>Ставка, у которой модель даёт от 60 % при кэфе от 1,6. Остальные матчи — разбор без выбора.</p></details>
       <details><summary>Почему кэф от 1,6?</summary><p>Ниже — выигрыш слишком мал для риска. Чем выше кэф, тем больше случайности, поэтому почти все ставки — до 2,3.</p></details>
@@ -192,5 +193,7 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
 <script src="proto/home/merge/merge.js"></script>
 <script src="proto/home/merge/mtoday.js"></script>
 <script src="assets/live.js"></script>
+<script src="data/results-lite.js"></script>
+<script src="assets/results-strip.js"></script>
 </body>
 </html>
