@@ -300,11 +300,11 @@ const card=m=>{const md=m.md,ln=m.ln,mo=md?[md.p1,md.x,md.p2]:null,i=mo?mo.index
  const word=i===0?`${m.hn} — победа`:i===2?`${m.an} — победа`:'Ничья в основное время',kk=ln?[ln.p1,ln.x,ln.p2][i]:null;
  const why=[];
  if(ln)why.push(`Линия (${JVL.srcLabel(ln)}): П1 ${f1(ln.p1,2)}${ln.x?` · Х ${f1(ln.x,2)}`:''} · П2 ${f1(ln.p2,2)}.`);else why.push('Линии на матч пока нет.');
- if(md&&md.lam)why.push(`Ожидаемые голы: ${f1(md.lam[0],1)} : ${f1(md.lam[1],1)}.`);
+ if(md&&md.lam)why.push(`Ожидаемые шайбы: ${f1(md.lam[0],1)} : ${f1(md.lam[1],1)}.`);
  return `<div class="face">${tm(m.h,m.hn,'хозяева')}<div class="vs"><span aria-hidden="true">—</span><time>${esc(m.t.slice(11))}</time></div>${tm(m.a,m.an,'гости')}</div>
  ${md?`<div class="bet lv-${lvl(p)}"><span class="bl">Расчёт модели</span><strong>${esc(word)}</strong><span class="k num" aria-label="${kk?'кэф линии':'линии нет'}">${kk?f1(kk,2):'—'}</span>
   <span class="pm"><em><i style="--w:${Math.round(p*100)}%"></i></em><b class="num">${Math.round(p*100)} % по модели</b></span></div>`:'<div class="bet lv-lo"><span class="bl">Расчёт модели</span><strong>Расчёта на этот матч пока нет</strong></div>'}
- <p class="why">${esc(why.join(' '))}</p>`};
+ <p class="why">${why.map(x=>`<span>${esc(x)}</span>`).join(' ')}</p>`};
 /* отсчёт: «32 ч 44 мин 05 с»; меняется только та часть, что изменилась */
 cdv.innerHTML=['h','m','s'].map((u,i)=>`<span class="cu" data-u="${u}"><b></b><small>${['ч','мин','с'][i]}</small></span>`).join('');
 const cu=[...cdv.querySelectorAll('.cu b')],cdWord=document.createElement('b');cdWord.className='cdw';cdv.appendChild(cdWord);

@@ -1006,3 +1006,19 @@ html[data-theme="arena"][data-sport="football"]:not([data-col]) .dv .up{color:va
 html[data-theme="arena"]:not([data-col]) .dv .dn{color:#3b4552}
 /* мелкий серый текст на светлом — темнее */
 html[data-theme="arena"]:not([data-col]) .sec{--ink-3:#414d5c}
+
+/* ── Первый экран разделов (владелец 10.11): заголовок не рвётся на третью строку на широком экране, подпись без «висячего» слова,
+   счётчики — одной тихой строкой, у отсчёта нет секунд, названия команд одного размера, пояснение под расчётом — по строке на мысль,
+   кнопка в Telegram под карточкой — основная (жёлтая). ── */
+@media (min-width:981px){.hero h1{font-size:clamp(46px,6.6vw,104px)}[data-sport="hockey"] .hero h1 .ln{white-space:nowrap}}
+.hero .lead{text-wrap:pretty;max-width:40ch;text-shadow:0 1px 14px rgba(7,18,37,.85)}
+.hero .facts{gap:10px clamp(20px,2.4vw,36px);margin-top:30px}
+.hero .facts li{display:flex;align-items:baseline;gap:8px}
+.hero .facts b{font-size:clamp(26px,2.2vw,32px);line-height:1}
+.hero .facts li>span{font:500 15px/1.2 var(--display);color:var(--ink-2)}
+.hero .chips{margin-top:20px}
+.hero .board .why{font:500 14px/1.5 var(--display);color:#b8c9e4}
+.hero .board .why>span{display:block}
+.hero .board .cu[data-u="s"]{display:none}
+.hero .face .tm span,.hero .face .tm.long span{font-size:clamp(17px,4.4cqw,22px)}
+.hero .get8{background:var(--signal);color:var(--signal-ink);border-color:var(--signal)}
