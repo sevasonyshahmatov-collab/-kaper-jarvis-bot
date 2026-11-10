@@ -39,7 +39,14 @@ function quotes(m,opt={}){const {ln,md}=m,fl=fair(ln),pm=md?[md.p1,md.x,md.p2]:n
  const tot=ln&&ln.tot!=null&&ln.over?`<div class="qt">Тотал ${f1(ln.tot)} <span>Б <b class="num">${f2(ln.over)}</b></span><span>М <b class="num">${f2(ln.under)}</b></span></div>`:'';
  const src=ln?`<div class="qs">Линия: ${esc(srcLabel(ln))}</div>`
   :`<div class="qs">${esc(opt.noLine||'Линии пока нет')}</div>`;
- return `<div class="q3">${q}</div>${tot}${md?`<div class="qm">${modelLine(md,opt)}</div>`:''}${dvHtml(ln,md)?`<div class="qd">${dvHtml(ln,md)}</div>`:''}${src}`}
+ /* вывод одной строкой (владелец 10.11): что модель считает самым вероятным, кэф линии на это и насколько модель выше линии —
+    словами и шкалой из трёх делений. Остальные цифры карточки видны после раскрытия (.match.open). */
+ let qv='';
+ if(pm){const j=pm.indexOf(Math.max(...pm)),nm=opt.names||[m.hn,m.an],w=j===0?(nm[0]?nm[0]+' — победа':'Победа хозяев'):j===2?(nm[1]?nm[1]+' — победа':'Победа гостей'):'Ничья в основное время',
+   k=ln?(j===0?ln.p1:j===1?ln.x:ln.p2):null,e=k?pm[j]*k:0,lv=e>=1.15?3:e>=1.08?2:e>=1.02?1:0,
+   t=!k?'линии пока нет':lv===3?'сильный перевес над линией':lv===2?'заметный перевес над линией':lv===1?'небольшой перевес над линией':e>=.97?'вровень с линией':'линия оценивает выше';
+  qv=`<div class="qv"><span class="qv-t"><small>Расчёт модели</small><b>${esc(w)}</b></span><span class="qv-k num">${k?f2(k):'—'}</span><span class="qv-e" data-l="${lv}"><i></i><i></i><i></i><em>${t}</em></span></div>`}
+ return `${qv}<div class="q3">${q}</div>${tot}${md?`<div class="qm">${modelLine(md,opt)}</div>`:''}${dvHtml(ln,md)?`<div class="qd">${dvHtml(ln,md)}</div>`:''}${src}`}
 
 /* ── раскрытая строка: расчёт модели ── */
 const bar=(lab,pm,pl,fav,full)=>`<div class="wb${fav?' fav':''}"><span${full?` title="${esc(full)}"`:''}>${esc(lab)}</span><em><i style="--w:${p0(pm)}%"></i>${pl!=null?`<u style="left:${p0(pl)}%" title="линия: ${p0(pl)} %"></u>`:''}</em><b class="num">${p0(pm)} %</b></div>`;

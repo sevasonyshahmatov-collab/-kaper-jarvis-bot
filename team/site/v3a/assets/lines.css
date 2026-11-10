@@ -48,3 +48,17 @@
 .simsel{width:100%;margin:2px 0 10px;padding:10px 12px;font:600 15px/1.2 var(--display);background:var(--paper-2);color:var(--ink);border:0;border-radius:6px}
 .simbars .num{font-variant-numeric:tabular-nums}
 .sim-lbl{margin:0 0 10px;color:var(--ink-3)}
+
+/* ── карточка матча в списке: один вывод и один кэф, остальные цифры — после раскрытия (владелец 10.11) ── */
+.match:not(.open) .quotes>:not(.qv){display:none}
+.qv{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"t k" "e k";align-items:center;gap:6px 16px;background:var(--card-hi,#fff);border-radius:8px;padding:10px 14px}
+.match.open .qv{margin-bottom:2px}
+.qv-t{grid-area:t;display:grid;gap:3px;min-width:0}
+.qv-t small{font:600 12px/1 var(--display);letter-spacing:.04em;color:var(--ink-3)}
+.qv-t b{font:800 18px/1.15 var(--display);color:var(--ink);overflow-wrap:anywhere}
+.qv-k{grid-area:k;font:800 30px/1 var(--display);letter-spacing:-.02em;color:var(--ink)}
+.qv-e{grid-area:e;display:flex;align-items:center;gap:4px;font:500 13px/1.2 var(--display);color:var(--ink-3)}
+.qv-e i{width:20px;height:6px;border-radius:3px;background:var(--paper-3)}
+.qv-e[data-l="1"] i:nth-child(1),.qv-e[data-l="2"] i:nth-child(-n+2),.qv-e[data-l="3"] i{background:var(--sport)}
+.qv-e em{font-style:normal;margin-left:4px}
+@media (max-width:560px){.qv{padding:9px 12px}.qv-t b{font-size:17px}.qv-k{font-size:26px}}
