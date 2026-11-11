@@ -86,7 +86,7 @@ def collect():
     hi = (today + datetime.timedelta(days=AHEAD_DAYS)).isoformat()
     arenas = {m['key']: m.get('arena') for m in B.TODAY.get('matches', [])}
 
-    def add(sport, lg, t, h, a, res, md_game, xg=None):
+    def add(sport, lg, t, h, a, res, md_game, xg=None, fx=None):
         d = t[:10]
         if not (lo <= d <= hi):
             return
@@ -102,7 +102,7 @@ def collect():
         ar = arenas.get(key)
         MATCHES[key] = {'key': key, 'sport': sport, 'lg': lg, 't': t, 'h': h, 'a': a, 'hn': names.get(h, h), 'an': names.get(a, a),
                         'md': md, 'res': res, 'rel': rel, 'arena': ar if isinstance(ar, dict) else None,
-                        'arena_s': ar if isinstance(ar, str) else None}
+                        'arena_s': ar if isinstance(ar, str) else None, 'fx': fx}
 
     for tid, t in B.TEAMS['teams'].items():
         lg = t.get('lg') or 'khl'
@@ -129,7 +129,8 @@ def collect():
             md = None
             if g.get('pr'):
                 md = {'p1': g['pr'][0], 'x': g['pr'][1], 'p2': g['pr'][2], 'tot': 2.5, 'over': g.get('ov'), 'btts': g.get('bt')}
-            add('football', lg, g['d'], tid, g['o'], res, md)
+            fx = {'h': g['x'], 'a': g['y']} if res and isinstance(g.get('x'), dict) and isinstance(g.get('y'), dict) else None   # статистика ESPN
+            add('football', lg, g['d'], tid, g['o'], res, md, fx=fx)
     # приоритет данных: результат известен, если у хозяев в играх есть счёт (повторный проход не нужен: add берёт первый)
 
 
@@ -651,7 +652,7 @@ def mstats(m):
 
 def v2_mstats(m, fin, from_dir=''):
     """«Статистика матча» под счётом: пары цифр хозяева — гости с полосой в цветах клубов. Только то, что отдал источник."""
-    st = mstats(m) if fin and m['sport'] == 'hockey' else None
+    st = (mstats(m) if m['sport'] == 'hockey' else m.get('fx')) if fin else None
     if not st:
         return ''
     h, a = st.get('h') or {}, st.get('a') or {}
@@ -666,6 +667,12 @@ def v2_mstats(m, fin, from_dir=''):
         lead = 0 if hv == av else (1 if (hv > av) != less else 2)
         rows.append((label, fmt(hv), fmt(av), hv, av, lead, note))
 
+    if m['sport'] != 'hockey':                           # футбол (ESPN): удары, в створ, владение, угловые, фолы
+        row('Удары', h.get('sh'), a.get('sh'))
+        row('Удары в створ', h.get('sot'), a.get('sot'))
+        row('Владение мячом', h.get('pos'), a.get('pos'), show=lambda v: '%d %%' % round(v))
+        row('Угловые', h.get('cor'), a.get('cor'))
+        row('Фолы', h.get('fl'), a.get('fl'), less=True)
     row('Броски в створ', h.get('shots', h.get('sog')), a.get('shots', a.get('sog')))
     pp = lambda t: (t.get('ppg'), t.get('ppc'))  # noqa: E731
     for t in (h, a):                                     # НХЛ: «1/4» из сводки лиги
@@ -703,7 +710,7 @@ def v2_mstats(m, fin, from_dir=''):
                 % ('on' if lead == 1 else '', esc(hs), esc(label), 'on' if lead == 2 else '', esc(as_), max(hv / tot, .02), max(av / tot, .02)))
     return ('<section class="fc-sec mx-ms" aria-labelledby="mt-ms"><div class="wrap"><h2 id="mt-ms">Статистика матча</h2>\n'
             '<div class="mx-msb"><div class="mx-msh"><b>%s%s</b><b>%s%s</b></div><ul class="mx-msl">%s</ul></div>'
-            '<p class="mt-note">Данные лиги.</p></div></section>\n' % (crest(m, m['h'], from_dir), esc(m['hn']), esc(m['an']), crest(m, m['a'], from_dir), lis))
+            '<p class="mt-note">%s</p></div></section>\n' % (crest(m, m['h'], from_dir), esc(m['hn']), esc(m['an']), crest(m, m['a'], from_dir), lis, 'Данные лиги.' if m['sport'] == 'hockey' else 'Данные ESPN.'))
 
 
 def v2_model(m, fin, pre, cols):
