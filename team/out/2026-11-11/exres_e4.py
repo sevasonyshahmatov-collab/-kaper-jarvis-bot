@@ -23,6 +23,6 @@ print('EXRES STATE', st, res, flush=True)
 if st == 'pending':
     sys.exit('pending или нет поста')
 job['messages'].append({'to': 'owner', 'type': 'photo', 'html': True, 'emoji': True, 'files': ['out/express/2026-11-10-e4/e2_result.jpg'],
-                        'text': xr.result_text(c, legs, st), 'buttons': 'post', 'pid': '1011-e4r%d' % num})
+                        'text': xr.result_text(c, legs, st), 'buttons': 'post', 'pid': '1011-e4r%s' % (num or '')})
 json.dump(job, open(JOB, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 print('EXRES SENT', st, flush=True)
