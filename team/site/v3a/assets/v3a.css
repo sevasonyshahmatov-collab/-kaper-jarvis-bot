@@ -1029,3 +1029,11 @@ html[data-theme="arena"]:not([data-col]) .sec{--ink-3:#414d5c}
 .hero+.sec{padding-top:clamp(56px,6vw,96px)}
 @media (min-width:981px){.hero .wrap{align-items:center}}
 @media (min-width:1600px){:root{--max:min(1560px,86vw)}.hero h1{font-size:112px}.hero .board,.hero .get8{max-width:600px}}
+
+/* ── эмблема на плашке цвета клуба (владелец 11.11, вариант 2). Пока только первый экран хоккея (.face); разметка: <span class="emq" style="--c:#цвет"><img class="em"></span> ── */
+.emq{display:grid;place-items:center;aspect-ratio:1;border-radius:22%;flex:none;
+  background:linear-gradient(160deg,var(--c,#2a3f6b),color-mix(in srgb,var(--c,#2a3f6b) 55%,#071225));box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.emq .em{width:74%;height:74%;background:none;padding:0;border-radius:0;object-fit:contain;filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff)}
+.face .tm .emq{order:-2;width:clamp(56px,18cqw,96px)}
+.face .tm .emq .em,[data-hero="2"] .hero .face .tm .emq .em{width:74%;height:74%;background:none;padding:0;border-radius:0;box-shadow:none}
+[data-hero="2"] .hero .face .tm .emq{width:clamp(76px,min(8vw,13vh),132px)}

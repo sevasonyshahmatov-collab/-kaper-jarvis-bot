@@ -300,7 +300,9 @@ const picks=(D.filter(m=>JV.left(m.t)>0&&m.md).length?D.filter(m=>JV.left(m.t)>0
 window.__heroPicks=picks; /* для афиши (assets/hero3/hero3.js): два следующих матча */
 const mcard=document.getElementById('mcard'),cdv=document.getElementById('cdv');
 const lvl=p=>p>=.45?'hi':p>=.38?'mid':'lo';
-const tm=(slug,name,cls)=>`<div class="tm${name.length>10?' long':''}">${CS(slug)}<small>${cls}</small><span>${esc(name)}</span></div>`;
+/* эмблема на плашке цвета клуба (владелец 11.11, вариант 2): цвет — первый из палитры клуба в assets/data/teams-lite.js */
+const clubCol=slug=>{const c=(((window.JV_TEAMS||{}).teams||{})[slug]||{}).colors;return c&&/^#[0-9a-f]{6}$/i.test(c[0])?c[0]:'#2a3f6b'};
+const tm=(slug,name,cls)=>`<div class="tm${name.length>10?' long':''}"><span class="emq" style="--c:${clubCol(slug)}">${CS(slug)}</span><small>${cls}</small><span>${esc(name)}</span></div>`;
 const card=m=>{const md=m.md,ln=m.ln,mo=md?[md.p1,md.x,md.p2]:null,i=mo?mo.indexOf(Math.max(...mo)):-1,p=i>=0?mo[i]:0;
  const word=i===0?`${m.hn} — победа`:i===2?`${m.an} — победа`:'Ничья в основное время',kk=ln?[ln.p1,ln.x,ln.p2][i]:null;
  const why=[];
