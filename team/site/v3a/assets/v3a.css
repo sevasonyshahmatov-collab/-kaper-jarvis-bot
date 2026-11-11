@@ -1037,3 +1037,6 @@ html[data-theme="arena"]:not([data-col]) .sec{--ink-3:#414d5c}
 .face .tm .emq{order:-2;width:clamp(56px,18cqw,96px)}
 .face .tm .emq .em,[data-hero="2"] .hero .face .tm .emq .em{width:76%;height:76%;background:none;padding:0;border-radius:0;box-shadow:none}
 [data-hero="2"] .hero .face .tm .emq{width:clamp(76px,min(8vw,13vh),132px)}
+/* эмблема строго по центру плашки: ставим абсолютно, чтобы правила соседних элементов (.face .tm span и др.) не сдвигали её */
+.emq{position:relative;display:block}
+.emq .em,.face .tm .emq .em,[data-hero="2"] .hero .face .tm .emq .em{position:absolute;inset:12%;width:76%;height:76%;margin:0;max-width:none;object-fit:contain;object-position:50% 50%}
