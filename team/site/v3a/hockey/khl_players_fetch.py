@@ -143,8 +143,7 @@ with ThreadPoolExecutor(8) as ex:
                     'pl': [[v.get('period'), v.get('time'), v.get('penalty_time'), v.get('penalty_reason'),
                             (v.get('violator') or {}).get('name'), (v.get('violator') or {}).get('shirt_number'),
                             'h' if (v.get('violator') or {}).get('team_id') == a else 'a' if (v.get('violator') or {}).get('team_id') == b else None]
-                           for v in d.get('violations') or []],
-                    'vk': sorted((d.get('violations') or [{}])[0].get('violator') or {})[:20]}   # поля игрока — для сверки формата
+                           for v in d.get('violations') or []]}
             except Exception as x:  # noqa: BLE001
                 err.append('mstats %s %r' % (e.get('id'), x))
         pts = {}

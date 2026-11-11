@@ -357,3 +357,21 @@ body.fc .mx-tg .btn,body.fc .mx-tg .btn span{color:#071225;font-weight:800;font-
 @media (max-width:620px){.mx-tg .btn{flex:1;justify-content:center}.mx-go{grid-template-columns:repeat(2,minmax(0,1fr))}.mx-go b{font-size:16px}}
 @media (prefers-reduced-motion:reduce){.mx-go a{transition:none}.mx-go a:hover{transform:none}}
 @media (max-width:620px){.mx-go li:last-child:nth-child(odd){grid-column:1/-1}}
+
+/* ── удаления по минутам (11.11): лента по времени — хозяева слева, гости справа, цвет клуба у строки ── */
+.mx-pen{margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.09)}
+.mx-pen summary{cursor:pointer;font:800 clamp(16px,1.5vw,19px)/1.2 var(--display);list-style:none;display:flex;align-items:center;gap:10px}
+.mx-pen summary::-webkit-details-marker{display:none}
+.mx-pen summary::after{content:"";width:9px;height:9px;margin-left:2px;border-right:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);transform:rotate(-135deg) translate(-2px,-2px)}
+.mx-pen:not([open]) summary::after{transform:rotate(45deg) translate(-2px,-2px)}
+.mx-pen summary small{padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.09);font:700 13px/1 var(--display);color:var(--ink-2)}
+.mx-pen ol{list-style:none;margin:12px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px clamp(14px,2.4vw,36px)}
+.mx-pen li{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"t n m" "t w m";align-items:center;gap:1px 12px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.045)}
+.mx-pen li.ph{grid-column:1;border-left:4px solid var(--hcs)}
+.mx-pen li.pa{grid-column:2;border-right:4px solid var(--acs);grid-template-columns:auto 1fr auto;grid-template-areas:"m n t" "m w t";text-align:right}
+.mx-pen li.pp{grid-column:1/-1;display:block;padding:8px 0 0;background:none;text-align:center;font:700 12px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.mx-pen time{grid-area:t;font:800 17px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ink)}
+.mx-pen b{grid-area:n;font:700 15px/1.25 var(--display);min-width:0}
+.mx-pen li span{grid-area:w;font:500 13px/1.3 var(--display);color:var(--ink-2)}
+.mx-pen em{grid-area:m;font:700 12px/1 var(--display);font-style:normal;white-space:nowrap;padding:5px 8px;border-radius:999px;background:rgba(0,0,0,.3);color:var(--ink-2)}
+@media (max-width:620px){.mx-pen ol{grid-template-columns:1fr;gap:6px}.mx-pen li.ph,.mx-pen li.pa{grid-column:1}.mx-pen li.pa{margin-left:22px}.mx-pen li.ph{margin-right:22px}}

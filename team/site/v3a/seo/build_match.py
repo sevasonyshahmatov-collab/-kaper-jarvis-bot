@@ -650,6 +650,40 @@ def mstats(m):
     return _MST.get(m['key'])
 
 
+PEN_RU = {'tripping': 'Подножка', 'interference': 'Блокировка', 'roughing': 'Грубость', 'fighting': 'Драка', 'hooking': 'Задержка клюшкой',
+          'slashing': 'Удар клюшкой', 'misconduct': 'Дисциплинарный штраф', 'holding': 'Задержка соперника', 'high-sticking': 'Игра высоко поднятой клюшкой',
+          'delaying-game-puck-over-glass': 'Выброс шайбы', 'delaying-game-unsuccessful-challenge': 'Неудачный запрос просмотра',
+          'delaying-game-face-off-violation': 'Нарушение при вбрасывании', 'delaying-game': 'Задержка игры', 'elbowing': 'Удар локтем',
+          'cross-checking': 'Толчок клюшкой', 'too-many-men-on-the-ice': 'Нарушение численного состава', 'instigator': 'Зачинщик драки',
+          'instigator-misconduct': 'Зачинщик драки, дисциплинарный штраф', 'goalie-removed-own-mask': 'Вратарь снял маску', 'boarding': 'Толчок на борт',
+          'charging': 'Атака соперника в прыжке', 'kneeing': 'Удар коленом', 'holding-the-stick': 'Задержка клюшки соперника', 'unsportsmanlike-conduct': 'Неспортивное поведение',
+          'game-misconduct': 'Удаление до конца игры', 'match-penalty': 'Матч-штраф', 'closing-hand-on-puck': 'Задержка шайбы рукой', 'illegal-check-to-head': 'Атака в голову',
+          'checking-from-behind': 'Толчок сзади', 'embellishment': 'Симуляция', 'spearing': 'Колющий удар', 'butt-ending': 'Удар концом клюшки',
+          'abuse-of-officials': 'Оскорбление судей', 'broken-stick': 'Игра сломанной клюшкой', 'clipping': 'Подсечка', 'head-butting': 'Удар головой',
+          'bench': 'Командный штраф', 'ps-tripping-on-breakaway': 'Штрафной бросок: подножка', 'ps-hooking-on-breakaway': 'Штрафной бросок: задержка клюшкой'}
+
+
+def pen_rows(st):
+    """Удаления по минутам (владелец 11.11) → [(секунда матча, 'ММ:СС', период, сторона, игрок, причина, минут)] по времени.
+    КХЛ: время — секунды от начала матча, причина по-русски; НХЛ: «ММ:СС» внутри периода, причина — ключ лиги (PEN_RU)."""
+    out = []
+    for x in st.get('pl') or []:
+        try:
+            per, t, mins, why, who, no, side = x[:7]
+            if side not in ('h', 'a'):
+                continue
+            if isinstance(t, str) and ':' in t:
+                mm, ss = [int(v) for v in t.split(':')]
+                sec = (int(per or 1) - 1) * 1200 + mm * 60 + ss
+            else:
+                sec = int(t)
+            why = PEN_RU.get(why, why if re.search('[а-яА-Я]', str(why or '')) else str(why or '').replace('-', ' ').capitalize())
+            out.append((sec, '%d:%02d' % (sec // 60, sec % 60), int(per or 0), side, (who or 'Команда') + ((' №%s' % no) if no else ''), why or '', mins))
+        except (TypeError, ValueError):
+            continue
+    return sorted(out)
+
+
 def v2_mstats(m, fin, from_dir=''):
     """«Статистика матча» под счётом: пары цифр хозяева — гости с полосой в цветах клубов. Только то, что отдал источник."""
     st = (mstats(m) if m['sport'] == 'hockey' else m.get('fx')) if fin else None
@@ -708,9 +742,21 @@ def v2_mstats(m, fin, from_dir=''):
         lis += ('<li><b class="%s">%s</b><span>%s</span><b class="%s">%s</b>'
                 '<i aria-hidden="true"><u style="flex:%.3f"></u><u style="flex:%.3f"></u></i></li>'
                 % ('on' if lead == 1 else '', esc(hs), esc(label), 'on' if lead == 2 else '', esc(as_), max(hv / tot, .02), max(av / tot, .02)))
+    pens = pen_rows(st) if m['sport'] == 'hockey' else []
+    pen = ''
+    if pens:
+        per_name = lambda n: '%d-й период' % n if 1 <= n <= 3 else 'Овертайм'  # noqa: E731
+        body, cur = '', None
+        for sec, tm, per, side, who, why, mins in pens:
+            if per != cur:
+                body += '<li class="pp"><span>%s</span></li>' % per_name(per)
+                cur = per
+            body += ('<li class="p%s"><time>%s</time><b>%s</b><span>%s</span><em>%s</em></li>'
+                     % (side, tm, esc(who), esc(why), ('%s мин' % mins) if mins else ''))
+        pen = ('<details class="mx-pen" open><summary>Удаления по минутам <small>%d</small></summary><ol>%s</ol></details>' % (len(pens), body))
     return ('<section class="fc-sec mx-ms" aria-labelledby="mt-ms"><div class="wrap"><h2 id="mt-ms">Статистика матча</h2>\n'
-            '<div class="mx-msb"><div class="mx-msh"><b>%s%s</b><b>%s%s</b></div><ul class="mx-msl">%s</ul></div>'
-            '<p class="mt-note">%s</p></div></section>\n' % (crest(m, m['h'], from_dir), esc(m['hn']), esc(m['an']), crest(m, m['a'], from_dir), lis, 'Данные лиги.' if m['sport'] == 'hockey' else 'Данные ESPN.'))
+            '<div class="mx-msb"><div class="mx-msh"><b>%s%s</b><b>%s%s</b></div><ul class="mx-msl">%s</ul>%s</div>'
+            '<p class="mt-note">%s</p></div></section>\n' % (crest(m, m['h'], from_dir), esc(m['hn']), esc(m['an']), crest(m, m['a'], from_dir), lis, pen, 'Данные лиги.' if m['sport'] == 'hockey' else 'Данные ESPN.'))
 
 
 def v2_model(m, fin, pre, cols):
