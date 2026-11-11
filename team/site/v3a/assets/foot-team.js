@@ -70,7 +70,7 @@ const streakHtml=streak?`<p class="tmstreak ${streak.k}" aria-label="${streak.t}
 /* ── 1. шапка клуба + шестиугольник силы ── */
 $('hero').innerHTML=`
  <header class="tmid" data-rv>
-  <div class="tmtop"><a class="crumb" href="${CUP==='ucl'?'ucl.html':'index.html#lg-'+encodeURIComponent(EFF)}"><span aria-hidden="true">←</span> ${CUP==='ucl'?'Лига чемпионов':'Лиги и клубы · '+esc(EN)}</a>${followBtn('in-hero')}</div>
+  <div class="tmtop"><a class="crumb" href="${CUP==='ucl'?'ucl.html':'index.html#lg-'+encodeURIComponent(EFF)}"><span aria-hidden="true">←</span> ${CUP==='ucl'?'Лига чемпионов':'Лиги и клубы · '+esc(EN)}</a>${followBtn('in-hero')}<a class="cmpgo" href="compare.html?a=${encodeURIComponent(ID)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h14M17 12l4 4-4 4M21 16H7"/></svg><span>Сравнить</span></a></div>
   <div class="tmrow"><span class="tmcrest">${CI(ID)}</span>
    <div class="tmname">${swH?swH+`<p class="tmlg"><a class="lglnk" href="league.html?lg=${esc(EFF)}" title="Страница лиги">${esc(EN)}: страница лиги</a></p>`:`<p class="tmlg"><a class="lglnk" href="league.html?lg=${esc(EFF)}" title="Страница лиги">${LGP(EFF)}<span>${esc(EN)}</span></a><span class="dot">·</span><span>сезон ${esc(D.season)}</span></p>`}<h1 class="tmh1"><span class="l">${esc(T.n)}</span></h1></div></div>
   <div class="tmplace"><b class="num">${RC.place}</b><span>-е место<br>${CUP?'в общем этапе':'в лиге'}: ${esc(EN)}</span></div>

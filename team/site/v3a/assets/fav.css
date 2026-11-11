@@ -13,3 +13,10 @@
 .favgrp{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 @media (max-width:760px){.favbtn{min-height:44px;padding:0 14px 0 12px}.favbtn-ico{width:44px;height:44px}}
 @media (prefers-reduced-motion:reduce){.favbtn,.favbtn svg{transition:none}}
+/* «Сравнить» на странице клуба: вид как у «В избранное», но это ссылка (класс свой — fav.js ищет .favbtn) */
+.cmpgo{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:6px 13px 6px 10px;border-radius:999px;text-decoration:none;
+  font:700 14px/1 var(--display);color:inherit;border:1.5px solid color-mix(in srgb,currentColor 45%,transparent);background:transparent;white-space:nowrap}
+.cmpgo svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.cmpgo:hover{border-color:currentColor}
+.cmpgo:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+@media (max-width:760px){.cmpgo{min-height:44px;padding:0 14px 0 12px}}

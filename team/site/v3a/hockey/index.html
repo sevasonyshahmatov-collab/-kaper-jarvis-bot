@@ -232,6 +232,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <script src="../assets/particles.js" defer></script>
 <script src="../assets/titles.js" defer></script>
 <script src="../assets/data/teams-lite.js"></script>
+<script src="../assets/em/plates.js"></script>
 <script src="../data/today.js"></script>
 <script src="../data/lines.js"></script>
 <script src="../data/model.js"></script>
@@ -301,10 +302,11 @@ window.__heroPicks=picks; /* для афиши (assets/hero3/hero3.js): два �
 const mcard=document.getElementById('mcard'),cdv=document.getElementById('cdv');
 const lvl=p=>p>=.45?'hi':p>=.38?'mid':'lo';
 /* эмблема на плашке цвета клуба (владелец 11.11, вариант 2): цвет — первый из палитры клуба в assets/data/teams-lite.js */
-const clubCol=slug=>{const c=(((window.JV_TEAMS||{}).teams||{})[slug]||{}).colors;return c&&/^#[0-9a-f]{6}$/i.test(c[0])?c[0]:'#2a3f6b'};
+/* подложка подобрана по самой эмблеме (assets/em/plates.js): ['d'|'l', цвет] — тёмная цвета клуба или светлая с ободком */
+const plate=slug=>{const p=(window.JV_EMPL||{})[slug];if(p)return p;const c=(((window.JV_TEAMS||{}).teams||{})[slug]||{}).colors;return['d',c&&/^#[0-9a-f]{6}$/i.test(c[0])?c[0]:'#2a3f6b']};
 /* название и эмблема команды ведут на страницу клуба (владелец 11.11) */
 const clubHref=slug=>`../team/index.html?id=${encodeURIComponent(slug)}${(t=>/^(arena|a|b|c)$/.test(t||'')?'&theme='+t:'')(new URLSearchParams(location.search).get('theme'))}`;
-const tm=(slug,name,cls)=>`<a class="tm${name.length>10?' long':''}" href="${clubHref(slug)}" aria-label="${esc(name)}, страница клуба"><span class="emq" style="--c:${clubCol(slug)}">${CS(slug)}</span><small>${cls}</small><span>${esc(name)}</span></a>`;
+const tm=(slug,name,cls)=>`<a class="tm${name.length>10?' long':''}" href="${clubHref(slug)}" aria-label="${esc(name)}, страница клуба"><span class="emq${plate(slug)[0]==='l'?' lt':''}" style="--c:${plate(slug)[1]}">${CS(slug)}</span><small>${cls}</small><span>${esc(name)}</span></a>`;
 const card=m=>{const md=m.md,ln=m.ln,mo=md?[md.p1,md.x,md.p2]:null,i=mo?mo.indexOf(Math.max(...mo)):-1,p=i>=0?mo[i]:0;
  const word=i===0?`${m.hn} — победа`:i===2?`${m.an} — победа`:'Ничья в основное время',kk=ln?[ln.p1,ln.x,ln.p2][i]:null;
  const why=[];

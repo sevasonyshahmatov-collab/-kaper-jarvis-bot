@@ -5,23 +5,30 @@
 (()=>{
 const $=id=>document.getElementById(id),OUT=$('cmp-out');
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
-const TT=(window.JV_TEAMS||{}).teams||{},AX=(window.JV_TEAMS||{}).axes||[],ML=window.JV_MATCHLINKS||{};
+/* футбол (football/compare.html, <html data-sport="football">): клубы из football/data/football-lite.js приводятся к тому же виду,
+   что хоккейные; игр по матчам в этом файле нет — блоки «Дом и выезд», «Форма» и очные встречи заменяют оси 0–100 и ближайшая встреча */
+const FB=document.documentElement.dataset.sport==='football',JF=window.JV_FOOT||{};
+const TT=FB?Object.fromEntries(Object.entries(JF.teams||{}).filter(([,t])=>(JF.leagues||{})[t.lg]&&t.gp).map(([k,t])=>[k,{name:t.n,lg:t.lg,place:t.place,gp:t.gp,w:t.w,d:t.d,l:t.l,gf:t.gf,ga:t.ga,pts:t.pts,axes:t.axes,
+  colors:(t.c||[]).map(c=>'#'+String(c).replace('#',''))}])):(window.JV_TEAMS||{}).teams||{};
+const AX=FB?JF.axes||[]:(window.JV_TEAMS||{}).axes||[],ML=window.JV_MATCHLINKS||{};
+const EMDIR=FB?'fc':'em',TEAMURL=id=>FB?'team.html?id='+id:'../team/index.html?id='+id;
 const Q=new URLSearchParams(location.search);
-const st={t:Q.get('t')==='players'?'players':'clubs',a:Q.get('a')||'',b:Q.get('b')||''};
+const st={t:!FB&&Q.get('t')==='players'?'players':'clubs',a:Q.get('a')||'',b:Q.get('b')||''};
 const num=(x,d)=>x==null||isNaN(x)?'—':Number(x).toFixed(d==null?0:d).replace('.',',');
 const ddmm=d=>d.slice(8,10)+'.'+d.slice(5,7);
 const mmss=s=>s?Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0'):'—';
-const em=(id,sz)=>`<img class="cmp-em" src="../assets/em/${encodeURIComponent(id)}.webp" alt="" width="${sz||28}" height="${sz||28}" loading="lazy" onerror="this.style.visibility='hidden'">`;
+const em=(id,sz)=>`<img class="cmp-em" src="../assets/${EMDIR}/${encodeURIComponent(id)}.webp" alt="" width="${sz||28}" height="${sz||28}" loading="lazy" onerror="this.style.visibility='hidden'">`;
 /* цвет стороны — цвет её клуба: первый насыщенный из палитры, осветлённый для тёмного фона; если у второй стороны выходит
    похожий оттенок (один клуб или близкие цвета) — берём её следующий цвет, а если и он похож — светлый нейтральный */
 const hsl=h=>{const n=parseInt(h.slice(1),16),r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,d=mx-mn;
   if(!d)return[0,0,l];const sat=d/(1-Math.abs(2*l-1));let hh=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;return[(hh*60+360)%360,sat,l]};
-const lit=c=>{const[h,sa,l]=hsl(c);return `hsl(${Math.round(h)} ${Math.round(Math.max(sa,.55)*100)}% ${Math.round(Math.min(Math.max(l,.58),.72)*100)}%)`};
+const lit=c=>{const[h,sa,l]=hsl(c),lo=h>205&&h<290?.69:.58;   /* синие и фиолетовые на тёмном фоне темнее на вид — поднимаем сильнее */
+  return `hsl(${Math.round(h)} ${Math.round(Math.max(sa,.55)*100)}% ${Math.round(Math.min(Math.max(l,lo),.76)*100)}%)`};
 const cands=id=>(((TT[id]||{}).colors)||[]).filter(c=>/^#[0-9a-f]{6}$/i.test(c)&&hsl(c)[1]>.28&&hsl(c)[2]>.1&&hsl(c)[2]<.93);
 const far=(x,y)=>{const d=Math.abs(hsl(x)[0]-hsl(y)[0]);return Math.min(d,360-d)>38};
 function sideColors(ta,tb){const ca=cands(ta)[0]||'#5ab8ff',cb=cands(tb).find(c=>far(c,ca));return[lit(ca),cb?lit(cb):'#e9eef7']}
 const paint=(ta,tb)=>{const c=sideColors(ta,tb);OUT.style.setProperty('--ca',c[0]);OUT.style.setProperty('--cb',c[1])};
-const LGN={khl:'КХЛ',nhl:'НХЛ'};
+const LGN=FB?Object.fromEntries(Object.entries(JF.leagues||{}).map(([k,v])=>[k,v.name||k])):{khl:'КХЛ',nhl:'НХЛ'};
 let IDX=null;const index=()=>IDX||(IDX=fetch('../data/search.json').then(r=>r.json()).catch(()=>({c:[],p:[]})));
 const clubs=()=>Object.keys(TT).filter(k=>LGN[TT[k].lg]).map(k=>({id:k,n:TT[k].name,lg:TT[k].lg,t:k})).sort((x,y)=>x.n.localeCompare(y.n,'ru'));
 const players=()=>index().then(d=>(d.p||[]).map(p=>({id:p[1]+'-'+p[4],n:p[0],lg:p[1],t:p[2],pts:p[3]})));
@@ -85,17 +92,22 @@ function clubView(a,b){
       const ln=(s,e,n,r,p)=>`<div class="ln ${s}">${e}<span>${esc(n)}</span><b>${r[0]}–${r[1]}</b><i aria-hidden="true"><u style="width:${Math.round(p)}%"></u></i><em>${Math.round(p)} %</em></div>`;
       return `<div class="cmp-vc w-${w}" data-w="${w}"><h3>${h}<small>победы–поражения, доля побед</small></h3>${ln('a',ea,A.name,x,pa)}${ln('b',eb,B.name,y,pb)}</div>`};
     return `<div class="cmp-ven">${card('Дома','home')}${card('В гостях','away')}</div>`};
+  /* футбол: ближайшая встреча из расчёта модели (JV_FOOT.up) */
+  const fbNext=()=>{const u=(JF.up||[]).find(m=>(m.h===a&&m.a===b)||(m.h===b&&m.a===a));if(!u)return '';const hn=TT[u.h].name,an=TT[u.a].name;
+    return `<section class="cmp-g"><h2><span>Ближайшая встреча</span></h2><ul class="cmp-h2h"><li><div><time>${ddmm(u.t)}</time><span>${esc(hn)}${em(u.h,24)}</span><b>${esc(u.t.slice(11))}</b><span>${em(u.a,24)}${esc(an)}</span></div></li></ul>
+     <p class="cmp-note">Время московское. ${esc(hn)} играет дома.</p></section>`};
   const form=ok(A.l10)&&ok(B.l10)?panels(win(A.l10,B.l10),fpanel('a',ea,A.name,dots(last(A)),A.l10,'очков в 10 последних матчах'),fpanel('b',eb,B.name,dots(last(B)),B.l10,'очков в 10 последних матчах')):'';
   const body=(A.axes&&B.axes&&A.lg===B.lg?radar(AX,A.axes,B.axes,ea+esc(A.name),eb+esc(B.name),'Сильные стороны'):'')
   +group('Сезон',[tiles([['Очки за матч',pg(A,'pts'),pg(B,'pts'),{d:2}],['Забивает за матч',pg(A,'gf'),pg(B,'gf'),{d:2}],['Пропускает за матч',pg(A,'ga'),pg(B,'ga'),{d:2,low:1}]]),
-    row('Победы, %',A.gp?A.w/A.gp*100:null,B.gp?B.w/B.gp*100:null),row('Матчей сыграно',A.gp,B.gp,{flat:1})])
+    row('Победы, %',A.gp?A.w/A.gp*100:null,B.gp?B.w/B.gp*100:null),FB?row('Ничьи',A.d,B.d,{flat:1}):'',FB?row('Поражения',A.l,B.l,{low:1}):'',row('Матчей сыграно',A.gp,B.gp,{flat:1})])
   +group('Дом и выезд',[venue(),row('Голов в матче в среднем',A.tr&&A.tr.tot,B.tr&&B.tr.tot,{d:2,flat:1})])
   +group('Форма',[form])
   +(A.axes&&B.axes&&A.lg===B.lg?group('Сильные стороны по цифрам, 0–100 в своей лиге',AX.map((n,i)=>row(n,A.axes[i],B.axes[i]))):'')
-  +`<section class="cmp-g"><h2><span>Очные встречи в сезоне</span></h2>${h2h.length?`<p class="cmp-note">${esc(A.name)} — ${wa} ${wa===1?'победа':wa>=2&&wa<=4?'победы':'побед'}, ${esc(B.name)} — ${h2h.length-wa}.</p><ul class="cmp-h2h">${h2h.reverse().map(m=>{const u=link(m),inner=`<time>${ddmm(m.d)}</time><span>${esc(TT[m.h].name)}${em(m.h,24)}</span><b>${m.sh}:${m.sa}${m.x?' <small>'+esc(m.x)+'</small>':''}</b><span>${em(m.w,24)}${esc(TT[m.w].name)}</span>`;return `<li>${u?`<a href="${esc(u)}">${inner}</a>`:`<div>${inner}</div>`}</li>`}).join('')}</ul>`
+  +(FB?fbNext():`<section class="cmp-g"><h2><span>Очные встречи в сезоне</span></h2>${h2h.length?`<p class="cmp-note">${esc(A.name)} — ${wa} ${wa===1?'победа':wa>=2&&wa<=4?'победы':'побед'}, ${esc(B.name)} — ${h2h.length-wa}.</p><ul class="cmp-h2h">${h2h.reverse().map(m=>{const u=link(m),inner=`<time>${ddmm(m.d)}</time><span>${esc(TT[m.h].name)}${em(m.h,24)}</span><b>${m.sh}:${m.sa}${m.x?' <small>'+esc(m.x)+'</small>':''}</b><span>${em(m.w,24)}${esc(TT[m.w].name)}</span>`;return `<li>${u?`<a href="${esc(u)}">${inner}</a>`:`<div>${inner}</div>`}</li>`}).join('')}</ul>`
      :`<p class="cmp-note">${A.lg===B.lg?'В этом сезоне ещё не играли.':'Клубы из разных лиг — между собой не играют.'}</p>`}
-   ${next?`<p class="cmp-note">Следующая встреча — ${ddmm(next.d)} в ${esc(next.d.slice(11))} МСК, ${next.h?esc(A.name):esc(B.name)} дома.</p>`:''}</section>`;
-  return head(a,b,A.name,B.name,`${LGN[A.lg]} · ${esc(A.conf||'')}, ${A.place}-е место`,`${LGN[B.lg]} · ${esc(B.conf||'')}, ${B.place}-е место`,em(a,72),em(b,72),'../team/index.html?id='+a,'../team/index.html?id='+b)
+   ${next?`<p class="cmp-note">Следующая встреча — ${ddmm(next.d)} в ${esc(next.d.slice(11))} МСК, ${next.h?esc(A.name):esc(B.name)} дома.</p>`:''}</section>`);
+  const subt=t=>`${esc(LGN[t.lg]||'')}${t.conf?' · '+esc(t.conf):''}, ${t.place}-е место`;
+  return head(a,b,A.name,B.name,subt(A),subt(B),em(a,72),em(b,72),TEAMURL(a),TEAMURL(b))
    +verdict(body,A.name,B.name)+body}
 
 function head(a,b,na,nb,sa,sb,ia,ib,ua,ub){
@@ -136,10 +148,10 @@ function playerView(xa,xb,PA,PB,SK){
   return head(ta,tb,PA.n,PB.n,sub(PA,ta),sub(PB,tb),img(PA,ta),img(PB,tb),url(xa),url(xb))+verdict(body,PA.n,PB.n)+body}
 
 /* ── выбор и адрес ── */
-const HINT={clubs:['СКА, Каролина…','Клуб'],players:['McDavid, Rempal…','Игрок']};
+const HINT={clubs:[FB?'Арсенал, Зенит…':'СКА, Каролина…','Клуб'],players:['McDavid, Rempal…','Игрок']};
 function setUrl(){const q=new URLSearchParams();q.set('t',st.t);if(st.a)q.set('a',st.a);if(st.b)q.set('b',st.b);history.replaceState(null,'','?'+q)}
 function defaults(L){
-  if(st.t==='clubs'){const g=((window.JV_TEAMS||{}).teams||{}),k=Object.keys(g).filter(x=>g[x].lg==='khl').sort((x,y)=>g[x].place-g[y].place||g[y].pts-g[x].pts);return[k[0]||'',k[1]||'']}
+  if(st.t==='clubs'){const g=TT,k=Object.keys(g).filter(x=>g[x].lg===(FB?'epl':'khl')).sort((x,y)=>g[x].place-g[y].place||g[y].pts-g[x].pts);return[k[0]||'',k[1]||'']}
   const top=L.slice().sort((x,y)=>y.pts-x.pts);return[(top[0]||{}).id||'',(top[1]||{}).id||'']}
 async function render(){
   document.querySelectorAll('.cmp-tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.t===st.t)));
@@ -168,6 +180,7 @@ function picker(s){const inp=$('cmp-'+s),ul=$('cmp-r'+s);let cur=[];
   ul.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;st[s]=cur[+b.dataset.i].id;close();inp.blur();render()});
   inp.addEventListener('blur',()=>setTimeout(()=>{close();render()},120))}
 picker('a');picker('b');
+if(FB)document.querySelector('.cmp-tabs').hidden=true;
 document.querySelector('.cmp-tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.dataset.t===st.t)return;st.t=b.dataset.t;st.a=st.b='';render()});
 render();
 })();

@@ -50,7 +50,8 @@ try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('fa
     const h1=document.querySelector('h1'),name=h1?h1.textContent.trim():id;
     const g=document.createElement('div');g.className='favgrp';
     g.innerHTML=F.btn(s,id,'favbtn-hero');g.firstChild.dataset.name=name;
-    const fo=top.querySelector('.follow');if(fo){fo.before(g);g.appendChild(fo)}else top.appendChild(g);
+    const fo=top.querySelector('.follow'),cg=top.querySelector('.cmpgo');if(fo){fo.before(g);g.appendChild(fo)}else top.appendChild(g);
+    if(cg)g.insertBefore(cg,fo&&fo.parentNode===g?fo:null);   /* «Сравнить» — в один ряд с избранным и Telegram */
     load();sync();return true;
   };
   const go=()=>{load();if(put())return;

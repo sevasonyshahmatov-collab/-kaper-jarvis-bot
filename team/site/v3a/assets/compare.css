@@ -166,3 +166,4 @@
 .cmp-tile b{display:grid;place-items:center}
 .cmp-em{object-position:center}
 .cmp-note{text-align:center;margin-inline:auto}
+.cmp-tabs[hidden]{display:none}

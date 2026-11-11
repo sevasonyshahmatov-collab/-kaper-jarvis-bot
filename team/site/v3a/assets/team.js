@@ -122,7 +122,7 @@ const asOf=bd?`на ${bd.d} ${bd.mon}`:'';
 const ax=D.axes||[];
 document.getElementById('hero').innerHTML=`
  <header class="tmid" data-rv>
-  <div class="tmtop"><a class="crumb" href="${BACK(lg)}"><span aria-hidden="true">←</span> Лиги и клубы · ${L.name}</a>${followBtn('in-hero')}</div>
+  <div class="tmtop"><a class="crumb" href="${BACK(lg)}"><span aria-hidden="true">←</span> Лиги и клубы · ${L.name}</a>${followBtn('in-hero')}<a class="cmpgo" href="../hockey/compare.html?t=clubs&a=${encodeURIComponent(ID)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h14M17 12l4 4-4 4M21 16H7"/></svg><span>Сравнить</span></a></div>
   <div class="tmrow">
    <span class="tmcrest">${em(ID)}</span>
    <div class="tmname"><p class="tmlg"><a class="lglnk" href="../hockey/league.html?lg=${lg}${tq}" title="Страница лиги">${lgp(lg)}<span>${L.name}</span></a><span class="dot">·</span><span>Конференция «${esc(conf)}»</span></p>
