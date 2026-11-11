@@ -199,3 +199,106 @@
 .mt-rem .mt-share:hover{background:var(--ink);color:var(--paper,#fff)}
 .mt-rem .mt-share:focus-visible{outline:2px solid var(--signal);outline-offset:3px}
 @media (max-width:620px){.mx-info .mt-rem .mt-share{flex-basis:100%;justify-content:center}}
+
+/* ══════════ вид 3 (владелец 11.11: «плоско, не хочется читать») — всё, что ниже баннера; сам баннер не меняется ══════════
+   Фон — свет в цветах клубов и разметка площадки; цифры — крупными плитками; «Коротко» — нумерованные карточки;
+   форма, очные встречи, таблица — панели с цветом хозяев слева и гостей справа. Цвета клубов --hc/--ac на <main>
+   ставит assets/nav.js (и сборщик); без них — синий по умолчанию. */
+main:has(>.mx-hero){position:relative;isolation:isolate;overflow:clip;--hc:#285abe;--ac:#78a0ff;
+  --hcs:color-mix(in srgb,var(--hc) 62%,#7fa8ff);--acs:color-mix(in srgb,var(--ac) 62%,#7fa8ff)}
+main:has(>.mx-hero)::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  -webkit-mask-image:linear-gradient(180deg,transparent 420px,#000 640px,#000 calc(100% - 320px),transparent);mask-image:linear-gradient(180deg,transparent 420px,#000 640px,#000 calc(100% - 320px),transparent);background:
+  radial-gradient(circle at 88% 1250px,transparent 0 258px,rgba(160,200,255,.07) 259px 261px,transparent 262px),
+  radial-gradient(circle at 88% 1250px,rgba(160,200,255,.10) 0 5px,transparent 6px),
+  linear-gradient(90deg,transparent calc(88% - 1px),rgba(160,200,255,.05) calc(88% - 1px) calc(88% + 1px),transparent calc(88% + 1px)),
+  radial-gradient(70vw 760px at -12% 640px,color-mix(in srgb,var(--hcs) 30%,transparent),transparent 70%),
+  radial-gradient(70vw 820px at 112% 1150px,color-mix(in srgb,var(--acs) 26%,transparent),transparent 70%),
+  radial-gradient(70vw 820px at -12% 2050px,color-mix(in srgb,var(--hcs) 20%,transparent),transparent 70%),
+  radial-gradient(70vw 820px at 112% 2800px,color-mix(in srgb,var(--acs) 18%,transparent),transparent 70%)}
+/* заголовки разделов — с жёлтой «клюшкой» */
+.mx-hero~.fc-sec:not(.mx-model) h2{display:flex;align-items:center;gap:14px}
+.mx-hero~.fc-sec:not(.mx-model) h2::before{content:"";flex:none;width:9px;height:.82em;border-radius:2px;background:var(--signal,#ffc21a);transform:skewX(-16deg)}
+.mx-hero~.fc-sec{padding-top:clamp(30px,4vw,56px)}
+.mx-hero+.mx-model{padding-top:clamp(14px,2vw,24px)}
+
+/* ── расчёт модели: полоса как была; ниже слева — плитки цифр, справа — кэфы плитками в цветах сторон ── */
+.mx-bar{box-shadow:0 18px 44px -22px color-mix(in srgb,var(--hc) 70%,#000),0 0 0 1px rgba(255,255,255,.06)}
+.mx-stats li{position:relative;overflow:hidden;padding:18px 20px;border-radius:16px;border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(135deg,color-mix(in srgb,var(--hcs) 26%,var(--card)),var(--card) 70%)}
+.mx-stats li:nth-child(2){background:linear-gradient(135deg,color-mix(in srgb,var(--signal,#ffc21a) 20%,var(--card)),var(--card) 70%)}
+.mx-stats li:nth-child(2) b{color:var(--signal,#ffc21a)}
+.mx-stats b{font-size:clamp(30px,3vw,44px)}
+.mx-stats span{font-size:14px;color:var(--ink-2)}
+.mt-odds-wrap{margin-top:12px;padding:20px 22px;border-radius:18px;border:1px solid rgba(255,255,255,.09);
+  background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015)),var(--card);box-shadow:0 24px 50px -30px #000}
+.mt-odds-wrap h3{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px}
+.mt-odds.fc-nums{gap:10px;margin-top:0}
+.mt-odds.fc-nums li{padding:14px 16px;border-radius:14px;border-top:3px solid #5b6a86;background:rgba(255,255,255,.05);gap:6px}
+.mt-odds.fc-nums li:first-child{border-top-color:var(--hcs);background:color-mix(in srgb,var(--hcs) 22%,transparent)}
+.mt-odds.fc-nums li:last-child{border-top-color:var(--acs);background:color-mix(in srgb,var(--acs) 22%,transparent)}
+.mt-odds.fc-nums small{font-size:13px;letter-spacing:.06em}
+.mt-odds.fc-nums b,.mt-odds.fc-nums li:first-child b,.mt-odds.fc-nums li:last-child b{font-size:clamp(26px,2.6vw,36px);color:var(--ink)}
+.mt-odds-wrap .fc-ext{margin-top:14px;font-size:15px}
+@media (min-width:900px){
+  .mx-model>.wrap{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);column-gap:14px;align-items:stretch}
+  .mx-model>.wrap>*{grid-column:1/-1}
+  .mx-model>.wrap>.mx-stats{grid-column:1;margin-top:14px;flex-direction:column;flex-wrap:nowrap}
+  .mx-model>.wrap>.mx-stats li{flex:1;align-content:center}
+  .mx-model>.wrap>.mx-stats+.mt-odds-wrap{grid-column:2;margin-top:14px}
+}
+@media (max-width:899px){.mx-stats li{flex:1}}
+
+/* ── о матче: одна цветная панель — слева арена и турнир, ниже кнопки ── */
+.mx-info>.wrap{position:relative;z-index:0;padding-top:22px;padding-bottom:20px}
+.mx-info>.wrap::before{content:"";position:absolute;z-index:-1;inset:0 var(--m);border-radius:20px;border:1px solid rgba(255,255,255,.09);
+  background:linear-gradient(100deg,color-mix(in srgb,var(--hcs) 30%,var(--card)),var(--card) 38% 62%,color-mix(in srgb,var(--acs) 30%,var(--card)))}
+.mx-info>.wrap>*{margin-left:clamp(16px,2vw,26px);margin-right:clamp(16px,2vw,26px)}
+.mx-info .mx-facts b{font-size:17px}
+.mx-info .fc-upd{font-size:13px}
+
+/* ── коротко о матче: нумерованные карточки ── */
+.mx-sum{max-width:none;counter-reset:s;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:12px}
+.mx-sum li{counter-increment:s;padding:18px 20px 18px 66px;border-radius:16px;border:1px solid rgba(255,255,255,.08);font-size:17px;line-height:1.45;color:var(--ink);
+  background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),var(--card)}
+.mx-sum li::before{content:counter(s);left:18px;top:16px;width:34px;height:34px;display:grid;place-items:center;border-radius:11px;
+  font:800 17px/1 var(--display);color:#071225;background:var(--signal,#ffc21a)}
+.mx-sum li:last-child:nth-child(odd){grid-column:1/-1;background:linear-gradient(100deg,color-mix(in srgb,var(--signal,#ffc21a) 16%,var(--card)),var(--card) 60%)}
+@media (max-width:620px){.mx-sum li{font-size:16px;padding:14px 16px 14px 58px}.mx-sum li::before{left:14px;top:13px;width:32px;height:32px}}
+
+/* ── форма: панель на команду, сверху полоса цвета клуба ── */
+.mx-form{gap:14px}
+.mx-fc{padding:20px 22px 22px;border-radius:18px;border:1px solid rgba(255,255,255,.08);border-top:4px solid var(--hcs);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--hcs) 20%,var(--card)),var(--card) 62%)}
+.mx-fc+.mx-fc{border-top-color:var(--acs);background:linear-gradient(180deg,color-mix(in srgb,var(--acs) 20%,var(--card)),var(--card) 62%)}
+.mx-fc h3{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;font-size:21px;margin-bottom:16px}
+.mx-fc h3 small{margin:0;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.09);color:var(--ink-2)}
+.mx-dots{gap:clamp(8px,1.6vw,18px)}
+.mx-dots span{font-size:14px;color:var(--ink)}
+.mx-dots b em{box-shadow:0 0 0 2px #0f1d38}
+@media (min-width:900px){.mx-dots b{width:58px;height:58px}.mx-dots b img{width:36px;height:36px}.mx-dots b em{width:23px;height:23px;font-size:12px}}
+
+/* ── личные встречи: счёт — в плашке, победитель — с жёлтой меткой ── */
+.mx-h2h{gap:12px}
+.mx-h2h li{padding:14px 16px 16px;border-radius:16px;border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),var(--card)}
+.mx-h2h b{padding:8px 12px;border-radius:11px;background:rgba(0,0,0,.34);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.mx-h2h span{color:var(--ink-3)}
+.mx-h2h span.w{color:var(--ink)}
+.mx-h2h span.w::before{content:"";display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:50%;background:var(--signal,#ffc21a);vertical-align:.08em}
+
+/* ── таблица: строки с цветом клуба, очки — крупно ── */
+.mt-tw{border-radius:18px;border-color:rgba(255,255,255,.09);background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(255,255,255,.012)),var(--card)}
+.mt-tab{font:600 16px/1.2 var(--display);font-variant-numeric:tabular-nums}
+.mt-tab th,.mt-tab td{padding:15px 18px;border-bottom-color:rgba(255,255,255,.07)}
+.mt-tab thead th{background:rgba(0,0,0,.22)}
+.mt-tab tbody th{font-weight:800;font-size:17px;box-shadow:inset 5px 0 0 var(--hcs)}
+.mt-tab tbody tr+tr th{box-shadow:inset 5px 0 0 var(--acs)}
+.mt-tab tbody td:nth-child(2){font-weight:800}
+.mt-tab td:last-child{font-weight:800;font-size:19px;color:var(--signal,#ffc21a)}
+
+/* ── другие матчи дня: карточки в два столбца, время — в плашке ── */
+.mt-oth.fc-hub{grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:12px}
+.mt-oth.fc-hub a{padding:16px 18px;border-radius:16px;border-color:rgba(255,255,255,.08);background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),var(--card);transition:transform .18s,border-color .18s}
+.mt-oth.fc-hub a:hover{transform:translateY(-2px);border-color:var(--signal,#ffc21a)}
+.mt-oth.fc-hub a small{padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.08);color:var(--ink)}
+@media (prefers-reduced-motion:reduce){.mt-oth.fc-hub a{transition:none}.mt-oth.fc-hub a:hover{transform:none}}

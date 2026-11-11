@@ -131,6 +131,8 @@ addEventListener('load',()=>{const a=hd.querySelector('.subbar a.on');if(a&&a.sc
 
 /* страница матча: «Поделиться» (11.11) — системное окно телефона, на компьютере ссылка копируется; картинка превью — og.jpg матча */
 (function(){
+/* цвета клубов с баннера — на всю страницу (фон и плитки вида 3, assets/matchx.css) */
+{const h=document.querySelector('main>.mx-hero');if(h)['--hc','--ac'].forEach(k=>{const v=h.style.getPropertyValue(k);if(v)h.parentNode.style.setProperty(k,v)})}
 const box=document.querySelector('.mx-info .wrap');if(!box)return;
 let row=box.querySelector('.mt-rem');
 if(!row){row=document.createElement('div');row.className='mt-rem';box.appendChild(row)}
