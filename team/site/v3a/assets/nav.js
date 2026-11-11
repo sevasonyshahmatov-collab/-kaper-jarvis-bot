@@ -128,3 +128,20 @@ if(!window.JV){const on=()=>hd.classList.toggle('stuck',scrollY>8);addEventListe
 /* активная вкладка подменю — в видимую часть */
 addEventListener('load',()=>{const a=hd.querySelector('.subbar a.on');if(a&&a.scrollIntoView)try{a.scrollIntoView({block:'nearest',inline:'center'})}catch(e){}});
 })();
+
+/* страница матча: «Поделиться» (11.11) — системное окно телефона, на компьютере ссылка копируется; картинка превью — og.jpg матча */
+(function(){
+const box=document.querySelector('.mx-info .wrap');if(!box)return;
+let row=box.querySelector('.mt-rem');
+if(!row){row=document.createElement('div');row.className='mt-rem';box.appendChild(row)}
+const b=document.createElement('button');b.type='button';b.className='mt-share';
+b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/></svg><span>Поделиться матчем</span>';
+const lab=b.lastChild,say=t=>{lab.textContent=t;setTimeout(()=>{lab.textContent='Поделиться матчем'},2200)};
+b.addEventListener('click',()=>{
+ const url=location.origin+location.pathname,title=(document.querySelector('h1')||{}).textContent||document.title;
+ if(navigator.share&&matchMedia('(pointer:coarse)').matches){navigator.share({title:title.trim(),url}).catch(()=>{});return}
+ const done=()=>say('Ссылка скопирована'),old=()=>{const i=document.createElement('input');i.value=url;document.body.appendChild(i);i.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}i.remove();ok?done():say('Не получилось — скопируйте адрес')};
+ if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(url).then(done,old);else old();
+});
+const first=row.querySelector('.mt-rem-b');first?first.after(b):row.prepend(b);
+})();

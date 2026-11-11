@@ -193,3 +193,9 @@
 .mx-sum li{position:relative;padding-left:22px;font-size:18px;line-height:1.5;color:var(--ink-2)}
 .mx-sum li::before{content:"";position:absolute;left:2px;top:.62em;width:8px;height:8px;border-radius:50%;background:var(--signal,#ffc21a)}
 @media (max-width:620px){.mx-sum li{font-size:17px}}
+/* «Поделиться матчем» (assets/nav.js, 11.11) */
+.mt-rem .mt-share{display:inline-flex;align-items:center;gap:9px;min-height:46px;padding:0 20px;border-radius:999px;border:1.5px solid var(--ink);background:none;color:var(--ink);font:700 16px/1 var(--display);cursor:pointer}
+.mt-rem .mt-share svg{width:19px;height:19px;flex:none}
+.mt-rem .mt-share:hover{background:var(--ink);color:var(--paper,#fff)}
+.mt-rem .mt-share:focus-visible{outline:2px solid var(--signal);outline-offset:3px}
+@media (max-width:620px){.mx-info .mt-rem .mt-share{flex-basis:100%;justify-content:center}}
