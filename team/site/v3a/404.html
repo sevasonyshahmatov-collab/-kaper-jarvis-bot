@@ -29,6 +29,21 @@
 .nf-links{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:30px}
 .nf-links a{font:700 17px/1 var(--display);text-decoration:none;padding:14px 20px;border:1.5px solid var(--rule-2);border-radius:999px;color:var(--ink)}
 .nf-links a:hover{border-color:currentColor}
+.nf-next{margin:clamp(40px,6vw,72px) 0 0;max-width:860px}
+.nf-next h2{font:800 clamp(24px,2.6vw,34px)/1.1 var(--display);margin:0 0 14px;text-transform:none;letter-spacing:0}
+.nf-next ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.nf-next a{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:4px 14px;align-items:center;text-decoration:none;color:var(--ink);background:var(--card);border:1px solid var(--rule-2);border-radius:12px;padding:12px 14px;min-height:64px}
+.nf-next a:hover{border-color:currentColor}
+.nf-next time{font:800 18px/1 var(--display);font-variant-numeric:tabular-nums;grid-row:span 2}
+.nf-next time small{display:block;font:600 12px/1 var(--display);color:var(--ink-3);margin-top:5px;letter-spacing:.04em}
+.nf-em{grid-row:span 2;display:flex}
+.nf-em img{width:34px;height:34px;object-fit:contain;background:#fff;border-radius:50%;padding:3px;box-shadow:0 0 0 2px var(--card)}
+.nf-em img+img{margin-left:-8px}
+.nf-next b{font:700 16px/1.25 var(--display);overflow-wrap:anywhere}
+.nf-next span{font:600 13.5px/1.2 var(--display);color:var(--ink-2)}
+@media (max-width:680px){.nf-next ul{grid-template-columns:minmax(0,1fr)}
+ .nf-next a{grid-template-columns:auto minmax(0,1fr)}
+ .nf-next time{grid-row:auto;grid-column:1/-1;display:flex;align-items:baseline;gap:8px;font-size:16px}.nf-next time small{margin:0}}
 .nf-links a:nth-child(2){border-color:#5ab8ff}.nf-links a:nth-child(3){border-color:#3dd68c}.nf-links a:nth-child(1){border-color:#ffc21a}
 </style>
 <script src="assets/efir/efir-loader.js"></script>
@@ -43,8 +58,22 @@
   <p>Ссылка устарела или в адресе опечатка. Вернитесь к матчам или выберите раздел.</p>
   <div class="nf-links"><a href="matches.html">Матчи дня</a><a href="hockey/index.html">Хоккей</a><a href="football/index.html">Футбол</a></div>
   <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a>
+  <section class="nf-next" id="nf-next" aria-labelledby="nf-next-h" hidden><h2 id="nf-next-h">Ближайшие матчи</h2><ul id="nf-list"></ul></section>
 </main>
 <script src="assets/nav.js"></script>
+<script src="data/today.js"></script>
+<script src="data/model.js"></script>
+<script src="data/matchlinks.js"></script>
+<script>/* ближайшие матчи (идея 57): data/today.js + расчёт модели; ссылка — на страницу матча, если она есть */
+(()=>{const T=window.JV_TODAY,M=window.JV_MODEL||{},L=window.JV_MATCHLINKS||{};if(!T||!T.matches)return;
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const ms=t=>Date.parse(String(t).replace(' ','T')+':00+03:00'),day=x=>new Date(x+3*36e5).toISOString().slice(0,10),now=Date.now();
+const em=id=>`<img src="assets/em/${esc(id)}.webp" alt="" width="34" height="34" loading="lazy" onerror="this.style.visibility='hidden'">`;
+const LG={khl:'КХЛ',nhl:'НХЛ'},when=t=>{const d=day(ms(t));return d===day(now)?'сегодня':d===day(now+864e5)?'завтра':+d.slice(8,10)+'.'+d.slice(5,7)};
+const list=T.matches.filter(m=>ms(m.t)>now).sort((a,b)=>ms(a.t)-ms(b.t)).slice(0,6);if(!list.length)return;
+document.getElementById('nf-list').innerHTML=list.map(m=>{const md=M[m.key],p=md&&md.p1!=null&&md.p2!=null&&md.p1!==md.p2?(md.p1>md.p2?[m.hn,md.p1]:[m.an,md.p2]):null;
+ return `<li><a href="${esc(L[m.key]||(LG[m.lg]?'hockey/index.html':'football/index.html'))}"><time>${esc(m.t.slice(11))}<small>${when(m.t)} · ${esc(LG[m.lg]||'')}</small></time><span class="nf-em" aria-hidden="true">${em(m.h)}${em(m.a)}</span><b>${esc(m.hn)} — ${esc(m.an)}</b><span>${p?'По модели: '+esc(p[0])+' · '+Math.round(p[1]*100)+' %':'Время московское'}</span></a></li>`}).join('');
+document.getElementById('nf-next').hidden=false})();</script>
 <script src="assets/footer.js"></script>
 </body>
 </html>

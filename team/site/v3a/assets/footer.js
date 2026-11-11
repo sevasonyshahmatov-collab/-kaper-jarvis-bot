@@ -18,10 +18,31 @@ const f=document.createElement('footer');f.className='jvf';f.setAttribute('aria-
 f.innerHTML=`<div class="wrap"><div class="jvf-top">
   <div class="jvf-brand"><a class="jvf-logo" href="${esc(U('index.html'))}" aria-label="JARVIS, на главную"><span>JARVIS</span></a>
    <p>Прогнозы на хоккей и футбол по расчёту, а не наугад. Бесплатно.</p>
-   <a class="jvf-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Telegram @jarvibet</span></a></div>
+   <a class="jvf-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Telegram @jarvibet</span></a>
+   <button class="jvf-inst" id="jvf-inst" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14"/></svg><span>Установить на экран</span></button>
+   <p class="jvf-ios" id="jvf-ios" hidden></p></div>
   <nav class="jvf-cols" aria-label="Разделы сайта">${COLS.map(c=>`<div><b>${esc(c[0])}</b>${c[1].map(l=>`<a href="${esc(U(l[1]))}">${esc(l[0])}</a>`).join('')}</div>`).join('')}</nav>
  </div>
  <div class="jvf-bot"><p class="jvf-data">Данные: ESPN, НХЛ, приложение КХЛ. Линии и расчёт обновляются дважды в день.</p><span class="jvf-slot"></span><span class="jvf-age" title="Сайт только для совершеннолетних">18+</span></div></div>`;
 if(keep){keep.className='jvf-note';f.querySelector('.jvf-slot').replaceWith(keep)}
 if(old)old.replaceWith(f);else document.body.appendChild(f);
+/* ── «Установить на экран» и работа без интернета (идеи 37–38) ──
+   sw.js лежит в корне сайта; на file:// и в старых браузерах ничего не делаем. ?sw=off — снять регистрацию (для отладки). */
+try{if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
+ if(/[?&]sw=off(?:&|$)/.test(location.search))navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister()));
+ else addEventListener('load',()=>navigator.serviceWorker.register(U('sw.js'),{scope:U('')}).catch(()=>{}))}}catch(e){}
+const ib=f.querySelector('#jvf-inst'),ih=f.querySelector('#jvf-ios');let dp=null;
+const alone=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+if(!alone){
+ addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;ib.hidden=false});
+ addEventListener('appinstalled',()=>{dp=null;ib.hidden=true});
+ const ua=navigator.userAgent,ios=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ if(ios&&/Safari/.test(ua)&&!/CriOS|FxiOS|EdgiOS|YaBrowser/.test(ua))ib.hidden=false;
+ ib.addEventListener('click',()=>{if(dp){dp.prompt();dp.userChoice.then(()=>{dp=null;ib.hidden=true}).catch(()=>{})}
+  else{ih.textContent='В Safari нажмите «Поделиться», затем «На экран „Домой“».';ih.hidden=!ih.hidden}})}
+/* нет сети — честная строка под шапкой: данные сохранённые */
+const net=()=>{let b=document.getElementById('jv-off');if(navigator.onLine){if(b)b.remove();return}
+ if(!b){b=document.createElement('p');b.id='jv-off';b.className='jv-off';b.setAttribute('role','status');b.textContent='Нет интернета — показываем сохранённые данные.';
+  const h=document.getElementById('hd');(h&&h.parentNode?h.parentNode:document.body).insertBefore(b,h?h.nextSibling:document.body.firstChild)}};
+addEventListener('online',net);addEventListener('offline',net);net();
 })();

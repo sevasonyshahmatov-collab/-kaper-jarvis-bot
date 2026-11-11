@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ru" data-theme="a">
+<head>
+<meta charset="utf-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Нет интернета — JARVIS</title>
+<meta name="description" content="Нет соединения. Страницы, которые вы уже открывали, доступны без интернета.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0a1220">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:site_name" content="JARVIS"><meta property="og:title" content="JARVIS — прогнозы на хоккей и футбол"><meta property="og:description" content="Прогнозы по расчёту, а не наугад.">
+<!-- TODO(домен): абсолютный URL -->
+<meta property="og:image" content="assets/og/og-home.png"><meta name="twitter:card" content="summary_large_image">
+<script>/* страницу отдаёт sw.js по любому адресу сайта: корень — папка, где лежит sw.js */
+(()=>{const r=navigator.serviceWorker&&navigator.serviceWorker.controller?new URL('./',navigator.serviceWorker.controller.scriptURL).href:new URL('./',location.href).href;document.write('<base href="'+r+'">')})();</script>
+<link rel="stylesheet" href="assets/v3a.css">
+<link rel="stylesheet" href="assets/nav.css">
+<style>
+.nf{padding-top:clamp(56px,10vw,130px);min-height:56vh}
+.nf small{display:block;font:800 13px/1 var(--display);letter-spacing:.2em;text-transform:uppercase;color:#ffc21a;margin-bottom:18px}
+.nf h1{font:900 clamp(44px,8vw,104px)/.95 var(--display);letter-spacing:-.01em;margin:0 0 18px}
+.nf p{margin:0 0 30px;max-width:44ch;color:var(--ink-2);font-size:18px;line-height:1.5}
+.nf-links{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:30px}
+.nf-links a{font:700 17px/1 var(--display);text-decoration:none;padding:14px 20px;border:1.5px solid var(--rule-2);border-radius:999px;color:var(--ink)}
+.nf-links a:hover{border-color:currentColor}
+.nf-links a:nth-child(2){border-color:#5ab8ff}.nf-links a:nth-child(3){border-color:#3dd68c}.nf-links a:nth-child(1){border-color:#ffc21a}
+</style>
+<script src="assets/efir/efir-loader.js"></script>
+<script src="assets/palettes.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd"><div class="wrap"></div></header>
+<main id="main" class="wrap nf">
+  <small>Нет интернета</small>
+  <h1>Эта страница не сохранена</h1>
+  <p>Без сети открываются страницы, на которых вы уже были. Данные на них — на момент последнего визита.</p>
+  <div class="nf-links"><a href="matches.html">Матчи дня</a><a href="hockey/index.html">Хоккей</a><a href="football/index.html">Футбол</a><a href="results.html">Итоги</a></div>
+  <button class="btn btn-ink" type="button" onclick="location.reload()">Попробовать ещё раз</button>
+</main>
+<script src="assets/nav.js"></script>
+<script src="assets/footer.js"></script>
+</body>
+</html>
