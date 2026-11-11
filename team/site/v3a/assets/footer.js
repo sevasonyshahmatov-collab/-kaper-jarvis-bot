@@ -7,7 +7,7 @@ const U=p=>new URL('../'+p,SRC).href;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('footer.css',SRC).href;document.head.appendChild(l)}catch(e){}
 const COLS=[
- ['Хоккей',[['Матчи','hockey/index.html'],['КХЛ','hockey/league.html?lg=khl'],['НХЛ','hockey/league.html?lg=nhl'],['Игроки','hockey/players.html'],['Тренды','hockey/trends.html'],['Прогноз КХЛ на сегодня','hockey/forecast-khl.html'],['Прогноз НХЛ на сегодня','hockey/forecast-nhl.html']]],
+ ['Хоккей',[['Матчи','hockey/index.html'],['КХЛ','hockey/league.html?lg=khl'],['НХЛ','hockey/league.html?lg=nhl'],['Игроки','hockey/players.html'],['Тренды','hockey/trends.html'],['Сравнение','hockey/compare.html'],['Прогноз КХЛ на сегодня','hockey/forecast-khl.html'],['Прогноз НХЛ на сегодня','hockey/forecast-nhl.html']]],
  ['Футбол',[['Матчи','football/index.html'],['Лиги','football/league.html?lg=epl'],['Лига чемпионов','football/ucl.html'],['Тренды','football/trends.html'],['Прогноз АПЛ на сегодня','football/forecast-epl.html']]],
  ['JARVIS',[['Матчи дня','matches.html'],['Итоги прогнозов','results.html'],['Мой JARVIS','me/index.html'],['Прогноз на сегодня','forecast.html'],['Как считает модель','model.html'],['Словарь терминов','glossary.html']]]
 ];

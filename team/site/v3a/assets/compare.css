@@ -1,0 +1,156 @@
+/* JARVIS v3a — «Сравнение» клубов и игроков (hockey/compare.html). Цвет стороны — основной цвет клуба (--c).
+   Без свечения при наведении; подписи только там, где без них непонятно. */
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.cmp-top{padding-bottom:clamp(18px,2vw,28px)}
+.cmp-top h1{margin-bottom:18px}
+.cmp-tabs{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:var(--card);border:1px solid var(--rule-2)}
+.cmp-tabs button{appearance:none;border:0;background:none;color:var(--ink-2);font:700 16px/1 var(--display);padding:11px 20px;border-radius:999px;cursor:pointer}
+.cmp-tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+.cmp-pick{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:center;margin-top:16px;max-width:860px}
+.cmp-x{font:600 15px/1 var(--display);color:var(--ink-3)}
+.cmp-in{position:relative}
+.cmp-in input{width:100%;box-sizing:border-box;font:700 18px/1.2 var(--display);color:var(--ink);background:var(--card);border:1.5px solid var(--rule-2);border-radius:12px;padding:14px 16px;min-height:52px}
+.cmp-in input:focus{outline:none;border-color:var(--ink)}
+.cmp-in ul{position:absolute;z-index:30;left:0;right:0;top:calc(100% + 6px);margin:0;padding:6px;list-style:none;background:var(--card-hi,#18253e);border:1px solid var(--rule-2);border-radius:12px;max-height:340px;overflow:auto;box-shadow:0 18px 40px rgba(0,0,0,.45)}
+.cmp-in ul button{appearance:none;width:100%;border:0;background:none;color:var(--ink);font:600 16px/1.2 var(--display);padding:9px 10px;border-radius:8px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;text-align:left;cursor:pointer}
+.cmp-in ul button:hover,.cmp-in ul button:focus-visible{background:color-mix(in srgb,var(--ink) 10%,transparent);outline:none}
+.cmp-in ul small{font:600 13px/1 var(--display);color:var(--ink-3);white-space:nowrap}
+.cmp-in ul .none{padding:10px;color:var(--ink-3);font:600 15px/1 var(--display)}
+.cmp-em{object-fit:contain;flex:none}
+.cmp-in ul .cmp-em,.cmp-h2h .cmp-em,.cmp-side small .cmp-em{background:#fff;border-radius:50%;padding:2px;box-sizing:border-box}
+.cmp-side small .cmp-em{display:inline-block;vertical-align:-4px;margin-right:2px}
+.cmp-sec{padding:clamp(20px,2.4vw,32px) 0 clamp(56px,7vw,100px)}
+.cmp-sec>.wrap{max-width:980px}
+.cmp-head{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:stretch}
+.cmp-head>span{align-self:center;color:var(--ink-3);font:800 22px/1 var(--display)}
+.cmp-side{display:grid;justify-items:center;align-content:start;gap:8px;text-align:center;text-decoration:none;color:var(--ink);background:linear-gradient(180deg,color-mix(in srgb,var(--c) 34%,var(--card)),var(--card) 78%);border:1px solid var(--rule-2);border-top:3px solid var(--c);border-radius:14px;padding:20px 12px 16px;min-width:0}
+.cmp-side>.cmp-em{background:#fff;border-radius:50%;padding:8px;box-sizing:border-box}
+.cmp-side b{font:800 clamp(19px,2.4vw,30px)/1.1 var(--display);overflow-wrap:anywhere}
+.cmp-side small{font:600 14px/1.4 var(--display);color:var(--ink-2)}
+.cmp-ph{position:relative;width:96px;height:96px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px var(--c);display:block}
+#cmp-out{--ca:#5ab8ff;--cb:#ff8a94}
+.cmp-ph>img:first-child:not(.cmp-em){width:96px;height:96px;border-radius:50%;object-fit:cover;object-position:top}
+.cmp-ph .cmp-em{position:absolute;right:-6px;bottom:-4px;background:#fff;border-radius:50%;padding:3px;box-sizing:border-box;box-shadow:0 0 0 2px var(--card)}
+.cmp-g{margin-top:clamp(22px,2.6vw,34px);background:var(--card);border:1px solid var(--rule-2);border-radius:14px;padding:16px clamp(14px,2vw,24px) 8px}
+.cmp-g h2{font:800 20px/1.15 var(--display);text-transform:none;letter-spacing:0;margin:0 0 8px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.cmp-row{display:grid;grid-template-columns:minmax(64px,1fr) minmax(0,2.2fr) minmax(64px,1fr);gap:4px 12px;align-items:baseline;padding:11px 0 12px;border-top:1px solid color-mix(in srgb,var(--ink) 10%,transparent)}
+.cmp-g h2+.cmp-row{border-top:0}
+.cmp-row .v{font:700 clamp(19px,2vw,24px)/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.cmp-row .v:last-of-type{text-align:right}
+.cmp-row .l{font:600 14.5px/1.25 var(--display);color:var(--ink-2);text-align:center}
+.cmp-row .bar{grid-column:1/-1;display:flex;gap:4px;height:6px}
+.cmp-row .bar u{display:block;height:100%;border-radius:99px;background:var(--ca);min-width:4px}
+.cmp-row .bar u+u{background:var(--cb)}
+.cmp-row .bar.flat u,.cmp-row .bar.flat u+u{background:color-mix(in srgb,var(--ink) 30%,transparent)}
+.cmp-row.duo{align-items:center}
+.cmp-row.duo .v{font-size:17px;display:flex}.cmp-row.duo .v:last-of-type{justify-content:flex-end}
+.cmp-dots{display:inline-flex;gap:4px}
+.cmp-dots i{font:800 14px/1 var(--display);font-style:normal;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:#1a7342;color:#fff}
+.cmp-dots i.fd-l{background:#c4303b}.cmp-dots i.fd-n{background:color-mix(in srgb,var(--ink) 16%,transparent);color:var(--ink-2)}
+.cmp-note{margin:6px 0 10px;font:500 15.5px/1.45 var(--display);color:var(--ink-2)}
+.cmp-sec>.wrap>.cmp-note,#cmp-out>.cmp-note{margin-top:18px}
+.cmp-h2h{list-style:none;margin:0 0 8px;padding:0}
+.cmp-h2h li>*{display:grid;grid-template-columns:52px minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:center;padding:10px 0;border-top:1px solid color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink);text-decoration:none;font:600 16px/1.2 var(--display)}
+.cmp-h2h time{color:var(--ink-3);font-size:14px}
+.cmp-h2h b{font:800 19px/1 var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}
+.cmp-h2h b small{font-size:12px;color:var(--ink-3)}
+.cmp-h2h span{display:flex;align-items:center;gap:8px;min-width:0}.cmp-h2h span:nth-of-type(1){justify-content:flex-end;text-align:right}
+/* нет фото игрока — крупная эмблема клуба по центру */
+.cmp-ph.nop .cmp-em{position:static;width:100%;height:100%;padding:16px;box-shadow:none}
+.cmp-sec .tr-legal{margin-top:26px}
+@media (max-width:680px){
+ .cmp-pick{grid-template-columns:minmax(0,1fr);gap:8px}.cmp-x{display:none}
+ .cmp-head{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}.cmp-head>span{display:none}.cmp-side{padding:16px 8px 12px}
+ .cmp-ph,.cmp-ph>img:first-child:not(.cmp-em){width:72px;height:72px}
+ .cmp-row{grid-template-columns:minmax(52px,auto) minmax(0,1fr) minmax(52px,auto)}
+ .cmp-h2h li>*{grid-template-columns:38px minmax(0,1fr) auto minmax(0,1fr);gap:6px;font-size:14.5px}
+ .cmp-row.duo{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cmp-row.duo .l{grid-column:1/-1;grid-row:1;text-align:left}
+ .cmp-side b{font-size:15px;overflow-wrap:break-word}.cmp-side small{font-size:12.5px}
+}
+
+/* фигуры силы поверх друг друга: первая сторона — голубая, вторая — розовая (как полосы в строках) */
+.cmp-rad{padding-bottom:16px}
+.cmp-radb{display:grid;grid-template-columns:minmax(0,1fr);justify-items:center;gap:6px}
+.cmp-rad svg{display:block;width:100%;max-width:460px;height:auto;overflow:visible}
+.cmp-rad .rd-grid polygon{fill:none;stroke:color-mix(in srgb,var(--ink) 16%,transparent);stroke-width:1}
+.cmp-rad .rd-grid polygon:last-of-type{stroke:color-mix(in srgb,var(--ink) 34%,transparent)}
+.cmp-rad .rd-grid line{stroke:color-mix(in srgb,var(--ink) 12%,transparent);stroke-width:1}
+.cmp-rad text{font:600 12px var(--display);fill:var(--ink-2)}
+.cmp-rad .rd-a{fill:color-mix(in srgb,var(--ca) 32%,transparent);stroke:var(--ca);stroke-width:2.2;stroke-linejoin:round}
+.cmp-rad .rd-b{fill:color-mix(in srgb,var(--cb) 28%,transparent);stroke:var(--cb);stroke-width:2.2;stroke-linejoin:round}
+.cmp-rad .rd-da{fill:var(--ca)}.cmp-rad .rd-db{fill:var(--cb)}
+.cmp-leg{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 22px;font:700 15px/1.2 var(--display)}
+.cmp-leg li{display:flex;align-items:center;gap:8px}
+.cmp-leg i{width:14px;height:14px;border-radius:4px;background:var(--ca);flex:none}
+.cmp-leg .b i{background:var(--cb)}
+.cmp-leg .cmp-em{background:#fff;border-radius:50%;padding:2px;box-sizing:border-box}
+
+/* ── лидер строки: цифра на плашке цвета своей стороны, полоса отстающего приглушена ── */
+.cmp-row .v{justify-self:start;padding:5px 0;border-radius:8px}
+.cmp-row .v:last-of-type{justify-self:end}
+.cmp-row.w-a .v:first-of-type,.cmp-row.w-b .v:last-of-type{font-weight:900;font-size:clamp(23px,2.5vw,30px)}
+.cmp-row.w-a .v:first-of-type{color:var(--ca)}.cmp-row.w-b .v:last-of-type{color:var(--cb)}
+.cmp-row.w-a .v:last-of-type,.cmp-row.w-b .v:first-of-type{color:var(--ink-3);font-weight:600}
+.cmp-row.w-a .bar u+u,.cmp-row.w-b .bar u:first-child{opacity:.28}
+.cmp-row.w-a .bar u:first-child,.cmp-row.w-b .bar u+u{height:8px;margin-top:-1px}
+/* счёт блока в заголовке и общий итог */
+.cmp-sc{display:inline-flex;align-items:center;gap:6px;font:800 15px/1 var(--display);font-variant-numeric:tabular-nums;flex:none}
+.cmp-sc{font-size:18px}
+.cmp-sc b{color:var(--ca);font-weight:900}.cmp-sc b.b{color:var(--cb)}.cmp-sc i{font-style:normal;color:var(--ink-3)}
+.cmp-ver{margin-top:14px;background:var(--card);border:1px solid var(--rule-2);border-radius:14px;padding:14px clamp(14px,2vw,24px) 12px;display:grid;gap:10px}
+.cmp-ver p{margin:0;font:600 17px/1.3 var(--display);color:var(--ink-2)}
+.cmp-ver p b{color:var(--ink);font-weight:900}
+.cmp-ver.w-a p:first-child b{color:var(--ca)}.cmp-ver.w-b p:first-child b{color:var(--cb)}
+.cmp-ver .vb{display:flex;gap:4px;height:12px}
+.cmp-ver .vb u{display:block;border-radius:99px;background:var(--ca);min-width:8px}.cmp-ver .vb u+u{background:var(--cb)}
+.cmp-ver .vn{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;color:var(--ink-3)}
+/* плитки-дуэли */
+.cmp-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:4px 0 8px}
+.cmp-tile{border:1px solid color-mix(in srgb,var(--ink) 14%,transparent);border-radius:12px;padding:12px 12px 14px;display:grid;gap:10px;min-width:0;background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.cmp-tile span{font:600 14px/1.2 var(--display);color:var(--ink-2);text-align:center}
+.cmp-tile p{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.cmp-tile b{font:800 clamp(22px,2.8vw,34px)/1 var(--display);font-variant-numeric:tabular-nums;text-align:center;padding:10px 4px;border-radius:9px;color:var(--ink-2);box-shadow:inset 0 -3px 0 var(--ca)}
+.cmp-tile b+b{box-shadow:inset 0 -3px 0 var(--cb)}
+.cmp-tile b{color:var(--ink-3);font-weight:600}
+.cmp-tile.w-a b:first-child{color:var(--ca);font-weight:900;box-shadow:inset 0 -5px 0 var(--ca)}.cmp-tile.w-b b+b{color:var(--cb);font-weight:900;box-shadow:inset 0 -5px 0 var(--cb)}
+.cmp-tile.w-d b{color:var(--ink)}
+/* дом и выезд */
+.cmp-ven{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:4px 0 8px}
+.cmp-vc{border:1px solid color-mix(in srgb,var(--ink) 14%,transparent);border-radius:12px;padding:12px 14px;display:grid;gap:10px;min-width:0}
+.cmp-vc h3{margin:0;font:800 17px/1.2 var(--display);text-transform:none;letter-spacing:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.cmp-vc h3 small{font:600 12.5px/1.2 var(--display);color:var(--ink-3)}
+.cmp-vc .ln{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px 8px;align-items:center;font:600 15px/1.2 var(--display);color:var(--ink-2);padding:8px 10px;border-radius:9px}
+.cmp-vc .ln .cmp-em{background:#fff;border-radius:50%;padding:2px;box-sizing:border-box}
+.cmp-vc .ln span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cmp-vc .ln b{font:800 17px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ink)}
+.cmp-vc .ln i{grid-column:1/3;height:7px;border-radius:99px;background:color-mix(in srgb,var(--ink) 12%,transparent);overflow:hidden;display:block}
+.cmp-vc .ln i u{display:block;height:100%;border-radius:99px;background:var(--ca)}.cmp-vc .ln.b i u{background:var(--cb)}
+.cmp-vc .ln em{font:700 13.5px/1 var(--display);font-style:normal;font-variant-numeric:tabular-nums;text-align:right}
+.cmp-vc.w-a .ln.a{background:color-mix(in srgb,var(--ca) 20%,transparent);color:var(--ink);box-shadow:inset 3px 0 0 var(--ca)}
+.cmp-vc.w-b .ln.b{background:color-mix(in srgb,var(--cb) 20%,transparent);color:var(--ink);box-shadow:inset 3px 0 0 var(--cb)}
+/* форма: две панели */
+.cmp-forms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:4px 0 8px}
+.cmp-fp{border:1px solid color-mix(in srgb,var(--ink) 14%,transparent);border-top:3px solid var(--ca);border-radius:12px;padding:12px 14px 14px;display:grid;gap:12px;justify-items:start;min-width:0}
+.cmp-fp.b{border-top-color:var(--cb)}
+.cmp-fp h3{margin:0;font:800 16px/1.2 var(--display);text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:8px;min-width:0;max-width:100%}
+.cmp-fp h3 span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cmp-fp h3 .cmp-em{background:#fff;border-radius:50%;padding:2px;box-sizing:border-box}
+.cmp-fp p{margin:0;font:600 14px/1.3 var(--display);color:var(--ink-2);display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.cmp-fp p b{font:800 28px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.cmp-forms.w-a .cmp-fp.a p b{color:var(--ca);font-weight:900;font-size:34px}.cmp-forms.w-b .cmp-fp.b p b{color:var(--cb);font-weight:900;font-size:34px}
+.cmp-forms.w-a .cmp-fp.a{background:color-mix(in srgb,var(--ca) 10%,transparent)}.cmp-forms.w-b .cmp-fp.b{background:color-mix(in srgb,var(--cb) 10%,transparent)}
+.cmp-dots{flex-wrap:wrap}
+/* игрок: 5 последних матчей столбиками */
+.cmp-cols{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;width:100%;max-width:280px;height:96px;align-items:end}
+.cmp-cols i{font-style:normal;display:grid;grid-template-rows:auto 1fr auto;justify-items:center;height:100%;gap:3px;position:relative}
+.cmp-cols i::before{content:"";grid-row:2;align-self:end;width:100%;height:max(4px,var(--h));border-radius:5px 5px 2px 2px;background:var(--ca)}
+.cmp-fp.b .cmp-cols i::before{background:var(--cb)}
+.cmp-cols i.z::before{background:color-mix(in srgb,var(--ink) 18%,transparent)}
+.cmp-cols b{font:800 14px/1 var(--display);grid-row:1}
+.cmp-cols small{font:600 10.5px/1 var(--display);color:var(--ink-3);grid-row:3}
+@media (max-width:680px){
+ .cmp-tiles{grid-template-columns:minmax(0,1fr)}
+ .cmp-tile{grid-template-columns:minmax(0,1fr) auto;align-items:center}.cmp-tile span{text-align:left}.cmp-tile p{min-width:150px}.cmp-tile b{font-size:22px;padding:8px 4px}
+ .cmp-ven,.cmp-forms{grid-template-columns:minmax(0,1fr)}
+ .cmp-ver p{font-size:15.5px}
+}
