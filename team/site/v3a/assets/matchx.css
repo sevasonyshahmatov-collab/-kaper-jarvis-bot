@@ -302,3 +302,18 @@ main:has(>.mx-hero)::before{content:"";position:absolute;inset:0;z-index:-1;poin
 .mt-oth.fc-hub a:hover{transform:translateY(-2px);border-color:var(--signal,#ffc21a)}
 .mt-oth.fc-hub a small{padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.08);color:var(--ink)}
 @media (prefers-reduced-motion:reduce){.mt-oth.fc-hub a{transition:none}.mt-oth.fc-hub a:hover{transform:none}}
+
+/* ── статистика сыгранного матча (11.11): пары цифр хозяева — гости, полоса в цветах клубов ── */
+.mx-msb{padding:clamp(16px,2vw,26px);border-radius:20px;border:1px solid rgba(255,255,255,.09);
+  background:linear-gradient(100deg,color-mix(in srgb,var(--hcs) 22%,var(--card)),var(--card) 34% 66%,color-mix(in srgb,var(--acs) 22%,var(--card)))}
+.mx-msh{display:flex;justify-content:space-between;gap:16px;margin-bottom:14px;font:800 clamp(16px,1.6vw,21px)/1.2 var(--display)}
+.mx-msh b:last-child{text-align:right}
+.mx-msl{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:14px clamp(20px,3vw,44px)}
+.mx-msl li{display:grid;grid-template-columns:minmax(64px,auto) 1fr minmax(64px,auto);align-items:baseline;gap:6px 10px}
+.mx-msl span{text-align:center;font:600 14px/1.25 var(--display);color:var(--ink-2)}
+.mx-msl b{font:800 clamp(20px,2vw,26px)/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ink-2);white-space:nowrap}
+.mx-msl b:last-of-type{text-align:right}
+.mx-msl b.on{color:var(--signal,#ffc21a)}
+.mx-msl i{grid-column:1/-1;display:flex;gap:4px;height:8px}
+.mx-msl u{border-radius:999px;background:var(--hcs);min-width:6px}
+.mx-msl u+u{background:var(--acs)}

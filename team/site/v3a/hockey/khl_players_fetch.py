@@ -114,6 +114,11 @@ def det(e):
     return e, (d.get('event') or d) if d else None
 
 
+# статистика сыгранных матчей — с 11.11 (владелец: «старые можно не заполнять»); поля приложения: shots — броски в створ, ppg/ppc — голы
+# в большинстве / число большинств, shg — голы в меньшинстве, vbr — выигранные вбрасывания, pim — штрафные минуты
+MS_FROM = '2026-11-10'    # 10.11 — для проверки на уже сыгранных матчах
+MS_KEYS = ('shots', 'ppg', 'ppc', 'shg', 'vbr', 'pim', 'total_puck_control_time', 'total_distance_travelled', 'offensive_blue_line_crossings_count')
+MST = {}
 team_games = {}
 with ThreadPoolExecutor(8) as ex:
     for e, d in ex.map(det, done):
@@ -123,6 +128,19 @@ with ThreadPoolExecutor(8) as ex:
         if a not in SLUG or b not in SLUG:
             continue
         day = msk(d.get('start_at') or e.get('start_at'))
+        if day[:10] >= MS_FROM:                          # статистика матча для страницы сыгранного матча (владелец 11.11)
+            try:
+                ta, tb = d.get('team_a') or {}, d.get('team_b') or {}
+                pn = [0, 0]
+                for v in d.get('violations') or []:
+                    vt = (v.get('violator') or {}).get('team_id')
+                    if vt in (a, b):
+                        pn[vt == b] += 1
+                MST['khl|%s|%s|%s' % (day[:10], SLUG[a], SLUG[b])] = {
+                    'h': {k: ta.get(k) for k in MS_KEYS if ta.get(k) is not None}, 'a': {k: tb.get(k) for k in MS_KEYS if tb.get(k) is not None},
+                    'pn': pn if sum(pn) else None}
+            except Exception as x:  # noqa: BLE001
+                err.append('mstats %s %r' % (e.get('id'), x))
         pts = {}
         for g in d.get('goals') or []:
             au = g.get('author') or {}
@@ -163,3 +181,13 @@ with open(ENF, 'w', encoding='utf-8') as f:
 with open(os.path.join(H, 'data', 'khl_players.json'), 'w', encoding='utf-8') as f:
     json.dump(res, f, ensure_ascii=False, separators=(',', ':'))
 print('KHLP done players', len(out), 'games', len(done), 'errors', len(err), flush=True)
+try:                                                     # hockey/data/khl_mstats.json: прежние матчи остаются, новые добавляются
+    f_ms = os.path.join(H, 'data', 'khl_mstats.json')
+    old = json.load(open(f_ms, encoding='utf-8')) if os.path.exists(f_ms) else {}
+    old.update(MST)
+    with open(f_ms, 'w', encoding='utf-8') as f:
+        json.dump(old, f, ensure_ascii=False, separators=(',', ':'), sort_keys=True)
+    print('KHLP mstats', len(MST), 'всего', len(old), flush=True)
+except Exception as x:  # noqa: BLE001
+    print('KHLP mstats ошибка %r' % x, flush=True)
+

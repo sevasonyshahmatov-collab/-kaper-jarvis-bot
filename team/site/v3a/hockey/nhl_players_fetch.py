@@ -74,6 +74,34 @@ def box(gid):
     return gid, get('gamecenter/%d/boxscore' % gid)
 
 
+# статистика сыгранных матчей — с 11.11 (владелец: «старые можно не заполнять»). Сначала сводка лиги (gamecenter/<id>/right-rail,
+# teamGameStats), чего там нет — суммой по игрокам из протокола. Ключ — nhl|дата МСК|HOME|AWAY (сокращения лиги; в slug переводит сборщик страниц).
+MS_FROM = '2026-11-10'    # 10.11 — для проверки на уже сыгранных матчах
+MST = {}
+RR = {'sog': 'sog', 'pim': 'pim', 'hits': 'hit', 'blockedShots': 'blk', 'giveaways': 'gv', 'takeaways': 'tk', 'faceoffWinningPctg': 'fo', 'powerPlay': 'pp'}
+BX = {'sog': 'sog', 'pim': 'pim', 'hits': 'hit', 'blockedShots': 'blk', 'giveaways': 'gv', 'takeaways': 'tk', 'powerPlayGoals': 'ppg'}
+
+
+def mstat(gid, b, pg):
+    out = {'h': {}, 'a': {}}
+    for side, k in (('homeTeam', 'h'), ('awayTeam', 'a')):
+        for grp in ('forwards', 'defense', 'goalies'):
+            for p in (pg.get(side) or {}).get(grp) or []:
+                for src, dst in BX.items():
+                    if isinstance(p.get(src), (int, float)) and not (grp == 'goalies' and src != 'pim'):
+                        out[k][dst] = out[k].get(dst, 0) + p[src]
+        if isinstance((b.get(side) or {}).get('sog'), int):
+            out[k]['sog'] = b[side]['sog']
+    rr = get('gamecenter/%d/right-rail' % gid) or {}
+    for x in rr.get('teamGameStats') or []:
+        dst = RR.get(x.get('category'))
+        if dst:
+            for k, v in (('h', x.get('homeValue')), ('a', x.get('awayValue'))):
+                if v is not None:
+                    out[k][dst] = v
+    return out
+
+
 P = {}
 with ThreadPoolExecutor(8) as ex:
     for gid, b in ex.map(box, sorted(games)):
@@ -82,6 +110,11 @@ with ThreadPoolExecutor(8) as ex:
         g = games[gid]
         d = msk(g['startTimeUTC'])
         pg = b.get('playerByGameStats') or {}
+        if d[:10] >= MS_FROM:                            # статистика матча для страницы сыгранного матча (владелец 11.11)
+            try:
+                MST['nhl|%s|%s|%s' % (d[:10], b['homeTeam']['abbrev'], b['awayTeam']['abbrev'])] = mstat(gid, b, pg)
+            except Exception as x:  # noqa: BLE001
+                err.append('mstats %s %r' % (gid, x))
         for side, home in (('homeTeam', 1), ('awayTeam', 0)):
             me = b[side]['abbrev']; op = b['awayTeam' if home else 'homeTeam']['abbrev']
             for grp in ('forwards', 'defense'):
@@ -108,3 +141,12 @@ os.makedirs(os.path.join(H, 'data'), exist_ok=True)
 with open(os.path.join(H, 'data', 'nhl_players.json'), 'w', encoding='utf-8') as f:
     json.dump(res, f, ensure_ascii=False, separators=(',', ':'))
 print('NHLP players', len(out), 'errors', len(err), flush=True)
+try:                                                     # hockey/data/nhl_mstats.json: прежние матчи остаются, новые добавляются
+    f_ms = os.path.join(H, 'data', 'nhl_mstats.json')
+    old = json.load(open(f_ms, encoding='utf-8')) if os.path.exists(f_ms) else {}
+    old.update(MST)
+    with open(f_ms, 'w', encoding='utf-8') as f:
+        json.dump(old, f, ensure_ascii=False, separators=(',', ':'), sort_keys=True)
+    print('NHLP mstats', len(MST), 'всего', len(old), flush=True)
+except Exception as x:  # noqa: BLE001
+    print('NHLP mstats ошибка %r' % x, flush=True)

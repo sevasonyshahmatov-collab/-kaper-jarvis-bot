@@ -617,6 +617,89 @@ def model_stub(m, pre, odds=''):
             % (odds, pre, 'h' if m['sport'] == 'hockey' else 'f', pre))
 
 
+_MST = None
+
+
+def mstats(m):
+    """Статистика сыгранного матча (владелец 11.11): hockey/data/khl_mstats.json и nhl_mstats.json — их пишут загрузчики игроков
+    (приложение КХЛ, api-web.nhle.com) для матчей с 11.11. → {'h': {...}, 'a': {...}} или None."""
+    global _MST
+    if _MST is None:
+        _MST = {}
+        hk = os.path.join(og_match.V3A, 'hockey', 'data')
+        try:
+            _MST.update(json.load(open(os.path.join(hk, 'khl_mstats.json'), encoding='utf-8')))
+        except (OSError, ValueError):
+            pass
+        try:                                             # НХЛ: ключ с сокращениями лиги (TOR) → slug сайта (nhl_tor)
+            src = open(os.path.join(og_match.V3A, 'search', 'build_index.py'), encoding='utf-8').read()
+            ab = dict(re.findall(r"'([A-Z]{3})': \('([a-z_]+)'", src))
+            for k, v in json.load(open(os.path.join(hk, 'nhl_mstats.json'), encoding='utf-8')).items():
+                lg, d, h, a = k.split('|')
+                if h in ab and a in ab:
+                    _MST['%s|%s|%s|%s' % (lg, d, ab[h], ab[a])] = v
+        except (OSError, ValueError):
+            pass
+    return _MST.get(m['key'])
+
+
+def v2_mstats(m, fin):
+    """«Статистика матча» под счётом: пары цифр хозяева — гости с полосой в цветах клубов. Только то, что отдал источник."""
+    st = mstats(m) if fin and m['sport'] == 'hockey' else None
+    if not st:
+        return ''
+    h, a = st.get('h') or {}, st.get('a') or {}
+    num = lambda v: v if isinstance(v, (int, float)) and not isinstance(v, bool) else None  # noqa: E731
+    rows = []
+
+    def row(label, hv, av, show=None, less=False, note=''):
+        hv, av = num(hv), num(av)
+        if hv is None or av is None or (hv == 0 and av == 0 and not show):
+            return
+        fmt = show or (lambda v: ('%d' % v) if float(v).is_integer() else f1(v))
+        lead = 0 if hv == av else (1 if (hv > av) != less else 2)
+        rows.append((label, fmt(hv), fmt(av), hv, av, lead, note))
+
+    row('Броски в створ', h.get('shots', h.get('sog')), a.get('shots', a.get('sog')))
+    pp = lambda t: (t.get('ppg'), t.get('ppc'))  # noqa: E731
+    for t in (h, a):                                     # НХЛ: «1/4» из сводки лиги
+        if isinstance(t.get('pp'), str) and re.match(r'^\d+/\d+$', t['pp']):
+            t['ppg'], t['ppc'] = [int(x) for x in t['pp'].split('/')]
+    if num(h.get('ppc')) is not None and num(a.get('ppc')) is not None and (h['ppc'] or a['ppc']):
+        hv, av = h.get('ppg') or 0, a.get('ppg') or 0
+        rows.append(('Голы в большинстве', '%d из %d' % (hv, h['ppc']), '%d из %d' % (av, a['ppc']), hv, av, 0 if hv == av else (1 if hv > av else 2), ''))
+    elif num(h.get('ppg')) is not None and num(a.get('ppg')) is not None:
+        row('Голы в большинстве', h['ppg'], a['ppg'], show=lambda v: '%d' % v)
+    row('Голы в меньшинстве', h.get('shg'), a.get('shg'))
+    row('Штрафные минуты', h.get('pim'), a.get('pim'), less=True)
+    if st.get('pn'):
+        row('Удаления', st['pn'][0], st['pn'][1], less=True)
+    if num(h.get('vbr')) is not None and num(a.get('vbr')) is not None and h['vbr'] + a['vbr'] > 0:
+        row('Выигранные вбрасывания', h['vbr'], a['vbr'])
+    elif num(h.get('fo')) is not None and num(a.get('fo')) is not None:
+        k = 100 if max(h['fo'], a['fo']) <= 1 else 1
+        row('Выигранные вбрасывания', h['fo'] * k, a['fo'] * k, show=lambda v: '%d %%' % round(v))
+    row('Силовые приёмы', h.get('hit'), a.get('hit'))
+    row('Блокированные броски', h.get('blk'), a.get('blk'))
+    row('Отборы', h.get('tk'), a.get('tk'))
+    row('Потери', h.get('gv'), a.get('gv'), less=True)
+    ch, ca = num(h.get('total_puck_control_time')), num(a.get('total_puck_control_time'))
+    if ch and ca:
+        row('Владение шайбой', 100.0 * ch / (ch + ca), 100.0 * ca / (ch + ca), show=lambda v: '%d %%' % round(v))
+    row('Входы в зону атаки', h.get('offensive_blue_line_crossings_count'), a.get('offensive_blue_line_crossings_count'))
+    if not rows:
+        return ''
+    lis = ''
+    for label, hs, as_, hv, av, lead, note in rows:
+        tot = (hv + av) or 1
+        lis += ('<li><b class="%s">%s</b><span>%s</span><b class="%s">%s</b>'
+                '<i aria-hidden="true"><u style="flex:%.3f"></u><u style="flex:%.3f"></u></i></li>'
+                % ('on' if lead == 1 else '', esc(hs), esc(label), 'on' if lead == 2 else '', esc(as_), max(hv / tot, .02), max(av / tot, .02)))
+    return ('<section class="fc-sec mx-ms" aria-labelledby="mt-ms"><div class="wrap"><h2 id="mt-ms">Статистика матча</h2>\n'
+            '<div class="mx-msb"><div class="mx-msh"><b>%s</b><b>%s</b></div><ul class="mx-msl">%s</ul></div>'
+            '<p class="mt-note">Данные лиги.</p></div></section>\n' % (esc(m['hn']), esc(m['an']), lis))
+
+
 def v2_model(m, fin, pre, cols):
     md = m.get('md') or {}
     if md.get('p1') is None:
@@ -886,7 +969,7 @@ def match_page(m):
             ink = lambda c: '#141a24' if _lum(c.lstrip('#')) > .55 else '#ffffff'  # noqa: E731
             cols = (bgc[0], bgc[1], ink(bgc[0]), ink(bgc[1]))
         top, info = v2_top(m, from_dir, fin, name, h1b, dm, wd, ar_txt, crumbs, rel, cols)
-        body = top + v2_model(m, fin, pre, cols) + info + prev + v2_form(m, from_dir) + v2_h2h(m, from_dir) + table_block(m) + other_matches(m, from_dir) + links
+        body = top + v2_model(m, fin, pre, cols) + v2_mstats(m, fin) + info + prev + v2_form(m, from_dir) + v2_h2h(m, from_dir) + table_block(m) + other_matches(m, from_dir) + links
     else:
         body = top + mdl + prev + form_block(m, from_dir) + h2h_block(m) + table_block(m) + other_matches(m, from_dir) + links
     js = '<script>window.JV_ACT=%s;</script>\n' % json.dumps('khl' if lg == 'khl' else 'nhl' if lg == 'nhl' else 'ucl' if lg == 'ucl' else '' if sport == 'hockey' else 'lg')
