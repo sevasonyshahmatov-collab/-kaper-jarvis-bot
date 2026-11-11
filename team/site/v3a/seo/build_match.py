@@ -396,19 +396,19 @@ def h2h_block(m):
          '<tbody>%s</tbody></table></div></div></section>' % ''.join(trs))
 
 
-def table_block(m):
+def table_block(m, from_dir=''):
     sh, sa = standing(m, m['h']), standing(m, m['a'])
     if not (sh and sa):
         return ''
     hock = m['sport'] == 'hockey'
 
-    def row(name, s):
+    def row(name, s, tid):
         cells = [s['place'], s['gp'], s['w']] + ([] if hock else [s['d']]) + [s['l'], '%d:%d' % (s['gf'], s['ga']), s['pts']]
-        return '<tr><th scope="row">%s</th>%s</tr>' % (esc(name), ''.join('<td>%s</td>' % esc(c) for c in cells))
+        return '<tr><th scope="row">%s%s</th>%s</tr>' % (crest(m, tid, from_dir, 26) if from_dir else '', esc(name), ''.join('<td>%s</td>' % esc(c) for c in cells))
     head = ['Место', 'И', 'В'] + ([] if hock else ['Н']) + ['П', 'Голы', 'Очки']
     return ('<section class="fc-sec" aria-labelledby="mt-tbl"><div class="wrap"><h2 id="mt-tbl">Положение в таблице</h2>'
             '<div class="mt-tw"><table class="mt-tab"><thead><tr><th scope="col">Команда</th>%s</tr></thead><tbody>%s%s</tbody></table></div></div></section>'
-            % (''.join('<th scope="col">%s</th>' % c for c in head), row(m['hn'], sh), row(m['an'], sa)))
+            % (''.join('<th scope="col">%s</th>' % c for c in head), row(m['hn'], sh, m['h']), row(m['an'], sa, m['a'])))
 
 
 def odds_block(m):
@@ -617,6 +617,12 @@ def model_stub(m, pre, odds=''):
             % (odds, pre, 'h' if m['sport'] == 'hockey' else 'f', pre))
 
 
+def crest(m, tid, from_dir, px=28):
+    """Эмблема клуба рядом с названием (правило владельца 11.11: логотип у названия команды — везде, где рядом он ещё не стоит)."""
+    em = B.emblem(m['sport'], tid, from_dir)
+    return ('<img class="mx-em" src="%s" alt="" width="%d" height="%d" loading="lazy">' % (esc(em), px, px)) if em else ''
+
+
 _MST = None
 
 
@@ -643,7 +649,7 @@ def mstats(m):
     return _MST.get(m['key'])
 
 
-def v2_mstats(m, fin):
+def v2_mstats(m, fin, from_dir=''):
     """«Статистика матча» под счётом: пары цифр хозяева — гости с полосой в цветах клубов. Только то, что отдал источник."""
     st = mstats(m) if fin and m['sport'] == 'hockey' else None
     if not st:
@@ -696,8 +702,8 @@ def v2_mstats(m, fin):
                 '<i aria-hidden="true"><u style="flex:%.3f"></u><u style="flex:%.3f"></u></i></li>'
                 % ('on' if lead == 1 else '', esc(hs), esc(label), 'on' if lead == 2 else '', esc(as_), max(hv / tot, .02), max(av / tot, .02)))
     return ('<section class="fc-sec mx-ms" aria-labelledby="mt-ms"><div class="wrap"><h2 id="mt-ms">Статистика матча</h2>\n'
-            '<div class="mx-msb"><div class="mx-msh"><b>%s</b><b>%s</b></div><ul class="mx-msl">%s</ul></div>'
-            '<p class="mt-note">Данные лиги.</p></div></section>\n' % (esc(m['hn']), esc(m['an']), lis))
+            '<div class="mx-msb"><div class="mx-msh"><b>%s%s</b><b>%s%s</b></div><ul class="mx-msl">%s</ul></div>'
+            '<p class="mt-note">Данные лиги.</p></div></section>\n' % (crest(m, m['h'], from_dir), esc(m['hn']), esc(m['an']), crest(m, m['a'], from_dir), lis))
 
 
 def v2_model(m, fin, pre, cols):
@@ -749,8 +755,8 @@ def v2_form(m, from_dir):
                        % (o, g['d'][8:10] + '.' + g['d'][5:7], 'дома' if g.get('h') else 'в гостях', on, g['gf'], g['ga'], ot,
                           {'w': 'победа', 'd': 'ничья', 'l': 'поражение'}[o], esc(on), pic, {'w': 'В', 'd': 'Н', 'l': 'П'}[o], g['gf'], g['ga']))
         w = sum(1 for g in gs if outcome(g) == 'w')
-        cols.append('<div class="mx-fc"><h3>%s <small>%d %s из %d</small></h3><ol class="mx-dots" aria-label="Последние матчи, свежие справа">%s</ol></div>'
-                    % (esc(nm), w, 'победа' if w == 1 else 'победы' if 2 <= w <= 4 else 'побед', len(gs), ''.join(lis)))
+        cols.append('<div class="mx-fc"><h3>%s%s <small>%d %s из %d</small></h3><ol class="mx-dots" aria-label="Последние матчи, свежие справа">%s</ol></div>'
+                    % (crest(m, tid, from_dir, 32), esc(nm), w, 'победа' if w == 1 else 'победы' if 2 <= w <= 4 else 'побед', len(gs), ''.join(lis)))
     if not cols:
         return ''
     return ('<section class="fc-sec" aria-labelledby="mt-form"><div class="wrap"><h2 id="mt-form">Форма: последние матчи</h2>'
@@ -969,7 +975,7 @@ def match_page(m):
             ink = lambda c: '#141a24' if _lum(c.lstrip('#')) > .55 else '#ffffff'  # noqa: E731
             cols = (bgc[0], bgc[1], ink(bgc[0]), ink(bgc[1]))
         top, info = v2_top(m, from_dir, fin, name, h1b, dm, wd, ar_txt, crumbs, rel, cols)
-        body = top + v2_model(m, fin, pre, cols) + v2_mstats(m, fin) + info + prev + v2_form(m, from_dir) + v2_h2h(m, from_dir) + table_block(m) + other_matches(m, from_dir) + links
+        body = top + v2_model(m, fin, pre, cols) + v2_mstats(m, fin, from_dir) + info + prev + v2_form(m, from_dir) + v2_h2h(m, from_dir) + table_block(m, from_dir) + other_matches(m, from_dir) + links
     else:
         body = top + mdl + prev + form_block(m, from_dir) + h2h_block(m) + table_block(m) + other_matches(m, from_dir) + links
     js = '<script>window.JV_ACT=%s;</script>\n' % json.dumps('khl' if lg == 'khl' else 'nhl' if lg == 'nhl' else 'ucl' if lg == 'ucl' else '' if sport == 'hockey' else 'lg')
