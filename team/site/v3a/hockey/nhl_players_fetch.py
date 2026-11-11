@@ -99,6 +99,24 @@ def mstat(gid, b, pg):
             for k, v in (('h', x.get('homeValue')), ('a', x.get('awayValue'))):
                 if v is not None:
                     out[k][dst] = v
+    # удаления по минутам (владелец 11.11): gamecenter/<id>/landing → summary.penalties; [период, время, минут, причина, игрок, None, сторона]
+    try:
+        ld = get('gamecenter/%d/landing' % gid) or {}
+        hab = b['homeTeam']['abbrev']
+        nm = lambda x: (x.get('default') if isinstance(x, dict) else x) or ''  # noqa: E731
+        pl = []
+        for per in (ld.get('summary') or {}).get('penalties') or []:
+            pn = (per.get('periodDescriptor') or {}).get('number')
+            for x in per.get('penalties') or []:
+                who = x.get('committedByPlayer')
+                if isinstance(who, dict) and 'default' not in who:
+                    who = ('%s %s' % (nm(who.get('firstName')), nm(who.get('lastName')))).strip()
+                pl.append([pn, x.get('timeInPeriod'), x.get('duration'), x.get('descKey'), nm(who) or None, None,
+                           'h' if nm(x.get('teamAbbrev')) == hab else 'a', x.get('type')])
+        if pl:
+            out['pl'] = pl
+    except Exception as x:  # noqa: BLE001
+        err.append('penalties %s %r' % (gid, x))
     return out
 
 

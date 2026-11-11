@@ -138,7 +138,13 @@ with ThreadPoolExecutor(8) as ex:
                         pn[vt == b] += 1
                 MST['khl|%s|%s|%s' % (day[:10], SLUG[a], SLUG[b])] = {
                     'h': {k: ta.get(k) for k in MS_KEYS if ta.get(k) is not None}, 'a': {k: tb.get(k) for k in MS_KEYS if tb.get(k) is not None},
-                    'pn': pn if sum(pn) else None}
+                    'pn': pn if sum(pn) else None,
+                    # удаления по минутам (владелец 11.11): [период, время, минут штрафа, причина, игрок, номер, сторона h/a]
+                    'pl': [[v.get('period'), v.get('time'), v.get('penalty_time'), v.get('penalty_reason'),
+                            (v.get('violator') or {}).get('name'), (v.get('violator') or {}).get('shirt_number'),
+                            'h' if (v.get('violator') or {}).get('team_id') == a else 'a' if (v.get('violator') or {}).get('team_id') == b else None]
+                           for v in d.get('violations') or []],
+                    'vk': sorted((d.get('violations') or [{}])[0].get('violator') or {})[:20]}   # поля игрока — для сверки формата
             except Exception as x:  # noqa: BLE001
                 err.append('mstats %s %r' % (e.get('id'), x))
         pts = {}
