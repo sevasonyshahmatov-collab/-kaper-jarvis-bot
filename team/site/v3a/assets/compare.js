@@ -8,7 +8,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 /* футбол (football/compare.html, <html data-sport="football">): клубы из football/data/football-lite.js приводятся к тому же виду,
    что хоккейные; игр по матчам в этом файле нет — блоки «Дом и выезд», «Форма» и очные встречи заменяют оси 0–100 и ближайшая встреча */
 const FB=document.documentElement.dataset.sport==='football',JF=window.JV_FOOT||{};
-const TT=FB?Object.fromEntries(Object.entries(JF.teams||{}).filter(([,t])=>(JF.leagues||{})[t.lg]&&t.gp).map(([k,t])=>[k,{name:t.n,lg:t.lg,place:t.place,gp:t.gp,w:t.w,d:t.d,l:t.l,gf:t.gf,ga:t.ga,pts:t.pts,axes:t.axes,
+const TT=FB?Object.fromEntries(Object.entries(JF.teams||{}).filter(([,t])=>(JF.leagues||{})[t.lg]&&t.gp).map(([k,t])=>[k,{name:t.n,lg:t.lg,place:t.place,gp:t.gp,w:t.w,d:t.d,l:t.l,gf:t.gf,ga:t.ga,pts:t.pts,axes:t.axes,ucl:t.lg==='ucl'||(t.cups||[]).includes('ucl'),
   colors:(t.c||[]).map(c=>'#'+String(c).replace('#',''))}])):(window.JV_TEAMS||{}).teams||{};
 const AX=FB?JF.axes||[]:(window.JV_TEAMS||{}).axes||[],ML=window.JV_MATCHLINKS||{};
 const EMDIR=FB?'fc':'em',TEAMURL=id=>FB?'team.html?id='+id:'../team/index.html?id='+id;
@@ -30,6 +30,9 @@ function sideColors(ta,tb){const ca=cands(ta)[0]||'#5ab8ff',cb=cands(tb).find(c=
 const paint=(ta,tb)=>{const c=sideColors(ta,tb);OUT.style.setProperty('--ca',c[0]);OUT.style.setProperty('--cb',c[1])};
 const LGN=FB?Object.fromEntries(Object.entries(JF.leagues||{}).map(([k,v])=>[k,v.name||k])):{khl:'КХЛ',nhl:'НХЛ'};
 let IDX=null;const index=()=>IDX||(IDX=fetch('../data/search.json').then(r=>r.json()).catch(()=>({c:[],p:[]})));
+/* клубы сравниваем только внутри одной лиги (владелец 11.11); исключение — футбол: участники Лиги чемпионов между собой */
+const pairOk=(a,b)=>{const A=TT[a],B=TT[b];return !!A&&!!B&&(A.lg===B.lg||(FB&&A.ucl&&B.ucl))};
+const mate=a=>{const A=TT[a];return Object.keys(TT).filter(k=>k!==a&&TT[k].lg===A.lg).sort((x,y)=>TT[x].place-TT[y].place||TT[y].pts-TT[x].pts)[0]||''};
 const clubs=()=>Object.keys(TT).filter(k=>LGN[TT[k].lg]).map(k=>({id:k,n:TT[k].name,lg:TT[k].lg,t:k})).sort((x,y)=>x.n.localeCompare(y.n,'ru'));
 const players=()=>index().then(d=>(d.p||[]).map(p=>({id:p[1]+'-'+p[4],n:p[0],lg:p[1],t:p[2],pts:p[3]})));
 const list=()=>st.t==='clubs'?Promise.resolve(clubs()):players();
@@ -108,7 +111,7 @@ function clubView(a,b){
    ${next?`<p class="cmp-note">Следующая встреча — ${ddmm(next.d)} в ${esc(next.d.slice(11))} МСК, ${next.h?esc(A.name):esc(B.name)} дома.</p>`:''}</section>`);
   const subt=t=>`${esc(LGN[t.lg]||'')}${t.conf?' · '+esc(t.conf):''}, ${t.place}-е место`;
   return head(a,b,A.name,B.name,subt(A),subt(B),em(a,72),em(b,72),TEAMURL(a),TEAMURL(b))
-   +verdict(body,A.name,B.name)+body}
+   +verdict(body,A.name,B.name)+body+(A.lg!==B.lg?'<p class="cmp-note">Оба клуба играют в Лиге чемпионов. Оценки 0–100 считаются внутри своей лиги, поэтому для клубов из разных лиг их не показываем.</p>':'')}
 
 function head(a,b,na,nb,sa,sb,ia,ib,ua,ub){
   const side=(n,s,i,u,c)=>`<a class="cmp-side" href="${esc(u)}" style="--c:var(${c})">${i}<b>${esc(n)}</b><small>${s}</small></a>`;
@@ -158,6 +161,7 @@ async function render(){
   ['a','b'].forEach(s=>{$('cmp-'+s).placeholder=HINT[st.t][0];$('cmp-'+s).previousElementSibling.textContent=HINT[st.t][1]+(s==='a'?' первый':' второй')});
   const L=await list(),by=id=>L.find(x=>x.id===id);
   if(!by(st.a)||!by(st.b)||st.a===st.b){const d=defaults(L);if(!by(st.a))st.a=d[0]===st.b?d[1]:d[0];if(!by(st.b)||st.a===st.b)st.b=d[1]===st.a?d[0]:d[1]}
+  if(st.t==='clubs'&&by(st.a)&&!pairOk(st.a,st.b))st.b=mate(st.a);   /* другая лига — ставим соперника из лиги первого клуба */
   const xa=by(st.a),xb=by(st.b);$('cmp-a').value=xa?xa.n:'';$('cmp-b').value=xb?xb.n:'';setUrl();
   if(!xa||!xb){OUT.innerHTML='<p class="cmp-note">Данные не загрузились. Обновите страницу.</p>';return}
   if(st.t==='clubs'){paint(xa.id,xb.id);OUT.innerHTML=clubView(xa.id,xb.id);return}
@@ -170,11 +174,12 @@ async function render(){
 
 function picker(s){const inp=$('cmp-'+s),ul=$('cmp-r'+s);let cur=[];
   const close=()=>{ul.hidden=true;ul.innerHTML=''};
-  const show=async()=>{const q=inp.value.trim().toLowerCase(),L=await list(),other=st[s==='a'?'b':'a'];
-    cur=L.filter(x=>x.id!==other&&(!q||x.n.toLowerCase().includes(q)||((TT[x.t]||{}).name||'').toLowerCase().includes(q)));
+  const show=async all=>{const q=all===true?'':inp.value.trim().toLowerCase(),   /* по нажатию — весь список, по вводу — поиск */
+    L=await list(),other=st[s==='a'?'b':'a'];
+    cur=L.filter(x=>x.id!==other&&(st.t!=='clubs'||s==='a'||pairOk(st.a,x.id))&&(!q||x.n.toLowerCase().includes(q)||((TT[x.t]||{}).name||'').toLowerCase().includes(q)));
     if(st.t==='players')cur.sort((x,y)=>y.pts-x.pts);cur=cur.slice(0,st.t==='clubs'&&!q?60:12);
     ul.innerHTML=cur.length?cur.map((x,i)=>`<li><button type="button" data-i="${i}">${em(x.t,22)}<span>${esc(x.n)}</span><small>${st.t==='players'?esc((TT[x.t]||{}).name||'')+' · '+x.pts+' оч.':LGN[x.lg]}</small></button></li>`).join(''):'<li class="none">Не нашли</li>';ul.hidden=false};
-  inp.addEventListener('focus',()=>{inp.select();show()});inp.addEventListener('input',show);
+  inp.addEventListener('focus',()=>{inp.select();show(true)});inp.addEventListener('input',show);
   inp.addEventListener('keydown',e=>{if(e.key==='Escape'){close();inp.blur()}if(e.key==='Enter'&&cur[0]){st[s]=cur[0].id;close();inp.blur();render()}});
   ul.addEventListener('mousedown',e=>e.preventDefault());
   ul.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;st[s]=cur[+b.dataset.i].id;close();inp.blur();render()});

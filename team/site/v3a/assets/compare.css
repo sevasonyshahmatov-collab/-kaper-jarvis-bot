@@ -167,3 +167,10 @@
 .cmp-em{object-position:center}
 .cmp-note{text-align:center;margin-inline:auto}
 .cmp-tabs[hidden]{display:none}
+/* шапка страницы по центру (владелец 11.11): заголовок, вкладки, выбор сторон, подсказка */
+.cmp-top .wrap{display:grid;justify-items:center;text-align:center}
+.cmp-top h1{text-align:center}
+.cmp-pick{width:100%;margin-inline:auto}
+.cmp-in input{text-align:center}
+.cmp-in ul{text-align:left}
+.cmp-hint{margin:12px 0 0;font:500 14.5px/1.4 var(--display);color:var(--ink-3);text-align:center}
