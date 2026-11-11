@@ -1,7 +1,7 @@
 {
  "day": "2026-11-11",
  "make": [
-  "team/picks/express_render.py team/out/2026-11-11/express_nhl2_coupons.json out/express/2026-11-11-nhl2"
+  "team/out/2026-11-11/ff_render.py team/out/2026-11-11/express_nhl2_coupons.json out/express/2026-11-11-nhl2"
  ],
  "messages": [
   {
