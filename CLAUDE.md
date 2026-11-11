@@ -20,6 +20,7 @@
 - Итоги дня: `team/daily/` (`morning.py`, `ask.py`, `banner.py`); послематчевые посты: `team/postmatch/README.md`.
 - Ролики: `render/reels/`, конвейер `team/reels_daily/`, правила роликов — `team/RULES.md` «Ролики».
 - Сайт: `team/site/`, `docs/handoff/SITE.md`. Соцсети: `docs/handoff/SMM_AGENT.md`.
+  Правило сайта (владелец 11.11): рядом с названием команды — эмблема клуба; не ставить, если эмблема этого клуба уже рядом.
 - Бот и таблицы (Apps Script): `apps-script/`, `docs/handoff/HANDOFF_CODE.md`; проверка без затрат — `tools/gas_mock/`.
 - Передачи между сессиями: `docs/handoff/` (свежая — `HANDOFF_LEAD_2610.md`).
 
