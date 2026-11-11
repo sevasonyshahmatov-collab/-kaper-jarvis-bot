@@ -166,6 +166,16 @@ def published(picks, rows):
     return out
 
 
+def by_day(found, t0, t1):
+    """Посты-прогнозы окна: один на матч и день (МСК) — последний пост. channel.posts склеивает пары команд за всё окно,
+    а за сезон одни и те же команды играют дома не раз (Адмирал — Барыс 21.10 и 06.11): раньше первый прогноз пропадал."""
+    by = {}
+    for p in sorted(found, key=lambda p: p['msg_id']):
+        if t0 <= p['start'] < t1:
+            by[(p['league'], p['home'], p['away'], p['start'].astimezone(MSK).date())] = p
+    return sorted(by.values(), key=lambda p: p['start'])
+
+
 def month_stats(rows, now=None):
     """Рассчитанные прогнозы → [{m: 'ГГГГ-ММ', name, n, w, l, p, kef (средний), units (плюс/минус при ставке 1 на каждый),
     live (месяц идёт), upto (по какое число), rows (список для сайта)}]."""
@@ -202,6 +212,7 @@ def main():
     feed = channel.feed
     channel.feed = lambda t: seen.setdefault('v', feed(t))  # лента одна: и для прогнозов, и для списка нераспознанных
     picks, chan = channel.posts(t0, t1)
+    picks = by_day(chan['picks'], t0, t1)
     used = {p['msg_id'] for p in chan['picks']}
     old, old_bad, last = {}, [], max((p['posted'] for p in chan['picks'] if p.get('posted')), default=t1)
     first_new = min((p['posted'] for p in chan['picks'] if p.get('posted')), default=t1)
