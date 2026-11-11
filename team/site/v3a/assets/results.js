@@ -86,7 +86,9 @@ const pass=p=>(F.sport==='all'||(F.sport==='express'?p.kind==='express':p.kind==
 const row=p=>{
  const ex=p.kind==='express',fb=p.sport==='football';
  const tag=ex?'<span class="rtag ex">Экспресс</span>':p.src==='model'?'<span class="rtag">Модель</span>':p.src==='author'?'<span class="rtag au">Автор</span>':'';
- const title=ex?esc(p.bet):esc(p.h)+' — '+esc(p.a);
+ const em=e=>e?`<img class="rs-em" src="${esc(e)}" alt="" width="22" height="22" loading="lazy">`:'';   /* эмблема у названия (владелец 11.11) */
+ const tm=(e,n)=>`<span class="rs-tm">${em(e)}${esc(n)}</span>`;
+ const title=ex?esc(p.bet):tm(p.he,p.h)+' — '+tm(p.ae,p.a);
  const bet=ex?'общий кэф '+(p.kef?num(p.kef):'—'):esc(p.bet);
  const pm=p.pm?` · модель ${num(p.pm*100,0)} %`:'';
  return `<li class="rs-row"><span class="rlg${fb?' fb':''}">${LG[p.lg]||''}</span>
@@ -95,7 +97,7 @@ const row=p=>{
   <span class="rkef"><i>кэф </i>${p.kef?num(p.kef):'—'}</span><span class="rsc">${esc(p.sc||'')}</span>
   <span class="rres ${p.r||'n'}">${p.r?RES[p.r]:'Без итога'}</span>
   <a class="rpost" href="${esc(p.url)}" target="_blank" rel="noopener">Пост №${p.id}</a>
-  ${ex?`<ul class="rs-legs">${p.legs.map(l=>`<li><b>${esc(l.h)} — ${esc(l.a)}${l.sc?' '+esc(l.sc):''}</b><span>${esc(l.bet)}${l.kef?' · '+num(l.kef):''}</span>${l.r?`<span class="${l.r}">${l.r==='w'?'зашло':l.r==='l'?'не зашло':'возврат'}</span>`:''}</li>`).join('')}</ul>`:''}</li>`};
+  ${ex?`<ul class="rs-legs">${p.legs.map(l=>`<li><b>${tm(l.he,l.h)} — ${tm(l.ae,l.a)}${l.sc?' '+esc(l.sc):''}</b><span>${esc(l.bet)}${l.kef?' · '+num(l.kef):''}</span>${l.r?`<span class="${l.r}">${l.r==='w'?'зашло':l.r==='l'?'не зашло':'возврат'}</span>`:''}</li>`).join('')}</ul>`:''}</li>`};
 const draw=()=>{
  const rows=D.picks.filter(pass),w=rows.filter(p=>p.r==='w').length,l=rows.filter(p=>p.r==='l').length;
  $('#rs-count').textContent=rows.length?`Найдено ${rows.length}: зашло ${w}, не зашло ${l}`+(rows.filter(p=>p.r==='p').length?`, возврат ${rows.filter(p=>p.r==='p').length}`:'')+(rows.filter(p=>!p.r).length?`, без итога ${rows.filter(p=>!p.r).length}`:''):'По таким условиям прогнозов нет.';

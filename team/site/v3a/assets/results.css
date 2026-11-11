@@ -138,3 +138,8 @@
 .rsx.dk .rsx-box{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14)}
 .rsx-nums dd{white-space:nowrap}
 @media (max-width:480px){.rsx-nums dd{font-size:25px}.rsx-box{padding:18px 16px}}
+
+/* эмблема клуба у названия команды (правило владельца 11.11) */
+.rs-em{display:inline-block;width:22px;height:22px;margin:-3px 6px -3px 0;padding:2px;border-radius:50%;background:#fff;object-fit:contain;vertical-align:middle;box-shadow:0 0 0 1px var(--rs-line,rgba(0,0,0,.12))}
+.rs-legs .rs-em{width:18px;height:18px;margin-right:4px}
+.rs-tm{white-space:nowrap}

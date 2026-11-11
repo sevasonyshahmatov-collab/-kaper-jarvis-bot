@@ -549,6 +549,37 @@ def summary(picks, now):
     return dict(total=grp(picks), months=months, cal=cal, last_day=last, pending=sum(1 for p in picks if not p['r']))
 
 
+def add_emblems(picks):
+    """Эмблемы клубов к названиям (правило владельца 11.11): he / ae — путь от корня сайта; у экспрессов — в каждом событии.
+    Названия в постах те же, что на сайте: хоккей — names в assets/data/teams.json, футбол — n клубов в football.json."""
+    maps = []
+    try:
+        t = json.loads(_read(os.path.join(V3A, 'assets', 'data', 'teams.json')) or '{}')
+        maps.append(('assets/em/%s.webp', {v: k for k, v in (t.get('names') or {}).items()}))
+    except ValueError:
+        pass
+    try:
+        fb = json.loads(_read(os.path.join(V3A, 'football', 'data', 'football.json')) or '{}')
+        maps.append(('assets/fc/%s.webp', {v.get('n'): k for k, v in (fb.get('teams') or {}).items()}))
+    except ValueError:
+        pass
+
+    def em(name, foot):
+        for pat, mp in (maps[::-1] if foot else maps):
+            rel = pat % mp[name] if name in mp else None
+            if rel and os.path.exists(os.path.join(V3A, rel)):
+                return rel
+        return None
+
+    for p in picks:
+        foot = p.get('sport') == 'football'
+        for x in [p] + (p.get('legs') or []):
+            for k, e in (('h', 'he'), ('a', 'ae')):
+                v = em(x.get(k), foot) if x.get(k) else None
+                if v:
+                    x[e] = v
+
+
 def main():
     mo = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'team', 'site', 'months_out')
     team = sys.argv[2] if len(sys.argv) > 2 else os.path.join(ROOT, 'team')
@@ -585,6 +616,7 @@ def main():
     exp = build_express(feed, _read(os.path.join(team, 'picks', 'EXPRESS_RESULTS.md')))
     nsc = by_score(foot + exp)
     picks = sorted(hockey + foot + exp, key=lambda p: (p['d'], p['id']), reverse=True)
+    add_emblems(picks)
     now = datetime.now(MSK)
     out = dict(built=now.strftime('%Y-%m-%d %H:%M'), since=min(p['d'][:10] for p in picks), channel='https://t.me/' + CHANNEL,
                labels_since='2026-10-15' if sent else None, sum=summary(picks, now), picks=picks)
