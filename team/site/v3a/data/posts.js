@@ -1,1 +1,1 @@
-window.JV_POSTS={"nhl|2026-11-11|nhl_stl|nhl_det":{"id":1539,"url":"https://t.me/jarvibet/1539","src":"model","bet":"Индивидуальный тотал Сент-Луиса больше 2,5 в основное время","kef":1.62,"r":null}};
+window.JV_POSTS={};
