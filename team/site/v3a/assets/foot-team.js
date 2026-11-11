@@ -182,7 +182,7 @@ if(nextG){
    </div></article>
   <details class="nmh2h" id="nmh2h" hidden></details>`;
  $('next').hidden=false;
- {const go=$('nmgo');if(go)fetch(go.href,{method:'HEAD'}).then(r=>{if(!r.ok){go.href=go.dataset.fb;go.textContent='Все матчи тура'}}).catch(()=>{go.href=go.dataset.fb;go.textContent='Все матчи тура'})}   /* страницы матча ещё нет — к матчам тура, как было */
+ {const go=$('nmgo');if(go)JV.matchPageOk('../',go.getAttribute('href')).then(ok=>{if(!ok){go.href=go.dataset.fb;go.textContent='Все матчи тура'}})}   /* страницы матча ещё нет — к матчам тура, как было */
  /* градиент цветов клубов как у хоккея и карточек «Матчи дня»: слева хозяева, справа гости, стык — по колонке с датой (владелец 09.11) */
  {const box=document.querySelector('#nextBox .nmatch'),mid=box&&box.querySelector('.nmmid');
   const h2r=h=>{h=String(h||'').replace('#','');if(h.length===3)h=h.replace(/./g,'$&$&');const n=parseInt(h,16);return isNaN(n)||h.length!==6?null:[n>>16&255,n>>8&255,n&255]};
