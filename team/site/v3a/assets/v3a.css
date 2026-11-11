@@ -1040,3 +1040,7 @@ html[data-theme="arena"]:not([data-col]) .sec{--ink-3:#414d5c}
 /* эмблема строго по центру плашки: ставим абсолютно, чтобы правила соседних элементов (.face .tm span и др.) не сдвигали её */
 .emq{position:relative;display:block}
 .emq .em,.face .tm .emq .em,[data-hero="2"] .hero .face .tm .emq .em{position:absolute;inset:12%;width:76%;height:76%;margin:0;max-width:none;object-fit:contain;object-position:50% 50%}
+/* команда в карточке матча — ссылка на страницу клуба: без свечения, при наведении подчёркивается название */
+.face a.tm{text-decoration:none;color:inherit;cursor:pointer}
+.face a.tm:hover>span:last-child{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:2px}
+.face a.tm:focus-visible{outline:2px solid currentColor;outline-offset:6px;border-radius:12px}
