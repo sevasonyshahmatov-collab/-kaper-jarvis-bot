@@ -326,3 +326,34 @@ main:has(>.mx-hero)::before{content:"";position:absolute;inset:0;z-index:-1;poin
 .mx-fc h3 .mx-em{margin-right:2px}
 .mx-msh b{display:inline-flex;align-items:center;gap:9px}
 .mt-tab tbody th .mx-em{margin:-4px 10px -4px 0}
+
+/* ── правки владельца 11.11 (2): форма — кружки на всю ширину панели по центру; «Коротко» — связный текст; низ — плитки ── */
+.mx-dots{justify-content:space-around;gap:6px}
+.mx-fc h3{justify-content:center}
+@media (min-width:900px){.mx-dots b{width:68px;height:68px}.mx-dots b img{width:42px;height:42px}.mx-dots b em{width:25px;height:25px;font-size:13px}.mx-dots span{font-size:16px}}
+.mx-text{position:relative;max-width:none;padding:clamp(20px,2.6vw,34px) clamp(18px,2.8vw,40px);border-radius:20px;border:1px solid rgba(255,255,255,.09);
+  border-left:4px solid var(--signal,#ffc21a);background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),var(--card)}
+.mx-text p{margin:0;max-width:78ch;font-size:clamp(17px,1.25vw,19px);line-height:1.62;color:var(--ink-2)}
+.mx-text p+p{margin-top:.9em}
+.mx-text p:first-child{font-size:clamp(19px,1.6vw,23px);line-height:1.45;color:var(--ink)}
+@media (min-width:1100px){.mx-text{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.4em clamp(28px,4vw,64px)}.mx-text p:first-child{grid-column:1/-1;margin-bottom:.5em}.mx-text p+p{margin-top:0}
+  .mx-text p:last-child:nth-child(2){grid-column:1/-1}}
+.mx-end h2{margin-bottom:16px}
+.mx-go{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px}
+.mx-go a{display:grid;gap:8px;height:100%;padding:16px 18px;border-radius:16px;border:1px solid rgba(255,255,255,.08);text-decoration:none;
+  background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),var(--card);transition:transform .18s,border-color .18s}
+.mx-go a:hover{transform:translateY(-2px);border-color:var(--signal,#ffc21a)}
+.mx-go small{font:600 12px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.mx-go b{display:flex;align-items:center;gap:9px;font:800 18px/1.2 var(--display);color:var(--ink)}
+.mx-tg{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 28px;margin-top:14px;padding:clamp(18px,2.2vw,28px) clamp(18px,2.6vw,34px);border-radius:20px;
+  border:1px solid color-mix(in srgb,var(--signal,#ffc21a) 40%,transparent);background:linear-gradient(100deg,color-mix(in srgb,var(--signal,#ffc21a) 18%,var(--card)),var(--card) 62%)}
+.mx-tg div{display:grid;gap:6px;min-width:0}
+.mx-tg b{font:800 clamp(20px,2vw,27px)/1.15 var(--display)}
+.mx-tg span{color:var(--ink-2);font-size:16px}
+.mx-tg .btn{display:inline-flex;align-items:center;gap:10px;padding:15px 26px;white-space:nowrap}
+.mx-tg .btn svg{width:20px;height:20px}
+body.fc .mx-tg .btn,body.fc .mx-tg .btn span{color:#071225;font-weight:800;font-size:17px}
+.mx-end .fc-legal{margin:18px 0 0;max-width:none}
+@media (max-width:620px){.mx-tg .btn{flex:1;justify-content:center}.mx-go{grid-template-columns:repeat(2,minmax(0,1fr))}.mx-go b{font-size:16px}}
+@media (prefers-reduced-motion:reduce){.mx-go a{transition:none}.mx-go a:hover{transform:none}}
+@media (max-width:620px){.mx-go li:last-child:nth-child(odd){grid-column:1/-1}}
