@@ -154,3 +154,15 @@
  .cmp-ven,.cmp-forms{grid-template-columns:minmax(0,1fr)}
  .cmp-ver p{font-size:15.5px}
 }
+
+/* ── всё по центру (владелец 11.11): панели формы, карточки «Дома / В гостях», итог, заголовки блоков ── */
+.cmp-fp{justify-items:center;text-align:center}
+.cmp-fp p{justify-content:center}
+.cmp-dots{justify-content:center}
+.cmp-cols{margin-inline:auto}
+.cmp-vc h3{justify-content:center;text-align:center}
+.cmp-ver p{text-align:center}
+.cmp-ver .vn{justify-content:space-between}
+.cmp-tile b{display:grid;place-items:center}
+.cmp-em{object-position:center}
+.cmp-note{text-align:center;margin-inline:auto}
