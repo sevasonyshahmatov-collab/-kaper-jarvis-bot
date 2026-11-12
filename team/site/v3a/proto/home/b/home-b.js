@@ -11,7 +11,7 @@ let f='all',s='p';
 const seg=(cls,v,lab)=>{const w=Math.round(v*100);return `<i class="${cls}" style="flex:${Math.max(v,.02)}"><span>${w>=11?w:''}</span></i>`};
 function row(m,i){
  const pr=m.pr;
- const bar=pr?`<div class="rk-pb" role="img" aria-label="Победа хозяев ${H.pct(pr[0])} %, ничья ${H.pct(pr[1])} %, победа гостей ${H.pct(pr[2])} %">${seg('c1',pr[0])}${seg('c0',pr[1])}${seg('c2',pr[2])}</div>`:'<div class="rk-pb none">Расчёт скоро</div>';
+ const bar=pr?`<div class="rk-pb" role="img" aria-label="Победа хозяев ${H.pct(pr[0])} %, ничья ${H.pct(pr[1])} %, победа гостей ${H.pct(pr[2])} %">${seg('c1',pr[0])}${seg('c0',pr[1])}${seg('c2',pr[2])}</div>`:'<div class="rk-pb none">Расчёт скоро</div>';
  const k=m.ln&&m.bi>=0?[m.ln.p1,m.ln.x,m.ln.p2][m.bi]:null;
  const rank=s==='p'&&pr?`<b class="rk-n">${i+1}</b>`:'<b class="rk-n"></b>';
  return `<li class="${m.best>=.6?'top':''}"><a href="${m.href}">

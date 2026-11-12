@@ -52,7 +52,7 @@ const outLab=m=>m.bi===0?'П1':m.bi===1?'Х':'П2';
 chosen.forEach((m,i)=>{
  const a=document.createElement('a');
  a.className='tk '+(m.hockey?'h':'f');a.href=m.href;a.draggable=false;
- a.setAttribute('aria-label',`${m.hn} — ${m.an}, ${m.hm} МСК. Модель: ${outLab(m)}, ${H.pct(m.best)} %`);
+ a.setAttribute('aria-label',`${m.hn} — ${m.an}, ${m.hm} МСК. Модель: ${outLab(m)}, ${H.pct(m.best)} %`);
  a.innerHTML=`<span class="tkb"><span class="rim"></span><span class="xface"><span class="pair"><span class="cr"><img src="${m.hc}" alt="" draggable="false"></span><span class="cr"><img src="${m.ac}" alt="" draggable="false"></span></span><b>${H.pct(m.best)}<small>%</small></b></span></span>`;
  toks.appendChild(a);
  const s=document.createElement('i');s.className='sh';shadows.appendChild(s);
@@ -188,7 +188,7 @@ function settle(){ /* без движения: фишки сразу лежат 
 let tipW=0,tipH=0;
 function showTip(t){
  const m=t.m;
- tip.innerHTML=`<span class="t1">${m.hm} МСК · ${m.day==='сегодня'?'':m.day+' · '}${m.lgn}</span><b>${e(m.hn)} — ${e(m.an)}</b><span class="t3">Модель: ${outLab(m)}${m.bi===1?'':' ('+e(m.who)+')'} · ${H.pct(m.best)} %</span>`;
+ tip.innerHTML=`<span class="t1">${m.hm} МСК · ${m.day==='сегодня'?'':m.day+' · '}${m.lgn}</span><b>${e(m.hn)} — ${e(m.an)}</b><span class="t3">Модель: ${outLab(m)}${m.bi===1?'':' ('+e(m.who)+')'} · ${H.pct(m.best)} %</span>`;
  tipW=tip.offsetWidth;tipH=tip.offsetHeight;hovered=t;t.el.classList.add('hov');tip.classList.add('on');placeTip(t);
 }
 function hideTip(t){if(hovered===t){hovered=null;tip.classList.remove('on')}t.el.classList.remove('hov')}

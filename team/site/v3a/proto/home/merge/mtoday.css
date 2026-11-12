@@ -9,7 +9,7 @@
 .mt-none{margin:0;color:var(--ink-3)}
 #mt a{color:var(--ink);text-decoration:none}
 #mt .cr{object-fit:contain;display:block;flex:none}
-#mt time small{display:block;margin-top:3px;font:600 11px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+#mt time small{display:block;margin-top:3px;font:600 12px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
 #mt .hk{--sp:var(--hk)}#mt .fb{--sp:var(--fb)}
 
 /* 1 — лицом к лицу; наведение — матч шире, соседи по ряду уже, справа подробности */
@@ -36,14 +36,14 @@
 .mt1 .tm b{font:700 15px/1.15 var(--display);hyphens:auto;overflow-wrap:normal;max-width:100%}
 .mt1 .mid{display:grid;justify-items:center;gap:6px;padding-top:8px}
 .mt1 .mid time{font:900 28px/1 var(--display);text-align:center}
-.mt1 .mid em{font:700 11px/1 var(--display);font-style:normal;letter-spacing:.1em;text-transform:uppercase;color:var(--sp)}
+.mt1 .mid em{font:700 12px/1 var(--display);font-style:normal;letter-spacing:.1em;text-transform:uppercase;color:var(--sp)}
 .mt1 .bar{display:flex;gap:3px;margin-top:16px}
 .mt1 .bar i{display:grid;gap:4px;min-width:0;font-style:normal}
 .mt1 .bar i::before{content:"";display:block;height:8px;border-radius:4px;background:var(--rule-2)}
 .mt1 .bar i.on::before{background:var(--sp)}
 .mt1 .bar b{font:800 15px/1 var(--display);color:var(--ink-3);white-space:nowrap}
 .mt1 .bar i.on b{color:var(--ink)}
-.mt1 .bar small{font:600 11px/1 var(--display);color:var(--ink-3);white-space:nowrap}
+.mt1 .bar small{font:600 12px/1 var(--display);color:var(--ink-3);white-space:nowrap}
 .mt1 .bar.none{display:block;font:500 13px/1 var(--display);color:var(--ink-3)}
 /* сузившийся сосед: без имён и подписей под полосой */
 .mt1 .row.act li:not(.on) .tm b,.mt1 .row.act li:not(.on) .bar small,.mt1 .row.act li:not(.on) .mid em{display:none}

@@ -537,3 +537,7 @@ body .g.h2g.nx{grid-template-columns:110px 32px minmax(0,1fr) auto}
   .tmid>.tmrow{order:-4}.tmid>.tmplace{order:-3}.tmid>.tmpills{order:-2}
   .tmtop>:not(.crumb){order:-1;align-self:flex-start;margin-top:14px}
 }
+
+/* 12.11: цифры в плитках статистики на одной высоте (подпись в одну или две строки); в строке тренда счёт рядом с точками */
+@media (min-width:861px){.stg .st>.sl:first-child{min-height:2.3em;display:flex;align-items:flex-end}
+ .tr{grid-template-columns:minmax(220px,340px) auto minmax(0,1fr)}.tr .trn{justify-items:start;text-align:left;padding-left:14px}}

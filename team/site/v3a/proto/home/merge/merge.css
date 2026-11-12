@@ -18,5 +18,5 @@
 /* ближайший матч раздела на голо-карточке */
 .mg-deck .nx{margin:2.2cqw 0 0;display:grid;gap:.6cqw;padding:2.2cqw 3cqw;border-radius:2.6cqw;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18)}
 .mg-deck .nx:empty{display:none}
-.mg-deck .nx b{font:800 max(12px,4.6cqw)/1.15 var(--display);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mg-deck .nx span{font:600 max(11px,3.9cqw)/1.2 var(--display);color:rgba(255,255,255,.78)}
+.mg-deck .nx b{font:800 max(12px,4.6cqw)/1.15 var(--display);color:#fff;text-wrap:balance}   /* матч целиком в две строки, без «Шанхайски…» (12.11) */
+.mg-deck .nx span{font:600 max(12px,3.9cqw)/1.2 var(--display);color:rgba(255,255,255,.78)}

@@ -78,10 +78,10 @@ function wireFlip(card){
  const pr=[md.p1,md.x,md.p2],lab=['П1','Х','П2'],mx=Math.max(...pr);
  const rows=[];
  if(md.lam)rows.push(`Ожидаемые голы: <b>${e(m.hn)} ${f2(md.lam[0])}</b> — <b>${e(m.an)} ${f2(md.lam[1])}</b>, вместе ${f2(md.lam[0]+md.lam[1])}.`);
- if(md.over!=null)rows.push(`Тотал ${f1(md.tot)}: «больше» — <b>${p0(md.over)} %</b>${!hk&&md.btts!=null?`, обе забьют — <b>${p0(md.btts)} %</b>`:''}.`);
- if(fl&&fl[m.bi]!=null){const d=p0(m.best)-p0(fl[m.bi]);rows.push(`Рынок без маржи даёт на этот исход <b>${p0(fl[m.bi])} %</b>, модель — <b>${p0(m.best)} %</b>${d?` (${d>0?'выше':'ниже'} на ${Math.abs(d)} п.п.)`:' (совпадают)'}.`)}
- else if(hk&&md.w1!=null&&md.w2!=null)rows.push(`С овертаймом и буллитами: ${e(m.hn)} <b>${p0(md.w1)} %</b>, ${e(m.an)} <b>${p0(md.w2)} %</b>.`);
- if(rows.length<3&&md.x!=null)rows.push(`Ничья в основное время — <b>${p0(md.x)} %</b>.`);
+ if(md.over!=null)rows.push(`Тотал ${f1(md.tot)}: «больше» — <b>${p0(md.over)} %</b>${!hk&&md.btts!=null?`, обе забьют — <b>${p0(md.btts)} %</b>`:''}.`);
+ if(fl&&fl[m.bi]!=null){const d=p0(m.best)-p0(fl[m.bi]);rows.push(`Рынок без маржи даёт на этот исход <b>${p0(fl[m.bi])} %</b>, модель — <b>${p0(m.best)} %</b>${d?` (${d>0?'выше':'ниже'} на ${Math.abs(d)} п.п.)`:' (совпадают)'}.`)}
+ else if(hk&&md.w1!=null&&md.w2!=null)rows.push(`С овертаймом и буллитами: ${e(m.hn)} <b>${p0(md.w1)} %</b>, ${e(m.an)} <b>${p0(md.w2)} %</b>.`);
+ if(rows.length<3&&md.x!=null)rows.push(`Ничья в основное время — <b>${p0(md.x)} %</b>.`);
  const kv=kf(m);
  st.innerHTML=`<div class="xtc dc ${hk?'ice':'pitch'}" id="dc" role="button" tabindex="0" aria-pressed="false" aria-label="Карточка дня: ${e(m.hn)} — ${e(m.an)}. Нажми, чтобы узнать почему">
  <div class="shd"></div><div class="tilt"><div class="flip">
@@ -92,7 +92,7 @@ function wireFlip(card){
     <div class="xpb"><strong class="num">${p0(m.best)}<small>%</small></strong><span>${m.bi===1?'ничья':'победа: '+e(side(m))}</span></div>
     <div class="xtm">${crest(m.ac)}<b>${e(m.an)}</b></div>
    </div>
-   <div class="dc-bot"><div class="strip" role="img" aria-label="Вероятности: ${lab.map((l,i)=>l+' '+p0(pr[i])+' %').join(', ')}">${pr.map((p,i)=>`<i class="${p===mx?'on':''}" style="--w:${p0(p)}"><em>${lab[i]}</em> <b class="num">${p0(p)} %</b></i>`).join('')}</div>
+   <div class="dc-bot"><div class="strip" role="img" aria-label="Вероятности: ${lab.map((l,i)=>l+' '+p0(pr[i])+' %').join(', ')}">${pr.map((p,i)=>`<i class="${p===mx?'on':''}" style="--w:${p0(p)}"><em>${lab[i]}</em> <b class="num">${p0(p)} %</b></i>`).join('')}</div>
     ${kv?`<span class="odd">кэф <b class="num">${f2(kv)}</b></span>`:''}<span class="hnt">Нажми — почему так</span></div>
   </div>
   <div class="face back"><div class="art"><i class="holo"></i><i class="holo2"></i></div><div class="frame rare"></div>

@@ -20,7 +20,7 @@ function lists(){
  rows.innerHTML=list.length?list.map(m=>{
   const k=m.ln&&m.bi>=0?[m.ln.p1,m.ln.x,m.ln.p2][m.bi]:null;
   const who=m.bi===1?'Ничья':'Победа: '+m.who;
-  return `<li><span class="t">${m.hm}</span><span class="m">${H.esc(m.hn)} — ${H.esc(m.an)}<small>${m.lgn}</small></span><span class="o">${H.esc(who)}</span><span class="p">${H.pct(m.best)} %</span><span class="k">${k?H.f2(k):''}</span></li>`
+  return `<li><span class="t">${m.hm}</span><span class="m">${H.esc(m.hn)} — ${H.esc(m.an)}<small>${m.lgn}</small></span><span class="o">${H.esc(who)}</span><span class="p">${H.pct(m.best)} %</span><span class="k">${k?H.f2(k):''}</span></li>`
  }).join(''):'<li class="empty">Матчи появятся после обновления данных.</li>';
 }
 try{lists()}catch(e){console.warn(e)}

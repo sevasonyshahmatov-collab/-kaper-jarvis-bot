@@ -101,3 +101,6 @@ body{background:var(--paper);color:var(--ink)}
   .pp-hero{grid-template-columns:minmax(0,1fr) 38%}
 }
 @media (prefers-reduced-motion:no-preference){.pp-hero{animation:ppin .5s var(--out) both}@keyframes ppin{from{opacity:0;transform:translateY(8px)}}}
+
+/* 12.11: телефон — три плитки в ряд, последняя одиночная растягивается на всю ширину */
+@media (max-width:560px){.pp-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.pp-tiles .pp-tile:last-child:nth-child(3n+1){grid-column:1/-1}}

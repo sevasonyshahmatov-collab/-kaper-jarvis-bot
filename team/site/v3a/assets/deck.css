@@ -47,15 +47,15 @@
 .dk-em img{width:100%;height:100%;object-fit:contain;display:block}
 .dk-em span{font:800 20px/1 var(--display);color:#233}
 .dk-tm b{font:800 clamp(15px,1.25vw,18px)/1.1 var(--display);color:var(--ink);overflow-wrap:break-word;hyphens:auto;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.dk-tm i{font:600 11px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-style:normal}
+.dk-tm i{font:600 12px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-style:normal}
 .dk-vs{font:700 14px/1 var(--display);color:var(--ink-3)}
 .dk-ql{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
 .dk-ql.two{grid-template-columns:repeat(2,1fr)}
 .dk-ql span{display:grid;gap:4px;text-align:center;padding:9px 4px 8px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid transparent}
-.dk-ql span small{font:700 10px/1 var(--display);letter-spacing:.1em;color:var(--ink-3)}
+.dk-ql span small{font:700 12px/1 var(--display);letter-spacing:.1em;color:var(--ink-3)}
 .dk-ql span b{font:800 clamp(17px,1.5vw,20px)/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ink)}
 .dk-ql span.fav{border-color:var(--signal);background:color-mix(in srgb,var(--signal) 12%,transparent)}
-.dk-src{margin:8px 0 0;font:600 11px/1.3 var(--display);color:var(--ink-3);letter-spacing:.02em}
+.dk-src{margin:8px 0 0;font:600 12px/1.3 var(--display);color:var(--ink-3);letter-spacing:.02em}
 .dk-pick{margin:10px 0 0;padding-top:10px;border-top:1px solid var(--rule-2);font:600 12px/1.35 var(--display);color:var(--ink-3)}
 .dk-pick b{display:block;margin-top:3px;font:800 15px/1.2 var(--display);color:var(--ink)}
 .dk-pick b em{white-space:nowrap;font-style:normal;color:var(--a);font-variant-numeric:tabular-nums}
@@ -89,7 +89,7 @@
 .dk-kv b{color:var(--ink);font-weight:800;font-variant-numeric:tabular-nums}
 .dk-lnq{display:flex;gap:8px;flex-wrap:wrap}
 .dk-lnq span{display:grid;gap:4px;min-width:62px;text-align:center;padding:8px 10px;border-radius:10px;background:var(--paper-2)}
-.dk-lnq span small{font:700 10px/1 var(--display);letter-spacing:.1em;color:var(--ink-3)}
+.dk-lnq span small{font:700 12px/1 var(--display);letter-spacing:.1em;color:var(--ink-3)}
 .dk-lnq span b{font:800 18px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ink)}
 .dk-note{margin:10px 0 0;font:500 12px/1.4 var(--display);color:var(--ink-3)}
 .dk-more{margin-top:clamp(14px,2vh,20px);display:inline-flex;align-items:center;gap:10px;font:700 16px/1 var(--display);padding:14px 20px;border-radius:999px;border:0;cursor:pointer;background:var(--signal);color:var(--signal-ink);transition:transform .3s var(--e),filter .3s}

@@ -46,6 +46,7 @@ function radar(series,ax){
 }
 
 /* ── нет такой команды ── */
+if(!ID&&!/[?&]id=/.test(location.search)){location.replace('../hockey/index.html');}   /* страница без клуба была пустой (12.11) */
 if(!T){
  document.title='Команда не найдена · JARVIS';
  document.querySelector('.tmhero').classList.add('none');
@@ -182,7 +183,7 @@ document.getElementById('tableBox').innerHTML=`
    </div>
    <div class="formbox"><span class="sl">Форма — последние 5 игр</span>
     <ol class="frm" aria-label="Последние 5 игр, слева раньше">${last5.map(g=>{const t=formTitle(g);return `<li class="${RL[res(g)][1]}" title="${esc(t)}" aria-label="${esc(t)}"><b><img src="../assets/em/${esc(g.o)}.webp" alt="" loading="lazy"></b><span>${g.gf}:${g.ga}${g.x?' '+g.x:''}</span></li>`}).join('')}</ol>
-    <p class="ss">За 10 игр — <b>${esc(T.l10s||T.l10+' '+plural(T.l10,'очко','очка','очков'))}</b>.</p></div>
+    <p class="ss">За последние 10 игр — <b>${esc(T.l10s||T.l10+' '+plural(T.l10,'очко','очка','очков'))}</b>.</p></div>
    ${plCard()}
   </div>
  </div>`;

@@ -1046,3 +1046,10 @@ html[data-theme="arena"]:not([data-col]) .sec{--ink-3:#414d5c}
 .face a.tm:focus-visible{outline:2px solid currentColor;outline-offset:6px;border-radius:12px}
 /* светлая подложка — для эмблем, которые теряются на тёмной (assets/em/plates.js, team/site/emblems_plates.py) */
 .emq.lt{background:linear-gradient(180deg,#ffffff,#e3e9f4);box-shadow:inset 0 0 0 2.5px var(--c,#2a3f6b)}
+
+/* 12.11: шаги на телефоне — цифра слева от текста, а не отдельным этажом (четыре короткие фразы занимали больше экрана) */
+@media (max-width:620px){.steps>li{grid-template-columns:46px minmax(0,1fr);column-gap:12px;row-gap:6px;padding:18px 16px 20px}
+ .steps>li::before{grid-row:1/span 3;font-size:46px;line-height:.9}.steps>li>*{grid-column:2}}
+/* 12.11: кнопки и ссылки на телефоне — зона нажатия не меньше ~40 px */
+@media (max-width:860px){.pager button{position:relative}.pager button::after{content:"";position:absolute;inset:-17px -4px}
+ footer a{display:inline-block;padding-block:9px}.h3strip a{display:inline-block;padding-block:11px}}
