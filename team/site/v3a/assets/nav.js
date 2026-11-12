@@ -158,3 +158,12 @@ const s=document.createElement('script');s.src=new URL('mc.js',b).href;document.
 if(!f||!/^(arena|afisha|tablo)$/.test(f))return;
 const b=(document.currentScript&&document.currentScript.src)||new URL('assets/nav.js',location.href).href;
 const s=document.createElement('script');s.src=new URL('fontlab.js',b).href;s.dataset.font=f;document.head.appendChild(s)})();
+
+/* полоса при прокрутке на страницах матча и клуба (assets/stickbar.js, 12.11) */
+(function(){if(!document.querySelector('main>.mx-hero')&&!/\/team\/(index\.html)?$/.test(location.pathname))return;
+const b=(document.currentScript&&document.currentScript.src)||new URL('assets/nav.js',location.href).href;
+const s=document.createElement('script');s.src=new URL('stickbar.js',b).href;document.head.appendChild(s)})();
+
+/* углы (12.11): по умолчанию прямые; ?corners=round — прежние скругления (запоминается), ?corners=sharp — обратно */
+(function(){let c=null;try{c=new URLSearchParams(location.search).get('corners');if(c==='round')localStorage.setItem('jv-corners','round');else if(c)localStorage.removeItem('jv-corners');c=localStorage.getItem('jv-corners')}catch(e){}
+if(c==='round')document.documentElement.dataset.corners='round'})();

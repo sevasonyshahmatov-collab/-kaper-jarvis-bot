@@ -20,14 +20,14 @@
 .mx-team b{font:800 clamp(20px,2.6vw,38px)/1.05 var(--display);letter-spacing:-.01em;overflow-wrap:normal;max-width:100%}
 .mx-team small{font:600 clamp(12px,1.1vw,15px)/1.2 var(--display);color:rgba(255,255,255,.78)}
 .mx-team:hover b{text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:2px}
-.mx-team:focus-visible{outline:2px solid #fff;outline-offset:6px;border-radius:12px}
+.mx-team:focus-visible{outline:2px solid #fff;outline-offset:6px;border-radius:var(--rc,12px)}
 
 .mx-mid{display:grid;justify-items:center;gap:6px;text-align:center;min-width:clamp(96px,14vw,220px)}
 .mx-time{font:800 clamp(40px,6.4vw,92px)/.9 var(--display);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .mx-score{font:800 clamp(56px,9vw,132px)/.85 var(--display);font-variant-numeric:tabular-nums;letter-spacing:-.03em;white-space:nowrap}
 .mx-score i{font-style:normal;opacity:.6;margin:0 .06em}
 .mx-when{font:600 clamp(13px,1.2vw,16px)/1.25 var(--display);color:rgba(255,255,255,.85)}
-.mx-cd{font:700 clamp(13px,1.2vw,16px)/1.2 var(--display);padding:5px 12px;border-radius:999px;background:rgba(0,0,0,.32);font-variant-numeric:tabular-nums}
+.mx-cd{font:700 clamp(13px,1.2vw,16px)/1.2 var(--display);padding:5px 12px;border-radius:var(--rp,999px);background:rgba(0,0,0,.32);font-variant-numeric:tabular-nums}
 .mx-cd:empty{display:none}
 .mx-mid .lv-box{margin:4px 0 0}
 
@@ -40,7 +40,7 @@
 .mx-facts b{font:700 15px/1.3 var(--display)}
 
 /* ── расчёт модели: одна полоса в цветах клубов ── */
-.mx-bar{display:flex;gap:3px;height:clamp(64px,7vw,84px);border-radius:14px;overflow:hidden;margin-top:6px}
+.mx-bar{display:flex;gap:3px;height:clamp(64px,7vw,84px);border-radius:var(--rc,14px);overflow:hidden;margin-top:6px}
 .mx-bar i{position:relative;display:flex;flex-direction:column;justify-content:center;padding:0 14px;min-width:0;color:#fff;font-style:normal}
 .mx-bar .mx-sh{background:var(--hc,#2b4a8a)}
 .mx-bar .mx-sa{background:var(--ac,#6b2b3a);text-align:right;align-items:flex-end}
@@ -49,7 +49,7 @@
 .mx-bar small{font:600 12px/1.25 var(--display);opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .mx-bar i.on::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--signal,#ffc21a)}
 .mx-stats{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px}
-.mx-stats li{display:grid;gap:2px;padding:12px 16px;border-radius:12px;background:var(--card);min-width:150px}
+.mx-stats li{display:grid;gap:2px;padding:12px 16px;border-radius:var(--rc,12px);background:var(--card);min-width:150px}
 .mx-stats b{font:800 24px/1.05 var(--display);font-variant-numeric:tabular-nums}
 .mx-stats span{font:600 13px/1.25 var(--display);color:var(--ink-3)}
 
@@ -65,7 +65,7 @@
 
 /* ── личные встречи: карточки, победитель выделен ── */
 .mx-h2h{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:10px}
-.mx-h2h li{display:grid;grid-template-columns:1fr auto 1fr;grid-template-areas:"t t t" "h s a";align-items:center;gap:6px 12px;padding:12px 16px;border-radius:12px;background:var(--card)}
+.mx-h2h li{display:grid;grid-template-columns:1fr auto 1fr;grid-template-areas:"t t t" "h s a";align-items:center;gap:6px 12px;padding:12px 16px;border-radius:var(--rc,12px);background:var(--card)}
 .mx-h2h time{grid-area:t;font:600 12px/1 var(--display);color:var(--ink-3)}
 .mx-h2h span{font:600 15px/1.2 var(--display);color:var(--ink-2);min-width:0}
 .mx-h2h span:last-of-type{text-align:right}
@@ -183,7 +183,7 @@
 .mx-hero+.mx-model h2{font-size:clamp(15px,1.3vw,18px);letter-spacing:.06em;color:var(--ink-3);margin-bottom:8px}
 .mx-info .mx-facts{margin-top:0}
 .mx-info .mt-rem{margin-top:16px}
-.mx-stub{padding:16px 18px;border-radius:14px;background:var(--card);border-left:4px solid var(--signal,#ffc21a)}
+.mx-stub{padding:16px 18px;border-radius:var(--rc,14px);background:var(--card);border-left:4px solid var(--signal,#ffc21a)}
 .mx-stub b{display:block;font:800 clamp(17px,1.6vw,21px)/1.2 var(--display)}
 .mx-stub p{margin:6px 0 0;color:var(--ink-2);max-width:62ch}
 .mt-totn{margin-top:8px}
@@ -194,7 +194,7 @@
 .mx-sum li::before{content:"";position:absolute;left:2px;top:.62em;width:8px;height:8px;border-radius:50%;background:var(--signal,#ffc21a)}
 @media (max-width:620px){.mx-sum li{font-size:17px}}
 /* «Поделиться матчем» (assets/nav.js, 11.11) */
-.mt-rem .mt-share{display:inline-flex;align-items:center;gap:9px;min-height:46px;padding:0 20px;border-radius:999px;border:1.5px solid var(--ink);background:none;color:var(--ink);font:700 16px/1 var(--display);cursor:pointer}
+.mt-rem .mt-share{display:inline-flex;align-items:center;gap:9px;min-height:46px;padding:0 20px;border-radius:var(--rp,999px);border:1.5px solid var(--ink);background:none;color:var(--ink);font:700 16px/1 var(--display);cursor:pointer}
 .mt-rem .mt-share svg{width:19px;height:19px;flex:none}
 .mt-rem .mt-share:hover{background:var(--ink);color:var(--paper,#fff)}
 .mt-rem .mt-share:focus-visible{outline:2px solid var(--signal);outline-offset:3px}
@@ -223,17 +223,17 @@ main:has(>.mx-hero)::before{content:"";position:absolute;inset:0;z-index:-1;poin
 
 /* ── расчёт модели: полоса как была; ниже слева — плитки цифр, справа — кэфы плитками в цветах сторон ── */
 .mx-bar{box-shadow:0 18px 44px -22px color-mix(in srgb,var(--hc) 70%,#000),0 0 0 1px rgba(255,255,255,.06)}
-.mx-stats li{position:relative;overflow:hidden;padding:18px 20px;border-radius:16px;border:1px solid rgba(255,255,255,.08);
+.mx-stats li{position:relative;overflow:hidden;padding:18px 20px;border-radius:var(--rc,16px);border:1px solid rgba(255,255,255,.08);
   background:linear-gradient(135deg,color-mix(in srgb,var(--hcs) 26%,var(--card)),var(--card) 70%)}
 .mx-stats li:nth-child(2){background:linear-gradient(135deg,color-mix(in srgb,var(--signal,#ffc21a) 20%,var(--card)),var(--card) 70%)}
 .mx-stats li:nth-child(2) b{color:var(--signal,#ffc21a)}
 .mx-stats b{font-size:clamp(30px,3vw,44px)}
 .mx-stats span{font-size:14px;color:var(--ink-2)}
-.mt-odds-wrap{margin-top:12px;padding:20px 22px;border-radius:18px;border:1px solid rgba(255,255,255,.09);
+.mt-odds-wrap{margin-top:12px;padding:20px 22px;border-radius:var(--rc,18px);border:1px solid rgba(255,255,255,.09);
   background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015)),var(--card);box-shadow:0 24px 50px -30px #000}
 .mt-odds-wrap h3{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px}
 .mt-odds.fc-nums{gap:10px;margin-top:0}
-.mt-odds.fc-nums li{padding:14px 16px;border-radius:14px;border-top:3px solid #5b6a86;background:rgba(255,255,255,.05);gap:6px}
+.mt-odds.fc-nums li{padding:14px 16px;border-radius:var(--rc,14px);border-top:3px solid #5b6a86;background:rgba(255,255,255,.05);gap:6px}
 .mt-odds.fc-nums li:first-child{border-top-color:var(--hcs);background:color-mix(in srgb,var(--hcs) 22%,transparent)}
 .mt-odds.fc-nums li:last-child{border-top-color:var(--acs);background:color-mix(in srgb,var(--acs) 22%,transparent)}
 .mt-odds.fc-nums small{font-size:13px;letter-spacing:.06em}
@@ -250,7 +250,7 @@ main:has(>.mx-hero)::before{content:"";position:absolute;inset:0;z-index:-1;poin
 
 /* ── о матче: одна цветная панель — слева арена и турнир, ниже кнопки ── */
 .mx-info>.wrap{position:relative;z-index:0;padding-top:22px;padding-bottom:20px}
-.mx-info>.wrap::before{content:"";position:absolute;z-index:-1;inset:0 var(--m);border-radius:20px;border:1px solid rgba(255,255,255,.09);
+.mx-info>.wrap::before{content:"";position:absolute;z-index:-1;inset:0 var(--m);border-radius:var(--rc,20px);border:1px solid rgba(255,255,255,.09);
   background:linear-gradient(100deg,color-mix(in srgb,var(--hcs) 30%,var(--card)),var(--card) 38% 62%,color-mix(in srgb,var(--acs) 30%,var(--card)))}
 .mx-info>.wrap>*{margin-left:clamp(16px,2vw,26px);margin-right:clamp(16px,2vw,26px)}
 .mx-info .mx-facts b{font-size:17px}
@@ -258,20 +258,20 @@ main:has(>.mx-hero)::before{content:"";position:absolute;inset:0;z-index:-1;poin
 
 /* ── коротко о матче: нумерованные карточки ── */
 .mx-sum{max-width:none;counter-reset:s;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:12px}
-.mx-sum li{counter-increment:s;padding:18px 20px 18px 66px;border-radius:16px;border:1px solid rgba(255,255,255,.08);font-size:17px;line-height:1.45;color:var(--ink);
+.mx-sum li{counter-increment:s;padding:18px 20px 18px 66px;border-radius:var(--rc,16px);border:1px solid rgba(255,255,255,.08);font-size:17px;line-height:1.45;color:var(--ink);
   background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),var(--card)}
-.mx-sum li::before{content:counter(s);left:18px;top:16px;width:34px;height:34px;display:grid;place-items:center;border-radius:11px;
+.mx-sum li::before{content:counter(s);left:18px;top:16px;width:34px;height:34px;display:grid;place-items:center;border-radius:var(--rc,11px);
   font:800 17px/1 var(--display);color:#071225;background:var(--signal,#ffc21a)}
 .mx-sum li:last-child:nth-child(odd){grid-column:1/-1;background:linear-gradient(100deg,color-mix(in srgb,var(--signal,#ffc21a) 16%,var(--card)),var(--card) 60%)}
 @media (max-width:620px){.mx-sum li{font-size:16px;padding:14px 16px 14px 58px}.mx-sum li::before{left:14px;top:13px;width:32px;height:32px}}
 
 /* ── форма: панель на команду, сверху полоса цвета клуба ── */
 .mx-form{gap:14px}
-.mx-fc{padding:20px 22px 22px;border-radius:18px;border:1px solid rgba(255,255,255,.08);border-top:4px solid var(--hcs);
+.mx-fc{padding:20px 22px 22px;border-radius:var(--rc,18px);border:1px solid rgba(255,255,255,.08);border-top:4px solid var(--hcs);
   background:linear-gradient(180deg,color-mix(in srgb,var(--hcs) 20%,var(--card)),var(--card) 62%)}
 .mx-fc+.mx-fc{border-top-color:var(--acs);background:linear-gradient(180deg,color-mix(in srgb,var(--acs) 20%,var(--card)),var(--card) 62%)}
 .mx-fc h3{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;font-size:21px;margin-bottom:16px}
-.mx-fc h3 small{margin:0;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.09);color:var(--ink-2)}
+.mx-fc h3 small{margin:0;padding:5px 10px;border-radius:var(--rp,999px);background:rgba(255,255,255,.09);color:var(--ink-2)}
 .mx-dots{gap:clamp(8px,1.6vw,18px)}
 .mx-dots span{font-size:14px;color:var(--ink)}
 .mx-dots b em{box-shadow:0 0 0 2px #0f1d38}
@@ -279,9 +279,9 @@ main:has(>.mx-hero)::before{content:"";position:absolute;inset:0;z-index:-1;poin
 
 /* ── личные встречи: счёт — в плашке, победитель — с жёлтой меткой ── */
 .mx-h2h{gap:12px}
-.mx-h2h li{padding:14px 16px 16px;border-radius:16px;border:1px solid rgba(255,255,255,.08);
+.mx-h2h li{padding:14px 16px 16px;border-radius:var(--rc,16px);border:1px solid rgba(255,255,255,.08);
   background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),var(--card)}
-.mx-h2h b{padding:8px 12px;border-radius:11px;background:rgba(0,0,0,.34);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.mx-h2h b{padding:8px 12px;border-radius:var(--rc,11px);background:rgba(0,0,0,.34);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
 .mx-h2h span{color:var(--ink-3)}
 .mx-h2h span.w{color:var(--ink)}
 .mx-h2h span.w{position:relative;padding-left:15px}
@@ -290,7 +290,7 @@ main:has(>.mx-hero)::before{content:"";position:absolute;inset:0;z-index:-1;poin
 .mx-h2h span.w:last-of-type::before{left:auto;right:0}
 
 /* ── таблица: строки с цветом клуба, очки — крупно ── */
-.mt-tw{border-radius:18px;border-color:rgba(255,255,255,.09);background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(255,255,255,.012)),var(--card)}
+.mt-tw{border-radius:var(--rc,18px);border-color:rgba(255,255,255,.09);background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(255,255,255,.012)),var(--card)}
 .mt-tab{font:600 16px/1.2 var(--display);font-variant-numeric:tabular-nums}
 .mt-tab th,.mt-tab td{padding:15px 18px;border-bottom-color:rgba(255,255,255,.07)}
 .mt-tab thead th{background:rgba(0,0,0,.22)}
@@ -301,13 +301,13 @@ main:has(>.mx-hero)::before{content:"";position:absolute;inset:0;z-index:-1;poin
 
 /* ── другие матчи дня: карточки в два столбца, время — в плашке ── */
 .mt-oth.fc-hub{grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:12px}
-.mt-oth.fc-hub a{padding:16px 18px;border-radius:16px;border-color:rgba(255,255,255,.08);background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),var(--card);transition:transform .18s,border-color .18s}
+.mt-oth.fc-hub a{padding:16px 18px;border-radius:var(--rc,16px);border-color:rgba(255,255,255,.08);background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),var(--card);transition:transform .18s,border-color .18s}
 .mt-oth.fc-hub a:hover{transform:translateY(-2px);border-color:var(--signal,#ffc21a)}
-.mt-oth.fc-hub a small{padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.08);color:var(--ink)}
+.mt-oth.fc-hub a small{padding:7px 11px;border-radius:var(--rp,999px);background:rgba(255,255,255,.08);color:var(--ink)}
 @media (prefers-reduced-motion:reduce){.mt-oth.fc-hub a{transition:none}.mt-oth.fc-hub a:hover{transform:none}}
 
 /* ── статистика сыгранного матча (11.11): пары цифр хозяева — гости, полоса в цветах клубов ── */
-.mx-msb{padding:clamp(16px,2vw,26px);border-radius:20px;border:1px solid rgba(255,255,255,.09);
+.mx-msb{padding:clamp(16px,2vw,26px);border-radius:var(--rc,20px);border:1px solid rgba(255,255,255,.09);
   background:linear-gradient(100deg,color-mix(in srgb,var(--hcs) 22%,var(--card)),var(--card) 34% 66%,color-mix(in srgb,var(--acs) 22%,var(--card)))}
 .mx-msh{display:flex;justify-content:space-between;gap:16px;margin-bottom:14px;font:800 clamp(16px,1.6vw,21px)/1.2 var(--display)}
 .mx-msh b:last-child{text-align:right}
@@ -318,7 +318,7 @@ main:has(>.mx-hero)::before{content:"";position:absolute;inset:0;z-index:-1;poin
 .mx-msl b:last-of-type{text-align:right}
 .mx-msl b.on{color:var(--signal,#ffc21a)}
 .mx-msl i{grid-column:1/-1;display:flex;gap:4px;height:8px}
-.mx-msl u{border-radius:999px;background:var(--hcs);min-width:6px}
+.mx-msl u{border-radius:var(--rp,999px);background:var(--hcs);min-width:6px}
 .mx-msl u+u{background:var(--acs)}
 /* эмблема клуба у названия (правило владельца 11.11): форма, статистика матча, таблица */
 .mx-em{display:inline-block;flex:none;border-radius:50%;background:#f3f5f8;padding:3px;object-fit:contain;vertical-align:middle}
@@ -331,7 +331,7 @@ main:has(>.mx-hero)::before{content:"";position:absolute;inset:0;z-index:-1;poin
 .mx-dots{justify-content:space-around;gap:6px}
 .mx-fc h3{justify-content:center}
 @media (min-width:900px){.mx-dots b{width:68px;height:68px}.mx-dots b img{width:42px;height:42px}.mx-dots b em{width:25px;height:25px;font-size:13px}.mx-dots span{font-size:16px}}
-.mx-text{position:relative;max-width:none;padding:clamp(20px,2.6vw,34px) clamp(18px,2.8vw,40px);border-radius:20px;border:1px solid rgba(255,255,255,.09);
+.mx-text{position:relative;max-width:none;padding:clamp(20px,2.6vw,34px) clamp(18px,2.8vw,40px);border-radius:var(--rc,20px);border:1px solid rgba(255,255,255,.09);
   border-left:4px solid var(--signal,#ffc21a);background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),var(--card)}
 .mx-text p{margin:0;max-width:78ch;font-size:clamp(17px,1.25vw,19px);line-height:1.62;color:var(--ink-2)}
 .mx-text p+p{margin-top:.9em}
@@ -340,12 +340,12 @@ main:has(>.mx-hero)::before{content:"";position:absolute;inset:0;z-index:-1;poin
   .mx-text p:last-child:nth-child(2){grid-column:1/-1}}
 .mx-end h2{margin-bottom:16px}
 .mx-go{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px}
-.mx-go a{display:grid;gap:8px;height:100%;padding:16px 18px;border-radius:16px;border:1px solid rgba(255,255,255,.08);text-decoration:none;
+.mx-go a{display:grid;gap:8px;height:100%;padding:16px 18px;border-radius:var(--rc,16px);border:1px solid rgba(255,255,255,.08);text-decoration:none;
   background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),var(--card);transition:transform .18s,border-color .18s}
 .mx-go a:hover{transform:translateY(-2px);border-color:var(--signal,#ffc21a)}
 .mx-go small{font:600 12px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 .mx-go b{display:flex;align-items:center;gap:9px;font:800 18px/1.2 var(--display);color:var(--ink)}
-.mx-tg{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 28px;margin-top:14px;padding:clamp(18px,2.2vw,28px) clamp(18px,2.6vw,34px);border-radius:20px;
+.mx-tg{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 28px;margin-top:14px;padding:clamp(18px,2.2vw,28px) clamp(18px,2.6vw,34px);border-radius:var(--rc,20px);
   border:1px solid color-mix(in srgb,var(--signal,#ffc21a) 40%,transparent);background:linear-gradient(100deg,color-mix(in srgb,var(--signal,#ffc21a) 18%,var(--card)),var(--card) 62%)}
 .mx-tg div{display:grid;gap:6px;min-width:0}
 .mx-tg b{font:800 clamp(20px,2vw,27px)/1.15 var(--display)}
@@ -364,16 +364,16 @@ body.fc .mx-tg .btn,body.fc .mx-tg .btn span{color:#071225;font-weight:800;font-
 .mx-pen summary::-webkit-details-marker{display:none}
 .mx-pen summary::after{content:"";width:9px;height:9px;margin-left:2px;border-right:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);transform:rotate(-135deg) translate(-2px,-2px)}
 .mx-pen:not([open]) summary::after{transform:rotate(45deg) translate(-2px,-2px)}
-.mx-pen summary small{padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.09);font:700 13px/1 var(--display);color:var(--ink-2)}
+.mx-pen summary small{padding:4px 9px;border-radius:var(--rp,999px);background:rgba(255,255,255,.09);font:700 13px/1 var(--display);color:var(--ink-2)}
 .mx-pen ol{list-style:none;margin:12px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px clamp(14px,2.4vw,36px)}
-.mx-pen li{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"t n m" "t w m";align-items:center;gap:1px 12px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.045)}
+.mx-pen li{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"t n m" "t w m";align-items:center;gap:1px 12px;padding:9px 12px;border-radius:var(--rc,12px);background:rgba(255,255,255,.045)}
 .mx-pen li.ph{grid-column:1;border-left:4px solid var(--hcs)}
 .mx-pen li.pa{grid-column:2;border-right:4px solid var(--acs);grid-template-columns:auto 1fr auto;grid-template-areas:"m n t" "m w t";text-align:right}
 .mx-pen li.pp{grid-column:1/-1;display:block;padding:8px 0 0;background:none;text-align:center;font:700 12px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
 .mx-pen time{grid-area:t;font:800 17px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ink)}
 .mx-pen b{grid-area:n;font:700 15px/1.25 var(--display);min-width:0}
 .mx-pen li span{grid-area:w;font:500 13px/1.3 var(--display);color:var(--ink-2)}
-.mx-pen em{grid-area:m;font:700 12px/1 var(--display);font-style:normal;white-space:nowrap;padding:5px 8px;border-radius:999px;background:rgba(0,0,0,.3);color:var(--ink-2)}
+.mx-pen em{grid-area:m;font:700 12px/1 var(--display);font-style:normal;white-space:nowrap;padding:5px 8px;border-radius:var(--rp,999px);background:rgba(0,0,0,.3);color:var(--ink-2)}
 @media (max-width:620px){.mx-pen ol{grid-template-columns:1fr;gap:6px}.mx-pen li.ph,.mx-pen li.pa{grid-column:1}.mx-pen li.pa{margin-left:22px}.mx-pen li.ph{margin-right:22px}}
 
 /* «Сравнение команд» на странице матча (assets/mc.js). Цвета клубов — --hc / --ac с баннера (nav.js переносит их на <main>).

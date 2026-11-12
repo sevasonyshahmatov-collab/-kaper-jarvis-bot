@@ -118,7 +118,7 @@ html[data-hh="7"] section.hero,html[data-hh="7"] section.hm{overflow:clip}
 .cs-mk{font-weight:800;color:var(--signal);text-align:right;min-width:2.6ch}
 @media (hover:hover){.cs-md:hover .cs-mm{text-decoration:underline;text-underline-offset:4px}}
 .cs-go{display:flex;gap:10px;padding:10px 0}
-.cs-go a{display:inline-flex;gap:8px;align-items:center;font:500 15px/1 var(--display);padding:11px 18px;border-radius:999px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);transition:background .2s ease,color .2s ease}
+.cs-go a{display:inline-flex;gap:8px;align-items:center;font:500 15px/1 var(--display);padding:11px 18px;border-radius:var(--rp,999px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);transition:background .2s ease,color .2s ease}
 @media (hover:hover){.cs-go a:hover{background:var(--cs-ink);color:#0b0c0e}}
 .cs-fade{height:clamp(64px,8vw,120px);background:linear-gradient(var(--cs-bg),rgba(7,9,12,0))}
 html[data-hh="7"] section.hero,html[data-hh="7"] section.hm{padding-bottom:0}

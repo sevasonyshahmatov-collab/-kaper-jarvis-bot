@@ -4,7 +4,7 @@ footer.jvf{margin-top:clamp(64px,9vw,130px);padding:clamp(28px,4vw,44px) 0 calc(
 .jvf-logo{display:inline-block;font:800 22px/1 var(--display,"Inter",Arial,sans-serif);letter-spacing:.2em;text-transform:uppercase;text-decoration:none;color:inherit;margin-bottom:14px}
 .jvf-logo span::after{content:"";display:block;width:34px;height:4px;border-radius:2px;background:#ffc21a;margin-top:10px}
 .jvf-brand p{margin:0 0 16px;max-width:30ch;font-size:15px;line-height:1.45;color:var(--ink-2,#b9c5d9)}
-.jvf-tg{display:inline-flex;align-items:center;gap:8px;font:700 15px/1 var(--display,"Inter",Arial,sans-serif);text-decoration:none;color:inherit;padding:10px 14px;border:1px solid var(--rule-2,#2c3b5a);border-radius:999px}
+.jvf-tg{display:inline-flex;align-items:center;gap:8px;font:700 15px/1 var(--display,"Inter",Arial,sans-serif);text-decoration:none;color:inherit;padding:10px 14px;border:1px solid var(--rule-2,#2c3b5a);border-radius:var(--rp,999px)}
 .jvf-tg svg{width:18px;height:18px;color:#5ab8ff}
 .jvf-tg:hover{border-color:currentColor}
 .jvf-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
@@ -28,7 +28,7 @@ footer.jvf{margin-top:clamp(64px,9vw,130px);padding:clamp(28px,4vw,44px) 0 calc(
 main:has(.pl-note)~footer.jvf{margin-top:clamp(24px,3vw,40px)}
 
 /* «Установить на экран» и строка «нет интернета» (идеи 37–38) */
-.jvf-inst{display:inline-flex;align-items:center;gap:8px;font:700 15px/1 var(--display,"Inter",Arial,sans-serif);color:inherit;background:none;padding:10px 14px;border:1px solid var(--rule-2,#2c3b5a);border-radius:999px;cursor:pointer;margin-top:10px}
+.jvf-inst{display:inline-flex;align-items:center;gap:8px;font:700 15px/1 var(--display,"Inter",Arial,sans-serif);color:inherit;background:none;padding:10px 14px;border:1px solid var(--rule-2,#2c3b5a);border-radius:var(--rp,999px);cursor:pointer;margin-top:10px}
 .jvf-inst[hidden],.jvf-ios[hidden]{display:none}
 .jvf-inst svg{width:18px;height:18px;color:#5ab8ff}
 .jvf-inst:hover{border-color:currentColor}

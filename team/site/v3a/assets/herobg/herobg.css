@@ -104,7 +104,7 @@ html.lit .hb *{animation-play-state:paused}
 @keyframes hb-cloud{to{transform:translateX(100vw)}}
 
 /* ═══ переключатель для владельца (виден только при ?hbg) ═══ */
-.hb-sw{position:fixed;left:12px;bottom:12px;z-index:60;display:flex;align-items:center;gap:4px;padding:4px 6px 4px 10px;border-radius:999px;
+.hb-sw{position:fixed;left:12px;bottom:12px;z-index:60;display:flex;align-items:center;gap:4px;padding:4px 6px 4px 10px;border-radius:var(--rp,999px);
   background:#0c1830;box-shadow:0 0 0 1px rgba(150,190,235,.35),0 8px 24px rgba(0,0,0,.5);font:600 12px/1 "Fira Sans Extra Condensed",system-ui,sans-serif;color:#b8c9e4}
 .hb-sw span{margin-right:4px;letter-spacing:.06em;text-transform:uppercase;opacity:.8}
 .hb-sw a{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;color:#eaf3ff;text-decoration:none;font-size:13px}

@@ -39,7 +39,7 @@
 .lcard .txt{position:absolute;left:5cqw;bottom:5cqw;width:48cqw;transform:translateZ(56px);text-align:left}
 .lcard .txt h3{margin:0;font:900 max(40px,17cqw)/.88 var(--display);letter-spacing:-.01em;text-transform:uppercase;color:#fff}
 .lcard .txt .cn{margin:2cqw 0 0;font:700 max(13px,2.9cqw)/1.2 var(--display);color:rgba(255,255,255,.92)}
-.lcard .open{display:inline-flex;align-items:center;gap:1.2cqw;margin-top:2.6cqw;padding:1.7cqw 2.8cqw;border-radius:99px;background:var(--signal,#ffd54d);color:var(--signal-ink,#111);
+.lcard .open{display:inline-flex;align-items:center;gap:1.2cqw;margin-top:2.6cqw;padding:1.7cqw 2.8cqw;border-radius:var(--rp,99px);background:var(--signal,#ffd54d);color:var(--signal-ink,#111);
   font:800 max(12px,2.6cqw)/1 var(--display);text-decoration:none;cursor:pointer;white-space:nowrap}
 .lcard .open svg{width:2.8cqw;height:2.8cqw;min-width:11px;min-height:11px}
 .lcard .open:hover,.lcard .open:focus-visible{background:#ffe27d}

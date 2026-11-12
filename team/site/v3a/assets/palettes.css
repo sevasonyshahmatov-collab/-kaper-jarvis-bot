@@ -117,8 +117,8 @@ html[data-pal] .arena-bg{background:linear-gradient(180deg,color-mix(in srgb,var
 html[data-pal] .arena-bg .bm{display:none}
 
 /* ── плашка переключателя ──────────────────────────────────────────────────── */
-.pal-bar{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:9999;display:flex;gap:2px;padding:4px;border-radius:999px;
+.pal-bar{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:9999;display:flex;gap:2px;padding:4px;border-radius:var(--rp,999px);
   background:rgba(10,10,10,.88);border:1px solid rgba(255,255,255,.18);box-shadow:0 8px 24px -8px rgba(0,0,0,.6);max-width:calc(100vw - 16px)}
-.pal-bar button{font:600 12px/1 system-ui,sans-serif;color:#eee;background:transparent;border:0;border-radius:999px;padding:9px 10px;cursor:pointer;white-space:nowrap}
+.pal-bar button{font:600 12px/1 system-ui,sans-serif;color:#eee;background:transparent;border:0;border-radius:var(--rp,999px);padding:9px 10px;cursor:pointer;white-space:nowrap}
 .pal-bar button[aria-pressed=true]{background:#fff;color:#000}
 html[data-pal] body.md,html[data-pal] body.fc,html[data-pal] body.tr{background:var(--paper);color:var(--ink)}

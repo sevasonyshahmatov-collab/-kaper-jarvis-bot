@@ -159,7 +159,10 @@ const plCard=()=>`<a class="plcard" href="${PLURL}" aria-label="Все игро�
 /* ── 2. место в таблице и статистика ── */
 const last5=played.slice(-5);
 const raw=T.raw||[],A=T.axes||[];
-const tile=(lab,val,unit,i,sub)=>`<div class="st"><span class="sl">${lab}</span><b class="num">${val}<small>${unit}</small></b>
+/* место клуба в лиге по показателю raw[i] (12.11): для «пропускает» меньше — лучше */
+const LGT=Object.values(D.teams||{}).filter(t=>t.lg===lg&&t.raw),LOW=lg==='nhl'?{1:1}:{1:1,4:1};
+const rkOf=i=>{const v=raw[i];if(v==null||LGT.length<8)return'';const r=1+LGT.filter(t=>t.raw[i]!=null&&(LOW[i]?t.raw[i]<v:t.raw[i]>v)).length;return`<em class="strk" title="Место среди ${LGT.length} клубов ${L.name}">${r}-е в ${L.name}</em>`};
+const tile=(lab,val,unit,i,sub)=>`<div class="st"><span class="sl">${lab}</span><b class="num">${val}<small>${unit}</small></b>${i!=null?rkOf(i):''}
   ${i!=null&&A[i]!=null?`<span class="bar" aria-label="${A[i]} из 100"><i style="--w:${A[i]}%"></i></span><span class="ss">${esc(ax[i])} — <b>${A[i]}</b> из 100 в ${L.name}</span>`:`<span class="ss">${sub||''}</span>`}</div>`;
 const pp=lg==='nhl'?[f(raw[3]*100,1),'%','реализация большинства']:[f(raw[3]),'','голов в большинстве за игру'];
 const pk=lg==='nhl'?[f(raw[4]*100,1),'%','нейтрализация меньшинства']:[f(raw[4]),'','пропускает в меньшинстве за игру'];

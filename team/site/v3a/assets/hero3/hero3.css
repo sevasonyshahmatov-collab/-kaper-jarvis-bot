@@ -1,8 +1,8 @@
 /* Первый экран «афиша матча» (assets/hero3/hero3.js). Всё, кроме плашки-переключателя, работает только при data-hero="2". */
 @property --ha{syntax:'<color>';inherits:true;initial-value:#12203c}
 @property --aa{syntax:'<color>';inherits:true;initial-value:#12203c}
-.h3bar{position:fixed;left:16px;bottom:16px;z-index:90;display:flex;gap:4px;padding:4px;border-radius:999px;background:#10161f;box-shadow:0 8px 24px rgba(0,0,0,.35)}
-.h3bar button{border:0;border-radius:999px;padding:9px 13px;background:transparent;color:#cfd8e6;font:700 13px/1 var(--display);cursor:pointer;white-space:nowrap}
+.h3bar{position:fixed;left:16px;bottom:16px;z-index:90;display:flex;gap:4px;padding:4px;border-radius:var(--rp,999px);background:#10161f;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.h3bar button{border:0;border-radius:var(--rp,999px);padding:9px 13px;background:transparent;color:#cfd8e6;font:700 13px/1 var(--display);cursor:pointer;white-space:nowrap}
 .h3bar button[aria-pressed="true"]{background:#f3f6fb;color:#0a1220}
 [data-hero="2"] .hero{transition:--ha .7s ease,--aa .7s ease;min-height:calc(100svh - 108px);padding-top:clamp(16px,2.2vw,32px)!important}
 [data-hero="2"] #snow,[data-hero="2"] .arena-bg{display:none!important}
@@ -22,16 +22,6 @@
   radial-gradient(64% 104% at 100% 44% in oklab,color-mix(in oklab,var(--aa) 70%,transparent) 0%,color-mix(in oklab,var(--aa) 34%,transparent) 38%,transparent 76%),
   linear-gradient(180deg in oklab,#050b18,#071225 55%,#0b1a36)}}
 .h3bg::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:rgba(255,255,255,.07)}
-/* эмблемы-«голограммы» по краям: одноцветные, полупрозрачные, обрезаются краем экрана */
-.h3g{position:absolute;top:50%;height:min(112%,820px);aspect-ratio:1;object-fit:contain;opacity:0;pointer-events:none;user-select:none;
-  filter:grayscale(1) contrast(1.25) brightness(1.5);mix-blend-mode:screen;transition:opacity .45s ease,transform .7s cubic-bezier(.23,1,.32,1)}
-.h3g.h{left:0;transform:translate(-46%,-50%) rotate(-9deg) scale(.96)}
-.h3g.a{right:0;transform:translate(46%,-50%) rotate(9deg) scale(.96)}
-.h3g.on{opacity:.2}
-.h3g.h.on{transform:translate(-38%,-50%) rotate(-9deg)}
-.h3g.a.on{transform:translate(38%,-50%) rotate(9deg)}
-@media (max-width:900px){.h3g{height:min(52%,360px);top:20%}.h3g.on{opacity:.14}}
-@media (prefers-reduced-motion:reduce){.h3g{transition:opacity .2s}}
 .h3bg i{position:absolute;left:50%;top:50%;width:min(62vh,560px);aspect-ratio:1;transform:translate(-50%,-50%);border:2px solid rgba(255,255,255,.07);border-radius:50%}
 /* расположение: всё по центру, матч — главный */
 [data-hero="2"] .hero .wrap{grid-template-columns:minmax(0,1fr)!important;grid-template-areas:none!important;justify-items:center;text-align:center;gap:10px;align-items:start;align-content:start}
@@ -46,7 +36,7 @@
 [data-hero="2"] .hero .get8{max-width:440px;margin:2px auto 0}
 /* два следующих матча */
 .h3next{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.h3p{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"t h k" "t a k";align-items:center;gap:3px 14px;padding:10px 16px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(3,7,15,.5);color:#eaf3ff;text-align:left;cursor:pointer;font:600 15px/1.2 var(--display);min-width:0;transition:border-color .2s ease,background .2s ease}
+.h3p{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"t h k" "t a k";align-items:center;gap:3px 14px;padding:10px 16px;border:1px solid rgba(255,255,255,.1);border-radius:var(--rc,12px);background:rgba(3,7,15,.5);color:#eaf3ff;text-align:left;cursor:pointer;font:600 15px/1.2 var(--display);min-width:0;transition:border-color .2s ease,background .2s ease}
 .h3p:hover,.h3p:focus-visible{border-color:rgba(255,255,255,.34);background:rgba(3,7,15,.66)}
 .h3p time{grid-area:t;font:800 20px/1 var(--display);font-variant-numeric:tabular-nums}
 .h3p .h3t{display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

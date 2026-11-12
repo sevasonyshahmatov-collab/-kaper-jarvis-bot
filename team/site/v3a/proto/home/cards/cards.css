@@ -18,7 +18,7 @@
   margin:clamp(34px,4.4vw,60px) 0 0;padding:0 8px}
 .cd-hint{margin:clamp(14px,2vw,24px) 0 0;font:500 15px/1.4 var(--display);color:var(--ink-3)}
 .cd-credit{margin:8px 0 0;font:400 12px/1.4 var(--text);color:var(--ink-3);opacity:.8}
-.cd-tilt{margin:12px auto 0;padding:10px 16px;border:0;border-radius:999px;background:var(--signal);color:var(--signal-ink);font:700 15px/1 var(--display);cursor:pointer}
+.cd-tilt{margin:12px auto 0;padding:10px 16px;border:0;border-radius:var(--rp,999px);background:var(--signal);color:var(--signal-ink);font:700 15px/1 var(--display);cursor:pointer}
 .cd-tilt[hidden]{display:none}
 
 /* карточка */
@@ -67,7 +67,7 @@
 .cnt{margin-top:2.2cqw!important;font:700 max(12px,5.4cqw)/1.15 var(--display);color:#fff}
 .stat{margin-top:1.2cqw!important;font:500 max(12px,4.4cqw)/1.2 var(--display);color:rgba(255,255,255,.72)}
 .stat:empty{display:none}
-.open{display:inline-flex;align-items:center;gap:2cqw;margin-top:3.4cqw;padding:2.4cqw 3.6cqw;border-radius:99px;background:var(--signal);color:var(--signal-ink);
+.open{display:inline-flex;align-items:center;gap:2cqw;margin-top:3.4cqw;padding:2.4cqw 3.6cqw;border-radius:var(--rp,99px);background:var(--signal);color:var(--signal-ink);
   font:800 max(11px,4.2cqw)/1 var(--display)}
 .open svg{width:4.4cqw;height:4.4cqw;min-width:11px;min-height:11px}
 .card:hover .open,.card:focus-visible .open{background:#ffd75e}

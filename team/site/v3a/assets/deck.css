@@ -9,8 +9,8 @@
 .dk-h1,.dk-ih,.dk-dhead h2,.dk-ih small{text-transform:none}
 .dk-h1{margin:0;font:800 clamp(28px,3vw,40px)/1 var(--display);letter-spacing:-.01em;color:var(--ink)}
 .dk-sub{margin:8px 0 0;font:500 14px/1.35 var(--display);color:var(--ink-3)}
-.dk-filter{display:flex;gap:4px;background:color-mix(in srgb,var(--paper-2) 80%,transparent);border-radius:999px;padding:3px;backdrop-filter:blur(6px)}
-.dk-filter button{font:700 14px/1 var(--display);border:0;background:none;color:var(--ink-2);padding:10px 14px;border-radius:999px;cursor:pointer;transition:background .25s,color .25s}
+.dk-filter{display:flex;gap:4px;background:color-mix(in srgb,var(--paper-2) 80%,transparent);border-radius:var(--rp,999px);padding:3px;backdrop-filter:blur(6px)}
+.dk-filter button{font:700 14px/1 var(--display);border:0;background:none;color:var(--ink-2);padding:10px 14px;border-radius:var(--rp,999px);cursor:pointer;transition:background .25s,color .25s}
 .dk-filter button small{font:600 12px/1 var(--display);opacity:.7;margin-left:3px;font-variant-numeric:tabular-nums}
 .dk-filter button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
 .dk-filter button:not([aria-pressed=true]):hover{color:var(--ink)}
@@ -19,15 +19,15 @@
 .dk-grid{flex:1;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:clamp(20px,3vw,56px);align-items:center;min-height:0}
 .dk-main{min-width:0;position:relative}
 .dk-stage{position:relative;height:calc(var(--W) * 1.4 * 1.17 + 40px);outline:none;touch-action:pan-y;cursor:grab;-webkit-user-select:none;user-select:none}
-.dk-stage:focus-visible{outline:2px solid color-mix(in srgb,var(--signal) 70%,transparent);outline-offset:6px;border-radius:12px}
+.dk-stage:focus-visible{outline:2px solid color-mix(in srgb,var(--signal) 70%,transparent);outline-offset:6px;border-radius:var(--rc,12px)}
 .dk-deck{list-style:none;margin:0;padding:0;position:absolute;inset:0;transform-style:preserve-3d}
 
 /* карточка матча */
 .dk-card{position:absolute;left:50%;top:6px;width:var(--W);height:calc(var(--W) * 1.4);margin-left:calc(var(--W) * -.5);transform-origin:50% 0;will-change:transform,opacity;
   transition:transform var(--dur) var(--spr),opacity calc(var(--dur) * .8) ease-out;cursor:pointer;
-  --a:var(--ice);border-radius:20px}
+  --a:var(--ice);border-radius:var(--rc,20px)}
 .dk-card[data-sp=football]{--a:var(--pitch)}
-.dk-cf{position:absolute;inset:0;display:flex;flex-direction:column;padding:clamp(16px,1.7vw,22px);border-radius:20px;overflow:hidden;
+.dk-cf{position:absolute;inset:0;display:flex;flex-direction:column;padding:clamp(16px,1.7vw,22px);border-radius:var(--rc,20px);overflow:hidden;
   background:
    radial-gradient(90% 55% at 50% 0,color-mix(in srgb,var(--a) 26%,transparent),transparent 72%),
    linear-gradient(165deg,#18253e,#0d1627 70%);
@@ -35,7 +35,7 @@
   box-shadow:0 30px 50px -26px rgba(0,0,0,.85),0 6px 16px -8px rgba(0,0,0,.6);transition:box-shadow var(--dur) var(--e),border-color var(--dur)}
 .dk-card.gone{transition:transform var(--dur) var(--e),opacity calc(var(--dur) * .7) ease-out}
 .dk-card.on .dk-cf{box-shadow:0 42px 70px -30px rgba(0,0,0,.95),0 0 0 1px color-mix(in srgb,var(--a) 40%,transparent),0 0 60px -20px color-mix(in srgb,var(--a) 50%,transparent)}
-.dk-card::after{content:"";position:absolute;inset:0;border-radius:20px;background:#050a14;opacity:var(--dim,0);pointer-events:none;transition:opacity var(--dur) var(--e)}
+.dk-card::after{content:"";position:absolute;inset:0;border-radius:var(--rc,20px);background:#050a14;opacity:var(--dim,0);pointer-events:none;transition:opacity var(--dur) var(--e)}
 .dk-ct{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .dk-lg{display:flex;align-items:center;gap:8px;font:800 12px/1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--a)}
 .dk-lg img{width:20px;height:20px;object-fit:contain}
@@ -51,7 +51,7 @@
 .dk-vs{font:700 14px/1 var(--display);color:var(--ink-3)}
 .dk-ql{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
 .dk-ql.two{grid-template-columns:repeat(2,1fr)}
-.dk-ql span{display:grid;gap:4px;text-align:center;padding:9px 4px 8px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid transparent}
+.dk-ql span{display:grid;gap:4px;text-align:center;padding:9px 4px 8px;border-radius:var(--rc,10px);background:rgba(255,255,255,.05);border:1px solid transparent}
 .dk-ql span small{font:700 12px/1 var(--display);letter-spacing:.1em;color:var(--ink-3)}
 .dk-ql span b{font:800 clamp(17px,1.5vw,20px)/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ink)}
 .dk-ql span.fav{border-color:var(--signal);background:color-mix(in srgb,var(--signal) 12%,transparent)}
@@ -88,11 +88,11 @@
 .dk-kv{display:flex;flex-wrap:wrap;gap:6px 18px;margin:10px 0 0;font:600 13px/1.3 var(--display);color:var(--ink-3)}
 .dk-kv b{color:var(--ink);font-weight:800;font-variant-numeric:tabular-nums}
 .dk-lnq{display:flex;gap:8px;flex-wrap:wrap}
-.dk-lnq span{display:grid;gap:4px;min-width:62px;text-align:center;padding:8px 10px;border-radius:10px;background:var(--paper-2)}
+.dk-lnq span{display:grid;gap:4px;min-width:62px;text-align:center;padding:8px 10px;border-radius:var(--rc,10px);background:var(--paper-2)}
 .dk-lnq span small{font:700 12px/1 var(--display);letter-spacing:.1em;color:var(--ink-3)}
 .dk-lnq span b{font:800 18px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ink)}
 .dk-note{margin:10px 0 0;font:500 12px/1.4 var(--display);color:var(--ink-3)}
-.dk-more{margin-top:clamp(14px,2vh,20px);display:inline-flex;align-items:center;gap:10px;font:700 16px/1 var(--display);padding:14px 20px;border-radius:999px;border:0;cursor:pointer;background:var(--signal);color:var(--signal-ink);transition:transform .3s var(--e),filter .3s}
+.dk-more{margin-top:clamp(14px,2vh,20px);display:inline-flex;align-items:center;gap:10px;font:700 16px/1 var(--display);padding:14px 20px;border-radius:var(--rp,999px);border:0;cursor:pointer;background:var(--signal);color:var(--signal-ink);transition:transform .3s var(--e),filter .3s}
 .dk-more svg{width:18px;height:18px;transition:transform .3s var(--e)}
 @media (hover:hover){.dk-more:hover{filter:brightness(1.07)}.dk-more:hover svg{transform:translateX(4px)}}
 .dk-empty{padding:30px 0;color:var(--ink-2);font:500 16px/1.5 var(--display)}
@@ -161,7 +161,7 @@
 .dk-lg5 span small{color:var(--ink-3);margin-right:6px;font-variant-numeric:tabular-nums}
 .dk-lg5 b{font:800 14px/1 var(--display);color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
 .dk-links{display:flex;flex-wrap:wrap;gap:8px}
-.dk-links a{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid var(--rule-2);text-decoration:none;font:700 14px/1 var(--display);color:var(--ink);transition:background .25s,color .25s}
+.dk-links a{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:var(--rp,999px);border:1px solid var(--rule-2);text-decoration:none;font:700 14px/1 var(--display);color:var(--ink);transition:background .25s,color .25s}
 .dk-links a:hover{background:var(--ink);color:var(--paper)}
 .dk-load{padding:20px 0;color:var(--ink-3);font:500 14px/1.4 var(--display)}
 
@@ -173,7 +173,7 @@
   .dk-prog{grid-column:1/-1;margin:0;order:5}
   .dk-hint{display:none}
   .dk-count{min-width:0}
-  .dk-drawer{top:auto;left:0;width:100%;max-height:88dvh;border-left:0;border-top:1px solid var(--rule-2);border-radius:22px 22px 0 0;transform:translateY(104%);box-shadow:0 -30px 60px -20px rgba(0,0,0,.7)}
+  .dk-drawer{top:auto;left:0;width:100%;max-height:88dvh;border-left:0;border-top:1px solid var(--rule-2);border-radius:var(--rc,22px) var(--rc,22px) 0 0;transform:translateY(104%);box-shadow:0 -30px 60px -20px rgba(0,0,0,.7)}
   .dk-drawer.open{transform:none}
 }
 @media (max-width:560px){
@@ -225,7 +225,7 @@
    repeating-linear-gradient(-45deg,rgba(0,0,0,.09) 0 1px,transparent 1px 3px)}
 .dk-tx::before{content:"";position:absolute;inset:0;opacity:.2;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 /* читаемость: подложка под колонкой и светлые подписи */
-.dk-info{--ink-3:#c6cfde;--ink-2:#e3e9f4;background:rgba(5,9,18,.56);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.09);border-radius:22px;padding:clamp(16px,1.8vw,26px)}
+.dk-info{--ink-3:#c6cfde;--ink-2:#e3e9f4;background:rgba(5,9,18,.56);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.09);border-radius:var(--rc,22px);padding:clamp(16px,1.8vw,26px)}
 .dk-sub,.dk-hint{color:#d3dae8}
 .dk-card .dk-cf{box-shadow:0 30px 50px -22px rgba(0,0,0,.9),0 6px 16px -8px rgba(0,0,0,.7)}
 .dk-count{color:#b9c3d6}
@@ -305,11 +305,11 @@
 
 /* 3 · «Билет»: фактура холста в цветах клубов, перфорация, корешок */
 [data-card="3"] .dk-card{--cut:63%}
-[data-card="3"] .dk-cf{border:0;border-radius:16px;background:#0d1526;
+[data-card="3"] .dk-cf{border:0;border-radius:var(--rc,16px);background:#0d1526;
   -webkit-mask-image:radial-gradient(circle 12px at 0 var(--cut),#0000 11.5px,#000 12px),radial-gradient(circle 12px at 100% var(--cut),#0000 11.5px,#000 12px);
   -webkit-mask-composite:source-in;mask-image:radial-gradient(circle 12px at 0 var(--cut),#0000 11.5px,#000 12px),radial-gradient(circle 12px at 100% var(--cut),#0000 11.5px,#000 12px);mask-composite:intersect;box-shadow:none}
 [data-card="3"] .dk-card{filter:drop-shadow(0 22px 22px rgba(0,0,0,.55))}
-[data-card="3"] .dk-card::after{border-radius:16px}
+[data-card="3"] .dk-card::after{border-radius:var(--rc,16px)}
 [data-card="3"] .dk-ctop{flex:0 0 var(--cut);background:
   linear-gradient(180deg,rgba(4,8,18,.4),rgba(4,8,18,.56)),
   repeating-linear-gradient(45deg,rgba(255,255,255,.05) 0 1px,transparent 1px 3px),
@@ -318,7 +318,7 @@
 [data-card="3"] .dk-ctop::after{content:"";position:absolute;inset:0;z-index:1;opacity:.2;mix-blend-mode:overlay;background-image:var(--grain);pointer-events:none}
 [data-card="3"] .dk-cbot{flex:1;display:flex;flex-direction:column;justify-content:center;padding-top:12px;border-top:2px dashed rgba(255,255,255,.42);margin-top:0;
   background:linear-gradient(180deg,#121c33,#0b1322)}
-[data-card="3"] .dk-ctop>.dk-no{display:block;position:absolute;z-index:2;left:50%;bottom:6px;transform:translateX(-50%);font:800 11px/1 var(--display);letter-spacing:.2em;color:rgba(255,255,255,.9);padding:5px 10px;border-radius:999px;background:rgba(5,9,18,.45)}
+[data-card="3"] .dk-ctop>.dk-no{display:block;position:absolute;z-index:2;left:50%;bottom:6px;transform:translateX(-50%);font:800 11px/1 var(--display);letter-spacing:.2em;color:rgba(255,255,255,.9);padding:5px 10px;border-radius:var(--rp,999px);background:rgba(5,9,18,.45)}
 [data-card="3"] .dk-ql span b{font-size:clamp(19px,1.7vw,24px)}
 [data-card="3"] .dk-tm b,[data-card="3"] .dk-dt,[data-card="3"] .dk-lg,[data-card="3"] .dk-tm i,[data-card="3"] .dk-vs{color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.5)}
 [data-card="3"] .dk-ct{flex:none}
@@ -344,7 +344,7 @@
 @media (max-width:380px){.dk-card{height:calc(var(--W) * 1.52)}}
 
 /* знак лиги на фоне шапки «О встрече» */
-.dk-ihead{position:relative;isolation:isolate;overflow:hidden;margin:-6px -6px 0;padding:6px 6px 0;border-radius:14px}
+.dk-ihead{position:relative;isolation:isolate;overflow:hidden;margin:-6px -6px 0;padding:6px 6px 0;border-radius:var(--rc,14px)}
 .dk-lgwm{position:absolute;z-index:-1;right:-14px;top:50%;height:150%;max-height:150px;width:auto;transform:translateY(-50%) rotate(-8deg);
   opacity:.3;pointer-events:none;user-select:none}
 @media (max-width:560px){.dk-lgwm{height:120%;max-height:110px;right:-8px}}

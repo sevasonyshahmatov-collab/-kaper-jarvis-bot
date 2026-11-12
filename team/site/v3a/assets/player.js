@@ -45,9 +45,10 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
  const hit=(arr,m,season)=>{const k=arr.filter(m.f).length;return[k,(season&&!nhl)?Math.max(gp,k):arr.length]};
  const cell=(h)=>h[1]?`<td><b>${h[0]}</b> из ${h[1]}<small>${Math.round(100*h[0]/h[1])}%</small><span class="mb"><i style="width:${Math.round(100*h[0]/h[1])}%"></i></span></td>`:'<td class="na">—</td>';
  const L10=log.slice(-10),HM=log.filter(r=>r[2]===1),AW=log.filter(r=>r[2]===0);
- const tile=(l,v)=>`<div class="pp-tile"><span>${l}</span><b>${v}</b></div>`;
- const tiles=[tile('Игры',gp),tile('Голы',G),tile('Передачи',A),tile('Очки',G+A)];
- if(nhl||P.ssog!=null)tiles.push(tile('Броски',sog));
+ /* k — ключ места в лиге (g/a/p/s): плашку «N-е в лиге» дописывает ranks() после загрузки итогов лиги */
+ const tile=(l,v,k)=>`<div class="pp-tile"${k?` data-rk="${k}"`:''}><span>${l}</span><b>${v}</b></div>`;
+ const tiles=[tile('Игры',gp),tile('Голы',G,'g'),tile('Передачи',A,'a'),tile('Очки',G+A,'p')];
+ if(nhl||P.ssog!=null)tiles.push(tile('Броски',sog,nhl?'s':''));
  if(P.ts)tiles.push(tile('Время на льду',mmss(P.ts)));
  if(P.spm!=null)tiles.push(tile('Плюс/минус',P.spm>0?'+'+P.spm:P.spm<0?'−'+Math.abs(P.spm):'0'));
  tiles.push(tile('Штраф, мин',pim));
@@ -63,11 +64,15 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
    <h1>${small?esc(small)+' ':''}<b${String(big).length>9?` style="--fz:${(9/String(big).length).toFixed(3)}"`:''}>${esc(big)}</b></h1>
    <p class="pp-sub">${G}+${A}=${G+A} в ${gp} ${pl(gp,'матче','матчах','матчах')} сезона</p>
    <p class="pp-meta">${P.no!=null?`<span><b>#${esc(P.no)}</b></span>`:''}<span>${esc(POS[P.pos]||P.pos||'')}</span><span>${lgName}, сезон 2026/27</span></p>
-   <dl class="pp-hs" aria-label="Сезон: ${gp} ${pl(gp,'игра','игры','игр')}, ${G}+${A}"><div><b>${gp}</b><span>${pl(gp,'игра','игры','игр')}</span></div><div><b>${G}</b><span>голы</span></div><div><b>${A}</b><span>передачи</span></div><div><b>${G+A}</b><span>очки</span></div></dl>
+   <dl class="pp-hs" aria-label="Сезон: ${gp} ${pl(gp,'игра','игры','игр')}, ${G}+${A}"><div><b>${gp}</b><span>${pl(gp,'игра','игры','игр')}</span></div><div data-rk="g"><b>${G}</b><span>голы</span></div><div data-rk="a"><b>${A}</b><span>передачи</span></div><div data-rk="p"><b>${G+A}</b><span>очки</span></div></dl>
   </div>
   <div class="pp-photo${P.img?'':' nop'}"><span class="pp-ini" aria-hidden="true">${esc(ini)}</span>${photo}</div>
  </article>
  <section class="pp-sec" id="s-season" aria-labelledby="h-s"><h2 id="h-s">Сезон</h2><div class="pp-tiles">${tiles.join('')}</div></section>${radar(P.sk)}
+ ${N?`<section class="pp-sec" id="s-l5" aria-labelledby="h-5"><h2 id="h-5">Последние ${Math.min(5,N)} ${pl(Math.min(5,N),'матч','матча','матчей')}</h2>
+  <div class="pp-wrap"><table class="pp-t5"><thead><tr><th scope="col">Дата</th><th scope="col">Матч</th><th scope="col" class="n">Г</th><th scope="col" class="n">П</th><th scope="col" class="n">О</th>${nhl?'<th scope="col" class="n br">Бр</th><th scope="col" class="n tm">Время</th>':''}<th scope="col" class="n">Счёт</th></tr></thead><tbody>
+  ${log.slice(-5).reverse().map(r=>{const sc=r[8],w=sc&&sc[0]>sc[1];return `<tr><td class="d">${ddmm(r[0])}</td><td><a class="op" href="../team/index.html?id=${encodeURIComponent(r[1])}"><img src="${em(r[1])}" alt="" loading="lazy" onerror="this.remove()"><span>${r[2]?'':'@ '}${esc(tn(r[1]))}</span></a></td><td class="n">${r[3]}</td><td class="n">${r[4]}</td><td class="n"><b>${r[3]+r[4]}</b></td>${nhl?`<td class="n br">${r[5]??'—'}</td><td class="n tm">${mmss(r[6])}</td>`:''}<td class="n sc">${sc?`<i class="${w?'w':'l'}">${w?'В':'П'}</i> ${sc[0]}:${sc[1]}${sc[2]?' '+esc(sc[2]):''}`:'—'}</td></tr>`}).join('')}
+  </tbody></table></div><p class="pp-note">@ — матч в гостях.</p></section>`:''}
  <section class="pp-sec" id="s-mk" aria-labelledby="h-m"><h2 id="h-m">В скольких матчах</h2>
   <table class="pp-mk"><thead><tr><th scope="col">Рынок</th><th scope="col">Сезон</th><th scope="col">Последние 10</th><th scope="col">Дома</th><th scope="col">В гостях</th></tr></thead><tbody>
   ${mkList.map(m=>`<tr><th scope="row">${m.n}</th>${cell(hit(log,m,1))}${cell(hit(L10,m))}${cell(HM.length?hit(HM,m):[0,0])}${cell(AW.length?hit(AW,m):[0,0])}</tr>`).join('')}
@@ -99,7 +104,7 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
   bar.innerHTML=`<div class="wrap"><span class="pps-wm">${esc(tn(P.t))}</span>${P.img?`<img class="pps-ph" src="${esc(P.img)}" alt="" onerror="this.remove()">`:''}
    <div class="pps-who"><b>${esc(P.n)}</b><span>${P.no!=null?'#'+esc(P.no)+' · ':''}${esc(POS[P.pos]||P.pos||'')} · ${esc(tn(P.t))}</span></div>
    <div class="pps-st"><div><b>${gp}</b><span>игр</span></div><div><b>${G}</b><span>голы</span></div><div><b>${A}</b><span>пас</span></div><div><b>${G+A}</b><span>очки</span></div></div>
-   <nav><a href="#s-season" tabindex="-1">Сезон</a><a href="#s-mk" tabindex="-1">Рынки</a><a href="#s-form" tabindex="-1">Форма</a><a href="#s-next" tabindex="-1">Следующий матч</a><a href="#s-games" tabindex="-1">Матчи</a></nav>
+   <nav><a href="#s-season" tabindex="-1">Сезон</a><a href="#s-l5" tabindex="-1">Последние 5</a><a href="#s-mk" tabindex="-1">Рынки</a><a href="#s-form" tabindex="-1">Форма</a><a href="#s-next" tabindex="-1">Следующий матч</a><a href="#s-games" tabindex="-1">Матчи</a></nav>
    <img class="pps-em" src="${em(P.t)}" alt="" onerror="this.remove()"></div>`;
   document.body.appendChild(bar);
   const fit=()=>bar.style.setProperty('--hdh',(hd?hd.offsetHeight:64)+'px');fit();addEventListener('resize',fit);
@@ -115,6 +120,15 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
  document.getElementById('tabs').onclick=e=>{const b=e.target.closest('button');if(b)draw(b.dataset.k)};
  draw(mkList[0].k);
  nextMatch(P);
+ /* место в лиге под цифрой (12.11, по образцу nhl.com): итоги всех игроков лиги — hockey/data/lgp_<лига>.json */
+ fetch(`data/lgp_${LG}.json`).then(r=>r.ok?r.json():null).then(d=>{
+  const all=(d&&d.players)||[];if(all.length<50)return;
+  const val={g:x=>x.s[0],a:x=>x.s[1],p:x=>x.s[0]+x.s[1],s:x=>x.s[2]},mine={g:G,a:A,p:G+A,s:sog},lgN=nhl?'НХЛ':'КХЛ';
+  const put=(el,k)=>{if(!val[k]||!mine[k])return;const rk=1+all.filter(x=>x.s&&val[k](x)>mine[k]).length;
+   const e=document.createElement('em');e.className='pp-rk';e.textContent=`${rk}-й в ${lgN}`;e.title=`Место среди ${all.length} игроков ${lgN}`;el.appendChild(e)};
+  MAIN.querySelectorAll('.pp-tile[data-rk]').forEach(el=>put(el,el.dataset.rk));
+  MAIN.querySelectorAll('.pp-hs [data-rk]').forEach(el=>put(el,el.dataset.rk));
+ }).catch(()=>{});
 }).catch(()=>err('Игрок не найден или данные ещё не собраны.'));
 
 function nextMatch(P){

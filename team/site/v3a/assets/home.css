@@ -7,7 +7,7 @@
 .hm h1{font-size:clamp(40px,4.6vw,72px);line-height:1.08;margin:clamp(14px,2vw,24px) 0 0;max-width:15ch;text-transform:uppercase}
 .hm-sub{margin:clamp(14px,1.8vw,22px) 0 0;font-size:clamp(17px,1.5vw,20px);color:var(--ink-2);max-width:44ch}
 .hm-doors{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:clamp(20px,2.6vw,32px)}
-.hm-door{position:relative;display:grid;grid-template-columns:1fr auto;grid-template-areas:"n a" "c a";align-items:center;gap:4px 10px;padding:16px 18px 15px;border-radius:14px;text-decoration:none;
+.hm-door{position:relative;display:grid;grid-template-columns:1fr auto;grid-template-areas:"n a" "c a";align-items:center;gap:4px 10px;padding:16px 18px 15px;border-radius:var(--rc,14px);text-decoration:none;
   background:var(--sport);color:var(--sport-ink);min-height:84px;transition:transform .2s var(--out),box-shadow .2s ease,filter .2s ease}
 .hm-door.hk{--sport:var(--ice)}.hm-door.fb{--sport:var(--pitch)}
 .hm-dn{grid-area:n;font:900 clamp(30px,3vw,44px)/1.08 var(--display);text-transform:uppercase;letter-spacing:.005em}
@@ -16,13 +16,13 @@
 @media (hover:hover) and (pointer:fine){.hm-door:hover{transform:translateY(-3px);box-shadow:0 12px 30px -10px color-mix(in srgb,var(--sport) 70%,transparent);filter:brightness(1.06)}.hm-door:hover svg{transform:translateX(5px)}}
 .hm-tg{font-size:19px;padding:17px 26px}
 .hm-proof{list-style:none;margin:clamp(14px,1.8vw,20px) 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
-.hm-proof li{font:700 14px/1 var(--display);letter-spacing:.02em;color:var(--ink);padding:8px 12px 8px 28px;border-radius:999px;position:relative;background:color-mix(in srgb,var(--card) 80%,transparent);border:1px solid var(--rule-2)}
+.hm-proof li{font:700 14px/1 var(--display);letter-spacing:.02em;color:var(--ink);padding:8px 12px 8px 28px;border-radius:var(--rp,999px);position:relative;background:color-mix(in srgb,var(--card) 80%,transparent);border:1px solid var(--rule-2)}
 .hm-proof li::before{content:"";position:absolute;left:11px;top:50%;width:6px;height:10px;border-right:2.5px solid var(--pitch);border-bottom:2.5px solid var(--pitch);transform:translateY(-62%) rotate(45deg)}
 .hm-act{margin-top:clamp(18px,2.2vw,26px)}
 .hm-micro{margin:10px 0 0;font:600 14px/1.4 var(--display);color:var(--ink-2);letter-spacing:.02em}
 .hm-micro a{color:var(--ink);text-underline-offset:3px}
 .hm-doors{margin-top:clamp(18px,2.2vw,26px)}
-.hm-today{background:color-mix(in srgb,var(--card) 86%,transparent);border:1px solid var(--rule-2);border-radius:18px;padding:clamp(16px,2vw,24px);backdrop-filter:blur(6px)}
+.hm-today{background:color-mix(in srgb,var(--card) 86%,transparent);border:1px solid var(--rule-2);border-radius:var(--rc,18px);padding:clamp(16px,2vw,24px);backdrop-filter:blur(6px)}
 .hm-th{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
 .hm-th h2{font-size:clamp(26px,2.4vw,34px);text-transform:uppercase}
 .hm-upd{font:600 13px/1.2 var(--display);color:var(--ink-3);letter-spacing:.03em}

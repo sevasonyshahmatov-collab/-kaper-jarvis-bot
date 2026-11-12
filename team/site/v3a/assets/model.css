@@ -8,7 +8,7 @@ html:not([data-sport="football"]) [data-f],html[data-sport="football"] [data-h]{
 .md h1 span{color:var(--sport)}
 .md-lead{max-width:62ch;font-size:clamp(17px,2vw,20px);color:var(--ink-2);margin:0 0 22px}
 .md-sw{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
-.md-sw a{display:inline-block;font:700 15px/1 var(--display);text-decoration:none;padding:11px 16px;border-radius:999px;background:var(--paper-2);color:var(--ink-2)}
+.md-sw a{display:inline-block;font:700 15px/1 var(--display);text-decoration:none;padding:11px 16px;border-radius:var(--rp,999px);background:var(--paper-2);color:var(--ink-2)}
 .md-sw a[aria-current]{background:var(--ink);color:var(--paper)}
 .md-sec{padding:clamp(28px,4.5vw,56px) 0}
 .md-sec h2{font:800 clamp(26px,3.6vw,42px)/1.05 var(--display);letter-spacing:-.015em;margin:0 0 22px}
@@ -34,7 +34,7 @@ html:not([data-sport="football"]) [data-f],html[data-sport="football"] [data-h]{
 .md-picker button[aria-selected=true]{background:var(--ink);color:var(--paper)}
 .md-picker button[aria-selected=true] small{color:inherit;opacity:.75}
 .md-picker button:focus-visible,.md-sw a:focus-visible,.md-faq summary:focus-visible{outline:3px solid var(--signal);outline-offset:2px}
-.md-demo{background:var(--card);border-radius:10px;padding:clamp(16px,3vw,28px);display:grid;gap:24px}
+.md-demo{background:var(--card);border-radius:var(--rc,10px);padding:clamp(16px,3vw,28px);display:grid;gap:24px}
 .md-empty{margin:0;color:var(--ink-2)}
 .md-hd{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 18px;align-items:baseline}
 .md-hd h3{font:800 clamp(22px,3vw,30px)/1.1 var(--display);margin:0}

@@ -56,7 +56,7 @@ html[data-pal][data-theme] body[data-field="hockey"] .hero .btn-line{box-shadow:
 html[data-pal][data-theme] body[data-field="hockey"] .hero .btn-line:hover{background:var(--ink);color:var(--paper)}
 html[data-pal][data-theme] body[data-field="hockey"] .hero h1 .ln:last-child{color:var(--ink-2)}
 html[data-pal] body[data-field="hockey"] .sub,html[data-pal][data-theme] body[data-field="hockey"] .sub{background:var(--board)}
-html[data-pal][data-theme] body[data-field="hockey"] #honest>.wrap{background:var(--card);border-radius:12px}
+html[data-pal][data-theme] body[data-field="hockey"] #honest>.wrap{background:var(--card);border-radius:var(--rc,12px)}
 html[data-pal][data-theme] body[data-field="hockey"] #leagues::before{background:linear-gradient(100deg,var(--fld) 0,transparent 40%,transparent 60%,var(--fld) 100%)}
 
 /* ══ страницы клубов: тема клуба заменена палитрой; клубный цвет — только тонкий маркер ═══════════════ */

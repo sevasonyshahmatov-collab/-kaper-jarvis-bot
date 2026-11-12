@@ -5,15 +5,15 @@
 .mt-tm img{width:40px;height:40px;object-fit:contain;flex:none}
 .mt-vs{font:800 24px/1 var(--display);color:var(--ink-3)}
 .mt-facts{list-style:none;margin:22px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.mt-facts li{display:flex;flex-direction:column;gap:4px;padding:14px 18px;border-radius:12px;background:var(--card);border:1px solid var(--rule)}
+.mt-facts li{display:flex;flex-direction:column;gap:4px;padding:14px 18px;border-radius:var(--rc,12px);background:var(--card);border:1px solid var(--rule)}
 .mt-facts small{font:700 12px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
 .mt-facts b{font:800 22px/1.15 var(--display)}
 .mt-facts b a{text-decoration-color:var(--rule-2);text-underline-offset:3px}
 .mt-facts span{font:500 14px/1.3 var(--text);color:var(--ink-2)}
 .mt-res b{font-size:34px;color:var(--acc)}
 .mt-md{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px 32px;align-items:start}
-.mt-md .fc-pm{padding:20px;border-radius:12px;background:var(--card);border:1px solid var(--rule)}
-.mt-odds-wrap{padding:20px;border-radius:12px;background:var(--card);border:1px solid var(--rule)}
+.mt-md .fc-pm{padding:20px;border-radius:var(--rc,12px);background:var(--card);border:1px solid var(--rule)}
+.mt-odds-wrap{padding:20px;border-radius:var(--rc,12px);background:var(--card);border:1px solid var(--rule)}
 .mt-odds-wrap h3{font:800 18px/1.2 var(--display);margin:0 0 4px}
 .mt-odds{margin-top:12px}
 .mt-odds li:first-child b,.mt-odds li:last-child b{color:var(--ink)}
@@ -21,7 +21,7 @@
 .mt-note a{color:var(--acc)}
 .mt-prev{max-width:72ch;font-size:18px;line-height:1.6;color:var(--ink-2);margin:0}
 .mt-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.mt-col{padding:18px 20px;border-radius:12px;background:var(--card);border:1px solid var(--rule)}
+.mt-col{padding:18px 20px;border-radius:var(--rc,12px);background:var(--card);border:1px solid var(--rule)}
 .mt-col h3{font:800 20px/1.2 var(--display);margin:0 0 10px}
 .mt-form{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .mt-form li{display:grid;grid-template-columns:28px 44px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:15px}
@@ -30,7 +30,7 @@
 .mt-fd{color:var(--ink-3);font-variant-numeric:tabular-nums}
 .mt-fo{min-width:0;color:var(--ink-2)}
 .mt-fs{font:800 16px/1 var(--display);font-variant-numeric:tabular-nums}
-.mt-tw{overflow-x:auto;border-radius:12px;border:1px solid var(--rule);background:var(--card)}
+.mt-tw{overflow-x:auto;border-radius:var(--rc,12px);border:1px solid var(--rule);background:var(--card)}
 .mt-tab{width:100%;border-collapse:collapse;font-size:15px;min-width:420px}
 .mt-tab th,.mt-tab td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);white-space:nowrap}
 .mt-tab thead th{font:700 12px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
@@ -47,7 +47,7 @@ body.fc .mt-cta .btn{color:#071225}
 body.fc .mt-cta .btn span{color:#071225;font-weight:800}
 /* «Напомнить о матче» (09.11): календарь телефона, Google Календарь, Telegram */
 .mt-rem{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin:18px 0 0}
-.mt-rem .mt-rem-b{display:inline-flex;align-items:center;gap:9px;min-height:46px;padding:0 20px;border-radius:999px;background:var(--signal);color:var(--signal-ink);font:700 16px/1 var(--display);text-decoration:none}
+.mt-rem .mt-rem-b{display:inline-flex;align-items:center;gap:9px;min-height:46px;padding:0 20px;border-radius:var(--rp,999px);background:var(--signal);color:var(--signal-ink);font:700 16px/1 var(--display);text-decoration:none}
 .mt-rem .mt-rem-b svg{width:19px;height:19px;flex:none}
 .mt-rem .mt-rem-b:hover{filter:brightness(1.05)}
 .mt-rem .mt-rem-l{font:600 15px/1.2 var(--display);color:var(--ink);text-underline-offset:3px;min-height:44px;display:inline-flex;align-items:center}

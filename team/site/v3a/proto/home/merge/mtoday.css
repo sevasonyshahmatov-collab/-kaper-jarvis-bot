@@ -19,7 +19,7 @@
 .mt1 li{flex:1 1 0;min-width:0;transition:flex-grow .45s cubic-bezier(.2,.7,.2,1),opacity .3s ease}
 .mt1 .row.act li{flex-grow:.72;opacity:.55}
 .mt1 .row.act li.on{flex-grow:2.1;opacity:1}
-.mt1 a{display:flex;height:100%;min-height:var(--mh,0px);border-radius:16px;background:var(--card);border:1px solid var(--rule-2);border-top:3px solid var(--sp);overflow:hidden}
+.mt1 a{display:flex;height:100%;min-height:var(--mh,0px);border-radius:var(--rc,16px);background:var(--card);border:1px solid var(--rule-2);border-top:3px solid var(--sp);overflow:hidden}
 .mt1 li.on a{border-color:var(--sp)}
 /* фон по виду спорта (владелец 08.11): хоккей — лёд с разметкой, футбол — газон полосами; чуть-чуть, чтобы различать */
 .mt1 li.hk a{background:linear-gradient(160deg,#16253d 0%,#111c2f 55%,#0f1a2b 100%)}
@@ -58,7 +58,7 @@
 .mt1 dt{font:500 13px/1.2 var(--display);color:var(--ink-3)}
 .mt1 dd{margin:0;font:800 16px/1 var(--display);color:var(--ink)}
 .mt1 .meta{margin:0;font:500 12px/1.35 var(--display);color:var(--ink-3)}
-.mt1 .go{margin-top:auto;align-self:flex-start;padding:8px 12px;border-radius:999px;background:var(--signal);color:var(--signal-ink);font:800 13px/1 var(--display);white-space:nowrap}
+.mt1 .go{margin-top:auto;align-self:flex-start;padding:8px 12px;border-radius:var(--rp,999px);background:var(--signal);color:var(--signal-ink);font:800 13px/1 var(--display);white-space:nowrap}
 @media (max-width:639px){
   .mt1 .row.act li{opacity:1}
   .mt1 a{flex-direction:column}
@@ -73,7 +73,7 @@
 
 /* 2 — билеты */
 .mt2{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:14px}
-.mt2 a{position:relative;display:grid;grid-template-columns:96px 1fr auto;align-items:stretch;min-height:116px;border-radius:14px;background:var(--card);border:1px solid var(--rule-2);overflow:hidden}
+.mt2 a{position:relative;display:grid;grid-template-columns:96px 1fr auto;align-items:stretch;min-height:116px;border-radius:var(--rc,14px);background:var(--card);border:1px solid var(--rule-2);overflow:hidden}
 .mt2 .stub{display:grid;align-content:center;justify-items:center;gap:8px;padding:12px 8px;background:var(--sp);color:#06121f;
   -webkit-mask:radial-gradient(circle 9px at 100% 0,#0000 98%,#000) top/100% 51% no-repeat,radial-gradient(circle 9px at 100% 100%,#0000 98%,#000) bottom/100% 51% no-repeat}
 .mt2 .stub time{font:900 26px/1 var(--display)}
@@ -95,7 +95,7 @@
 .mt3>li::before{content:"";position:absolute;left:-7px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--signal)}
 .mt3>li>time{font:900 34px/1 var(--display);color:var(--ink)}
 .mt3 .slot{display:flex;flex-wrap:wrap;gap:10px;min-width:0}
-.mt3 .ch{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 14px 10px 10px;border-radius:12px;background:var(--card);
+.mt3 .ch{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 14px 10px 10px;border-radius:var(--rc,12px);background:var(--card);
   border:1px solid var(--rule-2);border-left:4px solid var(--sp);flex:0 1 calc((100% - 20px) / 3);min-width:0}
 .mt3 .crs{display:flex}
 #mt .mt3 .crs img{width:34px;height:34px}

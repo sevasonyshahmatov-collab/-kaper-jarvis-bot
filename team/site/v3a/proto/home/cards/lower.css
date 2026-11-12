@@ -56,11 +56,11 @@
 .xtc.pitch .art{background:radial-gradient(90% 60% at 50% 18%,rgba(120,230,170,.18),transparent 70%),repeating-linear-gradient(0deg,rgba(255,255,255,.055) 0 12%,transparent 12% 24%),linear-gradient(170deg,#0f5a3a,#06281a)}
 .cr{display:grid;place-items:center;border-radius:50%;background:var(--crest-bg,#eef3fa);overflow:hidden;flex:none;box-shadow:0 .8cqw 2cqw rgba(0,0,0,.35)}
 .cr img{width:74%;height:74%;object-fit:contain;display:block}
-.chip{display:inline-block;padding:.9cqw 1.6cqw;border-radius:99px;background:rgba(6,10,20,.72);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);font:800 1.5cqw/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:#fff}
-.xgo{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:99px;background:var(--signal);color:var(--signal-ink);font:800 15px/1 var(--display);text-decoration:none}
+.chip{display:inline-block;padding:.9cqw 1.6cqw;border-radius:var(--rp,99px);background:rgba(6,10,20,.72);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);font:800 1.5cqw/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:#fff}
+.xgo{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:var(--rp,99px);background:var(--signal);color:var(--signal-ink);font:800 15px/1 var(--display);text-decoration:none}
 .xgo:hover,.xgo:focus-visible{background:#ffd75e}
 .xgo svg{width:14px;height:14px}
-.odd{display:inline-flex;gap:.8em;align-items:baseline;padding:.5em .9em;border-radius:99px;background:rgba(6,10,20,.7);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);font:700 1em/1 var(--display);color:rgba(255,255,255,.85)}
+.odd{display:inline-flex;gap:.8em;align-items:baseline;padding:.5em .9em;border-radius:var(--rp,99px);background:rgba(6,10,20,.7);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);font:700 1em/1 var(--display);color:rgba(255,255,255,.85)}
 .odd b{color:#fff;font-weight:900}
 
 /* ═══ а) Карточка дня ═══ */
@@ -85,7 +85,7 @@
 .xpb span{font:700 max(12px,2.1cqw)/1.15 var(--display);letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.88);max-width:20cqw}
 .dc-bot{position:absolute;left:3.6cqw;right:3.6cqw;bottom:3cqw;display:grid;grid-template-columns:1fr auto;gap:1.2cqw 2cqw;align-items:center;transform:translateZ(40px);font-size:max(12px,2cqw)}
 .strip{grid-column:1 / -1;display:flex;gap:.5cqw;height:max(26px,4.2cqw)}
-.strip i{--w:33;white-space:nowrap;flex:var(--w) 1 0;min-width:max(64px,9cqw);display:flex;align-items:center;justify-content:space-between;padding:0 1.4cqw;border-radius:99px;background:rgba(6,10,20,.66);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
+.strip i{--w:33;white-space:nowrap;flex:var(--w) 1 0;min-width:max(64px,9cqw);display:flex;align-items:center;justify-content:space-between;padding:0 1.4cqw;border-radius:var(--rp,99px);background:rgba(6,10,20,.66);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
   font:700 max(12px,1.9cqw)/1 var(--display);color:rgba(255,255,255,.78);font-style:normal;overflow:hidden}
 .strip i em{font-style:normal;letter-spacing:.1em}
 .strip i.on{background:rgba(255,255,255,.92);color:#0a1220;box-shadow:none}
@@ -104,7 +104,7 @@
 
 /* ═══ б) Колода матчей ═══ */
 .xchips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 clamp(4px,1vw,12px)}
-.chipb{appearance:none;border:0;cursor:pointer;padding:11px 16px;border-radius:99px;background:transparent;color:var(--ink-2);box-shadow:inset 0 0 0 1.5px var(--rule-2);font:700 15px/1 var(--display);letter-spacing:.02em;transition:background .2s,color .2s}
+.chipb{appearance:none;border:0;cursor:pointer;padding:11px 16px;border-radius:var(--rp,99px);background:transparent;color:var(--ink-2);box-shadow:inset 0 0 0 1.5px var(--rule-2);font:700 15px/1 var(--display);letter-spacing:.02em;transition:background .2s,color .2s}
 .chipb small{margin-left:4px;font:600 12px/1 var(--display);opacity:.7}
 .chipb:hover{background:rgba(255,255,255,.06)}
 .chipb.on{background:var(--ink);color:var(--paper);box-shadow:none}
@@ -138,8 +138,8 @@
 .mc-bk{position:absolute;inset:0;padding:8cqw 8cqw 9cqw;display:flex;flex-direction:column;gap:3.2cqw;transform:translateZ(40px)}
 .mc-bk .kick{color:rgba(255,255,255,.7);font-size:max(10px,4.4cqw);margin-bottom:2cqw}
 .mc-bk .r{display:grid;grid-template-columns:8cqw 1fr 9cqw;align-items:center;gap:2.4cqw;font:700 max(12px,5.4cqw)/1 var(--display);color:rgba(255,255,255,.8)}
-.mc-bk .r i{display:block;height:max(7px,3.4cqw);border-radius:99px;background:rgba(255,255,255,.14);position:relative;overflow:hidden}
-.mc-bk .r i::after{content:"";position:absolute;inset:0;width:calc(var(--w)*1%);border-radius:99px;background:rgba(255,255,255,.55)}
+.mc-bk .r i{display:block;height:max(7px,3.4cqw);border-radius:var(--rp,99px);background:rgba(255,255,255,.14);position:relative;overflow:hidden}
+.mc-bk .r i::after{content:"";position:absolute;inset:0;width:calc(var(--w)*1%);border-radius:var(--rp,99px);background:rgba(255,255,255,.55)}
 .mc-bk .r.on{color:#fff}.mc-bk .r.on i::after{background:#fff}
 .mc-bk .r b{text-align:right;font-weight:800}
 .mc-bk .xgo{margin-top:auto;align-self:flex-start;padding:max(9px,3.4cqw) max(13px,5cqw);font-size:max(13px,5.4cqw)}

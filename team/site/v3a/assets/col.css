@@ -1,7 +1,7 @@
 /* Пробные варианты цветов (?col=1|2) и прежний вид (?col=off), assets/palettes.js. Основной вид — «роли цветов» в конце v3a.css;
    ?col=3 возвращает к нему. Вёрстка не меняется — только цвета. */
-.col-bar{position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:90;display:flex;gap:4px;padding:4px;border-radius:999px;background:#10161f;box-shadow:0 8px 24px rgba(0,0,0,.35)}
-.col-bar button{border:0;border-radius:999px;padding:9px 13px;background:transparent;color:#cfd8e6;font:700 13px/1 var(--display);cursor:pointer;white-space:nowrap}
+.col-bar{position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:90;display:flex;gap:4px;padding:4px;border-radius:var(--rp,999px);background:#10161f;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.col-bar button{border:0;border-radius:var(--rp,999px);padding:9px 13px;background:transparent;color:#cfd8e6;font:700 13px/1 var(--display);cursor:pointer;white-space:nowrap}
 .col-bar button[aria-pressed="true"]{background:#ffc21a;color:#1a1400}
 
 /* ── вариант 1: один светлый фон после первого экрана; акценты — цвет вида спорта ── */

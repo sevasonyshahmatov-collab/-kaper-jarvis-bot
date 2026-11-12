@@ -35,7 +35,11 @@
   --fld-red:rgba(196,48,59,.16); --fld-blue:rgba(20,98,168,.16); --fld-run:rgba(20,98,168,.14); --fld-run2:rgba(16,22,31,.10);
   --crest-bg:transparent; --crest-pad:0;
   color-scheme:light;
+  /* углы (владелец 12.11: убрать «таблетки» и скругления): --rp — кнопки и плашки, --rc — карточки и панели.
+     Прежние значения остались запасными в каждом правиле: ?corners=round (nav.js) возвращает их для сравнения. */
+  --rp:4px; --rc:5px;
 }
+html[data-corners="round"]{--rp:initial;--rc:initial}
 /* ── три палитры: <html data-theme="a|b|c">, по умолчанию «a»; ?theme=b в адресе ─────── */
 /* а) «Ночной лёд»: глубокий сине-графитовый, светлый текст, яркие акценты (рекомендуем) */
 [data-theme="a"]{
@@ -116,8 +120,8 @@ body::after{content:"";position:fixed;inset:-50%;z-index:-1;pointer-events:none;
 .logo i{display:inline-grid;place-items:center;width:22px;height:28px;background:var(--board);color:var(--signal);
   font-style:normal;font-size:20px;border-radius:2px;position:relative}
 .logo i::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.6)} /* taste-skill-ignore: шов флажка */
-.seg{display:flex;background:var(--paper-2);border-radius:999px;padding:3px}
-.seg a{font:700 15px/1 var(--display);letter-spacing:.01em;text-decoration:none;padding:9px 14px;border-radius:999px;color:var(--ink-2);transition:background .2s ease,color .2s ease}
+.seg{display:flex;background:var(--paper-2);border-radius:var(--rp,999px);padding:3px}
+.seg a{font:700 15px/1 var(--display);letter-spacing:.01em;text-decoration:none;padding:9px 14px;border-radius:var(--rp,999px);color:var(--ink-2);transition:background .2s ease,color .2s ease}
 .seg a[aria-current]{background:var(--ink);color:var(--paper)}
 .seg a:not([aria-current]):hover{color:var(--ink)}
 .nav{display:flex;gap:4px;margin-left:auto;position:relative}
@@ -125,7 +129,7 @@ body::after{content:"";position:fixed;inset:-50%;z-index:-1;pointer-events:none;
 .nav a:hover,.nav a.on{color:var(--ink)}
 .nav .bar{position:absolute;bottom:2px;height:3px;background:var(--sport);left:0;width:0;transition:transform .45s var(--out),width .45s var(--out);border-radius:2px}
 .btn{display:inline-flex;align-items:center;gap:10px;font:700 17px/1 var(--display);letter-spacing:.01em;text-decoration:none;
-  padding:14px 20px;border-radius:999px;border:0;cursor:pointer;transition:transform .16s var(--out),background .2s ease,color .2s ease;white-space:nowrap}
+  padding:14px 20px;border-radius:var(--rp,999px);border:0;cursor:pointer;transition:transform .16s var(--out),background .2s ease,color .2s ease;white-space:nowrap}
 .btn:active{transform:scale(.97)}
 .btn svg{width:18px;height:18px;flex:none}
 .btn-tg{background:var(--signal);color:var(--signal-ink)}
@@ -175,7 +179,7 @@ section{position:relative}
 .facts b{font:800 clamp(40px,4vw,60px)/.9 var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .facts li>span{font-size:15px;color:var(--ink-2)}
 .chips{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:30px 0 0;padding:0}
-.chips a{display:flex;align-items:center;gap:8px;font:600 15px/1 var(--display);text-decoration:none;padding:6px 12px 6px 6px;background:var(--paper-2);border-radius:999px;transition:background .2s ease,transform .16s var(--out)}
+.chips a{display:flex;align-items:center;gap:8px;font:600 15px/1 var(--display);text-decoration:none;padding:6px 12px 6px 6px;background:var(--paper-2);border-radius:var(--rp,999px);transition:background .2s ease,transform .16s var(--out)}
 .chips a:hover{background:var(--paper-3)}
 .chips a:active{transform:scale(.97)}
 .chips a>img{width:24px;height:24px}
@@ -183,7 +187,7 @@ section{position:relative}
 @media (max-width:980px){.hero .wrap{grid-template-columns:1fr}}
 
 /* ── табло split-flap ───────────────────────────────────────── */
-.board{background:var(--board);color:var(--flap-ink);border-radius:10px;padding:clamp(14px,2vw,22px);container-type:inline-size;
+.board{background:var(--board);color:var(--flap-ink);border-radius:var(--rc,10px);padding:clamp(14px,2vw,22px);container-type:inline-size;
   box-shadow:0 30px 60px -30px var(--shadow),0 0 0 1px rgba(255,255,255,.07) inset;position:relative} /* taste-skill-ignore: табло — предмет, висит над страницей */
 .board-top{display:flex;justify-content:space-between;align-items:center;gap:10px;font:600 15px/1.2 var(--display);letter-spacing:.02em;color:#b9b6aa;margin-bottom:14px}
 .board-top b{color:var(--signal);font-weight:700}
@@ -217,7 +221,7 @@ section{position:relative}
 
 /* ── матчи дня ──────────────────────────────────────────────── */
 .tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px;position:relative}
-.tab{display:flex;align-items:center;gap:7px;font:600 16px/1 var(--display);padding:9px 14px 9px 10px;border-radius:999px;border:0;background:var(--paper-2);cursor:pointer;transition:background .2s ease,color .2s ease,transform .16s var(--out)}
+.tab{display:flex;align-items:center;gap:7px;font:600 16px/1 var(--display);padding:9px 14px 9px 10px;border-radius:var(--rp,999px);border:0;background:var(--paper-2);cursor:pointer;transition:background .2s ease,color .2s ease,transform .16s var(--out)}
 .tab img{width:22px;height:22px}
 .tab .c{font-variant-numeric:tabular-nums;color:var(--ink-3)}
 .tab[aria-selected="true"]{background:var(--ink);color:var(--paper)}
@@ -432,7 +436,7 @@ footer{margin-top:clamp(80px,11vw,170px);padding-bottom:40px}
 
 /* ── нижняя плашка на телефоне ──────────────────────────────── */
 .tgbar{position:fixed;left:12px;right:12px;bottom:12px;z-index:45;display:none;justify-content:space-between;align-items:center;gap:10px;
-  background:var(--signal);color:var(--signal-ink);text-decoration:none;font:700 17px/1 var(--display);padding:15px 18px;border-radius:999px;
+  background:var(--signal);color:var(--signal-ink);text-decoration:none;font:700 17px/1 var(--display);padding:15px 18px;border-radius:var(--rp,999px);
   box-shadow:0 12px 24px -12px var(--shadow);transform:translateY(140%);transition:transform .45s var(--out)} /* taste-skill-ignore: плавающая плашка */
 .tgbar.on{transform:none}
 @media (max-width:760px){.tgbar{display:flex}}
@@ -467,7 +471,7 @@ footer{margin-top:clamp(80px,11vw,170px);padding-bottom:40px}
 .door .stat{display:flex;gap:28px;flex-wrap:wrap}
 .door .stat b{display:block;font:800 clamp(36px,3.4vw,52px)/.9 var(--display);font-variant-numeric:tabular-nums}
 .door .stat div>span{font-size:14px;color:var(--ink-2)}
-.door .go{display:inline-flex;align-items:center;gap:12px;font:800 22px/1 var(--display);color:var(--sport-ink);background:var(--sport);padding:16px 22px;border-radius:999px;justify-self:start;transition:transform .45s var(--out)}
+.door .go{display:inline-flex;align-items:center;gap:12px;font:800 22px/1 var(--display);color:var(--sport-ink);background:var(--sport);padding:16px 22px;border-radius:var(--rp,999px);justify-self:start;transition:transform .45s var(--out)}
 .door .go svg{width:20px;height:20px;transition:transform .45s var(--out)}
 .door.hk{--sport:var(--ice)} .door.fb{--sport:var(--pitch)}
 @media (hover:hover) and (pointer:fine){.door:hover{background:var(--card-hi)}.door:hover .go svg{transform:translateX(6px)}.door:hover h2{color:var(--sport)}}
@@ -616,7 +620,7 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 [data-theme="arena"] #honest>.wrap{
   --paper:#0e1a30; --paper-2:#18284a; --paper-3:#22365e; --card:#13213d; --ink:#eef3fb; --ink-2:#c0cde2; --ink-3:#97a8c6; --rule:#22365e; --rule-2:#3a5384;
   --sport:#4cc2ff; --crest-bg:#eef3fa; --crest-pad:1; --win:#34d27f; --win-ink:#03200f; --red:#ff6b78; --loss-ink:#2b0409;
-  color:var(--ink);background:radial-gradient(60% 80% at 100% 0%,rgba(62,224,255,.12),transparent 60%),#0e1a30;border-radius:12px;
+  color:var(--ink);background:radial-gradient(60% 80% at 100% 0%,rgba(62,224,255,.12),transparent 60%),#0e1a30;border-radius:var(--rc,12px);
   padding-top:clamp(32px,4vw,64px);padding-bottom:clamp(32px,4vw,64px)}
 @media (max-width:620px){[data-theme="arena"] #honest>.wrap{border-radius:0}}
 [data-theme="arena"] .sub{background:#0b1730}
@@ -737,7 +741,7 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 
 /* ── «Лиги и клубы»: две большие плашки — переключатель лиг ── */
 .leagues.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;background:none;overflow:visible}
-.lgtab{position:relative;overflow:hidden;display:block;text-align:left;border:0;border-radius:10px;cursor:pointer;color:#fff;min-height:clamp(170px,15vw,220px);
+.lgtab{position:relative;overflow:hidden;display:block;text-align:left;border:0;border-radius:var(--rc,10px);cursor:pointer;color:#fff;min-height:clamp(170px,15vw,220px);
   padding:clamp(20px,2.4vw,34px);transition:opacity .3s ease,filter .3s ease,transform .3s var(--out),box-shadow .3s ease}
 .lgtab.khl{background:radial-gradient(90% 120% at 100% 0%,rgba(255,255,255,.10),transparent 60%),linear-gradient(120deg,#071d58 0%,var(--khl-a) 35%,var(--khl-b) 100%);box-shadow:inset 0 -6px 0 var(--khl-r)}
 .lgtab.nhl{background:radial-gradient(90% 120% at 100% 0%,rgba(255,255,255,.14),transparent 60%),linear-gradient(120deg,#07080a 0%,#1d2228 45%,#4c5560 100%);box-shadow:inset 0 -6px 0 var(--nhl-s)}
@@ -761,7 +765,7 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 /* эмблемы целиком: без круглой маски, contain, поля уже внутри файла */
 .crest .em,.wall .em{border-radius:8px;background:transparent;padding:0;width:64px;height:64px;object-fit:contain}
 @media (max-width:560px){.crest .em,.wall .em{width:52px;height:52px}}
-.em{border-radius:12px}
+.em{border-radius:var(--rc,12px)}
 
 /* ── аналитическая таблица (перенесено с лендинга: 6 листов), под светлую газету ── */
 .eyebrow{font:700 14px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--ice);margin:0 0 12px}
@@ -770,7 +774,7 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 .feat li::before{content:"";flex:none;width:12px;height:12px;margin-top:6px;border-radius:50%;border:3px solid var(--ice)}
 .tour{--tone:var(--ice);display:grid;gap:18px}
 .tour-steps{display:flex;gap:6px;flex-wrap:wrap}
-.tstep{font:600 16px/1 var(--display);padding:10px 14px;border-radius:999px;border:0;background:var(--paper-2);color:var(--ink-2);cursor:pointer;transition:background .25s ease,color .25s ease}
+.tstep{font:600 16px/1 var(--display);padding:10px 14px;border-radius:var(--rp,999px);border:0;background:var(--paper-2);color:var(--ink-2);cursor:pointer;transition:background .25s ease,color .25s ease}
 .tstep.on{background:var(--ink);color:var(--paper)}
 .tour-grid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(24px,4vw,56px);align-items:center}
 .tour .stack{display:grid}
@@ -783,7 +787,7 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 .tc li{display:flex;gap:12px;align-items:flex-start}
 .tc li::before{content:"";flex:none;width:10px;height:10px;margin-top:8px;border-radius:50%;border:3px solid var(--tone)}
 .tc-cta{margin-top:20px}
-.win{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 0 0 1px rgba(16,40,80,.12),0 30px 60px -36px rgba(16,40,80,.45);color:var(--ink)}
+.win{background:#fff;border-radius:var(--rc,12px);overflow:hidden;box-shadow:0 0 0 1px rgba(16,40,80,.12),0 30px 60px -36px rgba(16,40,80,.45);color:var(--ink)}
 .win-bar{display:flex;align-items:center;gap:6px;padding:10px 14px;background:#f1f4f8;border-bottom:1px solid #dde3ea}
 .win-bar i{width:10px;height:10px;border-radius:50%;background:#cfd6df}
 .win-bar span{margin-left:auto;font:600 13px/1 var(--display);color:var(--ink-3)}
@@ -800,8 +804,8 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 .er b{color:var(--ink-3);font-weight:600}
 .er .em{width:26px;height:26px;border-radius:0}
 .er span{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.er em{height:10px;border-radius:99px;background:#e6ebf1;position:relative;overflow:hidden}
-.er em::after{content:"";position:absolute;inset:0 auto 0 0;width:0;border-radius:99px;background:linear-gradient(90deg,var(--khl-b),#5aa0e6);transition:width 1s var(--out) .15s}
+.er em{height:10px;border-radius:var(--rp,99px);background:#e6ebf1;position:relative;overflow:hidden}
+.er em::after{content:"";position:absolute;inset:0 auto 0 0;width:0;border-radius:var(--rp,99px);background:linear-gradient(90deg,var(--khl-b),#5aa0e6);transition:width 1s var(--out) .15s}
 .tv.on .er em::after{width:var(--w)}
 .er strong{text-align:right}.er small{font-size:13px;text-align:right}.er .up{color:#1a7342}.er .dn{color:#c4303b}
 .gt,.heat{width:100%;border-collapse:collapse;font:500 15px/1.2 var(--display);font-variant-numeric:tabular-nums}
@@ -810,8 +814,8 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 .gt td:first-child{color:var(--ink-3)}
 .gt td.k{color:#a8410a;font-weight:800}
 .gt td:last-child{display:flex;align-items:center;gap:8px}
-.pb{display:inline-block;width:46px;height:6px;border-radius:99px;background:#e6ebf1;position:relative;overflow:hidden}
-.pb::after{content:"";position:absolute;inset:0 auto 0 0;width:0;background:var(--khl-b);border-radius:99px;transition:width .9s .2s}
+.pb{display:inline-block;width:46px;height:6px;border-radius:var(--rp,99px);background:#e6ebf1;position:relative;overflow:hidden}
+.pb::after{content:"";position:absolute;inset:0 auto 0 0;width:0;background:var(--khl-b);border-radius:var(--rp,99px);transition:width .9s .2s}
 .tv.on .pb::after{width:var(--w)}
 .heat td{padding:8px 6px;text-align:center;border:2px solid #fff;border-radius:8px;background:rgba(22,83,214,calc(var(--h,0)*.5));color:var(--ink);font-weight:600}
 .heat td:first-child{background:none;text-align:left;font-weight:700;white-space:nowrap}
@@ -935,7 +939,7 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 @media (max-width:560px){.h2l li{grid-template-columns:38px minmax(0,1fr) auto minmax(0,1fr);font-size:13px}.h2l .smp{display:none}.l3 li{font-size:13.5px}}
 
 /* ссылка «Страница лиги →» рядом с названием лиги (шапка стены клубов, шапка клуба) */
-.wallh .lglink{margin-left:auto;font:700 15px/1 var(--display);letter-spacing:.01em;text-decoration:none;color:var(--ink);padding:10px 16px;border-radius:999px;box-shadow:inset 0 0 0 2px var(--ink);white-space:nowrap;transition:background .2s ease,color .2s ease}
+.wallh .lglink{margin-left:auto;font:700 15px/1 var(--display);letter-spacing:.01em;text-decoration:none;color:var(--ink);padding:10px 16px;border-radius:var(--rp,999px);box-shadow:inset 0 0 0 2px var(--ink);white-space:nowrap;transition:background .2s ease,color .2s ease}
 .wallh .lglink:hover{background:var(--ink);color:var(--paper)}
 @media (max-width:620px){.wallh{flex-wrap:wrap}.wallh .lglink{margin-left:0}}
 .tmlg a.lglnk{display:inline-flex;align-items:center;gap:8px;color:inherit;text-decoration:none}
@@ -1043,7 +1047,7 @@ html[data-theme="arena"]:not([data-col]) .sec{--ink-3:#414d5c}
 /* команда в карточке матча — ссылка на страницу клуба: без свечения, при наведении подчёркивается название */
 .face a.tm{text-decoration:none;color:inherit;cursor:pointer}
 .face a.tm:hover>span:last-child{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:2px}
-.face a.tm:focus-visible{outline:2px solid currentColor;outline-offset:6px;border-radius:12px}
+.face a.tm:focus-visible{outline:2px solid currentColor;outline-offset:6px;border-radius:var(--rc,12px)}
 /* светлая подложка — для эмблем, которые теряются на тёмной (assets/em/plates.js, team/site/emblems_plates.py) */
 .emq.lt{background:linear-gradient(180deg,#ffffff,#e3e9f4);box-shadow:inset 0 0 0 2.5px var(--c,#2a3f6b)}
 

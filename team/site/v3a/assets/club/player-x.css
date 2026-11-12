@@ -81,3 +81,32 @@
 @media (prefers-reduced-motion:reduce){.pp-stick,.pp-stick.on{transition:none}}
 /* якоря разделов не прячутся под шапкой и полосой */
 .pp-sec{scroll-margin-top:140px}
+
+/* ── место в лиге под цифрой (плашка, как «30-й в НХЛ» на nhl.com) ── */
+.pp-rk{display:inline-block;justify-self:start;margin-top:4px;padding:3px 7px;border:1.5px solid currentColor;border-radius:3px;
+  font:800 11px/1 var(--display);font-style:normal;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:var(--ink-2)}
+.pp-tile .pp-rk{justify-self:center}
+.pp-tile{text-align:center;justify-items:center}
+.pp.k.x .pp-hs .pp-rk{color:var(--ko);margin-top:8px;font-size:10px;padding:3px 5px}
+@media (max-width:720px){.pp.k.x .pp-hs .pp-rk{display:none}}
+
+/* ── «Последние 5 матчей»: таблица с чёрной шапкой вместо плиток ── */
+.pp-t5{width:100%;border-collapse:collapse;font:600 17px/1.2 var(--display);font-variant-numeric:tabular-nums}
+.pp-t5 thead th{background:#0b0c0e;color:#fff;font:800 13px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;text-align:left;padding:13px 12px;white-space:nowrap}
+.pp-t5 th.n,.pp-t5 td.n{text-align:center}
+.pp-t5 td{padding:12px;border-bottom:1px solid var(--rule-2,#d5dce6)}
+.pp-t5 tbody tr:nth-child(even) td{background:var(--paper-2)}
+.pp-t5 .d{color:var(--ink-2);white-space:nowrap}
+.pp-t5 .op{display:inline-flex;align-items:center;gap:10px;color:inherit;text-decoration:none;font-weight:700}
+.pp-t5 .op:hover span{text-decoration:underline;text-underline-offset:3px}
+.pp-t5 .op img{width:30px;height:30px;object-fit:contain;flex:none}
+.pp-t5 td b{font-weight:900}
+.pp-t5 .sc{white-space:nowrap}
+.pp-t5 .sc i{display:inline-grid;place-items:center;width:22px;height:22px;margin-right:4px;font:900 12px/1 var(--display);font-style:normal;color:#fff;border-radius:3px;vertical-align:1px}
+.pp-t5 .sc i.w{background:#0c8a4a}.pp-t5 .sc i.l{background:#c8102e}
+/* та же чёрная шапка — у таблицы всех матчей сезона */
+.pp.k.x .pp-gm thead th{background:#0b0c0e;color:#fff;border-bottom:0}
+@media (max-width:620px){
+  .pp-t5{font-size:14px}.pp-t5 td,.pp-t5 thead th{padding:9px 5px}.pp-t5 thead th{font-size:11px}
+  .pp-t5 .tm,.pp-t5 .br{display:none}.pp-t5 .op img{width:22px;height:22px}.pp-t5 .op{gap:6px}
+}

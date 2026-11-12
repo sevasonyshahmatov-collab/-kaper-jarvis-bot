@@ -110,15 +110,15 @@ html[data-white] body{background:#fff}
 @media (max-width:900px){.pr.k .pts b{font-size:22px;opacity:.75}}
 
 /* Отдельная плашка справа: очки (Гол+пас), голы (Гол) или передачи (Пас) — владелец 07.11 */
-.pr.k .tot{position:absolute;z-index:2;left:calc(52% + 168px);top:50%;transform:translateY(-50%);min-width:68px;padding:10px 14px;border-radius:14px;
+.pr.k .tot{position:absolute;z-index:2;left:calc(52% + 168px);top:50%;transform:translateY(-50%);min-width:68px;padding:10px 14px;border-radius:var(--rc,14px);
   font:900 34px/1 var(--display);letter-spacing:-.02em;text-align:center;color:var(--ko);
   background:color-mix(in srgb,var(--kb) 70%,#000);box-shadow:inset 0 0 0 2px var(--kx),0 8px 18px -10px rgba(0,0,0,.6)}
-@media (max-width:900px){.pr.k .tot{left:auto;right:10px;top:10px;transform:none;min-width:0;padding:6px 9px;border-radius:10px;font-size:20px}}
+@media (max-width:900px){.pr.k .tot{left:auto;right:10px;top:10px;transform:none;min-width:0;padding:6px 9px;border-radius:var(--rc,10px);font-size:20px}}
 
 /* «9+31» — отдельной плашкой справа от строки (владелец 07.11, рисунок); внутри строки на компьютере не показываем */
 .pl-list.two{grid-template-columns:minmax(0,1fr) 150px;align-items:stretch;column-gap:12px}
 .pl-list.two>.pl-more{grid-column:1/-1}
-.ga{display:grid;place-items:center;border-radius:16px;font:900 34px/1 var(--display);letter-spacing:-.02em;white-space:nowrap;
+.ga{display:grid;place-items:center;border-radius:var(--rc,16px);font:900 34px/1 var(--display);letter-spacing:-.02em;white-space:nowrap;
   color:var(--ink);background:var(--card-hi,#fff);border:2px solid var(--rule)}
 .ga.k{color:var(--kb);border-color:var(--kb);background:color-mix(in srgb,var(--kb) 7%,#fff);box-shadow:0 10px 22px -16px var(--kb)}
 .pr.k .pts.pin{display:none}
