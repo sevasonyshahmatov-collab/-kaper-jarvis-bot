@@ -1,1 +1,1 @@
-window.JV_POSTS={};
+window.JV_POSTS={"nhl|2026-11-13|nhl_fla|nhl_det":{"id":1571,"url":"https://t.me/jarvibet/1571","src":"model","bet":"Тотал матча больше 5,5 в основное время","kef":1.75,"r":null},"nhl|2026-11-13|nhl_ott|nhl_col":{"id":1572,"url":"https://t.me/jarvibet/1572","src":"model","bet":"Индивидуальный тотал Колорадо больше 2,5 в основное время","kef":1.61,"r":null},"nhl|2026-11-13|nhl_njd|nhl_wsh":{"id":1570,"url":"https://t.me/jarvibet/1570","src":"author","bet":"Победа Нью-Джерси в основное время","kef":2.13,"r":null}};
