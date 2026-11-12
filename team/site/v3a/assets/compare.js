@@ -92,7 +92,7 @@ function clubView(a,b){
   /* дом и выезд: две карточки, в каждой обе команды — победы–поражения и доля побед полосой */
   const venue=()=>{if(!A.tr||!B.tr)return '';const pc=r=>r[0]+r[1]?r[0]/(r[0]+r[1])*100:0;
     const card=(h,k)=>{const x=A.tr[k],y=B.tr[k],pa=pc(x),pb=pc(y),w=win(pa,pb);
-      const ln=(s,e,n,r,p)=>`<div class="ln ${s}">${e}<span>${esc(n)}</span><b>${r[0]}–${r[1]}</b><i aria-hidden="true"><u style="width:${Math.round(p)}%"></u></i><em>${Math.round(p)} %</em></div>`;
+      const ln=(s,e,n,r,p)=>`<div class="ln ${s}">${e}<span>${esc(n)}</span><b>${r[0]}–${r[1]}</b><i aria-hidden="true"><u style="width:${Math.round(p)}%"></u></i><em>${Math.round(p)} %</em></div>`;
       return `<div class="cmp-vc w-${w}" data-w="${w}"><h3>${h}<small>победы–поражения, доля побед</small></h3>${ln('a',ea,A.name,x,pa)}${ln('b',eb,B.name,y,pb)}</div>`};
     return `<div class="cmp-ven">${card('Дома','home')}${card('В гостях','away')}</div>`};
   /* футбол: ближайшая встреча из расчёта модели (JV_FOOT.up) */

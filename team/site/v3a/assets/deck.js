@@ -71,7 +71,7 @@ function cardHtml(m,i,n){const {ln,md}=info(m),pk=pick(m,md),fl=J.fair(ln),mx=fl
    </div>
   </div>
   <div class="dk-cbot">${ql}
-  ${pk?`<p class="dk-pick">Самый вероятный исход по модели<b>${esc(pk[1])} · <em>${p0(pk[0])} %</em></b></p>`:''}</div>
+  ${pk?`<p class="dk-pick">Самый вероятный исход по модели<b>${esc(pk[1])} · <em>${p0(pk[0])} %</em></b></p>`:''}</div>
   </div>`}
 
 const deck=$('dk-deck'),stage=$('dk-stage');
@@ -144,11 +144,11 @@ function infoHtml(m){const {ln,md}=info(m);let h='';
   h+=`<div class="dk-blk"><h3>Таблица и форма</h3>${teamRow(m,m.h,m.hn)}${teamRow(m,m.a,m.an)}</div>`;
   if(md){
     const rows=[[md.p1,'П1 · '+m.hn],[md.x,isH(m)?'Х · ничья в осн. время':'Х · ничья'],[md.p2,'П2 · '+m.an]].filter(r=>r[0]!=null),mx=Math.max(...rows.map(r=>r[0]));
-    h+=`<div class="dk-blk"><h3>Модель JARVIS · вероятности</h3>${rows.map(r=>`<div class="dk-pb${r[0]===mx?' top':''}"><span title="${esc(r[1])}">${esc(r[1])}</span><em><i style="--w:${p0(r[0])}%"></i></em><b>${p0(r[0])} %</b></div>`).join('')}`;
+    h+=`<div class="dk-blk"><h3>Модель JARVIS · вероятности</h3>${rows.map(r=>`<div class="dk-pb${r[0]===mx?' top':''}"><span title="${esc(r[1])}">${esc(r[1])}</span><em><i style="--w:${p0(r[0])}%"></i></em><b>${p0(r[0])} %</b></div>`).join('')}`;
     const kv=[];
-    if(md.over!=null&&md.tot!=null)kv.push(`Тотал ${f1(md.tot)}: больше <b>${p0(md.over)} %</b>, меньше <b>${100-p0(md.over)} %</b>`);
-    if(!isH(m)&&md.btts!=null)kv.push(`Обе забьют: <b>${p0(md.btts)} %</b>`);
-    if(isH(m)&&md.w1!=null&&md.w2!=null)kv.push(`Победа с ОТ/буллитами: ${esc(m.hn)} <b>${p0(md.w1)} %</b>, ${esc(m.an)} <b>${p0(md.w2)} %</b>`);
+    if(md.over!=null&&md.tot!=null)kv.push(`Тотал ${f1(md.tot)}: больше <b>${p0(md.over)} %</b>, меньше <b>${100-p0(md.over)} %</b>`);
+    if(!isH(m)&&md.btts!=null)kv.push(`Обе забьют: <b>${p0(md.btts)} %</b>`);
+    if(isH(m)&&md.w1!=null&&md.w2!=null)kv.push(`Победа с ОТ/буллитами: ${esc(m.hn)} <b>${p0(md.w1)} %</b>, ${esc(m.an)} <b>${p0(md.w2)} %</b>`);
     if(Array.isArray(md.lam)&&md.lam.length===2)kv.push(`Ожидаемые голы: ${esc(m.hn)} <b>${f1(md.lam[0])}</b>, ${esc(m.an)} <b>${f1(md.lam[1])}</b>`);
     if(kv.length)h+=`<div class="dk-kv" style="flex-direction:column;gap:6px">${kv.map(x=>`<span>${x}</span>`).join('')}</div>`;
     h+=`<p class="dk-note">${esc(J.verName(md.ver||''))||'Модель JARVIS'}${md.t?', расчёт от '+esc(J.hhmm(md.t))+' МСК':''}. Это оценка вероятностей, а не обещание исхода.</p></div>`}

@@ -107,7 +107,7 @@ function v7(hero,M,S){
  const t=M.top;
  const root=document.createElement('div');root.className='h7';root.dataset.sp=S;if(HOME)root.id='today';
  const strip=()=>{const x=nextOf(M);return `${M.nowDay?'Сегодня':'В ближайший день'} ${ru(M.total)}${x?` · ближайший через ${cdStr(x)}`:''}`};
- const day=!t?'':`<a class="cs-md" href="${HOME?(t.sp==='f'?'football':'hockey')+'/index.html':'#matches'}"><span class="cs-mt"><time class="num">${t.t.slice(11,16)}</time>${LGP(t.lg)}</span><b class="cs-mm">${esc(t.hn)} — ${esc(t.an)}</b><span class="cs-mo">${esc(t.top.word)}</span><span class="cs-mp num">${pct(t.top.p)} %</span><span class="cs-mk num">${f2(t.top.k)}</span></a>`;
+ const day=!t?'':`<a class="cs-md" href="${HOME?(t.sp==='f'?'football':'hockey')+'/index.html':'#matches'}"><span class="cs-mt"><time class="num">${t.t.slice(11,16)}</time>${LGP(t.lg)}</span><b class="cs-mm">${esc(t.hn)} — ${esc(t.an)}</b><span class="cs-mo">${esc(t.top.word)}</span><span class="cs-mp num">${pct(t.top.p)} %</span><span class="cs-mk num">${f2(t.top.k)}</span></a>`;
  const go=HOME?'<div class="cs-go"><a href="hockey/index.html">Хоккей <span aria-hidden="true">→</span></a><a href="football/index.html">Футбол <span aria-hidden="true">→</span></a></div>':'';
  root.innerHTML=`<div class="cs-top"><canvas class="cs-cv" aria-hidden="true"></canvas>
   <div class="cs-in"><div class="cs-copy"><h1 class="cs-h">${h1}</h1><p>Вероятность каждого исхода считает модель. Прогнозы приходят в Telegram до матча.</p>${CTA}</div>
@@ -127,7 +127,7 @@ function v8(hero,M,S){
  const arrow='<svg viewBox="0 0 22 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M0 6h20M15 1l5 5-5 5"/></svg>';
  const root=document.createElement('div');root.className='h8';root.dataset.sp=S;
  const strip=()=>{const x=nextOf(M);return `${M.nowDay?'Сегодня':'В ближайший день'} ${ru(M.total)}${x?` · ближайший через ${cdStr(x)}`:''}`};
- const day=!t?'':`<a class="sh-md" href="#matches"><span class="sh-mt"><time class="num">${t.t.slice(11,16)}</time>${LGP(t.lg)}</span><b class="sh-mm">${esc(t.hn)} — ${esc(t.an)}</b><span class="sh-mo">${esc(t.top.word)}</span><span class="sh-mp num">${pct(t.top.p)} %</span><span class="sh-mk num">${f2(t.top.k)}</span></a>`;
+ const day=!t?'':`<a class="sh-md" href="#matches"><span class="sh-mt"><time class="num">${t.t.slice(11,16)}</time>${LGP(t.lg)}</span><b class="sh-mm">${esc(t.hn)} — ${esc(t.an)}</b><span class="sh-mo">${esc(t.top.word)}</span><span class="sh-mp num">${pct(t.top.p)} %</span><span class="sh-mk num">${f2(t.top.k)}</span></a>`;
  root.innerHTML=`<div class="sh-top" data-kind="${kind}"><div class="sh-fb" aria-hidden="true"><i class="sh-haze"></i><i class="sh-ray a"></i><i class="sh-ray b"></i><i class="sh-ray c"></i><i class="sh-frost"></i><i class="sh-mist"></i><i class="sh-grain"></i></div>
   <canvas class="sh-cv" aria-hidden="true"></canvas>
   <div class="sh-in"><div class="sh-copy"><h1 class="sh-h">${h1}</h1><p>Вероятность каждого исхода считает модель. Прогнозы приходят в Telegram до матча.</p>

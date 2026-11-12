@@ -53,7 +53,7 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
  tiles.push(tile('Штраф, мин',pim));
  const lgName=nhl?'НХЛ':'КХЛ';
  const teamHref=`../team/index.html?id=${encodeURIComponent(P.t)}`;
- const photo=P.img?`<img class="ph" src="${esc(P.img)}" alt="${esc(P.n)}" onerror="this.remove()">`:'';
+ const photo=P.img?`<img class="ph" src="${esc(P.img)}" alt="${esc(P.n)}" onerror="this.parentNode.classList.add('nop');this.remove()">`:'';
  let html=`<article class="pp-hero" aria-label="${esc(P.n)}">
   ${P.no!=null?`<span class="pp-no" aria-hidden="true">${esc(P.no)}</span>`:''}
   <div class="pp-txt">
@@ -62,7 +62,7 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
    <h1>${small?esc(small)+' ':''}<b${String(big).length>9?` style="--fz:${(9/String(big).length).toFixed(3)}"`:''}>${esc(big)}</b></h1>
    <p class="pp-sub">${G}+${A}=${G+A} в ${gp} ${pl(gp,'матче','матчах','матчах')} сезона</p>
   </div>
-  <div class="pp-photo"><span class="pp-ini" aria-hidden="true">${esc(ini)}</span>${photo}</div>
+  <div class="pp-photo${P.img?'':' nop'}"><span class="pp-ini" aria-hidden="true">${esc(ini)}</span>${photo}</div>
  </article>
  <section class="pp-sec" aria-labelledby="h-s"><h2 id="h-s">Сезон</h2><div class="pp-tiles">${tiles.join('')}</div></section>${radar(P.sk)}
  <section class="pp-sec" aria-labelledby="h-m"><h2 id="h-m">В скольких матчах</h2>

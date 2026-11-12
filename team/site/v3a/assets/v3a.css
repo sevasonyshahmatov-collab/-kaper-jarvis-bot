@@ -108,7 +108,7 @@ body::after{content:"";position:fixed;inset:-50%;z-index:-1;pointer-events:none;
 @keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}100%{transform:translate(0,0)}}
 
 /* ── шапка ──────────────────────────────────────────────────── */
-.hd{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--paper) 92%,transparent);
+.hd{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--paper) 98%,transparent);
   transition:box-shadow .3s ease}
 .hd.stuck{box-shadow:0 6px 18px -12px var(--shadow)} /* taste-skill-ignore: липкая шапка */
 .hd .wrap{display:flex;align-items:center;gap:clamp(12px,2.4vw,32px);height:64px}
@@ -154,8 +154,8 @@ body::after{content:"";position:fixed;inset:-50%;z-index:-1;pointer-events:none;
 
 /* ── типографика разделов ───────────────────────────────────── */
 h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
-h1{font-weight:800;font-size:clamp(50px,7.4vw,118px);line-height:.88;letter-spacing:-.025em;text-transform:uppercase}
-h2{font-weight:800;font-size:clamp(40px,5.6vw,88px);line-height:.92;letter-spacing:-.02em;text-transform:uppercase}
+h1{font-weight:800;font-size:clamp(50px,7.4vw,118px);line-height:1;letter-spacing:-.025em;text-transform:uppercase}
+h2{font-weight:800;font-size:clamp(40px,5.6vw,88px);line-height:1.08;letter-spacing:-.02em;text-transform:uppercase}
 h3{font-weight:700;font-size:clamp(22px,1.9vw,28px);line-height:1.08;letter-spacing:-.005em}
 .lead{font-size:clamp(18px,1.45vw,21px);line-height:1.5;max-width:44ch;margin:22px 0 0}
 .note{font-size:14px;color:var(--ink-3);line-height:1.45}
@@ -538,7 +538,7 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 }
 @media (max-width:620px){
   .hero{padding-top:18px}
-  .hero h1{font-size:clamp(36px,10.4vw,46px);line-height:.9}
+  .hero h1{font-size:clamp(36px,10.4vw,46px);line-height:1.08}
   .hero .lead{margin-top:6px;font-size:17px}
   .facts{margin-top:22px}.facts b{font-size:38px}
   .board{padding:12px}.board-top{margin-bottom:8px}.brow{margin-top:4px}.board-foot{margin-top:10px}
@@ -591,7 +591,7 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
   --ink:#eaf3ff; --ink-2:#b8c9e4; --ink-3:#8fa6cc; --rule:#1e3460; --rule-2:#2c4675;
   --ice:#3ee0ff; --sport:#3ee0ff; --crest-bg:#eef3fa; --crest-pad:1; --shadow:rgba(0,0,0,.6);
   color:var(--ink)}
-[data-theme="arena"] .hd{background:color-mix(in srgb,var(--bgc,var(--paper)) 90%,transparent);transition:color .3s ease}
+[data-theme="arena"] .hd{background:color-mix(in srgb,var(--bgc,var(--paper)) 98%,transparent);transition:color .3s ease}
 [data-theme="arena"] .hero>.wrap{opacity:calc(1 - var(--lit) * 1.6)}
 [data-theme="arena"] .hero{padding-bottom:clamp(64px,9vw,140px)}
 [data-theme="arena"] .hero h1 .ln:last-child{color:var(--ice)}
@@ -777,7 +777,7 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 .tour .stack>*{grid-area:1/1;opacity:0;visibility:hidden;transform:translateX(16px);transition:opacity .45s ease,transform .5s var(--out),visibility .45s}
 .tour .stack>.on{opacity:1;visibility:visible;transform:none}
 @media (prefers-reduced-motion:reduce){.tour .stack>*{transition:none;transform:none}}
-.tc h3{font-size:clamp(30px,3.2vw,46px);font-weight:800;text-transform:uppercase;line-height:.95}
+.tc h3{font-size:clamp(30px,3.2vw,46px);font-weight:800;text-transform:uppercase;line-height:1.08}
 .tc p{margin:14px 0 0;max-width:46ch}
 .tc ul{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:8px}
 .tc li{display:flex;gap:12px;align-items:flex-start}

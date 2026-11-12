@@ -138,8 +138,8 @@ const row=g=>{const t=day(g.d),opp=`<a class="op" href="${teamHref(g.o,g.c||CUP)
  const when=`<span class="gd"><b>${t.d} ${t.mon}</b><small>${t.wd}${t.tm?' · '+t.tm:''}</small></span>`;
  const ha=`<span class="ha ${g.h?'h':'a'}" title="${g.h?'дома':'в гостях'}">${g.h?'Д':'В'}</span>`;
  if(played(g)){const r=rOf(g);return `<li class="g ${g.h?'home':'away'}">${when}${ha}${opp}<span class="sc num">${g.gf}:${g.ga}</span><span class="rs ${r}" title="${RESF[r]}">${RES[r]}</span></li>`}
- return `<li class="g fut ${g.h?'home':'away'}">${when}${ha}${opp}${g.k?`<span class="kxw"><span class="kx num" aria-label="Линия: победа ${esc(T.n)} ${kf(g.k[0])}, ничья ${kf(g.k[1])}, победа соперника ${kf(g.k[2])}"><span><small>П</small>${kf(g.k[0])}</span><span><small>Х</small>${kf(g.k[1])}</span><span><small>П</small>${kf(g.k[2])}</span></span>${g.kn||g.pr?`<small class="kn">${g.kn?esc(g.kn):''}${g.pr?`${g.kn?' · ':''}модель: ${g.pr.map(v=>Math.round(v*100)).join(' · ')} %`:''}</small>`:''}</span>`
-  :g.pr?`<span class="kx3 num" aria-label="Расчёт модели: победа ${esc(T.n)} ${Math.round(g.pr[0]*100)} %, ничья ${Math.round(g.pr[1]*100)} %, победа соперника ${Math.round(g.pr[2]*100)} %">${g.pr.map(v=>Math.round(v*100)).join(' · ')} %</span>`:''}</li>`};
+ return `<li class="g fut ${g.h?'home':'away'}">${when}${ha}${opp}${g.k?`<span class="kxw"><span class="kx num" aria-label="Линия: победа ${esc(T.n)} ${kf(g.k[0])}, ничья ${kf(g.k[1])}, победа соперника ${kf(g.k[2])}"><span><small>П</small>${kf(g.k[0])}</span><span><small>Х</small>${kf(g.k[1])}</span><span><small>П</small>${kf(g.k[2])}</span></span>${g.kn||g.pr?`<small class="kn">${g.kn?esc(g.kn):''}${g.pr?`${g.kn?' · ':''}модель: ${g.pr.map(v=>Math.round(v*100)).join(' · ')} %`:''}</small>`:''}</span>`
+  :g.pr?`<span class="kx3 num" aria-label="Расчёт модели: победа ${esc(T.n)} ${Math.round(g.pr[0]*100)} %, ничья ${Math.round(g.pr[1]*100)} %, победа соперника ${Math.round(g.pr[2]*100)} %">${g.pr.map(v=>Math.round(v*100)).join(' · ')} %</span>`:''}</li>`};
 const wins=real.filter(g=>g.gf>g.ga).length,draws=real.filter(g=>g.gf===g.ga).length,losses=real.length-wins-draws;
 const gfS=real.reduce((a,g)=>a+g.gf,0),gaS=real.reduce((a,g)=>a+g.ga,0);
 $('gamesBox').innerHTML=`
@@ -168,7 +168,7 @@ $('picksBox').innerHTML=`
 if(nextG){
  const t=day(nextG.d),oh=nextG.h,k=nextG.k,o=nextG.o;
  const cr2=(sl,cls)=>`<span class="nmc ${cls}"><a href="${teamHref(sl,CUP)}"><span class="nmcr">${CI(sl)}</span><b>${esc(nm(sl))}</b></a></span>`;
- const mdl=nextG.pr?`<p class="mdl" aria-label="Расчёт модели"><span>1Х2: <b>${nextG.pr.map(v=>Math.round(v*100)).join(' · ')} %</b></span><span>тотал больше ${fx(nextG.ot||2.5,1)}: <b>${Math.round(nextG.ov*100)} %</b></span><span>обе забьют: <b>${Math.round(nextG.bt*100)} %</b></span></p>`:'';
+ const mdl=nextG.pr?`<p class="mdl" aria-label="Расчёт модели"><span>1Х2: <b>${nextG.pr.map(v=>Math.round(v*100)).join(' · ')} %</b></span><span>тотал больше ${fx(nextG.ot||2.5,1)}: <b>${Math.round(nextG.ov*100)} %</b></span><span>обе забьют: <b>${Math.round(nextG.bt*100)} %</b></span></p>`:'';
  $('nextBox').innerHTML=`
   <div class="sec-head" data-rv><h2>Следующий матч</h2></div>
   <article class="nmatch" data-rv aria-label="${esc(T.n)} — ${esc(nm(o))}, ${t.d} ${t.mon}, ${t.tm} МСК">

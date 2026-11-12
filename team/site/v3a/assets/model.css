@@ -4,7 +4,7 @@ html:not([data-sport="football"]) [data-f],html[data-sport="football"] [data-h]{
 .md main{padding-bottom:20px}
 .md-top{padding:clamp(36px,6vw,84px) 0 clamp(20px,3vw,36px)}
 .md-kick{font:700 14px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--sport);margin:0 0 14px}
-.md h1{font:800 clamp(38px,7.2vw,92px)/.98 var(--display);letter-spacing:-.025em;margin:0 0 18px}
+.md h1{font:800 clamp(38px,7.2vw,92px)/1.03 var(--display);letter-spacing:-.025em;margin:0 0 18px}
 .md h1 span{color:var(--sport)}
 .md-lead{max-width:62ch;font-size:clamp(17px,2vw,20px);color:var(--ink-2);margin:0 0 22px}
 .md-sw{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
@@ -76,13 +76,13 @@ html:not([data-sport="football"]) [data-f],html[data-sport="football"] [data-h]{
 .md-calc td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--rule)}
 .md-calc tfoot td{font-weight:700;border-bottom:0}
 .md-tot{position:relative;margin-top:6px}
-.md-ts{position:relative;height:60px;margin:0 30px}
+.md-ts{position:relative;height:60px;margin:0 38px}
 .md-ts::before{content:"";position:absolute;left:-12px;right:-12px;top:42px;height:6px;background:var(--paper-3);border-radius:3px}
 .md-ts i{position:absolute;top:38px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--sport)}
 .md-ts.l i{background:var(--ink-3);border-radius:3px}
 .md-ts span{position:absolute;top:0;transform:translateX(-50%);font:700 13px/1.2 var(--display);text-align:center;white-space:nowrap;color:var(--ink)}
 .md-ts span em{display:block;font-style:normal;font-weight:600;color:var(--ink-2);font-size:12px}
-.md-tsl{font:600 13px/1 var(--display);color:var(--ink-3);margin:4px 0 -2px}
+.md-tsl{font:600 13px/1.2 var(--display);color:var(--ink-3);margin:4px 0 10px}
 .md-tt{display:grid;gap:6px;margin-top:6px}
 .md-warnbox{padding:12px 14px;border-radius:8px;background:var(--paper-2);font-size:15px;color:var(--ink-2)}
 .md-warnbox b{color:var(--ink)}

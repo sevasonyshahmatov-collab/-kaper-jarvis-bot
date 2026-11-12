@@ -28,8 +28,8 @@ const flagged=(ln,md)=>diffs(ln,md).filter(o=>Math.abs(o.d)>=TH);
 const dvHtml=(ln,md)=>{const f=flagged(ln,md);if(!f.length)return '';
  const up=f.filter(o=>o.d>0),dn=f.filter(o=>o.d<0),s=a=>a.map(o=>`${esc(o.k)} ${o.d>0?'+':'−'}${Math.abs(o.d)}&nbsp;п.п.`).join(', ');
  return `<span class="dv" title="Разница между вероятностью модели и долей линии без маржи; порог — больше 5 п.п.">${up.length?`<b class="up">модель выше линии:</b> ${s(up)}`:''}${up.length&&dn.length?' · ':''}${dn.length?`<b class="dn">модель ниже линии:</b> ${s(dn)}`:''}</span>`};
-const modelLine=(md,opt={})=>{if(!md)return '';const a=[`П1 ${p0(md.p1)} %`,`Х ${p0(md.x)} %`,`П2 ${p0(md.p2)} %`];
- if(md.over!=null)a.push(`ТБ ${f1(md.tot)} ${p0(md.over)} %`);if(opt.btts&&md.btts!=null)a.push(`обе забьют ${p0(md.btts)} %`);
+const modelLine=(md,opt={})=>{if(!md)return '';const a=[`П1 ${p0(md.p1)} %`,`Х ${p0(md.x)} %`,`П2 ${p0(md.p2)} %`];
+ if(md.over!=null)a.push(`ТБ ${f1(md.tot)} ${p0(md.over)} %`);if(opt.btts&&md.btts!=null)a.push(`обе забьют ${p0(md.btts)} %`);
  return `<span class="mlab">Модель JARVIS:</span> ${a.join(' · ')}`};
 
 /* ── блок в строке матча: кэфы линии (доля линии под кэфом), тотал, модель, источник и пометка расхождения ── */
@@ -53,7 +53,7 @@ function quotes(m,opt={}){const {ln,md}=m,fl=fair(ln),pm=md?[md.p1,md.x,md.p2]:n
  return `${qp}${qv}<div class="q3">${q}</div>${tot}${md?`<div class="qm">${modelLine(md,opt)}</div>`:''}${dvHtml(ln,md)?`<div class="qd">${dvHtml(ln,md)}</div>`:''}${src}`}
 
 /* ── раскрытая строка: расчёт модели ── */
-const bar=(lab,pm,pl,fav,full)=>`<div class="wb${fav?' fav':''}"><span${full?` title="${esc(full)}"`:''}>${esc(lab)}</span><em><i style="--w:${p0(pm)}%"></i>${pl!=null?`<u style="left:${p0(pl)}%" title="линия: ${p0(pl)} %"></u>`:''}</em><b class="num">${p0(pm)} %</b></div>`;
+const bar=(lab,pm,pl,fav,full)=>`<div class="wb${fav?' fav':''}"><span${full?` title="${esc(full)}"`:''}>${esc(lab)}</span><em><i style="--w:${p0(pm)}%"></i>${pl!=null?`<u style="left:${p0(pl)}%" title="линия: ${p0(pl)} %"></u>`:''}</em><b class="num">${p0(pm)} %</b></div>`;
 function why(m,opt={}){const {ln,md}=m;if(!md)return '<p class="none">Расчёта модели на этот матч нет.</p>';
  const fl=fair(ln),mo=[md.p1,md.x,md.p2],mx=Math.max(...mo),names=[m.hn||'хозяева',m.an||'гости'];
  const full=['победа '+names[0],'ничья в основное время','победа '+names[1]],rows=['П1','Х','П2'].map((l,i)=>bar(l,mo[i],fl&&(i!==1||ln.x)?fl[i]:null,mo[i]===mx,full[i])).join('');
@@ -85,10 +85,10 @@ function section(root,items,cfg){
   <p class="mver note">Модель: ${esc(ver||'—')}${upd?` · данные обновлены ${upd}`:''} · с расчётом ${hasModel} из ${items.length}.</p>`;
  const ul=root.querySelector('#mrows');
  const rowHtml=it=>{const {ln,md}=it,mo=md?[md.p1,md.x,md.p2]:null,mx=mo?Math.max(...mo):0,fl=fair(ln),f=flagged(ln,md);
-  const bars=mo?['П1','Х','П2'].map((k,i)=>`<div class="wb${mo[i]===mx?' fav':''}"><span>${k}</span><em><i style="--w:${p0(mo[i])}%"></i>${fl&&(i!==1||ln.x)?`<u style="left:${p0(fl[i])}%" title="линия: ${p0(fl[i])} %"></u>`:''}</em><b class="num">${p0(mo[i])} %</b></div>`).join(''):'<p class="note">Расчёта нет</p>';
+  const bars=mo?['П1','Х','П2'].map((k,i)=>`<div class="wb${mo[i]===mx?' fav':''}"><span>${k}</span><em><i style="--w:${p0(mo[i])}%"></i>${fl&&(i!==1||ln.x)?`<u style="left:${p0(fl[i])}%" title="линия: ${p0(fl[i])} %"></u>`:''}</em><b class="num">${p0(mo[i])} %</b></div>`).join(''):'<p class="note">Расчёта нет</p>';
   const lineTxt=ln?`<div class="ml-k num">П1 <b>${f2(ln.p1)}</b>${ln.x?` · Х <b>${f2(ln.x)}</b>`:''} · П2 <b>${f2(ln.p2)}</b></div><small>${esc(srcLabel(ln))}</small>`:`<small>${esc(cfg.noLine||'Линии пока нет')}</small>`;
-  const totTxt=md&&md.over!=null?`<div>ТБ ${f1(md.tot)}: <b class="num">${p0(md.over)} %</b>${ln&&ln.tot!=null&&ln.over?` <small>линия ${f1(ln.tot)}: Б ${f2(ln.over)} / М ${f2(ln.under)}</small>`:''}</div>`:'';
-  const bt=cfg.btts&&md&&md.btts!=null?`<div>Обе забьют: <b class="num">${p0(md.btts)} %</b></div>`:'';
+  const totTxt=md&&md.over!=null?`<div>ТБ ${f1(md.tot)}: <b class="num">${p0(md.over)} %</b>${ln&&ln.tot!=null&&ln.over?` <small>линия ${f1(ln.tot)}: Б ${f2(ln.over)} / М ${f2(ln.under)}</small>`:''}</div>`:'';
+  const bt=cfg.btts&&md&&md.btts!=null?`<div>Обе забьют: <b class="num">${p0(md.btts)} %</b></div>`:'';
   const lam=md&&md.lam?`<div class="ml-lam">Ожидаемые голы: <b class="num">${f1(md.lam[0])} : ${f1(md.lam[1])}</b></div>`:'';
   return `<li class="mr${f.length?' dvg':''}"><div class="mr-t"><time>${esc(it.t.slice(11))}</time><small>${esc(ddmm(it.t))}</small></div>
    <div class="mr-m"><div class="lgline">${it.lgHtml}</div><div class="teams"><div class="team">${it.home}</div><div class="team">${it.away}</div></div></div>

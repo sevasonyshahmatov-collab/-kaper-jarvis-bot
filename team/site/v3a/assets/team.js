@@ -190,7 +190,7 @@ document.getElementById('tableBox').innerHTML=`
 /* ── 3. все матчи сезона ── */
 const kf=v=>v==null?'—':f(v,2);
 /* подпись под линией: источник (ksrc) и вероятности модели (pm), либо «оценка модели, линии ещё нет» (ks:1) */
-const kNote=g=>g.ks?'оценка модели, линии ещё нет':`Линия${g.pm?` · модель: ${g.pm.map(v=>Math.round(v*100)).join(' · ')} %`:''}`;
+const kNote=g=>g.ks?'оценка модели, линии ещё нет':`Линия${g.pm?` · модель: ${g.pm.map(v=>Math.round(v*100)).join(' · ')} %`:''}`;
 const row=g=>{const t=day(g.d),opp=tl(g.o,`${em(g.o)}<span>${esc(nm(g.o))}</span>`,'op');
  const when=`<span class="gd"><b>${t.d} ${t.mon}</b><small>${t.wd}${t.tm?' · '+t.tm:''}</small></span>`;
  const ha=`<span class="ha ${g.h?'h':'a'}" title="${g.h?'дома':'в гостях'}">${g.h?'Д':'В'}</span>`;
@@ -251,7 +251,7 @@ if(nextG){
    <div class="nmteams">${crest(oh?ID:nextG.o,'a')}<span class="nmmid"><span class="nmdt"><b>${t.d} ${t.mon}</b><small>${t.wd}${t.tm?' · '+t.tm+' МСК':''}</small></span><span class="nmha ${oh?'h':'a'}">${oh?'Дома':'В гостях'}</span></span>${crest(oh?nextG.o:ID,'b')}</div>
    <div class="nmside">
     ${k?`<div class="nmline"><span class="sl">${nextG.ks?'Оценка модели · линии ещё нет':'Линия на матч'}</span>
-      <ol class="kx" aria-label="Линия: ${esc(T.name)} ${kf(k[0])}, ничья ${kf(k[1])}, ${esc(nm(nextG.o))} ${kf(k[2])}">${k.map((v,i)=>`<li><b class="num">${kf(v)}</b><small>${kl[i]}</small></li>`).join('')}</ol>${nextG.pm?`<p class="mdl" aria-label="Расчёт модели">Модель JARVIS: <b>П1 ${Math.round(nextG.pm[0]*100)} % · Х ${Math.round(nextG.pm[1]*100)} % · П2 ${Math.round(nextG.pm[2]*100)} %</b></p>`:''}</div>`
+      <ol class="kx" aria-label="Линия: ${esc(T.name)} ${kf(k[0])}, ничья ${kf(k[1])}, ${esc(nm(nextG.o))} ${kf(k[2])}">${k.map((v,i)=>`<li><b class="num">${kf(v)}</b><small>${kl[i]}</small></li>`).join('')}</ol>${nextG.pm?`<p class="mdl" aria-label="Расчёт модели">Модель JARVIS: <b>П1 ${Math.round(nextG.pm[0]*100)} % · Х ${Math.round(nextG.pm[1]*100)} % · П2 ${Math.round(nextG.pm[2]*100)} %</b></p>`:''}</div>`
      :`<div class="nmline"><span class="sl">Линия появится ближе к матчу</span></div>`}
     <div class="nmcd" id="nmcd"><span class="sl">До начала</span><b class="num" id="nmcdv">—</b></div>
     ${pick?`<div class="nmpick"><span class="sl">Наш прогноз</span><b>${esc(String(pick.pick||'').replace(/(\d)\.(\d)/g,'$1,$2'))}</b><small>кэф ${esc(pick.k)}</small></div>`:''}

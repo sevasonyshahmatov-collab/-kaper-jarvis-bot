@@ -18,7 +18,7 @@ body{background:var(--paper);color:var(--ink)}
 .pp-crumbs a.lg{padding:6px 12px}
 .pp-pos{font:700 14px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;opacity:.9;margin:0 0 6px}
 .pp h1{margin:0;font:600 clamp(20px,3vw,32px)/1.05 var(--display);opacity:.92;text-shadow:0 1px 3px rgba(0,0,0,.4)}
-.pp h1 b{display:block;font:900 clamp(44px,9vw,110px)/.92 var(--display);letter-spacing:-.015em;margin-top:4px;overflow-wrap:anywhere}
+.pp h1 b{display:block;font:900 clamp(44px,9vw,110px)/1 var(--display);letter-spacing:-.015em;margin-top:4px;overflow-wrap:anywhere}
 .pp-sub{margin:14px 0 0;font:600 16px/1.4 var(--display);opacity:.92}
 .pp-photo{align-self:end;justify-self:center;width:100%;max-width:340px;aspect-ratio:1/1;position:relative;display:grid;align-items:end}
 .pp-photo img.ph{width:100%;height:100%;object-fit:contain;object-position:50% 100%;display:block;filter:drop-shadow(0 8px 18px rgba(0,0,0,.45))}

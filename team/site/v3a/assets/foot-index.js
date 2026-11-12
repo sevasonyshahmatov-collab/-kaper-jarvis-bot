@@ -59,8 +59,8 @@ const tm=(s,cls)=>{const n=nm(s);return `<div class="tm${n.length>10?' long':''}
 const card=({m,b})=>{const A=T[m.h],B=T[m.a];
  return `<div class="face">${tm(m.h,'хозяева')}<div class="vs"><span aria-hidden="true">—</span><time>${esc(m.t.slice(11))}</time></div>${tm(m.a,'гости')}</div>
  <div class="bet lv-${lvl(b.p)}"><span class="bl">Расчёт модели</span><strong>${esc(b.t)}</strong><span class="k num" aria-label="${b.k?'коэффициент':'линии пока нет'}">${b.k?fx(b.k,2):'—'}</span>
-  <span class="pm"><em><i style="--w:${Math.round(b.p*100)}%"></i></em><b class="num">${Math.round(b.p*100)} % по модели</b></span></div>
- <div class="mk3"><span>1Х2<b class="num">${m.pr.map(v=>Math.round(v*100)).join(' · ')}</b><em>П1 · Х · П2, %</em></span><span>Тотал ${fx(m.ot,1)}<b class="num">${Math.round(m.ov*100)} %</b><em>больше</em></span><span>Обе забьют<b class="num">${Math.round(m.bt*100)} %</b><em>да</em></span></div>
+  <span class="pm"><em><i style="--w:${Math.round(b.p*100)}%"></i></em><b class="num">${Math.round(b.p*100)} % по модели</b></span></div>
+ <div class="mk3"><span>1Х2<b class="num">${m.pr.map(v=>Math.round(v*100)).join(' · ')}</b><em>П1 · Х · П2, %</em></span><span>Тотал ${fx(m.ot,1)}<b class="num">${Math.round(m.ov*100)} %</b><em>больше</em></span><span>Обе забьют<b class="num">${Math.round(m.bt*100)} %</b><em>да</em></span></div>
  <p class="why"><b>Почему:</b> ожидаемые голы ${fx(m.xg[0],1)} : ${fx(m.xg[1],1)}. В таблице: ${esc(A.n)} — ${A.place}, ${esc(B.n)} — ${B.place}.</p>`};
 cdv.innerHTML=['h','m','s'].map((u,i)=>`<span class="cu" data-u="${u}"><b></b><small>${['ч','мин','с'][i]}</small></span>`).join('');
 const cu=[...cdv.querySelectorAll('.cu b')],cdWord=document.createElement('b');cdWord.className='cdw';cdv.appendChild(cdWord);

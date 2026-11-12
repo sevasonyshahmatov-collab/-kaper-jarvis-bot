@@ -105,7 +105,7 @@ const noData='<p class="nod">Матчи появятся после обновл
 const stripIn=m=>{const t=m.top;return `<a class="st-in" href="#matches">
    <span class="st-when">${LGP(m.lg)}<time class="num">${esc(when(m))}</time></span>
    <span class="st-teams">${E(m.hc)}<b>${esc(m.hn)}</b><s>—</s><b>${esc(m.an)}</b>${E(m.ac)}</span>
-   ${t?`<span class="st-bet"><b>${esc(t.word)}</b><span class="hpm">${bar(t.p)}<em class="num">${pct(t.p)} %</em></span></span><span class="st-k num">${f2(t.k)}</span>`:'<span class="st-bet"><b>Расчёта пока нет</b></span>'}</a>`};
+   ${t?`<span class="st-bet"><b>${esc(t.word)}</b><span class="hpm">${bar(t.p)}<em class="num">${pct(t.p)} %</em></span></span><span class="st-k num">${f2(t.k)}</span>`:'<span class="st-bet"><b>Расчёта пока нет</b></span>'}</a>`};
 function v1(M,S){
  const pic=S==='football'?'../proto/home/players/football.webp':'../proto/home/players/hockey.webp';
  const feat=M.byConf.filter(m=>m.top).slice(0,4);
@@ -133,7 +133,7 @@ function v2(M,S){
   <a class="bt big" href="#matches">${t?`<div class="bh">${LGP(t.lg)}<time class="num">${esc(when(t))}</time></div>
    <div class="bmt">${E(t.hc,'xl')}<s>—</s>${E(t.ac,'xl')}</div>
    <div class="bn"><b>${esc(t.hn)}</b><b>${esc(t.an)}</b></div>
-   <div class="bb"><b>${esc(t.top.word)}</b><span class="hpm">${bar(t.top.p)}<em class="num">${pct(t.top.p)} %</em></span><span class="hk num">${f2(t.top.k)}</span></div>`:noData}</a>
+   <div class="bb"><b>${esc(t.top.word)}</b><span class="hpm">${bar(t.top.p)}<em class="num">${pct(t.top.p)} %</em></span><span class="hk num">${f2(t.top.k)}</span></div>`:noData}</a>
   <div class="bt num1"><b class="num">${M.total}</b><span>${plural(M.total,'матч','матча','матчей')} ${M.nowDay?'сегодня':'в ближайший день'}</span></div>
   ${lgTiles}
   <div class="bt cdt">${nx?`<span>Следующий матч через</span><b class="num" data-cd="${esc(nx.t)}">${cdStr(nx)}</b>`:'<span>Ближайших матчей пока нет</span>'}</div>
@@ -145,7 +145,7 @@ function v3(M,S){
  const card=(m,big)=>{const t=m.top;return `<a class="mc${big?' big':''}" href="#matches">
    <span class="mh">${LGP(m.lg)}<time class="num">${esc(when(m))}</time></span>
    <span class="mtm">${E(m.hc)}<b>${esc(m.hn)}</b></span><span class="mtm">${E(m.ac)}<b>${esc(m.an)}</b></span>
-   ${t?`<span class="mb"><b>${esc(t.word)}</b><span class="hpm">${bar(t.p)}<em class="num">${pct(t.p)} %</em></span><span class="hk num">${f2(t.k)}</span></span>`:'<span class="mb"><b>Расчёта пока нет</b></span>'}</a>`};
+   ${t?`<span class="mb"><b>${esc(t.word)}</b><span class="hpm">${bar(t.p)}<em class="num">${pct(t.p)} %</em></span><span class="hk num">${f2(t.k)}</span></span>`:'<span class="mb"><b>Расчёта пока нет</b></span>'}</a>`};
  const arrows='<span class="ar"><button type="button" data-d="-1" aria-label="Назад"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 3L5 8l5 5"/></svg></button><button type="button" data-d="1" aria-label="Вперёд"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3l5 5-5 5"/></svg></button></span>';
  const ord=M.top?[M.top,...M.rest]:M.rest;
  return `<div class="head">${heading(M.h)}<div class="hcta">${BTN}${arrows}</div></div>
@@ -208,7 +208,7 @@ function v5(M,S){
   <div class="hrow"><ul class="hchips">${chips}</ul>${nx?`<p class="nx">Ближайший матч через <b class="num" data-in="${esc(nx.t)}">${inStr(nx)}</b></p>`:''}</div>
   ${t?`<a class="mc" href="#matches"><span class="c3"><span class="tt">${E(t.hc,'xl')}<b>${esc(t.hn)}</b></span>
    <span class="mid">${LGP(t.lg)}<time class="num">${esc(when(t))}</time></span><span class="tt">${E(t.ac,'xl')}<b>${esc(t.an)}</b></span></span>
-   <span class="mb"><b>${esc(t.top.word)}</b><span class="hpm">${bar(t.top.p)}<em class="num">${pct(t.top.p)} %</em></span><span class="hk num">${f2(t.top.k)}</span></span></a>`:noData}`;
+   <span class="mb"><b>${esc(t.top.word)}</b><span class="hpm">${bar(t.top.p)}<em class="num">${pct(t.top.p)} %</em></span><span class="hk num">${f2(t.top.k)}</span></span></a>`:noData}`;
 }
 
 /* ── сборка ── */

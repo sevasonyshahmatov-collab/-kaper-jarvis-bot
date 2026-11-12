@@ -74,7 +74,8 @@
    а тёмный цветной фон афиши растворяется в него книзу длинным градиентом по плавной кривой (smoothstep, 11 ступеней) —
    без полосы и без вспышки при прокрутке. Первый экран целиком тёмный: растворение начинается под нижним краем окна.
    Список матчей заходит на светлую половину градиента, чтобы под афишей не было пустого экрана. */
-html[data-hero="2"]{--f:clamp(420px,72vh,780px)}
+/* 12.11: растворение короче (было clamp(420px,72vh,780px)) — под афишей оставалось ~560 px пустого градиента, а заголовок списка стоял тёмным по тёмному */
+html[data-hero="2"]{--f:clamp(280px,40vh,420px)}
 [data-hero="2"] .hero{min-height:calc(100svh - 108px + var(--f));padding-bottom:var(--f)!important}
 [data-hero="2"] .hero+.sec{margin-top:calc(var(--f) * -.42)}
 .h3bg{-webkit-mask-image:linear-gradient(180deg,#000 0,rgba(0,0,0,1) calc(100% - var(--f) * 1.0),rgba(0,0,0,0.972) calc(100% - var(--f) * 0.9),rgba(0,0,0,0.896) calc(100% - var(--f) * 0.8),rgba(0,0,0,0.784) calc(100% - var(--f) * 0.7),rgba(0,0,0,0.648) calc(100% - var(--f) * 0.6),rgba(0,0,0,0.5) calc(100% - var(--f) * 0.5),rgba(0,0,0,0.352) calc(100% - var(--f) * 0.4),rgba(0,0,0,0.216) calc(100% - var(--f) * 0.3),rgba(0,0,0,0.104) calc(100% - var(--f) * 0.2),rgba(0,0,0,0.028) calc(100% - var(--f) * 0.1),rgba(0,0,0,0) calc(100% - var(--f) * 0.0));mask-image:linear-gradient(180deg,#000 0,rgba(0,0,0,1) calc(100% - var(--f) * 1.0),rgba(0,0,0,0.972) calc(100% - var(--f) * 0.9),rgba(0,0,0,0.896) calc(100% - var(--f) * 0.8),rgba(0,0,0,0.784) calc(100% - var(--f) * 0.7),rgba(0,0,0,0.648) calc(100% - var(--f) * 0.6),rgba(0,0,0,0.5) calc(100% - var(--f) * 0.5),rgba(0,0,0,0.352) calc(100% - var(--f) * 0.4),rgba(0,0,0,0.216) calc(100% - var(--f) * 0.3),rgba(0,0,0,0.104) calc(100% - var(--f) * 0.2),rgba(0,0,0,0.028) calc(100% - var(--f) * 0.1),rgba(0,0,0,0) calc(100% - var(--f) * 0.0))}
@@ -85,3 +86,6 @@ html[data-hero="2"]{--f:clamp(420px,72vh,780px)}
 /* Ноутбук (высота окна до 820 px): жёлтая кнопка в Telegram уходила под край окна. Время матча уже стоит в шапке афиши —
    повтор над расчётом убираем, афиша ниже на ~100 px, кнопка видна без прокрутки. */
 @media (min-width:981px) and (max-height:820px){[data-hero="2"] .hero .mcard .vs{display:none}}
+/* 12.11: список под афишей проявляется сразу, как только показался, — заголовок «Сегодня на льду» не висит полупрозрачным серым */
+[data-hero="2"][data-theme="arena"] #matches .wrap>:not(.period),
+[data-hero="2"][data-theme="arena"] .hero+.sec:not(#matches)>.wrap{opacity:clamp(0,calc(var(--lit) * 6),1)}

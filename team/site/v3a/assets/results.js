@@ -16,7 +16,7 @@ const T=D.sum.total,A=T.all;
 $('#rs-lead').textContent='Все прогнозы канала @jarvibet с '+day(D.since)+' '+D.since.slice(0,4)+' года: что зашло, что нет, со счётом матча и ссылкой на пост.';
 $('#rs-kpi').innerHTML=
  `<li><b>${A.n}</b><span>прогнозов с итогом</span></li>
-  <li class="win"><b>${A.w}</b><span>зашло — ${num(A.rate,1)} % без учёта возвратов</span></li>
+  <li class="win"><b>${A.w}</b><span>зашло — ${num(A.rate,1)} % без учёта возвратов</span></li>
   <li class="loss"><b>${A.l}</b><span>не зашло${A.p?', ещё '+A.p+' — возврат':''}</span></li>
   <li><b>${sign(A.units)}<small>ед.</small></b><span>результат при ставке 1 на каждый прогноз</span></li>`;
 const done=D.picks.filter(p=>p.r);
@@ -26,7 +26,7 @@ $('#rs-upd').textContent='Обновлено '+day(D.built)+' в '+D.built.slice
 /* ── карточка сводки ── */
 const bar=t=>{const n=t.w+t.l+t.p||1;return `<div class="rs-bar" role="img" aria-label="Зашло ${t.w}, не зашло ${t.l}, возврат ${t.p}"><i style="width:${100*t.w/n}%"></i><u style="width:${100*t.p/n}%"></u></div>`};
 const meta=t=>`<p class="rs-meta"><span>зашло <b>${t.w}</b></span><span>не зашло <b>${t.l}</b></span>${t.p?`<span>возврат <b>${t.p}</b></span>`:''}<span>средний кэф <b>${num(t.kef)}</b></span><span>результат <b class="${t.units>=0?'pos':'neg'}">${sign(t.units)} ед.</b></span></p>`;
-const big=t=>`<div class="rs-big"><b>${t.w} из ${t.w+t.l}</b><span>${num(t.rate,1)} %</span></div>`;
+const big=t=>`<div class="rs-big"><b>${t.w} из ${t.w+t.l}</b><span>${num(t.rate,1)} %</span></div>`;
 const short=t=>t.n?`${t.w} из ${t.w+t.l}`:'—';
 
 /* ── месяцы ── */
@@ -50,7 +50,7 @@ $('#rs-who-note').textContent='Метки ведём с '+(D.labels_since?day(D.
 if(D.sum.cal&&D.sum.cal.length){
  $('#rs-cal').innerHTML=`<h3 style="margin:0;font:800 22px/1.1 var(--display);text-transform:none;letter-spacing:0">Сколько обещала модель и сколько зашло</h3>
  <table class="rs-cal"><thead><tr><th>Вероятность модели</th><th>Прогнозов</th><th>Обещала</th><th>Зашло</th></tr></thead><tbody>
- ${D.sum.cal.map(c=>`<tr><td>${c.lo}–${c.hi===100?'100':c.hi} %</td><td>${c.n}</td><td>${num(c.pm,1)} %</td><td>${num(100*c.w/c.n,1)} %</td></tr>`).join('')}</tbody></table>
+ ${D.sum.cal.map(c=>`<tr><td>${c.lo}–${c.hi===100?'100':c.hi} %</td><td>${c.n}</td><td>${num(c.pm,1)} %</td><td>${num(100*c.w/c.n,1)} %</td></tr>`).join('')}</tbody></table>
  <p class="rs-note">Только прогнозы «по модели». Выборка небольшая: при 30–50 прогнозах в строке разброс в 10–15 п. п. — обычное дело.</p>`;
 }else $('#rs-cal').remove();
 
@@ -90,7 +90,7 @@ const row=p=>{
  const tm=(e,n)=>`<span class="rs-tm">${em(e)}${esc(n)}</span>`;
  const title=ex?esc(p.bet):tm(p.he,p.h)+' — '+tm(p.ae,p.a);
  const bet=ex?'общий кэф '+(p.kef?num(p.kef):'—'):esc(p.bet);
- const pm=p.pm?` · модель ${num(p.pm*100,0)} %`:'';
+ const pm=p.pm?` · модель ${num(p.pm*100,0)} %`:'';
  return `<li class="rs-row"><span class="rlg${fb?' fb':''}">${LG[p.lg]||''}</span>
   <span class="rmt">${title}<small>${p.d.slice(11,16)!=='00:00'?p.d.slice(11,16)+' МСК':''}${pm}</small></span>
   <span class="rbet">${tag}${bet}</span>

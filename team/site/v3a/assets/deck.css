@@ -184,7 +184,12 @@
   .dk-two{grid-template-columns:1fr}
   .dk-dhead{padding:16px 16px 12px}.dk-dbody{padding:2px 16px 28px}
   .dk-axv{grid-template-columns:repeat(2,1fr)}
-  .dk-pb{grid-template-columns:minmax(0,78px) 1fr 40px}
+  /* подпись исхода — отдельной строкой над полосой: в 78 px «П1 · Автомобилист» обрезалось до «П1 · Авто…» (12.11) */
+  .dk-pb{grid-template-columns:1fr 44px;gap:4px 10px;padding:6px 0}
+  .dk-pb span{grid-column:1/-1;white-space:normal;overflow:visible}
+  /* кэфы линии — в один ряд, без одинокой плитки «ТМ» на второй строке */
+  .dk-lnq{display:grid;grid-template-columns:repeat(auto-fit,minmax(54px,1fr));gap:6px}
+  .dk-lnq span{min-width:0;padding:8px 4px}.dk-lnq span b{font-size:16px}
 }
 
 /* без анимации: простая смена карточки, без 3D */

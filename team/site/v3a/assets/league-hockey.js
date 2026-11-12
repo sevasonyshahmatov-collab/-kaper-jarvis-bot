@@ -97,10 +97,10 @@ function build(SE,PL){
     <li><b class="num">${hp}<small>%</small></b><span>побед хозяев</span><em>${hw} из ${n}</em></li>
     <li><b class="num">${n?f1(M.filter(m=>m.gf+m.ga>5).length/n*100,0):'—'}<small>%</small></b><span>матчей с тоталом больше 5,5</span><em>${M.filter(m=>m.gf+m.ga>5).length} из ${n}</em></li></ul>
    <div class="lgbar" data-rv><h3>Победы хозяев и гостей</h3>
-    <div class="bar" role="img" aria-label="Победы хозяев ${hp} %, гостей ${ap} %"><i class="h" style="flex:${hw||.0001}">${hp>=8?hp+'%':''}</i><i class="a" style="flex:${aw||.0001}">${ap>=8?ap+'%':''}</i></div>
+    <div class="bar" role="img" aria-label="Победы хозяев ${hp} %, гостей ${ap} %"><i class="h" style="flex:${hw||.0001}">${hp>=8?hp+'%':''}</i><i class="a" style="flex:${aw||.0001}">${ap>=8?ap+'%':''}</i></div>
     <ul><li style="--k:#1d7a45">Победы хозяев: ${hp}% (${hw})</li><li style="--k:#1c63c4">Победы гостей: ${ap}% (${aw})</li></ul></div>
    <div class="lgbar" data-rv><h3>Как заканчиваются матчи</h3>
-    <div class="bar" role="img" aria-label="Основное время ${rp} %, овертайм ${op} %, буллиты ${sp} %"><i class="h" style="flex:${reg||.0001}">${rp>=8?rp+'%':''}</i><i class="o" style="flex:${ot||.0001}">${op>=8?op+'%':''}</i><i class="d" style="flex:${so||.0001}">${sp>=8?sp+'%':''}</i></div>
+    <div class="bar" role="img" aria-label="Основное время ${rp} %, овертайм ${op} %, буллиты ${sp} %"><i class="h" style="flex:${reg||.0001}">${rp>=8?rp+'%':''}</i><i class="o" style="flex:${ot||.0001}">${op>=8?op+'%':''}</i><i class="d" style="flex:${so||.0001}">${sp>=8?sp+'%':''}</i></div>
     <ul><li style="--k:#1d7a45">Основное время: ${rp}%</li><li style="--k:#b8761a">Овертайм: ${op}%</li><li style="--k:#6b7585">Буллиты: ${sp}%</li></ul></div>`}
 
  /* игроки */

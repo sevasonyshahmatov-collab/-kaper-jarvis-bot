@@ -111,3 +111,7 @@ html[data-white] body{background:#fff}
 /* Фото уходит под нижний край шапки с запасом: при наклоне (фото сдвигается вверх до ~13 px) снизу нет пустоты (владелец 07.11) */
 .pp-hero .pp-photo{margin-bottom:-30px}
 .pp-hero .pp-photo img.ph{transform:scale(1.06);transform-origin:50% 100%}
+
+/* 12.11: номер не срезается верхним краем шапки; у игрока без фото в круге — инициалы, а не пустота */
+.pp-no{top:.1em}
+.pp-photo.nop .pp-ini{display:grid!important;opacity:.9}

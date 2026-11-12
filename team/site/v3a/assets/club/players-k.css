@@ -162,3 +162,8 @@ html[data-white] body{background:#fff}
   .pr.k .no{opacity:.28}
   .pr.k .pts.pin b{opacity:1}
 }
+/* Телефон: «Г+П» слева под именем, номер бледнее — цифры очков не ложатся поверх номера (12.11) */
+@media (max-width:900px){
+  .pr.k .pts.pin{text-align:left;justify-self:start}
+  .pr.k .no{opacity:.16}
+}
