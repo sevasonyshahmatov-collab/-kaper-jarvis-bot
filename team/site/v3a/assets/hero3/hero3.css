@@ -22,6 +22,16 @@
   radial-gradient(64% 104% at 100% 44% in oklab,color-mix(in oklab,var(--aa) 70%,transparent) 0%,color-mix(in oklab,var(--aa) 34%,transparent) 38%,transparent 76%),
   linear-gradient(180deg in oklab,#050b18,#071225 55%,#0b1a36)}}
 .h3bg::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:rgba(255,255,255,.07)}
+/* эмблемы-«голограммы» по краям: одноцветные, полупрозрачные, обрезаются краем экрана */
+.h3g{position:absolute;top:50%;height:min(112%,820px);aspect-ratio:1;object-fit:contain;opacity:0;pointer-events:none;user-select:none;
+  filter:grayscale(1) contrast(1.25) brightness(1.5);mix-blend-mode:screen;transition:opacity .45s ease,transform .7s cubic-bezier(.23,1,.32,1)}
+.h3g.h{left:0;transform:translate(-46%,-50%) rotate(-9deg) scale(.96)}
+.h3g.a{right:0;transform:translate(46%,-50%) rotate(9deg) scale(.96)}
+.h3g.on{opacity:.2}
+.h3g.h.on{transform:translate(-38%,-50%) rotate(-9deg)}
+.h3g.a.on{transform:translate(38%,-50%) rotate(9deg)}
+@media (max-width:900px){.h3g{height:min(52%,360px);top:20%}.h3g.on{opacity:.14}}
+@media (prefers-reduced-motion:reduce){.h3g{transition:opacity .2s}}
 .h3bg i{position:absolute;left:50%;top:50%;width:min(62vh,560px);aspect-ratio:1;transform:translate(-50%,-50%);border:2px solid rgba(255,255,255,.07);border-radius:50%}
 /* расположение: всё по центру, матч — главный */
 [data-hero="2"] .hero .wrap{grid-template-columns:minmax(0,1fr)!important;grid-template-areas:none!important;justify-items:center;text-align:center;gap:10px;align-items:start;align-content:start}

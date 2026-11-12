@@ -19,7 +19,11 @@
   document.addEventListener('DOMContentLoaded',function(){
     var hero=document.querySelector('.hero'),card=document.getElementById('mcard'),pager=document.getElementById('pager'),bcol=hero&&hero.querySelector('.bcol'),board=document.getElementById('board');
     if(!hero||!card||!bcol||!board)return;
-    var bg=document.createElement('div');bg.className='h3bg';bg.setAttribute('aria-hidden','true');bg.innerHTML='<i></i>';hero.prepend(bg);
+    var bg=document.createElement('div');bg.className='h3bg';bg.setAttribute('aria-hidden','true');bg.innerHTML='<i></i><img class="h3g h" alt=""><img class="h3g a" alt="">';hero.prepend(bg);
+    /* эмблемы-«голограммы» по краям (владелец 12.11): хозяева слева, гости справа, уходят за край экрана; меняются вместе с матчем */
+    var G=bg.querySelectorAll('.h3g');
+    function ghost(g,img){var src=img&&img.getAttribute('src');if(!src){g.classList.remove('on');return}if(g.getAttribute('src')===src){g.classList.add('on');return}
+      g.classList.remove('on');var t=new Image();t.onload=function(){setTimeout(function(){g.src=src;g.classList.add('on')},g.getAttribute('src')?260:0)};t.onerror=function(){g.removeAttribute('src')};t.src=src}
     var FB=d.dataset.sport==='football',T=FB?((window.JV_FOOT&&window.JV_FOOT.teams)||{}):((window.JV_TEAMS&&window.JV_TEAMS.teams)||{});
     var DIR=FB?'fc':'em',RE=FB?/\/fc\/([^/]+)\.webp/:/\/em\/([^/.]+)\./,FALL=FB?['#1f9d5b','#2aa3a3']:['#3b6fd8','#36b8d6'];
     function col(img,fb){var m=img&&RE.exec(img.getAttribute('src')||''),id=m&&m[1],t;try{id=id&&decodeURIComponent(id)}catch(e){}t=id&&T[id];return vivid(t&&(FB?t.c:t.colors),fb)}
@@ -34,7 +38,7 @@
     function cur(){var bs=pager?[].slice.call(pager.children):[];for(var i=0;i<bs.length;i++)if(bs[i].getAttribute('aria-pressed')==='true')return i;return 0}
     function nextUp(){if(P.length<2){next.hidden=true;return}var c=cur(),n=Math.min(2,P.length-1),h='';for(var s=1;s<=n;s++){var i=(c+s)%P.length;h+=plate(P[i],i)}next.innerHTML=h}
     next.addEventListener('click',function(e){var b=e.target.closest('.h3p');if(!b||!pager)return;var t=pager.children[+b.dataset.i];if(t)t.click()});
-    function paint(){var e=card.querySelectorAll('.face .tm .em');if(e.length>1){hero.style.setProperty('--ha',col(e[0],FALL[0]));hero.style.setProperty('--aa',col(e[1],FALL[1]))}nextUp()}
+    function paint(){var e=card.querySelectorAll('.face .tm .em');if(e.length>1){hero.style.setProperty('--ha',col(e[0],FALL[0]));hero.style.setProperty('--aa',col(e[1],FALL[1]));ghost(G[0],e[0]);ghost(G[1],e[1])}nextUp()}
     paint();new MutationObserver(paint).observe(card,{childList:true});
     /* строка «что это за сайт» под кнопкой */
     var n=(document.getElementById('fN')||{}).textContent||'',nl=(document.getElementById('fNl')||{}).textContent||'';
