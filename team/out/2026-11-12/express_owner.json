@@ -1,0 +1,9 @@
+{
+ "day": "2026-11-12",
+ "make": [
+  "team/out/2026-11-12/exp_owner.py",
+  "team/out/2026-11-12/ff_render.py team/out/2026-11-12/express_owner_coupons.json out/express/2026-11-12-owner",
+  "team/picks/express_send.py team/out/2026-11-12/express_owner_msgs.json"
+ ],
+ "messages": []
+}
