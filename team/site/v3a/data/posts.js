@@ -1,1 +1,1 @@
-window.JV_POSTS={"nhl|2026-11-12|nhl_ana|nhl_nsh":{"id":1554,"url":"https://t.me/jarvibet/1554","src":"author","bet":"Итб2 (2.5)","kef":1.64,"r":null},"nhl|2026-11-12|nhl_vgk|nhl_uta":{"id":1553,"url":"https://t.me/jarvibet/1553","src":"model","bet":"Тотал матча больше 5,5 в основное время","kef":1.6,"r":null}};
+window.JV_POSTS={};
