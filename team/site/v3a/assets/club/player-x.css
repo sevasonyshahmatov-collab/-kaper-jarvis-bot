@@ -1,0 +1,83 @@
+/* Шапка игрока, вид «арена» (владелец 12.11, по образцу nhl.com): цвет клуба, название клуба контуром на фоне,
+   эмблема-«голограмма», внизу кант свитера. Класс .x на .pp ставит player.js; старый вид — ?hero=old.
+   Ниже — полоса игрока, которая остаётся под шапкой сайта при прокрутке (.pp-stick). */
+.pp.k.x .pp-hero{border-radius:6px;min-height:340px;
+  background:linear-gradient(100deg,var(--kb) 0%,color-mix(in srgb,var(--kb) 62%,#000) 100%);
+  box-shadow:none}
+.pp.k.x.lt .pp-hero{background:linear-gradient(100deg,var(--kb) 0%,color-mix(in srgb,var(--kb) 82%,#000) 100%)}
+.pp.k.x .pp-hero::before{background:none}
+/* кант: две полосы цветов свитера по нижнему краю */
+.pp.k.x .pp-hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:10px;z-index:2;pointer-events:none;
+  background:linear-gradient(180deg,var(--kt) 0 3px,var(--ks) 3px 100%)}
+.pp.k.x .pp-no{display:none}
+.pp-wm{display:none}
+.pp.k.x .pp-wm{display:block;position:absolute;z-index:-1;left:36%;right:-3%;top:50%;transform:translateY(-52%);pointer-events:none;
+  font:900 clamp(96px,19vw,270px)/.8 var(--display);letter-spacing:-.03em;text-transform:uppercase;white-space:nowrap;text-align:center;
+  color:transparent;-webkit-text-stroke:1.5px color-mix(in srgb,var(--ko) 22%,transparent)}
+.pp-ghost{display:none}
+.pp.k.x .pp-ghost{display:block;position:absolute;z-index:-1;right:26%;top:50%;height:150%;aspect-ratio:1;object-fit:contain;
+  transform:translate(50%,-50%) rotate(-8deg);opacity:.2;filter:grayscale(1) contrast(1.3) brightness(1.5);mix-blend-mode:screen;pointer-events:none}
+.pp.k.x.lt .pp-ghost{mix-blend-mode:multiply;filter:grayscale(1) contrast(1.2);opacity:.16}
+/* подложка-круг под фото не нужна: фото стоит прямо на цвете клуба */
+.pp.k.x .pp-photo::before{display:none}
+/* нет фото — на его месте эмблема клуба в цвете, без инициалов */
+.pp.k.x .pp-photo.nop .pp-ini{display:none!important}
+.pp.k.x .pp-hero:has(.pp-photo.nop) .pp-ghost{right:17%;height:64%;opacity:1;filter:drop-shadow(0 10px 22px rgba(0,0,0,.35));mix-blend-mode:normal;transform:translate(50%,-50%)}
+/* плашки в шапке: прямые, без «таблеток» */
+.pp.k.x .pp-crumbs{gap:0;margin-bottom:22px}
+.pp.k.x .pp-crumbs a{border-radius:0;border:0;border-right:1px solid color-mix(in srgb,var(--ko) 28%,transparent);background:none;padding:2px 14px}
+.pp.k.x .pp-crumbs a:first-child{padding-left:0}
+.pp.k.x .pp-crumbs a:last-child{border-right:0}
+.pp.k.x .pp-crumbs a:hover,.pp.k.x .pp-crumbs a:focus-visible{background:none;text-decoration:underline;text-underline-offset:4px}
+.pp.k.x .pp-crumbs img{background:none;padding:0;border-radius:0;width:28px;height:28px}
+/* строка «номер · амплуа» — как на табло */
+.pp-meta{display:none}
+.pp.k.x .pp-pos{display:none}
+.pp.k.x .pp-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px;margin:16px 0 0;font:700 clamp(15px,1.5vw,19px)/1.2 var(--display);color:var(--ko)}
+.pp.k.x .pp-meta b{font-weight:900;font-size:1.5em;font-variant-numeric:tabular-nums}
+.pp.k.x .pp-meta span+span::before{content:"";display:inline-block;width:5px;height:5px;background:currentColor;opacity:.5;margin-right:16px;vertical-align:middle;transform:rotate(45deg)}
+.pp.k.x .pp-sub{display:none}
+/* цифры сезона прямо в шапке: Г П О крупно */
+.pp-hs{display:none}
+.pp.k.x .pp-hs{display:flex;gap:0;margin:22px 0 0;padding:0}
+.pp.k.x .pp-hs div{padding:0 22px;border-left:1px solid color-mix(in srgb,var(--ko) 28%,transparent);text-align:center}
+.pp.k.x .pp-hs div:first-child{padding-left:0;border-left:0}
+.pp.k.x .pp-hs b{display:block;font:900 clamp(28px,3.4vw,44px)/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ko)}
+.pp.k.x .pp-hs span{display:block;margin-top:6px;font:700 12px/1 var(--display);letter-spacing:.09em;text-transform:uppercase;color:var(--ko2)}
+@media (max-width:720px){
+  .pp.k.x .pp-hero{min-height:0}
+  .pp.k.x .pp-wm{left:-4%;right:-4%;font-size:30vw;top:38%}
+  .pp.k.x .pp-ghost{right:20%;height:110%}
+  .pp.k.x .pp-hero:has(.pp-photo.nop) .pp-ghost{right:19%;top:42%;height:44%}
+  .pp.k.x .pp-hs{margin-top:14px}.pp.k.x .pp-hs div{padding:0 8px}.pp.k.x .pp-hs b{font-size:23px}.pp.k.x .pp-hs span{font-size:9px;letter-spacing:.04em}
+  .pp.k.x .pp-meta span:nth-child(3){display:none}.pp.k.x .pp-meta{margin-top:10px}
+  .pp.k.x .pp-crumbs a{padding:2px 9px;font-size:11px}
+  .pp.k.x .pp-crumbs img{width:22px;height:22px}
+}
+
+/* ── полоса игрока при прокрутке ── */
+.pp-stick{position:fixed;left:0;right:0;top:var(--hdh,64px);z-index:39;background:var(--kb,#16223a);color:var(--ko,#fff);
+  transform:translateY(-110%);visibility:hidden;transition:transform .28s cubic-bezier(.23,1,.32,1),visibility 0s .28s;
+  border-bottom:3px solid var(--ks,#ffc21a);overflow:hidden}
+.pp-stick.on{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.23,1,.32,1)}
+.pp-stick .wrap{display:flex;align-items:center;gap:14px;height:58px;position:relative}
+.pp-stick .pps-ph{flex:none;width:50px;height:58px;object-fit:cover;object-position:50% 0;align-self:end}
+.pp-stick .pps-who{flex:none;max-width:40%;display:grid;gap:3px}
+.pp-stick .pps-who b{font:900 19px/1 var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pp-stick .pps-who span{font:600 12px/1 var(--display);letter-spacing:.05em;text-transform:uppercase;color:var(--ko2,inherit);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pp-stick .pps-st{display:flex;flex:none;margin-left:auto;font-variant-numeric:tabular-nums}
+.pp-stick .pps-st div{padding:0 14px;border-left:1px solid color-mix(in srgb,var(--ko,#fff) 25%,transparent);text-align:center}
+.pp-stick .pps-st b{display:block;font:900 20px/1 var(--display)}
+.pp-stick .pps-st span{display:block;margin-top:4px;font:700 10px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--ko2,inherit)}
+.pp-stick nav{display:flex;gap:2px;margin-left:10px;flex:none}
+.pp-stick nav a{font:700 13px/1 var(--display);color:inherit;text-decoration:none;padding:9px 10px;border-bottom:2px solid transparent;white-space:nowrap}
+.pp-stick nav a:hover,.pp-stick nav a:focus-visible{border-bottom-color:currentColor}
+.pp-stick .pps-em{flex:none;width:38px;height:38px;object-fit:contain}
+.pp-stick .pps-wm{position:absolute;left:34%;top:50%;transform:translateY(-50%);z-index:-1;font:900 86px/1 var(--display);letter-spacing:-.03em;text-transform:uppercase;white-space:nowrap;
+  color:transparent;-webkit-text-stroke:1px color-mix(in srgb,var(--ko,#fff) 13%,transparent);pointer-events:none}
+.pp-stick .wrap{isolation:isolate}
+@media (max-width:980px){.pp-stick nav{display:none}}
+@media (max-width:560px){.pp-stick .pps-who{flex:0 1 auto;max-width:none;min-width:0}.pp-stick .pps-st div:nth-child(1){display:none}.pp-stick .pps-st div{padding:0 9px}.pp-stick .pps-who b{font-size:16px}.pp-stick .pps-em{display:none}.pp-stick .wrap{gap:10px}}
+@media (prefers-reduced-motion:reduce){.pp-stick,.pp-stick.on{transition:none}}
+/* якоря разделов не прячутся под шапкой и полосой */
+.pp-sec{scroll-margin-top:140px}

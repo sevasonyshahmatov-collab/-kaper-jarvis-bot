@@ -56,24 +56,27 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
  const photo=P.img?`<img class="ph" src="${esc(P.img)}" alt="${esc(P.n)}" onerror="this.parentNode.classList.add('nop');this.remove()">`:'';
  let html=`<article class="pp-hero" aria-label="${esc(P.n)}">
   ${P.no!=null?`<span class="pp-no" aria-hidden="true">${esc(P.no)}</span>`:''}
+  <span class="pp-wm" aria-hidden="true">${esc(tn(P.t))}</span><img class="pp-ghost" src="${em(P.t)}" alt="" aria-hidden="true" onerror="this.remove()">
   <div class="pp-txt">
    <p class="pp-crumbs"><a href="${teamHref}" title="Страница клуба"><img src="${em(P.t)}" alt="" onerror="this.remove()">${esc(tn(P.t))}</a><a class="lg" href="league.html?lg=${LG}" title="Страница лиги">${lgName}</a><a class="lg" href="compare.html?t=players&a=${LG}-${ID}" title="Сравнить с другим игроком">Сравнить</a></p>
    <p class="pp-pos">${esc(POS[P.pos]||P.pos||'')}${P.no!=null?' · №'+esc(P.no):''}</p>
    <h1>${small?esc(small)+' ':''}<b${String(big).length>9?` style="--fz:${(9/String(big).length).toFixed(3)}"`:''}>${esc(big)}</b></h1>
    <p class="pp-sub">${G}+${A}=${G+A} в ${gp} ${pl(gp,'матче','матчах','матчах')} сезона</p>
+   <p class="pp-meta">${P.no!=null?`<span><b>#${esc(P.no)}</b></span>`:''}<span>${esc(POS[P.pos]||P.pos||'')}</span><span>${lgName}, сезон 2026/27</span></p>
+   <dl class="pp-hs" aria-label="Сезон: ${gp} ${pl(gp,'игра','игры','игр')}, ${G}+${A}"><div><b>${gp}</b><span>${pl(gp,'игра','игры','игр')}</span></div><div><b>${G}</b><span>голы</span></div><div><b>${A}</b><span>передачи</span></div><div><b>${G+A}</b><span>очки</span></div></dl>
   </div>
   <div class="pp-photo${P.img?'':' nop'}"><span class="pp-ini" aria-hidden="true">${esc(ini)}</span>${photo}</div>
  </article>
- <section class="pp-sec" aria-labelledby="h-s"><h2 id="h-s">Сезон</h2><div class="pp-tiles">${tiles.join('')}</div></section>${radar(P.sk)}
- <section class="pp-sec" aria-labelledby="h-m"><h2 id="h-m">В скольких матчах</h2>
+ <section class="pp-sec" id="s-season" aria-labelledby="h-s"><h2 id="h-s">Сезон</h2><div class="pp-tiles">${tiles.join('')}</div></section>${radar(P.sk)}
+ <section class="pp-sec" id="s-mk" aria-labelledby="h-m"><h2 id="h-m">В скольких матчах</h2>
   <table class="pp-mk"><thead><tr><th scope="col">Рынок</th><th scope="col">Сезон</th><th scope="col">Последние 10</th><th scope="col">Дома</th><th scope="col">В гостях</th></tr></thead><tbody>
   ${mkList.map(m=>`<tr><th scope="row">${m.n}</th>${cell(hit(log,m,1))}${cell(hit(L10,m))}${cell(HM.length?hit(HM,m):[0,0])}${cell(AW.length?hit(AW,m):[0,0])}</tr>`).join('')}
   </tbody></table></section>
- <section class="pp-sec" aria-labelledby="h-f"><h2 id="h-f">Форма</h2>
+ <section class="pp-sec" id="s-form" aria-labelledby="h-f"><h2 id="h-f">Форма</h2>
   <div class="pp-tabs" id="tabs" role="group" aria-label="Рынок графика">${mkList.map((m,i)=>`<button type="button" data-k="${m.k}" aria-pressed="${!i}">${m.n}</button>`).join('')}</div>
   <div class="pp-chart" id="chart" role="img" aria-label="Форма по последним матчам"></div></section>
- <section class="pp-sec" aria-labelledby="h-n"><h2 id="h-n">Следующий матч</h2><div id="next" class="pp-nx"></div></section>
- <section class="pp-sec" aria-labelledby="h-g"><h2 id="h-g">Все матчи сезона</h2>
+ <section class="pp-sec" id="s-next" aria-labelledby="h-n"><h2 id="h-n">Следующий матч</h2><div id="next" class="pp-nx"></div></section>
+ <section class="pp-sec" id="s-games" aria-labelledby="h-g"><h2 id="h-g">Все матчи сезона</h2>
   <div class="pp-wrap"><table class="pp-gm"><thead><tr><th scope="col" class="res"><span class="sr">Результат</span></th><th scope="col">Дата</th><th scope="col">Соперник</th><th scope="col" class="ct">Г+П</th>${nhl?'<th scope="col" class="rt br">Бр</th><th scope="col" class="rt tm">Время</th>':''}<th scope="col" class="rt">Счёт</th></tr></thead><tbody>
   ${log.slice().reverse().map(r=>{const sc=r[8],w=sc&&sc[0]>sc[1];return `<tr><td class="res">${sc?`<b class="${w?'w':'l'}">${w?'В':'П'}</b>`:''}</td><td>${ddmm(r[0])}</td><td><a class="op" style="color:inherit;text-decoration:none" href="../team/index.html?id=${encodeURIComponent(r[1])}"><img src="${em(r[1])}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(tn(r[1]))}<small>${r[2]?'дома':'в гостях'}</small></span></a></td><td class="ct pt"><b class="${r[3]+r[4]>0?'g':''}">${r[3]}+${r[4]}</b></td>${nhl?`<td class="rt br">${r[5]??'—'}</td><td class="rt tm">${mmss(r[6])}</td>`:''}<td class="rt sc">${sc?`<span class="sg"><small>${sc[2]?esc(sc[2]):''}</small><i>${sc[0]}</i><u>:</u><i>${sc[1]}</i></span>`:'—'}</td></tr>`}).join('')}
   </tbody></table></div></section>
@@ -87,6 +90,20 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
   let bg='#0b1626';try{const m=/(\d+)\D+(\d+)\D+(\d+)/.exec(getComputedStyle(document.body).backgroundColor);if(m)bg='#'+[1,2,3].map(i=>(+m[i]).toString(16).padStart(2,'0')).join('')}catch(e){}
   const a=JY.pick(P.t,bg);MAIN.style.setProperty('--kg',a.g);MAIN.style.setProperty('--kgo',a.go);
   MAIN.classList.add('k');if(jc.lt)MAIN.classList.add('lt');
+  if(Q.get('hero')!=='old')MAIN.classList.add('x');
+ }
+ /* полоса игрока под шапкой сайта: появляется, когда шапка профиля ушла вверх (12.11, по образцу nhl.com) */
+ {const hero=MAIN.querySelector('.pp-hero'),hd=document.getElementById('hd'),bar=document.createElement('div');
+  bar.className='pp-stick';bar.setAttribute('aria-hidden','true');
+  ['--kb','--ko','--ko2','--ks','--kt'].forEach(v=>{const x=MAIN.style.getPropertyValue(v);if(x)bar.style.setProperty(v,x)});
+  bar.innerHTML=`<div class="wrap"><span class="pps-wm">${esc(tn(P.t))}</span>${P.img?`<img class="pps-ph" src="${esc(P.img)}" alt="" onerror="this.remove()">`:''}
+   <div class="pps-who"><b>${esc(P.n)}</b><span>${P.no!=null?'#'+esc(P.no)+' · ':''}${esc(POS[P.pos]||P.pos||'')} · ${esc(tn(P.t))}</span></div>
+   <div class="pps-st"><div><b>${gp}</b><span>игр</span></div><div><b>${G}</b><span>голы</span></div><div><b>${A}</b><span>пас</span></div><div><b>${G+A}</b><span>очки</span></div></div>
+   <nav><a href="#s-season" tabindex="-1">Сезон</a><a href="#s-mk" tabindex="-1">Рынки</a><a href="#s-form" tabindex="-1">Форма</a><a href="#s-next" tabindex="-1">Следующий матч</a><a href="#s-games" tabindex="-1">Матчи</a></nav>
+   <img class="pps-em" src="${em(P.t)}" alt="" onerror="this.remove()"></div>`;
+  document.body.appendChild(bar);
+  const fit=()=>bar.style.setProperty('--hdh',(hd?hd.offsetHeight:64)+'px');fit();addEventListener('resize',fit);
+  if(hero&&'IntersectionObserver'in window)new IntersectionObserver(([e])=>{fit();bar.classList.toggle('on',!e.isIntersecting&&e.boundingClientRect.top<0)},{rootMargin:'-70px 0px 0px 0px'}).observe(hero);
  }
  /* график */
  const chart=document.getElementById('chart');
