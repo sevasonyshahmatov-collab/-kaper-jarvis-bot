@@ -1,1 +1,1 @@
-window.JV_POSTS={};
+window.JV_POSTS={"khl|2026-11-12|barys|admiral":{"id":1566,"url":"https://t.me/jarvibet/1566","src":"author","bet":"ИТ1Б (2.5)","kef":1.66,"r":null},"khl|2026-11-12|metallurg|avangard":{"id":1565,"url":"https://t.me/jarvibet/1565","src":"model","bet":"Тотал матча больше 4,5","kef":1.62,"r":null}};
