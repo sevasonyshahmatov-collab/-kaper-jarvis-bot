@@ -580,6 +580,53 @@ def add_emblems(picks):
                     x[e] = v
 
 
+# Показ ставки на сайте: владелец пишет ставки в канале от руки — «2.5» и «2,5», «Нешвила» и «Нэшвилла», «ИТ1Б (2.5)».
+# Приводим к одному виду только текст для показа; сверка с моделью и расчёт итога идут до этого, по исходному тексту (12.11).
+_TYPOS = {'Нешвила': 'Нэшвилла', 'Нешвилла': 'Нэшвилла', 'Нешвилл': 'Нэшвилл', 'Нешвил': 'Нэшвилл', 'ска': 'СКА', 'цска': 'ЦСКА'}
+_NUM = r'\d+(?:,\d+)?'
+
+
+def show_bet(bet):
+    b = re.sub(r'(?<=\d)\.(?=\d)', ',', bet or '')
+    b = re.sub(r'\(\s*([+\-−]?%s)\s*\)' % _NUM, r'\1', b)                      # «(2,5)» → «2,5»
+    b = re.sub(r'(?<![\d,])-(?=\d)', '−', b)                                   # минус, а не дефис
+    m = re.fullmatch(r'ИТ([12])\s*([БМ])\s*(%s)' % _NUM, b, re.I)
+    if m:
+        b = 'Индивидуальный тотал %s %s %s' % ('хозяев' if m.group(1) == '1' else 'гостей',
+                                                'больше' if m.group(2).upper() == 'Б' else 'меньше', m.group(3))
+    b = re.sub(r'\+\s*(%s)\s+(больше|меньше)\b' % _NUM, r'+ тотал \2 \1', b)   # «Х2 + 5,5 меньше»
+    b = re.sub(r'(?<![+\-−\d,])\b(%s)\s+(больше|меньше)\b' % _NUM, r'\2 \1', b)  # «тотал 2,5 больше» → «тотал больше 2,5»
+    b = re.sub(r'[А-Яа-яЁё]+', lambda w: _TYPOS.get(w.group(0), w.group(0)), b)
+    b = re.sub(r'\s+', ' ', b).strip()
+    return b[:1].upper() + b[1:] if b else b
+
+
+def _cap_club(bet, names):
+    """«тотал металлурга», «фора каролины» → с заглавной: слово начинается как название клуба из этого же прогноза."""
+    def fix(w):
+        t = w.group(0)
+        if t != t.lower() and t != t.capitalize():
+            return t
+        tl = t.lower().replace('ё', 'е')
+        if tl in ('ска', 'цска'):
+            return tl.upper()
+        for n in names:
+            nl = n.lower().replace('ё', 'е')
+            if ' ' not in n and '-' not in n and len(nl) >= 5 and t == t.lower() and tl.startswith(nl[:len(nl) - 1]) and len(tl) <= len(nl) + 3:
+                return t[:1].upper() + t[1:]
+        return t
+    return re.sub(r'[А-Яа-яЁё]+', fix, bet)
+
+
+def show_bets(picks):
+    for p in picks:
+        legs = p.get('legs') or []
+        names = {x for x in [p.get('h'), p.get('a')] + [l_.get(k) for l_ in legs for k in ('h', 'a')] if x}
+        p['bet'] = _cap_club(show_bet(p.get('bet')), names)
+        for leg in legs:
+            leg['bet'] = _cap_club(show_bet(leg.get('bet')), names)
+
+
 def main():
     mo = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'team', 'site', 'months_out')
     team = sys.argv[2] if len(sys.argv) > 2 else os.path.join(ROOT, 'team')
@@ -617,6 +664,7 @@ def main():
     nsc = by_score(foot + exp)
     picks = sorted(hockey + foot + exp, key=lambda p: (p['d'], p['id']), reverse=True)
     add_emblems(picks)
+    show_bets(picks)
     now = datetime.now(MSK)
     out = dict(built=now.strftime('%Y-%m-%d %H:%M'), since=min(p['d'][:10] for p in picks), channel='https://t.me/' + CHANNEL,
                labels_since='2026-10-15' if sent else None, sum=summary(picks, now), picks=picks)

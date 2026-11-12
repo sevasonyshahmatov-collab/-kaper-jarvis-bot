@@ -195,7 +195,7 @@ body.on-light .tmhero.hero{--card:rgba(255,255,255,.34);--card-hi:rgba(255,255,2
 .tmhero .wrap{position:relative;z-index:1}
 .tmwm{position:absolute;z-index:0;pointer-events:none;right:-9vw;top:50%;width:min(64vw,860px);height:auto;transform:translateY(-50%) rotate(-8deg);opacity:.1;filter:saturate(.6)}
 [data-theme="arena"] .tmhero .tmplace b{color:var(--cacc)}
-[data-theme="arena"]:not(.lit) body .hd{background:color-mix(in srgb,var(--c1) 98%,transparent)}
+[data-theme="arena"]:not(.lit) body .hd{background:var(--c1)}
 .tmpower{box-shadow:inset 0 0 0 1px var(--rule-2)}
 .tmcrest{box-shadow:0 0 0 4px var(--cacc),0 0 0 7px var(--c3),0 24px 40px -24px #000}
 .stand tr.me td{background:var(--cbase);color:#fff}

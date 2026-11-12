@@ -189,3 +189,5 @@ body[data-only="ucl"] .board-top{min-height:45px}
 .gnav .gcol a{padding:8px 12px;font-size:14px;color:var(--ink-2)}
 .gnav .gcol a.gch{font-size:16px;font-weight:800;color:var(--ink);padding:10px 12px 6px}
 .gdd-m.grid{display:grid;grid-template-columns:1fr 1fr;min-width:340px}
+/* 12.11 (владелец): на телефоне одна жёлтая кнопка — когда снизу выехала полоса «Получать прогнозы», кнопка в шапке прячется */
+@media (max-width:760px){html:has(.tgbar.on):not(.menu-open) .hd .btn-tg{display:none}html:has(.tgbar.on):not(.menu-open) .hd .mbtn{margin-left:auto}}

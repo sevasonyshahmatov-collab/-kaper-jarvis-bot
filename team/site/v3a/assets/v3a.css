@@ -108,7 +108,7 @@ body::after{content:"";position:fixed;inset:-50%;z-index:-1;pointer-events:none;
 @keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}100%{transform:translate(0,0)}}
 
 /* ── шапка ──────────────────────────────────────────────────── */
-.hd{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--paper) 98%,transparent);
+.hd{position:sticky;top:0;z-index:40;background:var(--paper);
   transition:box-shadow .3s ease}
 .hd.stuck{box-shadow:0 6px 18px -12px var(--shadow)} /* taste-skill-ignore: липкая шапка */
 .hd .wrap{display:flex;align-items:center;gap:clamp(12px,2.4vw,32px);height:64px}
@@ -591,7 +591,7 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
   --ink:#eaf3ff; --ink-2:#b8c9e4; --ink-3:#8fa6cc; --rule:#1e3460; --rule-2:#2c4675;
   --ice:#3ee0ff; --sport:#3ee0ff; --crest-bg:#eef3fa; --crest-pad:1; --shadow:rgba(0,0,0,.6);
   color:var(--ink)}
-[data-theme="arena"] .hd{background:color-mix(in srgb,var(--bgc,var(--paper)) 98%,transparent);transition:color .3s ease}
+[data-theme="arena"] .hd{background:var(--bgc,var(--paper));transition:color .3s ease}
 [data-theme="arena"] .hero>.wrap{opacity:calc(1 - var(--lit) * 1.6)}
 [data-theme="arena"] .hero{padding-bottom:clamp(64px,9vw,140px)}
 [data-theme="arena"] .hero h1 .ln:last-child{color:var(--ice)}
