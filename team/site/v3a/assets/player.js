@@ -122,10 +122,14 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
  nextMatch(P);
  /* место в лиге под цифрой (12.11, по образцу nhl.com): итоги всех игроков лиги — hockey/data/lgp_<лига>.json */
  fetch(`data/lgp_${LG}.json`).then(r=>r.ok?r.json():null).then(d=>{
-  const all=(d&&d.players)||[];if(all.length<50)return;
+  /* 13.11: считаем среди тех, кто сыграл хотя бы четверть матчей лидера по играм (не меньше 5) — без игроков на пару матчей;
+     у самого игрока с меньшим числом игр плашки нет */
+  const every=(d&&d.players)||[];if(every.length<50)return;
+  const need=Math.max(5,Math.ceil(Math.max(...every.map(x=>x.gp||0))/4));if(gp<need)return;
+  const all=every.filter(x=>(x.gp||0)>=need);
   const val={g:x=>x.s[0],a:x=>x.s[1],p:x=>x.s[0]+x.s[1],s:x=>x.s[2]},mine={g:G,a:A,p:G+A,s:sog},lgN=nhl?'НХЛ':'КХЛ';
   const put=(el,k)=>{if(!val[k]||!mine[k])return;const rk=1+all.filter(x=>x.s&&val[k](x)>mine[k]).length;
-   const e=document.createElement('em');e.className='pp-rk';e.textContent=`${rk}-й в ${lgN}`;e.title=`Место среди ${all.length} игроков ${lgN}`;el.appendChild(e)};
+   const e=document.createElement('em');e.className='pp-rk';e.textContent=`${rk}-й в ${lgN}`;e.title=`Место среди ${all.length} игроков ${lgN}, сыгравших от ${need} матчей`;el.appendChild(e)};
   MAIN.querySelectorAll('.pp-tile[data-rk]').forEach(el=>put(el,el.dataset.rk));
   MAIN.querySelectorAll('.pp-hs [data-rk]').forEach(el=>put(el,el.dataset.rk));
  }).catch(()=>{});

@@ -1,17 +1,23 @@
-/* шрифт заголовков, цифр и логотипа — Inter (выбор владельца 04.11 из 9 вариантов; цифры не крупнее букв, шире промежутки).
-   Раньше буквы были Fira Sans Extra Condensed, а цифры Roboto — из-за этого цифры выглядели крупнее. */
-@font-face{font-family:"JV Display";font-style:normal;font-weight:100 900;font-display:swap;
-  src:url(vendor/fonts/inter-latin.woff2) format("woff2");
+/* шрифты — пара «Арена» (выбор владельца 13.11 из четырёх вариантов): Roboto Flex в цифрах, меню и подписях ("JV Display"),
+   он же в широком начертании 132 % в заголовках и логотипе ("JV Wide"), текст — Golos Text ("JV Text"). Все OFL, файлы лежат локально.
+   Roboto Flex урезан до нужного: ширина 100–132 %, насыщенность 200–900 (fontTools instancer). До 13.11 были Inter и Literata. */
+@font-face{font-family:"JV Display";font-style:normal;font-weight:200 900;font-display:swap;font-stretch:100%;
+  src:url(vendor/fonts/robotoflex-latin.woff2) format("woff2");
   unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:"JV Display";font-style:normal;font-weight:100 900;font-display:swap;
-  src:url(vendor/fonts/inter-cyrillic.woff2) format("woff2");
+@font-face{font-family:"JV Display";font-style:normal;font-weight:200 900;font-display:swap;font-stretch:100%;
+  src:url(vendor/fonts/robotoflex-cyrillic.woff2) format("woff2");
   unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
-/* текст — Literata (OFL), локально вместо fonts.googleapis.com (09.11) */
-@font-face{font-family:"Literata";font-style:normal;font-weight:200 900;font-display:swap;
-  src:url(vendor/fonts/literata-latin.woff2) format("woff2");
+@font-face{font-family:"JV Wide";font-style:normal;font-weight:200 900;font-display:swap;font-stretch:132%;
+  src:url(vendor/fonts/robotoflex-latin.woff2) format("woff2");
   unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:"Literata";font-style:normal;font-weight:200 900;font-display:swap;
-  src:url(vendor/fonts/literata-cyrillic.woff2) format("woff2");
+@font-face{font-family:"JV Wide";font-style:normal;font-weight:200 900;font-display:swap;font-stretch:132%;
+  src:url(vendor/fonts/robotoflex-cyrillic.woff2) format("woff2");
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:"JV Text";font-style:normal;font-weight:400 900;font-display:swap;
+  src:url(vendor/fonts/golos-latin.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"JV Text";font-style:normal;font-weight:400 900;font-display:swap;
+  src:url(vendor/fonts/golos-cyrillic.woff2) format("woff2");
   unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
 /* JARVIS — макет v3a «Матч-центр». Светлая спортивная редакция: газетный набор, табло split-flap,
    бегущая строка, живая фактура поля/льда на canvas. Без видео. */
@@ -22,8 +28,9 @@
   --signal:#ffc21a; --signal-ink:#1a1400;
   --pitch:#16704a; --ice:#1462a8; --red:#c4303b; --win:#1d7a45;
   --sport:var(--pitch);
-  --display:"JV Display","Inter","Helvetica Neue",Arial,sans-serif;
-  --text:"Literata",Georgia,serif;
+  --display:"JV Display","Helvetica Neue",Arial,sans-serif;
+  --wide:"JV Wide","JV Display","Helvetica Neue",Arial,sans-serif;
+  --text:"JV Text","Helvetica Neue",Arial,sans-serif;
   --out:cubic-bezier(.23,1,.32,1); --inout:cubic-bezier(.77,0,.175,1);
   --m:clamp(16px,3.2vw,44px); --max:1360px;
   --card:color-mix(in srgb,var(--paper) 70%,#fff); --card-hi:#fff; --rule:var(--ink); --rule-2:var(--ink);
@@ -948,10 +955,13 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 /* табло на телефоне: длинная подпись лиги («Лига чемпионов · …») переносится, а не раздвигает страницу (04.11) */
 @media (max-width:620px){.board-top{flex-wrap:wrap;gap:4px 12px}.board-top .bmeta{min-width:0;flex-wrap:wrap}.board-top .bmeta b{white-space:normal}}
 
+/* заголовки и логотип — широкое начертание (пара «Арена», 13.11) */
+h1,h2,.pp h1 b,.pp-wm,.pp-stick .wm,.logo{font-family:var(--wide)!important;font-stretch:132%;letter-spacing:-.01em}
+h1,h2{font-weight:800!important}
 /* единый шрифт: без сжатия букв в заголовках (Fira был узким, у Roboto Condensed отрицательный трекинг слепляет) */
 h1,h2,h3,.btn,.seg a,.nav a{letter-spacing:-.01em!important}
 body{font-variant-numeric:tabular-nums lining-nums}
-/* Inter шире прежнего шрифта: на маленьких телефонах (≤ 400 px) длинные заголовки переносятся, ничего не вылезает вбок */
+/* широкий шрифт заголовков: на маленьких телефонах (≤ 400 px) длинные заголовки переносятся, ничего не вылезает вбок */
 @media (max-width:400px){h1,h2,h3{overflow-wrap:break-word;hyphens:manual}html,body{overflow-x:clip}}   /* без «СЛЕДУЮ-ЩИЙ», «Ближ-айшие»: слово рвётся, только если не влезает целиком; длинные — JV.fitWords (аудит 09.11b) */
 
 /* карточка матча: «Последние матчи» по высоте соседнего «Расчёта модели» (владелец 07.11) */

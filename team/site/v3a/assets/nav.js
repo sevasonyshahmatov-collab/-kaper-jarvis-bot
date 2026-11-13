@@ -153,12 +153,6 @@ const first=row.querySelector('.mt-rem-b');first?first.after(b):row.prepend(b);
 const b=(document.currentScript&&document.currentScript.src)||new URL('assets/nav.js',location.href).href;
 const s=document.createElement('script');s.src=new URL('mc.js',b).href;document.head.appendChild(s)})();
 
-/* проба шрифтовых пар (12.11): ?font=arena|afisha|tablo включает пару на всех страницах (запоминается), ?font=off — выключает */
-(function(){let f=null;try{f=new URLSearchParams(location.search).get('font');if(f){if(f==='off')localStorage.removeItem('jv-font');else localStorage.setItem('jv-font',f)}f=localStorage.getItem('jv-font')}catch(e){}
-if(!f||!/^(arena|afisha|tablo)$/.test(f))return;
-const b=(document.currentScript&&document.currentScript.src)||new URL('assets/nav.js',location.href).href;
-const s=document.createElement('script');s.src=new URL('fontlab.js',b).href;s.dataset.font=f;document.head.appendChild(s)})();
-
 /* полоса при прокрутке на страницах матча и клуба (assets/stickbar.js, 12.11) */
 (function(){if(!document.querySelector('main>.mx-hero')&&!/\/team\/(index\.html)?$/.test(location.pathname))return;
 const b=(document.currentScript&&document.currentScript.src)||new URL('assets/nav.js',location.href).href;

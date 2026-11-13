@@ -81,7 +81,7 @@ html.lit .hb *{animation-play-state:paused}
 .hb[data-sp="hockey"][data-v="4"] .sl{left:36%}
 .hb[data-v="4"] .sl img{display:block;height:100%;width:auto;filter:url(#hb-duo);opacity:.62}
 @keyframes hb-breathe{to{transform:scale(1.02)}}
-.hb[data-v="4"] .cr{position:absolute;right:10px;bottom:12px;margin:0;writing-mode:vertical-rl;font:400 11px/1.4 "Literata",Georgia,serif;color:#8fa6cc;opacity:.75}
+.hb[data-v="4"] .cr{position:absolute;right:10px;bottom:12px;margin:0;writing-mode:vertical-rl;font:400 11px/1.4 var(--text);color:#8fa6cc;opacity:.75}
 
 /* ═══ 5. Фактура ═══ */
 .hb[data-v="5"]{--vg:.4}

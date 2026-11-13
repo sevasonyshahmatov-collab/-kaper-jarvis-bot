@@ -1,0 +1,5 @@
+Roboto Flex — Copyright 2017 The Roboto Flex Project Authors (https://github.com/googlefonts/roboto-flex)
+Golos Text — Copyright 2021 The Golos Text Project Authors (https://github.com/googlefonts/golos-text)
+
+Both are licensed under the SIL Open Font License, Version 1.1: https://openfontlicense.org
+robotoflex-*.woff2 are subsets limited to width 100–132 and weight 200–900.
