@@ -4,6 +4,13 @@
 (()=>{
 const D=window.__RESLITE,box=document.getElementById('rsx');if(!D||!D.sum)return;
 const hr=document.getElementById('hm-res');if(hr){const a=D.sum.total.all;hr.textContent='Итоги: зашло '+a.w+' из '+(a.w+a.l)}
+/* компактная полоса «Честные итоги» в разделах Хоккей / Футбол (задание 14.11, п. 4): три цифры — те же данные */
+{const pf=document.getElementById('pf');if(pf){const A=D.sum.total.all,S=D.sum.total[pf.dataset.sport],$=id=>document.getElementById(id);
+ const n1=x=>Number(x).toFixed(1).replace('.',','),sg=x=>(x>0?'+':x<0?'−':'')+n1(Math.abs(x));
+ const MG=['','января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+ $('pfW').innerHTML=`${A.w}<small> из ${A.w+A.l}</small>`;$('pfR').textContent=Math.round(A.w/(A.w+A.l)*100)+' %';
+ $('pfU').innerHTML=`${sg(A.units)}<small> ед.</small>`;$('pfU').parentNode.classList.add(A.units>=0?'pos':'neg');
+ $('pfS').textContent=`Все прогнозы канала с ${+D.since.slice(8,10)} ${MG[+D.since.slice(5,7)]}`+(S&&S.w+S.l?`, из них ${pf.dataset.sport==='hockey'?'хоккей':'футбол'} — ${S.w} из ${S.w+S.l}`:'')+'. Со счётом матча и ссылкой на пост, минусы — в том же списке.'}}
 if(!box)return;
 const root=box.dataset.root||'';
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);

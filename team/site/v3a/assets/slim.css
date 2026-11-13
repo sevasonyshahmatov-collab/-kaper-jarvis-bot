@@ -1,0 +1,62 @@
+/* JARVIS v3a — разделы «Хоккей» и «Футбол» короче (задание 14.11, п. 4): первый экран телефона, полоса итогов,
+   компактная подписка, плашка аналитической таблицы, матчи в две колонки на широком экране */
+.lead .lead-s{display:none}
+@media (max-width:760px){
+  /* первый экран: заголовок, одна строка пояснения, ближайший матч с выводом модели, одна кнопка */
+  .lead .lead-l{display:none}.lead .lead-s{display:inline}
+  #ticker,.hero .hero-cta,.hero .facts,.hero .chips,.hero .h3next,.hero .h3strip{display:none!important}
+  .hero h1{margin-bottom:6px}
+  .hero .lead{margin:0 0 12px;font-size:16px}
+  .hero .get8{margin-top:10px}
+  .hero{min-height:0!important;padding-bottom:20px!important}
+  /* карточки матчей плотнее */
+  .mlist .match .mhead{padding-top:10px;padding-bottom:10px}
+  .mlist .dayh{padding-top:12px;padding-bottom:6px}
+}
+.more2{display:flex;justify-content:center;margin-top:16px}
+.more2 .btn[hidden]{display:none}
+
+/* плашка-ссылка на аналитическую таблицу */
+.tbl-link.sec{padding-top:clamp(20px,3vw,40px);padding-bottom:clamp(20px,3vw,40px)}
+.tbl-plate{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:860px;margin:0 auto;padding:18px 22px;
+  border-radius:var(--rc,14px);background:var(--card,var(--paper-2));color:var(--ink);text-decoration:none;border:1px solid var(--rule-2)}
+.tbl-plate span{display:flex;flex-direction:column;gap:6px;text-align:center;flex:1}
+.tbl-plate b{font:800 clamp(19px,2vw,24px)/1.1 var(--display)}
+.tbl-plate small{font-size:15px;line-height:1.4;color:var(--ink-2)}
+.tbl-plate i{font-style:normal;font:800 24px/1 var(--display);flex:none}
+.tbl-plate:hover{border-color:var(--ink-2)}
+.tbl-plate:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+/* полоса «Честные итоги»: три цифры + ссылки; полные версии — results.html, model.html, главная */
+.pf-sec.sec{padding-top:clamp(36px,5vw,72px);padding-bottom:clamp(28px,4vw,56px)}
+.pf{max-width:980px;margin:0 auto;text-align:center}
+.pf h2{margin:0 0 18px}
+.pf-n{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
+.pf-n>div{display:flex;flex-direction:column-reverse;align-items:center;justify-content:center;gap:6px;padding:16px 8px;border-radius:var(--rc,12px);background:var(--card,var(--paper-2))}
+.pf-n dt{font-size:13.5px;line-height:1.25;color:var(--ink-2)}
+.pf-n dd{margin:0;font:800 clamp(26px,3.4vw,40px)/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ink)}
+.pf-n dd small{font-size:.5em;font-weight:700;color:var(--ink-2)}
+.pf-n .pos dd{color:var(--win,#1f9d55)}.pf-n .neg dd{color:var(--red,#d33)}
+.pf-s{margin:14px auto 0;max-width:60ch;font-size:15px;line-height:1.45;color:var(--ink-2)}
+.pf-l{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:16px 0 0}
+@media (max-width:420px){.pf-n dd{font-size:24px}.pf-n dt{font-size:12.5px}.pf-l .btn{flex:1 1 140px;justify-content:center}}
+
+/* «Все прогнозы — в Telegram» — один раз и компактно */
+.sub.sub-c{margin-top:clamp(24px,4vw,56px);padding:clamp(28px,4vw,48px) 0}
+.sub.sub-c .wrap{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px}
+.sub.sub-c h2{margin:0;font-size:clamp(26px,3.4vw,44px)}
+.sub.sub-c p{margin:0;max-width:52ch;color:var(--flap-ink);opacity:.85}
+.sub.sub-c .cta{margin-top:6px}
+
+/* компьютер: без пустоты над «Сегодня на льду», матчи — в две колонки */
+#matches.sec{padding-top:clamp(24px,3vw,48px)}
+#matches .sec-head{margin-bottom:16px}
+#matches .sec-head h2{font-size:clamp(32px,3.6vw,56px)}
+@media (min-width:1100px){
+  .mlist{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 14px;align-items:start}
+  .mlist>.dayh,.mlist>.note,.mlist>.match.open{grid-column:1/-1}
+  .mlist>.match{margin:0}
+  /* в половине ширины — раскладка планшета: время и клубы сверху, расчёт модели под ними */
+  .mlist>.match:not(.open) .mhead{grid-template-columns:76px minmax(0,1fr) 32px;gap:12px 16px}
+  .mlist>.match:not(.open) .quotes{grid-column:1/3}
+}

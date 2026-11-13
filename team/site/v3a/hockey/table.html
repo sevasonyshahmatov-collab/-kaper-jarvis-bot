@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ru" data-sport="hockey" data-theme="c">
+<head>
+<meta charset="utf-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Аналитическая таблица КХЛ и НХЛ | JARVIS</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#071225">
+<script>/* палитра: ?theme=arena (по умолчанию: «Трансляция с арены» — тёмная арена, при прокрутке включают свет) | a «ночной лёд» | b кобальт | c светлый лёд */
+(()=>{const t=new URLSearchParams(location.search).get('theme'),d=document.documentElement;if(/^(arena|a|b|c)$/.test(t||''))d.dataset.theme=t;
+document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a1220',b:'#0b2a84',c:'#e3eff9'}[d.dataset.theme]||'#071225'})();</script>
+<link rel="stylesheet" href="../assets/v3a.css">
+<link rel="stylesheet" href="../assets/nav.css">
+<link rel="stylesheet" href="../assets/obj.css">
+<link rel="stylesheet" href="../assets/lines.css">
+<style>
+.trends{margin-top:2px}
+.trends b{display:block;font:800 clamp(44px,4.4vw,68px)/.9 var(--display);color:var(--sport);font-variant-numeric:tabular-nums;margin-bottom:8px}
+.trends h3{font-size:20px}
+.table.wide td{font-size:17px}
+.table.wide .ra{width:76px}
+#honest .honest{grid-template-columns:minmax(0,.75fr) minmax(0,1.7fr)}
+@media (max-width:980px){#honest .honest{grid-template-columns:1fr}}
+.kt{position:relative;height:16px;display:block}.kt span{position:absolute;transform:translateX(-50%)}.kt span:first-child{transform:none}.kt span:last-child{transform:translateX(-100%)}
+.tbl-top{padding-top:clamp(20px,4vw,48px)}
+.tbl-top h1{font-size:clamp(30px,5.2vw,64px);line-height:1;margin:10px 0 14px;hyphens:none;overflow-wrap:normal}
+.tbl-top .lead{max-width:60ch}
+.tbl-page #table{padding-top:clamp(24px,4vw,56px)}
+.next-step .wrap{display:flex;justify-content:center}
+</style>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<script src="../assets/efir/efir-loader.js"></script>
+<script src="../assets/palettes.js"></script>
+<link rel="stylesheet" href="../assets/live.css">
+<link rel="stylesheet" href="../assets/results.css">
+<!--seo:begin-->
+<meta name="description" content="Что внутри аналитической таблицы JARVIS по КХЛ и НХЛ: рейтинг Эло, прогнозы на все матчи, что заходит у команд, расписание и история ставок.">
+<!--seo:end-->
+</head>
+<body data-field="hockey">
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd"></header>
+<main id="main" class="tbl-page">
+<section class="sec tbl-top" style="padding-bottom:0">
+  <div class="wrap">
+    <p class="back"><a href="index.html">← Хоккей</a></p>
+    <h1>Аналитическая таблица КХЛ и НХЛ</h1>
+    <p class="lead">Для тех, кто считает сам: все матчи, форма команд, вероятности модели и кэфы в одной таблице. Ниже — что в ней есть.</p>
+  </div>
+</section>
+<section class="sec" id="table" data-zone="p2b">
+  <div class="wrap">
+    <div class="sec-head" data-rv><div><p class="eyebrow">Для тех, кто считает сам</p><h2>Что внутри</h2></div>
+      <div><ul class="feat"><li>Все матчи КХЛ и НХЛ в одном месте</li><li>Форма команд, вероятности модели и кэфы</li><li>Обновляется каждый игровой день</li></ul>
+      <a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Хочу таблицу</a><p class="note" style="margin-top:10px">Оплата появится скоро. Сейчас доступ — через Telegram.</p></div></div>
+    <div class="tour" id="tour" data-rv aria-roledescription="карусель" aria-label="Что внутри таблицы">
+      <div class="tour-steps" id="tsteps" role="tablist" aria-label="Листы таблицы">
+        <button type="button" role="tab" class="tstep" aria-selected="true" data-i="0">Эло</button>
+        <button type="button" role="tab" class="tstep" aria-selected="false" data-i="1">Прогнозы</button>
+        <button type="button" role="tab" class="tstep" aria-selected="false" data-i="2">Что заходит</button>
+        <button type="button" role="tab" class="tstep" aria-selected="false" data-i="3">Расписание</button>
+        <button type="button" role="tab" class="tstep" aria-selected="false" data-i="4">История</button>
+        <button type="button" role="tab" class="tstep" aria-selected="false" data-i="5">И ещё</button>
+      </div>
+      <div class="tour-grid">
+        <div class="stack tour-text">
+          <article class="tc on"><h3>Рейтинг Эло</h3><p>Сила каждой команды одним числом. Рейтинг пересчитывается после каждого матча: победа над сильным соперником стоит больше, чем над слабым.</p>
+            <ul><li>Все команды лиги в одном списке</li><li>Как менялась сила команды за сезон</li><li>Поправка на игру: броски в створ и шайбы сверх ожидания</li></ul></article>
+          <article class="tc"><h3>Прогнозы на все матчи</h3><p>Все матчи ближайших дней на одном листе: время по Москве, прогноз модели, коэффициенты и вероятность. После игры рядом появляется счёт.</p>
+            <ul><li>КХЛ и НХЛ</li><li>Расчёт модели рядом с линией</li><li>Обновляется каждое утро</li></ul></article>
+          <article class="tc"><h3>Что заходит у команд</h3><p>Как часто у каждой команды случается то или иное событие за сезон: победа, тотал больше или меньше, игра в овертайм.</p>
+            <ul><li>Видно сильные и слабые стороны каждой команды</li><li>Конструктор матча: выбираешь две команды и видишь, что вероятнее в их игре</li></ul></article>
+          <article class="tc"><h3>Расписание и результаты</h3><p>Все матчи сезона с датой и временем по Москве. У сыгранных стоит счёт, отмечены овертаймы и буллиты.</p>
+            <ul><li>Сегодня, завтра и вся неделя</li><li>Ночные матчи НХЛ собраны в один игровой день</li></ul></article>
+          <article class="tc"><h3>История ставок</h3><p>Каждый прогноз остаётся в таблице: зашёл или нет и по какому кэфу. Видно, как часто модель угадывает и как менялся банк на дистанции.</p>
+            <ul><li>Точность модели по фаворитам и аутсайдерам</li><li>Ничего не удаляется</li></ul></article>
+          <article class="tc"><h3>И это только часть</h3><p>Мы показали 5 листов. Всего в таблице их больше 20: коэффициенты, купон дня, точность модели, карточки команд, статистика, травмы и ключевые игроки.</p>
+            <a class="btn btn-tg tc-cta" href="https://t.me/jarvibet" target="_blank" rel="noopener">Узнать про доступ →</a></article>
+        </div>
+        <div class="tour-vis">
+          <div class="win" id="twin">
+            <div class="win-bar"><i></i><i></i><i></i><span>Лист таблицы</span></div>
+            <div class="stack win-body">
+              <div class="tv on"><div class="soon"><b>Скоро</b><span>Рейтинг Эло появится на сайте, когда подключим его расчёт. В таблице лист уже есть.</span></div></div>
+              <div class="tv"><table class="gt" id="gtbl"></table></div>
+              <div class="tv"><div class="soon"><b>Скоро</b><span>Что заходит у команд: цифры по сезону появятся здесь после подключения данных.</span></div></div>
+              <div class="tv"><div class="cal" id="calbox"></div></div>
+              <div class="tv"><div class="soon"><b>На сайте</b><span>История прогнозов канала по месяцам, со счётом матча и ссылкой на пост.</span><a class="btn btn-ink" href="../results.html">Все прогнозы и итоги</a></div></div>
+              <div class="tv"><div class="more">
+                <div><b>Коэффициенты</b><span>линия на ближайшие матчи и итоги прошлых</span></div><div><b>Модель против рынка</b><span>чья оценка точнее</span></div>
+                <div><b>Купон дня</b><span>самые уверенные события дня</span></div><div><b>Мой купон</b><span>собрать свой и посчитать вероятность</span></div>
+                <div><b>Точность</b><span>как часто угадывает модель</span></div><div><b>Банкролл</b><span>симуляция на дистанции</span></div>
+                <div><b>Карточка команды</b><span>всё о команде и очных встречах</span></div><div><b>Статистика</b><span>броски, большинство, вратари</span></div>
+                <div><b>Ключевые игроки</b><span>лидеры и основной вратарь</span></div><div><b>Досье команд</b><span>травмы, тренер, форма</span></div>
+                <div><b>Разбор перед матчем</b><span>сводка по каждой игре</span></div><div class="etc"><b>и другие</b><span>всего больше 20 листов</span></div></div></div>
+            </div>
+            <div class="win-tabs" aria-hidden="true"><span class="on">Рейтинг Эло</span><span>Прогнозы</span><span>Что заходит</span><span>Расписание</span><span>История ставок</span><span>И ещё…</span></div>
+          </div>
+          <div class="tour-nav"><button type="button" class="tarr" id="tprev" aria-label="Предыдущий лист">‹</button><span class="tcount num" id="tcount">1 / 6</span><button type="button" class="tarr" id="tnext" aria-label="Следующий лист">›</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="sec next-step">
+  <div class="wrap"><a class="btn btn-ink" href="index.html#matches">Ближайшие матчи КХЛ и НХЛ</a></div>
+</section>
+</main>
+<script src="../assets/nav.js"></script>
+<script src="../assets/footer.js"></script>
+<script src="../assets/v3a.js"></script>
+<script src="../assets/data/teams-lite.js"></script>
+<script src="../data/today.js"></script>
+<script src="../data/lines.js"></script>
+<script src="../data/model.js"></script>
+<script src="../assets/lines.js"></script>
+<script>
+/* аналитическая таблица — вынесена со страницы «Хоккей» (задание 14.11, п. 4); код листов — тот же */
+(()=>{
+const {esc,f1}=JV;
+const LGI=id=>`../assets/lg/${id}.webp`;
+const LGP=id=>`<span class="lgp ${id}"><img src="${LGI(id)}" alt=""></span>`;
+/* клубы: русское название (как в канале) → файл эмблемы в assets/em; лига — отдельной картой CLUB_LG */
+const KHL_CLUBS=[['Авангард','avangard'],['Автомобилист','avtomobilist'],['Адмирал','admiral'],['Ак Барс','akbars'],['Амур','amur'],['Барыс','barys'],
+ ['Динамо Минск','dinamo_minsk'],['Динамо Москва','dinamo_msk'],['Лада','lada'],['Локомотив','lokomotiv'],['Металлург','metallurg'],['Нефтехимик','neftekhimik'],
+ ['Салават Юлаев','salavat'],['Северсталь','severstal'],['Сибирь','sibir'],['СКА','ska'],['Сочи','sochi'],['Спартак','spartak'],['Торпедо','torpedo'],
+ ['Трактор','traktor'],['ЦСКА','cska'],['Шанхайские Драконы','shanghai']];
+const NHL_CLUBS=[['Айлендерс','nhl_nyi'],['Анахайм','nhl_ana'],['Баффало','nhl_buf'],['Бостон','nhl_bos'],['Ванкувер','nhl_van'],['Вашингтон','nhl_wsh'],
+ ['Вегас','nhl_vgk'],['Виннипег','nhl_wpg'],['Даллас','dallas'],['Детройт','nhl_det'],['Калгари','nhl_cgy'],['Каролина','nhl_car'],['Коламбус','nhl_cbj'],
+ ['Колорадо','nhl_col'],['Лос-Анджелес','nhl_lak'],['Миннесота','minnesota'],['Монреаль','nhl_mtl'],['Нью-Джерси','nhl_njd'],['Нэшвилл','nhl_nsh'],
+ ['Оттава','nhl_ott'],['Питтсбург','nhl_pit'],['Рейнджерс','nhl_nyr'],['Сан-Хосе','nhl_sjs'],['Сент-Луис','nhl_stl'],['Сиэтл','nhl_sea'],
+ ['Тампа-Бэй','nhl_tbl'],['Торонто','nhl_tor'],['Филадельфия','nhl_phi'],['Флорида','nhl_fla'],['Чикаго','nhl_chi'],['Эдмонтон','nhl_edm'],['Юта','nhl_uta']];
+const EM=Object.fromEntries([...KHL_CLUBS,...NHL_CLUBS]);
+const CLUB_LG=Object.fromEntries([...KHL_CLUBS.map(([n])=>[n,'khl']),...NHL_CLUBS.map(([n])=>[n,'nhl'])]);
+const ALIAS={'Шанхай':'Шанхайские Драконы','Динамо М':'Динамо Москва','Динамо Мск':'Динамо Москва','Салават':'Салават Юлаев','Тампа':'Тампа-Бэй','Юта Мамонт':'Юта'};
+const club=n=>ALIAS[n]||n;
+const crest=n=>{const k=club(n);if(EM[k])return `../assets/em/${EM[k]}.webp`;console.warn('нет эмблемы:',n);return LGI(CLUB_LG[k]||'khl')};
+const CI=(n,cls='')=>`<img class="em${cls?' '+cls:''}" src="${crest(n)}" alt="" loading="lazy" width="64" height="64">`;
+document.querySelectorAll('img[data-crest]').forEach(i=>i.src=crest(i.dataset.crest));
+const {TD:TDY,L:LN,M:MDL}=JVL;
+const CS=(slug,cls='')=>`<img class="em${cls?' '+cls:''}" src="../assets/em/s/${esc(slug)}.webp" alt="" loading="lazy" width="64" height="64">`;
+const NMS=(window.JV_TEAMS||{}).names||{};
+const nmS=s=>NMS[s]||s;
+const MONN=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'],WDN=['вс','пн','вт','ср','чт','пт','сб'];
+const dayName=d=>{const [y,m,dd]=d.split('-').map(Number);return `${WDN[new Date(Date.UTC(y,m-1,dd)).getUTCDay()]}, ${dd} ${MONN[m-1]}`};
+const todayD=JVL.gdayNow(),tmrD=JVL.gdayNow(1);   // игровой день: ночь НХЛ — к вечеру накануне
+const dayLabel=d=>dayName(d)+(d===todayD?' · сегодня':d===tmrD?' · завтра':'');
+/* матчи окна данных: КХЛ и НХЛ из data/today.json; линия и расчёт — по ключу из data/lines.json и data/model.json */
+const ALL=(TDY.matches||[]).filter(m=>m.lg==='khl'||m.lg==='nhl').map(m=>({...m,ln:LN[m.key]||null,md:MDL[m.key]||null})).sort((a,b)=>a.t<b.t?-1:1);
+const FRESH=ALL.filter(m=>JV.left(m.t)>-3*3600);   // начавшиеся больше 3 часов назад считаем сыгранными
+const D=FRESH.length?FRESH:ALL;
+const TD=(window.JV_TEAMS||{}).teams||{};
+const dd=t=>`${esc(t.slice(8,10))}.${esc(t.slice(5,7))}`;
+const played=g=>g.gf!=null&&g.ga!=null;
+const rOf=g=>g.gf>g.ga?'w':g.x?'o':'l';
+/* аналитическая таблица: 6 листов, как на лендинге — точки-вкладки, стрелки, свайп, клавиатура */
+{const tour=document.getElementById('tour'),steps=[...tour.querySelectorAll('.tstep')],tcs=[...tour.querySelectorAll('.tc')],tvs=[...tour.querySelectorAll('.tv')],tabs=[...tour.querySelectorAll('.win-tabs span')],cnt=document.getElementById('tcount');
+ const N=steps.length,TONE=['var(--ice)','#b07a00','var(--red)','var(--ice)','#b07a00','#6b4fc9'];let ti=0;
+ const go=i=>{ti=(i+N)%N;[steps,tcs,tvs,tabs].forEach(L=>L.forEach((el,j)=>{el.classList.toggle('on',j===ti)}));steps.forEach((b,j)=>b.setAttribute('aria-selected',j===ti));
+  tour.style.setProperty('--tone',TONE[ti]);cnt.textContent=`${ti+1} / ${N}`;const t=tabs[ti],bar=t&&t.parentElement;if(bar)bar.scrollTo({left:t.offsetLeft-bar.clientWidth/2+t.offsetWidth/2,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})};
+ steps.forEach((b,j)=>b.addEventListener('click',()=>go(j)));
+ document.getElementById('tprev').onclick=()=>go(ti-1);document.getElementById('tnext').onclick=()=>go(ti+1);
+ tour.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){go(ti+1);e.preventDefault()}else if(e.key==='ArrowLeft'){go(ti-1);e.preventDefault()}});
+ let x0=null,y0=0;const vis=tour.querySelector('.tour-grid');
+ vis.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;x0=e.clientX;y0=e.clientY},{passive:true});
+ vis.addEventListener('pointerup',e=>{if(x0===null)return;const dx=e.clientX-x0,dy=e.clientY-y0;x0=null;if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy))go(ti+(dx<0?1:-1))},{passive:true});
+ vis.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
+ vis.addEventListener('touchend',e=>{if(x0===null)return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy))go(ti+(dx<0?1:-1))},{passive:true});
+ const lo=1440,hi=1640;
+ {const T5=D.filter(m=>m.md&&m.ln).slice(0,5);
+  document.getElementById('gtbl').innerHTML=T5.length?'<tr><th>Время</th><th>Матч</th><th>Исход</th><th>Кэф</th><th>Вер.</th></tr>'+T5.map(m=>{const mo=[m.md.p1,m.md.x,m.md.p2],i=mo.indexOf(Math.max(...mo)),kk=[m.ln.p1,m.ln.x,m.ln.p2][i];
+   return `<tr><td>${m.t.slice(11)}</td><td>${esc(m.hn)} — ${esc(m.an)}</td><td>${['П1','Х','П2'][i]}</td><td class="k">${kk?f1(kk,2):'—'}</td><td><i class="pb" style="--w:${Math.round(mo[i]*100)}%"></i>${Math.round(mo[i]*100)}%</td></tr>`}).join(''):'<tr><td>Расчёт появится после обновления данных</td></tr>';
+  const gm=m=>`<div class="gm"><time>${esc(m.t.slice(11))}</time>${CS(m.h)}<span>${esc(m.hn)} — ${esc(m.an)}</span>${CS(m.a)}</div>`;
+  let cal='',pd='';D.slice(0,5).forEach(m=>{const d=JVL.gday(m.t);if(d!==pd){pd=d;cal+=`<div class="day">${d===todayD?'Сегодня':d===tmrD?'Завтра':dd(d)}</div>`}cal+=gm(m)});
+  /* последние сыгранные матчи — из данных сезона (assets/data/teams.js), по одному разу: берём запись хозяев */
+  const done=[];Object.entries(TD).forEach(([sl,T])=>T.games.forEach(g=>{if(g.h===1&&played(g))done.push({d:g.d,h:sl,a:g.o,gf:g.gf,ga:g.ga,x:g.x})}));
+  done.sort((a,b)=>a.d<b.d?1:-1);const ld=done.length?done[0].d.slice(0,10):'';
+  if(ld){cal+=`<div class="day">Сыграно ${dd(ld)}</div>`;done.filter(g=>g.d.slice(0,10)===ld).slice(0,4).forEach(g=>{cal+=`<div class="gm done"><time>${esc(g.gf)}:${esc(g.ga)}${g.x?' '+esc(g.x):''}</time>${CS(g.h)}<span>${esc(nmS(g.h))} — ${esc(nmS(g.a))}</span>${CS(g.a)}</div>`})}
+  document.getElementById('calbox').innerHTML=cal||'<div class="day">Расписание появится после обновления данных</div>'}
+ tour.querySelectorAll('img[data-crest]').forEach(i=>{i.src=crest(i.dataset.crest);i.className='em'});
+ go(0);}
+})();
+</script>
+</body>
+</html>

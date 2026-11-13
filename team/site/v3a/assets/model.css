@@ -124,3 +124,9 @@ html:not([data-sport="football"]) [data-f],html[data-sport="football"] [data-h]{
   --bgc:#071225;background:linear-gradient(180deg,#071225,#0a1220 40%);color:var(--ink);color-scheme:dark}
 [data-theme="arena"][data-sport="hockey"] body.md{--sport:#4cc2ff}
 [data-theme="arena"][data-sport="football"] body.md{--sport:#3dd68c}
+/* проверка футбольной модели на прошлом сезоне — перенесена со страницы «Футбол» (14.11, п. 4) */
+#check .honest{margin-top:18px}
+#check .hv{display:grid;gap:10px}
+#check .hv>div{padding:16px 18px;border:1px solid var(--rule-2);border-radius:var(--rc,12px)}
+#check .hv h3{margin:0 0 6px}#check .hv p{margin:8px 0 0}
+#check .q{font:800 clamp(30px,3vw,40px)/1 var(--display);font-variant-numeric:tabular-nums}

@@ -101,7 +101,7 @@ const ltabs=$('ltabs'),list=$('mlist'),moreB=$('moreM');
 const cntL=l=>UP.filter(m=>m.lg===l).length;
 ltabs.innerHTML=`<button class="tab" role="tab" aria-selected="true" data-l="all">Все <span class="c">${UP.length}</span></button>`+
  LGK.filter(k=>cntL(k)).map(k=>`<button class="tab" role="tab" aria-selected="false" data-l="${esc(k)}">${LGP(k)}${esc(D.leagues[k].name)} <span class="c">${cntL(k)}</span></button>`).join('');
-const LIM=matchMedia('(max-width:760px)').matches?6:14;/* на телефоне список короче: остальное — по «Показать ещё» (10.11) */let curTab='all',shownN=LIM,sel=[];
+const LIM=5;/* ближайшие 5, остальные — по «Показать все N матчей», раскрываются на месте (задание 14.11, п. 4) */let curTab='all',shownN=LIM,sel=[];
 function det(m){return m.det||(m.det={A:{s:m.h,g:gamesOf(m.h),st:stats(m.h)},B:{s:m.a,g:gamesOf(m.a),st:stats(m.a)},h:h2h(m.h,m.a)})}
 /* удары и угловые по матчам — отдельный файл, только когда матч раскрыли (09.11, скорость) */
 let xyP=null;const loadXY=()=>window.JV_XY?Promise.resolve():(xyP=xyP||new Promise(ok=>{const sc=document.createElement('script');sc.src='data/games-xy.js';sc.onload=sc.onerror=()=>ok();document.head.appendChild(sc)}));
@@ -143,10 +143,10 @@ function render(l,more){if(!more){curTab=l;shownN=LIM}
    if(body.innerHTML)return open();loadXY().then(()=>{vis[i].det=null;body.innerHTML=back(vis[i]);open()})})});
  if(!RM&&!more)list.querySelectorAll('.match').forEach((li,i)=>li.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:Math.min(i,10)*55,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}));
  requestAnimationFrame(()=>list.querySelectorAll('.match').forEach(li=>li.classList.add('in')));
- moreB.hidden=sel.length<=shownN;moreB.textContent=`Показать ещё ${Math.min(LIM,sel.length-shownN)}`;tick()}
+ moreB.hidden=sel.length<=shownN;moreB.textContent=`Показать все ${sel.length} ${plural(sel.length,'матч','матча','матчей')}`;tick()}
 function tick(){document.querySelectorAll('.cd[data-t]').forEach(e=>e.textContent=JV.inMin(JV.left(e.dataset.t)));if(window.__cdPick)window.__cdPick()}
 ltabs.addEventListener('click',e=>{const t=e.target.closest('.tab');if(t)render(t.dataset.l)});
-moreB.addEventListener('click',()=>{shownN+=LIM;render(curTab,true)});
+moreB.addEventListener('click',()=>{shownN=sel.length;render(curTab,true)});
 render('all');setInterval(tick,1000);
 
 /* ── лиги и клубы: плашки-переключатели, эмблемы клубов лиги целиком, таблица ── */

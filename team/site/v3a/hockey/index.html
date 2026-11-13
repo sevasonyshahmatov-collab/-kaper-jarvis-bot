@@ -44,6 +44,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <script src="../assets/herovid/herovid.js"></script>
 <link rel="stylesheet" href="../assets/live.css">
 <link rel="stylesheet" href="../assets/results.css">
+<link rel="stylesheet" href="../assets/slim.css">
 <!--seo:begin-->
 <meta name="description" content="Матчи КХЛ и НХЛ на ближайшие дни: вероятность победы и тотала по расчёту модели, ожидаемые голы, таблицы и страницы клубов.">
 <link rel="canonical" href="https://jarvibet.example/hockey/index.html">
@@ -79,7 +80,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
     <div>
       <h1><span class="ln"><span>Хоккей:</span></span> <span class="ln" style="--i:1"><span>КХЛ и НХЛ</span></span></h1>
       <div data-rv>
-        <p class="lead">Модель считает каждый матч КХЛ и НХЛ, автор выбирает лучшее. КХЛ днём, НХЛ ночью по Москве. Бесплатно, без VIP.</p>
+        <p class="lead"><span class="lead-l">Модель считает каждый матч КХЛ и НХЛ, автор выбирает лучшее. КХЛ днём, НХЛ ночью по Москве. Бесплатно, без VIP.</span><span class="lead-s">Расчёт модели на каждый матч. Бесплатно.</span></p>
         <div class="hero-cta"><a class="btn btn-ink" href="#matches">Матчи дня</a><a class="btn btn-line" href="https://t.me/jarvibet" target="_blank" rel="noopener">Прогнозы дня — в Telegram</a></div>
         <ul class="facts" aria-label="Коротко">
           <li><b class="num" data-count="0" id="fN">0</b><span id="fNl">матчей в ближайшие дни</span></li>
@@ -107,7 +108,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
     <p class="note dayinfo" id="daynote" aria-live="polite"></p>
     <div class="tabs" role="tablist" id="ltabs" aria-label="Фильтр по лигам"></div>
     <ul class="mlist" id="mlist"></ul>
-    <a class="btn btn-ink more" href="https://t.me/jarvibet" target="_blank" rel="noopener">Прогнозы на эти матчи — в Telegram</a>
+    <div class="more2"><button class="btn btn-line" type="button" id="moreM" hidden>Показать все матчи</button></div>
   </div>
 </section>
 
@@ -119,109 +120,33 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
   </div>
 </section>
 
-<section class="sec" id="table" data-zone="p2b">
+<section class="sec tbl-link" id="table" data-zone="p2b">
   <div class="wrap">
-    <div class="sec-head" data-rv><div><p class="eyebrow">Для тех, кто считает сам</p><h2>Аналитическая таблица</h2></div>
-      <div><ul class="feat"><li>Все матчи КХЛ и НХЛ в одном месте</li><li>Форма команд, вероятности модели и кэфы</li><li>Обновляется каждый игровой день</li></ul>
-      <a class="btn btn-ink" href="https://t.me/jarvibet" target="_blank" rel="noopener">Хочу таблицу</a><p class="note" style="margin-top:10px">Оплата появится скоро. Сейчас доступ — через Telegram.</p></div></div>
-    <div class="tour" id="tour" data-rv aria-roledescription="карусель" aria-label="Что внутри таблицы">
-      <div class="tour-steps" id="tsteps" role="tablist" aria-label="Листы таблицы">
-        <button type="button" role="tab" class="tstep" aria-selected="true" data-i="0">Эло</button>
-        <button type="button" role="tab" class="tstep" aria-selected="false" data-i="1">Прогнозы</button>
-        <button type="button" role="tab" class="tstep" aria-selected="false" data-i="2">Что заходит</button>
-        <button type="button" role="tab" class="tstep" aria-selected="false" data-i="3">Расписание</button>
-        <button type="button" role="tab" class="tstep" aria-selected="false" data-i="4">История</button>
-        <button type="button" role="tab" class="tstep" aria-selected="false" data-i="5">И ещё</button>
-      </div>
-      <div class="tour-grid">
-        <div class="stack tour-text">
-          <article class="tc on"><h3>Рейтинг Эло</h3><p>Сила каждой команды одним числом. Рейтинг пересчитывается после каждого матча: победа над сильным соперником стоит больше, чем над слабым.</p>
-            <ul><li>Все команды лиги в одном списке</li><li>Как менялась сила команды за сезон</li><li>Поправка на игру: броски в створ и шайбы сверх ожидания</li></ul></article>
-          <article class="tc"><h3>Прогнозы на все матчи</h3><p>Все матчи ближайших дней на одном листе: время по Москве, прогноз модели, коэффициенты и вероятность. После игры рядом появляется счёт.</p>
-            <ul><li>КХЛ и НХЛ</li><li>Расчёт модели рядом с линией</li><li>Обновляется каждое утро</li></ul></article>
-          <article class="tc"><h3>Что заходит у команд</h3><p>Как часто у каждой команды случается то или иное событие за сезон: победа, тотал больше или меньше, игра в овертайм.</p>
-            <ul><li>Видно сильные и слабые стороны каждой команды</li><li>Конструктор матча: выбираешь две команды и видишь, что вероятнее в их игре</li></ul></article>
-          <article class="tc"><h3>Расписание и результаты</h3><p>Все матчи сезона с датой и временем по Москве. У сыгранных стоит счёт, отмечены овертаймы и буллиты.</p>
-            <ul><li>Сегодня, завтра и вся неделя</li><li>Ночные матчи НХЛ собраны в один игровой день</li></ul></article>
-          <article class="tc"><h3>История ставок</h3><p>Каждый прогноз остаётся в таблице: зашёл или нет и по какому кэфу. Видно, как часто модель угадывает и как менялся банк на дистанции.</p>
-            <ul><li>Точность модели по фаворитам и аутсайдерам</li><li>Ничего не удаляется</li></ul></article>
-          <article class="tc"><h3>И это только часть</h3><p>Мы показали 5 листов. Всего в таблице их больше 20: коэффициенты, купон дня, точность модели, карточки команд, статистика, травмы и ключевые игроки.</p>
-            <a class="btn btn-tg tc-cta" href="https://t.me/jarvibet" target="_blank" rel="noopener">Узнать про доступ →</a></article>
-        </div>
-        <div class="tour-vis">
-          <div class="win" id="twin">
-            <div class="win-bar"><i></i><i></i><i></i><span>Лист таблицы</span></div>
-            <div class="stack win-body">
-              <div class="tv on"><div class="soon"><b>Скоро</b><span>Рейтинг Эло появится на сайте, когда подключим его расчёт. В таблице лист уже есть.</span></div></div>
-              <div class="tv"><table class="gt" id="gtbl"></table></div>
-              <div class="tv"><div class="soon"><b>Скоро</b><span>Что заходит у команд: цифры по сезону появятся здесь после подключения данных.</span></div></div>
-              <div class="tv"><div class="cal" id="calbox"></div></div>
-              <div class="tv"><div class="soon"><b>На сайте</b><span>История прогнозов канала по месяцам, со счётом матча и ссылкой на пост.</span><a class="btn btn-ink" href="../results.html">Все прогнозы и итоги</a></div></div>
-              <div class="tv"><div class="more">
-                <div><b>Коэффициенты</b><span>линия на ближайшие матчи и итоги прошлых</span></div><div><b>Модель против рынка</b><span>чья оценка точнее</span></div>
-                <div><b>Купон дня</b><span>самые уверенные события дня</span></div><div><b>Мой купон</b><span>собрать свой и посчитать вероятность</span></div>
-                <div><b>Точность</b><span>как часто угадывает модель</span></div><div><b>Банкролл</b><span>симуляция на дистанции</span></div>
-                <div><b>Карточка команды</b><span>всё о команде и очных встречах</span></div><div><b>Статистика</b><span>броски, большинство, вратари</span></div>
-                <div><b>Ключевые игроки</b><span>лидеры и основной вратарь</span></div><div><b>Досье команд</b><span>травмы, тренер, форма</span></div>
-                <div><b>Разбор перед матчем</b><span>сводка по каждой игре</span></div><div class="etc"><b>и другие</b><span>всего больше 20 листов</span></div></div></div>
-            </div>
-            <div class="win-tabs" aria-hidden="true"><span class="on">Рейтинг Эло</span><span>Прогнозы</span><span>Что заходит</span><span>Расписание</span><span>История ставок</span><span>И ещё…</span></div>
-          </div>
-          <div class="tour-nav"><button type="button" class="tarr" id="tprev" aria-label="Предыдущий лист">‹</button><span class="tcount num" id="tcount">1 / 6</span><button type="button" class="tarr" id="tnext" aria-label="Следующий лист">›</button></div>
-        </div>
-      </div>
+    <a class="tbl-plate" href="table.html"><span><b>Аналитическая таблица</b><small>Эло, прогнозы на все матчи, что заходит у команд, история — для тех, кто считает сам</small></span><i aria-hidden="true">→</i></a>
+  </div>
+</section>
+
+
+<section class="sec pf-sec" id="honest" data-zone="p3">
+  <div class="wrap">
+    <div class="pf" id="pf" data-sport="hockey">
+      <h2>Честные итоги</h2>
+      <dl class="pf-n"><div><dt>зашло</dt><dd id="pfW">—</dd></div><div><dt>прогнозов зашло</dt><dd id="pfR">—</dd></div><div><dt>результат при ставке 1</dt><dd id="pfU">—</dd></div></dl>
+      <p class="pf-s" id="pfS">Все прогнозы канала — со счётом матча и ссылкой на пост.</p>
+      <p class="pf-l"><a class="btn btn-ink" href="../results.html">Все итоги</a><a class="btn btn-line" href="../model.html?s=h">Как считает модель</a></p>
     </div>
   </div>
 </section>
 
-<section class="sec" id="model" data-zone="p3">
-  <div class="wrap">
-    <div class="sec-head" data-rv><h2>Как считаем</h2></div>
-    <p class="lead model-short" data-rv style="max-width:62ch;margin:0">Модель берёт форму команд, броски, вратаря и календарь, сравнивает свою вероятность с линией и выбирает ставку только при заметном перевесе.</p>
-    <div class="lab" data-rv style="grid-template-columns:1fr;margin-top:28px">
-      <div>
-        <h3>Почему 1,6–2,3</h3>
-        <div class="corr"><div class="track"><i></i></div><input id="k" type="range" min="1.2" max="3.2" step="0.05" value="1.85" aria-label="Коэффициент"><span class="puck" id="puck"></span></div>
-        <div class="ticks kt"><span style="left:0">1,2</span><span style="left:20%">1,6</span><span style="left:55%">2,3</span><span style="left:100%">3,2</span></div>
-        <p class="kout" id="kout" aria-live="polite"></p>
-      </div>
-    </div>
-    <p class="more-link" style="margin:22px 0 0"><a href="../model.html?s=h">Как считает модель: три шага и живой пример →</a></p>
-  </div>
-</section>
-
-<section class="sec" id="honest" data-zone="p3">
-  <div class="wrap">
-    <div class="sec-head" data-rv><h2>Честные итоги</h2></div>
-    <div class="rsx dk" id="rsx" data-root="../" data-rv><div class="rsx-box"><h3>Итоги прогнозов</h3><p class="rs-note">Все прогнозы канала со счётом матча и ссылкой на пост — на отдельной странице.</p><a class="btn btn-ink" href="../results.html">Все прогнозы и итоги</a></div></div>
-  </div>
-</section>
-
-<section class="sub" id="subscribe">
+<section class="sub sub-c" id="subscribe">
   <div class="wrap" data-rv>
-    <div><h2>Все прогнозы&nbsp;— в Telegram</h2>
-      <div class="cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a></div></div>
-    <ul>
-      <li><b>Пост на каждый матч</b><span>КХЛ — до 08:00 МСК, НХЛ — до 14:00, с кэфом и вероятностью.</span></li>
-      <li><b>Ролики и тренды</b><span>Матчи дня, сила команд и тренды — прямо в Telegram, без установки.</span></li>
-      <li><b>Итоги утром</b><span>Все прогнозы подряд, с номером поста и счётом матча.</span></li>
-    </ul>
+    <h2>Все прогнозы&nbsp;— в Telegram</h2>
+    <p>Пост на каждый матч с кэфом и вероятностью, итоги — каждое утро. Бесплатно.</p>
+    <div class="cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a></div>
   </div>
 </section>
 
-<section class="sec" id="faq">
-  <div class="wrap faq">
-    <div data-rv><h2>Вопросы</h2>
-      <div class="swap"><p>Футбол — топ-лиги Европы и Лига чемпионов, та же модель и те же честные итоги.</p><a class="btn btn-ink" href="../football/index.html">Прогнозы на футбол</a></div></div>
-    <div data-rv>
-      <details><summary>Где посмотреть итоги?</summary><p>На странице <a href="../results.html">«Итоги прогнозов»</a>: все прогнозы канала со счётом матча и ссылкой на пост, по месяцам. И каждое утро в канале @jarvibet — итоги дня.</p></details>
-      <details><summary>Что такое «ВЫБОР»?</summary><p>Ставка, у которой модель даёт от 60 % при кэфе от 1,6. Остальные матчи — разбор без выбора.</p></details>
-      <details><summary>Почему кэф от 1,6?</summary><p>Ниже — выигрыш слишком мал для риска. Чем выше кэф, тем больше случайности, поэтому почти все ставки — до 2,3.</p></details>
-      <details><summary>Когда выходят прогнозы?</summary><p>КХЛ — до 08:00 по Москве, НХЛ — до 14:00. Ночные матчи НХЛ собраны в один игровой день.</p></details>
-      <p class="legal">18+. Аналитика, а не призыв делать ставки. Выигрыш не гарантирован.</p>
-    </div>
-  </div>
-</section>
+
 </main>
 
 <a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Получать прогнозы — бесплатно</span><span aria-hidden="true">›</span></a>
@@ -400,13 +325,17 @@ function row(m){const L=LG[m.lg];
   <div class="quotes">${JVL.quotes(m)}</div>
   <span class="chev">${chev}</span></button>
   <div class="mbody"><div>${''}</div></div></li>`}
-function render(l){const sel=(l==='all'?D:D.filter(m=>m.lg===l));
+/* ближайшие 5, остальные — по кнопке «Показать все N матчей» (задание 14.11, п. 4) */
+const LIM=5;let shownN=LIM,curL='all';const moreB=document.getElementById('moreM');
+moreB.addEventListener('click',()=>{shownN=1e9;render(curL,true)});
+function render(l,more){if(!more)shownN=LIM;curL=l;const sel=(l==='all'?D:D.filter(m=>m.lg===l)).slice(0,shownN),all=(l==='all'?D:D.filter(m=>m.lg===l)).length;
+ moreB.hidden=all<=shownN;moreB.textContent=`Показать все ${all} ${plural(all,'матч','матча','матчей')}`;
  ltabs.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.l===l));
  let html='',prev='';sel.forEach(m=>{const d=JVL.gday(m.t);if(d!==prev){prev=d;html+=`<li class="dayh" aria-hidden="true">${dayLabel(d)}</li>`}html+=row(m)});
  list.innerHTML=html||'<li class="note" style="padding:18px 4px">Матчей в этой лиге нет.</li>';
  list.querySelectorAll('.match').forEach((li,i)=>{const b=li.querySelector('.mhead'),body=li.querySelector('.mbody>div');
   b.addEventListener('click',()=>{if(!body.innerHTML)body.innerHTML=back(sel[i]);requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o);if(o){fitLast(li);loadH2H(li,sel[i])}})})});
- if(!RM)list.querySelectorAll('.match').forEach((li,i)=>li.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:Math.min(i,12)*55,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}));
+ if(!RM&&!more)list.querySelectorAll('.match').forEach((li,i)=>li.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:Math.min(i,12)*55,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}));
  requestAnimationFrame(()=>list.querySelectorAll('.match').forEach(li=>li.classList.add('in')));tick()}
 /* «Последние матчи»: столько строк, сколько влезает в квадрат рядом с расчётом модели (на узком экране — 5) */
 function fitLast(root){root.querySelectorAll('.x-last .l3 ul, .x-h2h .h2l').forEach(ul=>{const box=ul.closest('.xb'),wide=getComputedStyle(box).contain.includes('size'),ls=[...ul.children];
@@ -423,38 +352,7 @@ LeagueCards.mount(document.getElementById('lcdeck'),Object.entries(LG).map(([id,
  return {id,name:l.name,cnt:`${n} ${plural(n,'матч','матча','матчей')} в ближайшие дни`,href:`league.html?lg=${id}${TQ}`,logo:LGI(id),...LCP[id],
   pl:k=>plural(k,'клуб','клуба','клубов'),clubs:list.map(([cn,slug])=>({n:cn,src:`../assets/em/s/${slug}.webp`,href:`../team/index.html?id=${slug}${TQ}`}))}}));
 
-/* аналитическая таблица: 6 листов, как на лендинге — точки-вкладки, стрелки, свайп, клавиатура */
-{const tour=document.getElementById('tour'),steps=[...tour.querySelectorAll('.tstep')],tcs=[...tour.querySelectorAll('.tc')],tvs=[...tour.querySelectorAll('.tv')],tabs=[...tour.querySelectorAll('.win-tabs span')],cnt=document.getElementById('tcount');
- const N=steps.length,TONE=['var(--ice)','#b07a00','var(--red)','var(--ice)','#b07a00','#6b4fc9'];let ti=0;
- const go=i=>{ti=(i+N)%N;[steps,tcs,tvs,tabs].forEach(L=>L.forEach((el,j)=>{el.classList.toggle('on',j===ti)}));steps.forEach((b,j)=>b.setAttribute('aria-selected',j===ti));
-  tour.style.setProperty('--tone',TONE[ti]);cnt.textContent=`${ti+1} / ${N}`;const t=tabs[ti],bar=t&&t.parentElement;if(bar)bar.scrollTo({left:t.offsetLeft-bar.clientWidth/2+t.offsetWidth/2,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})};
- steps.forEach((b,j)=>b.addEventListener('click',()=>go(j)));
- document.getElementById('tprev').onclick=()=>go(ti-1);document.getElementById('tnext').onclick=()=>go(ti+1);
- tour.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){go(ti+1);e.preventDefault()}else if(e.key==='ArrowLeft'){go(ti-1);e.preventDefault()}});
- let x0=null,y0=0;const vis=tour.querySelector('.tour-grid');
- vis.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;x0=e.clientX;y0=e.clientY},{passive:true});
- vis.addEventListener('pointerup',e=>{if(x0===null)return;const dx=e.clientX-x0,dy=e.clientY-y0;x0=null;if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy))go(ti+(dx<0?1:-1))},{passive:true});
- vis.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
- vis.addEventListener('touchend',e=>{if(x0===null)return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy))go(ti+(dx<0?1:-1))},{passive:true});
- const lo=1440,hi=1640;
- {const T5=D.filter(m=>m.md&&m.ln).slice(0,5);
-  document.getElementById('gtbl').innerHTML=T5.length?'<tr><th>Время</th><th>Матч</th><th>Исход</th><th>Кэф</th><th>Вер.</th></tr>'+T5.map(m=>{const mo=[m.md.p1,m.md.x,m.md.p2],i=mo.indexOf(Math.max(...mo)),kk=[m.ln.p1,m.ln.x,m.ln.p2][i];
-   return `<tr><td>${m.t.slice(11)}</td><td>${esc(m.hn)} — ${esc(m.an)}</td><td>${['П1','Х','П2'][i]}</td><td class="k">${kk?f1(kk,2):'—'}</td><td><i class="pb" style="--w:${Math.round(mo[i]*100)}%"></i>${Math.round(mo[i]*100)}%</td></tr>`}).join(''):'<tr><td>Расчёт появится после обновления данных</td></tr>';
-  const gm=m=>`<div class="gm"><time>${esc(m.t.slice(11))}</time>${CS(m.h)}<span>${esc(m.hn)} — ${esc(m.an)}</span>${CS(m.a)}</div>`;
-  let cal='',pd='';D.slice(0,5).forEach(m=>{const d=JVL.gday(m.t);if(d!==pd){pd=d;cal+=`<div class="day">${d===todayD?'Сегодня':d===tmrD?'Завтра':dd(d)}</div>`}cal+=gm(m)});
-  /* последние сыгранные матчи — из данных сезона (assets/data/teams.js), по одному разу: берём запись хозяев */
-  const done=[];Object.entries(TD).forEach(([sl,T])=>T.games.forEach(g=>{if(g.h===1&&played(g))done.push({d:g.d,h:sl,a:g.o,gf:g.gf,ga:g.ga,x:g.x})}));
-  done.sort((a,b)=>a.d<b.d?1:-1);const ld=done.length?done[0].d.slice(0,10):'';
-  if(ld){cal+=`<div class="day">Сыграно ${dd(ld)}</div>`;done.filter(g=>g.d.slice(0,10)===ld).slice(0,4).forEach(g=>{cal+=`<div class="gm done"><time>${esc(g.gf)}:${esc(g.ga)}${g.x?' '+esc(g.x):''}</time>${CS(g.h)}<span>${esc(nmS(g.h))} — ${esc(nmS(g.a))}</span>${CS(g.a)}</div>`})}
-  document.getElementById('calbox').innerHTML=cal||'<div class="day">Расписание появится после обновления данных</div>'}
- tour.querySelectorAll('img[data-crest]').forEach(i=>{i.src=crest(i.dataset.crest);i.className='em'});
- go(0);}
 
-/* коридор кэфа */
-const k=document.getElementById('k'),ko=document.getElementById('kout'),puck=document.getElementById('puck');
-const kv=()=>{const v=+k.value,p=(v-1.2)/2;puck.style.left=(p*100)+'%';
- ko.innerHTML=`<b>${f1(v,2)}</b> — ≈ ${Math.round(100/v)} % по линии. `+(v<1.6?'Слишком низкий кэф: рисковать ради такого нет смысла.':v<=2.3?'Рабочий коридор модели.':'Слишком высокий кэф: больше случайности, чем расчёта.')};
-k.addEventListener('input',kv);kv();
 
 })();
 </script>
