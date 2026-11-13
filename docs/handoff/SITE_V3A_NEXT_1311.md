@@ -60,3 +60,16 @@
 - Для поиска НЕ открыто: страницы нового сайта с noindex, robots.txt и sitemap.xml — старого сайта (не трогали).
   Когда будет домен: robots/sitemap нового сайта (`team/site/v3a/robots.txt`, `sitemap.xml`, `seo/`), убрать noindex, SITE_URL.
 - Решение владельца 13.11: имена НХЛ и футболистов — латиницей, НЕ переводить (КХЛ — по-русски).
+
+## Исправления по списку (13.11, вечер)
+1. «макет v3a» убран из заголовка «Мой JARVIS» (`me/index.html`).
+2. Зоны нажатия на телефоне ≥ 40 px: `assets/nav.css`, блок `@media (max-width:760px)` — невидимая область `::after` у мелких ссылок,
+   строки таблиц со ссылками 42 px, подвал — `min-height:44px` без изменения шага. Исключение: сетка эмблем на обороте карточки лиги
+   (`hockey/`, ~28 px) — 40 px без переделки карточки не получить; рядом кнопка «Страница лиги».
+3. Фото игроков: на странице лиги заглушка при ошибке (`league-hockey.js`), футболисты — свои портреты `football/data/ph/` вместо Wikimedia
+   (`league-foot.js`). Ссылки на www.khl.ru (736 фото) и assets.nhle.com (768) идут из `hockey/khl_players_fetch.py` и
+   `hockey/nhl_players_fetch.py` (поле img). Скачивание себе — **ждёт «да» владельца** (план — в чате 13.11).
+4. Футболисты по лигам: `football/players_split.py` (вызывается из `players_build.py`) → `football/data/plg/meta.js`, `<лига>.js`,
+   `<турнир>-own.js`; `players.html` грузит только нужную лигу. `data/players.js` остаётся для сборщиков и `photo-credits.html`.
+5. `assets/*/shots/` (84 файла, ~46 МБ) и `assets/herobg/video/`, `assets/leaguecards/video/` (~2,4 МБ) ни одна страница не использует,
+   но публикуются. Добавить в исключения `publish_new.sh` — **ждёт «да» владельца**.
