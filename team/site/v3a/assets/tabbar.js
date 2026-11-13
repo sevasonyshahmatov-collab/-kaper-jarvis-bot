@@ -1,4 +1,4 @@
-/* JARVIS v3a — нижняя панель разделов на телефоне (до 900 px) (задание 14.11, п. 1).
+/* JARVIS v3a — нижняя панель разделов на телефоне (до 900 px) и правило «одна жёлтая кнопка на экране» (задание 14.11, п. 1–2).
    Подключает nav.js (одна точка для всех страниц). Панель: Главная · Хоккей · Футбол · Итоги · Ещё;
    «Ещё» — лист снизу (не выше 70 % экрана): остальные разделы, поиск, соцсети (assets/social.js).
    Закрывается нажатием мимо, свайпом вниз и клавишей Esc. На компьютере ничего не меняется — верхнее меню как было. */
@@ -74,6 +74,16 @@ function mount(){
  box.addEventListener('touchmove',e=>{if(y0===null)return;dy=Math.max(0,e.touches[0].clientY-y0);if(dy>0)box.style.transform=`translateY(${dy}px)`},{passive:true});
  box.addEventListener('touchend',()=>{if(y0===null)return;y0=null;box.style.transition='';if(dy>70)open(false);else box.style.transform=''},{passive:true});
  addEventListener('resize',()=>{if(innerWidth>900&&!sh.hidden)open(false)});
+ one1();
+}
+/* ── одна жёлтая кнопка на экране: кнопка подписки в шапке видна, только когда другие жёлтые кнопки (первый экран, блок подписки) ушли из вида ── */
+function one1(){
+ const hb=document.querySelector('#hd .btn-tg');if(!hb||!('IntersectionObserver' in window))return;
+ const seen=new Set();
+ const upd=()=>hb.classList.toggle('tb-hide',seen.size>0);
+ const io=new IntersectionObserver(es=>{es.forEach(e=>e.isIntersecting?seen.add(e.target):seen.delete(e.target));upd()},{threshold:0});
+ const scan=()=>document.querySelectorAll('main .btn-tg, main .hm-tg, main .get8, main .mt-rem-b, main .soc-main, .tgbar').forEach(el=>{if(!el.dataset.y1){el.dataset.y1=1;io.observe(el)}});
+ scan();addEventListener('load',scan);setTimeout(scan,1500);
 }
 if(document.body)mount();else document.addEventListener('DOMContentLoaded',mount);
 })();

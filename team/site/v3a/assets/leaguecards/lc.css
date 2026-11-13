@@ -43,6 +43,8 @@
   font:800 max(12px,2.6cqw)/1 var(--display);text-decoration:none;cursor:pointer;white-space:nowrap}
 .lcard .open svg{width:2.8cqw;height:2.8cqw;min-width:11px;min-height:11px}
 .lcard .open:hover,.lcard .open:focus-visible{background:#ffe27d}
+/* одна жёлтая кнопка на экране (14.11, п. 2): кнопки карточек лиг — белые, жёлтая только по наведению */
+.lcard .open{background:#fff;color:#0b1220}
 .lcard .open:focus-visible{outline:2px solid #fff;outline-offset:2px}
 
 /* оборот: слева название и кнопка, справа сетка эмблем клубов лиги */

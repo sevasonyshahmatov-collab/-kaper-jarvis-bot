@@ -1,5 +1,8 @@
 /* JARVIS v3a — нижняя панель разделов на телефоне (assets/tabbar.js) */
 .tb,.tbs-wrap{display:none}
+/* кнопка подписки в шапке — прячется, пока на экране есть другая жёлтая кнопка (место в шапке сохраняется, ничего не прыгает) */
+.hd .btn-tg{transition:opacity .2s ease,visibility .2s}
+.hd .btn-tg.tb-hide{opacity:0;visibility:hidden;pointer-events:none}
 
 @media (max-width:900px){
   html.has-tb body{padding-bottom:calc(56px + env(safe-area-inset-bottom))}
@@ -51,4 +54,4 @@
   .tbs a:focus-visible,.tbs button:focus-visible{outline:2px solid var(--ink,#fff);outline-offset:2px}
   html.tbs-open{overflow:hidden}
 }
-@media (prefers-reduced-motion:reduce){.tbs,.tbs-bg{transition:none!important}}
+@media (prefers-reduced-motion:reduce){.tbs,.tbs-bg,.hd .btn-tg{transition:none!important}}
