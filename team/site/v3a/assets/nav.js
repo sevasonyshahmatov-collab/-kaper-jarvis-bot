@@ -161,3 +161,17 @@ const s=document.createElement('script');s.src=new URL('stickbar.js',b).href;doc
 /* углы (12.11): по умолчанию прямые; ?corners=round — прежние скругления (запоминается), ?corners=sharp — обратно */
 (function(){let c=null;try{c=new URLSearchParams(location.search).get('corners');if(c==='round')localStorage.setItem('jv-corners','round');else if(c)localStorage.removeItem('jv-corners');c=localStorage.getItem('jv-corners')}catch(e){}
 if(c==='round')document.documentElement.dataset.corners='round'})();
+
+/* переход по ссылке с якорем (#players, #table…): блоки страницы дорисовываются после загрузки данных, и браузер останавливался выше
+   нужного места (13.11, владелец: «нажимаю „Игроки“ — не попадаю к игрокам»). Пока страница растёт, возвращаемся к якорю;
+   как только человек сам тронул прокрутку — больше не вмешиваемся. */
+(function(){let id=decodeURIComponent(location.hash.slice(1));if(!id||!window.ResizeObserver)return;
+let stop=false,t0=Date.now();const off=()=>{stop=true};
+['wheel','touchstart','keydown','mousedown'].forEach(e=>addEventListener(e,off,{passive:true,once:true}));
+const go=()=>{if(stop)return;if(Date.now()-t0>8000){ro.disconnect();return}
+ let el=null;try{el=document.getElementById(id)}catch(e){}if(!el)return;
+ const mt=(parseFloat(getComputedStyle(el).scrollMarginTop)||0)+(parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)||0),want=el.getBoundingClientRect().top-mt;
+ if(Math.abs(want)>4)scrollBy({top:want,behavior:'auto'})};
+const ro=new ResizeObserver(go);ro.observe(document.documentElement);if(document.body)ro.observe(document.body);
+addEventListener('load',()=>{go();setTimeout(go,400);setTimeout(go,1500)});
+addEventListener('hashchange',()=>{id=decodeURIComponent(location.hash.slice(1));stop=false;t0=Date.now();go()})})();
