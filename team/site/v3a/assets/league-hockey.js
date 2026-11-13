@@ -136,3 +136,6 @@ fetch('data/lgp_'+LG+'.json').then(r=>r.json()).then(d=>build({[LG]:d.se},d))
 
 /* пересчитать «свет арены» после отрисовки (иначе герой бледный до первой прокрутки) */
 for(const t of [50,400,1200])setTimeout(()=>{dispatchEvent(new Event("resize"));dispatchEvent(new Event("scroll"))},t);
+
+/* вкладка «Игроки» в полосе разделов ведёт на страницу всех игроков лиги, а не к блоку на этой странице (владелец 13.11) */
+(()=>{try{const go=()=>document.querySelectorAll('a[href="#players"]').forEach(a=>{if(a.parentElement.querySelector('a[href="#table"]'))a.setAttribute('href',/[?&]lg=nhl/.test(location.search)?'players.html':'players_khl.html')});go();addEventListener('load',go)}catch(e){}})();

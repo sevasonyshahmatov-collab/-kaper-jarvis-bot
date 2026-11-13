@@ -17,13 +17,15 @@ const SECTIONS={};
   /* владелец 10.11 (2): Матчи · Лиги (внутри КХЛ и НХЛ с их разделами) · Тренды · Выбрать матч (карусель «Матчи дня»).
      «Как считаем» — в подвале и в тексте разделов; игроки — внутри лиг. Подпункт с [4-м элементом] — колонка лиги со своими разделами. */
   document.documentElement.classList.add('nav2');
-  const LS=(lg,base)=>[['Таблица и клубы','#table'],['Матчи','#next'],['Результаты','#results'],['Игроки','#players'],['Статистика','#stats']].map(([n,h])=>['',n,base+lg+h]);
+  /* «Игроки» — отдельная страница всех игроков лиги, а не прокрутка к блоку на странице лиги (владелец 13.11) */
+  const PLP={khl:'hockey/players_khl.html',nhl:'hockey/players.html'};
+  const LS=(lg,base)=>[['Таблица и клубы','#table'],['Матчи','#next'],['Результаты','#results'],['Игроки','#players'],['Статистика','#stats']].map(([n,h])=>['',n,h==='#players'&&PLP[lg]?PLP[lg]:base+lg+h]);
   const FL=[['epl','АПЛ'],['laliga','Ла Лига'],['seriea','Серия А'],['bundesliga','Бундеслига'],['ligue1','Лига 1'],['rpl','РПЛ']];
   SECTIONS.hockey=[['m','Матчи','hockey/index.html',[['m','Ближайшие матчи','hockey/index.html'],['fc','Прогноз на сегодня — списком','hockey/forecast-khl.html']]],
     ['lg','Лиги','hockey/league.html?lg=khl',[['khl','КХЛ','hockey/league.html?lg=khl',LS('khl','hockey/league.html?lg=')],['nhl','НХЛ','hockey/league.html?lg=nhl',LS('nhl','hockey/league.html?lg=')]]],
     ['tr','Тренды','hockey/trends.html'],['deck','Выбрать матч','matches.html?s=h']];
   SECTIONS.football=[['m','Матчи','football/index.html',[['m','Ближайшие матчи','football/index.html'],['fc','Прогноз на сегодня — списком','football/forecast-epl.html']]],
-    ['lg','Лиги','football/league.html?lg=epl',[...FL.map(([k,n])=>['lg-'+k,n,'football/league.html?lg='+k]),['ucl','Лига чемпионов','football/ucl.html']]],
+    ['lg','Лиги','football/league.html?lg=epl',[...FL.map(([k,n])=>['lg-'+k,n,'football/league.html?lg='+k]),['ucl','Лига чемпионов','football/ucl.html'],['pl','Игроки','football/players.html']]],
     ['tr','Тренды','football/trends.html'],['deck','Выбрать матч','matches.html?s=f']];
 }
 /* какой пункт активен */
