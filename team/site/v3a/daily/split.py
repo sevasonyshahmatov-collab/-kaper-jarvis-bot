@@ -217,7 +217,7 @@ def write_profile(ppdir, lg, p, slug, sl, nx, tpl, games=None, sk=None):
     return 1
 
 
-# ─────────────── имена КХЛ латиницей (владелец 09.11: «все имена английскими») ───────────────
+# ─────────────── имена КХЛ: по-русски «Имя Фамилия» (владелец 13.11; с 09.11 по 13.11 были латиницей) ───────────────
 # Таблица ru → en: hockey/data/khl_names_en.json (официальное написание приложения КХЛ, locale=en: «Фамилия Имя»,
 # пополняет hockey/khl_players_fetch.py). На сайте — как у НХЛ: «Имя Фамилия». Кого нет в таблице — транслитерация.
 _TR = dict(zip('абвгдезийклмнопрстуфхцчшщыэюя', ['a','b','v','g','d','e','z','i','y','k','l','m','n','o','p','r','s','t','u','f','kh','ts','ch','sh','shch','y','e','yu','ya']))
@@ -241,7 +241,7 @@ _EN = None
 
 
 def en_name(n):
-    """«Блажиевский Артём» → «Artyom Blazhiyevsky» (имя вперёд, как у НХЛ)."""
+    """«Блажиевский Артём» → «Artyom Blazhiyevsky» (латиница — только для поиска, 13.11)."""
     global _EN
     if not n or not re.search('[А-Яа-яЁё]', n):
         return n
@@ -253,10 +253,18 @@ def en_name(n):
     return ' '.join(w[1:] + w[:1]) if len(w) > 1 else e
 
 
+def ru_name(n):
+    """Владелец 13.11: имена КХЛ снова по-русски. «Блажиевский Артём» → «Артём Блажиевский» (имя вперёд, как у НХЛ)."""
+    if not n or not re.search('[А-Яа-яЁё]', n):
+        return n
+    w = n.split()
+    return ' '.join(w[1:] + w[:1]) if len(w) > 1 else n
+
+
 def en_khl_players(j):
     for p in j.get('players') or []:
-        p['n'] = en_name(p.get('n'))
-    j['gimg'] = {t: {en_name(k): v for k, v in m.items()} for t, m in (j.get('gimg') or {}).items()}
+        p['n'] = ru_name(p.get('n'))
+    j['gimg'] = {t: {ru_name(k): v for k, v in m.items()} for t, m in (j.get('gimg') or {}).items()}
     return j
 
 
@@ -267,13 +275,11 @@ def en_khl_teams(d):
     for t in d.get('teams', {}).values():
         if t.get('lg') != 'khl':
             continue
-        if t.get('coach') and re.search('[А-Яа-яЁё]', t['coach']):   # «Фамилия Имя» — team.js сам ставит имя вперёд
-            k = ' '.join(t['coach'].split()[:2])
-            t['coach'] = COACH_EN.get(k) or ' '.join(_translit(w) for w in k.split())
+        # тренер остаётся по-русски «Фамилия Имя» (13.11) — team.js сам ставит имя вперёд
         for k in ('sk', 'gk'):
             for r in (t.get('pl') or {}).get(k) or []:
                 if isinstance(r, dict) and r.get('n'):
-                    r['n'] = en_name(r['n'])
+                    r['n'] = ru_name(r['n'])
     return d
 
 

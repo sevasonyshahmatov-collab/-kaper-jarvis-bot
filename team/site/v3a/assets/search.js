@@ -48,7 +48,7 @@ function load(){
     const C={};const clubs=D.c.map(r=>{const c={id:r[0],s:r[1],lg:r[2],ru:r[3],en:r[4],w:W(r[3],r[4],r[5])};C[r[1]+r[0]]=c;return c});
     const leagues=D.l.map(r=>({s:r[0],id:r[1],ru:r[2],en:r[3],url:r[5],w:W(r[2],r[3],r[4])}));
     const matches=D.m.map(r=>{const h=C[r[1]+r[2]],a=C[r[1]+r[3]];return h&&a?{d:r[0],s:r[1],h,a,sc:r[4]||'',cup:r[5]||'',w:h.w.concat(a.w)}:null}).filter(Boolean);
-    const players=D.p.map((r,i)=>{const c=C['h'+r[2]];/* имена «Имя Фамилия» (НХЛ и КХЛ латиницей, 09.11) — ищем сначала по фамилии; у КХЛ r[5] — имя по-русски */return{n:r[0],lg:r[1],c,i,id:r[4],w:W(r[0].split(/\s+/).reverse().join(' '),r[5]||'','')}});
+    const players=D.p.map((r,i)=>{const c=C['h'+r[2]];/* имена «Имя Фамилия» (НХЛ латиницей, КХЛ по-русски с 13.11) — ищем сначала по фамилии; у КХЛ r[5] — латиница для поиска */return{n:r[0],lg:r[1],c,i,id:r[4],w:W(r[0].split(/\s+/).reverse().join(' '),r[5]||'','')}});
     return IDX={built:D.built,clubs,leagues,matches,players};
   });
   loading.catch(()=>{loading=null});return loading;

@@ -86,7 +86,7 @@ def now_msk():
 
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'daily'))
-from split import en_name  # noqa: E402
+from split import en_name, ru_name  # noqa: E402
 
 
 def main():
@@ -145,8 +145,8 @@ def main():
             continue
         for pl in json.load(open(p, encoding='utf-8')).get('players', []):
             ru = ''
-            if lg == 'khl':                      # на сайте имена КХЛ латиницей (09.11); русское — для поиска
-                ru, pl['n'] = pl['n'], en_name(pl['n'])
+            if lg == 'khl':                      # на сайте имена КХЛ по-русски (13.11); латиница — для поиска
+                ru, pl['n'] = en_name(pl['n']), ru_name(pl['n'])
             t = pl.get('t', '')
             slug = NHL[t][0] if lg == 'nhl' and t in NHL else t
             pts = sum((r[4] or 0) + (r[5] or 0) for r in pl.get('log', []))
