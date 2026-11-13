@@ -75,6 +75,15 @@ html{scroll-padding-top:116px}
   /* ссылки в ячейках таблиц и мелкие кнопки: зона нажатия шире видимой */
   td>a,.tr-t>a,.pager button{position:relative}
   td>a::after,.tr-t>a::after,.pager button::after{content:"";position:absolute;left:-6px;right:-6px;top:50%;height:44px;transform:translateY(-50%)}
+  /* 13.11: остальные мелкие ссылки (списки матчей, лидеры, тренды, словарь, подписи) — невидимая область 44 px по высоте, вид не меняется */
+  :is(.lgm,.resl li)>a.t,.who>a,.pc a,.tr-m a,.tc-w a,.lcard .open,.lc-credit a,.pl-note a,.fc-crumbs a,.gl-t h3>a,.pr .nm a,.fc-how p>a,details>p>a{position:relative}
+  :is(.lgm,.resl li)>a.t::after,.who>a::after,.pc a::after,.tr-m a::after,.tc-w a::after,.lcard .open::after,.lc-credit a::after,.pl-note a::after,.fc-crumbs a::after,.gl-t h3>a::after,.pr .nm a::after,.fc-how p>a::after,details>p>a::after{content:"";position:absolute;left:-4px;right:-4px;top:50%;height:44px;transform:translateY(-50%)}
+  .gl-t h3>a::after{left:-14px;right:-14px}
+  .gl-toc a{position:relative}.gl-toc a::after{content:"";position:absolute;inset:-4px}
+  footer .jvf-cols div{gap:4px}.jvf-cols a{display:flex;align-items:center;min-height:44px}
+  main .pr .nm b{overflow:visible;overflow-wrap:anywhere}
+  td:has(>a){height:42px}
+  .lcard .cg a{position:relative}.lcard .cg a::after{content:"";position:absolute;inset:-3px}
   main.pl button{min-height:44px}
   select,input[type=search],input[type=text]{min-height:44px}
 }
