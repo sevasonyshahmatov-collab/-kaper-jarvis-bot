@@ -107,7 +107,7 @@ function build(SE,PL){
  const ini=n=>{const w=String(n).replace(/[^\p{L}\s'-]/gu,'').split(/[\s-]+/).filter(Boolean);return ((w[0]||'')[0]||'').toUpperCase()+((w.length>1?w[1]:'')[0]||'').toUpperCase()};
  const PS=(PL.players||[]).map(p=>{const s=p.s||[0,0,0,0];  /* lgp_<лига>.json: итоги уже посчитаны в daily/split.py */
   return {n:p.n,t:LG==='nhl'?ABBR[p.t]:p.t,img:p.img,gp:p.gp||0,g:s[0],a:s[1],sog:s[2],pim:s[3],toi:p.toi}}).filter(p=>p.t&&D.teams[p.t]);
- const who=(p,big)=>`<span class="pc"><span class="av">${esc(ini(p.n))}${p.img?`<img src="${esc(p.img)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:''}</span><span><b>${esc(p.n)}</b><a href="${thref(p.t)}">${em(p.t)}<span>${esc(nm(p.t))}</span></a></span></span>`;
+ const who=(p,big)=>`<span class="pc"><span class="av">${esc(ini(p.n))}${p.img?`<img src="${esc(p.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:''}</span><span><b>${esc(p.n)}</b><a href="${thref(p.t)}">${em(p.t)}<span>${esc(nm(p.t))}</span></a></span></span>`;
  let sortK='pts';
  const SK=[['pts','По очкам'],['g','По голам'],['a','По передачам']];
  const withP=PS.map(p=>({...p,pts:p.g+p.a}));
@@ -122,7 +122,7 @@ function build(SE,PL){
   $('plTop').innerHTML=`<table class="lgpt"><thead><tr><th>#</th><th>Игрок</th>${th('gp','И')}${th('g','Г')}${th('a','П')}${th('pts','О')}</tr></thead><tbody>${r.map((p,i)=>`<tr><td class="r">${i+1}</td><td class="pl">${who(p)}</td><td class="hm">${p.gp}</td><td class="${sortK==='g'?'on':''}">${p.g}</td><td class="${sortK==='a'?'on':''}">${p.a}</td><td class="${sortK==='pts'?'on':''}">${p.pts}</td></tr>`).join('')}</tbody></table>`;
   $('plTop').querySelectorAll('.av img').forEach(i=>i.addEventListener('error',()=>i.remove()))};
  $('plSw').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b||b.dataset.k===sortK)return;sortK=b.dataset.k;$('plSw').querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x===b));top()});top();
- const mini=(title,arr,val,sub)=>`<div data-rv><h3>${title}</h3><ol class="lgpl">${arr.map((p,i)=>`<li><span class="r num">${i+1}</span><span class="av">${esc(ini(p.n))}${p.img?`<img src="${esc(p.img)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:''}</span><span class="who"><b>${esc(p.n)}</b><a href="${thref(p.t)}">${em(p.t)}<span>${esc(nm(p.t))}</span></a></span><span class="val num">${val(p)}<small>${sub(p)}</small></span></li>`).join('')}</ol></div>`;
+ const mini=(title,arr,val,sub)=>`<div data-rv><h3>${title}</h3><ol class="lgpl">${arr.map((p,i)=>`<li><span class="r num">${i+1}</span><span class="av">${esc(ini(p.n))}${p.img?`<img src="${esc(p.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:''}</span><span class="who"><b>${esc(p.n)}</b><a href="${thref(p.t)}">${em(p.t)}<span>${esc(nm(p.t))}</span></a></span><span class="val num">${val(p)}<small>${sub(p)}</small></span></li>`).join('')}</ol></div>`;
  const toiL=PS.filter(p=>p.toi&&p.gp>=5).sort((a,b)=>b.toi-a.toi).slice(0,10);
  const first=LG==='nhl'?mini('Броски по воротам · топ-10',PS.slice().sort((a,b)=>b.sog-a.sog||a.gp-b.gp).slice(0,10),p=>p.sog,p=>`за ${p.gp} ${plural(p.gp,'игру','игры','игр')}`)
   :mini('Штрафные минуты · топ-10',PS.filter(p=>p.pim>0).sort((a,b)=>b.pim-a.pim||a.gp-b.gp).slice(0,10),p=>p.pim,p=>`за ${p.gp} ${plural(p.gp,'игру','игры','игр')}`);
