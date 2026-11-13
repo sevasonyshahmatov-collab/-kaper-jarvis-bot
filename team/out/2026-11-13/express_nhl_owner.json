@@ -1,0 +1,9 @@
+{
+ "day": "2026-11-13",
+ "make": [
+  "team/out/2026-11-13/exp_owner_nhl.py",
+  "team/out/2026-11-13/ff_render.py team/out/2026-11-13/express_nhl_owner_coupons.json out/express/2026-11-13-owner",
+  "team/picks/express_send.py team/out/2026-11-13/express_nhl_owner_msgs.json"
+ ],
+ "messages": []
+}
