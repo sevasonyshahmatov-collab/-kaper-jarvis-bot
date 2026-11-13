@@ -149,6 +149,12 @@ jobs:
           [ -n "$SITE_TOKEN" ] || { echo "SITE_TOKEN не задан — сайт собран, но не опубликован"; exit 0; }
           cd site
           git config user.name "jarvis-site-bot"; git config user.email "jarvis-site-bot@users.noreply.github.com"
+          # владелец 13.11: новый сайт (v3a) — главный. Есть метка .v3a-root (её кладёт site-v3a-daily.yml) — корневая index.html
+          # остаётся от нового сайта, а лендинг старого уходит в old/ (ссылки у него относительные — <base href="../">).
+          # Отменить: удалить .v3a-root в репозитории сайта.
+          if [ -f .v3a-root ] && ! git diff --quiet HEAD -- index.html; then
+            mkdir -p old && sed '0,/<head>/s##<head><base href="../">#' index.html > old/index.html && git checkout HEAD -- index.html
+          fi
           git add -A
           git diff --cached --quiet && { echo "на сайте ничего не изменилось"; exit 0; }
           git commit -q -m "Прогнозы и итоги ${{ steps.day.outputs.day }}"
