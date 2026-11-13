@@ -6,7 +6,7 @@
 #  - чужой файл (старого сайта) с тем же путём не перезаписываем, кроме index.html (главная — теперь новая);
 #  - .v3a-root — метка для site.yml: корневую index.html не заменять лендингом старого сайта (тот уходит в old/);
 #  - страницы нового сайта остаются с noindex, robots.txt и sitemap.xml старого сайта не трогаем;
-#  - прежняя папка new/ — короткая переадресация на главную.
+#  - прежняя папка new/ — короткие переадресации на те же страницы в корне.
 set -euo pipefail
 src="${1%/}"; dst="${2%/}"
 [ -f "$src/index.html" ] || { echo "нет макета: $src"; exit 1; }
@@ -33,11 +33,12 @@ rsync -a --files-from="$stage/mine" "$stage/new/" "$dst/"
 cp "$stage/mine" "$old_list"
 find "$dst" -type d -empty -not -path "$dst/.git*" -delete 2>/dev/null || true
 touch "$dst/.v3a-root"
-# 3) new/ → переадресация на главную
-rm -rf "$dst/new"; mkdir -p "$dst/new"
-cat > "$dst/new/index.html" <<'HTML'
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="robots" content="noindex">
-<meta http-equiv="refresh" content="0; url=../"><title>JARVIS</title><link rel="canonical" href="../"></head>
-<body><p>Новый сайт теперь на главной: <a href="../">открыть</a>.</p><script>location.replace('../'+location.search+location.hash)</script></body></html>
-HTML
-echo "корень: $(wc -l < "$old_list") файлов нового сайта, пропущено чужих: $skipped"
+# 3) new/ → переадресация: каждая страница бывшего адреса /new/… ведёт на ту же страницу в корне (ссылки, которые уже разошлись)
+rm -rf "$dst/new"
+grep -E '\.html$' "$stage/mine" | while IFS= read -r f; do
+  d="$(dirname "new/$f")"; up="$(echo "$d" | sed -E 's#[^/]+#..#g')/"
+  mkdir -p "$dst/$d"
+  printf '<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url=%s%s"><title>JARVIS</title></head><body><a href="%s%s">Открыть</a><script>location.replace("%s%s"+location.search+location.hash)</script></body></html>\n' \
+    "$up" "$f" "$up" "$f" "$up" "$f" > "$dst/new/$f"
+done
+echo "корень: $(wc -l < "$old_list") файлов нового сайта, пропущено чужих: $skipped, переадресаций new/: $(find "$dst/new" -name '*.html' | wc -l)"
