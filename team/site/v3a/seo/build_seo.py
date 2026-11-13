@@ -276,6 +276,14 @@ PAGES = {
         title='Как считает модель JARVIS: простыми словами',
         desc='Откуда модель берёт данные, как считает ожидаемые голы и вероятности исходов, чем отличается от линии букмекеров и в чём её ограничения.',
         og='assets/og/og-home.png', crumbs=[HOME, ('Как считает модель', 'model.html')]),
+    'hockey/compare.html': dict(
+        title='Сравнение клубов и игроков КХЛ и НХЛ | JARVIS',
+        desc='Два клуба или два хоккеиста КХЛ и НХЛ рядом: очки, голы, броски, форма и личные встречи в одной таблице.',
+        og='assets/og/og-hockey.png', crumbs=[HOME, HK, ('Сравнение', 'hockey/compare.html')]),
+    'football/compare.html': dict(
+        title='Сравнение футбольных клубов | JARVIS',
+        desc='Два футбольных клуба топ-лиг рядом: место в таблице, голы, удары, форма и расчёт модели в одной таблице.',
+        og='assets/og/og-football.png', crumbs=[HOME, FB, ('Сравнение', 'football/compare.html')]),
     'hockey/trends.html': dict(
         title='Тренды дня в хоккее: КХЛ и НХЛ | JARVIS',
         desc='Что повторяется у клубов КХЛ и НХЛ перед ближайшими матчами: серии, тотал, овертаймы, игра дома и в гостях. Каждый факт в виде «n из N».',
@@ -648,8 +656,16 @@ def build_sitemap(extra_ld_pages):
     for lg in HL:
         urls.append('hockey/league.html?lg=' + lg)
     for lg, v in FOOT['leagues'].items():
-        if not v.get('cup'):
+        if not v.get('cup') or lg != 'ucl':   # у ЛЧ своя страница football/ucl.html, Лига Европы — на общей странице лиги
             urls.append('football/league.html?lg=' + lg)
+    # профили игроков (список 13.11, п. 8): адрес = canonical страницы (параметры в порядке dyn: id, затем lg)
+    ppf = os.path.join(ROOT, 'football', 'data', 'pp')
+    if os.path.isdir(ppf):
+        urls += ['football/player.html?id=' + f[:-5] for f in sorted(os.listdir(ppf)) if f.endswith('.json') and f[:-5].isdigit()]
+    for lg in HL:
+        pph = os.path.join(ROOT, 'hockey', 'data', 'pp', lg)
+        if os.path.isdir(pph):
+            urls += ['hockey/player.html?id=%s&lg=%s' % (f[:-5], lg) for f in sorted(os.listdir(pph)) if f.endswith('.json') and f[:-5].isdigit()]
     import build_match as BM
     urls += BM.sitemap_paths()  # понятные адреса клубов и страницы матчей (старые ?id= остаются рабочими, но в sitemap их нет: у них canonical на новые)
     seen, out = set(), []
