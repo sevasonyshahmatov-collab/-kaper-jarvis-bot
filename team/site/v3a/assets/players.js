@@ -19,11 +19,16 @@ const LGN={...D.leagues};
 const URLT=new URLSearchParams(location.search).get('team')||'';
 const LU=!!D.lu;
 const MN={sg:'забивал',st:'бил в створ',s2:'бил 2+ раза по воротам',ga:'забивал или отдавал пас',cr:'получал карточку'};
+const URLL=(new URLSearchParams(location.search).get('lg')||'').toLowerCase();
 const st={m:'sg',lg:'',tm:D.teams[URLT]?URLT:'',ha:'',so:'rate',q:'',lim:30};
 $('season').textContent=D.season;
-const lgs=['',...Object.keys(LGN).filter(k=>D.players.some(p=>p.lg===k))];
-$('lg').innerHTML=lgs.map(k=>`<button type="button" data-l="${k}" aria-pressed="${!k}">${k?esc(LGN[k]):'Все лиги'}</button>`).join('');
-function teamOpts(){const ts=Object.entries(D.teams).filter(([s,t])=>!st.lg||t.lg===st.lg).sort((a,b)=>a[1].n.localeCompare(b[1].n,'ru'));
+const lgs=['',...Object.keys(LGN).filter(k=>D.players.some(p=>p.lg===k||(p.cu||[]).includes(k)))];
+/* ?lg=epl — сразу игроки этой лиги (13.11, вкладка «Игроки» на странице лиги); ?team= — лига клуба */
+if(lgs.includes(URLL)&&URLL)st.lg=URLL;else if(st.tm&&lgs.includes(D.teams[st.tm].lg))st.lg=D.teams[st.tm].lg;
+$('lg').innerHTML=lgs.map(k=>`<button type="button" data-l="${k}" aria-pressed="${k===st.lg}">${k?esc(LGN[k]):'Все лиги'}</button>`).join('');
+/* выбранная лига — в адресе страницы (ссылкой можно поделиться, «назад» возвращает к ней) */
+const syncURL=()=>{try{const u=new URL(location.href);st.lg?u.searchParams.set('lg',st.lg):u.searchParams.delete('lg');st.tm?u.searchParams.set('team',st.tm):u.searchParams.delete('team');history.replaceState(null,'',u)}catch(e){}};
+function teamOpts(){const cupT=new Set(st.lg?D.players.filter(p=>(p.cu||[]).includes(st.lg)).map(p=>p.t):[]);const ts=Object.entries(D.teams).filter(([s,t])=>!st.lg||t.lg===st.lg||cupT.has(s)).sort((a,b)=>a[1].n.localeCompare(b[1].n,'ru'));
   $('tm').innerHTML='<option value="">Все</option>'+ts.map(([s,t])=>`<option value="${s}"${s===st.tm?' selected':''}>${esc(t.n)}</option>`).join('')}
 // n из N для текущего рынка и места
 function hit(p){
@@ -33,13 +38,13 @@ function hit(p){
 function render(){
   document.querySelector('.pl').dataset.m=st.m;
   const q=st.q.trim().toLowerCase();
-  let L=D.players.filter(p=>(!st.lg||p.lg===st.lg)&&(!st.tm||p.t===st.tm)&&(!q||p.n.toLowerCase().includes(q)));
+  let L=D.players.filter(p=>(!st.lg||p.lg===st.lg||(p.cu||[]).includes(st.lg))&&(!st.tm||p.t===st.tm)&&(!q||p.n.toLowerCase().includes(q)));
   if(!LU){if(st.m==='cr'){L=L.filter(p=>p.cr[0]>0);if(st.ha)$('ha').value=st.ha=''}else L=L.filter(p=>p.G>0)}
   L=L.map(p=>({p,h:hit(p)})).filter(x=>x.h&&x.h[0]>0&&x.h[1]>=(st.ha?3:6));
   const tot=p=>st.m==='cr'?p.y+2*p.r:st.m==='st'?p.SoT:st.m==='s2'?p.S:st.m==='ga'?p.G+p.A:p.G;
   const val=x=>st.so==='n'?x.h[0]:st.so==='G'?tot(x.p):x.h[0]/x.h[1];
   L.sort((a,b)=>val(b)-val(a)||b.h[0]-a.h[0]||a.p.n.localeCompare(b.p.n));
-  $('meta').textContent=`${L.length} игроков · данные на ${(b=>{const m=/(\d{4})-(\d\d)-(\d\d)[ T](\d\d:\d\d)/.exec(String(b||''));return m?+m[3]+' '+['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'][+m[2]-1]+', '+m[4]+' МСК':String(b||'')})(D.built)}`;
+  $('meta').textContent=`${L.length} игроков${['ucl','uel'].includes(st.lg)?' · «n из N» по всем турнирам сезона':''} · данные на ${(b=>{const m=/(\d{4})-(\d\d)-(\d\d)[ T](\d\d:\d\d)/.exec(String(b||''));return m?+m[3]+' '+['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'][+m[2]-1]+', '+m[4]+' МСК':String(b||'')})(D.built)}`;
   $('list').innerHTML=L.slice(0,st.lim).map((x,i)=>{const p=x.p,T=D.teams[p.t]||{},h=x.h,pc=Math.round(100*h[0]/h[1]);
     const F=[...(LU?p.ff[st.m]:p.f)],ok=c=>LU?c==='1':st.m==='cr'?c==='c':c==='g',F5=F.slice(-5),pl_=F.filter(c=>c!=='x').length;
     const strip=`<div class="bars">${F.map((c,j)=>{const o=D.teams[p.fo[j]];const t=(o?o.n:'')+(c==='x'?' — не играл':ok(c)?' — '+(MN[st.m]).replace(/^\S+/,'да'):' — нет');
@@ -58,8 +63,8 @@ function render(){
 $('mk').onclick=e=>{const b=e.target.closest('button');if(!b)return;st.m=b.dataset.m;st.lim=30;
   $('mk').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));$('ha').disabled=!LU&&st.m==='cr';render()};
 $('lg').onclick=e=>{const b=e.target.closest('button');if(!b)return;st.lg=b.dataset.l;st.tm='';st.lim=30;
-  $('lg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));teamOpts();render()};
-$('tm').onchange=e=>{st.tm=e.target.value;st.lim=30;render()};
+  $('lg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));teamOpts();render();syncURL()};
+$('tm').onchange=e=>{st.tm=e.target.value;st.lim=30;render();syncURL()};
 $('ha').onchange=e=>{st.ha=e.target.value;render()};
 $('so').onchange=e=>{st.so=e.target.value;render()};
 $('q').oninput=e=>{st.q=e.target.value;st.lim=30;render()};

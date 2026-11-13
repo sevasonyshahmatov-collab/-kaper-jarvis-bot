@@ -105,6 +105,8 @@ def build_lu():
                'm': {m: cnt(m) for m in MK}, 'mh': {m: cnt(m, home) for m in MK}, 'ma': {m: cnt(m, away) for m in MK},
                'ff': form,
                'fo': [by_espn.get(g['a'] if g['h'] == tid else g['h'], '') for g in last]}
+        cu = sorted({LG.get(x[1]['lg']) for x in ap} - {T['lg'], None})   # еврокубки игрока (13.11: отбор «Лига чемпионов» в списке)
+        if cu: row['cu'] = cu
         row['sg'] = row['m']['sg']; row['cr'] = row['m']['cr']; row['home'] = row['mh']['sg']; row['away'] = row['ma']['sg']
         row['f'] = ''.join('g' if c == '1' else '-' for c in form['sg'])
         if nx: row['nx'] = {'o': by_espn.get(nx[0], ''), 'h': nx[1], 'd': nx[2], 'lg': nx[3]}

@@ -153,5 +153,5 @@ Promise.all([loadJS('data/pl/'+LG+'.js'),fetch('data/photos.json').then(r=>r.jso
 /* пересчитать «свет арены» после отрисовки (иначе герой бледный до первой прокрутки) */
 for(const t of [50,400,1200])setTimeout(()=>{dispatchEvent(new Event("resize"));dispatchEvent(new Event("scroll"))},t);
 
-/* вкладка «Игроки» в полосе разделов ведёт на страницу всех игроков лиги, а не к блоку на этой странице (владелец 13.11) */
-(()=>{try{const go=()=>document.querySelectorAll('a[href="#players"]').forEach(a=>{if(a.parentElement.querySelector('a[href="#table"]'))a.setAttribute('href','players.html')});go();addEventListener('load',go)}catch(e){}})();
+/* вкладка «Игроки» в полосе разделов ведёт на страницу игроков этой лиги (players.html?lg=…), а не к блоку на этой странице (владелец 13.11) */
+(()=>{try{const lg=(new URLSearchParams(location.search).get('lg')||'').toLowerCase(),go=()=>document.querySelectorAll('a[href="#players"]').forEach(a=>{if(a.parentElement.querySelector('a[href="#table"]'))a.setAttribute('href','players.html'+(/^[a-z0-9]{2,12}$/.test(lg)?'?lg='+lg:''))});go();addEventListener('load',go)}catch(e){}})();
