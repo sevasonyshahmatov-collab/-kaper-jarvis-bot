@@ -165,6 +165,7 @@ for fn in os.listdir(ppd):                      # старые профили (�
     if fn.endswith('.json') and fn[:-5] not in PP:
         os.remove(os.path.join(ppd, fn))
 for aid, q in PP.items():
+    q['ph'] = int(os.path.exists(os.path.join(H, 'data/ph', '%s.webp' % aid)))  # есть свой портрет: профиль не просит фото, которого нет (404)
     fp = os.path.join(ppd, '%s.json' % aid)
     js = json.dumps(q, ensure_ascii=False, separators=(',', ':'))
     if not os.path.exists(fp) or open(fp, encoding='utf-8').read() != js:

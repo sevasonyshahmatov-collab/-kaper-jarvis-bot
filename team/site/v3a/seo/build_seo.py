@@ -317,6 +317,14 @@ PAGES = {
         title='Футбольный клуб: матчи, таблица, сила команды | JARVIS',
         desc='Страница футбольного клуба: матчи сезона, место в таблице, сила команды, тренды и расчёт модели на ближайшие игры.',
         og='assets/og/og-football.png', crumbs=[HOME, FB, ('Клубы', 'football/team.html')], dyn=['id']),
+    'football/player.html': dict(
+        title='Профиль футболиста: сезон, форма и матчи | JARVIS',
+        desc='Профиль футболиста топ-лиги: голы, передачи, удары и карточки за сезон, форма в последних матчах.',
+        og='assets/og/og-football.png', crumbs=[HOME, FB, ('Игроки', 'football/players.html')], dyn=['id']),
+    'me/index.html': dict(
+        title='Мой JARVIS — избранные клубы и матчи',
+        desc='Личная страница: избранные клубы КХЛ, НХЛ и футбола, их ближайшие матчи и результаты с вашего прошлого визита. Список хранится в вашем браузере.',
+        og='assets/og/og-home.png', crumbs=[HOME, ('Мой JARVIS', 'me/index.html')]),
     'hockey/player.html': dict(
         title='Профиль хоккеиста: сезон, форма и матчи | JARVIS',
         desc='Профиль хоккеиста КХЛ или НХЛ: статистика сезона, «n из N» по очку, голу, передаче и броскам, форма и все матчи.',
@@ -363,7 +371,7 @@ BEGIN, END = '<!--seo:begin-->', '<!--seo:end-->'
 
 def head_block(rel, P, extra_ld):
     page_url = url(rel)
-    og_img = url(P['og'])
+    og_img = CFG.PUBLIC_ORIGIN + '/' + P['og'].lstrip('/')  # картинка превью — по живому адресу (seo_config.PUBLIC_ORIGIN)
     t, d = esc(P['title']), esc(P['desc'])
     lines = [BEGIN,
              '<meta name="description" content="%s">' % d]
@@ -632,7 +640,7 @@ def lastmod():
 
 def build_sitemap(extra_ld_pages):
     urls = []
-    skip = {'hockey/player.html', 'football/photo-credits.html', 'football/league.html', 'hockey/league.html', 'team/index.html', 'football/team.html'}
+    skip = {'hockey/player.html', 'football/player.html', 'me/index.html', 'football/photo-credits.html', 'football/league.html', 'hockey/league.html', 'team/index.html', 'football/team.html'}
     for rel in PAGES:
         if rel in skip:
             continue

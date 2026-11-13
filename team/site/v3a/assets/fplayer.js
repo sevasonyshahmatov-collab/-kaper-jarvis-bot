@@ -55,7 +55,7 @@ fetch(`data/pp/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).then(P=>
    <p class="pp-meta">${pos?`<span>${esc(pos)}</span>`:''}<span>${esc(lgs.map(lgn).join(', ')||lgn(P.lg))}, сезон ${esc(F.season||'')}</span></p>
    <dl class="pp-hs" aria-label="Сезон: ${N} ${pl(N,'матч','матча','матчей')}, ${G} голов, ${A} передач"><div><b>${N}</b><span>${pl(N,'матч','матча','матчей')}</span></div><div><b>${G}</b><span>голы</span></div><div><b>${A}</b><span>передачи</span></div><div><b>${SoT}</b><span>в створ</span></div></dl>
   </div>
-  <div class="pp-photo nop"><span class="pp-ini" aria-hidden="true">${esc(ini)}</span><img class="ph" src="data/ph/${encodeURIComponent(ID)}.webp" alt="${esc(P.n)}" onload="this.parentNode.classList.remove('nop')" onerror="this.remove()"></div>
+  <div class="pp-photo nop"><span class="pp-ini" aria-hidden="true">${esc(ini)}</span>${P.ph===0?'':`<img class="ph" src="data/ph/${encodeURIComponent(ID)}.webp" alt="${esc(P.n)}" onload="this.parentNode.classList.remove('nop')" onerror="this.remove()">`}</div>
  </article>
  <section class="pp-sec" id="s-season" aria-labelledby="h-s"><h2 id="h-s">Сезон</h2><div class="pp-tiles">${tiles.join('')}</div>
   <p class="pp-note">Все турниры (клуб — ${esc(tn(P.t))}): ${esc(lgs.map(lgn).join(', '))}. Данные — составы и статистика матчей ESPN.</p></section>
