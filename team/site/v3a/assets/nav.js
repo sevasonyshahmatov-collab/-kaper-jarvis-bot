@@ -177,3 +177,8 @@ const go=()=>{if(stop)return;if(Date.now()-t0>8000){ro.disconnect();return}
 const ro=new ResizeObserver(go);ro.observe(document.documentElement);if(document.body)ro.observe(document.body);
 addEventListener('load',()=>{go();setTimeout(go,400);setTimeout(go,1500)});
 addEventListener('hashchange',()=>{id=decodeURIComponent(location.hash.slice(1));stop=false;t0=Date.now();go()})})();
+
+/* страница футбольного матча: «Сравнение команд» (assets/fmc.js, 13.11) — подгружается сам, пересборка страниц не нужна */
+(function(){if(!document.querySelector('main>.mx-hero')||!/\/(epl|laliga|seriea|bundesliga|ligue1|rpl|ucl|uel)\//.test(location.pathname))return;
+const b=(document.currentScript&&document.currentScript.src)||new URL('assets/nav.js',location.href).href;
+const s=document.createElement('script');s.src=new URL('fmc.js',b).href;document.head.appendChild(s)})();
