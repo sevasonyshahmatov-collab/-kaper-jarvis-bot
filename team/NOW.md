@@ -37,7 +37,7 @@
 - «Котировки, экспрессы и футбол — 31.10» — `session_01GakKTNbyX5zH6HJccD73MM` (продолжение чата руководителя 30.10; передача `HANDOFF_LEAD_3110_2.md`).
 - «Фонбет: точные котировки в прогнозы» — `session_01GakKTMi4rfkUTSnNm6Te7h` (Opus; итог — `docs/handoff/FONBET.md`).
 - Диспетчер JARVIS (служебный, не трогать) — `session_01GakKTMs4qribwLbphL4zbs`; на Б — «Диспетчер JARVIS Б» `session_01MtLSohbrUjwrmnARtLVyAg`.
-- «Актуальный, 12.11» — `session_01GakKTNegz5WS9oNEL7Audf`; «Неактуальный, до 12.11» — `session_01GakKTPUz7idLNAANmozcuT` (прошлый «Неактуальный, до 11.11» `session_01GakKTQ3QWVJwmU2Wbq4d6f`).
+- «Актуальный, 13.11» — `session_01GakKTP7q8tvhkpSuxx8o58`; «Неактуальный, до 13.11» — `session_01GakKTNegz5WS9oNEL7Audf`; «Неактуальный, до 12.11» — `session_01GakKTPUz7idLNAANmozcuT` (прошлый «Неактуальный, до 11.11» `session_01GakKTQ3QWVJwmU2Wbq4d6f`).
 - «Актуальный, 05.11» — `session_01GakKTMVChPSCHKahwutt2x` (руководитель, хоккей+футбол; прошлый «Неактуальный, до 05.11» `session_01GakKTNerAENXKCc5YfKssr`).
 - «Хоккей — Актуальный, 01.11» — `session_01GakKTM49pdcfF9qcUixdTy` (старый, Неактуальный).
 - Б: «Сайт v2 — 2 (30.10)» — `session_01MtLSohCCgm788XkGSKyYHh` (полёт камеры по стадиону, видео; прошлые «Сайт v2» и «Сайт JARVIS» закрыты).
@@ -63,6 +63,7 @@
 7. По желанию: syntx.ai в разрешённые домены.
 
 ## События (новые сверху, ≤10)
+- 13.11 06:10 · А · открыт «Актуальный, 13.11» (прошлый переименован в «Неактуальный, до 13.11»); передачи 13.11 прочитаны; одноразовых напоминаний нет; письмо владельцу `team/out/2026-11-13/morning.json`.
 - 13.11 05:50 · А · передача футбола за 12.11 написана новым чатом: `docs/handoff/HANDOFF_FOOT_1311.md` (по NOW/LOG/git log).
 - 13.11 05:45 · А · передача хоккея `docs/handoff/HANDOFF_LEAD_1311.md` (новый чат Sonnet, Актуальный 12.11 → 13.11); строка в CLAUDE.md обновлена.
 - 13.11 04:55 · А · прогнозы КХЛ 13.11: 3 поста владельцу 1311-1…3 (Северсталь—Трактор Х2 1,67; Торпедо—Лада Ф2+1,5 1,77; СКА итоговая 1,65 — замена «ВЫБОР» Х2 Динамо Минск 1,77 ради разнообразия); данные run 1235, отправка run 1236. PICKS.md: + 1211-1/4/10/12.
