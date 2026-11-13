@@ -42,8 +42,11 @@ function mount(el,leagues){
   const c=s.c,front=c.querySelector('.front'),back=c.querySelector('.back');
   const flip=on=>{c.classList.toggle('is-flip',on);if(on){front.setAttribute('inert','');back.removeAttribute('inert')}else{back.setAttribute('inert','');front.removeAttribute('inert')}
    c.setAttribute('aria-label',c.getAttribute('aria-label').replace(/:.*/,on?': клубы лиги, нажми, чтобы вернуть':': нажми, чтобы увидеть клубы'))};
-  c.addEventListener('click',e=>{if(e.target.closest('a'))return;flip(!c.classList.contains('is-flip'))});
-  c.addEventListener('keydown',e=>{if(e.target!==c)return;if(e.key==='Enter'||e.key===' '){e.preventDefault();flip(!c.classList.contains('is-flip'))}else if(e.key==='Escape')flip(false)});
+  /* оборот на телефоне: значки не влезли — затухание снизу, пока не долистали (подсказка «есть ещё») */
+  const cg=c.querySelector('.cg'),more=()=>{if(cg)cg.classList.toggle('more',cg.scrollHeight-cg.clientHeight-cg.scrollTop>4)};
+  if(cg){cg.addEventListener('scroll',more,{passive:true});addEventListener('resize',more)}
+  c.addEventListener('click',e=>{if(e.target.closest('a'))return;flip(!c.classList.contains('is-flip'));more()});
+  c.addEventListener('keydown',e=>{if(e.target!==c)return;if(e.key==='Enter'||e.key===' '){e.preventDefault();flip(!c.classList.contains('is-flip'));more()}else if(e.key==='Escape')flip(false)});
   if(RM)return;
   const rect=()=>{s.rect=c.getBoundingClientRect()};
   const move=e=>{

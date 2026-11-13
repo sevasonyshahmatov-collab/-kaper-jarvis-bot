@@ -64,5 +64,18 @@
 
 @media (max-width:600px){.lc-deck{grid-template-columns:minmax(0,1fr);gap:76px}.lcard .pl:not(.emb){left:75%;height:80cqw;bottom:-5cqw;clip-path:inset(-30% -30% 5cqw -30%)}
  .lcard .txt{width:54cqw}.lcard .txt h3{font-size:max(44px,18cqw)}.lcard .cn{font-size:max(13px,3.4cqw)}.lcard .open{font-size:max(12px,3cqw);padding:2cqw 3.2cqw}
- .lcard .bk{grid-template-columns:24cqw minmax(0,1fr);gap:4cqw}.lcard .bh .open{font-size:max(11px,2.8cqw);padding:1.8cqw 2.6cqw}}
+ /* оборот на телефоне (список 13.11, п. 5): шапка строкой сверху, ниже значки 40 px по центру; не влезли — прокрутка внутри карточки */
+ .lcard .bk{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:2.4cqw;padding:4.2cqw 4.2cqw 3cqw}
+ .lcard .bh{flex-direction:row;align-items:center;gap:2.4cqw}
+ .lcard .bh img{height:7cqw}
+ .lcard .bh b{margin:0;font-size:max(20px,6.4cqw)}
+ .lcard .bh span{margin:0;white-space:nowrap}
+ .lcard .bh .open{margin:0 0 0 auto;font-size:max(11px,2.8cqw);padding:1.8cqw 2.6cqw;white-space:nowrap}
+ .lcard .cg{align-self:stretch;display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-start;gap:6px;
+  min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:3px 0 10px;touch-action:pan-y}
+ .lcard .cg::-webkit-scrollbar{display:none}
+ .lcard .cg.more{-webkit-mask-image:linear-gradient(#000 calc(100% - 22px),transparent);mask-image:linear-gradient(#000 calc(100% - 22px),transparent)}
+ .lcard .cg a{flex:0 0 40px;height:40px;border-radius:6px;padding:4px}
+ .lcard .cg a:hover,.lcard .cg a:focus-visible{transform:none}
+ .lcard .cg a:focus-visible{outline-offset:-2px}}
 @media (prefers-reduced-motion:reduce){.lcard .flip{transition:none}.lcard .tilt{will-change:auto}}
