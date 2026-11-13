@@ -10,6 +10,11 @@ on:
     branches: ['claude/team-dev-**']
     paths: ['team/site/v3a/daily/run.txt']
   workflow_dispatch:
+    inputs:
+      publish_only:
+        description: 'Только обновить папку new/ на сайте, без сбора данных (yes / no)'
+        required: false
+        default: 'no'
 
 permissions:
   contents: write
@@ -22,16 +27,22 @@ jobs:
   daily:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      SITE_REPO: ${{ vars.SITE_REPO }}
+      PUBLISH_ONLY: ${{ github.event.inputs.publish_only }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
+        if: env.PUBLISH_ONLY != 'yes'
         with:
           python-version: '3.11'
       - run: pip install requests numpy brotli pillow
+        if: env.PUBLISH_ONLY != 'yes'
       - name: Конвейер данных
+        if: env.PUBLISH_ONLY != 'yes'
         run: python team/site/v3a/daily/run.py
       - name: Закоммитить данные
-        if: always()
+        if: always() && env.PUBLISH_ONLY != 'yes'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -44,5 +55,32 @@ jobs:
           for i in 1 2 3 4 5; do
             git fetch -q --depth=50 origin "$GITHUB_REF_NAME" && git rebase -q -X theirs FETCH_HEAD && git push && exit 0  # спор в файлах данных — берём свежесобранные (11.11)
             git rebase --abort 2>/dev/null; sleep 10
+          done
+          exit 1
+      # Новый сайт рядом со старым (владелец 13.11): папка new/ в репозитории сайта обновляется сама после данных.
+      # Трогаем только new/ — остальной сайт собирает site.yml. Нет SITE_REPO / SITE_TOKEN — шаг пропускается.
+      - name: Взять сайт
+        if: always() && env.SITE_REPO != ''
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.SITE_REPO }}
+          token: ${{ secrets.SITE_TOKEN || github.token }}
+          path: _site
+      - name: Обновить new/ на сайте
+        if: always() && env.SITE_REPO != ''
+        env:
+          HAS_TOKEN: ${{ secrets.SITE_TOKEN != '' }}
+        run: |
+          [ "$HAS_TOKEN" = true ] || { echo "SITE_TOKEN не задан — new/ не обновлена"; exit 0; }
+          bash team/site/v3a/daily/publish_new.sh team/site/v3a _site/new
+          cd _site
+          git config user.name "jarvis-site-bot"; git config user.email "jarvis-site-bot@users.noreply.github.com"
+          git add -A new
+          git diff --cached --quiet && { echo "new/ не изменилась"; exit 0; }
+          git commit -q -m "Новый сайт (new/): обновление $(TZ=Europe/Moscow date '+%d.%m %H:%M') МСК"
+          for i in 1 2 3 4 5; do
+            # site.yml пишет в тот же репозиторий (другие папки) — подтянуть его коммиты и повторить
+            git pull -q --rebase && git push -q && { echo "new/ обновлена"; exit 0; }
+            git rebase --abort 2>/dev/null; sleep 15
           done
           exit 1
