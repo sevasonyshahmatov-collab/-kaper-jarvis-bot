@@ -671,6 +671,25 @@ def build_robots():
     wr('robots.txt', txt)
 
 
+# ───────────────────────── версия кэша sw.js (список 13.11, п. 3) ─────────────────────────
+def stamp_sw():
+    """VER в sw.js = отпечаток файлов CORE (главные страницы, стили, скрипты, данные дня). Поменялись — новый sw.js,
+    браузер ставит его и удаляет старые копии страниц. Не поменялись — sw.js тот же, лишних установок нет."""
+    import hashlib
+    rel = 'sw.js'
+    text = rd(rel)
+    core = re.search(r"const CORE=\[(.*?)\];", text, re.S)
+    if not core:
+        return
+    h = hashlib.sha1()
+    for f in re.findall(r"'([^']+)'", core.group(1)):
+        p = os.path.join(ROOT, f)
+        if os.path.exists(p):
+            with open(p, 'rb') as fh:
+                h.update(fh.read())
+    wr(rel, re.sub(r"const VER='[^']*'", "const VER='jv-%s'" % h.hexdigest()[:10], text, count=1))
+
+
 # ───────────────────────── запуск ─────────────────────────
 def main():
     import build_match as BM
@@ -688,6 +707,7 @@ def main():
     mstat = BM.run()
     n = build_sitemap(made)
     build_robots()
+    stamp_sw()
     # 404: закрыт от поиска всегда, без canonical
     print('SEO: страниц %d (изменено %d), в sitemap %d адресов, origin %s, индексация %s; %s' % (len(PAGES), changed, n, ORIGIN, 'открыта' if OPEN else 'закрыта', mstat))
 
