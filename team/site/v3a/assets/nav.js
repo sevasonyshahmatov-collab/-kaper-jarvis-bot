@@ -132,6 +132,19 @@ addEventListener('resize',()=>{if(innerWidth>1100&&!pn.hidden)setOpen(false)});
 
 /* страницы без v3a.js: тень шапки при прокрутке */
 if(!window.JV){const on=()=>hd.classList.toggle('stuck',scrollY>8);addEventListener('scroll',on,{passive:true});on()}
+/* строки вкладок, которые не влезают по ширине (14.11, п. 3): затухание у края, где ещё есть вкладки, и прокрутка к активной.
+   Любая полоса с прокруткой вбок: подменю страницы, вкладки лиг, переключатели — находим сами, пересчитываем при изменениях. */
+{const SEL='.subbar .nav,[role="tablist"],.tabs,.lg-tabs,.chips';
+ const mark=el=>{const ov=el.scrollWidth>el.clientWidth+2;el.classList.toggle('xf',ov);if(!ov){el.classList.remove('xf-l','xf-r');return}
+  el.classList.toggle('xf-l',el.scrollLeft>4);el.classList.toggle('xf-r',el.scrollLeft+el.clientWidth<el.scrollWidth-4)};
+ const toAct=el=>{const a=el.querySelector('[aria-current="page"],[aria-current="true"],[aria-selected="true"],a.on,.on');if(!a||el.scrollWidth<=el.clientWidth+2)return;
+  const l=a.offsetLeft-el.offsetLeft;if(l<el.scrollLeft+8||l+a.offsetWidth>el.scrollLeft+el.clientWidth-40)el.scrollLeft=Math.max(0,l-(el.clientWidth-a.offsetWidth)/2)};
+ const scan=first=>document.querySelectorAll(SEL).forEach(el=>{const ox=getComputedStyle(el).overflowX;if(ox!=='auto'&&ox!=='scroll')return;
+  if(!el.dataset.xf){el.dataset.xf=1;el.addEventListener('scroll',()=>mark(el),{passive:true});first=true}if(first)toAct(el);mark(el)});
+ let t=0;const later=()=>{clearTimeout(t);t=setTimeout(()=>scan(false),120)};
+ addEventListener('load',()=>scan(true));addEventListener('resize',later);document.addEventListener('DOMContentLoaded',()=>scan(true));
+ if('MutationObserver' in window)new MutationObserver(later).observe(document.documentElement,{subtree:true,childList:true});
+ setTimeout(()=>scan(true),900)}
 /* активная вкладка подменю — в видимую часть */
 addEventListener('load',()=>{const a=hd.querySelector('.subbar a.on');if(a&&a.scrollIntoView)try{a.scrollIntoView({block:'nearest',inline:'center'})}catch(e){}});
 })();

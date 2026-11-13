@@ -232,3 +232,8 @@ body[data-only="ucl"] .board-top{min-height:45px}
 .sb-id small{font:600 12px/1 var(--display);opacity:.75}
 @media (max-width:720px){.sb-id small{display:none}.hd.sb-on .sb-id{max-width:190px;padding-right:10px}.sb-id b{font-size:15px;overflow:hidden;text-overflow:ellipsis}}
 @media (prefers-reduced-motion:reduce){.sb-id{transition:none}}
+
+/* строки вкладок с прокруткой вбок (nav.js, 14.11, п. 3): затухание у края — видно, что дальше есть ещё вкладки */
+.xf.xf-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 56px),transparent)}
+.xf.xf-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}
+.xf.xf-l.xf-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 56px),transparent)}
