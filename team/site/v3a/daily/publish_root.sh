@@ -3,7 +3,8 @@
 # Кладёт макет v3a в КОРЕНЬ репозитория сайта рядом со старым сайтом (prognozy/, app/, stats/, trendy/, data/*.json старого — не трогаем).
 # Запуск: publish_root.sh <папка макета v3a> <копия репозитория сайта>
 #  - список своих файлов — .v3a-files: удаляем только то, что сами клали раньше и чего больше нет в макете;
-#  - чужой файл (старого сайта) с тем же путём не перезаписываем, кроме index.html (главная — теперь новая);
+#  - чужой файл (старого сайта) с тем же путём не перезаписываем, кроме index.html (главная — теперь новая)
+#    и 404.html (владелец 13.11: «да, публикуй 404 новую»);
 #  - .v3a-root — метка для site.yml: корневую index.html не заменять лендингом старого сайта (тот уходит в old/);
 #  - страницы нового сайта остаются с noindex, robots.txt и sitemap.xml старого сайта не трогаем;
 #  - прежняя папка new/ — короткие переадресации на те же страницы в корне.
@@ -24,7 +25,7 @@ done
 : > "$stage/mine"
 skipped=0
 while IFS= read -r f; do
-  if [ -e "$dst/$f" ] && [ "$f" != index.html ] && ! grep -qxF "$f" "$old_list"; then
+  if [ -e "$dst/$f" ] && [ "$f" != index.html ] && [ "$f" != 404.html ] && ! grep -qxF "$f" "$old_list"; then
     echo "пропуск (файл старого сайта): $f"; skipped=$((skipped+1)); continue
   fi
   echo "$f" >> "$stage/mine"
@@ -35,7 +36,7 @@ find "$dst" -type d -empty -not -path "$dst/.git*" -delete 2>/dev/null || true
 touch "$dst/.v3a-root"
 # 3) new/ → переадресация: каждая страница бывшего адреса /new/… ведёт на ту же страницу в корне (ссылки, которые уже разошлись)
 rm -rf "$dst/new"
-grep -E '\.html$' "$stage/mine" | while IFS= read -r f; do
+grep -E '\.html$' "$stage/mine" | grep -vx '404.html' | while IFS= read -r f; do
   d="$(dirname "new/$f")"; up="$(echo "$d" | sed -E 's#[^/]+#..#g')/"
   mkdir -p "$dst/$d"
   printf '<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url=%s%s"><title>JARVIS</title></head><body><a href="%s%s">Открыть</a><script>location.replace("%s%s"+location.search+location.hash)</script></body></html>\n' \

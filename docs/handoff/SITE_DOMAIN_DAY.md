@@ -21,9 +21,9 @@ description уникальны, на каждой странице один h1 �
    JSON-LD, sitemap на новый адрес. Проверить: `grep -rl jarvibet.example team/site/v3a --include=*.html | grep -v proto` — пусто.
 4. **Открыть для поиска**: `INDEXING_OPEN = True` (или `SITE_INDEXING_OPEN=1`) и снова `build_seo.py` — уходит noindex со страниц,
    robots.txt разрешает обход и указывает на sitemap.xml.
-5. **Публикация robots / sitemap / 404** (правка `daily/publish_new.sh` и `publish_root.sh` — нужна отдельная «да»):
-   убрать из исключений `/robots.txt`, `/sitemap.xml`, `/404.html`; в `publish_root.sh` разрешить перезаписать эти три файла
-   старого сайта (как index.html). Иначе останутся robots/sitemap/404 старого сайта.
+5. **Публикация robots / sitemap** (правка `daily/publish_new.sh` и `publish_root.sh` — нужна отдельная «да»):
+   убрать из исключений `/robots.txt`, `/sitemap.xml`; в `publish_root.sh` разрешить перезаписать эти два файла старого сайта
+   (как index.html и 404.html). Иначе останутся robots/sitemap старого сайта. 404.html новая — публикуется с 13.11.
 6. **Старый сайт**: /prognozy/, /app/, /stats/, /trendy/, /old/ — закрыть от поиска (noindex или Disallow в новом robots.txt),
    чтобы не мешали новым страницам; мини-приложение /app/ — проверить, что Telegram открывает его по новому адресу
    (адрес WebApp в настройках бота).
