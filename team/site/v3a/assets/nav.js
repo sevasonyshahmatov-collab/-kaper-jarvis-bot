@@ -101,6 +101,8 @@ document.addEventListener('click',e=>{if(!e.target.closest('.gdd'))hd.querySelec
 /* поиск (assets/search.js + search.css) — единственная точка подключения */
 try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('search.css',SRC).href;document.head.appendChild(l);
   const s=document.createElement('script');s.src=new URL('search.js',SRC).href;s.defer=true;document.head.appendChild(s)}catch(e){}
+/* нижняя панель разделов на телефоне + «одна жёлтая кнопка» (assets/tabbar.js, 14.11) — тоже одна точка подключения */
+try{const s=document.createElement('script');s.src=new URL('tabbar.js',SRC).href;document.head.appendChild(s)}catch(e){}
 
 /* вторая полоса — якоря страницы */
 let sub=null;

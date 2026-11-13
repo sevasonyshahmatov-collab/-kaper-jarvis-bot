@@ -1,0 +1,54 @@
+/* JARVIS v3a — нижняя панель разделов на телефоне (assets/tabbar.js) */
+.tb,.tbs-wrap{display:none}
+
+@media (max-width:900px){
+  html.has-tb body{padding-bottom:calc(56px + env(safe-area-inset-bottom))}
+  /* «Меню» в шапке не нужно — всё есть в панели и в «Ещё»; жёлтая полоса внизу уступает место панели */
+  html.has-tb .hd .mbtn,html.has-tb .mpanel,html.has-tb .tgbar{display:none!important}
+  html.has-tb .hd .btn-tg{margin-left:auto}
+  .tb{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:50;
+    height:calc(56px + env(safe-area-inset-bottom));padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    background:color-mix(in srgb,var(--paper,#0a1220) 94%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+    border-top:1px solid var(--rule-2,rgba(127,127,127,.3));box-shadow:0 -10px 24px -18px rgba(0,0,0,.45)}
+  .tb-i{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:56px;min-width:48px;
+    padding:0;border:0;background:none;color:var(--ink-3,#8f9cb4);font:600 11.5px/1 var(--display,sans-serif);letter-spacing:.01em;text-decoration:none;cursor:pointer;
+    -webkit-tap-highlight-color:transparent}
+  .tb-i svg{width:24px;height:24px;flex:none}
+  .tb-i[aria-current],.tb-i[aria-expanded="true"]{color:var(--ink,#fff);font-weight:800}
+  .tb-i[aria-current]::before{content:"";position:absolute;top:0;left:28%;right:28%;height:3px;border-radius:0 0 3px 3px;background:var(--sport,currentColor)}
+  .tb-i:focus-visible{outline:2px solid var(--ink,#fff);outline-offset:-4px}
+  /* страница «Матчи дня»: панель управления колодой стоит над нижней панелью */
+  html.has-tb .dk-ctl{bottom:calc(56px + env(safe-area-inset-bottom))!important;padding-bottom:10px!important}
+  html.has-tb .dk-drawer{max-height:calc(88dvh - 56px)}
+
+  /* лист «Ещё» */
+  .tbs-wrap{display:block;position:fixed;inset:0;z-index:70}
+  .tbs-wrap[hidden]{display:none}
+  .tbs-bg{position:absolute;inset:0;background:rgba(3,8,18,.5);opacity:0;transition:opacity .25s ease}
+  .tbs{position:absolute;left:0;right:0;bottom:0;max-height:70vh;max-height:70dvh;display:flex;flex-direction:column;
+    background:var(--paper,#0a1220);color:var(--ink,#fff);border-top:1px solid var(--rule-2,rgba(127,127,127,.3));
+    border-radius:var(--rc,18px) var(--rc,18px) 0 0;box-shadow:0 -24px 50px -20px rgba(0,0,0,.6);
+    transform:translateY(100%);transition:transform .26s cubic-bezier(.23,1,.32,1);outline:none}
+  .tbs-wrap.on .tbs-bg{opacity:1}.tbs-wrap.on .tbs{transform:none}
+  .tbs-grip{display:flex;justify-content:center;align-items:center;height:26px;flex:none;touch-action:none}
+  .tbs-grip i{width:44px;height:5px;border-radius:3px;background:var(--rule-2,rgba(127,127,127,.5))}
+  .tbs-in{overflow:auto;overscroll-behavior:contain;padding:0 16px calc(16px + env(safe-area-inset-bottom))}
+  .tbs-search{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:48px;border:0;border-radius:var(--rc,12px);
+    background:var(--paper-2,rgba(127,127,127,.15));color:var(--ink,#fff);font:700 16px/1 var(--display,sans-serif);cursor:pointer}
+  .tbs-search svg{width:20px;height:20px}
+  .tbs-g{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .tbs-a{display:flex;align-items:center;justify-content:center;text-align:center;min-height:52px;padding:6px 10px;border-radius:var(--rc,12px);
+    border:1px solid var(--rule-2,rgba(127,127,127,.3));color:var(--ink,#fff);font:700 15.5px/1.2 var(--display,sans-serif);text-decoration:none}
+  .tbs-g .tbs-a:last-child:nth-child(odd){grid-column:1/-1}
+  .tbs-two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;align-items:center}
+  .tbs-two b{grid-column:1/-1;text-align:center;font:800 12px/1 var(--display,sans-serif);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3,#8f9cb4);margin-top:6px}
+  .tbs-two a{display:flex;align-items:center;justify-content:center;min-height:48px;border-radius:var(--rc,12px);background:var(--paper-2,rgba(127,127,127,.15));
+    color:var(--ink,#fff);font:700 15.5px/1 var(--display,sans-serif);text-decoration:none}
+  .tbs a[aria-current]{box-shadow:inset 0 -3px 0 var(--sport,currentColor)}
+  .tbs-h{margin:18px 0 8px;text-align:center;font:800 12px/1 var(--display,sans-serif);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3,#8f9cb4)}
+  .tbs-close{display:block;width:100%;min-height:48px;margin-top:14px;border:1px solid var(--rule-2,rgba(127,127,127,.3));border-radius:var(--rc,12px);background:none;
+    color:var(--ink,#fff);font:700 15px/1 var(--display,sans-serif);cursor:pointer}
+  .tbs a:focus-visible,.tbs button:focus-visible{outline:2px solid var(--ink,#fff);outline-offset:2px}
+  html.tbs-open{overflow:hidden}
+}
+@media (prefers-reduced-motion:reduce){.tbs,.tbs-bg{transition:none!important}}

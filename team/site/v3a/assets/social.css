@@ -1,0 +1,28 @@
+/* JARVIS v3a — плитки соцсетей (assets/social.js): big — блок «Мы в сети» на главной, row — подвал, sheet — лист «Ещё» */
+.soc[hidden]{display:none!important}
+.soc{display:grid;gap:10px}
+.soc-t{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;min-height:48px;padding:14px 10px;
+  border-radius:var(--rc,14px);border:1px solid var(--rule-2,rgba(127,127,127,.3));color:var(--ink,#fff);text-decoration:none;
+  transition:border-color .2s ease,transform .2s ease}
+.soc-t:hover{border-color:var(--ink-2,currentColor)}
+.soc-t:focus-visible{outline:2px solid var(--ink,#fff);outline-offset:2px}
+.soc-i{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;flex:none;color:#fff}
+.soc-i svg{width:22px;height:22px}
+.soc-tg .soc-i{background:#229ed9}.soc-yt .soc-i{background:#e62117}.soc-ig .soc-i{background:linear-gradient(45deg,#f9a825,#e1306c 50%,#833ab4)}
+.soc-x{display:flex;flex-direction:column;align-items:center;gap:4px}
+.soc-x b{font:800 17px/1.1 var(--display,sans-serif)}
+.soc-x small{font:500 13.5px/1.3 var(--body,var(--display,sans-serif));color:var(--ink-2,inherit)}
+/* главная: Telegram — главная плитка, крупнее */
+.soc-big{grid-template-columns:repeat(auto-fit,minmax(220px,1fr));max-width:980px;margin:0 auto}
+.soc-big .soc-main{padding:22px 14px}
+.soc-big .soc-main .soc-i{width:56px;height:56px}.soc-big .soc-main .soc-i svg{width:28px;height:28px}
+.soc-big .soc-main .soc-x b{font-size:21px}
+@media (min-width:761px){.soc-big:has(.soc-t:nth-child(3)){grid-template-columns:1.4fr 1fr 1fr}}
+@media (max-width:760px){.soc-big{grid-template-columns:1fr 1fr}.soc-big .soc-main{grid-column:1/-1}.soc-big .soc-t:not(.soc-main):last-child:nth-child(2){grid-column:1/-1}}
+/* подвал и лист «Ещё»: компактно, в строку */
+.soc-row,.soc-sheet{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.soc-row .soc-t,.soc-sheet .soc-t{flex-direction:row;justify-content:center;gap:10px;padding:10px 12px;text-align:left}
+.soc-row .soc-i,.soc-sheet .soc-i{width:34px;height:34px}.soc-row .soc-i svg,.soc-sheet .soc-i svg{width:18px;height:18px}
+.soc-row .soc-x,.soc-sheet .soc-x{align-items:flex-start}
+.soc-row .soc-x b,.soc-sheet .soc-x b{font-size:15px}.soc-row .soc-x small,.soc-sheet .soc-x small{font-size:12.5px}
+@media (prefers-reduced-motion:reduce){.soc-t{transition:none}}
