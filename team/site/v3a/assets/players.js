@@ -2,7 +2,9 @@
    Есть составы (D.lu): N — матчи, где игрок вышел на поле; рынки: забьёт, 1+ в створ, 2+ удара, гол+пас, карточка.
    Нет составов — старый режим: N — матчи команды, рынки «Забьёт» и «Карточка». */
 (()=>{
-const D=window.JV_PLAYERS,$=id=>document.getElementById(id);
+/* 13.11: данные по лигам — football/data/plg/meta.js (лиги, клубы) + plg/<лига>.js (players_split.py); грузим только нужную лигу,
+   «Все лиги» — все файлы. Старый data/players.js (всё сразу) тоже понимаем. */
+const M=window.JV_PLAYERS_META||window.JV_PLAYERS,D={...M,players:M.players||[]},$=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const crest=s=>`../assets/fc/${encodeURIComponent(s)}.webp`;
 // портреты «как в НХЛ» (голова и плечи, без фона): data/ph/<id>.webp, список готовых — data/headshots.json (players_headshots.py);
@@ -22,7 +24,7 @@ const MN={sg:'забивал',st:'бил в створ',s2:'бил 2+ раза �
 const URLL=(new URLSearchParams(location.search).get('lg')||'').toLowerCase();
 const st={m:'sg',lg:'',tm:D.teams[URLT]?URLT:'',ha:'',so:'rate',q:'',lim:30};
 $('season').textContent=D.season;
-const lgs=['',...Object.keys(LGN).filter(k=>D.players.some(p=>p.lg===k||(p.cu||[]).includes(k)))];
+const lgs=['',...(M.lgs||Object.keys(LGN).filter(k=>D.players.some(p=>p.lg===k||(p.cu||[]).includes(k))))];
 /* ?lg=epl — сразу игроки этой лиги (13.11, вкладка «Игроки» на странице лиги); ?team= — лига клуба */
 if(lgs.includes(URLL)&&URLL)st.lg=URLL;else if(st.tm&&lgs.includes(D.teams[st.tm].lg))st.lg=D.teams[st.tm].lg;
 $('lg').innerHTML=lgs.map(k=>`<button type="button" data-l="${k}" aria-pressed="${k===st.lg}">${k?esc(LGN[k]):'Все лиги'}</button>`).join('');
@@ -35,7 +37,16 @@ function hit(p){
   if(LU)return(st.ha==='home'?p.mh:st.ha==='away'?p.ma:p.m)[st.m];
   if(st.m==='cr'){if(!st.ha)return p.cr;return null}
   return st.ha?p[st.ha]:p.sg}
+let ready=!!M.players,tok=0;const got={},V=encodeURIComponent(M.built||'');
+const part=k=>got[k]||(got[k]=new Promise((ok,no)=>{const s=document.createElement('script');s.src=`data/plg/${encodeURIComponent(k)}.js?v=${V}`;s.onload=ok;s.onerror=()=>{delete got[k];no()};document.head.appendChild(s)}));
+function load(){
+  if(M.players){teamOpts();render();return}
+  const t=++tok,ks=st.lg?[st.lg]:(M.own||M.lgs);ready=false;$('meta').textContent='Загружаем игроков…';
+  Promise.all(ks.map(part)).then(()=>{if(t!==tok)return;const seen=new Set(),L=[];
+    for(const k of ks)for(const p of (window.JV_PLG||{})[k]||[])if(!seen.has(p.id)){seen.add(p.id);L.push(p)}
+    D.players=L;ready=true;teamOpts();render()}).catch(()=>{if(t===tok)$('meta').textContent='Не удалось загрузить игроков — обновите страницу.'})}
 function render(){
+  if(!ready)return;
   document.querySelector('.pl').dataset.m=st.m;
   const q=st.q.trim().toLowerCase();
   let L=D.players.filter(p=>(!st.lg||p.lg===st.lg||(p.cu||[]).includes(st.lg))&&(!st.tm||p.t===st.tm)&&(!q||p.n.toLowerCase().includes(q)));
@@ -63,13 +74,13 @@ function render(){
 $('mk').onclick=e=>{const b=e.target.closest('button');if(!b)return;st.m=b.dataset.m;st.lim=30;
   $('mk').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));$('ha').disabled=!LU&&st.m==='cr';render()};
 $('lg').onclick=e=>{const b=e.target.closest('button');if(!b)return;st.lg=b.dataset.l;st.tm='';st.lim=30;
-  $('lg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));teamOpts();render();syncURL()};
+  $('lg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));syncURL();load()};
 $('tm').onchange=e=>{st.tm=e.target.value;st.lim=30;render();syncURL()};
 $('ha').onchange=e=>{st.ha=e.target.value;render()};
 $('so').onchange=e=>{st.so=e.target.value;render()};
 $('q').oninput=e=>{st.q=e.target.value;st.lim=30;render()};
 $('more').onclick=()=>{st.lim+=30;render()};
 if(!LU)$('mk').querySelectorAll('button').forEach(b=>{if(!['sg','cr'].includes(b.dataset.m))b.hidden=true});
-teamOpts();render();
+load();
 fetch('data/headshots.json').then(r=>r.ok?r.json():{}).then(j=>{PH=j||{};render()}).catch(()=>{});
 })();

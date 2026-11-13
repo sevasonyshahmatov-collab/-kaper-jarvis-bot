@@ -157,6 +157,8 @@ leagues = {k: v['name'] for k, v in foot['leagues'].items()}
 data = {'built': raw.get('built') or foot['built'], 'season': foot['season'], 'leagues': leagues, 'teams': teams, 'lu': bool(LU), 'players': out}
 with open(os.path.join(H, 'data/players.js'), 'w', encoding='utf-8') as f:
     f.write('window.JV_PLAYERS=' + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + ';\n')
+import players_split                              # 13.11: те же данные по лигам — страница «Игроки» грузит только нужную
+players_split.write_parts(data)
 ppd = os.path.join(H, 'data/pp')
 os.makedirs(ppd, exist_ok=True)
 for fn in os.listdir(ppd):                      # старые профили (игрок ушёл / пропал из составов)
