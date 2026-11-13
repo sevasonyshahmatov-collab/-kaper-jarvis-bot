@@ -72,12 +72,16 @@ jobs:
           HAS_TOKEN: ${{ secrets.SITE_TOKEN != '' }}
         run: |
           [ "$HAS_TOKEN" = true ] || { echo "SITE_TOKEN не задан — new/ не обновлена"; exit 0; }
-          bash team/site/v3a/daily/publish_new.sh team/site/v3a _site/new
+          # владелец 13.11: новый сайт — главный (в корне), для поиска пока закрыт (noindex). Включается сам, когда site.yml в main
+          # умеет метку .v3a-root (не даёт старому сайту заменить главную); до этого — по-прежнему в new/
+          git fetch -q --depth=1 origin main && root=$(git show FETCH_HEAD:.github/workflows/site.yml | grep -c 'v3a-root' || true)
+          if [ "${root:-0}" -gt 0 ]; then bash team/site/v3a/daily/publish_root.sh team/site/v3a _site
+          else bash team/site/v3a/daily/publish_new.sh team/site/v3a _site/new; fi
           cd _site
           git config user.name "jarvis-site-bot"; git config user.email "jarvis-site-bot@users.noreply.github.com"
-          git add -A new
-          git diff --cached --quiet && { echo "new/ не изменилась"; exit 0; }
-          git commit -q -m "Новый сайт (new/): обновление $(TZ=Europe/Moscow date '+%d.%m %H:%M') МСК"
+          git add -A
+          git diff --cached --quiet && { echo "новый сайт не изменился"; exit 0; }
+          git commit -q -m "Новый сайт: обновление $(TZ=Europe/Moscow date '+%d.%m %H:%M') МСК"
           for i in 1 2 3 4 5; do
             # site.yml пишет в тот же репозиторий (другие папки) — подтянуть его коммиты и повторить
             git pull -q --rebase && git push -q && { echo "new/ обновлена"; exit 0; }
