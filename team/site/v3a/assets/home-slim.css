@@ -1,0 +1,43 @@
+/* JARVIS v3a — главная по порядку внимания (задание 14.11, п. 5–7).
+   Первый экран телефона: что это за сайт, крупно «зашло N из M», карточки «Хоккей» и «Футбол», одна жёлтая кнопка. */
+.lead-s{display:none}
+.hm-score[hidden]{display:none}
+.hm-score{display:flex;flex-direction:column;align-items:flex-start;gap:4px;margin:14px 0 4px;text-decoration:none;color:var(--ink)}
+.hm-score b{font:800 clamp(40px,4.6vw,64px)/.95 var(--display);font-variant-numeric:tabular-nums;color:var(--win,#34d27f)}
+.hm-score b small{font-size:.5em;color:var(--ink)}
+.hm-score span{font-size:15px;line-height:1.35;color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--rule-2);text-underline-offset:3px}
+.hm-score:hover span{color:var(--ink)}
+.hm-score:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
+.mt-all{display:flex;justify-content:center;margin:18px 0 0}
+.md-short .more-link{text-align:center;margin:18px 0 0}
+
+@media (max-width:760px){
+  /* заголовок короче, пояснение в одну-две строки, плашки-галочки убраны, подполоса якорей — не нужна: есть нижняя панель */
+  html.has-tb .hd .subbar{display:none!important}
+  .hm .lead-l{display:none}.hm .lead-s{display:inline}
+  .hm{padding-top:14px!important;padding-bottom:18px!important;min-height:0!important}
+  .hm .hm-grid{display:flex;flex-direction:column;align-items:stretch;gap:0}
+  .hm .hm-lead{display:contents}
+  .hm .hm-date{order:1;margin:0 0 6px}
+  .hm h1{order:2;font-size:clamp(30px,9vw,38px)!important;line-height:1!important;margin:0 0 8px!important;text-align:center}
+  .hm .hm-sub{order:3;margin:0 0 4px;font-size:15.5px;line-height:1.4;text-align:center}
+  .hm .hm-score{order:4;align-items:center;text-align:center;margin:8px 0 10px}
+  .hm .hm-score b{font-size:44px}
+  .hm .hm-proof{display:none}
+  .hm .mg-right{order:5;margin:0}
+  .hm .mg-credit{display:none}
+  .hm .hm-act{order:6;margin-top:12px}
+  .hm .hm-act .hm-tg{width:100%;justify-content:center}
+  .hm .hm-micro{display:none}
+  .hm .hm-date{text-align:center}
+  /* разделы ниже первого экрана — плотнее */
+  main>.sec{padding-top:44px!important;padding-bottom:24px!important}
+  main>.sec .sec-head{margin-bottom:16px!important}
+  main>.sec h2{font-size:clamp(30px,8.4vw,36px)!important}
+  .md-short .steps{grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .md-short .steps li{padding:12px!important;border:1px solid var(--rule-2);border-radius:var(--rc,12px);display:block!important}
+  .md-short .steps li::before{font-size:26px!important;position:static!important;display:block;margin-bottom:4px}
+  .md-short .steps h3{font-size:17px;margin:0 0 4px}.md-short .steps p{font-size:14px;line-height:1.35;margin:0}
+  /* матчи — плотнее */
+  .mg-today{padding-top:28px!important}
+}

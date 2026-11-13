@@ -4,6 +4,10 @@
 (()=>{
 const D=window.__RESLITE,box=document.getElementById('rsx');if(!D||!D.sum)return;
 const hr=document.getElementById('hm-res');if(hr){const a=D.sum.total.all;hr.textContent='Итоги: зашло '+a.w+' из '+(a.w+a.l)}
+/* главная, первый экран (14.11, п. 5): крупно «зашло 200 из 262» и процент — те же данные */
+{const sc=document.getElementById('hm-score');if(sc){const a=D.sum.total.all,n=a.w+a.l;
+ document.getElementById('hm-sw').innerHTML=`${a.w}<small> из ${n}</small>`;
+ document.getElementById('hm-sr').textContent=`прогнозов зашло · ${Math.round(a.w/n*100)} % · все итоги со ссылкой на пост`;sc.hidden=false}}
 /* компактная полоса «Честные итоги» в разделах Хоккей / Футбол (задание 14.11, п. 4): три цифры — те же данные */
 {const pf=document.getElementById('pf');if(pf){const A=D.sum.total.all,S=D.sum.total[pf.dataset.sport],$=id=>document.getElementById(id);
  const n1=x=>Number(x).toFixed(1).replace('.',','),sg=x=>(x>0?'+':x<0?'−':'')+n1(Math.abs(x));

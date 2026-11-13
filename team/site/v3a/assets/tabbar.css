@@ -8,7 +8,7 @@
   html.has-tb body{padding-bottom:calc(56px + env(safe-area-inset-bottom))}
   /* «Меню» в шапке не нужно — всё есть в панели и в «Ещё»; жёлтая полоса внизу уступает место панели */
   html.has-tb .hd .mbtn,html.has-tb .mpanel,html.has-tb .tgbar{display:none!important}
-  html.has-tb .hd .btn-tg{margin-left:auto}
+  html.has-tb .hd .btn-tg{margin-left:auto;display:inline-flex!important} /* прежнее правило прятало её при жёлтой полосе внизу — полосы больше нет */
   .tb{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:50;
     height:calc(56px + env(safe-area-inset-bottom));padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     background:color-mix(in srgb,var(--paper,#0a1220) 94%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
