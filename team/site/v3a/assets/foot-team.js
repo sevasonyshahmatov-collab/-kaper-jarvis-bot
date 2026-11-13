@@ -349,7 +349,10 @@ if(nextG){
    <tbody>${sc.map((p,i)=>`<tr><td class="c1 num">${i+1}</td><td class="c2 pn">${esc(p.n)}</td><td class="ra num on">${p.g}</td><td class="ra num">${p.p||'—'}</td></tr>`).join('')}</tbody></table>`
   :`<table class="table pltab"><thead><tr><th class="c1">#</th><th class="c2 tx">Игрок</th><th class="ra">Жёлтые</th><th class="ra">Красные</th></tr></thead>
    <tbody>${cd.map((p,i)=>`<tr><td class="c1 num">${i+1}</td><td class="c2 pn">${esc(p.n)}</td><td class="ra num on">${p.y||'—'}</td><td class="ra num">${p.r||'—'}</td></tr>`).join('')}</tbody></table>`;
-  document.querySelectorAll('#plTabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===st.tab))};
+  document.querySelectorAll('#plTabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===st.tab));linkPn()};
+ /* ссылки на профили футболистов (13.11): data/pid/<клуб>.json — имя → id (players_build.py) */
+ let PID=null;const linkPn=()=>{if(!PID)return;$('plTable').querySelectorAll('td.pn').forEach(td=>{const id=PID[td.textContent];if(id&&!td.firstElementChild)td.innerHTML=`<a class="pla" href="player.html?id=${encodeURIComponent(id)}" title="Профиль игрока">${td.innerHTML}</a>`})};
+ fetch(`data/pid/${encodeURIComponent(ID)}.json`).then(r=>r.ok?r.json():null).then(m=>{if(m){PID=m;linkPn()}}).catch(()=>{});
  pbox.innerHTML=`<div class="sec-head" data-rv><h2>Игроки</h2></div>
   ${lead}
   <div class="gfilter" role="group" aria-label="Что показать" data-rv><div class="seg" id="plTabs">${sc.length?`<button type="button" aria-pressed="true" data-t="sc">Бомбардиры<small>${sc.length}</small></button>`:''}${cd.length?`<button type="button" aria-pressed="false" data-t="cd">Карточки<small>${cd.length}</small></button>`:''}</div></div>

@@ -1,0 +1,20 @@
+/* Профиль футболиста (13.11): дополнения к assets/player.css */
+.fpp .pp-photo:not(.nop) .pp-ini{display:none}
+.fpp .fnx{display:flex;align-items:center;gap:14px;color:inherit;text-decoration:none}
+.fpp .fnx img{width:56px;height:56px;object-fit:contain;background:var(--crest-bg,#fff);border-radius:50%;padding:4px;flex:none}
+.fpp .fnx b{display:block;font:900 clamp(22px,4vw,32px)/1.05 var(--display)}
+.fpp .fnx small{display:block;margin-top:4px;font:600 15px/1.3 var(--display);color:var(--ink-2)}
+.fpp .fnx:hover b{text-decoration:underline}
+.fpp .fgm small.fl{display:block;font:600 11px/1.1 var(--display);color:var(--ink-3);white-space:nowrap}
+.fpp .fgm .cy,.fpp .fgm .cr{display:inline-block;width:9px;height:12px;border-radius:2px;margin-left:5px;vertical-align:-1px}
+.fpp .fgm .cy{background:#f5c518}.fpp .fgm .cr{background:#d6202a}
+.fpp .fgm .tm,.fpp .fgm .br{white-space:nowrap}
+/* шапка без клубной формы (у хоккея — club/jersey.js): эмблема бледным фоном, итоги сезона строкой */
+.fpp .pp-ghost{display:block;position:absolute;z-index:-1;right:20%;top:50%;height:130%;aspect-ratio:1;object-fit:contain;transform:translate(50%,-50%);opacity:.13;filter:grayscale(1) brightness(2);pointer-events:none}
+.fpp .pp-hs{display:flex;margin:22px 0 0;padding:0}
+.fpp .pp-hs div{padding:0 22px;border-left:1px solid rgba(255,255,255,.25);text-align:center}
+.fpp .pp-hs div:first-child{padding-left:0;border-left:0}
+.fpp .pp-hs b{display:block;font:900 clamp(28px,3.4vw,44px)/1 var(--display);font-variant-numeric:tabular-nums}
+.fpp .pp-hs span{display:block;margin-top:6px;font:700 12px/1 var(--display);letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+.fpp .pp-txt{padding-bottom:clamp(18px,3vw,32px)}
+@media (max-width:640px){.fpp .pp-hs{margin-top:14px}.fpp .pp-hs div{padding:0 9px}.fpp .pp-hs b{font-size:23px}.fpp .pp-hs span{font-size:9px;letter-spacing:.04em}.fpp .pp-ghost{right:22%;height:100%}}

@@ -109,8 +109,17 @@ def build_lu():
         row['f'] = ''.join('g' if c == '1' else '-' for c in form['sg'])
         if nx: row['nx'] = {'o': by_espn.get(nx[0], ''), 'h': nx[1], 'd': nx[2], 'lg': nx[3]}
         res.append(row)
+        # профиль игрока (13.11): football/data/pp/<id>.json — итоги из row + матчи сезона за нынешний клуб
+        # log: [дата, соперник, дома 1/0, забил клуб, пропустил, в старте 1/0, минуты, голы, передачи, удары, в створ, жёлт., красн., турнир]
+        log = []
+        for d_, g, r, _ in ap:
+            hm = g['h'] == tid
+            log.append([d_[:10], by_espn.get(g['a'] if hm else g['h'], ''), int(hm), g.get('hs' if hm else 'as'), g.get('as' if hm else 'hs'),
+                        r[1], r[2], goals.get((g['id'], aid), 0), r[5], r[3], r[4], r[7], r[8], LG.get(g['lg'], '')])
+        PP[aid] = dict({k: v for k, v in row.items() if k not in ('ff', 'fo', 'f', 'sg', 'cr', 'home', 'away')}, log=log)
     return res
 
+PP = {}
 out = build_lu() if LU else []
 for p in ([] if LU else P.values()):
     tg = team_games.get(p['t'], [])
@@ -146,4 +155,25 @@ leagues = {k: v['name'] for k, v in foot['leagues'].items()}
 data = {'built': raw.get('built') or foot['built'], 'season': foot['season'], 'leagues': leagues, 'teams': teams, 'lu': bool(LU), 'players': out}
 with open(os.path.join(H, 'data/players.js'), 'w', encoding='utf-8') as f:
     f.write('window.JV_PLAYERS=' + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + ';\n')
-print('lineups', bool(LU), 'players', len(out), 'scorers', sum(1 for r in out if r['G']))
+ppd = os.path.join(H, 'data/pp')
+os.makedirs(ppd, exist_ok=True)
+for fn in os.listdir(ppd):                      # старые профили (игрок ушёл / пропал из составов)
+    if fn.endswith('.json') and fn[:-5] not in PP:
+        os.remove(os.path.join(ppd, fn))
+for aid, q in PP.items():
+    fp = os.path.join(ppd, '%s.json' % aid)
+    js = json.dumps(q, ensure_ascii=False, separators=(',', ':'))
+    if not os.path.exists(fp) or open(fp, encoding='utf-8').read() != js:
+        open(fp, 'w', encoding='utf-8').write(js)
+# имя → id по клубам (13.11): страница клуба ставит ссылки на профили в таблицах бомбардиров и карточек
+pidd = os.path.join(H, 'data/pid')
+os.makedirs(pidd, exist_ok=True)
+byteam = defaultdict(dict)
+for aid, q in PP.items():
+    byteam[q['t']][q['n']] = aid
+for fn in os.listdir(pidd):
+    if fn.endswith('.json') and fn[:-5] not in byteam:
+        os.remove(os.path.join(pidd, fn))
+for t, m in byteam.items():
+    open(os.path.join(pidd, t + '.json'), 'w', encoding='utf-8').write(json.dumps(m, ensure_ascii=False, separators=(',', ':')))
+print('lineups', bool(LU), 'players', len(out), 'profiles', len(PP), 'scorers', sum(1 for r in out if r['G']))

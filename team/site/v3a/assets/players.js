@@ -48,7 +48,7 @@ function render(){
     const sub=LU?`${p.pos?esc(p.pos)+' · ':''}${p.N} матч.${p.mn?` · ${p.mn} мин`:''} · ${st.m==='cr'?`${p.y} жёлт.${p.r?` · ${p.r} красн.`:''}`:st.m==='st'?`${p.SoT} в створ из ${p.S}`:st.m==='s2'?`${p.S} ударов`:st.m==='ga'?`${p.G} гол. + ${p.A} пас.`:`${p.G} гол.`}`:st.m==='cr'?`${p.y} жёлт.${p.r?` · ${p.r} красн.`:''}`:`${p.G} ${p.G%10===1&&p.G%100!==11?'гол':p.G%10>=2&&p.G%10<=4&&(p.G%100<12||p.G%100>14)?'гола':'голов'}${p.pen?` · ${p.pen} с пен.`:''}`;
     return `<article class="pr" role="listitem">
       <span class="rk">${i+1}</span>${avatar(p,T)}
-      <div class="nm"><b>${esc(p.n)}</b><span>${esc(T.n||'')} · ${sub}</span></div>
+      <div class="nm"><b><a href="player.html?id=${encodeURIComponent(p.id)}" title="Профиль игрока">${esc(p.n)}</a></b><span>${esc(T.n||'')} · ${sub}</span></div>
       <div class="hit" aria-label="${h[0]} из ${h[1]} ${LU?'сыгранных матчей':'матчей'}"><b>${h[0]}<small>из ${h[1]}</small></b><div class="bar"><i style="width:${pc}%"></i></div></div>
       <div class="strip" aria-label="Последние 10 матчей">${strip}</div>
       <div class="ha">${LU?`Дома <b>${p.mh[st.m][0]}/${p.mh[st.m][1]}</b> · В гостях <b>${p.ma[st.m][0]}/${p.ma[st.m][1]}</b>`:st.m==='sg'?`Дома <b>${p.home[0]}/${p.home[1]}</b> · В гостях <b>${p.away[0]}/${p.away[1]}</b>`:`Карточка в ${pc}% матчей`}</div>
