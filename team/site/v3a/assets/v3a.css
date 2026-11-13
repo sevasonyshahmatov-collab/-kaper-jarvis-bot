@@ -98,6 +98,7 @@ html[data-corners="round"]{--rp:initial;--rc:initial}
 [data-sport="hockey"]{--sport:var(--ice)}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:84px}
+@media (prefers-reduced-motion:reduce){html,html *{scroll-behavior:auto!important}}
 body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.55 var(--text);overflow-x:hidden;
   font-optical-sizing:auto;-webkit-font-smoothing:antialiased}
 img,svg,canvas{display:block;max-width:100%}

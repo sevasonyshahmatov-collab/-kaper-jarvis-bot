@@ -427,7 +427,7 @@ LeagueCards.mount(document.getElementById('lcdeck'),Object.entries(LG).map(([id,
 {const tour=document.getElementById('tour'),steps=[...tour.querySelectorAll('.tstep')],tcs=[...tour.querySelectorAll('.tc')],tvs=[...tour.querySelectorAll('.tv')],tabs=[...tour.querySelectorAll('.win-tabs span')],cnt=document.getElementById('tcount');
  const N=steps.length,TONE=['var(--ice)','#b07a00','var(--red)','var(--ice)','#b07a00','#6b4fc9'];let ti=0;
  const go=i=>{ti=(i+N)%N;[steps,tcs,tvs,tabs].forEach(L=>L.forEach((el,j)=>{el.classList.toggle('on',j===ti)}));steps.forEach((b,j)=>b.setAttribute('aria-selected',j===ti));
-  tour.style.setProperty('--tone',TONE[ti]);cnt.textContent=`${ti+1} / ${N}`;const t=tabs[ti],bar=t&&t.parentElement;if(bar)bar.scrollTo({left:t.offsetLeft-bar.clientWidth/2+t.offsetWidth/2,behavior:'smooth'})};
+  tour.style.setProperty('--tone',TONE[ti]);cnt.textContent=`${ti+1} / ${N}`;const t=tabs[ti],bar=t&&t.parentElement;if(bar)bar.scrollTo({left:t.offsetLeft-bar.clientWidth/2+t.offsetWidth/2,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})};
  steps.forEach((b,j)=>b.addEventListener('click',()=>go(j)));
  document.getElementById('tprev').onclick=()=>go(ti-1);document.getElementById('tnext').onclick=()=>go(ti+1);
  tour.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){go(ti+1);e.preventDefault()}else if(e.key==='ArrowLeft'){go(ti-1);e.preventDefault()}});

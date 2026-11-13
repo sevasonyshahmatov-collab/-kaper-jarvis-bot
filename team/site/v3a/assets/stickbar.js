@@ -39,7 +39,7 @@ let n=0;const wait=setInterval(()=>{
  const im=hero.querySelector('.tmcrest img'),h1=hero.querySelector('.tmh1'),pl=hero.querySelector('.tmplace b'),pts=hero.querySelector('.tmpills li b');
  const id=document.createElement('a');id.className='sb-id';id.href='#main';id.setAttribute('aria-hidden','true');id.tabIndex=-1;
  id.innerHTML=`${im?`<img src="${esc(im.getAttribute('src'))}" alt="">`:''}<b>${esc(h1?h1.textContent.replace(/\s+/g,' ').trim():'')}</b>${pl?`<small>${esc(pl.textContent)}-е место${pts?' · '+esc(pts.textContent)+' очк.':''}</small>`:''}`;
- id.addEventListener('click',e=>{e.preventDefault();scrollTo({top:0,behavior:'smooth'})});
+ id.addEventListener('click',e=>{e.preventDefault();scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})});
  sub.prepend(id);sub.classList.add('has-id');
  watch(hero,on=>hd.classList.toggle('sb-on',on));
 },150);

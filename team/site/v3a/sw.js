@@ -5,7 +5,7 @@
    VER меняет ежедневная сборка (seo/build_seo.py, stamp_sw: отпечаток страниц и данных из CORE) — браузер видит новый sw.js,
    ставит его и удаляет старые копии страниц. Копии картинок — в отдельном кэше IMG, при смене VER не пропадают.
    Данные и страницы запрашиваются с cache:'no-cache' — сверка с сервером, мимо 10-минутного кэша браузера. */
-const VER='jv-3b7e5108e2',ROOT=new URL('./',self.location).href,CACHE=VER+'|'+ROOT,IMG='jv-img|'+ROOT;
+const VER='jv-758a804b50',ROOT=new URL('./',self.location).href,CACHE=VER+'|'+ROOT,IMG='jv-img|'+ROOT;
 const CORE=['index.html','hockey/index.html','football/index.html','matches.html','results.html','offline.html',
  'assets/v3a.css','assets/nav.css','assets/home.css','assets/footer.css','assets/nav.js','assets/footer.js','assets/v3a.js',
  'data/today.js','data/lines.js','data/model.js','data/results-lite.js','favicon.svg','icon-192.png'];
