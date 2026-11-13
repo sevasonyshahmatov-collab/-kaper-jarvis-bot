@@ -1136,6 +1136,31 @@ def finish(rel, text, P, ld):
     return out
 
 
+# ───────────────────────── адреса папок без страницы (список 13.11, п. 1) ─────────────────────────
+# /khl/, /epl/ … — папки страниц матчей и клубов; своей страницы у них нет, был бы 404. Кладём короткую переадресацию
+# на страницу лиги (noindex). search/ и live/ — служебные папки (скрипт индекса поиска, проверка источников лайва),
+# страниц там нет: /search/ ведёт на главную с открытым поиском, /live/ — на «Матчи».
+def folder_redirects():
+    def page(target):
+        return ('<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="robots" content="noindex">'
+                '<meta http-equiv="refresh" content="0; url=%s"><title>JARVIS</title></head>'
+                '<body><a href="%s">Открыть</a><script>location.replace(%s+location.hash)</script></body></html>\n'
+                % (H.escape(target), H.escape(target), json.dumps(target)))
+    n = 0
+    for lg in B.LG_ALL:
+        if lg in ('khl', 'nhl'):
+            t = '../hockey/league.html?lg=' + lg
+        elif lg == 'ucl':
+            t = '../football/ucl.html'
+        else:
+            t = '../football/league.html?lg=' + lg
+        B.wr(lg + '/index.html', page(t))
+        n += 1
+    B.wr('search/index.html', page('../index.html?q='))
+    B.wr('live/index.html', page('../matches.html'))
+    return n + 2
+
+
 # ───────────────────────── запуск ─────────────────────────
 def run():
     global LINES
@@ -1175,4 +1200,5 @@ def run():
             if mo.group(1) < cut_old or mo.group(1) >= cut_win:
                 shutil.rmtree(os.path.join(base, e))
                 removed += 1
-    return 'матчей %d, клубов %d, удалено старых %d' % (nm, nc, removed)
+    nr = folder_redirects()
+    return 'матчей %d, клубов %d, удалено старых %d, переадресаций папок %d' % (nm, nc, removed, nr)
