@@ -12,7 +12,7 @@ const LGS={khl:{name:'КХЛ',full:'Континентальная хоккей�
 const P=new URLSearchParams(location.search),LG=(P.get('lg')||'').toLowerCase(),L=LGS[LG],THEME=P.get('theme');
 const tq=/^(arena|a|b|c)$/.test(THEME||'')?`&theme=${THEME}`:'';
 const lgp=k=>`<span class="lgp ${k}"><img src="../assets/lg/${k}.webp" alt=""></span>`;
-const em=s=>`<img class="em" src="../assets/em/${esc(s)}.webp" alt="" loading="lazy" width="64" height="64">`;
+const em=s=>`<img class="em" src="../assets/em/s/${esc(s)}.webp" alt="" loading="lazy" width="64" height="64">`;
 const thref=s=>`../team/index.html?id=${encodeURIComponent(s)}${tq}`;
 const MON=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'],WD=['вс','пн','вт','ср','чт','пт','сб'];
 const day=d=>{const [y,m,dd]=d.slice(0,10).split('-').map(Number),x=new Date(Date.UTC(y,m-1,dd));return {d:dd,mon:MON[m-1],wd:WD[x.getUTCDay()]}};

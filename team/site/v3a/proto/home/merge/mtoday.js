@@ -19,7 +19,7 @@ if(L.length<8){const s=new Set(L.map(m=>m.key));L=L.concat(all.filter(m=>!s.has(
 L.sort(by);
 if(!L.length){box.innerHTML='<p class="mt-none">Сегодня матчей нет.</p>';return}
 
-const crest=(src,cls)=>`<img class="${cls}" src="${src}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
+const crest=(src,cls)=>`<img class="${cls}" src="${String(src).replace(/\/em\/(?!s\/)/,'/em/s/')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
 const kef=(m,i)=>{const ln=m.ln;if(!ln)return '';const v=[ln.p1,ln.x,ln.p2][i];return v?f2(v):''};
 const OUT=['П1','Х','П2'];
 const pick=m=>m.pr?{o:OUT[m.bi],p:pc(m.best),k:kef(m,m.bi),who:m.bi===1?'ничья':m.bi===0?m.hn:m.an}:null;

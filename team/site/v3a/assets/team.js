@@ -11,7 +11,7 @@ const f=(v,d=2)=>(+v).toFixed(d).replace('.',',');
 const plural=(n,a,b,c)=>{const k=n%100,j=n%10;return k>10&&k<20?c:j===1?a:j>1&&j<5?b:c};
 const LG={khl:{name:'КХЛ'},nhl:{name:'НХЛ'}};
 const lgp=lg=>`<span class="lgp ${lg}"><img src="../assets/lg/${lg}.webp" alt=""></span>`;
-const em=(s,cls='em')=>`<img class="${cls}" src="../assets/em/${esc(s)}.webp" alt="" loading="lazy" width="64" height="64">`;
+const em=(s,cls='em',big)=>`<img class="${cls}" src="../assets/em/${big?'':'s/'}${esc(s)}.webp" alt="" loading="lazy" width="64" height="64">`;
 const nm=s=>D.names[s]||s;
 // ссылки на страницы клубов: data-href — v3a.js при ?theme= переписывает href у «index.html», возвращаем id после него
 const tq=THEME?`&theme=${encodeURIComponent(THEME)}`:'';
@@ -125,7 +125,7 @@ document.getElementById('hero').innerHTML=`
  <header class="tmid" data-rv>
   <div class="tmtop"><a class="crumb" href="${BACK(lg)}"><span aria-hidden="true">←</span> Лиги и клубы · ${L.name}</a>${followBtn('in-hero')}<a class="cmpgo" href="../hockey/compare.html?t=clubs&a=${encodeURIComponent(ID)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h14M17 12l4 4-4 4M21 16H7"/></svg><span>Сравнить</span></a></div>
   <div class="tmrow">
-   <span class="tmcrest">${em(ID)}</span>
+   <span class="tmcrest">${em(ID,'em',1)}</span>
    <div class="tmname"><p class="tmlg"><a class="lglnk" href="../hockey/league.html?lg=${lg}${tq}" title="Страница лиги">${lgp(lg)}<span>${L.name}</span></a><span class="dot">·</span><span>Конференция «${esc(conf)}»</span></p>
     <h1 class="tmh1">${(T.lg==='nhl'&&JV.NHL_FULL[ID]?JV.NHL_FULL[ID].split('|'):[T.name]).map(x=>`<span class="l">${esc(x)}</span>`).join(' ')}</h1></div>
   </div>
@@ -185,7 +185,7 @@ document.getElementById('tableBox').innerHTML=`
     ${tile('Дома · в гостях',hm?`${hm[0]}–${hm[1]}`:'—',aw?` · ${aw[0]}–${aw[1]}`:'',null,'победы–поражения дома и на выезде')}
    </div>
    <div class="formbox"><span class="sl">Форма — последние 5 игр</span>
-    <ol class="frm" aria-label="Последние 5 игр, слева раньше">${last5.map(g=>{const t=formTitle(g);return `<li class="${RL[res(g)][1]}" title="${esc(t)}" aria-label="${esc(t)}"><b><img src="../assets/em/${esc(g.o)}.webp" alt="" loading="lazy"></b><span>${g.gf}:${g.ga}${g.x?' '+g.x:''}</span></li>`}).join('')}</ol>
+    <ol class="frm" aria-label="Последние 5 игр, слева раньше">${last5.map(g=>{const t=formTitle(g);return `<li class="${RL[res(g)][1]}" title="${esc(t)}" aria-label="${esc(t)}"><b><img src="../assets/em/s/${esc(g.o)}.webp" alt="" loading="lazy"></b><span>${g.gf}:${g.ga}${g.x?' '+g.x:''}</span></li>`}).join('')}</ol>
     <p class="ss">За последние 10 игр — <b>${esc(T.l10s||T.l10+' '+plural(T.l10,'очко','очка','очков'))}</b>.</p></div>
    ${plCard()}
   </div>

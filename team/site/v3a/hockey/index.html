@@ -263,7 +263,7 @@ const crest=n=>{const k=club(n);if(EM[k])return `../assets/em/${EM[k]}.webp`;con
 const CI=(n,cls='')=>`<img class="em${cls?' '+cls:''}" src="${crest(n)}" alt="" loading="lazy" width="64" height="64">`;
 document.querySelectorAll('img[data-crest]').forEach(i=>i.src=crest(i.dataset.crest));
 const {TD:TDY,L:LN,M:MDL}=JVL;
-const CS=(slug,cls='')=>`<img class="em${cls?' '+cls:''}" src="../assets/em/${esc(slug)}.webp" alt="" loading="lazy" width="64" height="64">`;
+const CS=(slug,cls='')=>`<img class="em${cls?' '+cls:''}" src="../assets/em/s/${esc(slug)}.webp" alt="" loading="lazy" width="64" height="64">`;
 const NMS=(window.JV_TEAMS||{}).names||{};
 const nmS=s=>NMS[s]||s;
 const MONN=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'],WDN=['вс','пн','вт','ср','чт','пт','сб'];
@@ -385,7 +385,7 @@ function loadH2H(li,m){const T=TD[m.h];if(!T||T.h2h){fitLast(li);return}
  CLUBJS[m.h]=new Promise(r=>{const sc=document.createElement('script');sc.src='../assets/data/club/'+encodeURIComponent(m.h)+'.js';sc.onload=sc.onerror=r;document.head.append(sc)});CLUBJS[m.h].then(done)}
 function back(m){const {A,B,h2h}=det(m);
  const last=t=>`<div class="l3"><h5>${CS(t.slug)}${esc(t.name)}</h5><ul>${t.g.slice(0,12).map(g=>{const r=rOf(g);return `<li><b class="rs ${r}" title="${RESF[r]}">${RES[r]}</b><span class="op">${CS(g.o)}${esc(nmS(g.o))}</span><span class="sc num">${g.gf}:${g.ga}${g.x?`<small>${g.x}</small>`:''}</span><span class="d">${dd(g.d)}</span></li>`}).join('')||'<li class="none">Нет данных</li>'}</ul></div>`;
- const form=t=>`<div class="fm"><span>${CS(t.slug)}${esc(t.name)}</span><span class="dots" aria-label="форма: ${esc(t.g.slice(0,5).reverse().map(g=>(rOf(g)==='w'?'победа над ':'поражение от ')+nmS(g.o)+' '+g.gf+':'+g.ga).join(', '))}">${t.g.slice(0,5).reverse().map(g=>{const r=rOf(g),o=nmS(g.o),sc=`${g.gf}:${g.ga}`,ex=g.x?(g.x==='Б'?' по буллитам':' в овертайме'):'',tt=r==='w'?`Победа над ${o} ${sc}${ex}`:`Поражение от ${o} ${sc}${ex}`;return `<i class="${r}" title="${esc(tt)}"><img src="../assets/em/${esc(g.o)}.webp" alt="" loading="lazy"></i>`}).join('')}</span></div>`;
+ const form=t=>`<div class="fm"><span>${CS(t.slug)}${esc(t.name)}</span><span class="dots" aria-label="форма: ${esc(t.g.slice(0,5).reverse().map(g=>(rOf(g)==='w'?'победа над ':'поражение от ')+nmS(g.o)+' '+g.gf+':'+g.ga).join(', '))}">${t.g.slice(0,5).reverse().map(g=>{const r=rOf(g),o=nmS(g.o),sc=`${g.gf}:${g.ga}`,ex=g.x?(g.x==='Б'?' по буллитам':' в овертайме'):'',tt=r==='w'?`Победа над ${o} ${sc}${ex}`:`Поражение от ${o} ${sc}${ex}`;return `<i class="${r}" title="${esc(tt)}"><img src="../assets/em/s/${esc(g.o)}.webp" alt="" loading="lazy"></i>`}).join('')}</span></div>`;
  const h2hHTML=h2hBox(m);
  return `<div class="xd">${JVL.why(m)}
   <section class="xb x-last"><h4>Последние матчи</h4><div class="two">${last(A)}${last(B)}</div></section>
@@ -421,7 +421,7 @@ const TQ=(t=>/^(arena|a|b|c)$/.test(t||'')?'&theme='+t:'')(new URLSearchParams(l
 const LCP={khl:{photo:null,photoCls:'',club:'../assets/em/lokomotiv.webp',cols:8},nhl:{photo:'../assets/leaguecards/car-teravainen.webp',photoCls:'',club:'../assets/em/nhl_car.webp',cols:8}};
 LeagueCards.mount(document.getElementById('lcdeck'),Object.entries(LG).map(([id,l])=>{const n=cnt(id),list=id==='khl'?KHL_CLUBS:NHL_CLUBS;
  return {id,name:l.name,cnt:`${n} ${plural(n,'матч','матча','матчей')} в ближайшие дни`,href:`league.html?lg=${id}${TQ}`,logo:LGI(id),...LCP[id],
-  pl:k=>plural(k,'клуб','клуба','клубов'),clubs:list.map(([cn,slug])=>({n:cn,src:`../assets/em/${slug}.webp`,href:`../team/index.html?id=${slug}${TQ}`}))}}));
+  pl:k=>plural(k,'клуб','клуба','клубов'),clubs:list.map(([cn,slug])=>({n:cn,src:`../assets/em/s/${slug}.webp`,href:`../team/index.html?id=${slug}${TQ}`}))}}));
 
 /* аналитическая таблица: 6 листов, как на лендинге — точки-вкладки, стрелки, свайп, клавиатура */
 {const tour=document.getElementById('tour'),steps=[...tour.querySelectorAll('.tstep')],tcs=[...tour.querySelectorAll('.tc')],tvs=[...tour.querySelectorAll('.tv')],tabs=[...tour.querySelectorAll('.win-tabs span')],cnt=document.getElementById('tcount');

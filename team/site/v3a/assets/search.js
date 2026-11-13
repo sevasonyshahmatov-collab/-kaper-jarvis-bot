@@ -39,7 +39,7 @@ function wm(q,w){
 let IDX=null,loading=null;
 const SP={h:'Хоккей',f:'Футбол'};
 const pg=(c)=>c.s==='h'?'team/index.html?id='+encodeURIComponent(c.id):'football/team.html?id='+encodeURIComponent(c.id);
-const crest=c=>U((c.s==='h'?'assets/em/':'assets/fc/')+c.id+'.webp');
+const crest=c=>U((c.s==='h'?'assets/em/s/':'assets/fc/')+c.id+'.webp');
 function load(){
   if(IDX)return Promise.resolve(IDX);
   if(loading)return loading;

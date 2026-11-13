@@ -2,6 +2,9 @@
    Рисует: логотип, переключатель Хоккей/Футбол, разделы вида спорта, Telegram, кнопку «Меню» (телефон).
    Меню-якоря страницы (.nav внутри <header id="hd">) переносит во вторую полосу под шапкой.
    Вид спорта и раздел берёт из <html data-sport> и адреса страницы. */
+/* уменьшенная эмблема (assets/em/s/, 128 px; список 13.11, п. 7) не нашлась — новый клуб до пересборки: берём полную */
+document.addEventListener('error',e=>{const i=e.target;if(i&&i.tagName==='IMG'&&/\/em\/s\//.test(i.src)&&!i.dataset.emf){i.dataset.emf=1;
+ i.addEventListener('load',()=>{i.style.visibility=''},{once:true});i.src=i.src.replace('/em/s/','/em/')}},true);
 (()=>{
 const hd=document.getElementById('hd');if(!hd)return;
 const SRC=(document.currentScript&&document.currentScript.src)||new URL('assets/nav.js',location.href).href;

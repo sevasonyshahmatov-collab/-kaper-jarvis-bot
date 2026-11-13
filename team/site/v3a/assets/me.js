@@ -10,7 +10,7 @@ const VK='jv_visit_v1',VS='jv_visit_prev';
 let C={},M=[],ready=false;
 const ms=t=>Date.parse(t.replace(' ','T')+':00+03:00');           /* время в данных — московское */
 const page=c=>c.s==='h'?'../team/index.html?id='+encodeURIComponent(c.id):'../football/team.html?id='+encodeURIComponent(c.id);
-const crest=c=>'../assets/'+(c.s==='h'?'em/':'fc/')+encodeURIComponent(c.id)+'.webp';
+const crest=c=>'../assets/'+(c.s==='h'?'em/s/':'fc/')+encodeURIComponent(c.id)+'.webp';
 const img=c=>`<span class="me-cr"><img src="${esc(crest(c))}" alt="" loading="lazy" width="48" height="48"></span>`;
 const fmtTime=t=>new Date(t).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
 const dayKey=t=>{const d=new Date(t);return d.getFullYear()*1e4+d.getMonth()*100+d.getDate()};

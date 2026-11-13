@@ -29,7 +29,7 @@ const go=()=>{
    <span class="mc-bar" aria-hidden="true"><i style="width:${sh.toFixed(1)}%"></i><i></i></span></div>`}).join('');
  if(!rows)return;
  const rec=(t,k)=>t.tr&&t.tr[k]?`${t.tr[k][0]}–${t.tr[k][1]}`:'—';
- const em=id=>`<img src="${base.replace(/nav\.js.*$/,'')}em/${encodeURIComponent(id)}.webp" alt="" width="40" height="40" loading="lazy">`;
+ const em=id=>`<img src="${base.replace(/nav\.js.*$/,'')}em/s/${encodeURIComponent(id)}.webp" alt="" width="40" height="40" loading="lazy">`;
  const sec=document.createElement('section');sec.className='fc-sec mx-cmp';sec.setAttribute('aria-labelledby','mt-cmp');
  sec.innerHTML=`<div class="wrap"><h2 id="mt-cmp">Сравнение команд</h2>
   <div class="mc" role="table" aria-label="Показатели сезона: ${H.name} и ${A.name}">
