@@ -2,13 +2,14 @@
 <html lang="ru" data-theme="a">
 <head>
 <meta charset="utf-8">
+<!-- 404.html открывается по любому адресу (/khl/нет/такого/): все пути страницы — от корня сайта. Сайт в корне (github.io пользователя или свой домен) -->
+<base href="/">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Такой страницы нет — JARVIS</title>
 <meta name="description" content="Страница не найдена. Матчи дня, хоккей и футбол — на главных разделах JARVIS.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#0a1220">
-<!-- на GitHub Pages 404.html открывается по любому адресу: пути к файлам абсолютные от корня проекта (<base> задаётся ниже) -->
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -16,9 +17,6 @@
 <meta property="og:type" content="website"><meta property="og:site_name" content="JARVIS"><meta property="og:title" content="JARVIS — прогнозы на хоккей и футбол"><meta property="og:description" content="Прогнозы по расчёту, а не наугад.">
 <!-- TODO(домен): абсолютный URL -->
 <meta property="og:image" content="assets/og/og-home.png"><meta name="twitter:card" content="summary_large_image">
-<script>(()=>{const m=location.pathname.match(/^(\/[^\/]+\/)(?:.*)$/),h=location.hostname;
- /* проектный сайт github.io/<репо>/…: корень — первый сегмент; своё доменное имя или локальный сервер — корень '/' */
- const root=/\.github\.io$/.test(h)&&m?m[1]:'/';document.write('<base href="'+root+'">')})();</script>
 <link rel="stylesheet" href="assets/v3a.css">
 <link rel="stylesheet" href="assets/nav.css">
 <style>
@@ -50,7 +48,7 @@
 <script src="assets/palettes.js"></script>
 </head>
 <body>
-<a class="skip" href="#main">К содержанию</a>
+<a class="skip" href="#main" onclick="var m=document.getElementById('main');if(m){m.setAttribute('tabindex','-1');m.focus();m.scrollIntoView();return false}">К содержанию</a>
 <header class="hd" id="hd"><div class="wrap"></div></header>
 <main id="main" class="wrap nf">
   <small>Ошибка 404</small>
