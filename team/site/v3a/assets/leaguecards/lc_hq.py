@@ -29,7 +29,7 @@ def api(**p):
 def strip(s): return html.unescape(re.sub(r'<[^>]+>', '', s or '')).strip()
 
 
-def files(cat, depth, maxc=40):
+def files(cat, depth, maxc=40, deadline=None):
     out, cats, todo = [], [], [(cat, 0)]
     while todo and len(cats) < maxc:
         c, d = todo.pop(0)
@@ -81,6 +81,7 @@ for key, c in (cfg.get('discover') or {}).items():
     for q in c.get('qs', []): t += search(q)
     t = list(dict.fromkeys(x for x in t if re.search(r'\.jpe?g$', x, re.I)))
     if c.get('filter'): t = [x for x in t if re.search(c['filter'], x, re.I)]
+    t = t[:c.get('maxt', 900)]   # не больше maxt файлов на ключ — иначе поиск не укладывается в 40 мин (14.11)
     print(key, 'найдено', len(t), flush=True)
     ok = []
     for title, ii in info(t):
