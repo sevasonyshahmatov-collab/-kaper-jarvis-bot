@@ -78,5 +78,45 @@
   "date": "2010-12-12",
   "src": "3419x2278",
   "cut": "1094x1668"
+ },
+ "khl-alistrov": {
+  "title": "File:Vladimiralistrovdynamominsk.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Vladimiralistrovdynamominsk.jpg",
+  "author": "пресс-служба ХК «Динамо-Минск»",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "date": "2023-01-22",
+  "src": "3924x2616",
+  "cut": "1932x1800"
+ },
+ "khl-grudinin": {
+  "title": "File:Vladimir Grudinin Severstal.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Vladimir_Grudinin_Severstal.jpg",
+  "author": "LxUnder88",
+  "license": "CC0",
+  "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+  "date": "2026-10-25",
+  "src": "1048x2272",
+  "cut": "873x1587"
+ },
+ "khl-vinogradov": {
+  "title": "File:Egor Vinogradov Torpedo vs Severstal Gagarin Cup Playoffs 2026.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Egor_Vinogradov_Torpedo_vs_Severstal_Gagarin_Cup_Playoffs_2026.jpg",
+  "author": "33korovbl",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "date": "2026-03-31",
+  "src": "2247x1498",
+  "cut": "703x1163"
+ },
+ "khl-popugayev": {
+  "title": "File:Nikita Popugayev Severstal.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Nikita_Popugayev_Severstal.jpg",
+  "author": "LxUnder88",
+  "license": "CC0",
+  "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+  "date": "2026-10-25",
+  "src": "1052x2280",
+  "cut": "638x1279"
  }
 }
