@@ -26,3 +26,8 @@ const go=h=>{
 const find=()=>{const h=main.querySelector('.pp-hero');if(h){go(h);return true}return false};
 if(!find()){const mo=new MutationObserver(()=>{if(find())mo.disconnect()});mo.observe(main,{childList:true});setTimeout(()=>mo.disconnect(),15000)}
 })();
+/* широкие таблицы профиля: затухание справа, пока есть что прокрутить (черновик 14.11) */
+(()=>{const run=()=>document.querySelectorAll('.pp-wrap').forEach(w=>{if(w.dataset.sx)return;w.dataset.sx=1;
+ const u=()=>{const s=w.scrollWidth>w.clientWidth+2;w.classList.toggle('sx',s);w.classList.toggle('end',!s||w.scrollLeft+w.clientWidth>=w.scrollWidth-2)};
+ w.addEventListener('scroll',u,{passive:true});addEventListener('resize',u);u()});
+ const m=document.getElementById('main');if(m)new MutationObserver(run).observe(m,{childList:true,subtree:true});run()})();

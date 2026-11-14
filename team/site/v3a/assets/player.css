@@ -108,3 +108,14 @@ body{background:var(--paper);color:var(--ink)}
 .pp-mk th{font-size:12px}
 .pp-col small,.pp-col small *{font-size:11px}
 @media (max-width:720px){.pp-mk th{font-size:11px}.pp-col small,.pp-col small *{font-size:11px}}
+/* Черновик 14.11 (отступы): «В скольких матчах» на телефоне — подписи колонок переносятся, таблица не шире экрана;
+   широкие таблицы (матчи футболиста) прокручиваются вбок, справа затухание — видно, что есть продолжение */
+@media (max-width:720px){
+  .pp-mk{table-layout:fixed;width:100%}
+  .pp-mk th{white-space:normal;line-height:1.2;vertical-align:bottom}
+  .pp-mk tbody th{width:28%}
+  .pp-mk td,.pp-mk tbody th{font-size:13px}
+  .pp-mk td b{font-size:15px}
+}
+.pp-wrap.sx{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent)}
+.pp-wrap.sx.end{-webkit-mask-image:none;mask-image:none}

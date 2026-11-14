@@ -1071,8 +1071,6 @@ html[data-theme="arena"]:not([data-col]) .sec{--ink-3:#414d5c}
 /* Черновик 14.11 (владелец: «Боруссия …», «Шанхайские Дра…»): названия команд не обрезаются троеточием — переносятся на вторую строку */
 :is(.teams,div,li) .team span,.resl li .t span{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word;line-height:1.15;text-wrap:balance}
 /* Черновик 14.11 (п. 9): цифры и подписи в таблицах внутри плашек — не впритык к краю (крайние ячейки — 12 px) */
-:is(.ltab,.tmtable,.pp-t5,.pp-gm,.pp-mk,.cmp-t) :is(td,th):first-child{padding-left:12px}
-:is(.ltab,.tmtable,.pp-t5,.pp-gm,.pp-mk,.cmp-t) :is(td,th):last-child{padding-right:12px}
 /* Черновик 14.11 (п. 9): один шаг между разделами — телефон ~52 px, компьютер ~96 px (было 80–170 px);
    заголовки разделов на компьютере скромнее (было до 88 px — в две строки на пол-экрана) */
 .sec{padding-top:clamp(52px,6.6vw,96px)}
@@ -1085,3 +1083,32 @@ h2{font-size:clamp(32px,4.2vw,64px)}
 /* Черновик 14.11: фото КХЛ без белого фона (фильтр #jvko из nav.js). Подложки-кружки за фото — не белые. */
 img[src*="khl.ru/img/teamplayers_db"]{filter:url(#jvko)!important}
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* ══ Отступ текста от края плашки — одно правило на весь сайт (владелец 14.11: «ни в одном месте текст не впритык»).
+   Плашка: телефон 12 px по бокам / 10 px сверху-снизу, компьютер 16 / 12. Таблица в плашке: крайние колонки — как плашка,
+   между колонками ≥8 px, шапка 10 сверху / 8 снизу, строки ≥8. Метки (бейджи, «Д/В», «ВО», проценты): ≥8 px по бокам, ≥3 сверху-снизу,
+   фигура растёт под текст. Проверка — tools/check_padding.js. ══ */
+:root{--pad-x:12px;--pad-y:10px;--tag-x:8px;--tag-y:3px;--cell-x:5px}   /* между колонками: 5+5 ≥ 8 px */
+@media (min-width:700px){:root{--pad-x:16px;--pad-y:12px;--cell-x:8px}}
+/* таблицы */
+html body :is(.ltab,.lgpt,.tmtable,.pp-t5,.pp-gm,.pp-mk,.cmpt,.cmp-t,.rs-card table) :is(td,th){padding-left:var(--cell-x);padding-right:var(--cell-x)}
+html body :is(.ltab,.lgpt,.tmtable,.pp-t5,.pp-gm,.pp-mk,.cmpt,.cmp-t,.rs-card table) :is(td,th):first-child{padding-left:var(--pad-x)}
+html body :is(.ltab,.lgpt,.tmtable,.pp-t5,.pp-gm,.pp-mk,.cmpt,.cmp-t,.rs-card table) :is(td,th):last-child{padding-right:var(--pad-x)}
+html body :is(.ltab,.lgpt,.tmtable,.pp-t5,.pp-gm,.pp-mk,.cmpt,.cmp-t,.rs-card table) thead th{padding-top:max(var(--pad-y),10px);padding-bottom:8px}
+html body :is(.ltab,.lgpt,.tmtable,.pp-t5,.pp-gm,.cmpt,.cmp-t,.rs-card table) tbody :is(td,th){padding-top:max(8px,var(--rowpad,8px));padding-bottom:max(8px,var(--rowpad,8px))}
+html body :is(.ltab,.lgpt,.tmtable,.pp-t5,.pp-gm,.cmpt,.cmp-t) tbody tr:last-child :is(td,th){padding-bottom:var(--pad-y)}
+/* строки-плашки и карточки */
+html body :is(.lgm,.lgpl li,.qv,.tsc,.bst,.dk-ihead,.g,.mx-h2h li){padding-left:var(--pad-x);padding-right:var(--pad-x)}
+html body :is(.lgm,.lgpl li,.qv,.bst,.mx-h2h li){padding-top:var(--pad-y);padding-bottom:var(--pad-y)}
+html body .lgpl .av{font-size:14px;letter-spacing:0}
+/* метки: растут под текст */
+html body :is(.tg,.rtag,.tm2,.strk,.pp-rk,.ha,.rs,.pav,.pp-gm .pt b,.pp-t5 .sc i,.pp-gm .res b,.mx-h2h b,.dk-ihead em,.tm-kf){
+  padding:var(--tag-y) var(--tag-x)!important;min-width:max-content;width:auto!important;height:auto!important;min-height:22px;box-sizing:border-box;line-height:1.15}
+html body :is(.ha,.rs,.pp-t5 .sc i){display:inline-grid;place-items:center}
+html body .lgpl .r{padding-left:4px}
+/* столбики графика: цифра над столбиком, а не впритык внутри */
+html body .pp-col .bar b{padding:4px 2px 0}
+/* код в тексте */
+html body code{padding:2px 8px;border-radius:5px}
+/* вопросы-ответы (details) с подложкой */
+html body .faq details>:is(summary,p){padding-left:var(--pad-x);padding-right:var(--pad-x)}
