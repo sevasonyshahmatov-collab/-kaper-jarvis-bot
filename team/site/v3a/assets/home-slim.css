@@ -38,6 +38,9 @@
   .md-short .steps li{padding:12px!important;border:1px solid var(--rule-2);border-radius:var(--rc,12px);display:block!important}
   .md-short .steps li::before{font-size:26px!important;position:static!important;display:block;margin-bottom:4px}
   .md-short .steps h3{font-size:17px;margin:0 0 4px}.md-short .steps p{font-size:14px;line-height:1.35;margin:0}
+  /* «Честные итоги» на телефоне: последние 3 строки дня, остальное — на странице итогов */
+  #honest .rsx-rows li:nth-child(n+4){display:none}
+  #honest .rsx-box>.rs-note{display:none}
   /* матчи — плотнее */
   .mg-today{padding-top:28px!important}
 }

@@ -78,12 +78,14 @@ function mount(){
 }
 /* ── одна жёлтая кнопка на экране: кнопка подписки в шапке видна, только когда другие жёлтые кнопки (первый экран, блок подписки) ушли из вида ── */
 function one1(){
- const hb=document.querySelector('#hd .btn-tg');if(!hb||!('IntersectionObserver' in window))return;
- const seen=new Set();
- const upd=()=>hb.classList.toggle('tb-hide',seen.size>0);
- const io=new IntersectionObserver(es=>{es.forEach(e=>e.isIntersecting?seen.add(e.target):seen.delete(e.target));upd()},{threshold:0});
- const scan=()=>document.querySelectorAll('main .btn-tg, main .hm-tg, main .get8, main .mt-rem-b, .tgbar').forEach(el=>{if(!el.dataset.y1){el.dataset.y1=1;io.observe(el)}});
- scan();addEventListener('load',scan);setTimeout(scan,1500);
+ const hb=document.querySelector('#hd .btn-tg');if(!hb)return;
+ /* проверяем по месту на экране: так же ловятся кнопки, которые страница перерисовывает (колода «Матчей дня») */
+ const SEL='main .btn-tg, main .hm-tg, main .get8, main .mt-rem-b, .dk-more';
+ const vis=el=>{const r=el.getBoundingClientRect();if(r.width<1||r.height<1||r.bottom<=0||r.top>=innerHeight)return false;const c=getComputedStyle(el);return c.visibility!=='hidden'&&c.display!=='none'};
+ let t=0;const upd=()=>{t=0;hb.classList.toggle('tb-hide',[...document.querySelectorAll(SEL)].some(vis))};
+ const later=()=>{if(!t)t=requestAnimationFrame(upd)};
+ addEventListener('scroll',later,{passive:true});addEventListener('resize',later);addEventListener('load',later);
+ setInterval(upd,800);upd();
 }
 if(document.body)mount();else document.addEventListener('DOMContentLoaded',mount);
 })();
