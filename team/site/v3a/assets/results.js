@@ -71,7 +71,8 @@ if(D.sum.cal&&D.sum.cal.length){
 })();
 
 /* ── список ── */
-const F={sport:'all',src:'all',res:'all',m:'all'};let shown=40;
+/* последние 20, дальше — «Показать ещё» (задание 14.11, п. 8: список занимал 11 экранов на телефоне) */
+const STEP=20;const F={sport:'all',src:'all',res:'all',m:'all'};let shown=STEP;
 const months=[...new Set(D.picks.map(p=>p.d.slice(0,7)))];
 const MN=['','Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const groups=[
@@ -104,11 +105,11 @@ const draw=()=>{
  let html='',cur='';rows.slice(0,shown).forEach(p=>{const d=p.d.slice(0,10);if(d!==cur){if(cur)html+='</ul>';cur=d;const dr=rows.filter(x=>x.d.slice(0,10)===d&&x.r),dw=dr.filter(x=>x.r==='w').length;
   html+=`<h3 class="rs-day">${day(d)}<span>${dr.length?dw+' из '+dr.length:''}</span></h3><ul class="rs-list">`}html+=row(p)});
  $('#rs-list').innerHTML=html+(cur?'</ul>':'');
- const more=$('#rs-more');more.hidden=rows.length<=shown;more.textContent='Показать ещё '+Math.min(40,rows.length-shown);
+ const more=$('#rs-more');more.hidden=rows.length<=shown;more.textContent='Показать ещё '+Math.min(STEP,rows.length-shown);
 };
-$('#rs-filters').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;F[b.dataset.f]=b.dataset.v;shown=40;
+$('#rs-filters').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;F[b.dataset.f]=b.dataset.v;shown=STEP;
  b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));draw()});
-$('#rs-more').addEventListener('click',()=>{shown+=40;draw()});
+$('#rs-more').addEventListener('click',()=>{shown+=STEP;draw()});
 draw();
 const pend=D.picks.filter(p=>!p.r).length,bysc=D.picks.filter(p=>p.rs==='score').length;
 $('#rs-pend').textContent=(pend?`Без итога сейчас ${pend}: матч ещё не сыгран или ставку нельзя проверить по счёту (броски, первый гол). `:'')+(bysc?`У ${bysc} футбольных прогнозов итога в канале не было — он поставлен по счёту матча.`:'');

@@ -28,6 +28,12 @@ f.innerHTML=`<div class="wrap"><div class="jvf-top">
  <div class="jvf-bot"><p class="jvf-data">Данные: ESPN, НХЛ, приложение КХЛ. Линии и расчёт обновляются дважды в день.</p><span class="jvf-slot"></span><span class="jvf-age" title="Сайт только для совершеннолетних">18+</span></div></div>`;
 if(keep){keep.className='jvf-note';f.querySelector('.jvf-slot').replaceWith(keep)}
 if(old)old.replaceWith(f);else document.body.appendChild(f);
+/* «Что дальше» в конце страниц лиг, трендов, игроков, клубов и итогов (14.11, п. 8). Не нужен на главной, в разделах
+   Хоккей / Футбол, «Матчах дня», «Прогнозе на сегодня» и на странице матча — там свой следующий шаг */
+{const pth=location.pathname,fl=pth.split('/').pop()||'index.html',sp=document.documentElement.dataset.sport||'';
+ const skip=/\/\d{4}-\d\d-\d\d-[^/]+\/(index\.html)?$/.test(pth)||/^(matches|forecast.*|404|offline|model|glossary|photo-credits)\.html$/.test(fl)||(fl==='index.html'&&(!sp||/\/(hockey|football)\/(index\.html)?$/.test(pth)))&&!/\/team\/(index\.html)?$/.test(pth);
+ const want=/^(results|league|trends|player|players.*|team|ucl|compare)\.html$/.test(fl)||/\/team\/(index\.html)?$/.test(pth)||(sp&&/\/(khl|nhl|epl|laliga|seriea|bundesliga|ligue1|rpl|ucl|uel)\/[^/]+\/(index\.html)?$/.test(pth));
+ if(want&&!skip)try{const s=document.createElement('script');s.src=new URL('next.js',SRC).href;s.defer=true;document.head.appendChild(s)}catch(e){}}
 /* ── «Установить на экран» и работа без интернета (идеи 37–38) ──
    sw.js лежит в корне сайта; на file:// и в старых браузерах ничего не делаем. ?sw=off — снять регистрацию (для отладки). */
 try{if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
