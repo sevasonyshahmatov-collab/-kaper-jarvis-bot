@@ -1119,3 +1119,8 @@ html body .pr.k .tot{padding:10px 16px}
 html body .tsc,html body .bst{padding:var(--pad-y) var(--pad-x)}
 html body :is(.dk-ihead){padding-left:var(--pad-x);padding-right:var(--pad-x)}
 html body .mc{padding-left:var(--pad-x);padding-right:var(--pad-x)}
+html body .kx>span{padding:8px 10px 6px}
+html body .pr.k .tot{padding:12px 16px}
+html body :is(.lgpl,.lgpt) .av{font-size:12px!important;letter-spacing:0!important}
+html body .pp-chart{padding-bottom:12px}
+html body .lgm{padding-top:12px;padding-bottom:12px}

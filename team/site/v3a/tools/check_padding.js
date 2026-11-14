@@ -42,7 +42,7 @@ for(const path of PAGES){if(ONLY&&!path.includes(ONLY))continue;
     if(tr.left>=br.right||tr.right<=br.left||tr.top>=br.bottom||tr.bottom<=br.top)continue;   /* текст вне плашки (обратная сторона карточки и т. п.) */
     const inn={left:br.left+parseFloat(bc.borderLeftWidth),right:br.right-parseFloat(bc.borderRightWidth),top:br.top+parseFloat(bc.borderTopWidth),bottom:br.bottom-parseFloat(bc.borderBottomWidth)};
     const d={l:tr.left-inn.left,r:inn.right-tr.right,t:tr.top+air-inn.top,b:inn.bottom-tr.bottom-air};
-    const small=br.width<=90&&br.height<=34,isCell=/^(TD|TH)$/.test(box.tagName),isCtl=/^(BUTTON|SELECT|INPUT)$/.test(box.tagName)||box.getAttribute('role')==='tab';
+    const small=br.width<=160&&br.height<=34,isCell=/^(TD|TH)$/.test(box.tagName),isCtl=/^(BUTTON|SELECT|INPUT)$/.test(box.tagName)||box.getAttribute('role')==='tab';
     /* ячейка с подложкой — правило ячейки (8 px сверху-снизу, 4+4 между колонками); кнопки и вкладки — свои размеры нажатия (≥6 px сверху-снизу);
        метки — 8 px по бокам, ≥2 px сверху-снизу (размер букв уже включает выносные элементы шрифта); 1 px — округление */
     const H=isCell?4:small?8:isCtl?10:mob?12:16,V=isCell?7:small?2:isCtl?6:mob?10:12;
