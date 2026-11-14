@@ -1,0 +1,14 @@
+/* Выезд профиля игрока (владелец 14.11, пункт 12): шапка — слева направо, эмблема/фото — навстречу, строки по очереди,
+   блоки ниже — сбоку при прокрутке (один раз). Только translate (отдельное свойство — не спорит с наклоном шапки player-tilt.js,
+   который пишет transform и style.translate у .pp-txt/.pp-photo) и opacity. Включается классом html.ppa из pp-anim.js:
+   нет скрипта или «уменьшить движение» — всё стоит на месте без анимации. */
+@keyframes ppaL{from{opacity:0;translate:-44px 0}to{opacity:1;translate:0 0}}
+@keyframes ppaR{from{opacity:0;translate:48px 0}to{opacity:1;translate:0 0}}
+@keyframes ppaRt{from{translate:56px 0}to{translate:0 0}}  /* бледная эмблема: без opacity — у неё своя прозрачность */
+@keyframes ppaU{from{opacity:0;translate:-28px 0}to{opacity:1;translate:0 0}}
+html.ppa .pp-hero.ppa-go{animation:ppaL .55s cubic-bezier(.2,.9,.25,1.1) both}
+html.ppa .pp-hero.ppa-go .pp-photo img.ph{animation:ppaR .6s cubic-bezier(.2,.9,.25,1.1) .08s both}
+html.ppa .pp-hero.ppa-go .pp-ghost{animation:ppaRt .6s cubic-bezier(.2,.9,.25,1.1) .08s both}
+html.ppa .pp-hero.ppa-go .pp-txt>*,html.ppa .pp-hero.ppa-go .pp-hs>div{animation:ppaU .42s cubic-bezier(.2,.9,.25,1.1) both;animation-delay:calc(.1s + var(--pi,0) * 60ms)}
+html.ppa .ppa-w{opacity:0}
+html.ppa .ppa-w.ppa-in{opacity:1;animation:ppaU .5s cubic-bezier(.2,.9,.25,1.1) both;animation-delay:calc(var(--pi,0) * 55ms)}
