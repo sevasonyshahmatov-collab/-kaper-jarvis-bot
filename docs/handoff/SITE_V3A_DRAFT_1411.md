@@ -79,3 +79,7 @@ https://sevasonyshahmatov-collab.github.io/draft/ — папка `draft/` в р�
    `proto/home/cards/hockey.webp` + маска `.hk .plsh` в `cards.css` с размерами новой картинки + подпись `.mg-credit`).
 2. п.9 остаток: ЛЧ (430+), клуб (768/1440, `tmtable` и плитки), страница матча; глазами по снимкам.
 3. Отчёт владельцу отправлен в бот 14.11 (задание `team/out/2026-11-14/site_draft_lc.json` в ветке команды).
+- **Г. п.12 Выезд профиля игрока** (просьба владельца через чат аудита): `assets/pp-anim.js` + `pp-anim.css`, подключены в
+  `hockey/player.html` и `football/player.html`. Анимация только `translate`/`opacity` (не спорит с наклоном `player-tilt.js`),
+  цифры шапки досчитываются, блоки ниже — IntersectionObserver один раз; «уменьшить движение» и нет скрипта — всё на месте.
+  Горизонтальной прокрутки нет (390). Запись — `vote/profile-anim.html`. Страницу клуба не трогал — предложение владельцу.
