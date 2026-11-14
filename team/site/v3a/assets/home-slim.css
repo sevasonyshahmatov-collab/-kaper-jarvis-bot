@@ -41,3 +41,15 @@
   /* матчи — плотнее */
   .mg-today{padding-top:28px!important}
 }
+
+/* «Кто мы и что делаем» (14.11, п. 6) */
+.about .ab{max-width:900px;margin:0 auto;text-align:center}
+.about .sec-head{display:block;text-align:center}.about h2{text-align:center;margin-left:auto;margin-right:auto}
+.about.sec{padding-bottom:clamp(32px,5vw,80px)}
+.ab-t{font-size:clamp(17px,1.5vw,20px);line-height:1.5;margin:0 auto;max-width:62ch}
+.ab-author{margin:12px auto 0;color:var(--ink-2)}
+.ab-f{list-style:none;padding:0;margin:22px 0 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.ab-f li{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 12px;border:1px solid var(--rule-2);border-radius:var(--rc,12px)}
+.ab-f b{font:800 18px/1.1 var(--display)}
+.ab-f span{font-size:14.5px;line-height:1.4;color:var(--ink-2)}
+@media (max-width:760px){.ab-f{grid-template-columns:1fr}.ab-f li{padding:12px}}
