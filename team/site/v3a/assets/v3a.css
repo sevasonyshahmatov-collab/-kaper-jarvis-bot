@@ -1068,3 +1068,5 @@ html[data-theme="arena"]:not([data-col]) .sec{--ink-3:#414d5c}
 /* 12.11: кнопки и ссылки на телефоне — зона нажатия не меньше ~40 px */
 @media (max-width:860px){.pager button{position:relative}.pager button::after{content:"";position:absolute;inset:-17px -4px}
  footer a{display:inline-block;padding-block:9px}.h3strip a{display:inline-block;padding-block:11px}}
+/* Черновик 14.11 (владелец: «Боруссия …», «Шанхайские Дра…»): названия команд не обрезаются троеточием — переносятся на вторую строку */
+:is(.teams,div,li) .team span,.resl li .t span{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word;line-height:1.15;text-wrap:balance}

@@ -82,7 +82,7 @@ html[data-white] body{background:#fff}
 @media (max-width:620px){.pp-gm .sc .sg{grid-template-columns:1.8em 1.6ch auto 1.6ch}.pp-gm .sc .sg small{display:block;font-size:11px}}
 .pp-gm .res b{display:grid;margin:0 auto}
 .pp-gm .sc .sg{grid-template-columns:auto 1.6ch auto 1.6ch}.pp-gm .sc .sg small{min-width:1.9em;text-align:right;padding-right:6px}
-@media (max-width:620px){.pp-gm td,.pp-gm th{padding-left:4px;padding-right:4px}.pp-gm .pt b{font-size:15px;padding:4px 7px;min-width:0}.pp-gm .sc .sg small{min-width:1.2em;padding-right:3px;font-size:10px}.pp-gm .res{width:28px}.pp-gm td{font-size:15px}}
+@media (max-width:620px){.pp-gm td,.pp-gm th{padding-left:4px;padding-right:4px}.pp-gm .pt b{font-size:15px;padding:4px 7px;min-width:0}.pp-gm .sc .sg small{min-width:1.2em;padding-right:3px;font-size:11px}.pp-gm .res{width:28px}.pp-gm td{font-size:15px}}
 /* Номер на фоне шапки игрока — белый у всех (владелец 07.11) */
 .pp.k .pp-no{color:#fff;-webkit-text-stroke:0;opacity:.92;text-shadow:0 4px 18px rgba(0,0,0,.18)}
 

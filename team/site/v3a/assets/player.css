@@ -104,3 +104,7 @@ body{background:var(--paper);color:var(--ink)}
 
 /* 12.11: телефон — три плитки в ряд, последняя одиночная растягивается на всю ширину */
 @media (max-width:560px){.pp-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.pp-tiles .pp-tile:last-child:nth-child(3n+1){grid-column:1/-1}}
+/* Черновик 14.11 (владелец: мелкий текст в профилях): подписи графика, заголовки таблиц — не мельче 11–12 px */
+.pp-mk th{font-size:12px}
+.pp-col small,.pp-col small *{font-size:11px}
+@media (max-width:720px){.pp-mk th{font-size:11px}.pp-col small,.pp-col small *{font-size:11px}}

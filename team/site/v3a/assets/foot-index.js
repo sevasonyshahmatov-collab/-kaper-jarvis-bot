@@ -183,6 +183,6 @@ if(MODE&&$('resl')){const L=D.leagues[MODE],rows=[];
  L.ids.forEach(i=>T[i].games.forEach(g=>{if(g.c===MODE&&g.h&&played(g))rows.push({d:g.d,h:i,a:g.o,gf:g.gf,ga:g.ga})}));
  rows.sort((a,b)=>a.d<b.d?1:-1);const top=rows.length?rows[0].d.slice(0,10):'',lim=Date.parse(top)-4*864e5;
  const last=rows.filter(r=>Date.parse(r.d.slice(0,10))>=lim);
- $('resl').innerHTML=last.length?last.map(r=>{const t=day(r.d);return `<li><span class="d">${t.d} ${t.mon}<br>${esc(r.d.slice(11))}</span><a class="t" href="${teamHref(r.h,MODE)}">${CI(r.h)}<span class="${r.gf>r.ga?'w':''}">${esc(nm(r.h))}</span></a><span class="s num">${r.gf}:${r.ga}</span><a class="t a" href="${teamHref(r.a,MODE)}">${CI(r.a)}<span class="${r.ga>r.gf?'w':''}">${esc(nm(r.a))}</span></a></li>`}).join(''):'<li class="note">Сыгранных матчей пока нет.</li>'}
+ $('resl').innerHTML=last.length?last.map(r=>{const t=day(r.d);return `<li><span class="d">${t.d} ${t.mon}<br> ${esc(r.d.slice(11))}</span><a class="t" href="${teamHref(r.h,MODE)}">${CI(r.h)}<span class="${r.gf>r.ga?'w':''}">${esc(nm(r.h))}</span></a><span class="s num">${r.gf}:${r.ga}</span><a class="t a" href="${teamHref(r.a,MODE)}">${CI(r.a)}<span class="${r.ga>r.gf?'w':''}">${esc(nm(r.a))}</span></a></li>`}).join(''):'<li class="note">Сыгранных матчей пока нет.</li>'}
 
 })();

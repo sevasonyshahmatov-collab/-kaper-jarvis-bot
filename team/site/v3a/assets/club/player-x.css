@@ -68,7 +68,7 @@
 .pp-stick .pps-st{display:flex;flex:none;margin-left:auto;font-variant-numeric:tabular-nums}
 .pp-stick .pps-st div{padding:0 14px;border-left:1px solid color-mix(in srgb,var(--ko,#fff) 25%,transparent);text-align:center}
 .pp-stick .pps-st b{display:block;font:900 20px/1 var(--display)}
-.pp-stick .pps-st span{display:block;margin-top:4px;font:700 10px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--ko2,inherit)}
+.pp-stick .pps-st span{display:block;margin-top:4px;font:700 11px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--ko2,inherit)}
 .pp-stick nav{display:flex;gap:2px;margin-left:10px;flex:none}
 .pp-stick nav a{font:700 13px/1 var(--display);color:inherit;text-decoration:none;padding:9px 10px;border-bottom:2px solid transparent;white-space:nowrap}
 .pp-stick nav a:hover,.pp-stick nav a:focus-visible{border-bottom-color:currentColor}

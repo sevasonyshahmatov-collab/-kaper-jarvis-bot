@@ -121,3 +121,9 @@
 
 .lghint{margin:clamp(18px,2.4vw,28px) 0 0;font:600 17px/1.4 var(--display);color:var(--ink-2)}
 #wallbox{scroll-margin-top:110px}
+/* Черновик 14.11: на узком экране дата — строкой сверху, командам больше места; длинное слово переносится, не наезжает на счёт */
+@media (max-width:440px){
+  .resl li{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);row-gap:4px;column-gap:8px;padding:10px 12px}
+  .resl .d{grid-column:1/-1;text-align:center}
+  .resl .d br{display:none}
+}
