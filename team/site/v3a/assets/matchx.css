@@ -412,3 +412,5 @@ body.fc .mx-tg .btn,body.fc .mx-tg .btn span{color:#071225;font-weight:800;font-
 .mx-h2h span.lg.w::before{left:auto;right:-2px;top:-2px}
 .mx-h2h time{text-align:center}
 @media (min-width:900px){.mx-h2h{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* личные встречи с эмблемами: без жёлтого кружка — победитель и так виден (яркая эмблема), владелец 14.11 */
+.mx-h2h span.lg.w::before{display:none}

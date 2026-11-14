@@ -115,3 +115,10 @@ html[data-white] body{background:#fff}
 /* 12.11: номер не срезается верхним краем шапки; у игрока без фото в круге — инициалы, а не пустота */
 .pp-no{top:.1em}
 .pp-photo.nop .pp-ini{display:grid!important;opacity:.9}
+/* «Счёт» в последних матчах (владелец 14.11): метка В/П, счёт и ОТ/Б — в своих колонках фиксированной ширины,
+   всё стоит ровно столбиком, «ОТ»/«Б» ничего не сдвигают */
+.pp-t5 .sc5{display:inline-grid;grid-template-columns:22px 2.4em 1.5em;align-items:center;column-gap:6px;text-align:left}
+.pp-t5 th.n:last-child{text-align:center}
+.pp-t5 .sc5 i{margin:0!important}
+.pp-t5 .sc5 b{font-weight:600;font-variant-numeric:tabular-nums;text-align:center}
+.pp-t5 .sc5 small{font:600 11px/1 var(--display);color:var(--ink-3)}
