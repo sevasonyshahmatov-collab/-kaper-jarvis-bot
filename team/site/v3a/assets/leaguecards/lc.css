@@ -89,3 +89,6 @@
 .lcard .pl:not(.emb){left:73%}
 .lcard .pl.emb.big{width:40cqw;left:74%;top:11cqw}
 @media (max-width:600px){.lcard .txt{width:42cqw}.lcard .pl:not(.emb){left:76%}}
+/* фото по пояс (Алистров): мельче, чтобы голова была на одной линии с игроком НХЛ и не закрывала текст */
+.lcard .pl.half{height:78cqw;left:75%}
+@media (max-width:600px){.lcard .pl.half{height:76cqw;left:77%}}
