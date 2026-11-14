@@ -154,7 +154,12 @@ for slug, t in teams.items():
     real = (SEASON.get(lg) or {}).get(t['name']) or {}
     rg = [g for g in real.get('games') or [] if g.get('gf') is not None and g.get('o') in by_name]
     if len(rg) >= (t['gp'] or 0) - 1 and rg:      # весь сезон настоящий: таблица и сезон сходятся (±1 матч из-за времени выгрузки)
-        fut = [r for r in rows if 'gf' not in r]
+        played = set()
+        for g in rg:   # матч уже сыгран (сезон) — его же «будущая» запись из старых файлов дня не нужна (ночные матчи НХЛ — ±1 день)
+            d0 = datetime.strptime(g['d'][:10], '%Y-%m-%d')
+            for dd in (-1, 0, 1):
+                played.add(((d0 + timedelta(days=dd)).strftime('%Y-%m-%d'), by_name[g['o']]))
+        fut = [r for r in rows if 'gf' not in r and (r['d'][:10], r['o']) not in played]
         rows = [{'d': g['d'], 'o': by_name[g['o']], 'h': g['h'], 'gf': g['gf'], 'ga': g['ga'], 'x': g.get('x') or ''} for g in rg] + fut
         # настоящие ближайшие матчи НХЛ из расписания (линии пока нет — оценка ks, ниже)
         have = {(r['d'][:10], r['o']) for r in fut}
