@@ -1,0 +1,9 @@
+{"discover": {
+ "lok": {"cats": ["Category:HC Lokomotiv Yaroslavl players", "Category:HC Lokomotiv Yaroslavl"], "depth": 2, "min": 2000,
+         "qs": ["Lokomotiv Yaroslavl hockey", "Локомотив Ярославль хоккей", "Lokomotiv Yaroslavl KHL", "Локомотив КХЛ матч"]},
+ "khl": {"cats": ["Category:Kontinental Hockey League games", "Category:Ice hockey players in action"], "depth": 1, "min": 3000,
+         "qs": ["KHL hockey match 2023", "KHL hockey match 2024", "КХЛ матч хоккей", "Kontinental Hockey League game"]},
+ "nhlru": {"cats": ["Category:Kirill Kaprizov", "Category:Nikita Kucherov", "Category:Artemi Panarin", "Category:Alexander Ovechkin", "Category:Igor Shesterkin", "Category:Evgeni Malkin"], "depth": 1, "min": 2500},
+ "nhlstar": {"cats": ["Category:Nathan MacKinnon", "Category:Auston Matthews", "Category:Leon Draisaitl", "Category:Connor Bedard", "Category:Cale Makar", "Category:Sidney Crosby"], "depth": 1, "min": 2500},
+ "mcd": {"cats": ["Category:Connor McDavid"], "depth": 1, "min": 2500}
+}}

@@ -3,7 +3,7 @@ name: Фото карточек лиг v3a
 
 on:
   push:
-    branches: ['claude/team-dev-**']
+    branches: ['claude/team-dev-**', 'claude/site-v3a-draft-**']  # черновик 14.11: поиск фото из ветки-черновика
     paths: ['team/site/v3a/assets/leaguecards/run.txt']
   workflow_dispatch:
 
@@ -22,11 +22,15 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.u2net
-          key: rembg-isnet-v1
+          key: rembg-birefnet-v1
       - run: pip install rembg onnxruntime pillow requests
+      - name: Фото высокого качества (если есть hq.json, черновик 14.11)
+        run: if [ -f team/site/v3a/assets/leaguecards/hq.json ]; then python team/site/v3a/assets/leaguecards/lc_hq.py; fi
       - name: Поиск (если есть discover.json)
+        if: hashFiles('team/site/v3a/assets/leaguecards/hq.json') == ''
         run: if [ -f team/site/v3a/assets/leaguecards/discover.json ]; then python team/site/v3a/assets/leaguecards/lc_discover.py; fi
       - name: Вырезки (если нет discover.json)
+        if: hashFiles('team/site/v3a/assets/leaguecards/hq.json') == ''
         run: if [ ! -f team/site/v3a/assets/leaguecards/discover.json ]; then python team/site/v3a/assets/leaguecards/lc_players.py; fi
       - name: Закоммитить вырезки
         if: always()
