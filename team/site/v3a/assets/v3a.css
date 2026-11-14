@@ -1073,3 +1073,8 @@ html[data-theme="arena"]:not([data-col]) .sec{--ink-3:#414d5c}
 /* Черновик 14.11 (п. 9): цифры и подписи в таблицах внутри плашек — не впритык к краю (крайние ячейки — 12 px) */
 :is(.ltab,.tmtable,.pp-t5,.pp-gm,.pp-mk,.cmp-t) :is(td,th):first-child{padding-left:12px}
 :is(.ltab,.tmtable,.pp-t5,.pp-gm,.pp-mk,.cmp-t) :is(td,th):last-child{padding-right:12px}
+/* Черновик 14.11 (п. 9): один шаг между разделами — телефон ~52 px, компьютер ~96 px (было 80–170 px);
+   заголовки разделов на компьютере скромнее (было до 88 px — в две строки на пол-экрана) */
+.sec{padding-top:clamp(52px,6.6vw,96px)}
+h2{font-size:clamp(32px,4.2vw,64px)}
+.sec-head{margin-bottom:clamp(24px,2.8vw,40px)}

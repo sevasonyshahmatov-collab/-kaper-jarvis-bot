@@ -544,3 +544,6 @@ body .g.h2g.nx{grid-template-columns:110px 32px minmax(0,1fr) auto}
 
 /* место в лиге под цифрой плитки статистики (12.11) */
 .st .strk{justify-self:start;padding:3px 7px;border:1.5px solid currentColor;border-radius:3px;font:800 11px/1 var(--display);font-style:normal;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:var(--ink-2)}
+/* Черновик 14.11 (п. 9): между шапкой клуба и «Местом в таблице» не было ~трети экрана пустоты */
+.tmsec{padding-top:clamp(52px,6.6vw,96px)}
+@media (max-width:760px){.tmhero,[data-theme="arena"] .tmhero{padding-bottom:40px}}
