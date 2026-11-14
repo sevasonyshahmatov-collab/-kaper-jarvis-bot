@@ -13,7 +13,7 @@ const upd=document.getElementById('mt-upd');if(upd)upd.textContent=H.upd();
 
 /* 3 ближайших (задание 14.11, п. 5: было 8 крупных карточек на 2,2 экрана), остальные — «Все матчи дня» (matches.html):
    два ближайших хоккейных и один футбольный, если есть; по времени */
-const all=H.all(),now=Date.now(),N=3;
+const all=H.all(),now=Date.now(),N=4;  /* чётное число матчей (владелец 14.11) */
 const by=(a,b)=>a.t<b.t?-1:a.t>b.t?1:0;
 let L=all.filter(m=>m.hockey).slice(0,2).concat(all.filter(m=>!m.hockey).slice(0,1));
 if(L.length<N){const s=new Set(L.map(m=>m.key));L=L.concat(all.filter(m=>!s.has(m.key)).slice(0,N-L.length))}

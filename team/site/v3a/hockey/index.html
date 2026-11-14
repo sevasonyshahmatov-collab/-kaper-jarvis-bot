@@ -114,7 +114,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 
 <section class="sec" id="leagues" data-zone="p2">
   <div class="wrap">
-    <div class="sec-head" data-rv><h2>Лиги и клубы</h2></div>
+    <h2 class="sr-only">Лиги и клубы</h2>  <!-- заголовок убран по просьбе владельца 14.11, оставлен для экранного диктора -->
     <div class="lc-deck" id="lcdeck" data-rv></div>
     <p class="lc-credit" id="lccredit">Фото НХЛ (Евгений Малкин): <a href="https://commons.wikimedia.org/wiki/File:Evgeni_Malkin_2018-03-03_1.jpg" target="_blank" rel="noopener">Michael Miller, CC BY-SA 4.0</a>, Wikimedia Commons; фон удалён.</p>
   </div>
@@ -222,7 +222,7 @@ const chev='<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-wi
 
 /* карточка на табло: ближайшие матчи — эмблемы, исход, который модель считает самым вероятным, линия и ожидаемые голы.
    Без табло split-flap: обычные табличные цифры, секунда сменяется лёгким сдвигом. */
-const picks=(D.filter(m=>JV.left(m.t)>0&&m.md).length?D.filter(m=>JV.left(m.t)>0&&m.md):D).slice(0,5);
+const picks=(D.filter(m=>JV.left(m.t)>0&&m.md).length?D.filter(m=>JV.left(m.t)>0&&m.md):D).slice(0,6);  /* 6 — чётное число (владелец 14.11) */
 window.__heroPicks=picks; /* для афиши (assets/hero3/hero3.js): два следующих матча */
 const mcard=document.getElementById('mcard'),cdv=document.getElementById('cdv');
 const lvl=p=>p>=.45?'hi':p>=.38?'mid':'lo';
@@ -326,7 +326,7 @@ function row(m){const L=LG[m.lg];
   <span class="chev">${chev}</span></button>
   <div class="mbody"><div>${''}</div></div></li>`}
 /* ближайшие 5, остальные — по кнопке «Показать все N матчей» (задание 14.11, п. 4) */
-const LIM=5;let shownN=LIM,curL='all';const moreB=document.getElementById('moreM');
+const LIM=6;let shownN=LIM,curL='all';const moreB=document.getElementById('moreM');
 moreB.addEventListener('click',()=>{shownN=1e9;render(curL,true)});
 function render(l,more){if(!more)shownN=LIM;curL=l;const sel=(l==='all'?D:D.filter(m=>m.lg===l)).slice(0,shownN),all=(l==='all'?D:D.filter(m=>m.lg===l)).length;
  moreB.hidden=all<=shownN;moreB.textContent=`Показать все ${all} ${plural(all,'матч','матча','матчей')}`;

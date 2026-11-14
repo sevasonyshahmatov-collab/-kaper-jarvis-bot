@@ -1084,3 +1084,4 @@ h2{font-size:clamp(32px,4.2vw,64px)}
 [data-theme="arena"] :is(.lghero,.tmhero)+.sec{background:var(--paper)}
 /* Черновик 14.11: фото КХЛ без белого фона (фильтр #jvko из nav.js). Подложки-кружки за фото — не белые. */
 img[src*="khl.ru/img/teamplayers_db"]{filter:url(#jvko)!important}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
