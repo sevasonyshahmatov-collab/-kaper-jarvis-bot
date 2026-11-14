@@ -20,7 +20,8 @@
 @media (min-width:761px){.soc-big:has(.soc-t:nth-child(3)){grid-template-columns:1.4fr 1fr 1fr}}
 @media (max-width:760px){.soc-big{grid-template-columns:1fr 1fr}.soc-big .soc-main{grid-column:1/-1}.soc-big .soc-t:not(.soc-main):last-child:nth-child(2){grid-column:1/-1}}
 /* подвал и лист «Ещё»: компактно, в строку */
-.soc-row,.soc-sheet{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.soc-sheet{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.soc-row{grid-template-columns:1fr;max-width:340px;gap:8px}
 .soc-row .soc-t,.soc-sheet .soc-t{flex-direction:row;justify-content:center;gap:10px;padding:10px 12px;text-align:left}
 .soc-row .soc-i,.soc-sheet .soc-i{width:34px;height:34px}.soc-row .soc-i svg,.soc-sheet .soc-i svg{width:18px;height:18px}
 .soc-row .soc-x,.soc-sheet .soc-x{align-items:flex-start}

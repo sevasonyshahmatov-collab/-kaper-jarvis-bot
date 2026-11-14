@@ -6,6 +6,8 @@ const SRC=(document.currentScript&&document.currentScript.src)||new URL('assets/
 const U=p=>new URL('../'+p,SRC).href;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('footer.css',SRC).href;document.head.appendChild(l)}catch(e){}
+/* соцсети (Telegram, YouTube, Instagram) — адреса в одном файле assets/social.js, плитки появятся сами (14.11, п. 7) */
+if(!window.JV_SOCIAL&&!document.querySelector('script[src*="social.js"]'))try{const s=document.createElement('script');s.src=new URL('social.js',SRC).href;s.defer=true;document.head.appendChild(s)}catch(e){}
 const COLS=[
  ['Хоккей',[['Матчи','hockey/index.html'],['КХЛ','hockey/league.html?lg=khl'],['НХЛ','hockey/league.html?lg=nhl'],['Игроки','hockey/players.html'],['Тренды','hockey/trends.html'],['Сравнение','hockey/compare.html'],['Прогноз КХЛ на сегодня','hockey/forecast-khl.html'],['Прогноз НХЛ на сегодня','hockey/forecast-nhl.html']]],
  ['Футбол',[['Матчи','football/index.html'],['Лиги','football/league.html?lg=epl'],['Лига чемпионов','football/ucl.html'],['Тренды','football/trends.html'],['Сравнение','football/compare.html'],['Прогноз АПЛ на сегодня','football/forecast-epl.html']]],
@@ -18,7 +20,7 @@ const f=document.createElement('footer');f.className='jvf';f.setAttribute('aria-
 f.innerHTML=`<div class="wrap"><div class="jvf-top">
   <div class="jvf-brand"><a class="jvf-logo" href="${esc(U('index.html'))}" aria-label="JARVIS, на главную"><span>JARVIS</span></a>
    <p>Прогнозы на хоккей и футбол по расчёту, а не наугад. Бесплатно.</p>
-   <a class="jvf-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Telegram @jarvibet</span></a>
+   <div class="jvf-soc" data-social="row"><a class="jvf-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Telegram @jarvibet</span></a></div>
    <button class="jvf-inst" id="jvf-inst" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14"/></svg><span>Установить на экран</span></button>
    <p class="jvf-ios" id="jvf-ios" hidden></p></div>
   <nav class="jvf-cols" aria-label="Разделы сайта">${COLS.map(c=>`<div><b>${esc(c[0])}</b>${c[1].map(l=>`<a href="${esc(U(l[1]))}">${esc(l[0])}</a>`).join('')}</div>`).join('')}</nav>

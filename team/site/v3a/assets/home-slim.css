@@ -53,3 +53,7 @@
 .ab-f b{font:800 18px/1.1 var(--display)}
 .ab-f span{font-size:14.5px;line-height:1.4;color:var(--ink-2)}
 @media (max-width:760px){.ab-f{grid-template-columns:1fr}.ab-f li{padding:12px}}
+
+/* «Мы в сети» (14.11, п. 7) */
+.soc-sec .sec-head{display:block;text-align:center}.soc-sec h2{text-align:center}
+.soc-lead{text-align:center;margin:0 auto 18px;max-width:52ch;color:var(--ink-2)}

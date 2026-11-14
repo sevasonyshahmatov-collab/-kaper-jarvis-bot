@@ -20,6 +20,8 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
 <link rel="stylesheet" href="assets/live.css">
 <link rel="stylesheet" href="assets/results.css">
 <link rel="stylesheet" href="assets/home-slim.css">
+<link rel="stylesheet" href="assets/social.css">
+<script src="assets/social.js" defer></script>
 <style>.soon{background:var(--card);border:1px solid var(--rule-2);border-radius:14px;padding:clamp(20px,3vw,32px);display:grid;gap:12px;justify-items:start;max-width:640px}.soon b{font:800 30px/1 var(--display);color:var(--signal)}[data-theme=c] .soon b{color:var(--ink)}.soon p{margin:0;color:var(--ink-2)}</style>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
@@ -160,15 +162,12 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
   </div>
 </section>
 
-<section class="sub" id="subscribe">
-  <div class="wrap" data-rv>
-    <div><h2>Все прогнозы&nbsp;— в Telegram</h2>
-      <div class="cta"><a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">Получать прогнозы — бесплатно</a></div></div>
-    <ul>
-      <li><b>Посты на каждый матч</b><span>С кэфом и вероятностью по модели.</span></li>
-      <li><b>Ролики</b><span>Матчи дня и тренды коротко.</span></li>
-      <li><b>Итоги дня</b><span>Все прогнозы подряд. Подписка бесплатная.</span></li>
-    </ul>
+<section class="sec soc-sec" id="subscribe" aria-labelledby="soc-h">
+  <div class="wrap">
+    <div class="sec-head" data-rv><h2 id="soc-h">Мы в сети</h2></div>
+    <p class="soc-lead">Прогнозы выходят до начала матча — бесплатно. Подписывайтесь там, где удобно.</p>
+    <!-- плитки — из assets/social.js (один файл с адресами); без адреса плитка не показывается -->
+    <div data-social="big"><a class="soc-t soc-tg soc-main" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span class="soc-x"><b>Telegram</b><small>Прогнозы до матча и итоги дня</small></span></a></div>
   </div>
 </section>
 

@@ -14,7 +14,7 @@ const isHome=!sport&&file==='index.html'&&!/\/(me|search|live|team)\/$/.test(pat
 const cur=file==='results.html'?'res':sport==='hockey'?'h':sport==='football'?'f':isHome?'home':'';
 try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('tabbar.css',SRC).href;document.head.appendChild(l)}catch(e){}
 /* соцсети — общий файл адресов */
-if(!window.JV_SOCIAL){const s=document.createElement('script');s.src=new URL('social.js',SRC).href;s.defer=true;document.head.appendChild(s)}
+if(!window.JV_SOCIAL&&!document.querySelector('script[src*="social.js"]')){const s=document.createElement('script');s.src=new URL('social.js',SRC).href;s.defer=true;document.head.appendChild(s)}
 
 const I={
  home:'<path d="M3.5 11 12 4l8.5 7"/><path d="M6 9.5V20h4.5v-5.5h3V20H18V9.5"/>',
@@ -82,7 +82,7 @@ function one1(){
  const seen=new Set();
  const upd=()=>hb.classList.toggle('tb-hide',seen.size>0);
  const io=new IntersectionObserver(es=>{es.forEach(e=>e.isIntersecting?seen.add(e.target):seen.delete(e.target));upd()},{threshold:0});
- const scan=()=>document.querySelectorAll('main .btn-tg, main .hm-tg, main .get8, main .mt-rem-b, main .soc-main, .tgbar').forEach(el=>{if(!el.dataset.y1){el.dataset.y1=1;io.observe(el)}});
+ const scan=()=>document.querySelectorAll('main .btn-tg, main .hm-tg, main .get8, main .mt-rem-b, .tgbar').forEach(el=>{if(!el.dataset.y1){el.dataset.y1=1;io.observe(el)}});
  scan();addEventListener('load',scan);setTimeout(scan,1500);
 }
 if(document.body)mount();else document.addEventListener('DOMContentLoaded',mount);
