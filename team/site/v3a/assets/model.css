@@ -130,3 +130,11 @@ html:not([data-sport="football"]) [data-f],html[data-sport="football"] [data-h]{
 #check .hv>div{padding:16px 18px;border:1px solid var(--rule-2);border-radius:var(--rc,12px)}
 #check .hv h3{margin:0 0 6px}#check .hv p{margin:8px 0 0}
 #check .q{font:800 clamp(30px,3vw,40px)/1 var(--display);font-variant-numeric:tabular-nums}
+/* «Мозг» модели (assets/brain.js, владелец 14.11): справа от заголовка на компьютере, под текстом на телефоне */
+.md-brain{position:relative;height:300px;margin-top:24px}
+.md-brain canvas{display:block}
+@media (min-width:1000px){
+  .md-top .wrap{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);column-gap:32px;align-items:center}
+  .md-top .wrap>*:not(.md-brain){grid-column:1}
+  .md-brain{grid-column:2;grid-row:1/span 4;height:min(460px,52vw);margin-top:0}
+}
