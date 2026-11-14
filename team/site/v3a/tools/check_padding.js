@@ -39,13 +39,16 @@ for(const path of PAGES){if(ONLY&&!path.includes(ONLY))continue;
     const fs=parseFloat(cs.fontSize),lh=parseFloat(cs.lineHeight)||fs*1.2,air=Math.max(0,(rs[0].height-fs)/2)*0.6;
     let box=null,cell=null;for(let a=e;a&&a!==document.body;a=a.parentElement){if(!cell&&/^(TD|TH)$/.test(a.tagName))cell=a;if(isBox(a)){box=a;break}}
     if(!box)continue;const br=box.getBoundingClientRect(),bc=getComputedStyle(box);
+    if(tr.left>=br.right||tr.right<=br.left||tr.top>=br.bottom||tr.bottom<=br.top)continue;   /* текст вне плашки (обратная сторона карточки и т. п.) */
     const inn={left:br.left+parseFloat(bc.borderLeftWidth),right:br.right-parseFloat(bc.borderRightWidth),top:br.top+parseFloat(bc.borderTopWidth),bottom:br.bottom-parseFloat(bc.borderBottomWidth)};
     const d={l:tr.left-inn.left,r:inn.right-tr.right,t:tr.top+air-inn.top,b:inn.bottom-tr.bottom-air};
-    const small=br.width<=90&&br.height<=34;
-    const H=small?8:mob?12:16,V=small?3:mob?10:12;
+    const small=br.width<=90&&br.height<=34,isCell=/^(TD|TH)$/.test(box.tagName),isCtl=/^(BUTTON|SELECT|INPUT)$/.test(box.tagName)||box.getAttribute('role')==='tab';
+    /* ячейка с подложкой — правило ячейки (8 px сверху-снизу, 4+4 между колонками); кнопки и вкладки — свои размеры нажатия (≥6 px сверху-снизу);
+       метки — 8 px по бокам, ≥2 px сверху-снизу (размер букв уже включает выносные элементы шрифта); 1 px — округление */
+    const H=isCell?4:small?8:isCtl?10:mob?12:16,V=isCell?7:small?2:isCtl?6:mob?10:12;
     const sx=scrollsX(e);const bad=[];
-    if(!sx){if(d.l<H-.5&&d.l>-40)bad.push('слева '+Math.round(d.l));if(d.r<H-.5&&d.r>-200)bad.push('справа '+Math.round(d.r))}
-    if(d.t<V-.5&&d.t>-20)bad.push('сверху '+Math.round(d.t));if(d.b<V-.5&&d.b>-20)bad.push('снизу '+Math.round(d.b));
+    if(!sx){if(d.l<H-1.5&&d.l>-40)bad.push('слева '+Math.round(d.l));if(d.r<H-1.5&&d.r>-200)bad.push('справа '+Math.round(d.r))}
+    if(d.t<V-1.5&&d.t>-20)bad.push('сверху '+Math.round(d.t));if(d.b<V-1.5&&d.b>-20)bad.push('снизу '+Math.round(d.b));
     if(cell){const cr=cell.getBoundingClientRect();const cl=tr.left-cr.left,crr=cr.right-tr.right;
      const first=!cell.previousElementSibling,last=!cell.nextElementSibling;
      // внутри таблицы границы плашки проверяются только у крайних колонок/строк; внутренние ячейки — ≥8 px до соседней колонки
