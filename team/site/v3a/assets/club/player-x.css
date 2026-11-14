@@ -110,3 +110,32 @@
   .pp-t5{font-size:14px}.pp-t5 td,.pp-t5 thead th{padding:9px 5px}.pp-t5 thead th{font-size:11px}
   .pp-t5 .tm,.pp-t5 .br{display:none}.pp-t5 .op img{width:22px;height:22px}.pp-t5 .op{gap:6px}
 }
+
+/* ── Черновик 14.11 (владелец: «текст накладывается на плашки»): шапка без наложений ──
+   Компьютер: контур названия клуба бледнее и гаснет к тексту и к эмблеме (не «рубится» о её край).
+   Телефон: плашки в одну строку на всю ширину, эмблема/фото справа в своей зоне (--emw), фамилия не заходит под неё
+   (размер шрифта считается из длины фамилии --n, ставит player.js), контур названия клуба убран — свободного места нет. */
+.pp.k.x .pp-wm{left:40%;right:0;-webkit-text-stroke-color:color-mix(in srgb,var(--ko) 11%,transparent);
+  -webkit-mask-image:radial-gradient(circle at 72% 50%,transparent 0 150px,#000 240px),linear-gradient(90deg,transparent 0,#000 30%);
+  mask-image:radial-gradient(circle at 72% 50%,transparent 0 150px,#000 240px),linear-gradient(90deg,transparent 0,#000 30%);
+  -webkit-mask-composite:source-in;mask-composite:intersect}
+.pp.k.x .pp-crumbs a span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:720px){
+  .pp.k.x .pp-hero{display:block;--emw:clamp(92px,30vw,128px)}
+  .pp.k.x .pp-txt{padding:16px 16px 22px;position:relative;z-index:1}
+  .pp.k.x .pp-crumbs{flex-wrap:nowrap;white-space:nowrap;margin-bottom:16px}
+  .pp.k.x .pp-crumbs a{padding:2px 10px;font-size:11px;letter-spacing:.05em;flex:none}
+  .pp.k.x .pp-crumbs a:first-child{flex:0 1 auto;min-width:0}
+  .pp.k.x .pp-crumbs img{width:20px;height:20px}
+  .pp.k.x h1::before{content:"";float:right;width:var(--emw);height:calc(var(--emw) + 6px);margin-left:12px}  /* место эмблемы: имя и строка «номер · амплуа» обтекают его */
+  .pp.k.x .pp-hs{clear:both}
+  .pp.k.x h1 b{font-size:min(32px,calc((100vw - 64px - var(--emw) - 12px) / (var(--n,8) * .8)))}
+  .pp.k.x .pp-wm{display:none}
+  .pp.k.x .pp-photo{position:absolute;right:16px;top:56px;width:var(--emw);height:var(--emw);max-width:none;overflow:hidden;z-index:0}
+  .pp.k.x .pp-photo.nop{display:none}
+  .pp.k.x .pp-hero:has(.pp-photo.nop) .pp-ghost{right:16px;top:56px;width:var(--emw);height:auto;transform:none}
+  .pp.k.x .pp-hero:not(:has(.pp-photo.nop)) .pp-ghost{display:none}
+  .pp.k.x .pp-hs{margin-top:18px}
+  .pp.k.x .pp-hs div{flex:1;padding:0 6px}
+  .pp.k.x .pp-hs span{font-size:11px;letter-spacing:.03em}
+}

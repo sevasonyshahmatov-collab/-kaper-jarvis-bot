@@ -18,3 +18,12 @@
 .fpp .pp-hs span{display:block;margin-top:6px;font:700 12px/1 var(--display);letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.75)}
 .fpp .pp-txt{padding-bottom:clamp(18px,3vw,32px)}
 @media (max-width:640px){.fpp .pp-hs{margin-top:14px}.fpp .pp-hs div{padding:0 9px}.fpp .pp-hs b{font-size:23px}.fpp .pp-hs span{font-size:9px;letter-spacing:.04em}.fpp .pp-ghost{right:22%;height:100%}}
+/* Черновик 14.11: на телефоне цифры не уходят под фото (три главные — четвёртая есть в «Сезоне» ниже), подписи от 11 px;
+   бледная эмблема целиком внутри шапки, ниже плашек — круговая надпись не обрезается краем и не спорит с плашками */
+@media (max-width:640px){
+  .fpp .pp-hs div:nth-child(n+4){display:none}
+  .fpp .pp-hs div{padding:0 9px}.fpp .pp-hs div:first-child{padding-left:0}.fpp .pp-hs span{font-size:11px;letter-spacing:.02em}
+  .fpp .pp-ghost{right:25%;top:60%;height:54%;opacity:.09}
+  .fpp .pp-txt{padding-right:12px}
+}
+@media (max-width:380px){.fpp .pp-hero{grid-template-columns:minmax(0,1fr) 33%}}

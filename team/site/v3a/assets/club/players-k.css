@@ -167,3 +167,13 @@ html[data-white] body{background:#fff}
   .pr.k .pts.pin{text-align:left;justify-self:start}
   .pr.k .no{opacity:.16}
 }
+/* Черновик 14.11 (владелец: «номер наезжает на 11+38, отступ текста разный»): телефон —
+   у всех строк одна сетка и один левый отступ (у топ-3 рамка 2 px входит в отступ), имя и фамилия всегда на двух строках,
+   фоновый номер бледнее и только в правой зоне под плашкой очков (там, куда не заходит текст) */
+@media (max-width:900px){
+  .pr.k,.pr.k.t1,.pr.k.t2,.pr.k.t3{grid-template-columns:22px 56px minmax(0,1fr);column-gap:12px;padding-left:34px;padding-right:96px}
+  .pr.k.t1,.pr.k.t2,.pr.k.t3{padding-left:32px;padding-right:94px}
+  .pr.k .nm b a{display:inline-block;width:min-content;max-width:100%;overflow-wrap:normal;word-break:normal;hyphens:none}
+  .pr.k .no{font-size:54px;right:10px;bottom:-6px;width:76px;text-align:right;opacity:.14;overflow:hidden}
+  .pr.k .tot{right:12px;top:12px}
+}
