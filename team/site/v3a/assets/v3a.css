@@ -1127,3 +1127,10 @@ html body .lgm{padding-top:12px;padding-bottom:12px}
 /* название команды в карточке матча — ссылка на страницу клуба (владелец 14.11) */
 .team.tl{cursor:pointer}
 .team.tl:hover span{text-decoration:underline;text-underline-offset:3px}
+/* последние матчи в карточке: ОТ / буллиты — метка наполовину цветом итога, наполовину серая (владелец 14.11);
+   счёт и «ОТ/Б» — в колонках фиксированной ширины, всё ровно столбиком */
+.l3 .rs.w.x{background:linear-gradient(135deg,#1a7342 50%,#6b737c 50%)}
+.l3 .rs.l.x{background:linear-gradient(135deg,#c4303b 50%,#6b737c 50%)}
+.l3 .sc{display:inline-grid;grid-template-columns:2.6em 1.6em;align-items:baseline;column-gap:4px}
+.l3 .sc b{font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.l3 .sc small{margin-left:0!important;text-align:left}
