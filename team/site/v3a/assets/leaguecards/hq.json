@@ -1,35 +1,41 @@
 {
  "discover": {
   "khlpl": {
-   "cats": [
-    "Category:SKA Saint Petersburg players",
-    "Category:HC CSKA Moscow players",
-    "Category:Ak Bars Kazan players",
-    "Category:Avangard Omsk players",
-    "Category:Metallurg Magnitogorsk players",
-    "Category:HC Dynamo Moscow players",
-    "Category:Traktor Chelyabinsk players",
-    "Category:HC Lokomotiv Yaroslavl players",
-    "Category:HC Spartak Moscow players",
-    "Category:Salavat Yulaev Ufa players",
-    "Category:HC Sibir Novosibirsk players",
-    "Category:Torpedo Nizhny Novgorod players"
+   "cats": [],
+   "qs": [
+    "SKA Saint Petersburg player",
+    "CSKA Moscow hockey player",
+    "Ak Bars Kazan player",
+    "Avangard Omsk player",
+    "Metallurg Magnitogorsk player",
+    "Dynamo Moscow hockey player",
+    "Traktor Chelyabinsk player",
+    "Lokomotiv Yaroslavl player",
+    "Spartak Moscow hockey player",
+    "Salavat Yulaev player",
+    "Sibir Novosibirsk player",
+    "Torpedo Nizhny Novgorod player",
+    "Severstal Cherepovets player",
+    "Avtomobilist player",
+    "Neftekhimik player",
+    "Barys Astana player",
+    "Dinamo Minsk player",
+    "Amur Khabarovsk player",
+    "Admiral Vladivostok player",
+    "Kunlun Red Star player",
+    "KHL game player",
+    "KHL hockey 2023",
+    "KHL hockey 2024",
+    "KHL hockey 2025",
+    "Kontinental Hockey League",
+    "Gagarin Cup",
+    "КХЛ хоккеист",
+    "хоккеист КХЛ матч"
    ],
-   "depth": 1,
    "min": 2200,
    "filter": "KHL|КХЛ|SKA|СКА|CSKA|ЦСКА|Lokomotiv|Локомотив|Ak Bars|Ак Барс|Avangard|Авангард|Metallurg|Металлург|Dynamo|Dinamo|Динамо|Traktor|Трактор|Spartak|Спартак|Torpedo|Торпедо|Sibir|Сибирь|Salavat|Салават|Barys|Барыс|Severstal|Северсталь|Neftekhimik|Нефтехимик|Avtomobilist|Автомобилист|Amur|Амур|Admiral|Адмирал|Kunlun|Lada|Лада|Gagarin Cup|Кубок Гагарина",
-   "maxt": 900,
-   "max": 144,
-   "qs": [
-    "KHL hockey player",
-    "КХЛ хоккеист",
-    "Kontinental Hockey League player",
-    "Gagarin Cup player",
-    "хоккеист СКА",
-    "хоккеист ЦСКА",
-    "хоккеист Ак Барс",
-    "хоккеист Локомотив Ярославль"
-   ]
+   "maxt": 700,
+   "max": 144
   }
  }
 }
