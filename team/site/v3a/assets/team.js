@@ -337,6 +337,13 @@ if(nextG){
     ${ln.map(l=>`<span class="hl" style="left:${(l.pos/n*100).toFixed(2)}%"><em>${esc(String(l.t).replace('.',','))}</em></span>`).join('')}</div>
    <div class="hx" style="--n:${n}">${labels.map(l=>`<span>${esc(l)}</span>`).join('')}</div>
    <ul class="hlg">${ln.map(l=>`<li><i></i>${esc(l.txt)}</li>`).join('')}</ul></figure>`};
+ /* вместо столбиков (владелец 14.11: «графики читаются неудобно»): по каждой линии — крупный процент, полоска, «k из N»;
+    зелёный — бывает часто (от 60 %), красный — редко (до 40 %); снизу — сколько шайб бывает чаще всего */
+ const lines=(title,sub,vals,rows,N,unit)=>{
+  const fr={};vals.forEach(v=>fr[v]=(fr[v]||0)+1);const md=Object.entries(fr).sort((x,y)=>y[1]-x[1]||x[0]-y[0])[0];
+  return `<section class="tsc"><h3>${esc(title)}<small>${esc(sub)}</small></h3><ul>${rows.map(([lb,f])=>{const k=vals.filter(f).length,pc=N?Math.round(k/N*100):0,c=pc>=60?'hi':pc<=40?'lo':'mid';
+   return `<li class="${c}"><span class="lb">${esc(lb)}</span><b class="num">${pc}<i>%</i></b><span class="br"><i style="width:${pc}%"></i></span><small>${k} из ${N}</small></li>`}).join('')}</ul>
+   ${md?`<p class="tsm">Чаще всего — <b>${md[0]}</b> ${unit} (${md[1]} из ${N})</p>`:''}</section>`};
  const draw=()=>{
   let a=real.filter(g=>st.ven==='all'||(st.ven==='home'?g.h:!g.h));if(st.per==='l10')a=a.slice(-10);
   const N=a.length,scope=st.per==='l10'?`последних ${N}`:`${N}`,unit={all:'матчей',home:'домашних матчей',away:'гостевых матчей'}[st.ven];
@@ -345,10 +352,10 @@ if(nextG){
   const sub=`${scope} ${unit}`;
   document.getElementById('tsOut').innerHTML=short?`<p class="tsnone">Для такого среза мало сыгранных матчей.</p>`:`
    <div class="tsbig"><div><b class="num">${f1(avgT)}</b><span>средний тотал матча</span></div><div><b class="num">${f1(avgF)}</b><span>забивает ${esc(T.name)} за игру</span></div><div><b class="num">${f1(avgA)}</b><span>пропускает за игру</span></div></div>
-   <div class="hgs">
-    ${hist('Сколько шайб в матчах',sub,tot,['2 и меньше','3','4','5','6','7','8 и больше'],[{t:4.5,pos:3},{t:5.5,pos:4},{t:6.5,pos:5}],N,2)}
-    ${hist(`Сколько забивает ${T.name}`,sub,a.map(g=>g.gf),['0','1','2','3','4','5+'],[{t:2.5,pos:3},{t:3.5,pos:4}],N)}
-    ${hist('Сколько пропускает',sub,a.map(g=>g.ga),['0','1','2','3','4','5+'],[],N)}
+   <div class="tsl">
+    ${lines('Тотал матча',sub,tot,[['больше 4,5',v=>v>4.5],['больше 5,5',v=>v>5.5],['больше 6,5',v=>v>6.5]],N,'шайб')}
+    ${lines(`Забивает ${T.name}`,sub,a.map(g=>g.gf),[['хотя бы 1',v=>v>=1],['больше 2,5',v=>v>2.5],['больше 3,5',v=>v>3.5]],N,'шайб')}
+    ${lines('Пропускает',sub,a.map(g=>g.ga),[['на ноль (сухие)',v=>v===0],['больше 2,5',v=>v>2.5],['больше 3,5',v=>v>3.5]],N,'шайб')}
    </div>`};
  box.innerHTML=`<div class="sec-head" data-rv><h2>Тоталы и дом/выезд</h2></div>
   <div class="trctl" data-rv><div class="gfilter"><div class="seg" id="tsPer" role="group" aria-label="Период"><button type="button" aria-pressed="true" data-v="all">Весь сезон</button><button type="button" aria-pressed="false" data-v="l10">Последние 10</button></div></div>
