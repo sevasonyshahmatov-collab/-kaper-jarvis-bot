@@ -16,7 +16,7 @@ rsync -a --delete --delete-excluded \
   --include='/proto/home/cards/***' --include='/proto/home/cosmos/***' --include='/proto/home/merge/***' \
   --include='/proto/home/players/***' --include='/proto/home/common.js' \
   --exclude='/proto/home/*' --exclude='/proto/*' \
-  --exclude='/preview/' --exclude='/concepts/' --exclude='/daily/' --exclude='/seo/' \
+  --exclude='/assets/leaguecards/cand/' --exclude='/preview/' --exclude='/concepts/' --exclude='/daily/' --exclude='/seo/' \
   --exclude='/index-old.html' --exclude='/assets/herovid/src/' \
   --exclude='/robots.txt' --exclude='/sitemap.xml' \
   "$src/" "$dst/"
