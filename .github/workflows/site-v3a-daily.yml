@@ -15,6 +15,10 @@ on:
         description: 'Только обновить папку new/ на сайте, без сбора данных (yes / no)'
         required: false
         default: 'no'
+      draft:
+        description: 'Черновик для просмотра владельцем: собрать папку draft/ на сайте из этой ветки, без данных (yes / no)'
+        required: false
+        default: 'no'
 
 permissions:
   contents: write
@@ -30,19 +34,21 @@ jobs:
     env:
       SITE_REPO: ${{ vars.SITE_REPO }}
       PUBLISH_ONLY: ${{ github.event.inputs.publish_only }}
+      # черновик (14.11): ветка-черновик или draft=yes — данные не собираем, публикуем только папку draft/ (живые страницы не трогаем)
+      DRAFT: ${{ github.event.inputs.draft == 'yes' || contains(github.ref_name, 'draft') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        if: env.PUBLISH_ONLY != 'yes'
+        if: env.PUBLISH_ONLY != 'yes' && env.DRAFT != 'true'
         with:
           python-version: '3.11'
       - run: pip install requests numpy brotli pillow
-        if: env.PUBLISH_ONLY != 'yes'
+        if: env.PUBLISH_ONLY != 'yes' && env.DRAFT != 'true'
       - name: Конвейер данных
-        if: env.PUBLISH_ONLY != 'yes'
+        if: env.PUBLISH_ONLY != 'yes' && env.DRAFT != 'true'
         run: python team/site/v3a/daily/run.py
       - name: Закоммитить данные
-        if: always() && env.PUBLISH_ONLY != 'yes'
+        if: always() && env.PUBLISH_ONLY != 'yes' && env.DRAFT != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -74,14 +80,16 @@ jobs:
           [ "$HAS_TOKEN" = true ] || { echo "SITE_TOKEN не задан — new/ не обновлена"; exit 0; }
           # владелец 13.11: новый сайт — главный (в корне), для поиска пока закрыт (noindex). Включается сам, когда site.yml в main
           # умеет метку .v3a-root (не даёт старому сайту заменить главную); до этого — по-прежнему в new/
-          git fetch -q --depth=1 origin main && root=$(git show FETCH_HEAD:.github/workflows/site.yml | grep -c 'v3a-root' || true)
-          if [ "${root:-0}" -gt 0 ]; then bash team/site/v3a/daily/publish_root.sh team/site/v3a _site
+          if [ "$DRAFT" = true ]; then bash team/site/v3a/daily/publish_draft.sh team/site/v3a _site/draft; root=draft
+          else git fetch -q --depth=1 origin main && root=$(git show FETCH_HEAD:.github/workflows/site.yml | grep -c 'v3a-root' || true); fi
+          if [ "$root" = draft ]; then :
+          elif [ "${root:-0}" -gt 0 ]; then bash team/site/v3a/daily/publish_root.sh team/site/v3a _site
           else bash team/site/v3a/daily/publish_new.sh team/site/v3a _site/new; fi
           cd _site
           git config user.name "jarvis-site-bot"; git config user.email "jarvis-site-bot@users.noreply.github.com"
           git add -A
           git diff --cached --quiet && { echo "новый сайт не изменился"; exit 0; }
-          git commit -q -m "Новый сайт: обновление $(TZ=Europe/Moscow date '+%d.%m %H:%M') МСК"
+          git commit -q -m "$([ "$DRAFT" = true ] && echo 'Черновик сайта (draft/)' || echo 'Новый сайт'): обновление $(TZ=Europe/Moscow date '+%d.%m %H:%M') МСК"
           for i in 1 2 3 4 5; do
             # site.yml пишет в тот же репозиторий (другие папки) — подтянуть его коммиты и повторить
             git pull -q --rebase && git push -q && { echo "new/ обновлена"; exit 0; }
