@@ -73,7 +73,12 @@ def put(d, h, a, **kw):
 
 for f in sorted(glob.glob(os.path.join(LIVE, 'data', '*.json'))):
     day = json.load(open(f, encoding='utf-8'))
+    if not isinstance(day, dict):
+        continue
     for m in day.get('matches', []):
+        # в data/ корня теперь лежат и файлы нового сайта (today.json и др.) в другом формате — их пропускаем (14.11)
+        if not isinstance(m, dict) or not all(k in m for k in ('d', 'h', 'a')):
+            continue
         put(m['d'], m['h'], m['a'], sc=m.get('score'), x=m.get('x1x2'))
         if m.get('res') in ('win', 'loss') and m.get('score'):
             picks[(m['d'][:10], m['h'], m['a'])] = {'d': m['d'], 'h': m['h'], 'a': m['a'], 'pick': m.get('pick'),
@@ -87,7 +92,8 @@ for f in sorted(glob.glob(os.path.join(LIVE, 'data', '*.json'))):
                 hs, as_ = (gf, ga) if x['home'] else (ga, gf)
                 put(d, h, a, sc=f'{hs}:{as_}' + (f' {ex}' if ex else ''))
     for m in day.get('all', []):
-        put(m['d'], m['h'], m['a'], sc=m.get('sc'))
+        if isinstance(m, dict) and all(k in m for k in ('d', 'h', 'a')):
+            put(m['d'], m['h'], m['a'], sc=m.get('sc'))
     for m in day.get('yday', []):
         put(m['d'], m['h'], m['a'], sc=m.get('sc'))
 for m in db.get('schedule', []):
