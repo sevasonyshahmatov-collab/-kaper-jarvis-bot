@@ -1124,3 +1124,6 @@ html body .pr.k .tot{padding:12px 16px}
 html body :is(.lgpl,.lgpt) .av{font-size:12px!important;letter-spacing:0!important}
 html body .pp-chart{padding-bottom:12px}
 html body .lgm{padding-top:12px;padding-bottom:12px}
+/* название команды в карточке матча — ссылка на страницу клуба (владелец 14.11) */
+.team.tl{cursor:pointer}
+.team.tl:hover span{text-decoration:underline;text-underline-offset:3px}

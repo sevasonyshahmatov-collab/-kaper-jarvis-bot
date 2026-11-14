@@ -321,7 +321,7 @@ function back(m){const {A,B,h2h}=det(m);
 function row(m){const L=LG[m.lg];
  return `<li class="match ${m.lg}"><button class="mhead" type="button" aria-expanded="false">
   <div class="mt"><time>${esc(m.t.slice(11))}</time><span class="cd" data-t="${esc(m.t)}"></span><span class="lvslot" data-lv data-lv-lg="${esc(m.lg)}" data-lv-t="${esc(m.t.replace(' ','T'))}:00+03:00" data-lv-h="${esc(m.h)}" data-lv-a="${esc(m.a)}" data-lv-hn="${esc(m.hn)}" data-lv-an="${esc(m.an)}"></span></div>
-  <div><div class="lgline">${LGP(m.lg)}${L.name}</div><div class="teams"><div class="team">${CS(m.h)}<span>${esc(m.hn)}</span></div><div class="team">${CS(m.a)}<span>${esc(m.an)}</span></div></div></div>
+  <div><div class="lgline">${LGP(m.lg)}${L.name}</div><div class="teams"><div class="team tl" data-href="${clubHref(m.h)}" title="Страница клуба">${CS(m.h)}<span>${esc(m.hn)}</span></div><div class="team tl" data-href="${clubHref(m.a)}" title="Страница клуба">${CS(m.a)}<span>${esc(m.an)}</span></div></div></div>
   <div class="quotes">${JVL.quotes(m)}</div>
   <span class="chev">${chev}</span></button>
   <div class="mbody"><div>${''}</div></div></li>`}
@@ -334,7 +334,7 @@ function render(l,more){if(!more)shownN=LIM;curL=l;const sel=(l==='all'?D:D.filt
  let html='',prev='';sel.forEach(m=>{const d=JVL.gday(m.t);if(d!==prev){prev=d;html+=`<li class="dayh" aria-hidden="true">${dayLabel(d)}</li>`}html+=row(m)});
  list.innerHTML=html||'<li class="note" style="padding:18px 4px">Матчей в этой лиге нет.</li>';
  list.querySelectorAll('.match').forEach((li,i)=>{const b=li.querySelector('.mhead'),body=li.querySelector('.mbody>div');
-  b.addEventListener('click',()=>{if(!body.innerHTML)body.innerHTML=back(sel[i]);requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o);if(o){fitLast(li);loadH2H(li,sel[i])}})})});
+  b.addEventListener('click',e=>{const tl=e.target.closest('.tl[data-href]');if(tl){location.href=tl.dataset.href;return}if(!body.innerHTML)body.innerHTML=back(sel[i]);requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o);if(o){fitLast(li);loadH2H(li,sel[i])}})})});
  if(!RM&&!more)list.querySelectorAll('.match').forEach((li,i)=>li.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:Math.min(i,12)*55,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}));
  requestAnimationFrame(()=>list.querySelectorAll('.match').forEach(li=>li.classList.add('in')));tick()}
 /* «Последние матчи»: столько строк, сколько влезает в квадрат рядом с расчётом модели (на узком экране — 5) */

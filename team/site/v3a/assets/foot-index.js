@@ -129,7 +129,7 @@ addEventListener('resize',()=>document.querySelectorAll('.match.open').forEach(f
 function rowHTML(m){const L=D.leagues[m.lg];
  return `<li class="match ${esc(m.lg)}"><button class="mhead" type="button" aria-expanded="false">
   <div class="mt"><time>${esc(m.t.slice(11))}</time><span class="cd" data-t="${esc(m.t)}"></span><span class="lvslot" data-lv data-lv-lg="${esc(m.lg)}" data-lv-t="${esc(m.t.replace(' ','T'))}:00+03:00" data-lv-h="${esc(m.h)}" data-lv-a="${esc(m.a)}" data-lv-hn="${esc(nm(m.h))}" data-lv-an="${esc(nm(m.a))}"></span></div>
-  <div><div class="lgline">${LGP(m.lg)}${esc(L.name)}</div><div class="teams"><div class="team">${CI(m.h)}<span>${esc(nm(m.h))}</span></div><div class="team">${CI(m.a)}<span>${esc(nm(m.a))}</span></div></div></div>
+  <div><div class="lgline">${LGP(m.lg)}${esc(L.name)}</div><div class="teams"><div class="team tl" data-href="${teamHref(m.h,/^(ucl|uel)$/.test(m.lg)?m.lg:'')}" title="Страница клуба">${CI(m.h)}<span>${esc(nm(m.h))}</span></div><div class="team tl" data-href="${teamHref(m.a,/^(ucl|uel)$/.test(m.lg)?m.lg:'')}" title="Страница клуба">${CI(m.a)}<span>${esc(nm(m.a))}</span></div></div></div>
   <div class="quotes">${JVL.quotes(m,{btts:true,noLine:'Линии пока нет',names:[nm(m.h),nm(m.a)]})}</div>
   <span class="chev">${chev}</span></button><div class="mbody"><div></div></div></li>`}
 function render(l,more){if(!more){curTab=l;shownN=LIM}
@@ -139,7 +139,7 @@ function render(l,more){if(!more){curTab=l;shownN=LIM}
  vis.forEach(m=>{const dk=m.t.slice(0,10);if(dk!==prev){prev=dk;const d=day(m.t);html+=`<li class="dayh" aria-hidden="true">${d.wd}, ${d.d} ${d.mon}${dk===today?' · сегодня':''}</li>`}html+=rowHTML(m)});
  list.innerHTML=html||'<li class="note" style="padding:18px 4px">В этой лиге ближайших матчей пока нет.</li>';
  list.querySelectorAll('.match').forEach((li,i)=>{const b=li.querySelector('.mhead'),body=li.querySelector('.mbody>div');
-  b.addEventListener('click',()=>{const open=()=>requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o);if(o)fitLast(li)});
+  b.addEventListener('click',e=>{const tl=e.target.closest('.tl[data-href]');if(tl){location.href=tl.dataset.href;return}const open=()=>requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o);if(o)fitLast(li)});
    if(body.innerHTML)return open();loadXY().then(()=>{vis[i].det=null;body.innerHTML=back(vis[i]);open()})})});
  if(!RM&&!more)list.querySelectorAll('.match').forEach((li,i)=>li.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:Math.min(i,10)*55,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}));
  requestAnimationFrame(()=>list.querySelectorAll('.match').forEach(li=>li.classList.add('in')));
