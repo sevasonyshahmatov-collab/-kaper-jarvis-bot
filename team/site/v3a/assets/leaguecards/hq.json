@@ -1,41 +1,44 @@
 {
- "discover": {
-  "khlpl": {
-   "cats": [],
-   "qs": [
-    "SKA Saint Petersburg player",
-    "CSKA Moscow hockey player",
-    "Ak Bars Kazan player",
-    "Avangard Omsk player",
-    "Metallurg Magnitogorsk player",
-    "Dynamo Moscow hockey player",
-    "Traktor Chelyabinsk player",
-    "Lokomotiv Yaroslavl player",
-    "Spartak Moscow hockey player",
-    "Salavat Yulaev player",
-    "Sibir Novosibirsk player",
-    "Torpedo Nizhny Novgorod player",
-    "Severstal Cherepovets player",
-    "Avtomobilist player",
-    "Neftekhimik player",
-    "Barys Astana player",
-    "Dinamo Minsk player",
-    "Amur Khabarovsk player",
-    "Admiral Vladivostok player",
-    "Kunlun Red Star player",
-    "KHL game player",
-    "KHL hockey 2023",
-    "KHL hockey 2024",
-    "KHL hockey 2025",
-    "Kontinental Hockey League",
-    "Gagarin Cup",
-    "КХЛ хоккеист",
-    "хоккеист КХЛ матч"
+ "cut": {
+  "khl-alistrov": {
+   "t": "File:Vladimiralistrovdynamominsk.jpg",
+   "box": [
+    0.03,
+    0,
+    0.66,
+    1
    ],
-   "min": 2200,
-   "filter": "KHL|КХЛ|SKA|СКА|CSKA|ЦСКА|Lokomotiv|Локомотив|Ak Bars|Ак Барс|Avangard|Авангард|Metallurg|Металлург|Dynamo|Dinamo|Динамо|Traktor|Трактор|Spartak|Спартак|Torpedo|Торпедо|Sibir|Сибирь|Salavat|Салават|Barys|Барыс|Severstal|Северсталь|Neftekhimik|Нефтехимик|Avtomobilist|Автомобилист|Amur|Амур|Admiral|Адмирал|Kunlun|Lada|Лада|Gagarin Cup|Кубок Гагарина",
-   "maxt": 700,
-   "max": 144
+   "savecrop": 1
+  },
+  "khl-grudinin": {
+   "t": "File:Vladimir Grudinin Severstal.jpg",
+   "box": [
+    0,
+    0.08,
+    1,
+    0.92
+   ],
+   "savecrop": 1
+  },
+  "khl-vinogradov": {
+   "t": "File:Egor Vinogradov Torpedo vs Severstal Gagarin Cup Playoffs 2026.jpg",
+   "box": [
+    0.22,
+    0.05,
+    0.72,
+    1
+   ],
+   "savecrop": 1
+  },
+  "khl-popugayev": {
+   "t": "File:Nikita Popugayev Severstal.jpg",
+   "box": [
+    0.25,
+    0.1,
+    1,
+    0.95
+   ],
+   "savecrop": 1
   }
  }
 }
