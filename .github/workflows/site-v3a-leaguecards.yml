@@ -40,7 +40,7 @@ jobs:
           git add -A team/site/v3a/assets/leaguecards/cand
           git diff --cached --quiet || git commit -m "Карточки лиг v3a: вырезки кандидатов"
           for i in 1 2 3 4 5; do
-            git fetch -q --depth=50 origin "$GITHUB_REF_NAME" && git rebase -q FETCH_HEAD && git push && exit 0
+            if git fetch -q --depth=50 origin "$GITHUB_REF_NAME" && git rebase -q FETCH_HEAD && git push; then exit 0; fi  # без if bash -e выходил на первом отказе (14.11)
             git rebase --abort 2>/dev/null; sleep 10
           done
           exit 1
