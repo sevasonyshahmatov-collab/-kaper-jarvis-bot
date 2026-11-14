@@ -1,1 +1,1 @@
-window.JV_POSTS={"khl|2026-11-14|sochi|amur":{"id":1593,"url":"https://t.me/jarvibet/1593","src":"model","bet":"Итоговая победа Амура","kef":1.67,"r":null}};
+window.JV_POSTS={"nhl|2026-11-14|nhl_car|nhl_sea":{"id":1597,"url":"https://t.me/jarvibet/1597","src":"author","bet":"Фора Королины −1,5","kef":1.72,"r":null},"khl|2026-11-14|sochi|amur":{"id":1593,"url":"https://t.me/jarvibet/1593","src":"model","bet":"Итоговая победа Амура","kef":1.67,"r":"w"}};
