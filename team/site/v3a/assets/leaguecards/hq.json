@@ -1,9 +1,17 @@
 {"discover": {
- "lok": {"cats": ["Category:HC Lokomotiv Yaroslavl players", "Category:HC Lokomotiv Yaroslavl"], "depth": 2, "min": 2000,
-         "qs": ["Lokomotiv Yaroslavl hockey", "Локомотив Ярославль хоккей", "Lokomotiv Yaroslavl KHL", "Локомотив КХЛ матч"]},
- "khl": {"cats": ["Category:Kontinental Hockey League games", "Category:Ice hockey players in action"], "depth": 1, "min": 3000,
-         "qs": ["KHL hockey match 2023", "KHL hockey match 2024", "КХЛ матч хоккей", "Kontinental Hockey League game"]},
- "nhlru": {"cats": ["Category:Kirill Kaprizov", "Category:Nikita Kucherov", "Category:Artemi Panarin", "Category:Alexander Ovechkin", "Category:Igor Shesterkin", "Category:Evgeni Malkin"], "depth": 1, "min": 2500},
- "nhlstar": {"cats": ["Category:Nathan MacKinnon", "Category:Auston Matthews", "Category:Leon Draisaitl", "Category:Connor Bedard", "Category:Cale Makar", "Category:Sidney Crosby"], "depth": 1, "min": 2500},
- "mcd": {"cats": ["Category:Connor McDavid"], "depth": 1, "min": 2500}
+ "lok2": {"cats": ["Category:HC Lokomotiv Yaroslavl", "Category:Arena 2000", "Category:Ice hockey in Yaroslavl"], "depth": 3, "min": 1800,
+          "qs": ["Lokomotiv Yaroslavl", "Локомотив Ярославль", "Lokomotiv hockey player", "Локомотив хоккеист", "Арена-2000"]},
+ "khlclub": {"cats": ["Category:SKA Saint Petersburg", "Category:HC CSKA Moscow", "Category:Ak Bars Kazan", "Category:Avangard Omsk",
+                      "Category:Metallurg Magnitogorsk", "Category:Traktor Chelyabinsk", "Category:HC Dynamo Moscow", "Category:Salavat Yulaev Ufa"],
+             "depth": 2, "min": 2500, "max": 144}
+},
+"cut": {
+ "nhl-makar": {"t": "File:Gourde makar during October 22, 2024 Colorado Avalanche at Seattle Kraken game (54091511706).jpg", "box": [0.06, 0.1, 0.52, 1]},
+ "nhl-ovechkin": {"t": "File:Alexander Ovechkin in 2026.jpg", "box": [0, 0.06, 1, 1]},
+ "nhl-ovi2": {"t": "File:Ovi2026.jpg", "box": [0, 0, 1, 1]},
+ "nhl-malkin": {"t": "File:Evgeni Malkin 2018-03-03 1.jpg", "box": [0, 0.02, 1, 1]},
+ "nhl-malkin2": {"t": "File:Evgeni Malkin 2016-04-28 2.JPG", "box": [0.18, 0.03, 0.82, 1]},
+ "mcd-evans": {"t": "File:Evans mcdavid 10 2 (53232495354).jpg", "box": [0.47, 0.04, 0.8, 1], "savecrop": 1},
+ "mcd-skate": {"t": "File:Connor McDavid of the Edmonton Oilers.jpg", "box": [0.22, 0.22, 0.68, 0.98]},
+ "khl-face": {"t": "File:Andrei Nikitenko wins face off.jpg", "box": [0.3, 0.12, 0.62, 1], "savecrop": 1}
 }}
