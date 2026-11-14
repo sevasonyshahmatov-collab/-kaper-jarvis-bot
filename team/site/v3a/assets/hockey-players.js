@@ -1,3 +1,5 @@
+/* фото КХЛ без белого фона (черновик 14.11): адрес khl.ru -> hockey/data/kph/<папка>_<номер>.webp (hockey/khl_cut.py) */
+window.JV_KPH=window.JV_KPH||(S=>u=>{const m=/khl\.ru\/img\/teamplayers_db\/(\d+)\/(\d+)\.jpg/.exec(u||'');return m&&S?new URL('../hockey/data/kph/'+m[1]+'_'+m[2]+'.webp',S).href:u})(document.currentScript&&document.currentScript.src);
 /* Раздел «Игроки НХЛ» (прототип 03.11): данные — hockey/data/nhl_players.json (сборщик nhl_players_fetch.py, Actions).
    Рынки «n из N» по своим матчам игрока: очко, гол, передача, 3+ броска; форма 10, TOI, дом/выезд, следующий соперник. */
 (()=>{
@@ -39,10 +41,10 @@ fetch(`data/plite_${LG}.json`).then(r=>r.json()).then(D=>{
    const nx=D.next[p.t];
    const jk=JY?JY.key(LG,p.t):'',jv=JY&&JY.vars(jk),lt=jv&&JY.calc(jk).lt;
    return `<article class="pr${jv?' k'+(lt?' lt':'')+(i<3?' t'+(i+1):''):''}" role="listitem"${jv?` style="${jv}"`:''}>${jv?`<img class="wm" src="${em(p.t)}" alt="" aria-hidden="true" loading="lazy" onerror="this.remove()">${p.no!=null?`<span class="no" aria-hidden="true">${esc(p.no)}</span>`:''}`:''}<span class="rk">${i+1}</span>
-    <div class="av" style="--c:${c}">${p.img?`<img class="ph" src="${esc(p.img)}" alt="" loading="lazy" onerror="this.remove()">`:''}<img class="bd" src="${em(p.t)}" alt="" loading="lazy" onerror="this.remove()"></div>
+    <div class="av" style="--c:${c}">${p.img?`<img class="ph" src="${esc(JV_KPH(p.img))}" alt="" loading="lazy" onerror="this.remove()">`:''}<img class="bd" src="${em(p.t)}" alt="" loading="lazy" onerror="this.remove()"></div>
     <div class="nm"><b>${p.id!=null?`<a href="player.html?lg=${LG}&id=${p.id}" title="Профиль игрока">${esc(p.n)}</a>`:esc(p.n)}</b><span>${esc(tn(p.t))} · ${p.pos==='D'?'защитник':'нападающий'}</span></div>
     ${st.m==='pt'?`<div class="pts pin" aria-hidden="true"><b>${p.G}+${p.A}</b></div>`:''}<div class="tot" aria-label="${st.m==='g'?'голов':st.m==='a'?'передач':'очков'}: ${tot(p)}">${tot(p)}</div>
-    ${p.img?`<img class="cut" src="${esc(p.img)}" alt="" aria-hidden="true" loading="lazy" onerror="this.remove()">`:''}
+    ${p.img?`<img class="cut" src="${esc(JV_KPH(p.img))}" alt="" aria-hidden="true" loading="lazy" onerror="this.remove()">`:''}
    </article>${st.m==='pt'?`<div class="ga${jv?' k':''}"${jv?` style="${jv}"`:''} aria-label="${p.G} голов и ${p.A} передач"><span>${p.G}</span><i>+</i><span>${p.A}</span></div>`:''}`}).join('');
   $('list').classList.toggle('two',st.m==='pt');
   $('more').hidden=L.length<=st.lim}

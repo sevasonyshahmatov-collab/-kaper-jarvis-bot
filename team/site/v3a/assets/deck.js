@@ -1,3 +1,5 @@
+/* фото КХЛ без белого фона (черновик 14.11): адрес khl.ru -> hockey/data/kph/<папка>_<номер>.webp (hockey/khl_cut.py) */
+window.JV_KPH=window.JV_KPH||(S=>u=>{const m=/khl\.ru\/img\/teamplayers_db\/(\d+)\/(\d+)\.jpg/.exec(u||'');return m&&S?new URL('../hockey/data/kph/'+m[1]+'_'+m[2]+'.webp',S).href:u})(document.currentScript&&document.currentScript.src);
 /* JARVIS v3a — «Колода матчей» (matches.html).
    Данные: data/today.js, lines.js, model.js (через assets/lines.js → window.JVL), клубы: assets/data/teams-lite.js (хоккей) и football/data/football-lite.js (футбол);
    подробности клуба (игроки, личные встречи) подгружаются при открытии панели: assets/data/club/<slug>.js, football/data/club/<id>.js.
@@ -347,7 +349,7 @@ function leadersOf(m,s,ph){
   return sc.slice(0,3).map(p=>({n:p.n,sub:p.p?`${p.p} с пенальти`:'',v:p.g,u:'голов'}))}
 function leadersHtml(m,d){
   const A=leadersOf(m,m.h,d.ph[0]),B=leadersOf(m,m.a,d.ph[1]);if(!A&&!B)return '';
-  const col=(s,n,L,c)=>L?`<div><h4 style="--c:${c}"><i></i>${esc(n)}</h4><ul class="dk-ld">${L.map(p=>`<li>${p.img?`<img src="${esc(p.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<span class=ph></span>'">`:`<span class="ph">${esc(p.n.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span>`}<div><b>${esc(p.n)}</b>${p.sub?`<small>${esc(p.sub)}</small>`:''}</div><strong title="${p.u}">${p.v}</strong></li>`).join('')}</ul></div>`:'';
+  const col=(s,n,L,c)=>L?`<div><h4 style="--c:${c}"><i></i>${esc(n)}</h4><ul class="dk-ld">${L.map(p=>`<li>${p.img?`<img src="${esc(JV_KPH(p.img))}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<span class=ph></span>'">`:`<span class="ph">${esc(p.n.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span>`}<div><b>${esc(p.n)}</b>${p.sub?`<small>${esc(p.sub)}</small>`:''}</div><strong title="${p.u}">${p.v}</strong></li>`).join('')}</ul></div>`:'';
   return `<section class="dk-sec"><h3>${isH(m)?'Лидеры по очкам (гол + передача)':'Лучшие бомбардиры клуба в лиге'}</h3><div class="dk-two">${col(m.h,m.hn,A,'var(--dk-ca,#ffc21a)')}${col(m.a,m.an,B,isH(m)?'var(--dk-cb,#4cc2ff)':'var(--dk-cb,#3dd68c)')}</div></section>`}
 
 /* последние 5 матчей */

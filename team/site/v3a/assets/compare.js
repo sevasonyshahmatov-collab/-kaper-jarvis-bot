@@ -1,3 +1,5 @@
+/* фото КХЛ без белого фона (черновик 14.11): адрес khl.ru -> hockey/data/kph/<папка>_<номер>.webp (hockey/khl_cut.py) */
+window.JV_KPH=window.JV_KPH||(S=>u=>{const m=/khl\.ru\/img\/teamplayers_db\/(\d+)\/(\d+)\.jpg/.exec(u||'');return m&&S?new URL('../hockey/data/kph/'+m[1]+'_'+m[2]+'.webp',S).href:u})(document.currentScript&&document.currentScript.src);
 /* JARVIS v3a — «Сравнение» (идеи 10 и 15): hockey/compare.html?t=clubs|players&a=<id>&b=<id>.
    Клубы — assets/data/teams-lite.js (таблица, 6 осей, игры сезона). Игроки — список из data/search.json (p),
    профиль — hockey/data/pp/<лига>/<id>.json, для НХЛ ещё hockey/data/nhl_skills.json (силовые, блоки, скорость).
@@ -129,7 +131,7 @@ function pstat(P,E){const L=P.log||[],N=L.length,sum=(i,r)=>(r||L).reduce((s,x)=
    e:E?{hit:E.hit/gp,blk:E.blk/gp,tk:E.tk,gv:E.gv,fo:E.fon>=20&&E.fo!=null?E.fo*(E.fo<=1?100:1):null,spd:E.spd?E.spd*1.609:null,shot:E.shot?E.shot*1.609:null,bur:E.bur!=null?E.bur/gp:null}:null}}
 function playerView(xa,xb,PA,PB,SK){
   const E=x=>x.lg==='nhl'&&SK&&SK.p?SK.p[x.id.split('-')[1]]:null,A=pstat(PA,E(xa)),B=pstat(PB,E(xb)),ta=PA.t,tb=PB.t;
-  const img=(P,t)=>`<span class="cmp-ph${P.img?'':' nop'}">${P.img?`<img src="${esc(P.img)}" alt="" width="96" height="96" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('nop');this.remove()">`:''}${em(t,30)}</span>`;
+  const img=(P,t)=>`<span class="cmp-ph${P.img?'':' nop'}">${P.img?`<img src="${esc(JV_KPH(P.img))}" alt="" width="96" height="96" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('nop');this.remove()">`:''}${em(t,30)}</span>`;
   const sub=(P,t)=>`${esc((TT[t]||{}).name||t)} · ${esc(POS[P.pos]||'')}${P.no?' · №'+P.no:''}`;
   const url=x=>'player.html?lg='+x.lg+'&id='+x.id.split('-')[1];
   /* форма игрока: 5 последних матчей столбиками, высота — очки в матче */

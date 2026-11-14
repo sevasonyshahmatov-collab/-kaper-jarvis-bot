@@ -1,3 +1,5 @@
+/* фото КХЛ без белого фона (черновик 14.11): адрес khl.ru -> hockey/data/kph/<папка>_<номер>.webp (hockey/khl_cut.py) */
+window.JV_KPH=window.JV_KPH||(S=>u=>{const m=/khl\.ru\/img\/teamplayers_db\/(\d+)\/(\d+)\.jpg/.exec(u||'');return m&&S?new URL('../hockey/data/kph/'+m[1]+'_'+m[2]+'.webp',S).href:u})(document.currentScript&&document.currentScript.src);
 /* JARVIS v3a — «Тренды дня»: общий движок для football/trends.html и hockey/trends.html.
    Данные: футбол — window.JV_TRENDS_F (football/trends_build.py) + window.JV_PLAYERS; хоккей — window.JV_TEAMS + hockey/data/*_players.json.
    Тренды считаются в браузере из матчей сезона; ни кэфов, ни ставок здесь нет. ?now=2026-11-03 12:00 — подменить «сейчас» (МСК). */
@@ -233,7 +235,7 @@ function emb(t){
   if(!t.pl)return `<a class="tr-em" href="${CFG.team(t.slug)}" tabindex="-1" aria-hidden="true">${crest(t.slug)}</a>`;
   if(!t.img)return `<a class="tr-em" href="${CFG.team(t.slug)}" tabindex="-1" aria-hidden="true">${crest(t.slug)}</a>`;
   const tag=t.pg?'a':'span',hr=t.pg?` href="${esc(t.pg)}" tabindex="-1"`:'';
-  return `<${tag} class="tr-em ph"${hr} aria-hidden="true"><img class="pf" src="${esc(t.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('nof');this.remove()"><i>${crest(t.slug)}</i></${tag}>`;
+  return `<${tag} class="tr-em ph"${hr} aria-hidden="true"><img class="pf" src="${esc(JV_KPH(t.img))}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('nof');this.remove()"><i>${crest(t.slug)}</i></${tag}>`;
 }
 function card(t){
   const m=t.m,H=S.teams[m.h],A=S.teams[m.a];
