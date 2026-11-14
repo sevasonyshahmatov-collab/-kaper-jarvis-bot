@@ -1,5 +1,5 @@
 /* фото КХЛ без белого фона (черновик 14.11): адрес khl.ru -> hockey/data/kph/<папка>_<номер>.webp (hockey/khl_cut.py) */
-window.JV_KPH=window.JV_KPH||(S=>u=>{const m=/khl\.ru\/img\/teamplayers_db\/(\d+)\/(\d+)\.jpg/.exec(u||'');return m&&S?new URL('../hockey/data/kph/'+m[1]+'_'+m[2]+'.webp',S).href:u})(document.currentScript&&document.currentScript.src);
+window.JV_KPH=window.JV_KPH||(S=>u=>{if(!window.JV_KPH_ON)return u;const m=/khl\.ru\/img\/teamplayers_db\/(\d+)\/(\d+)\.jpg/.exec(u||'');return m&&S?new URL('../hockey/data/kph/'+m[1]+'_'+m[2]+'.webp',S).href:u})(document.currentScript&&document.currentScript.src);
 /* Раздел «Игроки НХЛ» (прототип 03.11): данные — hockey/data/nhl_players.json (сборщик nhl_players_fetch.py, Actions).
    Рынки «n из N» по своим матчам игрока: очко, гол, передача, 3+ броска; форма 10, TOI, дом/выезд, следующий соперник. */
 (()=>{

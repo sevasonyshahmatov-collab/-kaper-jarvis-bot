@@ -1,5 +1,5 @@
 /* фото КХЛ без белого фона (черновик 14.11): адрес khl.ru -> hockey/data/kph/<папка>_<номер>.webp (hockey/khl_cut.py) */
-window.JV_KPH=window.JV_KPH||(S=>u=>{const m=/khl\.ru\/img\/teamplayers_db\/(\d+)\/(\d+)\.jpg/.exec(u||'');return m&&S?new URL('../hockey/data/kph/'+m[1]+'_'+m[2]+'.webp',S).href:u})(document.currentScript&&document.currentScript.src);
+window.JV_KPH=window.JV_KPH||(S=>u=>{if(!window.JV_KPH_ON)return u;const m=/khl\.ru\/img\/teamplayers_db\/(\d+)\/(\d+)\.jpg/.exec(u||'');return m&&S?new URL('../hockey/data/kph/'+m[1]+'_'+m[2]+'.webp',S).href:u})(document.currentScript&&document.currentScript.src);
 /* JARVIS v3a — «Колода матчей» (matches.html).
    Данные: data/today.js, lines.js, model.js (через assets/lines.js → window.JVL), клубы: assets/data/teams-lite.js (хоккей) и football/data/football-lite.js (футбол);
    подробности клуба (игроки, личные встречи) подгружаются при открытии панели: assets/data/club/<slug>.js, football/data/club/<id>.js.

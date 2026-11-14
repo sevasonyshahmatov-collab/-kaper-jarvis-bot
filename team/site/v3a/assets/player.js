@@ -1,5 +1,5 @@
 /* фото КХЛ без белого фона (черновик 14.11): адрес khl.ru -> hockey/data/kph/<папка>_<номер>.webp (hockey/khl_cut.py) */
-window.JV_KPH=window.JV_KPH||(S=>u=>{const m=/khl\.ru\/img\/teamplayers_db\/(\d+)\/(\d+)\.jpg/.exec(u||'');return m&&S?new URL('../hockey/data/kph/'+m[1]+'_'+m[2]+'.webp',S).href:u})(document.currentScript&&document.currentScript.src);
+window.JV_KPH=window.JV_KPH||(S=>u=>{if(!window.JV_KPH_ON)return u;const m=/khl\.ru\/img\/teamplayers_db\/(\d+)\/(\d+)\.jpg/.exec(u||'');return m&&S?new URL('../hockey/data/kph/'+m[1]+'_'+m[2]+'.webp',S).href:u})(document.currentScript&&document.currentScript.src);
 /* Профиль хоккеиста: hockey/player.html?lg=nhl|khl&id=<id>.
    Данные — один маленький файл hockey/data/pp/<лига>/<id>.json (его режет daily/split.py), клубы — assets/data/teams-lite.js,
    следующий матч: data/today.js (+ lines.js, model.js только если этот матч в окне «сегодня–завтра»). */

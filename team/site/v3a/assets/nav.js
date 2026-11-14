@@ -1,3 +1,10 @@
+/* Фото игроков КХЛ с www.khl.ru — на белом фоне. Владелец 14.11: «чтобы ни у кого сзади не было белого фона». Вырезать фон у себя
+   нельзя (khl.ru не отдаёт фото нашим серверам), поэтому белое делается прозрачным прямо при показе: SVG-фильтр #jvko
+   (CSS в v3a.css: img[src*="khl.ru/img/teamplayers_db"]). Пиксели не читаются скриптом — работает и с чужими картинками. */
+(()=>{const add=()=>{if(document.getElementById('jvko'))return;const d=document.createElement('div');d.setAttribute('aria-hidden','true');
+ d.style.cssText='position:absolute;width:0;height:0;overflow:hidden';
+ d.innerHTML='<svg width="0" height="0" focusable="false"><filter id="jvko" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  -3 -3 -3 8.4 0"/><feComponentTransfer><feFuncA type="linear" slope="1.6" intercept="-.15"/></feComponentTransfer></filter></svg>';
+ document.body.appendChild(d)};document.body?add():document.addEventListener('DOMContentLoaded',add)})();
 /* JARVIS v3a — общая шапка для всех страниц. Подключается ПЕРЕД v3a.js.
    Рисует: логотип, переключатель Хоккей/Футбол, разделы вида спорта, Telegram, кнопку «Меню» (телефон).
    Меню-якоря страницы (.nav внутри <header id="hd">) переносит во вторую полосу под шапкой.

@@ -1082,3 +1082,5 @@ h2{font-size:clamp(32px,4.2vw,64px)}
    виден чётко сразу, без затухания по прокрутке (раньше на высоком экране висел полупрозрачным вместе с шапкой) */
 [data-theme="arena"] :is(.lghero,.tmhero)+.sec:not(#_)>.wrap{opacity:1}  /* :not(#_) — перебить правило с :not(#matches) */
 [data-theme="arena"] :is(.lghero,.tmhero)+.sec{background:var(--paper)}
+/* Черновик 14.11: фото КХЛ без белого фона (фильтр #jvko из nav.js). Подложки-кружки за фото — не белые. */
+img[src*="khl.ru/img/teamplayers_db"]{filter:url(#jvko)!important}

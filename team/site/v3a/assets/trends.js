@@ -1,5 +1,5 @@
 /* фото КХЛ без белого фона (черновик 14.11): адрес khl.ru -> hockey/data/kph/<папка>_<номер>.webp (hockey/khl_cut.py) */
-window.JV_KPH=window.JV_KPH||(S=>u=>{const m=/khl\.ru\/img\/teamplayers_db\/(\d+)\/(\d+)\.jpg/.exec(u||'');return m&&S?new URL('../hockey/data/kph/'+m[1]+'_'+m[2]+'.webp',S).href:u})(document.currentScript&&document.currentScript.src);
+window.JV_KPH=window.JV_KPH||(S=>u=>{if(!window.JV_KPH_ON)return u;const m=/khl\.ru\/img\/teamplayers_db\/(\d+)\/(\d+)\.jpg/.exec(u||'');return m&&S?new URL('../hockey/data/kph/'+m[1]+'_'+m[2]+'.webp',S).href:u})(document.currentScript&&document.currentScript.src);
 /* JARVIS v3a — «Тренды дня»: общий движок для football/trends.html и hockey/trends.html.
    Данные: футбол — window.JV_TRENDS_F (football/trends_build.py) + window.JV_PLAYERS; хоккей — window.JV_TEAMS + hockey/data/*_players.json.
    Тренды считаются в браузере из матчей сезона; ни кэфов, ни ставок здесь нет. ?now=2026-11-03 12:00 — подменить «сейчас» (МСК). */
