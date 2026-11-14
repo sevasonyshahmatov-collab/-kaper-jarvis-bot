@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru" data-sport="hockey"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><title>Выбор фото для карточек лиг — черновик</title>
+<link rel="stylesheet" href="../assets/v3a.css"><link rel="stylesheet" href="../assets/leaguecards/lc.css">
+<style>
+body{background:var(--paper);color:var(--ink)}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 80px}
+h1{font:800 clamp(26px,4vw,40px)/1.1 var(--display);text-transform:none;margin:0 0 12px}
+.lead{font:500 16px/1.5 var(--display);color:var(--ink-2);max-width:70ch;margin:0 0 8px}
+h2{font:800 clamp(22px,3vw,30px)/1.1 var(--display);margin:48px 0 16px;text-transform:none}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:64px 28px;padding-top:48px}
+.v{display:grid;gap:14px;align-content:start}
+.v .lc-deck{display:block}
+.cap{text-align:center;font:600 14px/1.45 var(--display);color:var(--ink-2)}
+.cap b{display:block;font:900 22px/1.1 var(--display);color:var(--ink);margin-bottom:4px}
+.cap a{color:inherit}
+.cap strong{color:var(--ink)}
+.cap i{display:block;font-style:normal;color:var(--ink-3);font-size:13px}
+.ask{margin:32px 0 0;padding:18px 20px;border-radius:12px;background:var(--card);border:1px solid var(--rule-2);font:600 16px/1.5 var(--display)}
+</style></head><body>
+<main class="wrap">
+<h1>Карточки лиг в «Хоккее»: какого игрока ставим</h1>
+<p class="lead">Все фото — со свободной лицензией (Wikimedia Commons), автор подписан под карточкой, как на сайте. Ответьте в боте одним словом,
+например: <b>КХЛ-2, НХЛ-1</b>. Пока выбора нет, на странице «Хоккей» в черновике стоит вариант, отмеченный «сейчас в черновике».</p>
+<p class="lead"><b>КХЛ:</b> свободных фото игроков «Локомотива» нужного качества на Wikimedia Commons нет — нашлось 8 файлов клуба, на всех игроки мелко или группой (2011–2014 гг.), а снимки игроков других клубов КХЛ — тоже групповые, вырезать одного игрока чисто не получилось. Поэтому для КХЛ варианты такие: КХЛ-1 — эмблема крупнее и объёмнее (сейчас в черновике), КХЛ-2 — как было. Если хотите игрока — пришлите фото «Локомотива», на которое у вас есть права (или разрешение фотографа), и я сделаю карточку в паре с НХЛ.</p>
+<div id="out"></div>
+<p class="ask">Ответ: «КХЛ-…, НХЛ-…» (и «Главная-…» для карточки «Хоккей» на главной, если меняем фото Макдэвида).</p>
+</main>
+<script src="../assets/leaguecards/lc.js"></script>
+<script>
+const V=[{"code": "КХЛ-1", "lg": "khl", "photo": null, "cls": "big", "club": "../assets/em/lokomotiv.webp", "player": "Эмблема «Локомотива» — крупнее, с объёмом <strong>(сейчас в черновике)</strong>", "credit": "эмблема клуба", "page": "", "src": "", "cutsz": "", "note": ""}, {"code": "КХЛ-2", "lg": "khl", "photo": null, "cls": "", "club": "../assets/em/lokomotiv.webp", "player": "Как было: эмблема поменьше", "credit": "эмблема клуба", "page": "", "src": "", "cutsz": "", "note": ""}, {"code": "НХЛ-1", "lg": "nhl", "photo": "../assets/leaguecards/var/nhl-makar.webp", "cls": "", "club": "../assets/em/nhl_col.webp", "player": "Кейл Макар (Колорадо) — в движении <strong>(сейчас в черновике)</strong>", "credit": "Jenn G from Seattle, WA, CC BY-SA 2.0", "page": "https://commons.wikimedia.org/wiki/File:Gourde_makar_during_October_22,_2024_Colorado_Avalanche_at_Seattle_Kraken_game_(54091511706).jpg", "src": "5084x4098", "cutsz": "1011x1800", "note": "на краю видна чужая клюшка — уберу при выборе"}, {"code": "НХЛ-2", "lg": "nhl", "photo": "../assets/leaguecards/var/nhl-malkin.webp", "cls": "", "club": "../assets/em/nhl_pit.webp", "player": "Евгений Малкин (Питтсбург)", "credit": "Michael Miller, CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Evgeni_Malkin_2018-03-03_1.jpg", "src": "2499x3106", "cutsz": "1192x1800", "note": ""}, {"code": "НХЛ-3", "lg": "nhl", "photo": "../assets/leaguecards/var/nhl-ovechkin.webp", "cls": "", "club": "../assets/em/nhl_wsh.webp", "player": "Александр Овечкин (Вашингтон), во весь рост", "credit": "Quintin Soloviev, CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Alexander_Ovechkin_in_2026.jpg", "src": "2965x3780", "cutsz": "1650x1800", "note": ""}, {"code": "НХЛ-4", "lg": "nhl", "photo": "../assets/leaguecards/var/nhl-ovi2.webp", "cls": "", "club": "../assets/em/nhl_wsh.webp", "player": "Александр Овечкин (Вашингтон), крупнее", "credit": "The Kip, CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Ovi2026.jpg", "src": "2654x3054", "cutsz": "1376x1800", "note": ""}, {"code": "Главная-1", "lg": "home", "photo": "../assets/leaguecards/var/mcd-skate.webp", "cls": "", "club": "../assets/em/nhl_edm.webp", "player": "Коннор Макдэвид (Эдмонтон) — свободная лицензия", "credit": "All-Pro Reels, CC BY-SA 2.0", "page": "https://commons.wikimedia.org/wiki/File:Connor_McDavid_of_the_Edmonton_Oilers.jpg", "src": "3000x2000", "cutsz": "1377x1364", "note": ""}, {"code": "Главная-2", "lg": "home", "photo": "../assets/leaguecards/var/nhl-makar.webp", "cls": "", "club": "../assets/em/nhl_col.webp", "player": "Кейл Макар (Колорадо)", "credit": "Jenn G from Seattle, WA, CC BY-SA 2.0", "page": "https://commons.wikimedia.org/wiki/File:Gourde_makar_during_October_22,_2024_Colorado_Avalanche_at_Seattle_Kraken_game_(54091511706).jpg", "src": "5084x4098", "cutsz": "1011x1800", "note": ""}],SEC=[["khl", "КХЛ"], ["nhl", "НХЛ"], ["home", "Главная: карточка «Хоккей» вместо фото Макдэвида с невыясненной лицензией"]];
+const out=document.getElementById('out');
+for(const [lg,title] of SEC){
+ const vs=V.filter(v=>v.lg===lg);if(!vs.length)continue;
+ const h=document.createElement('h2');h.textContent=title;out.appendChild(h);
+ const g=document.createElement('div');g.className='grid';out.appendChild(g);
+ vs.forEach(v=>{const w=document.createElement('div');w.className='v';const d=document.createElement('div');d.className='lc-deck';w.appendChild(d);
+  const id=lg==='home'?'nhl':lg;
+  LeagueCards.mount(d,[{id,name:id==='khl'?'КХЛ':'НХЛ',cnt:'Вариант '+v.code,href:'#',logo:'../assets/lg/'+id+'.webp',club:v.club,photo:v.photo,photoCls:v.cls,cols:8,pl:()=>'клубов',clubs:[]}]);
+  const c=document.createElement('p');c.className='cap';
+  c.innerHTML=`<b>${v.code}</b>${v.player}<br>${v.page?`Фото: <a href="${v.page}" target="_blank" rel="noopener">${v.credit}</a>`:v.credit}${v.src?`<i>исходник ${v.src} px · вырезка ${v.cutsz} px</i>`:''}${v.note?`<i>${v.note}</i>`:''}`;
+  w.appendChild(c);g.appendChild(w)})}
+</script>
+</body></html>

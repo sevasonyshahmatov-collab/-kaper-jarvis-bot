@@ -11,7 +11,7 @@ const ARROW='<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-w
 const TEX=id=>`<svg class="tex" viewBox="0 0 150 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path d="M58 105 L112 -5 L155 -5 L155 105Z" fill="${id==='khl'?'#d6001c':'#c8102e'}"/><path d="M58 105 L112 -5 L119 -5 L65 105Z" fill="${id==='khl'?'#fff':'#a2aaad'}" opacity=".92"/><path d="M72 105 L126 -5 L129 -5 L75 105Z" fill="${id==='khl'?'#fff':'#a2aaad'}" opacity=".5"/></svg>`;
 
 function html(l){
- const pl=l.photo?`<img class="pl${l.photoCls?' '+l.photoCls:''}" src="${l.photo}" alt="" draggable="false">`:`<img class="pl emb" src="${l.club}" alt="" draggable="false">`;
+ const pl=l.photo?`<img class="pl${l.photoCls?' '+l.photoCls:''}" src="${l.photo}" alt="" draggable="false">`:`<img class="pl emb${l.photoCls?' '+l.photoCls:''}" src="${l.club}" alt="" draggable="false">`;
  const grid=l.clubs.map(c=>`<a href="${c.href}" title="${esc(c.n)}" aria-label="${esc(c.n)}: страница команды"><img src="${c.src}" alt="" loading="lazy" width="64" height="64"></a>`).join('');
  const n=l.clubs.length;
  return `<div class="lcard ${l.id}" id="lg-${l.id}" tabindex="0" role="group" aria-roledescription="карточка" aria-label="${esc(l.name)}: нажми, чтобы увидеть клубы" data-lg="${l.id}" style="--cols:${l.cols}">

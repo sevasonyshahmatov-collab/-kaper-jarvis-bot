@@ -29,12 +29,13 @@ body{background:var(--paper);color:var(--ink)}
 h1{font:800 clamp(26px,4vw,40px)/1.1 var(--display);text-transform:none;margin:0 0 12px}
 .lead{font:500 16px/1.5 var(--display);color:var(--ink-2);max-width:70ch;margin:0 0 8px}
 h2{font:800 clamp(22px,3vw,30px)/1.1 var(--display);margin:48px 0 16px;text-transform:none}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:72px 28px;padding-top:56px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:64px 28px;padding-top:48px}
 .v{display:grid;gap:14px;align-content:start}
 .v .lc-deck{display:block}
 .cap{text-align:center;font:600 14px/1.45 var(--display);color:var(--ink-2)}
 .cap b{display:block;font:900 22px/1.1 var(--display);color:var(--ink);margin-bottom:4px}
 .cap a{color:inherit}
+.cap strong{color:var(--ink)}
 .cap i{display:block;font-style:normal;color:var(--ink-3);font-size:13px}
 .ask{margin:32px 0 0;padding:18px 20px;border-radius:12px;background:var(--card);border:1px solid var(--rule-2);font:600 16px/1.5 var(--display)}
 </style></head><body>

@@ -81,3 +81,11 @@
  .lcard .cg a:hover,.lcard .cg a:focus-visible{transform:none}
  .lcard .cg a:focus-visible{outline-offset:-2px}}
 @media (prefers-reduced-motion:reduce){.lcard .flip{transition:none}.lcard .tilt{will-change:auto}}
+/* Черновик 14.11: эмблема вместо игрока — крупнее и объёмнее (вариант для КХЛ, пока нет свободного фото игрока «Локомотива») */
+.lcard .pl.emb.big{width:46cqw;left:70%;top:9cqw;
+  filter:drop-shadow(0 .5cqw 0 rgba(255,255,255,.55)) drop-shadow(0 1.4cqw 0 rgba(0,0,0,.28)) drop-shadow(0 3cqw 4cqw rgba(0,0,0,.55))}
+/* Черновик 14.11: подпись «N матчей…» не заходит на игрока / эмблему — колонка текста уже, игрок правее */
+.lcard .txt{width:40cqw}
+.lcard .pl:not(.emb){left:73%}
+.lcard .pl.emb.big{width:40cqw;left:74%;top:11cqw}
+@media (max-width:600px){.lcard .txt{width:42cqw}.lcard .pl:not(.emb){left:76%}}

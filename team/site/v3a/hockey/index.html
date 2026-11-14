@@ -116,7 +116,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
   <div class="wrap">
     <div class="sec-head" data-rv><h2>Лиги и клубы</h2></div>
     <div class="lc-deck" id="lcdeck" data-rv></div>
-    <p class="lc-credit" id="lccredit">Фото НХЛ: <a href="https://commons.wikimedia.org/wiki/File:Carolina_Hurricanes_at_Seattle_Kraken_-_October_17,_2022_-_Teuvo_Ter%C3%A4v%C3%A4inen_(52438503593)_(1).jpg" target="_blank" rel="noopener">Jenn G, CC BY-SA 2.0</a>.</p>
+    <p class="lc-credit" id="lccredit">Фото НХЛ (Кейл Макар): <a href="https://commons.wikimedia.org/wiki/File:Gourde_makar_during_October_22,_2024_Colorado_Avalanche_at_Seattle_Kraken_game_(54091511706).jpg" target="_blank" rel="noopener">Jenn G from Seattle, WA, CC BY-SA 2.0</a>, Wikimedia Commons; фон удалён.</p>
   </div>
 </section>
 
@@ -347,7 +347,8 @@ render('all');setInterval(tick,1000);
 
 /* лиги и клубы: две коллекционные карточки (assets/leaguecards), на обороте — эмблемы клубов */
 const TQ=(t=>/^(arena|a|b|c)$/.test(t||'')?'&theme='+t:'')(new URLSearchParams(location.search).get('theme'));
-const LCP={khl:{photo:null,photoCls:'',club:'../assets/em/lokomotiv.webp',cols:8},nhl:{photo:'../assets/leaguecards/car-teravainen.webp',photoCls:'',club:'../assets/em/nhl_car.webp',cols:8}};
+/* черновик 14.11: КХЛ — эмблема крупнее (свободных фото игроков «Локомотива» нет), НХЛ — Макар; выбор владельца — vote/leaguecards.html */
+const LCP={khl:{photo:null,photoCls:'big',club:'../assets/em/lokomotiv.webp',cols:8},nhl:{photo:'../assets/leaguecards/var/nhl-makar.webp',photoCls:'',club:'../assets/em/nhl_col.webp',cols:8}};
 LeagueCards.mount(document.getElementById('lcdeck'),Object.entries(LG).map(([id,l])=>{const n=cnt(id),list=id==='khl'?KHL_CLUBS:NHL_CLUBS;
  return {id,name:l.name,cnt:`${n} ${plural(n,'матч','матча','матчей')} в ближайшие дни`,href:`league.html?lg=${id}${TQ}`,logo:LGI(id),...LCP[id],
   pl:k=>plural(k,'клуб','клуба','клубов'),clubs:list.map(([cn,slug])=>({n:cn,src:`../assets/em/s/${slug}.webp`,href:`../team/index.html?id=${slug}${TQ}`}))}}));
