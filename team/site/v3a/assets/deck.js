@@ -102,7 +102,8 @@ function layout(){
   $('dk-cur').textContent=D2(n?cur+1:0);$('dk-tot').textContent=D2(n);
   $('dk-bar').parentNode.style.setProperty('--p',n>1?'1':'1');
   $('dk-bar').style.setProperty('--p',n?((cur+1)/n):0);
-  $('dk-prev').disabled=cur<=0;$('dk-next').disabled=cur>=n-1;
+  $('dk-prev').disabled=n<2;$('dk-next').disabled=n<2;   /* по кругу: после последнего — первый (владелец 14.11) */
+  {const pk=document.getElementById('dk-puck');if(pk)pk.style.left=(n>1?cur/(n-1)*100:0)+'%'}
 }
 function build(){
   measure();
@@ -222,10 +223,10 @@ try{fetch('data/deckbg/index.json').then(r=>r.ok?r.json():null).then(j=>{if(j&&j
 /* ── переключение ── */
 let lockUntil=0;
 function go(to,opt={}){const n=list.length;if(!n)return;to=Math.max(0,Math.min(n-1,to));if(to===cur)return false;
-  const dir=to>cur?1:-1;cur=to;layout();renderInfo(true);applyBg(dir);
+  const dir=opt.dir||(to>cur?1:-1);cur=to;layout();renderInfo(true);applyBg(dir);
   try{const u=new URL(location.href);u.searchParams.set('k',list[cur].key);history.replaceState(null,'',u)}catch(e){}
   lockUntil=performance.now()+(root.classList.contains('rm')?0:520);return true}
-const step=d=>go(cur+d);
+const step=d=>{const n=list.length;if(n<2)return false;return go((cur+d+n)%n,{dir:d})};
 
 /* колесо мыши / тачпад: накопление, блокировка на время анимации, инерцию тачпада не считаем за новый жест */
 let acc=0,lastT=0,quiet=false,lastAbs=0;
@@ -253,6 +254,17 @@ addEventListener('keydown',e=>{
   else if(e.key==='End'&&e.target===stage){e.preventDefault();go(list.length-1)}
 });
 $('dk-prev').onclick=()=>step(-1);$('dk-next').onclick=()=>step(1);
+/* шайба на жёлтой линии (компьютер, владелец 14.11): тащить или нажать на линию — переключает матчи */
+{const pr=document.querySelector('.dk-prog');
+ if(pr&&matchMedia('(hover:hover) and (pointer:fine)').matches){
+  const pk=document.createElement('b');pk.id='dk-puck';pk.className='dk-puck';pk.setAttribute('aria-hidden','true');pr.appendChild(pk);pr.classList.add('has-puck');
+  const at=x=>{const r=pr.getBoundingClientRect(),n=list.length;if(n<2)return 0;return Math.round(Math.max(0,Math.min(1,(x-r.left)/r.width))*(n-1))};
+  let dn=false;
+  pr.addEventListener('pointerdown',e=>{if(e.button!==0)return;dn=true;pr.classList.add('drag');try{pr.setPointerCapture(e.pointerId)}catch(_){}const i=at(e.clientX);if(i!==cur)go(i);e.preventDefault()});
+  pr.addEventListener('pointermove',e=>{if(!dn)return;const i=at(e.clientX);if(i!==cur){lockUntil=0;go(i)}});
+  const up=()=>{dn=false;pr.classList.remove('drag')};pr.addEventListener('pointerup',up);pr.addEventListener('pointercancel',up);
+  const n=list.length;pk.style.left=(n>1?cur/(n-1)*100:0)+'%';
+ }}
 
 /* перетаскивание: верхняя карточка идёт за пальцем с поворотом; дальше порога — улетает, иначе пружинит назад */
 let sx=0,sy=0,sid=null,moved=false,drag=false,topEl=null,t0=0;

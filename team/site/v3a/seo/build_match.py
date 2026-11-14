@@ -823,11 +823,17 @@ def v2_h2h(m, from_dir):
     cards = []
     for r in rows:
         home, away = (m['hn'], m['an']) if r['home'] else (m['an'], m['hn'])
+        hid, aid = (m['h'], m['a']) if r['home'] else (m['a'], m['h'])
         hg, ag = (r['gf'], r['ga']) if r['home'] else (r['ga'], r['gf'])
         win = 'h' if hg > ag else 'a' if ag > hg else ''
-        cards.append('<li><time>%s.%s.%s</time><span class="%s">%s</span><b>%d:%d%s</b><span class="%s">%s</span></li>'
-                     % (r['d'][8:10], r['d'][5:7], r['d'][2:4], 'w' if win == 'h' else '', esc(home), hg, ag,
-                        ('<small>%s</small>' % esc(r['x'])) if r['x'] else '', 'w' if win == 'a' else '', esc(away)))
+        # вместо названий — крупные эмблемы (владелец 14.11); название — в title и для экранного диктора
+        def side(tid, nm, w):
+            em = crest(m, tid, from_dir, 52)
+            return ('<span class="%s" title="%s">%s<i class="sr-only">%s</i></span>' % (('w ' if w else '') + 'lg', esc(nm), em, esc(nm))) if em \
+                else '<span class="%s">%s</span>' % ('w' if w else '', esc(nm))
+        cards.append('<li><time>%s.%s.%s</time>%s<b>%d:%d%s</b>%s</li>'
+                     % (r['d'][8:10], r['d'][5:7], r['d'][2:4], side(hid, home, win == 'h'), hg, ag,
+                        ('<small>%s</small>' % esc(r['x'])) if r['x'] else '', side(aid, away, win == 'a')))
     return ('<section class="fc-sec" aria-labelledby="mt-h2h"><div class="wrap"><h2 id="mt-h2h">Личные встречи</h2>'
             '<ul class="mx-h2h">%s</ul></div></section>' % ''.join(cards))
 

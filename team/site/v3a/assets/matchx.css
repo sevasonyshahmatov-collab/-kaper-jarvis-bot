@@ -405,3 +405,10 @@ body.fc .mx-tg .btn,body.fc .mx-tg .btn span{color:#071225;font-weight:800;font-
   .mc-row{grid-template-columns:auto 1fr auto;padding:13px 0 12px}
   .mc-n{font-size:13px}
 }
+/* личные встречи: крупные эмблемы вместо названий (владелец 14.11), 6 встреч — ровно 2 ряда по 3 на компьютере */
+.mx-h2h span.lg{display:flex;justify-content:center;padding:0!important}
+.mx-h2h span.lg img{width:52px;height:52px;object-fit:contain}
+.mx-h2h span.lg:not(.w) img{opacity:.55;filter:grayscale(.35)}
+.mx-h2h span.lg.w::before{left:auto;right:-2px;top:-2px}
+.mx-h2h time{text-align:center}
+@media (min-width:900px){.mx-h2h{grid-template-columns:repeat(3,minmax(0,1fr))}}

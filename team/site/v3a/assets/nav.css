@@ -237,3 +237,5 @@ body[data-only="ucl"] .board-top{min-height:45px}
 .xf.xf-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 56px),transparent)}
 .xf.xf-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}
 .xf.xf-l.xf-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 56px),transparent)}
+/* переключатель «Хоккей / Футбол» в шапке убран (владелец 14.11); на телефоне вид спорта — в нижней панели */
+#hd nav.seg{display:none!important}
