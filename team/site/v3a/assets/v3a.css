@@ -1102,7 +1102,7 @@ html body :is(.lgm,.lgpl li,.qv,.tsc,.bst,.dk-ihead,.g,.mx-h2h li){padding-left:
 html body :is(.lgm,.lgpl li,.qv,.bst,.mx-h2h li){padding-top:var(--pad-y);padding-bottom:var(--pad-y)}
 html body :is(.lgpl,.lgpt) .av{font-size:12px;letter-spacing:0}
 /* метки: растут под текст */
-html body :is(.tg,.rtag,.tm2,.strk,.pp-rk,.ha,.rs,.pav,.pp-gm .pt b,.pp-t5 .sc i,.pp-gm .res b,.mx-h2h b,.dk-ihead em,.tm-kf){
+html body :is(.tg,.rtag,.tm2,.strk,.pp-rk,.ha,.rs,.pp-gm .pt b,.pp-t5 .sc i,.pp-gm .res b,.mx-h2h b,.dk-ihead em,.tm-kf){
   padding:var(--tag-y) var(--tag-x)!important;min-width:max-content;width:auto!important;height:auto!important;min-height:22px;box-sizing:border-box;line-height:1.15}
 html body :is(.ha,.rs,.pp-t5 .sc i){display:inline-grid;place-items:center}
 html body .lgpl .r{padding-left:4px}
