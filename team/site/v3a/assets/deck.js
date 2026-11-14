@@ -366,7 +366,7 @@ function leadersHtml(m,d){
 
 /* последние 5 матчей */
 function lastHtml(m){const fa=formOf(m,m.h),fb=formOf(m,m.a);if(!fa&&!fb)return '';
-  const col=(s,n,f,c)=>f?`<div><h4 style="--c:${c}"><i></i>${esc(n)}</h4><ul class="dk-lg5">${f.slice().reverse().map(x=>`<li class="${x.r}"><span><small>${shortDate(x.d)}</small>${x.h?'':'@ '}${esc(nameOf(m,x.o))}</span><b>${x.gf}:${x.ga}${x.x?' '+esc(x.x):''}</b></li>`).join('')}</ul></div>`:'';
+  const col=(s,n,f,c)=>f?`<div><h4 style="--c:${c}"><i></i>${esc(n)}</h4><ul class="dk-lg5">${f.slice().reverse().map(x=>`<li class="${x.r}"><span><small>${shortDate(x.d)}</small>${x.h?'':''}${esc(nameOf(m,x.o))}</span><b>${x.gf}:${x.ga}${x.x?' '+esc(x.x):''}</b></li>`).join('')}</ul></div>`:'';
   return `<section class="dk-sec"><h3>Последние 5 матчей</h3><div class="dk-two">${col(m.h,m.hn,fa,'var(--dk-ca,#ffc21a)')}${col(m.a,m.an,fb,isH(m)?'var(--dk-cb,#4cc2ff)':'var(--dk-cb,#3dd68c)')}</div></section>`}
 
 function linksHtml(m){return `<section class="dk-sec"><h3>Страницы сайта</h3><div class="dk-links">

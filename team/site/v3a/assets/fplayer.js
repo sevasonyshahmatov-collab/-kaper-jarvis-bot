@@ -77,7 +77,7 @@ fetch(`data/pp/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).then(P=>
  const chart=document.getElementById('chart');
  const draw=k=>{const m=MK.find(x=>x.k===k)||MK[0],L=log.slice(-15),mx=Math.max(k==='s2'||k==='st'?4:2,...L.map(m.v));
   chart.innerHTML=L.map(r=>{const v=m.v(r),ok=m.f(r),tip=`${ddmm(r[0])}, ${r[2]?'дома':'в гостях'}, ${tn(r[1])}: ${m.u} — ${v}`;
-   return `<div class="pp-col" title="${esc(tip)}"><div class="bar${ok?' g':''}" style="--h:${Math.max(.04,v/mx)}">${v>0?`<b>${v}</b>`:''}</div><img class="em" src="${crest(r[1])}" alt="${esc(tn(r[1]))}" loading="lazy" onerror="this.outerHTML='<span class=fb>${esc(tn(r[1]).slice(0,3).toUpperCase())}</span>'"><small>${r[2]?'':'@'}${r[0].slice(8,10)}<i>.${r[0].slice(5,7)}</i></small></div>`}).join('');
+   return `<div class="pp-col" title="${esc(tip)}"><div class="bar${ok?' g':''}" style="--h:${Math.max(.04,v/mx)}">${v>0?`<b>${v}</b>`:''}</div><img class="em" src="${crest(r[1])}" alt="${esc(tn(r[1]))}" loading="lazy" onerror="this.outerHTML='<span class=fb>${esc(tn(r[1]).slice(0,3).toUpperCase())}</span>'"><small>${r[2]?'':''}${r[0].slice(8,10)}<i>.${r[0].slice(5,7)}</i></small></div>`}).join('');
   chart.setAttribute('aria-label',`${m.n}: ${L.map(r=>`${ddmm(r[0])} ${tn(r[1])} — ${m.v(r)}`).join('; ')}`);
   document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===m.k))};
  document.getElementById('tabs').onclick=e=>{const b=e.target.closest('button');if(b)draw(b.dataset.k)};
