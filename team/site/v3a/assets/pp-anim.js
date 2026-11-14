@@ -5,13 +5,14 @@ if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
 const SRC=(document.currentScript&&document.currentScript.src)||'';
 try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('pp-anim.css',SRC||location.href).href;document.head.appendChild(l)}catch(e){}
 const main=document.getElementById('main');if(!main)return;
-const count=b=>{const t=b.textContent.trim();if(!/^\d{1,4}$/.test(t))return;const v=+t;if(!v)return;const t0=performance.now(),D=650;
+const count=b=>{const t=b.textContent.trim();if(!/^\d{1,4}$/.test(t))return;const v=+t;if(!v)return;const t0=performance.now(),D=800;
  const f=n=>{const k=Math.min(1,(n-t0)/D),e=1-Math.pow(1-k,3);b.textContent=String(Math.round(v*e));if(k<1)requestAnimationFrame(f);else b.textContent=t};b.textContent='0';requestAnimationFrame(f)};
 const go=h=>{
  if(h.dataset.ppa)return;h.dataset.ppa=1;document.documentElement.classList.add('ppa');
  [...h.querySelectorAll('.pp-txt>*')].forEach((e,i)=>e.style.setProperty('--pi',i));
- [...h.querySelectorAll('.pp-hs>div')].forEach((e,i)=>e.style.setProperty('--pi',4+i));
- h.classList.add('ppa-go');setTimeout(()=>h.querySelectorAll('.pp-hs b').forEach(count),260);
+ [...h.querySelectorAll('.pp-hs>div')].forEach((e,i)=>e.style.setProperty('--pi',i));
+ const sh=document.createElement('i');sh.className='ppa-shine';sh.setAttribute('aria-hidden','true');h.appendChild(sh);setTimeout(()=>sh.remove(),1700);
+ h.classList.add('ppa-go');setTimeout(()=>h.querySelectorAll('.pp-hs b').forEach(count),550);
  // блоки ниже шапки
  if(!('IntersectionObserver' in window))return;
  const io=new IntersectionObserver(es=>es.forEach(en=>{if(!en.isIntersecting)return;en.target.classList.add('ppa-in');io.unobserve(en.target)}),{rootMargin:'0px 0px -8% 0px'});

@@ -3,7 +3,7 @@
    доля отражённых бросков, большинство, меньшинство). Подключает assets/nav.js на страницах /khl/… и /nhl/…; пересборка не нужна. */
 (()=>{
 const hero=document.querySelector('main>.mx-hero');if(!hero||document.querySelector('.mx-cmp'))return;
-const ids=[...hero.querySelectorAll('img[src*="/em/"]')].map(i=>decodeURIComponent((/\/em\/([^/.]+)\.webp/.exec(i.getAttribute('src'))||[])[1]||'')).filter((v,i,a)=>v&&a.indexOf(v)===i);
+const ids=[...hero.querySelectorAll('img[src*="/em/"]')].map(i=>decodeURIComponent((/\/em\/(?:s\/)?([^/.]+)\.webp/.exec(i.getAttribute('src'))||[])[1]||'')).filter((v,i,a)=>v&&a.indexOf(v)===i);
 if(ids.length<2)return;
 const base=(document.querySelector('script[src*="assets/nav.js"]')||{}).src||'';
 const go=()=>{

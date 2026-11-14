@@ -226,6 +226,7 @@ function arena(){
     const dn=i<tops.length-1?tops[i+1]-c:1e9,up=i>0?c-tops[i]:1e9,k=innerWidth<=620?.4:1,Wn=(i===0?vh*.36:vh*.3)*k,Wu=(i===1?vh*.36:vh*.3)*k;  /* телефон: переход короче, без блёклого экрана (аудит 08.11 п.8) */
     if(up<Wu)col=mix(zs[i-1].c,zs[i].c,.5+up/Wu*.5);else if(dn<Wn)col=mix(zs[i].c,zs[i+1].c,.5-dn/Wn*.5);
     if(i===0)lit=dn<Wn?.5-dn/Wn*.5:0;else if(i===1&&up<Wu)lit=.5+up/Wu*.5;else lit=1;
+    if(i===0&&lit>0){const g=Math.min(1,scrollY/(vh*.25));lit*=g;col=mix(Z.arena,col,g)}  /* черновик 14.11: пока не прокрутили — первый экран чёткий (на большом мониторе лига/клуб открывались «мутными», --lit ≈ .36) */
     if(RM)lit=lit<.5?0:1,col=lit?col:Z.arena;
     lit=Math.round(lit*100)/100;JV.lit=lit;
     const cs=`rgb(${col.join(',')})`;if(cs!==lastC){doc.style.setProperty('--bgc',cs);lastC=cs}

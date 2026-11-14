@@ -1,14 +1,22 @@
-/* Выезд профиля игрока (владелец 14.11, пункт 12): шапка — слева направо, эмблема/фото — навстречу, строки по очереди,
-   блоки ниже — сбоку при прокрутке (один раз). Только translate (отдельное свойство — не спорит с наклоном шапки player-tilt.js,
-   который пишет transform и style.translate у .pp-txt/.pp-photo) и opacity. Включается классом html.ppa из pp-anim.js:
-   нет скрипта или «уменьшить движение» — всё стоит на месте без анимации. */
-@keyframes ppaL{from{opacity:0;translate:-44px 0}to{opacity:1;translate:0 0}}
-@keyframes ppaR{from{opacity:0;translate:48px 0}to{opacity:1;translate:0 0}}
-@keyframes ppaRt{from{translate:56px 0}to{translate:0 0}}  /* бледная эмблема: без opacity — у неё своя прозрачность */
-@keyframes ppaU{from{opacity:0;translate:-28px 0}to{opacity:1;translate:0 0}}
-html.ppa .pp-hero.ppa-go{animation:ppaL .55s cubic-bezier(.2,.9,.25,1.1) both}
-html.ppa .pp-hero.ppa-go .pp-photo img.ph{animation:ppaR .6s cubic-bezier(.2,.9,.25,1.1) .08s both}
-html.ppa .pp-hero.ppa-go .pp-ghost{animation:ppaRt .6s cubic-bezier(.2,.9,.25,1.1) .08s both}
-html.ppa .pp-hero.ppa-go .pp-txt>*,html.ppa .pp-hero.ppa-go .pp-hs>div{animation:ppaU .42s cubic-bezier(.2,.9,.25,1.1) both;animation-delay:calc(.1s + var(--pi,0) * 60ms)}
+/* Выезд профиля игрока, вариант 2 (владелец 14.11: «анимации не видно, сделай другое»).
+   0–0,55 с: шапка целиком влетает слева из-за края экрана с «доездом»; 0,25–0,95 с: эмблема / фото прилетает справа с поворотом;
+   строки — снизу по очереди; ~0,8 с: по шапке проходит блик; цифры «выскакивают» и досчитываются. Блоки ниже — сбоку при прокрутке.
+   Только translate / rotate / scale (отдельные свойства — не спорят с наклоном player-tilt.js) и opacity. Включает pp-anim.js (html.ppa);
+   нет скрипта или «уменьшить движение» — всё на месте. */
+@keyframes ppaIn{0%{translate:-105vw 0}70%{translate:14px 0}100%{translate:0 0}}
+@keyframes ppaFly{0%{opacity:0;translate:70% 0;rotate:28deg;scale:.55}65%{opacity:1;translate:-4% 0;rotate:-4deg;scale:1.06}100%{opacity:1;translate:0 0;rotate:0deg;scale:1}}
+@keyframes ppaFlyG{0%{translate:70% 0;rotate:28deg;scale:.55}65%{translate:-4% 0;rotate:-4deg;scale:1.06}100%{translate:0 0;rotate:0deg;scale:1}}
+@keyframes ppaUp{from{opacity:0;translate:0 26px}to{opacity:1;translate:0 0}}
+@keyframes ppaPop{0%{opacity:0;scale:.4}70%{opacity:1;scale:1.18}100%{opacity:1;scale:1}}
+@keyframes ppaShine{from{translate:-120% 0}to{translate:320% 0}}
+@keyframes ppaSide{from{opacity:0;translate:-60px 0}to{opacity:1;translate:0 0}}
+html.ppa .pp-hero.ppa-go{animation:ppaIn .55s cubic-bezier(.2,.9,.25,1) both}
+html.ppa .pp-hero.ppa-go .pp-photo img.ph{animation:ppaFly .7s cubic-bezier(.2,.9,.25,1) .25s both}
+html.ppa .pp-hero.ppa-go .pp-ghost{animation:ppaFlyG .7s cubic-bezier(.2,.9,.25,1) .25s both}
+html.ppa .pp-hero.ppa-go .pp-txt>:not(.pp-hs){animation:ppaUp .4s cubic-bezier(.2,.9,.25,1.1) both;animation-delay:calc(.3s + var(--pi,0) * 80ms)}
+html.ppa .pp-hero.ppa-go .pp-hs>div{animation:ppaPop .45s cubic-bezier(.2,.9,.25,1.1) both;animation-delay:calc(.55s + var(--pi,0) * 70ms)}
+.ppa-shine{position:absolute;top:-10%;bottom:-10%;left:0;width:28%;z-index:3;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.38) 45%,rgba(255,255,255,.12) 60%,transparent);
+  translate:-120% 0;animation:ppaShine .7s ease-in .8s both}
 html.ppa .ppa-w{opacity:0}
-html.ppa .ppa-w.ppa-in{opacity:1;animation:ppaU .5s cubic-bezier(.2,.9,.25,1.1) both;animation-delay:calc(var(--pi,0) * 55ms)}
+html.ppa .ppa-w.ppa-in{animation:ppaSide .55s cubic-bezier(.2,.9,.25,1.1) both;animation-delay:calc(var(--pi,0) * 70ms)}

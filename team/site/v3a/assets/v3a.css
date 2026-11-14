@@ -1078,3 +1078,7 @@ html[data-theme="arena"]:not([data-col]) .sec{--ink-3:#414d5c}
 .sec{padding-top:clamp(52px,6.6vw,96px)}
 h2{font-size:clamp(32px,4.2vw,64px)}
 .sec-head{margin-bottom:clamp(24px,2.8vw,40px)}
+/* Черновик 14.11 (владелец: «первый слайд КХЛ/НХЛ размытый»): раздел сразу под шапкой лиги / клуба — на своей светлой подложке,
+   виден чётко сразу, без затухания по прокрутке (раньше на высоком экране висел полупрозрачным вместе с шапкой) */
+[data-theme="arena"] :is(.lghero,.tmhero)+.sec:not(#_)>.wrap{opacity:1}  /* :not(#_) — перебить правило с :not(#matches) */
+[data-theme="arena"] :is(.lghero,.tmhero)+.sec{background:var(--paper)}

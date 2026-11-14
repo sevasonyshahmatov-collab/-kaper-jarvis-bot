@@ -21,7 +21,7 @@
     if(!hero||!card||!bcol||!board)return;
     var bg=document.createElement('div');bg.className='h3bg';bg.setAttribute('aria-hidden','true');bg.innerHTML='<i></i>';hero.prepend(bg);
     var FB=d.dataset.sport==='football',T=FB?((window.JV_FOOT&&window.JV_FOOT.teams)||{}):((window.JV_TEAMS&&window.JV_TEAMS.teams)||{});
-    var DIR=FB?'fc':'em',RE=FB?/\/fc\/([^/]+)\.webp/:/\/em\/([^/.]+)\./,FALL=FB?['#1f9d5b','#2aa3a3']:['#3b6fd8','#36b8d6'];
+    var DIR=FB?'fc':'em',RE=FB?/\/fc\/([^/]+)\.webp/:/\/em\/(?:s\/)?([^/.]+)\./,FALL=FB?['#1f9d5b','#2aa3a3']:['#3b6fd8','#36b8d6'];
     function col(img,fb){var m=img&&RE.exec(img.getAttribute('src')||''),id=m&&m[1],t;try{id=id&&decodeURIComponent(id)}catch(e){}t=id&&T[id];return vivid(t&&(FB?t.c:t.colors),fb)}
     /* два следующих матча */
     var P=window.__heroPicks||[],next=document.createElement('div');next.className='h3next';board.after(next);
