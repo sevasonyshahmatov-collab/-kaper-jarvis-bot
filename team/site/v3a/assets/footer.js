@@ -13,6 +13,8 @@ const COLS=[
  ['Футбол',[['Матчи','football/index.html'],['Лиги','football/league.html?lg=epl'],['Лига чемпионов','football/ucl.html'],['Тренды','football/trends.html'],['Сравнение','football/compare.html'],['Прогноз АПЛ на сегодня','football/forecast-epl.html']]],
  ['JARVIS',[['Матчи дня','matches.html'],['Итоги прогнозов','results.html'],['Мой JARVIS','me/index.html'],['Прогноз на сегодня','forecast.html'],['Как считает модель','model.html'],['Словарь терминов','glossary.html']]]
 ];
+/* телефон (черновик 14.11): вместо трёх колонок — короткая строка главных ссылок; все разделы есть в нижней панели и «Ещё» */
+const MINI=[['Итоги прогнозов','results.html'],['Как считает модель','model.html'],['Словарь','glossary.html'],['Мой JARVIS','me/index.html']];
 const TG='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>';
 const old=document.querySelector('footer');
 const keep=old&&old.querySelector('#foot');
@@ -23,6 +25,7 @@ f.innerHTML=`<div class="wrap"><div class="jvf-top">
    <div class="jvf-soc" data-social="row"><a class="jvf-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Telegram @jarvibet</span></a></div>
    <button class="jvf-inst" id="jvf-inst" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14"/></svg><span>Установить на экран</span></button>
    <p class="jvf-ios" id="jvf-ios" hidden></p></div>
+  <nav class="jvf-mini" aria-label="Главные ссылки">${MINI.map(l=>`<a href="${esc(U(l[1]))}">${esc(l[0])}</a>`).join('')}</nav>
   <nav class="jvf-cols" aria-label="Разделы сайта">${COLS.map(c=>`<div><b>${esc(c[0])}</b>${c[1].map(l=>`<a href="${esc(U(l[1]))}">${esc(l[0])}</a>`).join('')}</div>`).join('')}</nav>
  </div>
  <div class="jvf-bot"><p class="jvf-data">Данные: ESPN, НХЛ, приложение КХЛ. Линии и расчёт обновляются дважды в день.</p><span class="jvf-slot"></span><span class="jvf-age" title="Сайт только для совершеннолетних">18+</span></div></div>`;
