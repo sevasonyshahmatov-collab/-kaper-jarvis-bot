@@ -29,21 +29,34 @@ const bar=document.createElement('nav');bar.className='tb';bar.setAttribute('ari
 bar.innerHTML=T.map(([k,n,h])=>`<a class="tb-i" href="${esc(U(h))}"${cur===k?' aria-current="page"':''}>${ic(k)}<span>${n}</span></a>`).join('')+
  `<button type="button" class="tb-i tb-more" aria-haspopup="dialog" aria-expanded="false" aria-controls="tb-sheet">${ic('more')}<span>Ещё</span></button>`;
 
-/* «Ещё»: разделы, которых нет в панели. Тренды, сравнение и игроки — свои у хоккея и футбола */
-const two=(n,hk,fb)=>`<div class="tbs-two"><b>${n}</b><a href="${esc(U(hk))}"${sport==='hockey'&&file===hk.split('/').pop()?' aria-current="page"':''}>Хоккей</a><a href="${esc(U(fb))}"${sport==='football'&&file===fb.split('/').pop()?' aria-current="page"':''}>Футбол</a></div>`;
-const one=(n,h,f)=>`<a class="tbs-a" href="${esc(U(h))}"${file===f&&!sport?' aria-current="page"':''}>${n}</a>`;
+/* «Ещё» (переделано 15.11, владелец: «панель стрёмная и неудобная»): список строк как в настройках телефона —
+   иконка · название · стрелка; группы по смыслу (общее, Хоккей, Футбол, Сайт); заголовок и крестик сверху, поиск — строкой */
+const RI={
+ cal:'<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+ star:'<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.9z"/>',
+ trend:'<path d="M3.5 17l5.5-5.5 4 4L20.5 8"/><path d="M15 8h5.5v5.5"/>',
+ vs:'<path d="M7 7h12l-3-3M17 17H5l3 3"/>',
+ ppl:'<circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="17" cy="9.5" r="2.4"/><path d="M15.8 14.6c2.3.1 4 1.6 4.6 4.4"/>',
+ me:'<path d="M12 20.5s-7.5-4.3-7.5-10A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.9c0 5.7-7.5 10-7.5 10z"/>',
+ model:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 15.5V12M12 15.5V8.5M16 15.5v-5"/>',
+ book:'<path d="M5 4.5h10.5A3.5 3.5 0 0 1 19 8v11.5H8.5A3.5 3.5 0 0 1 5 16z"/><path d="M5 16a3.5 3.5 0 0 1 3.5-3.5H19"/>'
+};
+const ri=k=>`<svg class="tbs-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${RI[k]}</svg>`;
+const chev='<svg class="tbs-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg>';
+const isCur=(h,sp)=>{const f=h.split('/').pop();return file===f&&(sp?sport===sp:(!sport&&!/^(hockey|football)$/.test(dir)))};
+const row=(k,n,h,sp)=>`<a class="tbs-r" href="${esc(U(h))}"${isCur(h,sp)?' aria-current="page"':''}>${ri(k)}<span>${n}</span>${chev}</a>`;
+const grp=(t,rows)=>`<section class="tbs-sec">${t?`<h3 class="tbs-t">${t}</h3>`:''}<div class="tbs-list">${rows.join('')}</div></section>`;
 const sh=document.createElement('div');sh.className='tbs-wrap';sh.hidden=true;
-sh.innerHTML=`<div class="tbs-bg"></div><div class="tbs" id="tb-sheet" role="dialog" aria-modal="true" aria-label="Ещё разделы" tabindex="-1">
+sh.innerHTML=`<div class="tbs-bg"></div><div class="tbs" id="tb-sheet" role="dialog" aria-modal="true" aria-labelledby="tbs-title" tabindex="-1">
  <div class="tbs-grip" aria-hidden="true"><i></i></div>
+ <div class="tbs-head"><b id="tbs-title">Разделы</b><button type="button" class="tbs-x" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
  <div class="tbs-in">
-  <button type="button" class="tbs-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><span>Поиск: клуб, игрок, матч</span></button>
-  <div class="tbs-g">${one('Матчи дня','matches.html','matches.html')}${one('Прогноз на сегодня','forecast.html','forecast.html')}</div>
-  ${two('Тренды','hockey/trends.html','football/trends.html')}
-  ${two('Сравнение','hockey/compare.html','football/compare.html')}
-  ${two('Игроки','hockey/players.html','football/players.html')}
-  <div class="tbs-g">${one('Мой JARVIS','me/index.html','')}${one('Как считает модель','model.html','model.html')}${one('Словарь терминов','glossary.html','glossary.html')}</div>
+  <button type="button" class="tbs-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><span>Найти клуб, игрока или матч</span></button>
+  ${grp('',[row('cal','Матчи дня','matches.html'),row('star','Прогноз на сегодня','forecast.html')])}
+  ${grp('Хоккей',[row('trend','Тренды','hockey/trends.html','hockey'),row('vs','Сравнение клубов','hockey/compare.html','hockey'),row('ppl','Игроки','hockey/players.html','hockey')])}
+  ${grp('Футбол',[row('trend','Тренды','football/trends.html','football'),row('vs','Сравнение клубов','football/compare.html','football'),row('ppl','Игроки','football/players.html','football')])}
+  ${grp('Сайт',[row('me','Мой JARVIS — избранное','me/index.html'),row('model','Как считает модель','model.html'),row('book','Словарь терминов','glossary.html')])}
   <p class="tbs-h" data-social-head hidden>Мы в сети</p><div data-social="sheet" hidden></div>
-  <button type="button" class="tbs-close">Закрыть</button>
  </div></div>`;
 
 function mount(){
@@ -54,14 +67,14 @@ function mount(){
  const open=o=>{if(o===!sh.hidden)return;
   if(o){last=document.activeElement;if(window.JV_SOCIAL)JV_SOCIAL.fill(sh);sh.hidden=false;de.classList.add('tbs-open');
    requestAnimationFrame(()=>requestAnimationFrame(()=>sh.classList.add('on')));more.setAttribute('aria-expanded','true');
-   setTimeout(()=>{const f=box.querySelector('a,button');f&&f.focus({preventScroll:true})},30)}
+   setTimeout(()=>{try{box.focus({preventScroll:true})}catch(e){}},30)}
   else{sh.classList.remove('on');more.setAttribute('aria-expanded','false');de.classList.remove('tbs-open');box.style.transform='';
    const done=()=>{if(!sh.classList.contains('on'))sh.hidden=true};
    matchMedia('(prefers-reduced-motion: reduce)').matches?done():setTimeout(done,260);
    if(last&&last.focus)try{last.focus({preventScroll:true})}catch(e){}}};
  more.addEventListener('click',()=>open(sh.hidden));
  sh.querySelector('.tbs-bg').addEventListener('click',()=>open(false));
- sh.querySelector('.tbs-close').addEventListener('click',()=>open(false));
+ sh.querySelector('.tbs-x').addEventListener('click',()=>open(false));
  sh.querySelector('.tbs-search').addEventListener('click',()=>{open(false);const b=document.querySelector('#hd .sbtn');if(b)setTimeout(()=>b.click(),40)});
  document.addEventListener('keydown',e=>{if(sh.hidden)return;
   if(e.key==='Escape'){e.preventDefault();open(false);more.focus()}

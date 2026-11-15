@@ -67,10 +67,11 @@ function mount(el,leagues){
  addEventListener('scroll',()=>S.forEach(s=>{s.rect=null}),{passive:true});
  /* крутим кадры только пока карточки на экране */
  let run=false;
+ const TOUCHJV=matchMedia('(hover:none),(pointer:coarse)').matches;
  const frame=t=>{
   S.forEach(s=>{
    let tx=s.tx,ty=s.ty;
-   if(!s.ptr){const a=t/1000;ty=Math.sin(a*.8+s.ph)*5;tx=Math.cos(a*.6+s.ph)*3.5}
+   if(!s.ptr){if(TOUCHJV){tx=0;ty=0;if(Math.abs(s.rx)<.02&&Math.abs(s.ry)<.02&&Math.abs(s.s-s.ts)<.002)return}else{const a=t/1000;ty=Math.sin(a*.8+s.ph)*5;tx=Math.cos(a*.6+s.ph)*3.5}}   /* телефон: без покачивания (15.11) */
    const k=s.ptr?.14:.07;
    s.rx+=(tx-s.rx)*k;s.ry+=(ty-s.ry)*k;s.s+=(s.ts-s.s)*.12;
    const st=s.c.style;

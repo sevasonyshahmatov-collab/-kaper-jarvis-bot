@@ -1247,3 +1247,10 @@ html body .pp-mk thead th{letter-spacing:.04em}
 /* профиль: блок «Линия» — запас снизу под крупные цифры (появился с новыми данными 15.11) */
 html body .pp-ln>div{padding-bottom:14px}
 @media (min-width:700px){html body .pp-ln>div{padding-bottom:16px}}
+/* шторка перехода — только на компьютере; на телефоне не показывать даже если осталась в разметке (15.11) */
+@media (max-width:900px),(pointer:coarse){.wipe{display:none!important}}
+/* телефон (владелец 15.11: «сайт дёрганый»): блоки не «въезжают» при прокрутке — видны сразу, без пустоты под пальцем */
+@media (max-width:900px),(pointer:coarse){
+  html .js [data-rv]>*,html.js [data-rv]>*{opacity:1!important;transform:none!important;transition:none!important}
+  html.ppa .ppa-w{opacity:1!important}html.ppa .ppa-w.ppa-in{animation:none!important}
+}

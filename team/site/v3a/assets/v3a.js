@@ -194,7 +194,8 @@ function chrome(){
 
 /* ── шторка при переходе между страницами ───────────────────── */
 function wipe(){
-  if(RM)return;
+  /* телефон и планшет — без шторки (владелец 15.11: чёрный экран на iPhone после «назад», переходы медленнее на 0,56 с) */
+  if(RM||matchMedia('(max-width:900px),(pointer:coarse)').matches){try{sessionStorage.removeItem('jv-wipe')}catch(e){}return}
   const w=document.createElement('div');w.className='wipe';w.setAttribute('aria-hidden','true');w.innerHTML=Array.from({length:6},(_,i)=>`<i style="--i:${i}"></i>`).join('');document.body.appendChild(w);
   let came=false;try{came=sessionStorage.getItem('jv-wipe')==='1';sessionStorage.removeItem('jv-wipe')}catch(e){}
   if(came){w.querySelectorAll('i').forEach(i=>i.style.transform='scaleY(1)');requestAnimationFrame(()=>requestAnimationFrame(()=>{w.querySelectorAll('i').forEach(i=>i.style.transform='');w.classList.add('reveal')}))}

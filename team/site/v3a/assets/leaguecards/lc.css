@@ -94,3 +94,10 @@
 @media (max-width:600px){.lcard .pl.half{height:76cqw;left:77%}}
 /* кнопка «Страница лиги»: отступ текста от края (15.11, check_padding.js) */
 .lcard .open{padding:max(10px,1.7cqw) max(16px,2.8cqw);line-height:1.15}
+/* iPhone (Safari): обратная сторона карточки просвечивала зеркально поверх лицевой (владелец 15.11, снимок).
+   backface-visibility в Safari не срабатывает при фильтрах/масках внутри — прячем невидимую сторону явно, в середине поворота */
+.lcard .face.front{visibility:visible;transition:visibility 0s .35s}
+.lcard .face.back{visibility:hidden;transition:visibility 0s .35s}
+.lcard.is-flip .face.front{visibility:hidden}
+.lcard.is-flip .face.back{visibility:visible}
+@media (prefers-reduced-motion:reduce){.lcard .face{transition:none}}

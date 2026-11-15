@@ -13,7 +13,7 @@
 
 @media (max-width:760px){
   /* заголовок короче, пояснение в одну-две строки, плашки-галочки убраны, подполоса якорей — не нужна: есть нижняя панель */
-  html.has-tb .hd .subbar{display:none!important}
+  .hd .subbar{display:none!important}   /* без ожидания tabbar.js: иначе подполоса 45 px видна первые 0,3 с и страница прыгает вверх (15.11) */
   .hm .lead-l{display:none}.hm .lead-s{display:inline}
   .hm{padding-top:14px!important;padding-bottom:18px!important;min-height:0!important}
   .hm .hm-grid{display:flex;flex-direction:column;align-items:stretch;gap:0}
@@ -60,3 +60,7 @@
 /* «Мы в сети» (14.11, п. 7) */
 .soc-sec .sec-head{display:block;text-align:center}.soc-sec h2{text-align:center}
 .soc-lead{text-align:center;margin:0 auto 18px;max-width:52ch;color:var(--ink-2)}
+/* главная не прыгает при загрузке (владелец 15.11 «сайт дёрганый»; сдвиг вёрстки был 1,03 при норме < 0,1):
+   место под счёт «203 из 266» занято сразу, до прихода данных */
+.hm-score[hidden]{display:flex;visibility:hidden}
+.hm-score[hidden] b::before{content:"000"}.hm-score[hidden] span::before{content:"прогнозов зашло · 00 % · все итоги со ссылкой на пост"}
