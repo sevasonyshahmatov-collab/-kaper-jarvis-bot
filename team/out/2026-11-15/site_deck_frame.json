@@ -1,0 +1,10 @@
+{
+ "day": "2026-11-15",
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Тёмная рамка вокруг карточки в «Матчах дня» — это я задел утром, когда правил отступы. Убрал, вернул как было — уже и на живом сайте.\n\nЖивой сайт: https://sevasonyshahmatov-collab.github.io/matches.html\nЧерновик: https://sevasonyshahmatov-collab.github.io/draft/"
+  }
+ ]
+}
