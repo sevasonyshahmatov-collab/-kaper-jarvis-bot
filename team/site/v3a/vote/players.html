@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ru" data-sport="hockey"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><title>Раздел «Игроки» — варианты (черновик)</title>
+<link rel="stylesheet" href="../assets/v3a.css">
+<!-- Черновик для владельца (15.11): четыре варианта раздела «Игроки» на реальных данных НХЛ (hockey/data/plite_nhl.json).
+     Сайт не меняет: страница только для выбора. -->
+<style>
+body{background:var(--paper);color:var(--ink)}
+.vw{max-width:1180px;margin:0 auto;padding:24px 16px 96px}
+.vw h1{font:800 clamp(26px,4vw,40px)/1.1 var(--display);text-transform:none;margin:0 0 8px}
+.vw .lead{color:var(--ink-2);max-width:70ch;margin:0 0 18px;font-size:16px;line-height:1.5}
+.vsw{position:sticky;top:0;z-index:5;display:flex;gap:8px;overflow-x:auto;padding:10px 0;background:var(--paper);scrollbar-width:none}
+.vsw a{flex:none;padding:10px 16px;border-radius:999px;background:var(--paper-2);color:var(--ink);text-decoration:none;font:700 15px/1.1 var(--display)}
+.vsec{margin-top:40px;scroll-margin-top:64px}
+.vsec>h2{font:800 clamp(22px,3vw,30px)/1.15 var(--display);text-transform:none;margin:0 0 6px}
+.vsec>p.why{margin:0 0 16px;color:var(--ink-2);font-size:15px;line-height:1.5;max-width:75ch}
+.av{width:44px;height:44px;border-radius:50%;object-fit:cover;object-position:top;background:var(--paper-3);flex:none}
+.em{width:22px;height:22px;object-fit:contain;flex:none}
+.num{font-variant-numeric:tabular-nums}
+/* А: тройка + список */
+.podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.pc{position:relative;overflow:hidden;border-radius:16px;padding:16px;background:linear-gradient(140deg,#16325c,#0b1a33);color:#fff;min-height:190px;display:flex;flex-direction:column;justify-content:flex-end}
+.pc .ph{position:absolute;right:-6px;bottom:0;height:88%;object-fit:contain}
+.pc .rk{position:absolute;left:16px;top:12px;font:900 44px/1 var(--display);opacity:.35}
+.pc b{position:relative;font:800 19px/1.15 var(--display);max-width:62%}
+.pc small{position:relative;opacity:.8;font-size:13px;margin-top:2px}
+.pc .pts{position:relative;margin-top:10px;font:900 40px/1 var(--display)}.pc .pts span{font-size:14px;font-weight:700;opacity:.8;margin-left:6px}
+.pc .ga{position:relative;font:700 14px/1.2 var(--display);opacity:.9}
+.lst{list-style:none;margin:12px 0 0;padding:0;border-radius:14px;background:var(--card);border:1px solid var(--rule);overflow:hidden}
+.lst li{display:grid;grid-template-columns:28px 44px minmax(0,1fr) 54px 44px 44px 72px;align-items:center;gap:12px;padding:10px 16px;border-top:1px solid var(--rule)}
+.lst li:first-child{border-top:0}.lst li.hd{padding-top:12px;padding-bottom:8px;font:700 12px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.lst .r{color:var(--ink-3);font-weight:800;text-align:center}
+.lst .nm b{display:block;font:700 16px/1.2 var(--display)}.lst .nm small{display:flex;gap:6px;align-items:center;color:var(--ink-3);font-size:13px}
+.lst .p{font:900 22px/1 var(--display);text-align:center}.lst .g,.lst .a{text-align:center;font:700 16px/1 var(--display);color:var(--ink-2)}
+.fm{display:flex;gap:3px;justify-content:center}.fm i{width:9px;height:9px;border-radius:50%;background:var(--paper-3)}.fm i.on{background:var(--ice,#1c63c4)}.fm i.on2{background:#f2a900}
+@media (max-width:700px){
+ .podium{grid-template-columns:1fr;gap:8px}.pc .rk{left:auto;right:16px;top:10px;font-size:36px}.pc{min-height:120px}.pc .ph{height:120%}.pc .pts{font-size:32px;margin-top:6px}
+ .lst li{grid-template-columns:24px 40px minmax(0,1fr) 48px;gap:10px;padding:10px 12px}.lst .g,.lst .a,.lst .fmc,.lst li.hd .x{display:none}
+ .lst .av{width:40px;height:40px}
+}
+/* Б: таблица */
+.tw{overflow-x:auto;border-radius:14px;border:1px solid var(--rule);background:var(--card)}
+.tb2{border-collapse:collapse;width:100%;min-width:640px;font:600 15px/1.2 var(--display)}
+.tb2 th{position:sticky;top:0;background:var(--paper-2);text-align:right;padding:12px 10px;font:700 12px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);cursor:pointer;white-space:nowrap}
+.tb2 th:nth-child(-n+2){text-align:left}.tb2 th.on{color:var(--ink)}
+.tb2 td{padding:10px;border-top:1px solid var(--rule);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tb2 td:first-child,.tb2 th:first-child{padding-left:16px;text-align:center;width:28px;color:var(--ink-3)}
+.tb2 td:last-child,.tb2 th:last-child{padding-right:16px}
+.tb2 td.nm{text-align:left}.tb2 td.nm div{display:flex;align-items:center;gap:10px}.tb2 td.nm .av{width:34px;height:34px}
+.tb2 td.on{font-weight:900;background:color-mix(in srgb,var(--ice,#1c63c4) 10%,transparent)}
+.tb2 td:nth-child(2),.tb2 th:nth-child(2){position:sticky;left:0;background:var(--card);z-index:1}.tb2 th:nth-child(2){background:var(--paper-2);z-index:2}
+/* В: карточки */
+.cg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.cc{position:relative;overflow:hidden;border-radius:16px;background:linear-gradient(170deg,#1b3a6b,#0c1830 70%);color:#fff;aspect-ratio:3/4;display:flex;flex-direction:column;justify-content:flex-end;padding:14px}
+.cc .ph{position:absolute;inset:0 0 auto 0;margin:auto;top:6%;height:62%;left:50%;translate:-50% 0;object-fit:contain}
+.cc .no{position:absolute;right:12px;top:8px;font:900 34px/1 var(--display);opacity:.25}
+.cc .emc{position:absolute;left:12px;top:12px;width:30px;height:30px;object-fit:contain;background:#fff;border-radius:50%;padding:3px}
+.cc .bt{position:relative;background:linear-gradient(transparent,rgba(5,10,20,.9) 30%);margin:0 -14px -14px;padding:26px 14px 14px;text-align:center}
+.cc b{display:block;font:800 16px/1.15 var(--display)}
+.cc .pts{font:900 30px/1 var(--display);margin-top:6px}.cc .pts small{font-size:12px;font-weight:700;opacity:.75;margin-left:4px}
+.cc .ga{font:700 13px/1.2 var(--display);opacity:.85;margin-top:2px}
+@media (max-width:900px){.cg{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
+/* Г: лидеры по категориям */
+.lead5{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.lc5{border-radius:14px;background:var(--card);border:1px solid var(--rule);padding:14px 16px}
+.lc5 h3{margin:0 0 10px;font:800 13px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.lc5 .top{display:flex;align-items:center;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--rule)}
+.lc5 .top .av{width:52px;height:52px}.lc5 .top b{display:block;font:800 16px/1.15 var(--display)}.lc5 .top .v{margin-left:auto;font:900 32px/1 var(--display)}
+.lc5 ol{list-style:none;margin:8px 0 0;padding:0}.lc5 li{display:flex;align-items:center;gap:8px;padding:6px 0;font:600 15px/1.2 var(--display)}
+.lc5 li span{flex:1;min-width:0}.lc5 li .v{font-weight:800;font-variant-numeric:tabular-nums}
+@media (max-width:900px){.lead5{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.lead5{grid-template-columns:1fr}}
+.note{margin-top:10px;color:var(--ink-3);font-size:13px}
+</style></head>
+<body>
+<main class="vw">
+ <h1>Раздел «Игроки» — четыре варианта</h1>
+ <p class="lead">Черновик для выбора: реальные лидеры НХЛ по очкам на сегодня. Живой сайт не меняется. Посмотрите с телефона и компьютера и напишите букву (можно сочетание, например «Г сверху + А»).</p>
+ <nav class="vsw" aria-label="Варианты"><a href="#va">А. Тройка + список</a><a href="#vb">Б. Таблица</a><a href="#vc">В. Карточки</a><a href="#vd">Г. Лидеры по категориям</a></nav>
+ <section class="vsec" id="va"><h2>А. Тройка лидеров + плотный список</h2><p class="why">Лидеры — крупно, остальные — тонкими строками: на экране 12–15 игроков вместо 5. Справа ровными столбцами очки, голы, передачи и форма за 5 матчей (точка — набрал очки).</p><div id="A"></div></section>
+ <section class="vsec" id="vb"><h2>Б. Таблица статистики</h2><p class="why">Максимум цифр, сортировка нажатием на заголовок. На телефоне имя закреплено, цифры листаются вбок.</p><div id="B"></div></section>
+ <section class="vsec" id="vc"><h2>В. Коллекционные карточки</h2><p class="why">В стиле главной: фото, номер, эмблема, очки крупно. Красиво, но сравнивать цифры труднее.</p><div id="C"></div></section>
+ <section class="vsec" id="vd"><h2>Г. Лидеры по категориям</h2><p class="why">Кто лучший в чём: голы, передачи, очки, броски. Хорошо как первый экран раздела, ниже — полный список (А или Б).</p><div id="D"></div></section>
+ <p class="note" id="src"></p>
+</main>
+<script>
+(async()=>{
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const EM={DAL:'dallas',MIN:'minnesota'};const em=t=>'../assets/em/'+(EM[t]||('nhl_'+String(t).toLowerCase()))+'.webp';
+let J;try{J=await (await fetch('../hockey/data/plite_nhl.json')).json()}catch(e){document.getElementById('A').textContent='Нет данных';return}
+const P=J.players.filter(p=>p.pos!=='G'&&(p.log||[]).length).map(p=>{const L=p.log;const g=L.reduce((s,r)=>s+(r[3]||0),0),a=L.reduce((s,r)=>s+(r[4]||0),0),sh=L.reduce((s,r)=>s+(r[5]||0),0),tv=L.filter(r=>r[6]);
+ return {n:p.n,t:p.t,no:p.no,img:p.img,id:p.id,pos:p.pos,gp:L.length,g,a,p:g+a,sh,toi:tv.length?tv.reduce((s,r)=>s+r[6],0)/tv.length:0,f5:L.slice(-5).map(r=>(r[3]||0)+(r[4]||0))}});
+const TN=x=>x.t;const mmss=s=>Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0');
+const top=[...P].sort((x,y)=>y.p-x.p||y.g-x.g);
+const av=p=>`<img class="av" src="${esc(p.img||'')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
+const emi=p=>`<img class="em" src="${em(p.t)}" alt="" loading="lazy">`;
+const pos=p=>p.pos==='D'?'защитник':'нападающий';
+// А
+document.getElementById('A').innerHTML=`<div class="podium">${top.slice(0,3).map((p,i)=>`<div class="pc"><span class="rk">${i+1}</span><img class="ph" src="${esc(p.img||'')}" alt=""><b>${esc(p.n)}</b><small>${esc(TN(p))} · ${pos(p)}</small><div class="pts num">${p.p}<span>очков</span></div><div class="ga">${p.g} г + ${p.a} п · ${p.gp} матчей</div></div>`).join('')}</div>
+<ol class="lst"><li class="hd"><span>#</span><span></span><span>Игрок</span><span style="text-align:center">О</span><span class="x" style="text-align:center">Г</span><span class="x" style="text-align:center">П</span><span class="x" style="text-align:center">Форма</span></li>${top.slice(3,15).map((p,i)=>`<li><span class="r num">${i+4}</span>${av(p)}<span class="nm"><b>${esc(p.n)}</b><small>${emi(p)}${esc(TN(p))} · ${p.g} + ${p.a}</small></span><span class="p num">${p.p}</span><span class="g num">${p.g}</span><span class="a num">${p.a}</span><span class="fmc"><span class="fm">${p.f5.map(v=>`<i class="${v>=2?'on2':v?'on':''}"></i>`).join('')}</span></span></li>`).join('')}</ol>`;
+// Б
+const COLS=[['gp','И'],['g','Г'],['a','П'],['p','О'],['sh','Бр'],['toi','Время']];let sk='p';
+const drawB=()=>{const L=[...P].sort((x,y)=>y[sk]-x[sk]||y.p-x.p).slice(0,15);
+ document.getElementById('B').innerHTML=`<div class="tw"><table class="tb2"><thead><tr><th>#</th><th>Игрок</th>${COLS.map(([k,n])=>`<th data-k="${k}" class="${k===sk?'on':''}">${n}${k===sk?' ▼':''}</th>`).join('')}</tr></thead><tbody>${L.map((p,i)=>`<tr><td>${i+1}</td><td class="nm"><div>${av(p)}<span><b>${esc(p.n)}</b><br><small style="color:var(--ink-3)">${esc(TN(p))}</small></span></div></td>${COLS.map(([k])=>`<td class="${k===sk?'on':''}">${k==='toi'?mmss(p.toi):p[k]}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+ document.querySelectorAll('#B th[data-k]').forEach(th=>th.onclick=()=>{sk=th.dataset.k;drawB()})};drawB();
+// В
+document.getElementById('C').innerHTML=`<div class="cg">${top.slice(0,8).map(p=>`<div class="cc"><img class="emc" src="${em(p.t)}" alt=""><span class="no num">${p.no||''}</span><img class="ph" src="${esc(p.img||'')}" alt=""><div class="bt"><b>${esc(p.n)}</b><div class="pts num">${p.p}<small>очков</small></div><div class="ga">${p.g} г · ${p.a} п · ${p.gp} м</div></div></div>`).join('')}</div>`;
+// Г
+const CAT=[['g','Голы'],['a','Передачи'],['p','Очки'],['sh','Броски']];
+document.getElementById('D').innerHTML=`<div class="lead5">${CAT.map(([k,n])=>{const L=[...P].sort((x,y)=>y[k]-x[k]||y.p-x.p).slice(0,5);const f=L[0];
+ return `<div class="lc5"><h3>${n}</h3><div class="top">${av(f)}<span><b>${esc(f.n)}</b><small style="color:var(--ink-3)">${esc(TN(f))}</small></span><span class="v num">${f[k]}</span></div><ol>${L.slice(1).map((p,i)=>`<li><span class="num" style="color:var(--ink-3);width:16px">${i+2}</span>${emi(p)}<span>${esc(p.n)}</span><span class="v">${p[k]}</span></li>`).join('')}</ol></div>`}).join('')}</div>`;
+document.getElementById('src').textContent='Данные: НХЛ, '+(J.built||'')+'. Фото — с сайта НХЛ, эмблемы — из сайта.';
+})();
+</script>
+</body></html>
