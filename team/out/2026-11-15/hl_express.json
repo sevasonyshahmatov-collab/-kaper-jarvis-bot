@@ -1,0 +1,55 @@
+{
+ "day": "2026-11-15",
+ "make": [
+  "team/highlights/express.py out/highlights/express"
+ ],
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Актуальное «Экспресс» для Instagram: 20 экспрессов из канала (31.10–15.11), зашло 17 из 20. Первая картинка — обложка-кружок.\n\nКак собрать: выложите кадры историями → профиль → «+» → «Актуальное» → отметьте их → название «Экспресс» → «Изменить обложку» → первая картинка. Через API Instagram актуальное не создаётся — только в приложении.\n\nФутбольный экспресс 0811-e12 (Ланс — Марсель, Атлетико — Барселона) в канале был, а итога по нему нет — не включил. Напишите, зашёл или нет, — добавлю."
+  },
+  {
+   "to": "owner",
+   "type": "album",
+   "files": [
+    "out/highlights/express/00_cover.jpg",
+    "out/highlights/express/01_3110-e1.jpg",
+    "out/highlights/express/02_0111-e5.jpg",
+    "out/highlights/express/03_0211-e1.jpg",
+    "out/highlights/express/04_0311-e6.jpg",
+    "out/highlights/express/05_0411-e1.jpg",
+    "out/highlights/express/06_0411-e8.jpg",
+    "out/highlights/express/07_0511-e4.jpg",
+    "out/highlights/express/08_0511-e5.jpg",
+    "out/highlights/express/09_0611-e7.jpg"
+   ],
+   "text": "Экспресс — актуальное, 1/3"
+  },
+  {
+   "to": "owner",
+   "type": "album",
+   "files": [
+    "out/highlights/express/10_0711-e13.jpg",
+    "out/highlights/express/11_0711-e20.jpg",
+    "out/highlights/express/12_0811-e5.jpg",
+    "out/highlights/express/13_0811-e13.jpg",
+    "out/highlights/express/14_0911-e10.jpg",
+    "out/highlights/express/15_1011-e4.jpg",
+    "out/highlights/express/16_1111-e8.jpg",
+    "out/highlights/express/17_1211-e4.jpg",
+    "out/highlights/express/18_1311-e5.jpg",
+    "out/highlights/express/19_1411-e1.jpg"
+   ],
+   "text": "Экспресс — актуальное, 2/3"
+  },
+  {
+   "to": "owner",
+   "type": "album",
+   "files": [
+    "out/highlights/express/20_1411-e2.jpg"
+   ],
+   "text": "Экспресс — актуальное, 3/3"
+  }
+ ]
+}
