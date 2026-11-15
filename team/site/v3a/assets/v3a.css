@@ -1244,3 +1244,6 @@ html body .pp-rk{font-size:11px!important}
  html body .dk-ctop{padding-left:max(16px,1.5vw);padding-right:max(16px,1.5vw)}html body .dk-cbot{padding-left:max(16px,1.5vw);padding-right:max(16px,1.5vw)}
  html body .mk3 b{font-size:18px;letter-spacing:-.01em}}
 html body .pp-mk thead th{letter-spacing:.04em}
+/* профиль: блок «Линия» — запас снизу под крупные цифры (появился с новыми данными 15.11) */
+html body .pp-ln>div{padding-bottom:14px}
+@media (min-width:700px){html body .pp-ln>div{padding-bottom:16px}}
