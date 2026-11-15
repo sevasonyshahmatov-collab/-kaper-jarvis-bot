@@ -1,0 +1,26 @@
+{
+ "day": "2026-11-15",
+ "make": [
+  "team/highlights/covers.py out/highlights/covers"
+ ],
+ "messages": [
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "out/highlights/covers/cover_2_tekst.jpg"
+   ],
+   "text": "Обложка актуального «Экспресс» (вариант 2 «ЭКСПРЕСС · ИТОГИ»). Актуальное → «Ещё» → «Редактировать актуальное» → «Изменить обложку» → эта картинка."
+  },
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "out/highlights/covers/cover_2_tekst.jpg"
+   ],
+   "captions": [
+    "то же без сжатия Telegram"
+   ]
+  }
+ ]
+}

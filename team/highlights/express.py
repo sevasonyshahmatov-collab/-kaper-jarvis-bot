@@ -182,7 +182,9 @@ def render(out):
     data, miss = collect()
     os.makedirs(out, exist_ok=True)
     json.dump(data, open(os.path.join(out, 'express.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-    files = [cover(os.path.join(out, '00_cover.jpg'))]
+    import covers                               # обложка — вариант 2 «Текст» (владелец 15.11)
+    covers.v_text(os.path.join(out, '00_cover.jpg'))
+    files = [os.path.join(out, '00_cover.jpg')]
     for i, c in enumerate(data, 1):
         p = os.path.join(out, '%02d_%s.jpg' % (i, c['pid']))
         legs = [dict(x, kef=x['kef'] or 0) for x in c['legs']]
