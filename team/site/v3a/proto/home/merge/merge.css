@@ -32,3 +32,8 @@
 }
 .mg-deck .nx{padding:max(8px,2.2cqw) max(10px,3cqw)}
 .mg-deck .bk span{font-size:max(12px,5.4cqw)}.mg-deck .bk em{font-size:max(11px,4cqw)}
+/* отступы текста от края (15.11, check_padding.js): панель текста, мини-плашка матча, кнопка «Открыть раздел» */
+.mg-deck .txt{padding:max(12px,5cqw)}
+.mg-deck .nx{padding:max(10px,2.6cqw) max(12px,3.4cqw)}
+.mg-deck .open{padding:max(8px,2.4cqw) max(10px,3.6cqw);white-space:nowrap;gap:max(4px,2cqw)}
+@media (min-width:700px){.mg-deck .txt{padding:max(16px,5cqw)}.mg-deck .nx{padding:max(12px,2.6cqw) max(16px,3.4cqw)}.mg-deck .open{padding:max(12px,2.6cqw) max(16px,3.6cqw)}}

@@ -40,7 +40,7 @@ $('hero').innerHTML=`
  </div>
  <ul class="facts" aria-label="Коротко" data-rv>
   <li><b class="num">${ids.length}</b><span>${plural(ids.length,'клуб','клуба','клубов')} в ${CUP?'общем этапе':'лиге'}</span></li>
-  <li><b class="num">${gpMax}<small style="font-size:.42em;color:var(--ink-3)"> / ${tours}</small></b><span>${CUP?'сыграно туров общего этапа':'сыграно туров из '+tours}</span></li>
+  <li><b class="num">${gpMax}<small style="font-size:max(11px,.42em);color:var(--ink-3)"> / ${tours}</small></b><span>${CUP?'сыграно туров общего этапа':'сыграно туров из '+tours}</span></li>
   <li><b class="num">${M.length}</b><span>${plural(M.length,'матч сыгран','матча сыграно','матчей сыграно')} в сезоне</span></li>
   <li><b class="num" id="fUp">—</b><span id="fUpl">матчей в ближайшие 7 дней</span></li>
  </ul>
@@ -125,7 +125,7 @@ function mrow(m,fut){const hw=!fut&&m.gf>m.ga,aw=!fut&&m.ga>m.gf,left=fut?JV.lef
    <li><b class="num">${blank}</b><span>${plural(blank,'матч','матча','матчей')} 0:0</span><em>${pc(blank)}% от всех</em></li>
   </ul>
   <div class="lgbar" data-rv><h3>Чем заканчиваются матчи</h3>
-   <div class="bar" role="img" aria-label="Победы хозяев ${hp} %, ничьи ${dp} %, победы гостей ${ap} %"><i class="h" style="flex:${hw||.0001}">${hp>=8?hp+'%':''}</i><i class="d" style="flex:${dr||.0001}">${dp>=8?dp+'%':''}</i><i class="a" style="flex:${aw||.0001}">${ap>=8?ap+'%':''}</i></div>
+   <div class="bar" role="img" aria-label="Победы хозяев ${hp} %, ничьи ${dp} %, победы гостей ${ap} %"><i class="h" style="flex:${hw||.0001}">${hp>=16?hp+'%':''}</i><i class="d" style="flex:${dr||.0001}">${dp>=16?dp+'%':''}</i><i class="a" style="flex:${aw||.0001}">${ap>=16?ap+'%':''}</i></div>
    <ul><li style="--k:#1d7a45">Победы хозяев: ${hp}% (${hw})</li><li style="--k:#6b7585">Ничьи: ${dp}% (${dr})</li><li style="--k:#1c63c4">Победы гостей: ${ap}% (${aw})</li></ul></div>`}
 
 /* ── игроки: бомбардиры и карточки (данные подгружаем отдельно: файл тяжёлый) ── */

@@ -1134,3 +1134,113 @@ html body .lgm{padding-top:12px;padding-bottom:12px}
 .l3 .sc{display:inline-grid;grid-template-columns:2.6em 1.6em;align-items:baseline;column-gap:4px}
 .l3 .sc b{font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
 .l3 .sc small{margin-left:0!important;text-align:left}
+/* ══ отступы, проход 15.11 (check_padding.js на 5 ширинах; цель — ноль) ══ */
+html body .skip{padding:12px 16px}
+html body :is(.soc-row,.soc-sheet) .soc-t{padding:12px 14px}
+@media (min-width:700px){html body :is(.soc-row,.soc-sheet) .soc-t{padding:12px 16px}}
+html body .kx>span{padding:8px 10px}
+/* график в профиле: столбик не шире своей колонки (раньше 34 px при колонке 19 px — столбики слипались на телефоне);
+   цифра — над столбиком, а не впритык внутри */
+html body .pp-col{grid-template-columns:minmax(0,1fr)}
+html body .pp-col .bar{position:relative;justify-self:center}
+html body .pp-col .bar b,html body .pp-col .bar.g b{position:absolute;bottom:100%;left:50%;translate:-50% 0;padding:0 0 3px;color:var(--ink-2);white-space:nowrap}
+html body .pp-chart{padding-top:30px}
+html body .pp-chart{column-gap:clamp(4px,.8vw,8px)}
+html body .pp-col small{font-size:11px}
+html body ul.lgml li.lgm{padding-top:12px;padding-bottom:12px}
+/* кнопки-«таблетки» выше 34 px — как плашка: 10–12 px сверху-снизу, 12–16 px по бокам */
+html body .gl-toc a{padding:10px 14px}
+html body .fc-sw a,html body .md-sw a{padding:12px 16px}
+html body .chips a{padding-top:12px;padding-bottom:12px;padding-right:16px}
+html body .hm-proof li{padding:10px 16px 10px 30px;line-height:1.15}
+html body .pp-cta a{padding:12px 24px;text-align:center;line-height:1.2}
+html body .pp-crumbs a{padding-right:16px}
+html body .tr-bar .tab{padding-left:12px;padding-right:14px}
+/* плитки и строки с крупными цифрами (line-height 1 — цифра выступает за строку): запас снизу */
+html body .tr{padding:12px 12px 14px}
+@media (min-width:761px){html body .tr{padding-bottom:16px}}
+html body .dvc dl>div.bst,html body .bst{padding-top:12px;padding-bottom:14px}
+@media (min-width:700px){html body .dvc dl>div.bst,html body .bst{padding-bottom:16px}}
+html body .pp-tile{padding:12px 14px 14px}
+@media (min-width:700px){html body .pp-tile{padding:14px 16px 16px}}
+html body .md-lam div{padding:14px 16px}
+html body .cmp-fp{padding:14px 16px 16px}
+html body .cmp-vc .ln{padding:10px 12px}
+html body .resl li{padding:12px}
+@media (min-width:700px){html body .resl li{padding:12px 16px}}
+html body .mk3 span{padding:8px}
+html body .nmatch .kx li{padding:8px 10px}
+html body .kn{line-height:1.3}
+html body .win-bar{padding:10px 16px}
+html body .md-diff{display:inline-block;padding:4px 8px;line-height:1.15}
+html body code{white-space:nowrap}
+html body .mx-bar i{padding-left:12px;padding-right:12px}
+@media (min-width:700px){html body .mx-bar i{padding-left:16px;padding-right:16px}}
+html body .confs .ltab td.pt,html body .confs .ltab th:last-child{width:44px}
+@media (max-width:620px){html body .confs .ltab th:nth-child(6),html body .confs .ltab td:nth-child(6){width:68px}html body .lgpt .pc .av{width:36px;height:36px}}
+html body .lgpt td.r{width:48px}
+html body .pp-chart{padding-left:12px;padding-right:12px}
+@media (min-width:700px){html body .pp-chart{padding-left:16px;padding-right:16px;padding-bottom:14px}}
+/* полоса «Чем заканчиваются матчи»: цифра внутри — только если доля ≥16 % (иначе не помещается; все доли — в подписи ниже) */
+html body .lgbar .bar{height:48px}
+html body .rs-cal :is(td,th):not(:first-child):not(:last-child){padding-right:5px}
+/* значок итога (В/Н/П) на кружке эмблемы: буква с отступом 8 px от края круга */
+html body .mx-dots b em{width:24px;height:24px;font-size:12px;right:-6px;bottom:-6px}
+@media (min-width:900px){html body .mx-dots b em{width:27px;height:27px;font-size:13px}}
+/* подписи линий на графике голов (страница клуба): текст рядом с линией, без подложки */
+html body .hl em{background:none;padding:0;left:6px;top:0}
+/* таблица «Положение в таблице» на странице матча: ширина по содержимому (раньше название клуба вылезало за ячейку на 2 px) */
+html body .mt-tab{width:max-content;min-width:100%}
+/* рынки игрока: шапка и названия рынков не переносятся по слогам и не вылезают за ячейку — таблица шире и листается вбок */
+html body .pp-mk{width:max-content;min-width:100%}
+html body .pp-mk th{white-space:nowrap}
+/* проход 15.11, третий заход */
+@media (min-width:700px){
+ html body .gl-toc a{padding:12px 16px}
+ html body .fc-sw a,html body .md-sw a{padding:14px 18px;line-height:1.1}
+ html body ul.lgml li.lgm{padding-top:14px;padding-bottom:14px}
+ html body .tr{padding-left:16px;padding-right:16px}
+ html body .mk3 span{padding:12px 16px}
+ html body .cmp-vc .ln{padding:12px 16px}
+ html body .win-bar{padding:12px 16px}
+}
+html body .trs .tr{padding-left:16px;padding-right:16px}
+@media (max-width:699px){html body .trs .tr{padding-left:12px;padding-right:12px}}
+html body .hm-proof li{padding-top:12px;padding-bottom:12px}
+html body code{padding:2px 10px}
+html body .cmp-side{padding-left:12px;padding-right:12px}
+html body .mk3 span{padding-top:10px;padding-bottom:10px}
+@media (max-width:620px){html body .confs .ltab th:nth-child(1),html body .confs .ltab td:nth-child(1){width:38px}}
+/* названия клубов в таблице лиги — целиком (перенос на вторую строку), без «Шанхайские Дра…» */
+html body .confs .ltab td:nth-child(2) span{white-space:normal;overflow:visible;text-overflow:clip}
+/* названия команд и имена игроков — целиком, переносом на вторую строку, без троеточия (владелец; проверка tools/check_ellipsis.js) */
+html body :is(.lgm .t span,.lgpl .who b,.lgpl .who a span,.mt-oth a b span,.stand .cl span,.op span,.pltop b,.pr .nm b,.team span,.l3 .op,.l3 .op .nm,.er span,.gm span,.hr span:nth-child(2),.h2l .pp,.h2l .pp>span,.resl .t span,.confs .ltab td:nth-child(2) span){
+  white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word;text-wrap:balance}
+html body .g .op span:not(.cupb){display:block;-webkit-line-clamp:unset;overflow:visible}
+/* остаток отступов (15.11) */
+html body p code,html body .md code{padding:2px 10px}
+@media (max-width:699px){html body .mk3 span{padding:10px 12px}}
+@media (min-width:700px){html body .mk3 span{padding:14px 16px}}
+@media (min-width:700px){html body .pr{padding-left:16px;padding-right:16px}html body .pp-tile{padding-left:16px;padding-right:16px}
+ html body .dk-cf{padding:max(16px,1.7vw)}html body .ab-f li{padding:18px 16px}html body .pr.k .nm{padding-top:2px}}
+@media (max-width:400px){html body .pp-tile span{letter-spacing:.02em}html body .pf-n>div{padding:16px 12px}html body .pf-n dt{text-align:center}}
+html body .dk-lnq span small{letter-spacing:.04em}
+html body .dk-lnq span{padding:8px 12px}
+html body .pp-mk th:last-child,html body .pp-mk td:last-child{padding-right:var(--pad-x)}
+html body .win-bar{min-height:36px;line-height:1.2}
+html body :is(.mg-deck .open,.lcard .open){line-height:1.2}
+@media (min-width:700px){html body .lcard .open{padding-top:12px;padding-bottom:12px}}
+@media (max-width:380px){html body .rs-cal{font-size:14px}html body .rs-cal :is(td,th):not(:first-child){padding-left:6px}html body .md-cta .btn-tg{font-size:15px;padding-left:16px;padding-right:16px}}
+@media (max-width:400px){html body .rs-card{padding:18px 16px;grid-template-columns:minmax(0,1fr)}html body .rs-cal th{font-size:12px}html body .rs-cal :is(td,th):not(:first-child){padding-left:8px}}
+html body :is(.md,article,.md-demo,.note) code{padding:2px 10px}
+html body .pp-tiles .pp-tile{padding-left:12px;padding-right:12px}
+@media (min-width:700px){html body .pp-tiles .pp-tile{padding-left:16px;padding-right:16px}}
+@media (max-width:400px){html body .pp-tiles .pp-tile span{letter-spacing:0}}
+@media (min-width:700px){html body .dk-card .dk-cf{padding:max(16px,1.7vw)}html body .win-bar{padding:14px 16px}}
+html body .pp-mk{table-layout:auto}
+/* текст не мельче 11 px (tools/check_fontsize.js) */
+html body .pp-rk{font-size:11px!important}
+@media (min-width:700px){html body .pp-tiles{grid-template-columns:repeat(auto-fit,minmax(128px,1fr))}
+ html body .dk-ctop{padding-left:max(16px,1.5vw);padding-right:max(16px,1.5vw)}html body .dk-cbot{padding-left:max(16px,1.5vw);padding-right:max(16px,1.5vw)}
+ html body .mk3 b{font-size:18px;letter-spacing:-.01em}}
+html body .pp-mk thead th{letter-spacing:.04em}

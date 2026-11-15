@@ -92,3 +92,5 @@
 /* фото по пояс (Алистров): мельче, чтобы голова была на одной линии с игроком НХЛ и не закрывала текст */
 .lcard .pl.half{height:78cqw;left:75%}
 @media (max-width:600px){.lcard .pl.half{height:76cqw;left:77%}}
+/* кнопка «Страница лиги»: отступ текста от края (15.11, check_padding.js) */
+.lcard .open{padding:max(10px,1.7cqw) max(16px,2.8cqw);line-height:1.15}

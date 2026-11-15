@@ -55,7 +55,7 @@ function build(SE,PL){
   <ul class="facts" aria-label="Коротко" data-rv>
    <li><b class="num">${TM.length}</b><span>${plural(TM.length,'клуб','клуба','клубов')} в лиге</span></li>
    <li><b class="num">${M.length}</b><span>${plural(M.length,'матч сыгран','матча сыграно','матчей сыграно')} в сезоне</span></li>
-   <li><b class="num">${gpMax}<small style="font-size:.42em;color:var(--ink-3)"> / ${L.gm}</small></b><span>игр у лидера по числу матчей</span></li>
+   <li><b class="num">${gpMax}<small style="font-size:max(11px,.42em);color:var(--ink-3)"> / ${L.gm}</small></b><span>игр у лидера по числу матчей</span></li>
    <li><b class="num">${list.length}</b><span>${plural(list.length,'матч','матча','матчей')} в ближайшие 3 дня</span></li></ul>
   <ul class="chips" aria-label="Другие лиги" data-rv>${Object.keys(LGS).map(k=>`<li><a href="league.html?lg=${k}${tq}"${k===LG?' aria-current="page"':''}>${lgp(k)}${LGS[k].name}</a></li>`).join('')}</ul>`;
 
@@ -99,10 +99,10 @@ function build(SE,PL){
     <li><b class="num">${hp}<small>%</small></b><span>побед хозяев</span><em>${hw} из ${n}</em></li>
     <li><b class="num">${n?f1(M.filter(m=>m.gf+m.ga>5).length/n*100,0):'—'}<small>%</small></b><span>матчей с тоталом больше 5,5</span><em>${M.filter(m=>m.gf+m.ga>5).length} из ${n}</em></li></ul>
    <div class="lgbar" data-rv><h3>Победы хозяев и гостей</h3>
-    <div class="bar" role="img" aria-label="Победы хозяев ${hp} %, гостей ${ap} %"><i class="h" style="flex:${hw||.0001}">${hp>=8?hp+'%':''}</i><i class="a" style="flex:${aw||.0001}">${ap>=8?ap+'%':''}</i></div>
+    <div class="bar" role="img" aria-label="Победы хозяев ${hp} %, гостей ${ap} %"><i class="h" style="flex:${hw||.0001}">${hp>=16?hp+'%':''}</i><i class="a" style="flex:${aw||.0001}">${ap>=16?ap+'%':''}</i></div>
     <ul><li style="--k:#1d7a45">Победы хозяев: ${hp}% (${hw})</li><li style="--k:#1c63c4">Победы гостей: ${ap}% (${aw})</li></ul></div>
    <div class="lgbar" data-rv><h3>Как заканчиваются матчи</h3>
-    <div class="bar" role="img" aria-label="Основное время ${rp} %, овертайм ${op} %, буллиты ${sp} %"><i class="h" style="flex:${reg||.0001}">${rp>=8?rp+'%':''}</i><i class="o" style="flex:${ot||.0001}">${op>=8?op+'%':''}</i><i class="d" style="flex:${so||.0001}">${sp>=8?sp+'%':''}</i></div>
+    <div class="bar" role="img" aria-label="Основное время ${rp} %, овертайм ${op} %, буллиты ${sp} %"><i class="h" style="flex:${reg||.0001}">${rp>=8?rp+'%':''}</i><i class="o" style="flex:${ot||.0001}">${op>=16?op+'%':''}</i><i class="d" style="flex:${so||.0001}">${sp>=16?sp+'%':''}</i></div>
     <ul><li style="--k:#1d7a45">Основное время: ${rp}%</li><li style="--k:#b8761a">Овертайм: ${op}%</li><li style="--k:#6b7585">Буллиты: ${sp}%</li></ul></div>`}
 
  /* игроки */
