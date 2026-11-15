@@ -568,6 +568,9 @@ def forecast_page(lg):
     ld = [{'@type': 'ItemList', 'name': 'Матчи %s: %s' % (name, ru_date(day)[0] if day else ''), 'itemListElement': [
         {'@type': 'ListItem', 'position': i + 1, 'item': event_ld(m, sport, rel)} for i, m in enumerate(ms)]}] if day else []
     live_js = '<script src="%sassets/live.js" defer></script>\n' % ('../' * depth(d_out)) if day else ''
+    # кнопка «В купон» у матчей КХЛ/НХЛ, которые ещё не начались (assets/kupon-link.js; стили — в forecast.css)
+    if day and sport == 'hockey':
+        live_js += '<script src="%sassets/kupon-link.js" defer></script>\n' % ('../' * depth(d_out))
     return rel, shell(rel, sport, body, extra_scripts=live_js), ld
 
 

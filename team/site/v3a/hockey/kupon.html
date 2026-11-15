@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ru" data-sport="hockey" data-theme="arena">
+<head>
+<meta charset="utf-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Купон: соберите ставки на хоккей и узнайте шанс | JARVIS</title>
+<meta name="description" content="Конструктор купона на матчи КХЛ и НХЛ: исходы, тоталы, форы, комбинации внутри матча. Модель считает шанс каждого события и всего экспресса.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#071225">
+<link rel="stylesheet" href="../assets/v3a.css">
+<link rel="stylesheet" href="../assets/nav.css">
+<link rel="stylesheet" href="../assets/forecast.css">
+<link rel="stylesheet" href="../assets/kupon.css?v=30">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<script src="../assets/efir/efir-loader.js"></script>
+<script src="../assets/palettes.js"></script>
+</head>
+<body class="fc kp" data-field="hockey">
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="../index.html" aria-label="JARVIS, на главную">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта">
+      <a href="index.html" aria-current="page">Хоккей</a>
+      <a href="../football/index.html">Футбол</a>
+    </nav>
+    <nav class="nav" aria-label="Разделы"></nav>
+    <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Прогнозы — бесплатно</span></a>
+  </div>
+</header>
+
+<main id="main">
+<section class="fc-top"><div class="wrap">
+<nav class="fc-crumbs" aria-label="Хлебные крошки"><a href="../index.html">Главная</a> <i aria-hidden="true">›</i> <a href="index.html">Хоккей</a> <i aria-hidden="true">›</i> <span aria-current="page">Купон</span></nav>
+<h1>Соберите <span>купон</span></h1>
+<p class="lead">Отметьте события в матчах. Модель посчитает шанс каждого и всего купона, а готовый список можно отправить себе в Telegram.</p>
+<p class="fc-upd" id="kp-upd"></p>
+</div></section>
+
+<section class="fc-sec"><div class="wrap kp-grid">
+  <div class="kp-main">
+    <div class="kp-auto" id="kp-auto">
+      <div>
+        <h2>Какой кэф хотите?</h2>
+        <p>Введите желаемый коэффициент — модель соберёт под него купон из самых вероятных событий. Его можно править.</p>
+      </div>
+      <div class="kp-want">
+        <div class="kp-alg" role="group" aria-label="Из каких лиг собирать">
+          <button type="button" data-alg="khl" aria-pressed="false">КХЛ</button><button type="button" data-alg="nhl" aria-pressed="false">НХЛ</button>
+          <small id="kp-alg-n">КХЛ и НХЛ вместе</small>
+        </div>
+        <input type="text" inputmode="decimal" id="kp-want" placeholder="2,4" maxlength="6" aria-label="Желаемый коэффициент" autocomplete="off">
+        <button type="button" class="btn btn-tg" data-act="auto">Собрать купон</button>
+      </div>
+    </div>
+    <div class="kp-filt" id="kp-filt" role="group" aria-label="Фильтр матчей"></div>
+    <div id="kp-list" class="kp-list"></div>
+    <div class="kp-about">
+      <h2>Как читать цифры</h2>
+      <p><b>Крупная цифра</b> — коэффициент, <b>процент под ней</b> — шанс события по расчёту модели. <b>Кэф без знака</b> — из линии на момент обновления данных; жёлтым он выделен, когда по расчёту модели выше шанса. <b>Кэф со знаком ≈</b> — расчётный: такой коэффициент соответствует шансу модели, у букмекера он обычно ниже. В купоне кэф можно заменить на тот, что вы видите у себя.</p>
+      <p>События одного матча связаны между собой, поэтому их общий шанс модель считает по сетке счётов, а не перемножением. Все рынки, кроме «Победа в матче», считаются по основному времени.</p>
+      <p>Подробнее о расчёте — на странице <a href="../model.html?s=h">«Как считает модель»</a>, термины — в <a href="../glossary.html">словаре</a>.</p>
+      <p class="fc-legal">Материалы носят информационный характер. Модель оценивает вероятности и не гарантирует результат. Реклама букмекеров на сайте не размещается. Сайт только для совершеннолетних (18+).</p>
+    </div>
+  </div>
+  <aside class="kp-slip" id="kp-slip" aria-label="Купон"></aside>
+</div></section>
+</main>
+
+<button type="button" class="kp-bar" id="kp-bar" hidden></button>
+<div class="kp-toast" id="kp-toast" role="status" aria-live="polite"></div>
+
+<footer><div class="wrap"><p id="foot">© JARVIS, @jarvibet</p></div></footer>
+
+<script src="../data/today.js"></script>
+<script src="../data/model.js"></script>
+<script src="../data/lines.js"></script>
+<script src="../assets/data/clubs.js?v=30"></script>
+<script src="../assets/nav.js"></script>
+<script src="../assets/footer.js"></script>
+<script src="../assets/kupon.js?v=30"></script>
+</body>
+</html>
