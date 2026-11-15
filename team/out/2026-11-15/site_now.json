@@ -1,0 +1,41 @@
+{
+ "day": "2026-11-15",
+ "make": [
+  "team/out/2026-11-15/site_now_fetch.py"
+ ],
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Так сейчас выглядит живой сайт (sevasonyshahmatov-collab.github.io): главная, «Хоккей», «Футбол», таблица КХЛ, клуб, игрок, итоги. Сначала телефон (по два экрана), потом компьютер. Фото Макдэвида — прежнее."
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "out/site_now/tel_01_glavnaya.jpg",
+    "out/site_now/tel_02_hokkey.jpg",
+    "out/site_now/tel_03_futbol.jpg",
+    "out/site_now/tel_04_liga_khl.jpg",
+    "out/site_now/tel_05_klub.jpg",
+    "out/site_now/tel_06_igrok.jpg",
+    "out/site_now/tel_07_itogi.jpg"
+   ],
+   "text": "Телефон"
+  },
+  {
+   "to": "owner",
+   "type": "photo",
+   "files": [
+    "out/site_now/pk_01_glavnaya.jpg",
+    "out/site_now/pk_02_hokkey.jpg",
+    "out/site_now/pk_03_futbol.jpg",
+    "out/site_now/pk_04_liga_khl.jpg",
+    "out/site_now/pk_05_klub.jpg",
+    "out/site_now/pk_06_igrok.jpg",
+    "out/site_now/pk_07_itogi.jpg"
+   ],
+   "text": "Компьютер"
+  }
+ ]
+}
