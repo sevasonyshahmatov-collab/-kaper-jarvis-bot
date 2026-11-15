@@ -1,0 +1,26 @@
+{
+ "day": "2026-11-15",
+ "make": [
+  "team/highlights/covers.py out/highlights/covers",
+  "team/highlights/telegram.py out/highlights/telegram"
+ ],
+ "messages": [
+  {
+   "to": "owner",
+   "type": "text",
+   "text": "Сторис «Всё — в Telegram» и обложка актуального «Telegram».\n\n1) Выложите первую картинку в историю. Перед публикацией: стикеры → «Ссылка» → t.me/jarvibet, поставьте стикер под стрелку «Жми на ссылку» (низ кадра пустой как раз под него).\n2) После публикации: «Выделить» (сердечко внизу истории) → «Новое» → название «Telegram».\n3) Актуальное → «Редактировать» → «Изменить обложку» → вторая картинка.\n\nСтикер ссылки через API Instagram не ставится, поэтому только руками в приложении."
+  },
+  {
+   "to": "owner",
+   "type": "documents",
+   "files": [
+    "out/highlights/telegram/tg_story.jpg",
+    "out/highlights/telegram/tg_cover.jpg"
+   ],
+   "captions": [
+    "сторис — в историю, со стикером ссылки",
+    "обложка актуального «Telegram»"
+   ]
+  }
+ ]
+}

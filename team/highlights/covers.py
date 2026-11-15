@@ -120,7 +120,7 @@ def v_legs(out):
     img.save(out, quality=95)
 
 
-def preview(files, out):
+def preview(files, out, labels=None):
     """Как выглядит в профиле: кружки 260 px на светлом и тёмном фоне, с подписью."""
     n = len(files)
     cell = 330
@@ -137,7 +137,7 @@ def preview(files, out):
             ox, oy = i * cell + 45, row * (cell + 20) + 20
             d.ellipse((ox - 6, oy - 6, ox + 246, oy + 246), outline=(200, 200, 200), width=3)
             sheet.paste(sq, (ox, oy), m)
-            d.text((ox + 120, oy + 272), '%d · Экспресс' % (i + 1), font=f, fill=fg, anchor='mm')
+            d.text((ox + 120, oy + 272), labels[i] if labels else '%d · Экспресс' % (i + 1), font=f, fill=fg, anchor='mm')
     sheet.save(out, quality=92)
 
 
