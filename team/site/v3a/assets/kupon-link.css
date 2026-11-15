@@ -1,0 +1,9 @@
+/* JARVIS v3a — плашка «Купон» на главной хоккея (hockey/index.html) */
+.kup-promo{padding:clamp(20px,3vw,40px) 0 0}
+.kup-promo a{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px 28px;align-items:center;padding:clamp(18px,2.4vw,30px) clamp(18px,2.6vw,36px);border-radius:16px;text-decoration:none;color:#eaf3ff;
+  background:linear-gradient(100deg,#0f2a5c,#12224a 55%,#3a2a06);border:1px solid rgba(255,194,26,.45);transition:transform .2s var(--out)}
+.kup-promo a:hover{transform:translateY(-2px)}
+.kup-promo b{display:block;font:800 clamp(22px,2.6vw,34px)/1.1 var(--display);margin-bottom:8px}
+.kup-promo span{font-size:16px;line-height:1.45;color:#b8c9e4}
+.kup-promo i{font:800 17px/1 var(--display);font-style:normal;padding:15px 22px;border-radius:999px;background:var(--signal,#ffc21a);color:var(--signal-ink,#1a1400);white-space:nowrap}
+@media (max-width:640px){.kup-promo a{grid-template-columns:1fr}.kup-promo i{justify-self:start}}

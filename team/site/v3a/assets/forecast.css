@@ -99,3 +99,8 @@ body.fc a:focus-visible{outline:3px solid var(--ice);outline-offset:2px}
 /* 12.11: словарь — колонками, карточка по высоте своего текста (в сетке короткие термины тянулись до соседа и стояли полупустые) */
 @media (min-width:861px){.gl-list{display:block;columns:2;column-gap:14px}.gl-list .gl-t{break-inside:avoid;margin:0 0 14px}}
 @media (max-width:860px){.fc-mlink{display:inline-block;padding-block:11px}.fc-tm{min-height:40px}}
+
+/* кнопка «В купон» у матча (assets/kupon-link.js) */
+.fc-acts{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.fc-kup{display:inline-flex;align-items:center;font:800 13.5px/1 var(--display);text-decoration:none;padding:8px 13px;border-radius:999px;background:var(--signal,#ffc21a);color:var(--signal-ink,#1a1400)!important}
+.fc-kup:hover{background:#ffcf4d}
