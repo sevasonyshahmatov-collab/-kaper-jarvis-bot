@@ -1222,7 +1222,7 @@ html body p code,html body .md code{padding:2px 10px}
 @media (max-width:699px){html body .mk3 span{padding:10px 12px}}
 @media (min-width:700px){html body .mk3 span{padding:14px 16px}}
 @media (min-width:700px){html body .pr{padding-left:16px;padding-right:16px}html body .pp-tile{padding-left:16px;padding-right:16px}
- html body .dk-cf{padding:max(16px,1.7vw)}html body .ab-f li{padding:18px 16px}html body .pr.k .nm{padding-top:2px}}
+ html body .ab-f li{padding:18px 16px}html body .pr.k .nm{padding-top:2px}}
 @media (max-width:400px){html body .pp-tile span{letter-spacing:.02em}html body .pf-n>div{padding:16px 12px}html body .pf-n dt{text-align:center}}
 html body .dk-lnq span small{letter-spacing:.04em}
 html body .dk-lnq span{padding:8px 12px}
@@ -1236,7 +1236,7 @@ html body :is(.md,article,.md-demo,.note) code{padding:2px 10px}
 html body .pp-tiles .pp-tile{padding-left:12px;padding-right:12px}
 @media (min-width:700px){html body .pp-tiles .pp-tile{padding-left:16px;padding-right:16px}}
 @media (max-width:400px){html body .pp-tiles .pp-tile span{letter-spacing:0}}
-@media (min-width:700px){html body .dk-card .dk-cf{padding:max(16px,1.7vw)}html body .win-bar{padding:14px 16px}}
+@media (min-width:700px){html body .win-bar{padding:14px 16px}}
 html body .pp-mk{table-layout:auto}
 /* текст не мельче 11 px (tools/check_fontsize.js) */
 html body .pp-rk{font-size:11px!important}
