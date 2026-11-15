@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ru" data-sport="hockey"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><title>«Сравнение» — новые варианты (черновик)</title>
+<link rel="stylesheet" href="../assets/v3a.css">
+<!-- Черновик для владельца (15.11, «сравнение как-то просто, слабый дизайн»): три варианта страницы сравнения клубов
+     на реальных данных НХЛ (assets/data/teams.json). Живой сайт не меняет. -->
+<style>
+body{background:#08111f;color:#eef3fb;--ink:#eef3fb;--ink-2:#b9c4d6;--ink-3:#8392aa;--card:#101c31;--rule:rgba(255,255,255,.09)}
+.vw{max-width:1180px;margin:0 auto;padding:24px 16px 96px}
+.vw h1{font:800 clamp(26px,4vw,40px)/1.1 var(--display);text-transform:none;margin:0 0 8px}
+.lead{color:var(--ink-2);max-width:72ch;margin:0 0 14px;font-size:16px;line-height:1.5}
+.pick{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 6px}
+.pick select{background:#132340;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:10px 14px;font:700 15px/1.2 var(--display)}
+.vsw{position:sticky;top:0;z-index:5;display:flex;gap:8px;overflow-x:auto;padding:10px 0;background:#08111f;scrollbar-width:none}
+.vsw a{flex:none;padding:10px 16px;border-radius:999px;background:#132340;color:#fff;text-decoration:none;font:700 15px/1.1 var(--display)}
+.vsec{margin-top:44px;scroll-margin-top:64px}
+.vsec>h2{font:800 clamp(22px,3vw,30px)/1.15 var(--display);text-transform:none;margin:0 0 6px}
+.vsec>p.why{margin:0 0 16px;color:var(--ink-2);font-size:15px;line-height:1.5;max-width:75ch}
+.num{font-variant-numeric:tabular-nums}
+.emb{display:grid;place-items:center;border-radius:50%;background:#fff;flex:none}.emb img{width:72%;height:72%;object-fit:contain}
+
+/* ── А. Табло трансляции: раскол по диагонали + «перетягивание каната» по каждому показателю ── */
+.ta{border-radius:20px;overflow:hidden;background:var(--card);box-shadow:0 30px 60px -30px rgba(0,0,0,.8)}
+.ta-top{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;min-height:240px;
+  background:linear-gradient(105deg,var(--ca) 0 49.6%,rgba(255,255,255,.9) 49.6% 50.4%,var(--cb) 50.4% 100%)}
+.ta-top::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.45))}
+.ta-side{position:relative;z-index:1;display:grid;justify-items:center;gap:10px;padding:24px 16px;text-align:center}
+.ta-side .emb{width:110px;height:110px;box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.ta-side b{font:900 clamp(22px,3vw,34px)/1 var(--display);text-transform:uppercase;letter-spacing:.01em}
+.ta-side small{font:700 13px/1.2 var(--display);opacity:.85}
+.ta-vs{position:relative;z-index:1;display:grid;justify-items:center;gap:4px}
+.ta-vs b{display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:#08111f;border:3px solid #fff;font:900 22px/1 var(--display)}
+.ta-vs small{font:800 12px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;opacity:.9}
+.ta-sc{display:flex;justify-content:center;align-items:baseline;gap:14px;padding:18px 16px 4px;font:900 44px/1 var(--display)}
+.ta-sc span{font:700 14px/1.3 var(--display);color:var(--ink-3);text-align:center;max-width:16ch}
+.ta-rows{padding:8px 20px 22px}
+.tr2{display:grid;grid-template-columns:72px 1fr 72px;align-items:center;gap:14px;padding:12px 0;border-top:1px solid var(--rule)}
+.tr2:first-child{border-top:0}
+.tr2 .v{font:800 20px/1 var(--display);text-align:center}.tr2 .v.lead1{color:#fff;font-size:22px}.tr2 .v.lag1{color:var(--ink-3)}
+.tr2 .mid{display:grid;gap:7px}.tr2 .mid em{font:700 13px/1 var(--display);font-style:normal;text-align:center;color:var(--ink-2);letter-spacing:.04em;text-transform:uppercase}
+.rope{position:relative;height:10px;border-radius:5px;background:rgba(255,255,255,.08);overflow:hidden}
+.rope i{position:absolute;top:0;bottom:0;border-radius:5px}
+.rope .a{right:50%;background:var(--ca)}.rope .b{left:50%;background:var(--cb)}
+.rope::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;background:#fff;opacity:.7}
+@media (max-width:640px){.ta-top{min-height:180px}.ta-side .emb{width:72px;height:72px}.ta-vs b{width:48px;height:48px;font-size:17px}.tr2{grid-template-columns:56px 1fr 56px;gap:10px}.tr2 .v{font-size:17px}.ta-rows{padding:6px 14px 16px}}
+
+/* ── Б. Дуэль по раундам: шесть раундов, победитель каждого, итоговый счёт как в боксе ── */
+.du{display:grid;gap:12px}
+.du-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;border-radius:20px;padding:20px;background:
+  radial-gradient(circle at 0 50%,color-mix(in srgb,var(--ca) 55%,transparent),transparent 60%),radial-gradient(circle at 100% 50%,color-mix(in srgb,var(--cb) 55%,transparent),transparent 60%),var(--card)}
+.du-t{display:flex;align-items:center;gap:14px}.du-t.r{flex-direction:row-reverse;text-align:right}
+.du-t .emb{width:64px;height:64px}.du-t b{font:900 clamp(18px,2.4vw,26px)/1.05 var(--display)}.du-t small{display:block;font:600 13px/1.3 var(--display);color:var(--ink-2)}
+.du-score{text-align:center}.du-score b{display:block;font:900 clamp(44px,7vw,72px)/1 var(--display);letter-spacing:.02em}
+.du-score small{font:800 12px/1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.rounds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.rd{position:relative;border-radius:16px;padding:16px;background:var(--card);border:1px solid var(--rule);overflow:hidden}
+.rd::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--w)}
+.rd h3{margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;font:800 13px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.rd h3 span{color:var(--ink-2)}
+.rd .vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:8px}
+.rd .vs b{font:900 30px/1 var(--display)}.rd .vs b:last-child{text-align:right}.rd .vs i{font-style:normal;color:var(--ink-3);font:700 13px/1 var(--display);padding-bottom:6px}
+.rd .vs b.lose{color:var(--ink-3);font-size:24px}
+.rd .who{margin-top:10px;display:flex;align-items:center;gap:8px;font:700 14px/1.2 var(--display)}.rd .who img{width:20px;height:20px;object-fit:contain;background:#fff;border-radius:50%;padding:2px}
+.du-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fbox{border-radius:16px;padding:16px;background:var(--card);border:1px solid var(--rule)}
+.fbox h3{margin:0 0 10px;font:800 13px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.dots{display:flex;gap:6px;flex-wrap:wrap}.dots i{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;font:800 12px/1 var(--display);font-style:normal;color:#fff}
+.dots .w{background:#1d8a52}.dots .l{background:#c4303b}.dots .o{background:linear-gradient(135deg,#1d8a52 50%,#6b737c 50%)}.dots .ol{background:linear-gradient(135deg,#c4303b 50%,#6b737c 50%)}
+@media (max-width:760px){.rounds{grid-template-columns:repeat(2,minmax(0,1fr))}.du-form{grid-template-columns:1fr}.du-t .emb{width:48px;height:48px}.du-head{padding:14px}}
+@media (max-width:640px){.du-head{grid-template-columns:1fr 1fr;row-gap:10px}.du-score{grid-column:1/-1;grid-row:2}.du-t,.du-t.r{flex-direction:column;text-align:center;gap:8px}}
+.du-score b{white-space:nowrap}
+@media (max-width:420px){.rounds{grid-template-columns:1fr}}
+
+/* ── В. Превью матча: наложенные шестиугольники + три вывода словами + личные встречи ── */
+.pv{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:stretch}
+.pv-rad{border-radius:20px;padding:16px;background:var(--card);border:1px solid var(--rule)}
+.pv-rad svg{width:100%;height:auto;display:block}
+.pv-leg{display:flex;justify-content:center;gap:18px;font:700 14px/1 var(--display);margin-top:6px}.pv-leg i{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.pv-side{display:grid;gap:12px;align-content:start}
+.ins{border-radius:16px;padding:16px 16px 16px 56px;position:relative;background:var(--card);border:1px solid var(--rule);font:600 16px/1.4 var(--display);color:var(--ink-2)}
+.ins b{color:#fff}.ins::before{content:attr(data-n);position:absolute;left:16px;top:14px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#ffc21a;color:#111;font:900 14px/1 var(--display)}
+.h2b{border-radius:16px;padding:16px;background:var(--card);border:1px solid var(--rule)}
+.h2b h3{margin:0 0 10px;font:800 13px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.h2b li{display:grid;grid-template-columns:76px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--rule);font:600 15px/1.2 var(--display)}
+.h2b ul{list-style:none;margin:0;padding:0}.h2b li:first-child{border-top:0}.h2b time{color:var(--ink-3);font-size:13px}.h2b li b{font-variant-numeric:tabular-nums}
+@media (max-width:860px){.pv{grid-template-columns:1fr}}
+.note{margin-top:18px;color:var(--ink-3);font-size:13px}
+</style></head>
+<body>
+<main class="vw">
+ <h1>«Сравнение» — три новых варианта</h1>
+ <p class="lead">Черновик для выбора на реальных данных НХЛ. Живой сайт не меняется. Клубы можно поменять — все три варианта перестроятся. Напишите букву или сочетание.</p>
+ <div class="pick"><select id="sa" aria-label="Первый клуб"></select><b>и</b><select id="sb" aria-label="Второй клуб"></select></div>
+ <nav class="vsw" aria-label="Варианты"><a href="#va">А. Табло трансляции</a><a href="#vb">Б. Дуэль по раундам</a><a href="#vc">В. Превью матча</a></nav>
+ <section class="vsec" id="va"><h2>А. Табло трансляции</h2><p class="why">Как графика ТВ-трансляции: экран расколот цветами клубов, по центру «VS». Ниже каждый показатель — «перетягивание каната»: полоса уходит к тому, кто сильнее, цифра лидера яркая.</p><div id="A"></div></section>
+ <section class="vsec" id="vb"><h2>Б. Дуэль по раундам</h2><p class="why">Шесть раундов (атака, защита, вратари, большинство, меньшинство, форма) — у каждого победитель и счёт, наверху итог как в боксе «4 : 2». Ниже — форма за 10 матчей кружками.</p><div id="B"></div></section>
+ <section class="vsec" id="vc"><h2>В. Превью матча</h2><p class="why">Два шестиугольника наложены друг на друга — видно, где кто сильнее. Рядом — три вывода обычными словами и последние личные встречи.</p><div id="C"></div></section>
+ <p class="note" id="src"></p>
+</main>
+<script>
+(async()=>{
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+let D;try{D=await (await fetch('../assets/data/teams.json')).json()}catch(e){document.getElementById('A').textContent='Нет данных';return}
+const T=D.teams,AX=D.axes;const ids=Object.keys(T).filter(k=>T[k].lg==='nhl').sort((x,y)=>T[x].name.localeCompare(T[y].name,'ru'));
+const sa=document.getElementById('sa'),sb=document.getElementById('sb');
+[sa,sb].forEach(s=>s.innerHTML=ids.map(k=>`<option value="${k}">${esc(T[k].name)}</option>`).join(''));
+sa.value='nhl_vgk';sb.value='nhl_car';
+const em=k=>'../assets/em/'+k+'.webp';
+const f1=(v,d=1)=>Number(v).toFixed(d).replace('.',',');
+/* яркий цвет клуба (не чёрный/белый) */
+const col=t=>{const c=(t.colors||[]).find(x=>{const h=x.replace('#','');const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);const l=(r+g+b)/3;return l>40&&l<220})||'#3a6bd1';return c};
+/* показатели: [название, значение A, значение B, формат, больше=лучше] */
+const metrics=(a,b)=>{const ra=a.raw,rb=b.raw,pa=a.gp?a.pts/a.gp:0,pb=b.gp?b.pts/b.gp:0;return [
+ ['Очки за игру',pa,pb,v=>f1(v,2),1],['Забивает за игру',ra[0],rb[0],v=>f1(v,2),1],['Пропускает за игру',ra[1],rb[1],v=>f1(v,2),0],
+ ['Отражённые броски',ra[2]*100,rb[2]*100,v=>f1(v,1)+'%',1],['Большинство',ra[3]*100,rb[3]*100,v=>f1(v,1)+'%',1],['Меньшинство',ra[4]*100,rb[4]*100,v=>f1(v,1)+'%',1],
+ ['Очки за 10 матчей',ra[5],rb[5],v=>String(v),1]]};
+const form=t=>(t.games||[]).filter(g=>g.gf!=null).slice(-10).map(g=>{const w=g.gf>g.ga,x=g.x;return `<i class="${w?(x?'o':'w'):(x?'ol':'l')}" title="${esc(g.d.slice(0,10))} ${g.gf}:${g.ga}${x?' '+x:''}">${w?'В':'П'}</i>`}).join('');
+function draw(){
+ const A=sa.value,B=sb.value,a=T[A],b=T[B],ca=col(a),cb=col(b);
+ document.querySelectorAll('.vsec').forEach(s=>{s.style.setProperty('--ca',ca);s.style.setProperty('--cb',cb)});
+ const M=metrics(a,b);let wa=0,wb=0;M.forEach(([,x,y,,hi])=>{if(x===y)return;((x>y)===!!hi)?wa++:wb++});
+ const sub=t=>`${t.conf}, ${t.place}-е место · ${t.w}–${t.l} · ${t.pts} очк.`;
+ // А
+ document.getElementById('A').innerHTML=`<div class="ta"><div class="ta-top"><div class="ta-side"><span class="emb"><img src="${em(A)}" alt=""></span><b>${esc(a.name)}</b><small>${esc(sub(a))}</small></div>
+  <div class="ta-vs"><b>VS</b><small>сезон</small></div><div class="ta-side"><span class="emb"><img src="${em(B)}" alt=""></span><b>${esc(b.name)}</b><small>${esc(sub(b))}</small></div></div>
+  <div class="ta-sc num">${wa}<span>показателей впереди — у кого больше</span>${wb}</div>
+  <div class="ta-rows">${M.map(([n,x,y,fm,hi])=>{const s=Math.abs(x)+Math.abs(y)||1;let pa=x/s,pb=y/s;if(!hi){pa=y/s;pb=x/s}
+   const wA=x!==y&&((x>y)===!!hi);const d=Math.max(.06,Math.min(.94,.5+(pa-.5)*4));   /* разница усилена в 4 раза — иначе 3,45 против 4,10 почти не видно */
+   return `<div class="tr2"><span class="v num ${x===y?'':wA?'lead1':'lag1'}">${fm(x)}</span><div class="mid"><em>${n}</em><div class="rope"><i class="a" style="width:${(d*100-50>0?(d-.5)*100:0)}%"></i><i class="b" style="width:${(d<.5?(.5-d)*100:0)}%"></i></div></div><span class="v num ${x===y?'':!wA?'lead1':'lag1'}">${fm(y)}</span></div>`}).join('')}</div></div>`;
+ // Б
+ const R=AX.map((n,i)=>[n,a.axes[i],b.axes[i]]);let ra=0,rb=0;R.forEach(([,x,y])=>{if(x>y)ra++;else if(y>x)rb++});
+ document.getElementById('B').innerHTML=`<div class="du"><div class="du-head"><div class="du-t"><span class="emb"><img src="${em(A)}" alt=""></span><span><b>${esc(a.name)}</b><small>${esc(sub(a))}</small></span></div>
+  <div class="du-score"><b class="num">${ra} : ${rb}</b><small>по раундам</small></div><div class="du-t r"><span class="emb"><img src="${em(B)}" alt=""></span><span><b>${esc(b.name)}</b><small>${esc(sub(b))}</small></span></div></div>
+  <div class="rounds">${R.map(([n,x,y],i)=>{const w=x>y?A:y>x?B:null;return `<div class="rd" style="--w:${w===A?ca:w===B?cb:'#6b737c'}"><h3>${n}<span>раунд ${i+1}</span></h3><div class="vs"><b class="num ${x<y?'lose':''}">${x}</b><i>из 100</i><b class="num ${y<x?'lose':''}">${y}</b></div><div class="who">${w?`<img src="${em(w)}" alt="">${esc(T[w].name)} сильнее`:'Поровну'}</div></div>`}).join('')}</div>
+  <div class="du-form"><div class="fbox"><h3>${esc(a.name)} · последние 10</h3><div class="dots">${form(a)}</div></div><div class="fbox"><h3>${esc(b.name)} · последние 10</h3><div class="dots">${form(b)}</div></div></div></div>`;
+ // В
+ const N=AX.length,CX=210,CY=190,RR=150,pt=(i,r)=>{const t=-Math.PI/2+i*2*Math.PI/N;return [CX+r*Math.cos(t),CY+r*Math.sin(t)]};
+ const poly=v=>v.map((x,i)=>pt(i,RR*Math.max(.05,x/100)).map(z=>z.toFixed(1)).join(',')).join(' ');
+ const grid=[.25,.5,.75,1].map(k=>`<polygon points="${AX.map((_,i)=>pt(i,RR*k).join(',')).join(' ')}" fill="none" stroke="rgba(255,255,255,.12)"/>`).join('');
+ const lab=AX.map((n,i)=>{const[x,y]=pt(i,RR+26);return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="#b9c4d6" font-size="14" font-weight="700">${n}</text>`}).join('');
+ const best=M.map(([n,x,y,fm,hi])=>({n,x,y,fm,hi,rel:Math.abs(x-y)/((Math.abs(x)+Math.abs(y))/2||1)})).sort((p,q)=>q.rel-p.rel).slice(0,3);
+ const say=m=>{const aw=(m.x>m.y)===!!m.hi;const w=aw?a:b,l=aw?b:a,wv=aw?m.x:m.y,lv=aw?m.y:m.x;return `<b>${esc(w.name)}</b> — ${m.n.toLowerCase()}: <b>${m.fm(wv)}</b> против ${m.fm(lv)} у ${esc(l.name)}.`};
+ const h=(a.h2h||{})[B]||[];
+ document.getElementById('C').innerHTML=`<div class="pv"><div class="pv-rad"><svg viewBox="0 0 420 390" role="img" aria-label="Сравнение по шести осям">${grid}
+  <polygon points="${poly(a.axes)}" fill="${ca}" fill-opacity=".28" stroke="${ca}" stroke-width="3"/><polygon points="${poly(b.axes)}" fill="${cb}" fill-opacity=".28" stroke="${cb}" stroke-width="3"/>${lab}</svg>
+  <div class="pv-leg"><span><i style="background:${ca}"></i>${esc(a.name)}</span><span><i style="background:${cb}"></i>${esc(b.name)}</span></div></div>
+  <div class="pv-side">${best.map((m,i)=>`<div class="ins" data-n="${i+1}">${say(m)}</div>`).join('')}
+  <div class="h2b"><h3>Личные встречи</h3>${h.length?`<ul>${h.slice(0,4).map(r=>`<li><time>${r[0].split('-').reverse().join('.')}</time><span>${r[1]?esc(a.name)+' — '+esc(b.name):esc(b.name)+' — '+esc(a.name)}</span><b>${r[1]?r[2]+':'+r[3]:r[3]+':'+r[2]}${r[4]?' '+r[4]:''}</b></li>`).join('')}</ul>`:'<p style="margin:0;color:var(--ink-3)">Встреч в базе нет</p>'}</div></div></div>`;
+}
+sa.onchange=sb.onchange=draw;draw();
+document.getElementById('src').textContent='Данные: НХЛ, '+(D.built||'')+'.';
+})();
+</script>
+</body></html>
