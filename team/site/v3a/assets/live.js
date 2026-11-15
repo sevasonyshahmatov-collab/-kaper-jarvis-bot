@@ -131,7 +131,9 @@ function fromKhl(x, arr) {
     if (key === 'finished') return m ? {k: 'final', hg: +m[1], ag: +m[2], st: ''} : null;
     if (/not|wait|announce|future|schedul|cancel|postpon|prepar/i.test(key)) return null;
     const p = num(e.period);
-    const txt = p === 4 ? 'Овертайм' : p >= 5 ? 'Буллиты' : p > 0 ? p + '-й период' : '';
+    const tm = clk(e.game_time || e.current_time || e.period_time || e.time || e.timer || '');
+    if (/break|pause|intermission|перерыв/i.test(key)) return {k: 'live', hg: m ? +m[1] : 0, ag: m ? +m[2] : 0, st: 'Перерыв'};
+    const txt = p === 4 ? 'Овертайм' + (tm ? ', ' + tm : '') : p >= 5 ? 'Буллиты' : p > 0 ? p + '-й период' + (tm ? ', ' + tm : '') : 'Идёт';
     return {k: 'live', hg: m ? +m[1] : 0, ag: m ? +m[2] : 0, st: txt};
   }
   return null;
@@ -165,7 +167,15 @@ function paint(x, r) {
   b.querySelector('.lv-tag').textContent = r.k === 'final' ? 'Финал' : 'LIVE';
   b.querySelector('.lv-h').textContent = String(r.hg);
   b.querySelector('.lv-a').textContent = String(r.ag);
-  b.querySelector('.lv-st').textContent = r.st || '';
+  /* карточка с отсчётом (.cd рядом): период и время — на месте «идёт / завершён» (владелец 15.11: «размести там таймер матча»),
+     отсчёт больше не перезаписывает эту строку (data-t снимаем) */
+  const cd = x.el.previousElementSibling && x.el.previousElementSibling.classList.contains('cd') ? x.el.previousElementSibling : null;
+  if (cd) {
+    if (cd.dataset.t) { cd.dataset.t0 = cd.dataset.t; cd.removeAttribute('data-t'); }
+    cd.textContent = r.k === 'final' ? 'завершён' : (r.st || 'идёт');
+    cd.classList.toggle('cd-live', r.k === 'live');
+    b.querySelector('.lv-st').textContent = '';
+  } else b.querySelector('.lv-st').textContent = r.st || '';
   b.hidden = false;
   if (goal) {
     b.classList.remove('lv-goal'); void b.offsetWidth; b.classList.add('lv-goal');

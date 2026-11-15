@@ -39,3 +39,5 @@
 .dk-vs .lvslot .lv-sc{font-size:24px;color:#fff}
 .dk-vs:has(.lvslot .lv:not([hidden])){font-size:0}   /* идёт матч — вместо «—» счёт */
 .dk-vs .lvslot .lv-st{font-size:12px;color:#dbe4f0}
+/* период и время матча в карточке на месте «идёт / завершён» (15.11) */
+.cd.cd-live{color:#d63a3a;font-weight:700;font-variant-numeric:tabular-nums}
