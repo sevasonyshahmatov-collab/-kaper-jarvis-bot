@@ -20,3 +20,7 @@
 .cmpgo:hover{border-color:currentColor}
 .cmpgo:focus-visible{outline:2px solid currentColor;outline-offset:2px}
 @media (max-width:760px){.cmpgo{min-height:44px;padding:0 14px 0 12px}}
+/* ширина кнопки не меняется при нажатии (владелец 15.11: «В избранном» на 3 px шире — строка с кнопками уезжала под «← Лиги и клубы»):
+   под надписью — невидимая более длинная надпись, кнопка всегда по ней */
+.favbtn:not(.favbtn-ico) span{display:inline-grid;text-align:left}
+.favbtn:not(.favbtn-ico) span::after{content:"В избранном";visibility:hidden;height:0;overflow:hidden;font-weight:inherit}
