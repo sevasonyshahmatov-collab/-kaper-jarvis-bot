@@ -132,6 +132,7 @@ def skills(lg, players, tgf=None):
                             'fo': fow / gp if grp == 'F' and (fow or 0) >= 30 else None}   # позиции C в приложении нет: центр = от 30 выигранных вбрасываний
         raw[pid] = {'grp': grp, 'n': n, 'c': c}
     out = {}
+    AXZ = {}
     AX = ('Катание', 'Бросок', 'Руки', 'Интеллект', 'Оборона')
     # Шкала как у рейтингов в играх (владелец 07.11: «у Маккиннона почти всё 100 — непропорционально»): не процентиль, а
     # рейтинг по отклонению от среднего группы: компонент -> z (выбросы обрезаны ±3), ось = взвешенное среднее z,
@@ -166,19 +167,34 @@ def skills(lg, players, tgf=None):
             if zz:
                 m, sd = zs(list(zz.values()))
                 axz[name] = {k: (z - m) / sd for k, z in zz.items()}
-        for k, v in raw.items():
-            if v['grp'] != grp:
-                continue
-            row = []
-            for name in AX:
-                a_ = axz.get(name, {})
-                if k not in a_:
-                    row = None
-                    break
-                a0, b0 = S[lg][grp][name]
-                row.append([name, int(max(35, min(99, round(a0 + b0 * a_[k]))))])
-            if row:
-                out[k] = row
+        AXZ[grp] = axz
+    # Пересчёт 15.11 (владелец: «у многих 90+, так не бывает; 99 — это катание Макдэвида, интеллект Кучерова, бросок Капризова»):
+    # рейтинг — по МЕСТУ в лиге, а не по отклонению от среднего. Ось нормирована внутри своей группы (нападающие / защитники),
+    # места — внутри своей группы; у кого мало матчей — оценка поджимается к середине (n / (n + 8)).
+    # Шкала: 1-е место в лиге — 99, 2-е — 97, 3-е — 95; остальные — по доле игроков ниже: 99-й процентиль ≈ 90,
+    # 95-й ≈ 85, 80-й ≈ 78, медиана ≈ 70, худшие ≈ 45. Итог: 90+ — около 1 % лиги (6–7 игроков на ось в НХЛ), 99 — один.
+    CURVE = ((0.0, 45), (0.5, 70), (0.8, 78), (0.95, 85), (0.99, 90), (1.0, 94))
+    def curve(q):
+        for (q0, r0), (q1, r1) in zip(CURVE, CURVE[1:]):
+            if q <= q1:
+                return r0 + (r1 - r0) * (q - q0) / (q1 - q0 or 1)
+        return CURVE[-1][1]
+    # 99 по атакующим навыкам — только у нападающего, по обороне — только у защитника; лучший из «чужой» группы — не выше 95
+    # (иначе лучший защитник по очкам обгонял Макдэвида в «Руках»). Места считаются внутри своей группы.
+    rat = {}
+    for name in AX:
+        for grp, axz in AXZ.items():
+            sc = sorted(((z * raw[k]['n'] / (raw[k]['n'] + 8.0), k) for k, z in axz.get(name, {}).items()), reverse=True)
+            N = len(sc)
+            own = (name == 'Оборона') == (grp == 'D')
+            top = (99, 97, 95) if own else (95, 93, 91)
+            cap = 94 if own else 90
+            for r, (_, k) in enumerate(sc):
+                val = top[r] if r < 3 and N >= 30 else min(cap, curve(1 - r / max(1, N - 1)))
+                rat.setdefault(k, {})[name] = int(round(val))
+    for k, v in rat.items():
+        if len(v) == len(AX):
+            out[k] = [[name, v[name]] for name in AX]
     return out
 
 
