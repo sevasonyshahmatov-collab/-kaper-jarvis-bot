@@ -1,1 +1,1 @@
-window.JV_POSTS={"nhl|2026-11-15|nhl_tor|nhl_edm":{"id":1603,"url":"https://t.me/jarvibet/1603","src":"model","bet":"Итоговая победа Эдмонтона","kef":1.65,"r":null},"nhl|2026-11-15|nhl_pit|nhl_ott":{"id":1602,"url":"https://t.me/jarvibet/1602","src":"author","bet":"Оттава Фора 0","kef":1.73,"r":null},"nhl|2026-11-15|nhl_tbl|nhl_det":{"id":1601,"url":"https://t.me/jarvibet/1601","src":"author","bet":"Победа Тампы в основное время","kef":1.77,"r":null}};
+window.JV_POSTS={};
