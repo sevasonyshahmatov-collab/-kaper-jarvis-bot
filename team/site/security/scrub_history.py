@@ -10,12 +10,14 @@ stats/published.json из последнего коммита (в нём все 
     python team/site/security/scrub_history.py <клон> --check                       # только проверить: сколько осталось
 """
 import json
+import os
 import re
 import subprocess
 import sys
 
 SEAL = ('pick', 'odds', 'p', 'sim', 'fact', 'res', 'score')
-OLD_MAIL = b'sevasony.shahmatov@gmail.com'
+# старый адрес автора — из окружения (секрет SCRUB_OLD_MAIL), не в коде: репозиторий открытый (проверка 16.11)
+OLD_MAIL = os.environ.get('SCRUB_OLD_MAIL', '').strip().encode()
 NEW_MAIL = b'sevasonyshahmatov-collab@users.noreply.github.com'
 
 
@@ -63,7 +65,7 @@ def check(repo, posts):
             if P:
                 bad += scrub(P, posts)
     mails = subprocess.run(['git', '-C', repo, 'log', '--all', '--format=%ae%n%ce'], capture_output=True, check=True).stdout
-    return bad, mails.count(OLD_MAIL)
+    return bad, (mails.splitlines().count(OLD_MAIL) if OLD_MAIL else 0)
 
 
 def main():
@@ -86,8 +88,11 @@ def main():
             stat['blobs'] += 1
             stat['matches'] += n
 
+    if not OLD_MAIL:
+        print('SCRUB SCRUB_OLD_MAIL не задан — почту в авторах не меняю', flush=True)
+
     def mail_cb(email):
-        return NEW_MAIL if email == OLD_MAIL else email
+        return NEW_MAIL if OLD_MAIL and email == OLD_MAIL else email
 
     args = fr.FilteringOptions.parse_args(['--force', '--quiet', '--source', repo, '--target', repo])
     fr.RepoFilter(args, blob_callback=blob_cb, email_callback=mail_cb).run()

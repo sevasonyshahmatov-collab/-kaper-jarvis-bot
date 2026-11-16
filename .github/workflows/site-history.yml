@@ -74,6 +74,8 @@ jobs:
           echo "резервная копия: $BACKUP_REPO, ветка backup/site-history-$d (артефактом не выкладываем)"
           cd .. && rm -rf bk site-before.bundle
       - name: Почистить историю
+        env:
+          SCRUB_OLD_MAIL: ${{ secrets.SCRUB_OLD_MAIL }}     # старый адрес автора; в коде его больше нет (проверка 16.11)
         run: |
           python team/site/security/scrub_history.py site --check || true
           python team/site/security/scrub_history.py site
