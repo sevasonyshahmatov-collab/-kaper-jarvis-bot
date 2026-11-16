@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # 16.11: ubuntu-latest стала 26.04 — Playwright 1.56 её не поддерживает (проверка падала с 15.11)
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
@@ -21,6 +21,7 @@ jobs:
         with:
           repository: ${{ vars.SITE_REPO || 'sevasonyshahmatov-collab/sevasonyshahmatov-collab.github.io' }}
           path: site
+          persist-credentials: false     # безопасность 03.11: открытый репозиторий, токен в site/.git не нужен
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -33,7 +34,10 @@ jobs:
         env:
           SITE_URL: ${{ vars.SITE_URL || 'https://sevasonyshahmatov-collab.github.io/' }}
         run: |
-          mkdir -p /tmp/pw && cd /tmp/pw && npm i -s --no-save playwright@1.56.0 >/dev/null && npx playwright install --with-deps chromium >/dev/null 2>&1
+          # 16.11: установка падала молча (вывод скрыт) — при ошибке показываем хвост лога
+          mkdir -p /tmp/pw && cd /tmp/pw
+          npm i -s --no-save playwright@1.56.0 > npm.log 2>&1 || { echo "::error::npm i playwright"; tail -40 npm.log; exit 1; }
+          npx playwright install --with-deps chromium > pw.log 2>&1 || { echo "::error::playwright install"; tail -40 pw.log; exit 1; }
           cd "$GITHUB_WORKSPACE" && NODE_PATH=/tmp/pw/node_modules node team/site/check.js site out/site_check
       - name: Снимки
         if: always()

@@ -38,7 +38,7 @@ concurrency:
 jobs:
   site:
     if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_commit.message, 'picks '))
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # 16.11: на ubuntu-latest (26.04) Playwright 1.56 не ставит Chromium — шаг «Проверить сайт» молча падал
     timeout-minutes: 20
     env:
       SITE_REPO: ${{ vars.SITE_REPO }}
@@ -67,8 +67,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ vars.SITE_REPO }}
-          token: ${{ secrets.SITE_TOKEN || github.token }}
           path: site
+          # безопасность 03.11: репозиторий сайта открытый — берём без токена; токен не остаётся в site/.git/config
+          # во время сборки, он нужен только шагу «Опубликовать»
+          persist-credentials: false
       - name: Прогнозы дня
         # без TG_BOT_TOKEN: список матчей владелец уже получает от конвейера шортсов.
         # 28.10: лёгкий запуск после полуночи (GitHub задержал его на 4 ч) начал новый день без матчей — на главной
@@ -114,6 +116,8 @@ jobs:
         env:
           SITE_URL: ${{ steps.day.outputs.url }}
           GOOGLE_VERIFICATION: ${{ vars.GOOGLE_VERIFICATION }}   # код Search Console (только content из мета-тега)
+          # безопасность 03.11: прогнозы модели без поста в канале — в site/data/*.json только зашифрованными (build.py seal_public)
+          SITE_SEAL_KEY: ${{ secrets.SITE_SEAL_KEY || secrets.SITE_TOKEN }}
         run: |
           mkdir -p site
           python team/site/build.py site $(ls out/reels_daily/*-"${{ steps.day.outputs.day }}"/plan.json 2>/dev/null)
@@ -127,7 +131,9 @@ jobs:
         env:
           SITE_URL: ${{ steps.day.outputs.url }}
         run: |
-          mkdir -p /tmp/pw && cd /tmp/pw && npm i -s --no-save playwright@1.56.0 >/dev/null && npx playwright install --with-deps chromium >/dev/null 2>&1
+          mkdir -p /tmp/pw && cd /tmp/pw
+          npm i -s --no-save playwright@1.56.0 > npm.log 2>&1 || { echo "::warning::npm i playwright"; tail -40 npm.log; exit 1; }
+          npx playwright install --with-deps chromium > pw.log 2>&1 || { echo "::warning::playwright install"; tail -40 pw.log; exit 1; }
           cd "$GITHUB_WORKSPACE" && NODE_PATH=/tmp/pw/node_modules node team/site/check.js site out/site_check
       - name: Снимки проверки
         if: always() && steps.day.outputs.light != 'yes'
@@ -140,15 +146,24 @@ jobs:
       - name: Опубликовать
         if: env.SITE_REPO != ''
         env:
-          HAS_TOKEN: ${{ secrets.SITE_TOKEN != '' }}
+          SITE_TOKEN: ${{ secrets.SITE_TOKEN }}
         run: |
-          [ "$HAS_TOKEN" = true ] || { echo "SITE_TOKEN не задан — сайт собран, но не опубликован"; exit 0; }
+          [ -n "$SITE_TOKEN" ] || { echo "SITE_TOKEN не задан — сайт собран, но не опубликован"; exit 0; }
           cd site
           git config user.name "jarvis-site-bot"; git config user.email "jarvis-site-bot@users.noreply.github.com"
+          # владелец 13.11: новый сайт (v3a) — главный. Есть метка .v3a-root (её кладёт site-v3a-daily.yml) — корневая index.html
+          # остаётся от нового сайта, а лендинг старого уходит в old/ (ссылки у него относительные — <base href="../">).
+          # Отменить: удалить .v3a-root в репозитории сайта.
+          if [ -f .v3a-root ] && ! git diff --quiet HEAD -- index.html; then
+            mkdir -p old && sed '0,/<head>/s##<head><base href="../">#' index.html > old/index.html && git checkout HEAD -- index.html
+          fi
+          # 16.11: 404.html — тоже от нового сайта (владелец 13.11: «публикуй 404 новую»), старая сборка её не заменяет
+          if [ -f .v3a-root ] && ! git diff --quiet HEAD -- 404.html; then git checkout HEAD -- 404.html; fi
           git add -A
           git diff --cached --quiet && { echo "на сайте ничего не изменилось"; exit 0; }
           git commit -q -m "Прогнозы и итоги ${{ steps.day.outputs.day }}"
-          git push -q
+          # токен — только здесь: через заголовок для одной команды, на диск (site/.git/config) не пишется
+          git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$SITE_TOKEN" | base64 -w0)" push -q origin HEAD
       - name: Сообщить Яндексу о новых страницах (IndexNow)
         if: env.SITE_REPO != ''
         env:
@@ -175,3 +190,5 @@ jobs:
           name: site
           path: site/
           retention-days: 3
+          # аудит 03.11: скрытые файлы (site/.git) в артефакт не берём
+          include-hidden-files: false
