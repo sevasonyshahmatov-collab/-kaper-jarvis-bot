@@ -118,5 +118,25 @@
   "date": "2026-10-25",
   "src": "1052x2280",
   "cut": "638x1279"
+ },
+ "mcd-full": {
+  "title": "File:Connor McDavid of the Edmonton Oilers.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Connor_McDavid_of_the_Edmonton_Oilers.jpg",
+  "author": "All-Pro Reels",
+  "license": "CC BY-SA 2.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/2.0",
+  "date": "2022-02-02",
+  "src": "3000x2000",
+  "cut": "1873x1592"
+ },
+ "mcd-portrait": {
+  "title": "File:Connor McDavid - 19434541205.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Connor_McDavid_-_19434541205.jpg",
+  "author": "Connor Mah",
+  "license": "CC BY-SA 2.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/2.0",
+  "date": "2015-07-04",
+  "src": "4928x3264",
+  "cut": "2180x1800"
  }
 }
