@@ -5,14 +5,14 @@
 'use strict';
 const {D,esc,fx,plural,T,nm,CI,LGP,LGI,teamHref,day,dd,played}=JVF;
 const $=id=>document.getElementById(id);
-const LG=(new URLSearchParams(location.search).get('lg')||'').toLowerCase(),L=D.leagues[LG];
+const LG=(x=>/^[a-z0-9_]{1,40}$/.test(x)?x:'')((new URLSearchParams(location.search).get('lg')||'').toLowerCase()),L=D.leagues[LG];
 const KEYS=Object.keys(D.leagues);
 
 /* ── нет такой лиги ── */
 if(!L){
  document.title='Лига не найдена · JARVIS';
  $('hero').innerHTML=`<a class="crumb" href="index.html#leagues"><span aria-hidden="true">←</span> Футбол · Лиги</a>
-  <div class="lgname" data-rv><h1>Такой лиги нет</h1><p class="lead">${LG?`По адресу «${esc(LG)}» лиги не нашлось.`:'В адресе не указана лига.'} Выберите турнир:</p></div>
+  <div class="lgname" data-rv><h1>Такой лиги нет</h1><p class="lead">Адрес страницы неверный. Выберите турнир:</p></div>
   <ul class="chips">${KEYS.map(k=>`<li><a href="league.html?lg=${esc(k)}">${LGP(k)}${esc(D.leagues[k].name)}</a></li>`).join('')}</ul>`;
  document.querySelectorAll('.lgsec').forEach(e=>{e.hidden=true;e.removeAttribute('data-zone')});
  document.querySelector('.nav').hidden=true;

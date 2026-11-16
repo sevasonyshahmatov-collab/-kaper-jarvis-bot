@@ -4,7 +4,7 @@
 (()=>{
 'use strict';
 const D=window.JV_TEAMS||{teams:{},names:{},axes:[]};
-const P=new URLSearchParams(location.search),ID=(P.get('id')||window.JV_TEAM_ID||'').toLowerCase(),THEME=P.get('theme');
+const P=new URLSearchParams(location.search),ID=(x=>/^[a-z0-9_]{1,40}$/.test(x)?x:'')((window.JV_TEAM_ID||P.get('id')||'').toLowerCase()),THEME=P.get('theme');
 const T=Object.hasOwn(D.teams,ID)?D.teams[ID]:undefined;
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const f=(v,d=2)=>(+v).toFixed(d).replace('.',',');
@@ -53,7 +53,7 @@ if(!T){
  document.getElementById('hero').innerHTML=`<header class="tmid tmnone" data-rv>
    <a class="crumb" href="${BACK('khl')}"><span aria-hidden="true">←</span> Лиги и клубы</a>
    <h1>Такой команды нет</h1>
-   <p class="lead">${ID?`По адресу «${esc(ID)}» клуба не нашлось.`:'В адресе не указан клуб.'} Выберите команду на стене эмблем — там все 54 клуба КХЛ и НХЛ.</p>
+   <p class="lead">Такого клуба нет. Выберите команду на стене эмблем — там все 54 клуба КХЛ и НХЛ.</p>
    <div class="hero-cta"><a class="btn btn-tg" href="${BACK('khl')}">Клубы КХЛ</a><a class="btn btn-line" href="${BACK('nhl')}">Клубы НХЛ</a></div></header>`;
  ['table','games','players','picks'].forEach(id=>{const e=document.getElementById(id);e.hidden=true;e.removeAttribute('data-zone')}); // скрытые зоны сбивают «свет» арены
  document.documentElement.classList.add('tm-none');

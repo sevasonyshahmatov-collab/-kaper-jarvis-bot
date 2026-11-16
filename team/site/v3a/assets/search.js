@@ -115,7 +115,7 @@ function draw(r){
    +g('Матчи',r.matches,m=>li(U(pg(m.h)),`<span class="sp-vs">${img(m.h)}${img(m.a)}</span><span class="sp-t"><b>${esc(m.h.ru)} — ${esc(m.a.ru)}</b><small>${esc(dt(m.d))} МСК${m.sc?' · '+esc(m.sc):''}${m.cup?' · '+esc(LGN[m.cup]||m.cup):''} · ${SP[m.s]}</small></span>`))
    +g('Лиги',r.leagues,l=>li(U(l.url),`<span class="sp-lg">${l.s==='h'?'ХК':'ФК'}</span><span class="sp-t"><b>${esc(l.ru)}</b><small>${SP[l.s]} · таблица и матчи</small></span>`))
    +g('Игроки',r.players,p=>li(U(p.id!=null?'hockey/player.html?lg='+p.lg+'&id='+encodeURIComponent(p.id):(p.lg==='nhl'?'hockey/players.html':'hockey/players_khl.html')+'?team='+encodeURIComponent(tcode(p))+'&q='+encodeURIComponent(p.n)),`<span class="sp-lg">${esc(p.n.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase())}</span><span class="sp-t"><b>${esc(p.n)}</b><small>${esc(p.c?p.c.ru:'')} · ${p.lg==='nhl'?'НХЛ':'КХЛ'}</small></span>`));
-  res.innerHTML=out||`<p class="sp-empty">Ничего не нашли по «${esc(inp.value.trim())}». Попробуйте название клуба или лиги.</p>`;
+  res.innerHTML=out||`<p class="sp-empty">Ничего не нашли. Попробуйте название клуба или лиги.</p>`;
 }
 function idle(){
   items=[];cur=-1;const r=recent();
@@ -159,5 +159,6 @@ addEventListener('keydown',e=>{
   else if(e.key==='Tab'){const f=[...box.querySelectorAll('input,button')].filter(x=>x.offsetParent);if(f.length){const i=f.indexOf(document.activeElement);if(e.shiftKey&&i<=0){e.preventDefault();f[f.length-1].focus()}else if(!e.shiftKey&&i===f.length-1){e.preventDefault();f[0].focus()}}}
 });
 /* адрес вида ?q=… (SearchAction в разметке главной): открыть поиск с этим запросом */
-try{const qq=new URLSearchParams(location.search).get('q');if(qq!==null){inp.value=qq.slice(0,80);open()}}catch(e){}
+/* открываем, только если по запросу что-то есть: иначе чужой текст из ссылки повис бы на настоящем сайте (проверка безопасности 16.11) */
+try{const qq=(new URLSearchParams(location.search).get('q')||'').slice(0,80);if(words(qq).length)load().then(()=>{const r=search(qq);if(Object.values(r).some(a=>Array.isArray(a)&&a.length)){inp.value=qq;open()}}).catch(()=>{})}catch(e){}
 })();

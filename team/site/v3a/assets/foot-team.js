@@ -3,7 +3,7 @@
 (()=>{
 'use strict';
 const {D,esc,fx,plural,T:TM,nm,CI,LGP,LGI,teamHref,day,dd,played,rOf,RES,RESF,gamesOf,stats,h2h,dots,radar,palette,clubColors,crest}=JVF;
-const P=new URLSearchParams(location.search),ID=(P.get('id')||window.JV_TEAM_ID||'').toLowerCase();
+const P=new URLSearchParams(location.search),ID=(x=>/^[a-z0-9_]{1,40}$/.test(x)?x:'')((window.JV_TEAM_ID||P.get('id')||'').toLowerCase());
 const T=TM[ID];
 const $=id=>document.getElementById(id);
 const AX=D.axes;
@@ -11,7 +11,7 @@ if(!T){
  document.title='Клуб не найден · JARVIS';
  document.querySelector('.tmhero').classList.add('none');
  $('hero').innerHTML=`<header class="tmid tmnone" data-rv><a class="crumb" href="index.html#leagues"><span aria-hidden="true">←</span> Лиги и клубы</a><h1>Такого клуба нет</h1>
-  <p class="lead">${ID?`По адресу «${esc(ID)}» клуба не нашлось.`:'В адресе не указан клуб.'} Выберите клуб на странице «Футбол»: там все ${Object.keys(TM).length} клубов шести лиг.</p>
+  <p class="lead">Такого клуба нет. Выберите клуб на странице «Футбол»: там все ${Object.keys(TM).length} клубов шести лиг.</p>
   <div class="hero-cta"><a class="btn btn-tg" href="index.html#leagues">Лиги и клубы</a></div></header>`;
  ['table','games','players','picks'].forEach(id=>{const e=$(id);e.hidden=true;e.removeAttribute('data-zone')});
  document.documentElement.classList.add('tm-none');document.querySelector('.nav').hidden=true;return}

@@ -2,7 +2,7 @@
    Владелец даёт ссылку — вписать её в url ниже, больше ничего менять не нужно: плитки сами появятся
    в блоке «Мы в сети» на главной, в подвале всех страниц и в листе «Ещё» нижней панели телефона.
    Плитка без адреса не показывается вообще (никаких пустых ссылок и «#»).
-   Предпросмотр для владельца: ?social=demo в адресе любой страницы — видны все три (пробные адреса, помечены «пример»).
+   (Было до 16.11: ?social=demo в адресе — видны все три (пробные адреса, помечены «пример»).
    Места на странице: <div data-social="big|row|sheet"></div> — заполняются сами (JV_SOCIAL.fill). */
 (()=>{
 const LINKS=[
@@ -16,7 +16,7 @@ const ICON={
  yt:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1c.4-1.6.5-3.2.5-4.8s-.1-3.2-.5-4.8ZM9.7 15.1V8.9l5.8 3.1-5.8 3.1Z"/></svg>',
  ig:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>'
 };
-let demo=false;try{demo=new URLSearchParams(location.search).get('social')==='demo'}catch(e){}
+const demo=false;   /* режим ?social=demo убран перед доменом (проверка безопасности 16.11) */
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const safeUrl=u=>/^https:\/\/(www\.)?(t\.me|instagram\.com|youtube\.com|youtu\.be|vk\.com|tiktok\.com|dzen\.ru|x\.com|twitter\.com)\//.test(String(u||''))?u:'#';   /* соцсети — только известные адреса */
 const list=()=>LINKS.map(l=>({...l,url:l.url||(demo&&DEMO[l.id])||'',demo:!l.url&&demo&&!!DEMO[l.id]})).filter(l=>/^https:\/\//.test(l.url));
