@@ -198,7 +198,70 @@ def skills(lg, players, tgf=None):
     return out
 
 
-def write_profile(ppdir, lg, p, slug, sl, nx, tpl, games=None, sk=None):
+def pct_ranks(lg, players):
+    """«Лучше, чем у N % игроков того же амплуа» (владелец 16.11, по образцу Opta Analyst / FBref): по каждой цифре —
+    доля нападающих (или защитников) своей лиги, у кого она хуже. В выборке — от 5 матчей. Возвращает {id: [[ключ, значение, %]]};
+    ключи и подписи — assets/pct.js. У «меньше — лучше» (штраф, потери) процент считается наоборот."""
+    sk = {}
+    if lg == 'nhl':
+        try:
+            sk = load(os.path.join(V3A, 'hockey', 'data', 'nhl_skills.json')).get('p', {})
+        except Exception:  # noqa: BLE001
+            sk = {}
+    LOW = {'pim', 'gv'}
+    rows, grp = {}, {}
+    for p in players:
+        L = p.get('log', [])
+        n = len(L)
+        if n < 5 or p.get('id') is None:
+            continue
+        g = sum(r[4] or 0 for r in L); a = sum(r[5] or 0 for r in L)
+        tv = [r[7] for r in L if r[7]]
+        toi = sum(tv) / len(tv) if tv else ((p.get('toi_avg') or 0) * 60 or None)   # секунды за матч
+        m60 = toi * n / 3600.0 if toi else None
+        v = {'ppg': (g + a) / n, 'gpg': g / n, 'apg': a / n, 'toi': toi, 'p60': (g + a) / m60 if m60 else None}
+        if lg == 'nhl':
+            e = sk.get(str(p['id'])) or {}
+            gp = e.get('gp') or n
+            sh = sum(r[6] or 0 for r in L)
+            v.update({'spg': sh / n, 'shp': g / sh * 100 if sh >= 15 else None, 'pm': e.get('pm'),
+                      'pim': (e['pim'] / gp) if e.get('pim') is not None else sum(r[8] or 0 for r in L) / n,
+                      'hit': e['hit'] / gp if e.get('hit') is not None else None,
+                      'blk': e['blk'] / gp if e.get('blk') is not None else None,
+                      'tk': e['tk'] / gp if e.get('tk') is not None else None,
+                      'gv': e['gv'] / gp if e.get('gv') is not None else None,
+                      'fo': e['fo'] * (100 if e['fo'] <= 1 else 1) if e.get('fo') is not None and (e.get('fon') or 0) >= 100 else None,
+                      'spd': e['spd'] * 1.609 if e.get('spd') else None, 'shot': e['shot'] * 1.609 if e.get('shot') else None})
+        else:
+            st = p.get('st') or {}
+            gp = st.get('gp') or n
+            v.update({'pm': st.get('pm'), 'pim': (st['pim'] / gp) if st.get('pim') is not None else None,
+                      'spd': st.get('top_speed') or None,
+                      'dist': st['distance_travelled'] / gp if st.get('distance_travelled') else None})
+        rows[p['id']] = v
+        grp[p['id']] = 'D' if p.get('pos') == 'D' else 'F'
+    out = {}
+    keys = sorted({k for v in rows.values() for k in v})
+    for G in ('F', 'D'):
+        ids = [i for i in rows if grp[i] == G]
+        for k in keys:
+            vals = sorted(rows[i][k] for i in ids if rows[i].get(k) is not None)
+            if len(vals) < 20:
+                continue
+            import bisect
+            N = len(vals)
+            for i in ids:
+                x = rows[i].get(k)
+                if x is None:
+                    continue
+                lo = bisect.bisect_left(vals, x); hi = bisect.bisect_right(vals, x)
+                worse = (N - hi) if k in LOW else lo                       # у скольких хуже
+                pc = int(round((worse + (hi - lo - 1) / 2) / (N - 1) * 100)) if N > 1 else 50
+                out.setdefault(i, []).append([k, round(x, 3), max(1, min(99, pc))])
+    return out
+
+
+def write_profile(ppdir, lg, p, slug, sl, nx, tpl, games=None, sk=None, pc=None):
     """Профиль одного игрока: hockey/data/pp/<лига>/<id>.json.
     log: [дата, соперник(slug), дома, г, п, броски, toi сек, штраф, (счёт [свои, чужие, ОТ/Б])]; итоги +/-, штраф, броски — из таблицы клуба (teams.json pl.sk),
     если игрок там найден по имени (иначе считаются по логу, +/- тогда нет)."""
@@ -229,6 +292,8 @@ def write_profile(ppdir, lg, p, slug, sl, nx, tpl, games=None, sk=None):
         q['nx'] = {'o': sl(nx['o']), 'h': nx['h'], 'd': nx['d'][:16]}
     if sk:
         q['sk'] = sk
+    if pc:
+        q['pc'] = pc
     write(os.path.join(ppdir, lg, '%s.json' % p['id']), jd(q))
     return 1
 
@@ -346,6 +411,7 @@ def hockey():
                 if gm_.get('gf') is not None:
                     GF[(key_, gm_.get('d', '')[:10])] = gm_['gf']
         SK = skills(lg, j.get('players', []), lambda tm, dt: GF.get((tm, dt)))
+        PC = pct_ranks(lg, j.get('players', []))
         for p in j.get('players', []):
             log = [[r[0][:10], r[2], r[3], r[4], r[5], r[6], r[7]] for r in p.get('log', [])]
             q = {'n': p['n'], 't': p['t'], 'pos': p.get('pos'), 'log': log}
@@ -362,7 +428,7 @@ def hockey():
                 byteam.setdefault(slug, {})[p['n']] = p['img']
             if slug and p.get('id') is not None:
                 idteam.setdefault(slug, {})[p['n']] = p['id']
-                ppn += write_profile(ppdir, lg, p, slug, sl, nxt.get(p['t']), d['teams'].get(slug, {}).get('pl'), d['teams'].get(slug, {}).get('games'), SK.get(p.get('id')))
+                ppn += write_profile(ppdir, lg, p, slug, sl, nxt.get(p['t']), d['teams'].get(slug, {}).get('pl'), d['teams'].get(slug, {}).get('games'), SK.get(p.get('id')), PC.get(p.get('id')))
         for t_, m_ in (j.get('gimg') or {}).items():                  # фото вратарей (лучший вратарь на странице клуба)
             slug = t_ if lg == 'khl' else slug_of.get(t_)
             if slug:

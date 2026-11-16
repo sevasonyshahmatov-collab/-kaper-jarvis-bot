@@ -70,7 +70,7 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
   </div>
   <div class="pp-photo${P.img?'':' nop'}"><span class="pp-ini" aria-hidden="true">${esc(ini)}</span>${photo}</div>
  </article>
- <section class="pp-sec" id="s-season" aria-labelledby="h-s"><h2 id="h-s">Сезон</h2><div class="pp-tiles">${tiles.join('')}</div></section>${radar(P.sk)}
+ <section class="pp-sec" id="s-season" aria-labelledby="h-s"><h2 id="h-s">Сезон</h2><div class="pp-tiles">${tiles.join('')}</div></section>${radar(P.sk)}${window.JV_PCT?JV_PCT.block(P,LG):''}
  ${N?`<section class="pp-sec" id="s-l5" aria-labelledby="h-5"><h2 id="h-5">Последние ${Math.min(5,N)} ${pl(Math.min(5,N),'матч','матча','матчей')}</h2>
   <div class="pp-wrap"><table class="pp-t5"><thead><tr><th scope="col">Дата</th><th scope="col">Матч</th><th scope="col" class="n">Г</th><th scope="col" class="n">П</th><th scope="col" class="n">О</th>${nhl?'<th scope="col" class="n br">Бр</th><th scope="col" class="n tm">Время</th>':''}<th scope="col" class="n">Счёт</th></tr></thead><tbody>
   ${log.slice(-5).reverse().map(r=>{const sc=r[8],w=sc&&sc[0]>sc[1];return `<tr><td class="d">${ddmm(r[0])}</td><td><a class="op" href="../team/index.html?id=${encodeURIComponent(r[1])}"><img src="${em(r[1])}" alt="" loading="lazy" onerror="this.remove()"><span>${r[2]?'':''}${esc(tn(r[1]))}</span></a></td><td class="n">${r[3]}</td><td class="n">${r[4]}</td><td class="n"><b>${r[3]+r[4]}</b></td>${nhl?`<td class="n br">${r[5]??'—'}</td><td class="n tm">${mmss(r[6])}</td>`:''}<td class="n sc">${sc?`<span class="sc5"><i class="${w?'w':'l'}">${w?'В':'П'}</i><b>${sc[0]}:${sc[1]}</b><small>${sc[2]?esc(sc[2]):''}</small></span>`:'—'}</td></tr>`}).join('')}

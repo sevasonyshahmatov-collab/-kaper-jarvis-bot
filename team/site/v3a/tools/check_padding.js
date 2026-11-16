@@ -10,7 +10,7 @@ const {chromium}=require('playwright');
 const ONLY=process.argv[2]||'',WS=(process.argv[3]||'360,390,430,768,1440').split(',').map(Number);
 const PAGES=['index.html','hockey/index.html','football/index.html','hockey/league.html?lg=khl','hockey/league.html?lg=nhl','football/league.html?lg=epl',
  'football/ucl.html','team/index.html?id=lokomotiv','team/index.html?id=shanghai','hockey/player.html?lg=nhl&id=8478402','hockey/player.html?lg=khl&id=31089',
- 'football/player.html?id=253989','hockey/players.html','hockey/trends.html','football/trends.html','hockey/compare.html','football/compare.html',
+ 'football/player.html?id=253989','hockey/players.html','hockey/trends.html','football/trends.html','hockey/compare.html','hockey/compare.html?t=players&a=nhl-8478402&b=nhl-8478427','football/compare.html',
  'results.html','matches.html','khl/2026-11-20-torpedo-lokomotiv/','forecast.html','model.html','glossary.html','hockey/table.html','me/index.html','404.html',
  /* другие данные (задание 15.11): футбольный матч, длинное название клуба, длинные фамилии, прогнозы, игроки АПЛ */
  'epl/2026-11-21-tottenham-hotspur-ipswich-town/','football/team.html?id=borussia_monchengladbach','hockey/player.html?lg=khl&id=48107',

@@ -148,6 +148,7 @@ function playerView(xa,xb,PA,PB,SK){
     row('Очков за матч в 10 последних',A.l10,B.l10,{d:2}),row('Дома: очков за матч',A.home,B.home,{d:2}),row('В гостях: очков за матч',A.away,B.away,{d:2})])
   +(A.e||B.e?group('Игра без шайбы и скорость (НХЛ)',[row('Силовых приёмов за матч',...e('hit'),{d:1}),row('Блоков за матч',...e('blk'),{d:1}),row('Отборов за сезон',...e('tk')),
     row('Потерь за сезон',...e('gv'),{low:1}),row('Вбрасывания, %',...e('fo'),{d:1}),row('Макс. скорость, км/ч',...e('spd'),{d:1}),row('Самый сильный бросок, км/ч',...e('shot'),{d:1}),row('Рывков за матч',...e('bur'),{d:1})]):'')
+  +(window.JV_PCT?JV_PCT.duel(PA,PB,em(ta,20)+esc(PA.n),em(tb,20)+esc(PB.n),xa.lg!==xb.lg):'')
   +(names.length&&B.sk.length?group('Оценки по цифрам, 0–100 в своей лиге',names.map(n=>row(n,skv(A,n),skv(B,n)))):'')
   +(xa.lg!==xb.lg?'<p class="cmp-note">Игроки из разных лиг: уровень соперников разный, оценки считаются внутри своей лиги.</p>':'');
   return head(ta,tb,PA.n,PB.n,sub(PA,ta),sub(PB,tb),img(PA,ta),img(PB,tb),url(xa),url(xb))+verdict(body,PA.n,PB.n)+body}
