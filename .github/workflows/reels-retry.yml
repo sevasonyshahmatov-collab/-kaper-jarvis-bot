@@ -45,7 +45,17 @@ jobs:
           [[ "$d" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "плохой день: $d"; exit 1; }
           echo "DAY=$d" >> "$GITHUB_ENV"
           mkdir -p out/reels_daily
-          for id in $(gh run list -R "$GITHUB_REPOSITORY" -w reels-daily.yml -b main -L 8 --json databaseId -q '.[].databaseId'); do
+          # только свои запуски (проверка 16.11): событие schedule / workflow_dispatch / repository_dispatch, ветка main,
+          # репозиторий запуска — этот (ветка main бывает и у чужой копии — fork)
+          runs=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/reels-daily.yml/runs?branch=main&per_page=8")
+          echo "$runs" | REPO="$GITHUB_REPOSITORY" jq -r '.workflow_runs[]
+            | select((.event | IN("schedule","workflow_dispatch","repository_dispatch") | not) or .head_branch != "main"
+                     or .head_repository.full_name != env.REPO)
+            | "пропускаю запуск \(.id): не наш (\(.event), \(.head_branch), \(.head_repository.full_name))"'
+          ids=$(echo "$runs" | REPO="$GITHUB_REPOSITORY" jq -r '.workflow_runs[]
+            | select((.event | IN("schedule","workflow_dispatch","repository_dispatch")) and .head_branch == "main"
+                     and .head_repository.full_name == env.REPO) | .id')
+          for id in $ids; do
             for lg in khl nhl; do
               gh run download "$id" -R "$GITHUB_REPOSITORY" -p "videos-$lg-$d-*" -D "out/reels_daily/dl-$id-$lg" 2>/dev/null && echo "запуск $id: $lg" || true
             done
