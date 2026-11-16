@@ -146,3 +146,4 @@
 .rs-tm{white-space:nowrap}
 
 @media (max-width:860px){.rs-row a[href*="t.me"]{display:inline-block;padding-block:12px}}
+.rs-top .rs-trust{margin:10px 0 0;font:600 14px/1.45 var(--display);color:#ffd27a;max-width:60ch}

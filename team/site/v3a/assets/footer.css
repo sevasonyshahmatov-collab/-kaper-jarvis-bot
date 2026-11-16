@@ -60,3 +60,7 @@ html body footer.jvf .jvf-bot{border-top-color:#1c2840}
   .jvf-bot{margin-top:18px;padding-top:14px}
   .jvf-bot p,.jvf-note{font-size:13px}
 }
+/* защита от подделок (проверка безопасности 16.11): одна строка о канале и 18+ на всех страницах */
+.jvf-safe{display:grid;gap:6px;margin-top:clamp(20px,3vw,30px);padding:14px 16px;border-radius:12px;background:rgba(255,190,60,.07);border:1px solid rgba(255,190,60,.25)}
+html body footer.jvf .jvf-safe p{margin:0;font-size:13.5px;line-height:1.45;color:#c9d3e3}
+html body footer.jvf .jvf-safe b{color:#ffd27a}
