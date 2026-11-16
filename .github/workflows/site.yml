@@ -155,6 +155,8 @@ jobs:
           if [ -f .v3a-root ] && ! git diff --quiet HEAD -- index.html; then
             mkdir -p old && sed '0,/<head>/s##<head><base href="../">#' index.html > old/index.html && git checkout HEAD -- index.html
           fi
+          # 16.11: 404.html — тоже от нового сайта (владелец 13.11: «публикуй 404 новую»), старая сборка её не заменяет
+          if [ -f .v3a-root ] && ! git diff --quiet HEAD -- 404.html; then git checkout HEAD -- 404.html; fi
           git add -A
           git diff --cached --quiet && { echo "на сайте ничего не изменилось"; exit 0; }
           git commit -q -m "Прогнозы и итоги ${{ steps.day.outputs.day }}"

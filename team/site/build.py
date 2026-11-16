@@ -129,13 +129,22 @@ def save(path, obj):
         json.dump(obj, f, ensure_ascii=False, indent=1)
 
 
+DAY_FILE = re.compile(r'^[a-z0-9]+-\d{4}-\d{2}-\d{2}\.json$')
+
+
+def day_files(site):
+    """Файлы дней старого сайта: data/<лига>-<день>.json. С 13.11 в ту же папку data/ кладёт свои файлы новый сайт
+    (daily_log.json, lines.json, model.json, deckbg/) — их не читаем, иначе сборка падала (KeyError: 'day')."""
+    return sorted(p for p in glob.glob(os.path.join(site, 'data', '*.json')) if DAY_FILE.match(os.path.basename(p)))
+
+
 def days(site):
     lim = (today() - timedelta(days=KEEP_DAYS)).isoformat()
     key = seal_key()
     out = []
-    for path in sorted(glob.glob(os.path.join(site, 'data', '*.json'))):
+    for path in day_files(site):
         P = load(path)
-        if P and P['day'] >= lim:
+        if isinstance(P, dict) and str(P.get('day', '')) >= lim:
             for m in P['matches']:                 # закрытые поля модели (seal_public) — обратно для сборки
                 z = m.pop('_z', None)
                 if z and key:
@@ -190,9 +199,9 @@ def seal_public(site):
     pub = load(os.path.join(site, 'stats', 'published.json')) or []
     posts = {(x['lg'], _norm(x['h']), _norm(x['a']), x['d'][:10]): _norm(x['bet']) for x in pub}
     key, n = seal_key(), 0
-    for path in glob.glob(os.path.join(site, 'data', '*.json')):
+    for path in day_files(site):
         P = load(path)
-        if not P:
+        if not isinstance(P, dict):
             continue
         hit = False
         for m in P.get('matches') or []:
