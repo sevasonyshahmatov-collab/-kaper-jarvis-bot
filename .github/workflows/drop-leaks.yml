@@ -1,0 +1,27 @@
+# Разово (владелец 16.11): удалить запуск № 83 «Постеры» (в нём был старый ключ треков) и артефакты site-before-bundle
+# (копия истории сайта). Из интерфейса на телефоне не удалилось. После запуска файл убрать.
+name: Разово — удалить запуск 83 и копии сайта
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  drop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Удалить
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rc=0
+          gh api -X DELETE "repos/$GITHUB_REPOSITORY/actions/runs/38242847473" && echo "удалён запуск № 83" \
+            || { echo "::error::запуск № 83 не удалён"; rc=1; }
+          for id in $(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=site-before-bundle&per_page=100" -q '.artifacts[].id'); do
+            gh api -X DELETE "repos/$GITHUB_REPOSITORY/actions/artifacts/$id" && echo "удалён артефакт $id" \
+              || { echo "::error::артефакт $id не удалён"; rc=1; }
+          done
+          exit $rc
