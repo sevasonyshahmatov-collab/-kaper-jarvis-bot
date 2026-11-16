@@ -434,6 +434,13 @@ def match_page(P, m, logos, base, siblings):
     return head(title, desc, url, '../', extra, 'article') + body + FOOT
 
 
+def night(d):
+    """Заголовок дня НХЛ. День в данных — по Нью-Йорку (вечер 15-го там — ночь с 15-го на 16-е по Москве), а «ночь на N»
+    по-русски — ночь, которая ведёт в N-е. Владелец 16.11: «ночь на 15» над матчами 16-го в 03:30 МСК — исправить на «ночь на 16»."""
+    n = d + timedelta(days=1)
+    return 'ночь на %d %s' % (n.day, MONTHS[n.month - 1])
+
+
 def list_page(D, base, logos=None, total=None):
     """/prognozy/: ближайшие матчи сверху, ниже сыгранные с итогом; честный счёт за 30 дней."""
     lim = (today() - timedelta(days=30)).isoformat()
@@ -458,7 +465,7 @@ def list_page(D, base, logos=None, total=None):
         dw, dn = sum(m.get('res') == 'win' for m in ms), sum(m.get('res') in ('win', 'loss') for m in ms)
         dsum = ('<span class="dsum">зашло %d из %d</span>' % (dw, dn)) if dn else ''
         blocks.append('<section class="day"><h2>%s · %s%s</h2><div class="rows">%s</div></section>' % (
-            LG[lg], ('ночь на %d %s' % (d.day, MONTHS[d.month - 1])) if lg == 'nhl' else nice_day(d), dsum, rows))
+            LG[lg], night(d) if lg == 'nhl' else nice_day(d), dsum, rows))
     title = 'Прогнозы на хоккей сегодня: КХЛ и НХЛ — все матчи с итогами'
     desc = 'Прогнозы на каждый матч КХЛ и НХЛ от собственной модели: форма команд, вероятность, кэф. Итоги всех прогнозов, и зашедших, и нет.'
     pc = round(100 * w / len(done)) if done else 0
