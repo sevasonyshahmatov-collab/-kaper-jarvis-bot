@@ -20,8 +20,15 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false      # ключ записи не лежит в .git/config во время pip install (проверка 16.11)
       - run: sudo apt-get install -y -qq ffmpeg >/dev/null
       - name: Принять треки
         env:
           TRACKS_KEY: ${{ secrets.TRACKS_KEY }}
-        run: bash tools/tracks_inbox/intake.sh
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # ключ записи — только в этом шаге, переменными окружения git, не на диске (проверка 16.11)
+          export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.https://github.com/.extraheader
+          GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"; export GIT_CONFIG_VALUE_0
+          bash tools/tracks_inbox/intake.sh

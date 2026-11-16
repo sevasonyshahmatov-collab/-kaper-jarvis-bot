@@ -39,6 +39,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: claude/project-migration-old-account-6e31vz
+          persist-credentials: false      # ключ записи не лежит в .git/config во время pip install (проверка 16.11)
       - name: Согласие владельца на расписание
         id: gate
         run: |
@@ -71,7 +72,12 @@ jobs:
           python team/picks/learn_weekly.py $flag
       - name: Коммит в ветку команды
         if: steps.gate.outputs.go == '1' && github.event.inputs.dry != '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          # ключ записи — только в этом шаге, переменными окружения git, не на диске (проверка 16.11)
+          export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.https://github.com/.extraheader
+          GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"; export GIT_CONFIG_VALUE_0
           D=$(TZ=Europe/Moscow date +%F)
           git config user.name "jarvis-learn"
           git config user.email "actions@users.noreply.github.com"

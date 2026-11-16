@@ -16,13 +16,20 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false      # ключ записи не лежит в .git/config во время pip install (проверка 16.11)
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - run: sudo apt-get update -q && sudo apt-get install -y -q librsvg2-bin && pip install "pillow>=11"
       - run: python tools/emblems_nhl_fetch.py
       - name: Закоммитить эмблемы
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          # ключ записи — только в этом шаге, переменными окружения git, не на диске (проверка 16.11)
+          export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.https://github.com/.extraheader
+          GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"; export GIT_CONFIG_VALUE_0
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add render/emblems
