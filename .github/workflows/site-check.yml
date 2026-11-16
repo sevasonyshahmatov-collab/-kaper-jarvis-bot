@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # 16.11: ubuntu-latest стала 26.04 — Playwright 1.56 её не поддерживает (проверка падала с 15.11)
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
