@@ -86,6 +86,11 @@ html{scroll-padding-top:116px}
   .lcard .cg a{position:relative}.lcard .cg a::after{content:"";position:absolute;inset:-3px}
   main.pl button{min-height:44px}
   select,input[type=search],input[type=text]{min-height:44px}
+  /* 16.11: ещё две мелкие ссылки — подпись под блоками страницы матча и цепочка «Итогов» */
+  .mt-note a,.crumbs a{position:relative}
+  .mt-note a::after,.crumbs a::after{content:"";position:absolute;left:-4px;right:-4px;top:50%;height:44px;transform:translateY(-50%)}
+  /* 16.11: подписи 11 px → 12 px (место команды и подписи процентов на странице матча, «Страница лиги», «14-е в КХЛ», рынки футбола) */
+  .mx-team small,.mx-sh small,.mx-sx small,.mx-sa small,.bh a.open,em.strk,.mk3 span{font-size:12px!important} /* страницы подключают свои стили после nav.css */
 }
 /* резерв высоты под списки, которые строятся после загрузки данных (CLS) */
 .pl-list:empty{min-height:70vh}
