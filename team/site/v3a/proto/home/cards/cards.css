@@ -44,7 +44,7 @@
   background:conic-gradient(from calc(var(--ry)*5deg) at calc(var(--mx)*1%) calc(var(--my)*1%),#fff0 0,#fff9 6%,#fff0 13%,#9fd2ff88 26%,#fff0 38%,#ffe6a88a 52%,#fff0 64%,#fff8 80%,#fff0 92%)}
 .pl{position:absolute;display:block;max-width:none;height:auto;transform:translateZ(46px) translate(calc(var(--ry)*.25cqw),calc(var(--rx)*-.25cqw));
   filter:drop-shadow(0 2cqw 3cqw rgba(0,0,0,.45));pointer-events:none;user-select:none}
-.hk .pl{width:100cqw;left:0;top:-9cqw}
+.hk .pl{width:100cqw;left:0;top:-9cqw}   /* 16.11: исходное фото (прислал владелец 06.11) — по решению владельца */
 .fb .pl{width:80cqw;left:10cqw;top:-8cqw}
 /* блик на игроке: радужная заливка по маске-силуэту */
 .plsh{position:absolute;display:block;pointer-events:none;transform:translateZ(47px) translate(calc(var(--ry)*.25cqw),calc(var(--rx)*-.25cqw));
