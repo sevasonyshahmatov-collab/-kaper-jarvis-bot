@@ -56,7 +56,7 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
  tiles.push(tile('Штраф, мин',pim));
  const lgName=nhl?'НХЛ':'КХЛ';
  const teamHref=`../team/index.html?id=${encodeURIComponent(P.t)}`;
- const photo=P.img?`<img class="ph" src="${esc(JV_KPH(P.img))}" alt="${esc(P.n)}" onerror="this.parentNode.classList.add('nop');this.remove()">`:'';
+ const photo=P.img?`<img class="ph" src="${esc(JV_KPH(P.img))}" referrerpolicy="no-referrer" alt="${esc(P.n)}" onerror="this.parentNode.classList.add('nop');this.remove()">`:'';
  let html=`<article class="pp-hero" aria-label="${esc(P.n)}">
   ${P.no!=null?`<span class="pp-no" aria-hidden="true">${esc(P.no)}</span>`:''}
   <span class="pp-wm" aria-hidden="true">${esc(tn(P.t))}</span><img class="pp-ghost" src="${em(P.t)}" alt="" aria-hidden="true" onerror="this.remove()">
@@ -103,7 +103,7 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
  {const hero=MAIN.querySelector('.pp-hero'),hd=document.getElementById('hd'),bar=document.createElement('div');
   bar.className='pp-stick';bar.setAttribute('aria-hidden','true');
   ['--kb','--ko','--ko2','--ks','--kt'].forEach(v=>{const x=MAIN.style.getPropertyValue(v);if(x)bar.style.setProperty(v,x)});
-  bar.innerHTML=`<div class="wrap"><span class="pps-wm">${esc(tn(P.t))}</span>${P.img?`<img class="pps-ph" src="${esc(JV_KPH(P.img))}" alt="" onerror="this.remove()">`:''}
+  bar.innerHTML=`<div class="wrap"><span class="pps-wm">${esc(tn(P.t))}</span>${P.img?`<img class="pps-ph" src="${esc(JV_KPH(P.img))}" referrerpolicy="no-referrer" alt="" onerror="this.remove()">`:''}
    <div class="pps-who"><b>${esc(P.n)}</b><span>${P.no!=null?'#'+esc(P.no)+' · ':''}${esc(POS[P.pos]||P.pos||'')} · ${esc(tn(P.t))}</span></div>
    <div class="pps-st"><div><b>${gp}</b><span>игр</span></div><div><b>${G}</b><span>голы</span></div><div><b>${A}</b><span>пас</span></div><div><b>${G+A}</b><span>очки</span></div></div>
    <nav><a href="#s-season" tabindex="-1">Сезон</a><a href="#s-l5" tabindex="-1">Последние 5</a><a href="#s-mk" tabindex="-1">Рынки</a><a href="#s-form" tabindex="-1">Форма</a><a href="#s-next" tabindex="-1">Следующий матч</a><a href="#s-games" tabindex="-1">Матчи</a></nav>

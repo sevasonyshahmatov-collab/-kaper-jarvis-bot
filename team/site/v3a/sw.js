@@ -21,5 +21,6 @@ self.addEventListener('fetch',e=>{
  const req=e.request;if(req.method!=='GET')return;
  const u=new URL(req.url);if(u.origin!==self.location.origin||!u.href.startsWith(ROOT)||req.headers.has('range'))return;
  if(STATIC.test(u.pathname)){e.respondWith(caches.match(req).then(hit=>hit||fetch(req).then(r=>put(req,r,IMG))));return}
- e.respondWith(net(req).then(r=>put(req,r)).catch(()=>caches.match(req).then(hit=>hit||caches.match(req,{ignoreSearch:true}))
+ /* переходы с параметрами в адресе в копию не кладём: иначе ссылками со случайными ?… можно раздувать кэш посетителя (16.11) */
+ e.respondWith(net(req).then(r=>req.mode==='navigate'&&u.search?r:put(req,r)).catch(()=>caches.match(req).then(hit=>hit||caches.match(req,{ignoreSearch:true}))
   .then(hit=>hit||(req.mode==='navigate'?caches.match(ROOT+'offline.html'):undefined)).then(hit=>hit||Response.error())))});
