@@ -434,7 +434,7 @@ def match_page(P, m, logos, base, siblings):
     return head(title, desc, url, '../', extra, 'article') + body + FOOT
 
 
-def list_page(D, base, logos=None):
+def list_page(D, base, logos=None, total=None):
     """/prognozy/: ближайшие матчи сверху, ниже сыгранные с итогом; честный счёт за 30 дней."""
     lim = (today() - timedelta(days=30)).isoformat()
     allm = [(P, m) for P in D for m in P['matches']]
@@ -462,8 +462,10 @@ def list_page(D, base, logos=None):
     title = 'Прогнозы на хоккей сегодня: КХЛ и НХЛ — все матчи с итогами'
     desc = 'Прогнозы на каждый матч КХЛ и НХЛ от собственной модели: форма команд, вероятность, кэф. Итоги всех прогнозов, и зашедших, и нет.'
     pc = round(100 * w / len(done)) if done else 0
-    tally = ('''<div class="tally"><p>За 30 дней: зашло <b>%d из %d</b> прогнозов (%d%%). Показываем все, без удалений.</p>
-<div class="tbar" role="img" aria-label="Зашло %d, не зашло %d"><i style="width:%d%%"></i></div></div>''' % (w, len(done), pc, w, len(done) - w, pc)) if done else ''
+    allt = ('<p class="tall">За всё время в канале: зашло <b>%d из %d</b> (%d%%) — хоккей, футбол и экспрессы. '
+            '<a href="../results.html">Все итоги</a></p>' % (total[0], total[1], round(100 * total[0] / total[1]))) if total and total[1] else ''
+    tally = ('''<div class="tally"><p>Хоккей за 30 дней: зашло <b>%d из %d</b> прогнозов (%d%%). Показываем все, без удалений.</p>
+<div class="tbar" role="img" aria-label="Зашло %d, не зашло %d"><i style="width:%d%%"></i></div>%s</div>''' % (w, len(done), pc, w, len(done) - w, pc, allt)) if done else ''
     filt = '''<div class="filt" hidden><div role="group" aria-label="Лига"><span class="flab" aria-hidden="true">Лига</span><button type="button" data-k="lg" data-v="" aria-pressed="true">Все</button><button type="button" data-k="lg" data-v="khl" aria-pressed="false">КХЛ</button><button type="button" data-k="lg" data-v="nhl" aria-pressed="false">НХЛ</button></div>
 <div role="group" aria-label="Итог"><span class="flab" aria-hidden="true">Итог</span><button type="button" data-k="r" data-v="" aria-pressed="true">Все</button><button type="button" data-k="r" data-v="win" aria-pressed="false">Зашли</button><button type="button" data-k="r" data-v="loss" aria-pressed="false">Не зашли</button><button type="button" data-k="r" data-v="soon" aria-pressed="false">Ждём</button></div>
 <p class="fcount" aria-live="polite"></p></div>
@@ -664,12 +666,42 @@ def _norm(t):
     return re.sub(r'[^0-9a-zа-я+,.]+', ' ', t).strip()
 
 
+RES_R = {'w': 'win', 'l': 'loss', 'p': 'push'}
+
+
+def channel_posts(site):
+    """Посты канала — один источник с новым сайтом (владелец 16.11: «сведи к одному источнику»). stats/published.json
+    (months.py) + хоккейные одиночные прогнозы из data/results.json нового сайта (daily/results.py — его итоги на главной
+    и в «Итогах»). Сводим по номеру поста: нет поста в одном файле — берём из другого (в published.json не хватало двух),
+    нет итога в одном — из другого (сборки идут в разное время)."""
+    pub = {x['id']: dict(x) for x in load(os.path.join(site, 'stats', 'published.json')) or [] if x.get('id') is not None}
+    R = load(os.path.join(site, 'data', 'results.json')) or {}
+    for y in R.get('picks') or []:
+        if y.get('sport') != 'hockey' or y.get('kind') != 'single' or y.get('lg') not in LG or not y.get('id'):
+            continue
+        r, sc = RES_R.get(y.get('r')), y.get('sc') or None
+        x = pub.get(y['id'])
+        if x is None:
+            pub[y['id']] = dict(lg=y['lg'], h=y['h'], a=y['a'], d=y['d'], bet=y['bet'], kef=y.get('kef'), id=y['id'],
+                                **({'r': r, 'sc': sc} if r else {}))
+        elif r and not x.get('r'):
+            x.update(r=r, sc=sc)
+    return sorted(pub.values(), key=lambda x: (x['d'], x['id']))
+
+
+def channel_total(site):
+    """Итог канала за всё время — то же число, что на главной и в «Итогах» нового сайта (хоккей, футбол, экспрессы)."""
+    R = load(os.path.join(site, 'data', 'results.json')) or {}
+    t = ((R.get('sum') or {}).get('total') or {}).get('all') or {}
+    return (t['w'], t['w'] + t['l'], R.get('since')) if t.get('w') is not None and t.get('l') is not None else None
+
+
 def channel_view(site, D):
     """Владелец 25.10: на сайте и в приложении — только прогнозы, выложенные в канал @jarvibet (site/stats/published.json —
     team/site/months.py). Ставка и кэф — из поста; итог — по посту (months), у ещё не сыгранных — без итога. Совпала ставка с
     моделью — оставляем вероятность и розыгрыши модели, нет — убираем (они о другой ставке). Матча нет в прогнозах модели,
     но он есть в расписании дня — показываем по посту, без данных модели. Нет файла — прогнозов на сайте нет."""
-    pub = load(os.path.join(site, 'stats', 'published.json')) or []
+    pub = channel_posts(site)
     key = lambda lg, h, a, d: (lg, _norm(h), _norm(a), d[:10])  # noqa: E731
     posts = {key(x['lg'], x['h'], x['a'], x['d']): x for x in pub}
     out, used = [], set()
@@ -702,22 +734,17 @@ def channel_view(site, D):
         p3 = {key(P['league'], m['h'], m['a'], m['d']): m.get('p3') for m in P['matches']}   # шансы модели — и до поста
         allx = [dict(y, p3=p3.get(key(P['league'], y['h'], y['a'], y['d']))) for y in P.get('all') or []]
         out.append(dict(P, matches=sorted(ms, key=lambda m: m['d']), all=allx))
-    out += orphan_days(pub, out, key)
+    out += orphan_days(pub, out)
     print('SITE прогнозы из канала: постов %d, на сайте %d' % (len(pub), sum(len(P['matches']) for P in out)), flush=True)
     return out
 
 
-def orphan_days(pub, out, key):
-    """Посты за дни, по которым у сайта нет данных (16.11: сборка падала 13–16.11, файлы data/<лига>-<день>.json не сохранились,
+def orphan_days(pub, out):
+    """Посты за дни, по которым у сайта нет данных — в том числе до запуска сайта 23.10 (16.11: сборка падала 13–16.11, файлы data/<лига>-<день>.json не сохранились,
     а план за прошедший день пустой — расписание даёт только предстоящие матчи). Матч показываем прямо по посту: ставка, кэф,
-    итог и счёт в посте есть; без данных модели — как матч «пост есть, у модели прогноза не было». Дни, где у лиги есть хоть
-    один матч в данных, не трогаем (иначе разное написание команд дало бы дубли)."""
-    lim = (today() - timedelta(days=KEEP_DAYS)).isoformat()
-    have = {(P['league'], P['day']) for P in out if P['matches'] or P.get('all')}
-    if not have:
-        return []
-    lim = max(lim, min(d for _, d in have))        # только пропуски после запуска сайта (23.10), не посты до него
-    used = {key(P['league'], m['h'], m['a'], m['d']) for P in out for m in P['matches']}
+    итог и счёт в посте есть; без данных модели — как матч «пост есть, у модели прогноза не было». Сверка — по номеру поста,
+    не по названиям команд: дублей не бывает, и пост, чей матч не нашёлся в данных дня, тоже попадает на сайт."""
+    used = {m.get('post') for P in out for m in P['matches']}     # номер поста: каждый пост на сайте ровно один раз
     add = {}
     for x in pub:
         try:
@@ -726,7 +753,7 @@ def orphan_days(pub, out, key):
             continue
         lg = x.get('lg')
         day = (dt - timedelta(hours=12)).date().isoformat() if lg == 'nhl' else dt.date().isoformat()   # НХЛ: ночь — к вечеру накануне
-        if lg not in LG or day < lim or (lg, day) in have or key(lg, x['h'], x['a'], x['d']) in used:
+        if lg not in LG or x.get('id') in used:
             continue
         m = dict(h=x['h'], a=x['a'], d=x['d'][:16], pick=x['bet'], odds=x.get('kef'), p=None, post=x['id'], form={})
         if x.get('r'):
@@ -789,7 +816,7 @@ def _build(site, plans, do_settle=True):
         os.remove(p)
     if gone:
         print('SITE убрано страниц без поста в канале: %d' % len(gone), flush=True)
-    write(site, 'prognozy/index.html', list_page(D, base, logos), changed)
+    write(site, 'prognozy/index.html', list_page(D, base, logos, channel_total(site)), changed)
     write(site, 'index.html', landing(D, logos, base, site), changed)
     # тренды команд (владелец 26.10): поле tr у команд — team/site/app_data/trends.py
     import trendy_page

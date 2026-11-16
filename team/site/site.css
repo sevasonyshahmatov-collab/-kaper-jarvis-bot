@@ -115,3 +115,4 @@ h3.tt{margin-top:26px;font-size:18px}
 .trt td:first-child{display:flex;align-items:center;gap:8px;font-weight:700}.trt td:first-child a{text-decoration:none}
 .trt img{object-fit:contain}.trt tr:last-child td{border-bottom:0}
 .trt td.w{color:var(--o-acc)}.trt td.l{color:var(--o-red)}
+.tally .tall{margin-top:10px;color:var(--o-mute);font-size:14px}.tally .tall b{color:var(--o-fg)}
