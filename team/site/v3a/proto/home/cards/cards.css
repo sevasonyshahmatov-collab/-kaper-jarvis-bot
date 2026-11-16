@@ -44,13 +44,13 @@
   background:conic-gradient(from calc(var(--ry)*5deg) at calc(var(--mx)*1%) calc(var(--my)*1%),#fff0 0,#fff9 6%,#fff0 13%,#9fd2ff88 26%,#fff0 38%,#ffe6a88a 52%,#fff0 64%,#fff8 80%,#fff0 92%)}
 .pl{position:absolute;display:block;max-width:none;height:auto;transform:translateZ(46px) translate(calc(var(--ry)*.25cqw),calc(var(--rx)*-.25cqw));
   filter:drop-shadow(0 2cqw 3cqw rgba(0,0,0,.45));pointer-events:none;user-select:none}
-.hk .pl{width:100cqw;left:0;top:-9cqw}
+.hk .pl{width:100cqw;left:0;top:-7cqw}   /* 16.11: кадр шире (рукав «97» целиком), клюшка и верх шлема растворены — без резких срезов */
 .fb .pl{width:80cqw;left:10cqw;top:-8cqw}
 /* блик на игроке: радужная заливка по маске-силуэту */
 .plsh{position:absolute;display:block;pointer-events:none;transform:translateZ(47px) translate(calc(var(--ry)*.25cqw),calc(var(--rx)*-.25cqw));
   opacity:calc(.1 + var(--hi)*.32);mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;mask-size:100% 100%;-webkit-mask-size:100% 100%;
   background:linear-gradient(115deg,#ff8ad0 0%,#ffe58a 25%,#8affd0 50%,#8ac4ff 75%,#c98aff 100%);background-size:300% 300%;background-position:calc(var(--mx)*1%) calc(var(--my)*1%)}
-.hk .plsh{width:100cqw;height:calc(100cqw*1100/846);left:0;top:-9cqw;mask-image:url(hockey.webp);-webkit-mask-image:url(hockey.webp)}
+.hk .plsh{width:100cqw;height:calc(100cqw*1364/1100);left:0;top:-7cqw;mask-image:url(hockey.webp);-webkit-mask-image:url(hockey.webp)}
 .fb .plsh{width:80cqw;height:calc(80cqw*900/493);left:10cqw;top:-8cqw;mask-image:url(football.webp);-webkit-mask-image:url(football.webp)}
 /* рамка-фольга и тонкая внутренняя линия */
 .frame{position:absolute;inset:0;border-radius:6cqw;padding:1.3cqw;transform:translateZ(24px);pointer-events:none;
