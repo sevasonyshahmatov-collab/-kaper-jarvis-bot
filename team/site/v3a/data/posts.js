@@ -1,1 +1,1 @@
-window.JV_POSTS={"nhl|2026-11-16|nhl_sjs|nhl_nsh":{"id":1618,"url":"https://t.me/jarvibet/1618","src":"model","bet":"Итоговая победа Нэшвилла","kef":1.65,"r":null},"nhl|2026-11-16|dallas|nhl_fla":{"id":1620,"url":"https://t.me/jarvibet/1620","src":"model","bet":"Флорида не проиграет в основное время","kef":1.62,"r":null},"nhl|2026-11-16|nhl_phi|nhl_edm":{"id":1619,"url":"https://t.me/jarvibet/1619","src":"model","bet":"Итоговая победа Эдмонтона","kef":1.65,"r":null}};
+window.JV_POSTS={};
