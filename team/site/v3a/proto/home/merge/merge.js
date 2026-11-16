@@ -17,7 +17,9 @@ if(!cards.length)return;
  [['hk',true],['fb',false]].forEach(([c,hk])=>{
   const list=all.filter(m=>m.hockey===hk),td=raw.filter(m=>H.isH(m)===hk&&H.J.isToday(m)),use=td.length?td:list;
   const n=use.length,el=$('.mg-deck .card.'+c);if(!el)return;
-  el.querySelector('[data-cnt]').textContent=n?`${n} ${H.pl(n,'матч','матча','матчей')} ${td.length?'сегодня':'впереди'}`:'сегодня матчей нет';
+  el.querySelector('[data-cnt]').textContent=n?`${n} ${H.pl(n,'матч','матча','матчей')} ${td.length?'сегодня':'впереди'}`:'в ближайшие 2 дня матчей нет';
+  /* 16.11 (телефон): пустая карточка не должна быть пустой — что есть в разделе без матчей */
+  if(!n){const nx0=el.querySelector('[data-next]');if(nx0)nx0.innerHTML=hk?'<span>Таблицы КХЛ и НХЛ, тренды и игроки</span>':'<span>Таблицы лиг, тренды и игроки</span>'}
   const lam=use.map(m=>{const md=m.md||H.J.M[m.key];return md&&md.lam?md.lam[0]+md.lam[1]:null}).filter(v=>v!=null);
   if(lam.length)el.querySelector('[data-stat]').textContent='ср. тотал по модели '+fmt(lam.reduce((a,b)=>a+b,0)/lam.length);
   /* ближайший матч раздела на карточке (аудит 08.11: первый экран отвечает «что сегодня») */

@@ -46,7 +46,7 @@
 .dk-em{display:grid;place-items:center;width:calc(var(--W) * .3);height:calc(var(--W) * .3);border-radius:50%;background:#eef3fa;padding:10%;box-shadow:0 8px 20px -10px #000}
 .dk-em img{width:100%;height:100%;object-fit:contain;display:block}
 .dk-em span{font:800 20px/1 var(--display);color:#233}
-.dk-tm b{font:800 clamp(15px,1.25vw,18px)/1.1 var(--display);color:var(--ink);overflow-wrap:break-word;hyphens:auto;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dk-tm b{font:800 clamp(15px,1.25vw,18px)/1.1 var(--display);color:var(--ink);overflow-wrap:break-word;hyphens:manual;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .dk-tm i{font:600 12px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-style:normal}
 .dk-vs{font:700 14px/1 var(--display);color:var(--ink-3)}
 .dk-ql{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}

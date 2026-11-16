@@ -94,7 +94,8 @@ function one1(){
  const hb=document.querySelector('#hd .btn-tg');if(!hb)return;
  /* проверяем по месту на экране: так же ловятся кнопки, которые страница перерисовывает (колода «Матчей дня») */
  const SEL='main .btn-tg, main .hm-tg, main .get8, main .mt-rem-b, .dk-more';
- const vis=el=>{const r=el.getBoundingClientRect();if(r.width<1||r.height<1||r.bottom<=0||r.top>=innerHeight)return false;const c=getComputedStyle(el);return c.visibility!=='hidden'&&c.display!=='none'};
+ /* низ экрана — над нижней панелью: кнопка, закрытая панелью, не видна (главная на телефоне — 16.11) */
+ const vis=el=>{const r=el.getBoundingClientRect(),tb=document.querySelector('.tb'),tr=tb&&tb.getBoundingClientRect(),bot=tr&&tr.height?Math.min(innerHeight,tr.top):innerHeight;if(r.width<1||r.height<1||r.bottom<=0||r.top>=bot-8)return false;const c=getComputedStyle(el);return c.visibility!=='hidden'&&c.display!=='none'};
  let t=0;const upd=()=>{t=0;hb.classList.toggle('tb-hide',[...document.querySelectorAll(SEL)].some(vis))};
  const later=()=>{if(!t)t=requestAnimationFrame(upd)};
  addEventListener('scroll',later,{passive:true});addEventListener('resize',later);addEventListener('load',later);
