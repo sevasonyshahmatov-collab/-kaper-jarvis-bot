@@ -277,14 +277,29 @@ def emblem_files(site, teams):
     return out
 
 
+def arena_name(m):
+    """Арена матча строкой. С 12.11 приложение КХЛ отдаёт арену словарём (id, capacity, phone, name, city…) — на 34 страницах
+    в тексте и в разметке schema.org выводился весь словарь (16.11). Берём «название, город»."""
+    a = m.get('arena')
+    if isinstance(a, dict):
+        nm, city = str(a.get('name') or '').strip(), str(a.get('city') or '').strip()
+        return (nm + (', ' + city if city and city not in nm else '')) if nm else city
+    return str(a).strip() if a else ''
+
+
 def site_url():
     """Полный адрес сайта (как в build): ссылки для превью и разметки должны быть абсолютными."""
     return (os.environ.get('SITE_URL') or 'https://example.github.io/jarvis').rstrip('/') + '/'
 
 
 def head(title, desc, url, base, extra='', kind='website'):
-    return '''<!doctype html>
-<html lang="ru">
+    """Шапка старых страниц (прогнозы, страницы матчей, тренды) — от нового сайта (владелец 16.11: «начинай перерисовку»):
+    те же стили (assets/v3a.css, nav.css — их кладёт в корень site-v3a-daily.yml), та же шапка; нижнее меню на телефоне
+    и подвал добавляют assets/nav.js и footer.js (в FOOT). Адреса и разметка для поиска — прежние (индексация не закрывается).
+    base — путь до корня сайта от страницы ('../' для /prognozy/ и /trendy/)."""
+    r = base if base.endswith('../') or base == '' else ''   # путь до assets/: у 404 base — полный адрес, страница в корне
+    return """<!doctype html>
+<html lang="ru" data-theme="a" data-sport="hockey">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -301,24 +316,38 @@ def head(title, desc, url, base, extra='', kind='website'):
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#071225">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<meta name="theme-color" content="#0a1220">
+<link rel="stylesheet" href="%sassets/v3a.css">
+<link rel="stylesheet" href="%sassets/nav.css">
 <link rel="stylesheet" href="%sassets/site.css">
+<link rel="icon" href="%sfavicon.svg" type="image/svg+xml">
+<link rel="icon" href="%sfavicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="%sapple-touch-icon.png">
 %s</head>
 <body>
-<header class="top"><div class="wrap bar"><a class="logo" href="%s">JAR<b>V</b>IS</a>
-<nav><a class="navlink" href="%strendy/">Тренды</a><a class="navlink" href="%sapp/#table">Команды</a><a class="soc yt" href="%s" target="_blank" rel="noopener" aria-label="YouTube" title="YouTube"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg></a><a class="soc ig" href="%s" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.2c3.2 0 3.6 0 4.8.1 3.3.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 3.2-1.7 4.8-4.9 4.9-1.3.1-1.6.1-4.8.1s-3.6 0-4.8-.1c-3.3-.1-4.8-1.7-4.9-4.9C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.8C2.4 3.9 3.9 2.4 7.2 2.3 8.4 2.2 8.8 2.2 12 2.2zM12 0C8.7 0 8.3 0 7.1.1 2.7.3.3 2.7.1 7.1 0 8.3 0 8.7 0 12s0 3.7.1 4.9c.2 4.4 2.6 6.8 7 7 1.2.1 1.6.1 4.9.1s3.7 0 4.9-.1c4.4-.2 6.8-2.6 7-7 .1-1.2.1-1.6.1-4.9s0-3.7-.1-4.9c-.2-4.4-2.6-6.8-7-7C15.7 0 15.3 0 12 0zm0 5.8a6.2 6.2 0 1 0 0 12.4 6.2 6.2 0 0 0 0-12.4zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-11.8a1.4 1.4 0 1 0 0 2.9 1.4 1.4 0 0 0 0-2.9z"/></svg></a><a class="tg" href="%s" target="_blank" rel="noopener">Telegram</a></nav></div></header>
-''' % (esc(title), esc(desc), esc(url), esc(title), esc(desc), kind, esc(url), site_url(), base, extra, base, base, base, YT, IG, TG)
+<a class="skip" href="#main">К содержанию</a>
+<header class="hd" id="hd">
+  <div class="wrap">
+    <a class="logo" href="%sindex.html" aria-label="JARVIS, главная">JAR<i>V</i>IS</a>
+    <nav class="seg" aria-label="Вид спорта"><a href="%shockey/index.html" aria-current="true">Хоккей</a><a href="%sfootball/index.html">Футбол</a></nav>
+    <nav class="nav" aria-label="Разделы"><a href="%sprognozy/">Прогнозы</a><a href="%strendy/">Тренды</a><a href="%sresults.html">Итоги</a><a href="%smodel.html">Модель</a></nav>
+    <a class="btn btn-tg" href="%s" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg><span>Получать прогнозы — бесплатно</span></a>
+  </div>
+</header>
+<div id="main"></div>
+""" % (esc(title), esc(desc), esc(url), esc(title), esc(desc), kind, esc(url), site_url(), r, r, r, r, r, r, extra,
+       r, r, r, r, r, r, r, TG)
 
 
-FOOT = '''<section class="cta"><div class="wrap"><h2>Прогнозы на каждый матч — в Telegram</h2>
+FOOT = """<section class="cta"><div class="wrap"><h2>Прогнозы на каждый матч — в Telegram</h2>
 <p>Посты на все матчи КХЛ и НХЛ, ролики и честные итоги каждое утро.</p>
-<a class="btn" href="%s" target="_blank" rel="noopener">Подписаться на @jarvibet</a></div></section>
+<a class="btn btn-tg" href="%s" target="_blank" rel="noopener">Подписаться на @jarvibet</a></div></section>
 <footer><div class="wrap"><span>© JARVIS · @jarvibet</span><span>18+. Материалы сайта — аналитика, а не призыв делать ставки. Выигрыш не гарантируется.</span></div></footer>
+<script src="../assets/nav.js"></script>
+<script src="../assets/footer.js"></script>
 </body>
 </html>
-''' % TG
+""" % TG
 
 MARK = {'win': ('win', 'Прогноз зашёл'), 'loss': ('loss', 'Прогноз не зашёл'), 'push': ('push', 'Возврат')}
 
@@ -351,7 +380,7 @@ def match_page(P, m, logos, base, siblings):
         '@context': 'https://schema.org', '@type': 'SportsEvent', 'name': '%s — %s' % (m['h'], m['a']), 'sport': 'Ice hockey',
         'startDate': d.strftime('%Y-%m-%dT%H:%M:00+03:00'), 'eventStatus': 'https://schema.org/EventScheduled',
         'homeTeam': {'@type': 'SportsTeam', 'name': m['h']}, 'awayTeam': {'@type': 'SportsTeam', 'name': m['a']},
-        'location': {'@type': 'Place', 'name': m.get('arena') or lg}, 'organizer': {'@type': 'SportsOrganization', 'name': lg}},
+        'location': {'@type': 'Place', 'name': arena_name(m) or lg}, 'organizer': {'@type': 'SportsOrganization', 'name': lg}},
         {'@context': 'https://schema.org', '@type': 'BreadcrumbList', 'itemListElement': [
             {'@type': 'ListItem', 'position': 1, 'name': 'Главная', 'item': base},
             {'@type': 'ListItem', 'position': 2, 'name': 'Прогнозы', 'item': base + 'prognozy/'},
@@ -393,7 +422,7 @@ def match_page(P, m, logos, base, siblings):
 %s
 </main>
 ''' % (rel, rel, esc('%s — %s' % (m['h'], m['a'])), esc(m['h']), esc(m['a']), d.day, MONTHS[d.month - 1], d.year,
-       lg, nice_day(d.date()), m['d'][11:16], (' · ' + esc(m['arena'])) if m.get('arena') else '',
+       lg, nice_day(d.date()), m['d'][11:16], (' · ' + esc(arena_name(m))) if arena_name(m) else '',
        emb(m['h']), esc(m['h']), emb(m['a']), esc(m['a']), res, esc(m['pick']), kef_s(m['odds']) if m.get('odds') else '',
        ('<div class="prob"><span>Вероятность по модели</span><b>%s</b></div><div class="meter"><i style="width:%s"></i></div>' % (pct(m['p']), pct(m['p']))) if m.get('p') else '',
        ('<section><h2>Линия на основное время</h2>%s</section>' % line) if line else '',
@@ -435,8 +464,8 @@ def list_page(D, base, logos=None):
     pc = round(100 * w / len(done)) if done else 0
     tally = ('''<div class="tally"><p>За 30 дней: зашло <b>%d из %d</b> прогнозов (%d%%). Показываем все, без удалений.</p>
 <div class="tbar" role="img" aria-label="Зашло %d, не зашло %d"><i style="width:%d%%"></i></div></div>''' % (w, len(done), pc, w, len(done) - w, pc)) if done else ''
-    filt = '''<div class="filt" hidden><div role="group" aria-label="Лига"><span class="fl" aria-hidden="true">Лига</span><button type="button" data-k="lg" data-v="" aria-pressed="true">Все</button><button type="button" data-k="lg" data-v="khl" aria-pressed="false">КХЛ</button><button type="button" data-k="lg" data-v="nhl" aria-pressed="false">НХЛ</button></div>
-<div role="group" aria-label="Итог"><span class="fl" aria-hidden="true">Итог</span><button type="button" data-k="r" data-v="" aria-pressed="true">Все</button><button type="button" data-k="r" data-v="win" aria-pressed="false">Зашли</button><button type="button" data-k="r" data-v="loss" aria-pressed="false">Не зашли</button><button type="button" data-k="r" data-v="soon" aria-pressed="false">Ждём</button></div>
+    filt = '''<div class="filt" hidden><div role="group" aria-label="Лига"><span class="flab" aria-hidden="true">Лига</span><button type="button" data-k="lg" data-v="" aria-pressed="true">Все</button><button type="button" data-k="lg" data-v="khl" aria-pressed="false">КХЛ</button><button type="button" data-k="lg" data-v="nhl" aria-pressed="false">НХЛ</button></div>
+<div role="group" aria-label="Итог"><span class="flab" aria-hidden="true">Итог</span><button type="button" data-k="r" data-v="" aria-pressed="true">Все</button><button type="button" data-k="r" data-v="win" aria-pressed="false">Зашли</button><button type="button" data-k="r" data-v="loss" aria-pressed="false">Не зашли</button><button type="button" data-k="r" data-v="soon" aria-pressed="false">Ждём</button></div>
 <p class="fcount" aria-live="polite"></p></div>
 <script>(function(){var F=document.querySelector('.filt');if(!F)return;F.hidden=false;var st={lg:'',r:''};
 function run(){var n=0;document.querySelectorAll('.day').forEach(function(s){var k=0;s.querySelectorAll('.row').forEach(function(r){
@@ -686,7 +715,7 @@ def not_found(base):
 <p><a class="btn" style="display:inline-block;padding:12px 22px;margin:8px 8px 0 0" href="%sprognozy/">Все прогнозы</a>
 <a class="btn" style="display:inline-block;padding:12px 22px;margin-top:8px" href="%s" target="_blank" rel="noopener">Telegram @jarvibet</a></p>
 </main>
-''' % (base, TG) + FOOT
+''' % (base, TG) + FOOT.replace('../assets/', 'assets/')   # 404 лежит в корне
 
 
 def build(site, plans, do_settle=True):

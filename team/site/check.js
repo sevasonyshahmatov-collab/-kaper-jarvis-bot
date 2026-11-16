@@ -14,6 +14,9 @@ const { chromium } = require('playwright');
 
 const SITE = path.resolve(process.argv[2] || 'site');
 const OUT = path.resolve(process.argv[3] || path.join(SITE, '..', 'site_check'));
+// 16.11: главная — от нового сайта (метка .v3a-root, site.yml): табло и отсчёт старого лендинга не проверяем;
+// регистрация service worker нового подвала (footer.js) из папки без сервера не проходит — это не ошибка страницы.
+const V3A_ROOT = fs.existsSync(path.join(SITE, '.v3a-root'));
 const WIDTHS = [390, 768, 1440];
 const HEIGHT = { 390: 844, 768: 1024, 1440: 900 };
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json',
@@ -75,7 +78,7 @@ async function newPage(browser, w, tag) {
     if (!f) { bad.push(url.slice(BASE.length)); return route.fulfill({ status: 404, body: 'not found' }); }
     route.fulfill({ status: 200, body: fs.readFileSync(f), contentType: TYPES[path.extname(f).toLowerCase()] || 'application/octet-stream' });
   });
-  page.on('console', m => { if (m.type() === 'error' && !/net::ERR_FAILED|Failed to load resource/.test(m.text())) fail(tag, 'консоль: ' + m.text().slice(0, 200)); });
+  page.on('console', m => { if (m.type() === 'error' && !/net::ERR_FAILED|Failed to load resource|unknown error occurred when fetching the script/.test(m.text())) fail(tag, 'консоль: ' + m.text().slice(0, 200)); });
   page.on('pageerror', e => fail(tag, 'ошибка скрипта: ' + String(e.message || e).slice(0, 200)));
   return { ctx, page, bad };
 }
@@ -176,7 +179,7 @@ async function countdown(browser, w) {
         await page.waitForTimeout(800);
         await scrollAll(page);
         (await common(page, tag, bad, rel.startsWith('app/'))).forEach(l => links.add(l));
-        if (rel === '') await landingChecks(page, tag);
+        if (rel === '' && !V3A_ROOT) await landingChecks(page, tag);
         const f = path.join(OUT, `${(rel.replace(/\/$/, '').replace(/[\/.]/g, '_') || 'index').replace(/_html$/, '')}-${w}.png`);
         await page.screenshot({ path: f, fullPage: true });
         shots.push(f);
@@ -184,7 +187,7 @@ async function countdown(browser, w) {
         fail(tag, 'проверка оборвалась: ' + String(e.message || e).split('\n')[0]);
       } finally { await ctx.close(); }
     }
-    await countdown(browser, w);
+    if (!V3A_ROOT) await countdown(browser, w);
   }
   await browser.close();
   // ссылки: свои — должен быть файл, чужие — только список
