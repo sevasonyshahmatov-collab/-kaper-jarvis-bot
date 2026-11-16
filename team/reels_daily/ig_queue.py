@@ -46,11 +46,31 @@ def gh(path, **params):
     return r
 
 
+TRUSTED_EVENTS = ('schedule', 'workflow_dispatch', 'repository_dispatch')
+
+
+def trusted(run):
+    """Запуск конвейера из этого репозитория, ветка main, событие — расписание / ручной / из бота (проверка 16.11:
+    запуск из чужой копии (fork) с изменённым процессом не должен подсунуть ролик в очередь). → '' или причина отказа."""
+    repo = (run.get('head_repository') or {}).get('full_name')
+    if run.get('event') not in TRUSTED_EVENTS:
+        return 'событие %s' % run.get('event')
+    if run.get('head_branch') != 'main':
+        return 'ветка %s' % run.get('head_branch')
+    if repo != os.environ['GITHUB_REPOSITORY']:
+        return 'репозиторий %s' % repo
+    return ''
+
+
 def fetch(root):
     """Скачать задания igq-* свежих запусков конвейера в root/<запуск>-<артефакт>/; → {каталог: id артефакта роликов}."""
     since, videos = datetime.now(timezone.utc) - WINDOW, {}
-    for run in gh('workflows/reels-daily.yml/runs', per_page=10).json()['workflow_runs']:
+    for run in gh('workflows/reels-daily.yml/runs', per_page=10, branch='main').json()['workflow_runs']:
         if datetime.fromisoformat(run['created_at'].replace('Z', '+00:00')) < since:
+            continue
+        why = trusted(run)
+        if why:
+            print('IGQ пропускаю запуск %s: не наш (%s)' % (run.get('id'), why), flush=True)
             continue
         arts = {a['name']: a for a in gh('runs/%d/artifacts' % run['id']).json()['artifacts'] if not a['expired']}
         for name, a in arts.items():
