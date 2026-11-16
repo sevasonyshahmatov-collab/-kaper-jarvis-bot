@@ -17,9 +17,10 @@ const ICON={
  ig:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>'
 };
 let demo=false;try{demo=new URLSearchParams(location.search).get('social')==='demo'}catch(e){}
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const safeUrl=u=>/^https:\/\/(www\.)?(t\.me|instagram\.com|youtube\.com|youtu\.be|vk\.com|tiktok\.com|dzen\.ru|x\.com|twitter\.com)\//.test(String(u||''))?u:'#';   /* соцсети — только известные адреса */
 const list=()=>LINKS.map(l=>({...l,url:l.url||(demo&&DEMO[l.id])||'',demo:!l.url&&demo&&!!DEMO[l.id]})).filter(l=>/^https:\/\//.test(l.url));
-const tile=(l,cls)=>`<a class="soc-t soc-${l.id}${cls||''}" href="${esc(l.url)}" target="_blank" rel="noopener"><span class="soc-i">${ICON[l.id]||''}</span><span class="soc-x"><b>${esc(l.name)}</b><small>${esc(l.note)}${l.demo?' · пример':''}</small></span></a>`;
+const tile=(l,cls)=>`<a class="soc-t soc-${l.id}${cls||''}" href="${esc(safeUrl(l.url))}" target="_blank" rel="noopener"><span class="soc-i">${ICON[l.id]||''}</span><span class="soc-x"><b>${esc(l.name)}</b><small>${esc(l.note)}${l.demo?' · пример':''}</small></span></a>`;
 function fill(root){(root||document).querySelectorAll('[data-social]').forEach(box=>{const L=list();
   if(!L.length){box.hidden=true;box.innerHTML='';return}
   const v=box.dataset.social||'row';box.className='soc soc-'+v;box.hidden=false;

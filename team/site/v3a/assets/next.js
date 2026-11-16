@@ -4,7 +4,7 @@
 (()=>{
 const SRC=(document.currentScript&&document.currentScript.src)||new URL('assets/next.js',location.href).href;
 const U=p=>new URL('../'+p,SRC).href;
-const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const sport=document.documentElement.dataset.sport||'';
 const lgq=new URLSearchParams(location.search).get('lg')||(location.pathname.match(/\/(khl|nhl|epl|laliga|seriea|bundesliga|ligue1|rpl|ucl|uel)\//)||[])[1]||'';
 const LG={khl:'КХЛ',nhl:'НХЛ',epl:'АПЛ',laliga:'Ла Лига',seriea:'Серия А',bundesliga:'Бундеслига',ligue1:'Лига 1',rpl:'РПЛ',ucl:'Лига чемпионов',uel:'Лига Европы'};

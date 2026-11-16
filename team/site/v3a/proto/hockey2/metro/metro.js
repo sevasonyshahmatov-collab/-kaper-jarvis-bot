@@ -2,7 +2,7 @@
 const ROOT='../../../';
 const TD=window.JV_TODAY||{matches:[]},MD=window.JV_MODEL||{},LN=window.JV_LINES||{};
 const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const atMs=t=>Date.parse(t.replace(' ','T').slice(0,16)+':00+03:00');
 const q=new URLSearchParams(location.search).get('now');
 const NOW=q?atMs(q.replace('T',' ')):Date.now();

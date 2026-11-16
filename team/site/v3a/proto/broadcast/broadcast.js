@@ -10,7 +10,7 @@ var MON=['января','февраля','марта','апреля','мая','�
 var WD=['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
 function $(s,r){return (r||D).querySelector(s)}
 function $$(s,r){return Array.prototype.slice.call((r||D).querySelectorAll(s))}
-function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function isH(m){return m.lg==='khl'||m.lg==='nhl'}
 function pct(v){return Math.round(v*100)}
 function kef(n){return n==null?'—':Number(n).toFixed(2).replace('.',',')}

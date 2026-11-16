@@ -6,6 +6,7 @@ const hero=document.querySelector('main>.mx-hero');if(!hero||document.querySelec
 const ids=[...hero.querySelectorAll('img[src*="/em/"]')].map(i=>decodeURIComponent((/\/em\/(?:s\/)?([^/.]+)\.webp/.exec(i.getAttribute('src'))||[])[1]||'')).filter((v,i,a)=>v&&a.indexOf(v)===i);
 if(ids.length<2)return;
 const base=(document.querySelector('script[src*="assets/nav.js"]')||{}).src||'';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const go=()=>{
  const TT=(window.JV_TEAMS||{}).teams||{},H=TT[ids[0]],A=TT[ids[1]];
  if(!H||!A||!H.raw||!A.raw||H.lg!==A.lg)return;
@@ -32,8 +33,8 @@ const go=()=>{
  const em=id=>`<img src="${base.replace(/nav\.js.*$/,'')}em/s/${encodeURIComponent(id)}.webp" alt="" width="40" height="40" loading="lazy">`;
  const sec=document.createElement('section');sec.className='fc-sec mx-cmp';sec.setAttribute('aria-labelledby','mt-cmp');
  sec.innerHTML=`<div class="wrap"><h2 id="mt-cmp">Сравнение команд</h2>
-  <div class="mc" role="table" aria-label="Показатели сезона: ${H.name} и ${A.name}">
-   <div class="mc-head" role="row"><span class="h" role="columnheader">${em(ids[0])}<b>${H.name}</b><small>дома ${rec(H,'home')}</small></span><span class="mid" role="columnheader">Сезон ${LG}</span><span class="a" role="columnheader"><small>в гостях ${rec(A,'away')}</small><b>${A.name}</b>${em(ids[1])}</span></div>
+  <div class="mc" role="table" aria-label="Показатели сезона: ${esc(H.name)} и ${esc(A.name)}">
+   <div class="mc-head" role="row"><span class="h" role="columnheader">${em(ids[0])}<b>${esc(H.name)}</b><small>дома ${rec(H,'home')}</small></span><span class="mid" role="columnheader">Сезон ${LG}</span><span class="a" role="columnheader"><small>в гостях ${rec(A,'away')}</small><b>${esc(A.name)}</b>${em(ids[1])}</span></div>
    ${rows}
   </div>
   <p class="mc-note">Показатели регулярного сезона, место — среди ${all.length} клубов ${LG}. «Дома» и «в гостях» — победы–поражения.</p></div>`;

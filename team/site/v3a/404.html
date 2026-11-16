@@ -64,7 +64,7 @@
 <script src="data/matchlinks.js"></script>
 <script>/* ближайшие матчи (идея 57): data/today.js + расчёт модели; ссылка — на страницу матча, если она есть */
 (()=>{const T=window.JV_TODAY,M=window.JV_MODEL||{},L=window.JV_MATCHLINKS||{};if(!T||!T.matches)return;
-const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const ms=t=>Date.parse(String(t).replace(' ','T')+':00+03:00'),day=x=>new Date(x+3*36e5).toISOString().slice(0,10),now=Date.now();
 const em=id=>`<img src="assets/em/${esc(id)}.webp" alt="" width="34" height="34" loading="lazy" onerror="this.style.visibility='hidden'">`;
 const LG={khl:'КХЛ',nhl:'НХЛ'},when=t=>{const d=day(ms(t));return d===day(now)?'сегодня':d===day(now+864e5)?'завтра':+d.slice(8,10)+'.'+d.slice(5,7)};

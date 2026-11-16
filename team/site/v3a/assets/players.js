@@ -5,14 +5,14 @@
 /* 13.11: данные по лигам — football/data/plg/meta.js (лиги, клубы) + plg/<лига>.js (players_split.py); грузим только нужную лигу,
    «Все лиги» — все файлы. Старый data/players.js (всё сразу) тоже понимаем. */
 const M=window.JV_PLAYERS_META||window.JV_PLAYERS,D={...M,players:M.players||[]},$=id=>document.getElementById(id);
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const crest=s=>`../assets/fc/${encodeURIComponent(s)}.webp`;
 // портреты «как в НХЛ» (голова и плечи, без фона): data/ph/<id>.webp, список готовых — data/headshots.json (players_headshots.py);
 // нет портрета — инициалы (фото Commons напрямую больше не показываем)
 let PH={};
 const photo=id=>PH[id]&&PH[id].ok?`data/ph/${encodeURIComponent(id)}.webp`:'';
 const ini=n=>n.split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
-const col=T=>{const c=Array.isArray(T.c)?T.c[0]:T.c;return c?'#'+String(c).replace('#',''):'var(--paper-3)'};
+const col=T=>{const c=Array.isArray(T.c)?T.c[0]:T.c;return /^#?[0-9a-f]{6}$/i.test(String(c||''))?'#'+String(c).replace('#',''):'var(--paper-3)'};   /* только #rrggbb — цвет приходит из данных ESPN */
 // фото игрока (ESPN); нет фото — инициалы на цвете клуба; эмблема — значком в углу
 // светлый цвет клуба (белый «Осер» и т.п.) — инициалы тёмные
 const lite=h=>{const m=/^#([0-9a-f]{6})$/i.exec(h);if(!m)return false;const n=parseInt(m[1],16);return (0.299*(n>>16)+0.587*(n>>8&255)+0.114*(n&255))>170};

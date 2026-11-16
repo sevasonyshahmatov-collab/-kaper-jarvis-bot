@@ -38,7 +38,8 @@ for(const [lg,title] of SEC){
   const id=lg==='home'?'nhl':lg;
   LeagueCards.mount(d,[{id,name:id==='khl'?'КХЛ':'НХЛ',cnt:'Вариант '+v.code,href:'#',logo:'../assets/lg/'+id+'.webp',club:v.club,photo:v.photo,photoCls:v.cls,cols:8,pl:()=>'клубов',clubs:[]}]);
   const c=document.createElement('p');c.className='cap';
-  c.innerHTML=`<b>${v.code}</b>${v.player}<br>${v.page?`Фото: <a href="${v.page}" target="_blank" rel="noopener">${v.credit}</a>`:v.credit}${v.src?`<i>исходник ${v.src} px · вырезка ${v.cutsz} px</i>`:''}${v.note?`<i>${v.note}</i>`:''}`;
+  const E=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),U=x=>/^https:\/\/commons\.wikimedia\.org\//.test(String(x||''))?x:'';
+  c.innerHTML=`<b>${E(v.code)}</b>${E(v.player)}<br>${U(v.page)?`Фото: <a href="${E(v.page)}" target="_blank" rel="noopener">${E(v.credit)}</a>`:E(v.credit)}${v.src?`<i>исходник ${E(v.src)} px · вырезка ${E(v.cutsz)} px</i>`:''}${v.note?`<i>${E(v.note)}</i>`:''}`;
   w.appendChild(c);g.appendChild(w)})}
 </script>
 </body></html>

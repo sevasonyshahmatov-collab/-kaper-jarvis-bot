@@ -19,7 +19,8 @@ bash "$here/publish_new.sh" "$src" "$stage/new" >/dev/null
 old_list="$dst/.v3a-files"; touch "$old_list"
 # 1) удалить свои прежние файлы, которых больше нет
 LC_ALL=C comm -23 <(LC_ALL=C sort -u "$old_list") "$stage/files" | while IFS= read -r f; do
-  [ -n "$f" ] && rm -f "$dst/$f"
+  case "$f" in ''|*..*|.git*|*/.git*|CNAME) continue;; esac   # чужие пути и адрес домена не трогаем (проверка безопасности 16.11)
+  rm -f "$dst/$f"
 done
 # 2) положить новые; чужие файлы не трогать (кроме index.html)
 : > "$stage/mine"

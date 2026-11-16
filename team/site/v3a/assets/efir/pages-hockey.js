@@ -6,7 +6,7 @@ if(!H.classList.contains('efir'))return;
 var RM=W.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 function $(s,r){return (r||D).querySelector(s)}
 function $$(s,r){return Array.prototype.slice.call((r||D).querySelectorAll(s))}
-function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function ep(m){var p=m.t.split(/[- :]/).map(Number);return Date.UTC(p[0],p[1]-1,p[2],p[3]-3,p[4])}
 function waitFor(cond,cb,n){n=n||0;if(cond())return cb();if(n>80)return;setTimeout(function(){waitFor(cond,cb,n+1)},100)}
 

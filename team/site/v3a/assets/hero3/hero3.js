@@ -13,7 +13,7 @@
     document.body.appendChild(b)}
   if(off){document.addEventListener('DOMContentLoaded',bar);return}
   d.dataset.hero='2';
-  var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+  var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
   /* цвет свечения: основной цвет клуба; если он серый или почти чёрный — самый насыщенный из остальных, иначе спокойный запасной */
     function vivid(cs,fb){var best=null,bs=0;(cs||[]).forEach(function(h,idx){var m=/^#?([0-9a-f]{6})$/i.exec(h||'');if(!m)return;var n=parseInt(m[1],16),r=n>>16&255,g=n>>8&255,b=n&255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),s=mx?(mx-mn)/mx:0,sc=s*(mx/255);if(idx===0&&sc>.22){best='#'+m[1];bs=9}else if(sc>bs){bs=sc;best='#'+m[1]}});return bs>.22?best:fb}
   document.addEventListener('DOMContentLoaded',function(){

@@ -107,6 +107,12 @@ def model(lg):
 
 MODEL = {lg: model(lg) for lg in LG}
 TEAMS = {}
+def hexc(v, dflt):
+    """Цвет клуба от ESPN — только шесть шестнадцатеричных цифр (иначе в style= можно протащить разметку)."""
+    v = str(v or '').lstrip('#')
+    return v if re.fullmatch(r'[0-9a-fA-F]{6}', v) else dflt
+
+
 for cup_pass in (0, 1):
     for lg, L in raw['leagues'].items():
         if (lg in CUPS) != bool(cup_pass):
@@ -115,7 +121,7 @@ for cup_pass in (0, 1):
             if slug[i] in TEAMS:
                 continue
             t = raw['teams'][i]
-            TEAMS[slug[i]] = {'id': slug[i], 'espn': i, 'n': ru(t), 'en': t['n'], 'ab': t['ab'], 'lg': lg, 'c': [t.get('c') or '1b2a44', t.get('c2') or '0b1220'],
+            TEAMS[slug[i]] = {'id': slug[i], 'espn': i, 'n': ru(t), 'en': t['n'], 'ab': t['ab'], 'lg': lg, 'c': [hexc(t.get('c'), '1b2a44'), hexc(t.get('c2'), '0b1220')],
                               'games': [], 'goals': {}, 'cards': {}, 'cups': []}
 TABLES = {}
 for lg, rows in raw['table'].items():

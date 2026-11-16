@@ -8,7 +8,8 @@ const sport=document.documentElement.dataset.sport||'';
 // раздел сайта: на хоккейных страницах ищем только хоккей, на футбольных — только футбол, на главной — всё (владелец 04.11)
 const ZONE=sport==='hockey'?'h':sport==='football'?'f':'';
 const mine=x=>!ZONE||x.s===ZONE;
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const safeUrl=u=>{u=String(u||'');return /^[a-z][a-z0-9+.-]*:/i.test(u.trim())&&!/^https:\/\//.test(u)?'#':u};   /* свои страницы и https, без javascript: и т.п. */
 
 /* ---- нормализация: латиница и кириллица сводятся к одному «скелету» ---- */
 const CY={а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'i',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',ц:'c',ч:'ch',ш:'sh',щ:'sh',ъ:'',ы:'i',ь:'',э:'e',ю:'u',я:'a'};
@@ -106,7 +107,7 @@ const dt=d=>{const t=NOW().slice(0,10),y=new Date(Date.now()+(new Date().getTime
 const img=c=>`<img src="${esc(crest(c))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
 const tcode=p=>!p.c?'':p.lg==='khl'?p.c.id:p.c.id==='minnesota'?'MIN':p.c.id==='dallas'?'DAL':p.c.id.replace(/^nhl_/,'').toUpperCase();
 const LGN={khl:'КХЛ',nhl:'НХЛ',epl:'АПЛ',laliga:'Ла Лига',seriea:'Серия А',bundesliga:'Бундеслига',ligue1:'Лига 1',rpl:'РПЛ',ucl:'ЛЧ',uel:'ЛЕ'};
-const li=(href,html,cls)=>`<a class="sp-i ${cls||''}" role="option" id="spo${items.push(href)-1}" href="${esc(href)}" tabindex="-1">${html}</a>`;
+const li=(href,html,cls)=>`<a class="sp-i ${cls||''}" role="option" id="spo${items.push(href)-1}" href="${esc(safeUrl(href))}" tabindex="-1">${html}</a>`;
 function draw(r){
   items=[];cur=-1;
   const g=(t,a,f)=>a.length?`<div class="sp-g" role="group" aria-label="${t}"><h3>${t}</h3>${a.map(f).join('')}</div>`:'';

@@ -4,7 +4,7 @@
 (()=>{
 const Q=new URLSearchParams(location.search),ID=(Q.get('id')||'').replace(/\D/g,'').slice(0,12);
 const MAIN=document.getElementById('main');
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const F=window.JV_FOOT||{},TT=F.teams||{},LGS=F.leagues||{};
 const tn=s=>(TT[s]&&TT[s].n)||s||'—';
 const lgn=k=>(LGS[k]&&(LGS[k].short||LGS[k].name))||k||'';

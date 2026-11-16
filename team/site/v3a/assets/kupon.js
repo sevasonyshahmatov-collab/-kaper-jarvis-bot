@@ -5,7 +5,7 @@
 'use strict';
 const T=window.JV_TODAY||{matches:[]},MODEL=window.JV_MODEL||{},LINES=window.JV_LINES||{};
 const $=id=>document.getElementById(id);
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const LS_CUR='jv_kupon',LS_SAVED='jv_kupons';
 const LG={khl:'КХЛ',nhl:'НХЛ'};
 const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
@@ -16,6 +16,7 @@ const fl=x=>String(x).replace('.',',').replace('-','−');                      
 const fs=x=>(x>0?'+':'')+fl(x);
 const fp=p=>p<=0?'0 %':p<.01?'меньше 1 %':p>.99&&p<1?'больше 99 %':Math.round(p*100)+' %';
 const fm=x=>Math.round(x).toLocaleString('ru-RU');
+const LEG=/^[a-z]+(:[\w.+-]+)+$/,ODD=s=>/^\d{1,3}([.,]\d{1,2})?$/.test(String(s))&&num(s)>1&&num(s)<=50;   /* событие и кэф из ссылки или памяти — только такого вида */
 const num=s=>{const v=parseFloat(String(s).replace(',','.'));return isFinite(v)?v:NaN};
 function oneIn(p){if(p<=0)return '';if(p>=.9)return 'почти наверняка';const n=1/p;
   if(n<1.8){const k=Math.round(p*10);return 'примерно '+k+' раз'+(k>1&&k<5?'а':'')+' из 10'}
@@ -165,8 +166,8 @@ try{const v=new URLSearchParams(location.search).get('emb');if(/^[0-9]$/.test(v|
 try{const q=new URLSearchParams(location.search).get('look'),v=q;if(/^[0-8]$/.test(v||''))S.look=+v}catch(e){}
 function load(src){try{
   const d=typeof src==='string'?JSON.parse(src):src;if(!d)return;
-  S.legs=(d.legs||[]).filter(l=>BY[l.k]&&grid(l.k)&&typeof l.o==='string');
-  S.odds=d.odds||{};S.stake=d.stake||'1000';S.mode=d.mode==='s'?'s':'x';
+  S.legs=(d.legs||[]).filter(l=>BY[l.k]&&grid(l.k)&&typeof l.o==='string'&&LEG.test(l.o));
+  S.odds={};Object.entries(d.odds||{}).forEach(([k,v])=>{if(BY[k]&&ODD(v))S.odds[k]=String(v)});S.stake=d.stake||'1000';S.mode=d.mode==='s'?'s':'x';
 }catch(e){}}
 function dump(){return {legs:S.legs,odds:S.odds,stake:S.stake,mode:S.mode}}
 function keep(){try{localStorage.setItem(LS_CUR,JSON.stringify(dump()))}catch(e){}}
@@ -176,8 +177,8 @@ function toHash(){return 'k='+encodeURIComponent(byMatch().map(g=>g.key+'~'+g.id
 function fromHash(){const h=location.hash.replace(/^#/,'');if(h.slice(0,2)!=='k=')return false;
   const legs=[],odds={};
   try{decodeURIComponent(h.slice(2)).split(';').forEach(part=>{const [key,rest]=part.split('~');if(!rest||!BY[key])return;
-    const [ids,odd]=rest.split('@');ids.split(',').forEach(o=>{if(/^[a-z]+(:[\w.+-]+)+$/.test(o))legs.push({k:key,o})});if(odd&&num(odd)>1)odds[key]=odd})}catch(e){return false}
-  if(!legs.length)return false;load({legs,odds,stake:S.stake,mode:'x'});return true}
+    const [ids,odd]=rest.split('@');ids.split(',').forEach(o=>{if(LEG.test(o))legs.push({k:key,o})});if(odd&&ODD(odd))odds[key]=odd})}catch(e){return false}
+  if(!legs.length)return false;load({legs,odds,stake:S.stake,mode:'x'});S.link=true;return true}
 
 function byMatch(){const out=[],ix={};
   S.legs.forEach(l=>{if(!(l.k in ix)){ix[l.k]=out.length;out.push({key:l.k,m:BY[l.k],ids:[]})}out[ix[l.k]].ids.push(l.o)});
@@ -206,7 +207,7 @@ const emb=id=>'<img class="kp-em" src="../assets/em/'+esc(id)+'.webp" alt="" wid
 /* на кнопке крупно кэф (владелец 15.11), мелко — шанс модели; кэф из линии — как есть, расчётный по модели — со знаком ≈ */
 const KF=(p,lo)=>lo?fk(lo):p>0?'<s>≈</s>'+fk(Math.min(999,1/p)):'—';
 function btn(m,id){const p=prob(m.key,[id]),lo=lineOdd(m.key,id),on=has(m.key,id),val=lo&&p*lo>=1.03;
-  return '<button type="button" class="kp-o'+(on?' on':'')+(val?' val':'')+'" data-k="'+esc(m.key)+'" data-o="'+id+'" aria-pressed="'+on+'"'+(p<=0?' disabled':'')+
+  return '<button type="button" class="kp-o'+(on?' on':'')+(val?' val':'')+'" data-k="'+esc(m.key)+'" data-o="'+esc(id)+'" aria-pressed="'+on+'"'+(p<=0?' disabled':'')+
     ' title="'+esc(full(id,m))+'"><i>'+short(id)+'</i>'+(S.look===3?'<b>'+fp(p)+'</b>':'<b>'+KF(p,lo)+'</b><small>шанс '+fp(p)+'</small>')+'</button>'}
 function mkt(m,g){return '<div class="kp-mk"><h4>'+esc(g.n)+'</h4><div class="kp-os'+(g.c?' c'+g.c:' c'+g.o.length)+'">'+g.o.map(id=>btn(m,id)).join('')+'</div></div>'}
 const CHEV='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -215,7 +216,7 @@ const CHEV='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" f
    строка тотала — «Меньше · линия · Больше»; в ячейке слева название исхода, справа шанс модели и кэф */
 const FOLD={};
 function cell(m,id,lab){const p=prob(m.key,[id]),lo=lineOdd(m.key,id),on=has(m.key,id),val=lo&&p*lo>=1.03;
-  return '<button type="button" class="kp-o kp-c'+(on?' on':'')+(val?' val':'')+'" data-k="'+esc(m.key)+'" data-o="'+id+'" aria-pressed="'+on+'"'+(p<=0?' disabled':'')+
+  return '<button type="button" class="kp-o kp-c'+(on?' on':'')+(val?' val':'')+'" data-k="'+esc(m.key)+'" data-o="'+esc(id)+'" aria-pressed="'+on+'"'+(p<=0?' disabled':'')+
     ' title="'+esc(full(id,m))+'"><i>'+(Array.isArray(lab)?'<u>'+esc(lab[0])+'</u><em>'+esc(lab[1])+'</em>':esc(lab))+'</i><span><b>'+KF(p,lo)+'</b><small>'+fp(p)+'</small></span></button>'}
 function panel(m){
   const sec=(id,t,sub,body)=>{const f=!!FOLD[id];return '<section class="kp-sec'+(f?' fold':'')+'"><button type="button" class="kp-sh2" data-fold="'+id+'" aria-expanded="'+!f+'"><span><b>'+esc(t)+'</b><small>'+sub+'</small></span>'+CHEV+'</button>'+(f?'':'<div class="kp-rows">'+body+'</div>')+'</section>'};
@@ -288,10 +289,11 @@ function paintSlip(){
   if(!c.n){
     h+='<p class="kp-hint">Нажмите на событие в любом матче — оно появится здесь. Несколько событий одного матча складываются в комбинацию, разных матчей — в экспресс.</p>';
   }else{
+    if(S.link)h+='<p class="kp-link">Купон собран пользователем по ссылке, это не прогноз JARVIS.</p>';
     if(c.n>1)h+='<div class="kp-mode" role="group" aria-label="Тип ставки"><button type="button" data-mode="x" aria-pressed="'+(S.mode==='x')+'">Экспресс</button><button type="button" data-mode="s" aria-pressed="'+(S.mode==='s')+'">Ординары</button></div>';
     h+='<ol class="kp-legs">'+c.G.map(g=>{const m=g.m;
       return '<li'+(g.p<=0?' class="bad"':'')+' style="--h1:'+cols(m)[0]+';--h2:'+cols(m)[1]+';--hm:'+cols(m)[2]+'"><div class="kp-lm"><span>'+LG[m.lg]+' · '+dm(m)+' '+hm(m)+'</span><b>'+esc(m.hn)+' — '+esc(m.an)+'</b></div>'+
-        '<ul>'+g.ids.map(id=>'<li><span>'+esc(full(id,m))+'</span><button type="button" data-k="'+esc(g.key)+'" data-o="'+id+'" data-rm aria-label="Убрать событие">×</button></li>').join('')+'</ul>'+
+        '<ul>'+g.ids.map(id=>'<li><span>'+esc(full(id,m))+'</span><button type="button" data-k="'+esc(g.key)+'" data-o="'+esc(id)+'" data-rm aria-label="Убрать событие">×</button></li>').join('')+'</ul>'+
         (g.live?'<p class="kp-warn">Матч уже начался.</p>':'')+
         (g.p<=0?'<p class="kp-warn">Эти события не могут сыграть вместе. Уберите одно из них.</p>':
         '<div class="kp-lk"><span>Шанс <b>'+fp(g.p)+'</b>'+(g.ids.length>1?' · комбинация':'')+'</span>'+
@@ -413,7 +415,7 @@ document.addEventListener('click',e=>{
   if(d.del){const sv=saved();sv.splice(+d.del,1);try{localStorage.setItem(LS_SAVED,JSON.stringify(sv))}catch(x){}paintSlip();return}
   if(b.id==='kp-bar'){S.sheet=true;paintSlip();return}
   switch(d.act){
-    case 'clear':S.legs=[];S.odds={};keep();paint();break;
+    case 'clear':S.legs=[];S.odds={};S.link=false;keep();paint();break;
     case 'close':S.sheet=false;paintSlip();break;
     case 'tg':telegram();break;case 'copy':copy();break;case 'img':image();break;case 'save':save();break}
 });

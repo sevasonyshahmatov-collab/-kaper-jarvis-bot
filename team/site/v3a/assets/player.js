@@ -6,7 +6,7 @@ window.JV_KPH=window.JV_KPH||(S=>u=>{if(!window.JV_KPH_ON)return u;const m=/khl\
 (()=>{
 const Q=new URLSearchParams(location.search),LG=Q.get('lg')==='khl'?'khl':'nhl',ID=(Q.get('id')||'').replace(/\D/g,'').slice(0,9);
 const MAIN=document.getElementById('main');
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const TT=(window.JV_TEAMS&&JV_TEAMS.teams)||{};
 const tn=s=>(TT[s]&&TT[s].name)||s;
 const em=s=>`../assets/em/${encodeURIComponent(s)}.webp`;

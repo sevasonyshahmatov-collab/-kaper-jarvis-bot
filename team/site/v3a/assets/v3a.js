@@ -4,7 +4,7 @@ const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const doc=document.documentElement;
 doc.classList.add('js');
 const JV=window.JV={RM};
-JV.esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+JV.esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 JV.f1=(v,d=1)=>v.toFixed(d).replace('.',',');
 JV.pc=v=>Math.round(v*100)+'%';
 JV.two=n=>String(n).padStart(2,'0');

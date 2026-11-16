@@ -5,7 +5,7 @@
 'use strict';
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const MAX=14,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ARROW='<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M3 10h13M11 4l6 6-6 6"/></svg>';
 /* фактура: наклонные полосы цветов клуба; у Локомотива — красная диагональ с белой кромкой, у Каролины — красная с серебряной */
 const TEX=id=>`<svg class="tex" viewBox="0 0 150 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path d="M58 105 L112 -5 L155 -5 L155 105Z" fill="${id==='khl'?'#d6001c':'#c8102e'}"/><path d="M58 105 L112 -5 L119 -5 L65 105Z" fill="${id==='khl'?'#fff':'#a2aaad'}" opacity=".92"/><path d="M72 105 L126 -5 L129 -5 L75 105Z" fill="${id==='khl'?'#fff':'#a2aaad'}" opacity=".5"/></svg>`;

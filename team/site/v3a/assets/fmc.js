@@ -7,7 +7,7 @@ const hero=document.querySelector('main>.mx-hero');if(!hero||document.querySelec
 const ids=[...hero.querySelectorAll('img[src*="/fc/"]')].map(i=>decodeURIComponent((/\/fc\/([^/.]+)\.webp/.exec(i.getAttribute('src'))||[])[1]||'')).filter((v,i,a)=>v&&a.indexOf(v)===i);
 if(ids.length<2)return;
 const base=(document.querySelector('script[src*="assets/nav.js"]')||{}).src||'';
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const go=()=>{
  const F=window.JV_FOOT||{},TT=F.teams||{},LG=F.leagues||{},H=TT[ids[0]],A=TT[ids[1]];
  if(!H||!A||!H.gp||!A.gp)return;

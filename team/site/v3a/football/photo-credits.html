@@ -56,7 +56,7 @@
 <script src="../assets/footer.js"></script>
 <script>
 (()=>{
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const N={};(window.JV_PLAYERS.players||[]).forEach(p=>{N[p.id]=p.n});
 fetch('data/headshots.json').then(r=>r.ok?r.json():{}).then(j=>{
   const L=Object.keys(j||{}).filter(i=>j[i].ok&&N[i]).sort((a,b)=>N[a].localeCompare(N[b],'ru'));

@@ -16,7 +16,7 @@ D.documentElement.classList.add('js');
 const pc = v => Math.round(v * 100);
 const odd = v => (v == null ? '—' : (+v).toFixed(2).replace('.', ','));
 const gl = v => (+v).toFixed(1).replace('.', ',');
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',"'":'&#39;' }[c]));
 const T = W.JV_TODAY || { matches: [], days: [] }, M = W.JV_MODEL || {}, L = W.JV_LINES || {}, LK = W.JV_MATCHLINKS || {};
 const CS = W.CLUB_SET || {};
 const LG = { khl: 'КХЛ', nhl: 'НХЛ', epl: 'АПЛ', laliga: 'Ла Лига', seriea: 'Серия А', bundesliga: 'Бундеслига', ligue1: 'Лига 1', ucl: 'Лига чемпионов', uel: 'Лига Европы', rpl: 'РПЛ' };

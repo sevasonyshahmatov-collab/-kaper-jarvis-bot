@@ -9,7 +9,7 @@ const FINE=matchMedia('(hover:hover) and (pointer:fine)').matches;
 H.classList.add('js');if(RM)H.classList.add('rm');
 
 const T=window.JV_TODAY||{matches:[],days:[]},M=window.JV_MODEL||{},L=window.JV_LINES||{},C=window.CLUB_SET||{};
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pc=p=>Math.round(p*100);
 const f2=n=>Number(n).toFixed(2).replace('.',',');
 const f1=n=>Number(n).toFixed(1).replace('.',',');

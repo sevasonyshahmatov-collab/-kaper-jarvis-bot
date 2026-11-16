@@ -10,7 +10,7 @@ if(G){try{G.registerPlugin(W.ScrambleTextPlugin,W.DrawSVGPlugin)}catch(e){}}
 var HAS_SCR=!!(G&&W.ScrambleTextPlugin),HAS_DRAW=!!(G&&W.DrawSVGPlugin);
 function $(s,r){return (r||D).querySelector(s)}
 function $$(s,r){return Array.prototype.slice.call((r||D).querySelectorAll(s))}
-function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function pc(x){return Math.round(x*100)}
 function od(x){return x==null?'—':String(x.toFixed(2)).replace('.',',')}
 function tm(t){return t.slice(11,16)}

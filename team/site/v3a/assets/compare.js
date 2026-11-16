@@ -6,7 +6,7 @@ window.JV_KPH=window.JV_KPH||(S=>u=>{if(!window.JV_KPH_ON)return u;const m=/khl\
    Только реальные поля; чего в данных нет (броски КХЛ) — строка не показывается. Адрес страницы — ссылка на это сравнение. */
 (()=>{
 const $=id=>document.getElementById(id),OUT=$('cmp-out');
-const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 /* футбол (football/compare.html, <html data-sport="football">): клубы из football/data/football-lite.js приводятся к тому же виду,
    что хоккейные; игр по матчам в этом файле нет — блоки «Дом и выезд», «Форма» и очные встречи заменяют оси 0–100 и ближайшая встреча */
 const FB=document.documentElement.dataset.sport==='football',JF=window.JV_FOOT||{};

@@ -6,7 +6,7 @@
 if(window.__JV_TB)return;window.__JV_TB=1;
 const SRC=(document.currentScript&&document.currentScript.src)||new URL('assets/tabbar.js',location.href).href;
 const U=p=>new URL('../'+p,SRC).href;
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const de=document.documentElement,sport=de.dataset.sport||'';
 const path=location.pathname.replace(/\/+$/,'/'),file=path.split('/').pop()||'index.html';
 const dir=path.split('/').slice(-2,-1)[0]||'';

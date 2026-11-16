@@ -61,7 +61,7 @@ const act=active();
 const LSEC=(()=>{if(!sport)return null;
   if(act==='nhl')return ['NHL','nhl'];if(act==='khl')return ['КХЛ','khl'];if(act==='ucl')return ['ЛЧ','ucl'];
   return sport==='hockey'?['ХОККЕЙ','h']:['ФУТБОЛ','f']})();
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const home=(file==='index.html'&&!sport&&dir!=='hockey'&&dir!=='football');
 const link=(s,cur)=>`<a href="${esc(U(s[2]))}"${cur===s[0]?' aria-current="page"':''}>${esc(s[1])}</a>`;
 const has=(s,cur)=>s[0]===cur||!!s[3]&&s[3].some(x=>has(x,cur));

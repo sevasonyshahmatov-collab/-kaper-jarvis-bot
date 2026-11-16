@@ -694,3 +694,5 @@ body.kb4{background:#07102a}
 .kp-want input{flex:none;width:92px;font-size:22px;padding:11px 8px}
 .kp-want input::placeholder{font-weight:800;font-size:22px;color:var(--ink-3);opacity:.7}
 @media (max-width:760px){.kp-want{flex-wrap:wrap}.kp-alg{width:100%}.kp-want input{flex:none;width:92px}.kp-want .btn{flex:1;justify-content:center}}
+/* купон, открытый по чужой ссылке (проверка безопасности 16.11) */
+.kp-link{margin:0 0 10px;padding:10px 12px;border-radius:10px;font:600 13px/1.4 var(--display,inherit);color:#ffd27a;background:rgba(255,190,60,.12);border:1px solid rgba(255,190,60,.35)}

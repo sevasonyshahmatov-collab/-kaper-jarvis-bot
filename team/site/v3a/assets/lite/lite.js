@@ -12,7 +12,7 @@ var J=W.JV_TODAY||{matches:[],days:[]},M=W.JV_MODEL||{},C={};
 var LGN={khl:'КХЛ',nhl:'НХЛ',epl:'АПЛ',laliga:'Ла Лига',seriea:'Серия А',bundesliga:'Бундеслига',ligue1:'Лига 1',ucl:'Лига чемпионов',uel:'Лига Европы',rpl:'РПЛ'};
 var MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 function $(s,r){return (r||D).querySelector(s)}
-function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function isH(m){return m.lg==='khl'||m.lg==='nhl'}
 function pct(v){return Math.round(v*100)}
 function ep(m){var p=m.t.split(/[- :]/).map(Number);return Date.UTC(p[0],p[1]-1,p[2],p[3]-3,p[4])}

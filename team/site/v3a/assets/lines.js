@@ -5,6 +5,7 @@
 'use strict';
 const L=window.JV_LINES||{},M=window.JV_MODEL||{},TD=window.JV_TODAY||{built:'',days:[],matches:[]};
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const safeUrl=u=>/^https:\/\/t\.me\/[\w/+-]+$/.test(String(u||''))?u:'#';   /* ссылки из данных — только на посты канала */
 const SRC={};
 const f2=v=>v==null||isNaN(v)?'—':(+v).toFixed(2).replace('.',',');
 const f1=v=>v==null||isNaN(v)?'—':(+v).toFixed(1).replace('.',',');
@@ -65,7 +66,7 @@ function why(m,opt={}){const {ln,md}=m;if(!md)return '<p class="none">Расчё
    ${md.btts!=null?bar('Обе забьют',md.btts,null,false):''}</div>`}
  const fin=md.w1!=null&&md.w2!=null?`<div class="wsub"><h5>Итоговая победа, с овертаймом и буллитами</h5>${bar(names[0],md.w1,ln&&ln.fin1&&ln.fin2?(1/ln.fin1)/(1/ln.fin1+1/ln.fin2):null,md.w1>md.w2)}${bar(names[1],md.w2,null,md.w2>md.w1)}</div>`:'';
  const lam=md.lam?`<p class="xlam"><b>Ожидаемые голы:</b> ${esc(names[0])} <b class="num">${f2(md.lam[0])}</b> — ${esc(names[1])} <b class="num">${f2(md.lam[1])}</b>, вместе <b class="num">${f2(md.lam[0]+md.lam[1])}</b>.</p>`:'';
- const po=postOf(m),pl=po?`<p class="qpl">На этот матч вышел прогноз в канале: <b>${esc(po.bet)}</b>${po.kef?`, кэф <b class="num">${f2(po.kef)}</b>`:''}. <a href="${esc(po.url)}" target="_blank" rel="noopener">Открыть пост №${+po.id} →</a></p>`:'';
+ const po=postOf(m),pl=po?`<p class="qpl">На этот матч вышел прогноз в канале: <b>${esc(po.bet)}</b>${po.kef?`, кэф <b class="num">${f2(po.kef)}</b>`:''}. <a href="${esc(safeUrl(po.url))}" target="_blank" rel="noopener">Открыть пост №${+po.id} →</a></p>`:'';
  return `<section class="xb x-model"><h4>Расчёт модели${md.t?` <span class="note">от ${esc(hhmm(md.t))} МСК</span>`:md.ver==='poisson-v1'?' <span class="note">по голам сезона</span>':''}</h4>
   <div class="wgrid"><div class="wsub"><h5>Исход в основное время</h5>${rows}${ln?'':'<p class="note">Линии на матч пока нет.</p>'}</div>
   ${totals}${fin}</div>${pl}${lam}${dvHtml(ln,md)?`<p class="qd">${dvHtml(ln,md)}</p>`:''}

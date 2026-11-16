@@ -213,6 +213,12 @@ def match_li(m, sport, d_out):
 
 
 # ───────────────────────── JSON-LD ─────────────────────────
+def js(v):
+    """json.dumps для встроенного <script> (как в ld_script): «<», «>», «&» — через \\u."""
+    s = json.dumps(v, ensure_ascii=False, separators=(',', ':'))
+    return s.replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
+
+
 def ld_script(obj):
     s = json.dumps(obj, ensure_ascii=False, separators=(',', ':'))
     s = s.replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
@@ -391,14 +397,14 @@ def head_block(rel, P, extra_ld):
         # старые адреса клубов (?id=): canonical на понятный адрес /khl/ska/, если клуб известен; иначе прежняя логика
         lines.append('<script>(function(){try{var id=(new URLSearchParams(location.search).get("id")||"").toLowerCase(),M=%s,u=M[id]?%s+M[id]:%s,h=document.head,l=document.createElement("link");'
                      'l.rel="canonical";l.href=u;h.appendChild(l);var m=document.createElement("meta");m.setAttribute("property","og:url");m.content=u;h.appendChild(m)}catch(e){}})()</script>'
-                     % (json.dumps(P['canon_map'], ensure_ascii=False, separators=(',', ':')), json.dumps(ORIGIN + '/'), json.dumps(page_url)))
+                     % (js(P['canon_map']), js(ORIGIN + '/'), js(page_url)))
     elif P.get('dyn'):
         # адрес страницы зависит от параметров (?id=, ?lg=): canonical и og:url ставит скрипт, остальные параметры отбрасываются
-        keys = json.dumps(P['dyn'])
+        keys = js(P['dyn'])
         lines.append('<script>(function(){try{var q=new URLSearchParams(location.search),s=[];%s.forEach(function(k){var v=q.get(k);'
                      'if(v&&/^[A-Za-z0-9_]{1,40}$/.test(v))s.push(k+"="+v)});var u=%s+(s.length?"?"+s.join("&"):""),h=document.head,l=document.createElement("link");'
                      'l.rel="canonical";l.href=u;h.appendChild(l);var m=document.createElement("meta");m.setAttribute("property","og:url");m.content=u;h.appendChild(m)}catch(e){}})()</script>'
-                     % (keys, json.dumps(page_url)))
+                     % (keys, js(page_url)))
     else:
         lines.append('<link rel="canonical" href="%s">' % esc(page_url))
         lines.append('<meta property="og:url" content="%s">' % esc(page_url))

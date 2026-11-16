@@ -4,7 +4,7 @@
 (()=>{
 const SRC=(document.currentScript&&document.currentScript.src)||new URL('assets/footer.js',location.href).href;
 const U=p=>new URL('../'+p,SRC).href;
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('footer.css',SRC).href;document.head.appendChild(l)}catch(e){}
 /* соцсети (Telegram, YouTube, Instagram) — адреса в одном файле assets/social.js, плитки появятся сами (14.11, п. 7) */
 if(!window.JV_SOCIAL&&!document.querySelector('script[src*="social.js"]'))try{const s=document.createElement('script');s.src=new URL('social.js',SRC).href;s.defer=true;document.head.appendChild(s)}catch(e){}

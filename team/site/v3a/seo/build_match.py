@@ -136,6 +136,11 @@ def collect():
 
 # ───────────────────────── мелкие помощники ─────────────────────────
 esc = lambda s: H.escape(str(s), quote=True)  # noqa: E731
+
+
+def js(v):
+    """json.dumps для встроенного <script>: без «<», «>», «&» — строку из данных нельзя превратить в </script>."""
+    return json.dumps(v, ensure_ascii=False).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
 f1 = lambda v: ('%.1f' % v).replace('.', ',')  # noqa: E731
 f2 = lambda v: ('%.2f' % v).replace('.', ',')  # noqa: E731
 
@@ -387,7 +392,7 @@ def h2h_block(m):
         home, away = (m['hn'], m['an']) if r['home'] else (m['an'], m['hn'])
         sc = '%d:%d' % ((r['gf'], r['ga']) if r['home'] else (r['ga'], r['gf']))
         trs.append('<tr><td>%s.%s.%s</td><td>%s</td><td class="mt-sc">%s%s</td><td>%s</td></tr>'
-                   % (r['d'][8:10], r['d'][5:7], r['d'][:4], esc(home), sc, esc((' ' + r['x']) if r['x'] else ''), esc(away)))
+                   % (esc(r['d'][8:10]), esc(r['d'][5:7]), esc(r['d'][:4]), esc(home), sc, esc((' ' + r['x']) if r['x'] else ''), esc(away)))
     return ('<section class="fc-sec" aria-labelledby="mt-h2h"><div class="wrap"><h2 id="mt-h2h">Личные встречи</h2>'
             '<div class="mt-tw"><table class="mt-tab"><thead><tr><th scope="col">Дата</th><th scope="col">Хозяева</th><th scope="col">Счёт</th><th scope="col">Гости</th></tr></thead>'
             '<tbody>%s</tbody></table></div></div></section>' % ''.join(trs)) \
@@ -587,7 +592,7 @@ def v2_top(m, from_dir, fin, name, h1b, dm, wd, ar_txt, crumbs, rel, cols):
     if fin:
         r = m['res']
         mid = ('<div class="mx-mid"><span class="mx-score">%d<i>:</i>%d</span><span class="mx-when">%s%s</span></div>'
-               % (r[0], r[1], 'итог матча' + ((', ' + r[2]) if r[2] else ''), ''))
+               % (int(r[0]), int(r[1]), esc('итог матча' + ((', ' + r[2]) if r[2] else '')), ''))
     else:
         mid = ('<div class="mx-mid"><span class="mx-time">%s</span><span class="mx-when">%s, %s · МСК</span>'
                '<span class="mx-cd" data-t="%s"></span><div class="lv-box"%s></div></div>'
@@ -752,7 +757,7 @@ def v2_mstats(m, fin, from_dir=''):
                 body += '<li class="pp"><span>%s</span></li>' % per_name(per)
                 cur = per
             body += ('<li class="p%s"><time>%s</time><b>%s</b><span>%s</span><em>%s</em></li>'
-                     % (side, tm, esc(who), esc(why), ('%s мин' % mins) if mins else ''))
+                     % (side, tm, esc(who), esc(why), ('%s мин' % esc(mins)) if mins else ''))
         pen = ('<details class="mx-pen" open><summary>Удаления по минутам <small>%d</small></summary><ol>%s</ol></details>' % (len(pens), body))
     return ('<section class="fc-sec mx-ms" aria-labelledby="mt-ms"><div class="wrap"><h2 id="mt-ms">Статистика матча</h2>\n'
             '<div class="mx-msb"><div class="mx-msh"><b>%s%s</b><b>%s%s</b></div><ul class="mx-msl">%s</ul>%s</div>'
@@ -805,7 +810,7 @@ def v2_form(m, from_dir):
             on = names.get(g['o'], g['o'])
             pic = ('<img src="%s" alt="" width="34" height="34" loading="lazy">' % esc(em)) if em else '<i>%s</i>' % esc(on[:2])
             lis.append('<li class="r-%s" title="%s, %s, %s: %d:%d%s"><b aria-label="%s, соперник %s">%s<em>%s</em></b><span>%d:%d</span></li>'
-                       % (o, g['d'][8:10] + '.' + g['d'][5:7], 'дома' if g.get('h') else 'в гостях', on, g['gf'], g['ga'], ot,
+                       % (o, esc(g['d'][8:10] + '.' + g['d'][5:7]), 'дома' if g.get('h') else 'в гостях', esc(on), g['gf'], g['ga'], esc(ot),
                           {'w': 'победа', 'd': 'ничья', 'l': 'поражение'}[o], esc(on), pic, {'w': 'В', 'd': 'Н', 'l': 'П'}[o], g['gf'], g['ga']))
         w = sum(1 for g in gs if outcome(g) == 'w')
         cols.append('<div class="mx-fc"><h3>%s%s <small>%d %s из %d</small></h3><ol class="mx-dots" aria-label="Последние матчи, свежие справа">%s</ol></div>'
@@ -832,7 +837,7 @@ def v2_h2h(m, from_dir):
             return ('<span class="%s" title="%s">%s<i class="sr-only">%s</i></span>' % (('w ' if w else '') + 'lg', esc(nm), em, esc(nm))) if em \
                 else '<span class="%s">%s</span>' % ('w' if w else '', esc(nm))
         cards.append('<li><time>%s.%s.%s</time>%s<b>%d:%d%s</b>%s</li>'
-                     % (r['d'][8:10], r['d'][5:7], r['d'][2:4], side(hid, home, win == 'h'), hg, ag,
+                     % (esc(r['d'][8:10]), esc(r['d'][5:7]), esc(r['d'][2:4]), side(hid, home, win == 'h'), hg, ag,
                         ('<small>%s</small>' % esc(r['x'])) if r['x'] else '', side(aid, away, win == 'a')))
     return ('<section class="fc-sec" aria-labelledby="mt-h2h"><div class="wrap"><h2 id="mt-h2h">Личные встречи</h2>'
             '<ul class="mx-h2h">%s</ul></div></section>' % ''.join(cards))
@@ -1101,10 +1106,10 @@ def club_page(d, info):
     src = re.sub(re.escape(B.BEGIN) + r'.*?' + re.escape(B.END) + r'\n?', '', src, flags=re.S)
     base = '../../team/' if sport == 'hockey' else '../../football/'
     head = ('<base href="%s">\n<script>window.JV_TEAM_ID=%s;window.JV_TEAM_KIND=%s;window.JV_ACT=%s;</script>\n%s\n'
-            % (base, json.dumps(tid), json.dumps('h' if sport == 'hockey' else 'f'),
-               json.dumps(lg if lg in ('khl', 'nhl') else 'ucl' if lg in ('ucl', 'uel') else 'lg' if sport == 'football' else 'khl'), ANCHOR_JS))
+            % (base, js(tid), js('h' if sport == 'hockey' else 'f'),
+               js(lg if lg in ('khl', 'nhl') else 'ucl' if lg in ('ucl', 'uel') else 'lg' if sport == 'football' else 'khl'), ANCHOR_JS))
     src = re.sub(r'(<meta name="viewport"[^>]*>\s*)', lambda mo: mo.group(1) + head, src, count=1)
-    src = src.replace('/[?&]id=([a-z0-9_]+)/i.exec(location.search)', '[0,%s]' % json.dumps(tid))
+    src = src.replace('/[?&]id=([a-z0-9_]+)/i.exec(location.search)', '[0,%s]' % js(tid))
     t = info['t']
     nm = info['name']
     lgn = lg_name(lg)

@@ -4,7 +4,7 @@
    Подключает assets/nav.js; стили — конец assets/nav.css. */
 (()=>{
 const hd=document.getElementById('hd');if(!hd)return;
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const watch=(el,cb)=>{if(!('IntersectionObserver'in window))return;
  new IntersectionObserver(([e])=>cb(!e.isIntersecting&&e.boundingClientRect.top<0),{rootMargin:`-${hd.offsetHeight+6}px 0px 0px 0px`}).observe(el)};
 

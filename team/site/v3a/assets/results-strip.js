@@ -17,7 +17,7 @@ const hr=document.getElementById('hm-res');if(hr){const a=D.sum.total.all;hr.tex
  $('pfS').textContent=`Все прогнозы канала с ${+D.since.slice(8,10)} ${MG[+D.since.slice(5,7)]}`+(S&&S.w+S.l?`, из них ${pf.dataset.sport==='hockey'?'хоккей':'футбол'} — ${S.w} из ${S.w+S.l}`:'')+'. Со счётом матча и ссылкой на пост, минусы — в том же списке.'}}
 if(!box)return;
 const root=box.dataset.root||'';
-const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const num=(x,d)=>Number(x).toFixed(d==null?2:d).replace('.',',');
 const sign=x=>(x>0?'+':x<0?'−':'')+num(Math.abs(x),1);
 const MG=['','января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];

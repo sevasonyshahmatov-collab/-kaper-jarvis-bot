@@ -26,7 +26,7 @@ def api(**p):
     return {}
 
 
-def strip(s): return html.unescape(re.sub(r'<[^>]+>', '', s or '')).strip()
+def strip(s): return re.sub(r'<[^>]+>', '', s or '').strip()   # без html.unescape: иначе &lt;script&gt; из Commons станет разметкой
 
 
 def files(cat, depth, maxc=40, deadline=None):

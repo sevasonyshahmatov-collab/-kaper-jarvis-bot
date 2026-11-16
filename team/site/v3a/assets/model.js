@@ -3,7 +3,7 @@
 const q=new URLSearchParams(location.search),sp=q.get('s')==='f'?'f':'h';
 const $=s=>document.querySelector(s);
 const sw=$('#sw-'+sp);if(sw)sw.setAttribute('aria-current','page');
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const f1=x=>(Math.round(x*1000)/10).toFixed(1).replace('.',',');
 const f2=x=>x.toFixed(2).replace('.',','), g1=x=>String(x).replace('.',',');
 const SRC={};
