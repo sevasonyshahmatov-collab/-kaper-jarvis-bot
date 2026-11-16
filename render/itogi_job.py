@@ -143,9 +143,18 @@ def with_tags(text, tags):
     return text + '\n\n' + tags if len(text) + 2 + len(tags) <= CAPTION_MAX else text
 
 
-def send_message(token, chat, text):
+def _tg_post(token, method, **kw):
+    """POST в Telegram Bot API. Ошибка связи — без ключа в тексте: адрес содержит bot<ключ>, а обрезанный ключ
+    GitHub в журнале не скрывает (проверка 16.11)."""
     import requests
-    r = requests.post('https://api.telegram.org/bot%s/sendMessage' % token, timeout=60,
+    try:
+        return requests.post('https://api.telegram.org/bot%s/%s' % (token, method), **kw)
+    except requests.RequestException as e:
+        raise RuntimeError('Telegram %s: %s' % (method, str(e).replace(token, '***'))) from None
+
+
+def send_message(token, chat, text):
+    r = _tg_post(token, 'sendMessage', timeout=60,
                       data={'chat_id': chat, 'text': text, 'parse_mode': 'HTML', 'disable_web_page_preview': 'true'})
     j = r.json() if r.headers.get('content-type', '').startswith('application/json') else {}
     if not j.get('ok'):
@@ -182,7 +191,6 @@ def tg_ready(path):
 
 def send_album(token, chat, paths, text):
     """Альбом из нескольких фото; подпись — под альбомом (у первого фото)."""
-    import requests
     media, files = [], {}
     for i, path in enumerate(paths):
         m = {'type': 'photo', 'media': 'attach://p%d' % i}
@@ -191,7 +199,7 @@ def send_album(token, chat, paths, text):
         media.append(m)
         files['p%d' % i] = open(tg_ready(path), 'rb')
     try:
-        r = requests.post('https://api.telegram.org/bot%s/sendMediaGroup' % token, timeout=90,
+        r = _tg_post(token, 'sendMediaGroup', timeout=90,
                           data={'chat_id': chat, 'media': json.dumps(media, ensure_ascii=False)}, files=files)
     finally:
         for f in files.values():
@@ -369,9 +377,8 @@ def main_both(payload):
 
 
 def send_photo(token, chat, path, text):
-    import requests
     with open(tg_ready(path), 'rb') as f:
-        r = requests.post('https://api.telegram.org/bot%s/sendPhoto' % token, timeout=60,
+        r = _tg_post(token, 'sendPhoto', timeout=60,
                           data={'chat_id': chat, 'caption': text, 'parse_mode': 'HTML'}, files={'photo': f})
     j = r.json() if r.headers.get('content-type', '').startswith('application/json') else {}
     if not j.get('ok'):
@@ -428,19 +435,18 @@ def side_caption(it):
 
 def send_documents(token, chat, docs):
     """Файлами (без сжатия Telegram): [(путь, подпись)] — альбомами по 10, один файл — sendDocument."""
-    import requests
     for k in range(0, len(docs), SIDES_PER_GROUP):
         part = docs[k:k + SIDES_PER_GROUP]
         files = {'d%d' % i: (os.path.basename(path), open(path, 'rb'), 'image/jpeg') for i, (path, _) in enumerate(part)}
         try:
             if len(part) == 1:
-                r = requests.post('https://api.telegram.org/bot%s/sendDocument' % token, timeout=120,
+                r = _tg_post(token, 'sendDocument', timeout=120,
                                   data={'chat_id': chat, 'caption': part[0][1], 'parse_mode': 'HTML'},
                                   files={'document': files['d0']})
             else:
                 media = [{'type': 'document', 'media': 'attach://d%d' % i, 'caption': text, 'parse_mode': 'HTML'}
                          for i, (_, text) in enumerate(part)]
-                r = requests.post('https://api.telegram.org/bot%s/sendMediaGroup' % token, timeout=180,
+                r = _tg_post(token, 'sendMediaGroup', timeout=180,
                                   data={'chat_id': chat, 'media': json.dumps(media, ensure_ascii=False)}, files=files)
         finally:
             for f in files.values():

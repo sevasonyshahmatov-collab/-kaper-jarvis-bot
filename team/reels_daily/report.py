@@ -17,6 +17,7 @@ from datetime import datetime, timedelta, timezone
 import requests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import instagram  # noqa: E402
 import youtube  # noqa: E402
 
 API = 'https://www.googleapis.com/youtube/v3/'
@@ -209,7 +210,7 @@ def build(days=7):
     try:
         ig = ig_views(days)
     except Exception as e:  # noqa: BLE001
-        print('REPORTERR Instagram: %r' % e, flush=True)
+        print('REPORTERR Instagram: %s' % instagram.clean(repr(e)), flush=True)   # ключ — в адресе запроса
         ig = []
     if ig:
         known = [m for m in ig if m['views'] is not None]

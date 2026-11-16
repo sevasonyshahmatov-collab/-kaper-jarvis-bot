@@ -56,10 +56,18 @@ CAPTION_MAX = 1024
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def _api(token, method, data=None, files=None, timeout=120):
+def _tg_post(token, method, **kw):
+    """POST в Telegram Bot API. Ошибка связи — без ключа в тексте: адрес содержит bot<ключ>, а обрезанный ключ
+    GitHub в журнале не скрывает (проверка 16.11)."""
     import requests
-    r = requests.post('https://api.telegram.org/bot%s/%s' % (token, method), data=data or {}, files=files,
-                      timeout=timeout)
+    try:
+        return requests.post('https://api.telegram.org/bot%s/%s' % (token, method), **kw)
+    except requests.RequestException as e:
+        raise RuntimeError('Telegram %s: %s' % (method, str(e).replace(token, '***'))) from None
+
+
+def _api(token, method, data=None, files=None, timeout=120):
+    r = _tg_post(token, method, data=data or {}, files=files, timeout=timeout)
     j = r.json() if r.headers.get('content-type', '').startswith('application/json') else {}
     if not j.get('ok'):
         raise RuntimeError('%s: %s' % (method, j.get('description') or r.status_code))

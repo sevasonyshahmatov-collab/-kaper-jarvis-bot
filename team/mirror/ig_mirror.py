@@ -166,7 +166,7 @@ def host(path):
                 return url
             errs.append('%s: не картинка' % name)
         except Exception as e:  # noqa: BLE001 — следующий способ
-            errs.append('%s: %r' % (name, e))
+            errs.append('%s: %s' % (name, instagram.clean(repr(e))))
     raise RuntimeError('картинку не удалось выложить по ссылке: ' + '; '.join(errs))
 
 
@@ -236,7 +236,7 @@ def main(dry=False):
             done.add(post['id'])
             save_done(done)
         except Exception as e:  # noqa: BLE001 — один пост не должен остановить остальные
-            print('MIRRORERR №%d: %r' % (post['id'], e), flush=True)
+            print('MIRRORERR №%d: %s' % (post['id'], instagram.clean(repr(e))), flush=True)
 
 
 if __name__ == '__main__':

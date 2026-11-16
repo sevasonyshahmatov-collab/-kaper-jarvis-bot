@@ -5,6 +5,7 @@
 Загрузка: контейнер REELS (resumable) → файл на rupload.facebook.com → ждём FINISHED → media_publish.
 Лимит Instagram — 50 публикаций через API за сутки."""
 import os
+import re
 import time
 from datetime import timedelta, timezone
 
@@ -16,6 +17,13 @@ _state = {'stop': None}
 
 def enabled():
     return all(os.environ.get(k) for k in ('IG_TOKEN', 'IG_USER_ID'))
+
+
+def clean(text):
+    """Текст ошибки без ключей: Graph API получает ключ в адресе (access_token=…), Telegram — в пути (bot<ключ>/…);
+    обрезанный ключ GitHub в журнале не скрывает (проверка 16.11). Перед любой печатью и заметкой владельцу."""
+    text = re.sub(r'(access_token=)[^&\s\'"]+', r'\1***', str(text))
+    return re.sub(r'bot\d+:[\w-]+', 'bot***', text)
 
 
 def _env():
@@ -33,7 +41,7 @@ def posted(first_line):
             j = requests.get(API + uid + '/media', params=dict(fields='caption', limit=50, access_token=tok), timeout=30).json()
             _state['captions'] = [str(x.get('caption') or '') for x in j.get('data') or []]
         except Exception as e:  # noqa: BLE001 — не удалось проверить — собираем как обычно
-            print('INSTAGRAMERR список публикаций: %r' % e, flush=True)
+            print('INSTAGRAMERR список публикаций: %s' % clean(repr(e)), flush=True)
             _state['captions'] = []
     import yt_texts                                   # до 24.10 подпись начиналась сразу с матча, без «Прогноз на матч»
     lines = {first_line, first_line[len(yt_texts.HEAD):] if first_line.startswith(yt_texts.HEAD) else first_line}
@@ -112,7 +120,7 @@ def _upload(path, text, cover=None):
 
 
 def _fail(e):
-    msg = str(e)[:300]
+    msg = clean(e)[:300]
     if 'limit' in msg.lower():
         _state['stop'] = 'не загружен: дневной лимит Instagram — загрузите вручную'
     print('INSTAGRAMERR %s' % msg, flush=True)
@@ -178,7 +186,7 @@ def queue(base, text, cover, at, start):
     try:
         cid = prepare(base + '.mp4', text, cover)
     except Exception as e:  # noqa: BLE001
-        print('INSTAGRAMERR контейнер для очереди: %s' % str(e)[:200], flush=True)
+        print('INSTAGRAMERR контейнер для очереди: %s' % clean(e)[:200], flush=True)
     import json
     with open(base + '.igq', 'w', encoding='utf-8') as f:
         json.dump(dict(cid=cid, created=time.time(), at=at.isoformat(), start=start, text=text,

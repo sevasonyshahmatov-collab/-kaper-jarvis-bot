@@ -133,7 +133,7 @@ def put(q, videos):
         try:
             return instagram.publish(q['cid'])
         except Exception as e:  # noqa: BLE001
-            print('IGQ контейнер не вышел (%s) — загружаю заново' % str(e)[:150], flush=True)
+            print('IGQ контейнер не вышел (%s) — загружаю заново' % instagram.clean(e)[:150], flush=True)
     top = os.path.relpath(q['dir'], ROOT).split(os.sep)[0]
     if top not in FETCHED and os.path.join(ROOT, top) in videos:      # ролики этой части — один раз
         unzip(videos[os.path.join(ROOT, top)], os.path.join(ROOT, top))

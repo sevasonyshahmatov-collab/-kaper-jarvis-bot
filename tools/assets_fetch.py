@@ -146,10 +146,20 @@ def mixkit():
             subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(max(0, t['drop'] - 8)), '-t', '20', '-i',
                             os.path.join(tmp, t['key'] + '.mp3'), '-b:a', '128k', cut], check=True)
             with open(cut, 'rb') as f:
-                requests.post('https://api.telegram.org/bot%s/sendAudio' % tok, timeout=60,
+                _tg_post(tok, 'sendAudio', timeout=60,
                               data=dict(chat_id=chat, title='%d. %s' % (k, t['title']), performer='Mixkit',
                                         caption='%d. %s — для %s, темп %s' % (k, t['title'], MOODS[t['mood']][1], t['bpm'])),
                               files=dict(audio=('%s.mp3' % t['key'], f, 'audio/mpeg')))
+
+
+def _tg_post(token, method, **kw):
+    """POST в Telegram Bot API. Ошибка связи — без ключа в тексте: адрес содержит bot<ключ>, а обрезанный ключ
+    GitHub в журнале не скрывает (проверка 16.11)."""
+    import requests
+    try:
+        return requests.post('https://api.telegram.org/bot%s/%s' % (token, method), **kw)
+    except requests.RequestException as e:
+        raise RuntimeError('Telegram %s: %s' % (method, str(e).replace(token, '***'))) from None
 
 
 def lottie_json(raw):

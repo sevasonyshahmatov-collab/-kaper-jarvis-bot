@@ -36,10 +36,19 @@ LIMIT = {'regular': 120, 'custom_emoji': 200}
 LINK = {'regular': 'https://t.me/addstickers/%s', 'custom_emoji': 'https://t.me/addemoji/%s'}
 
 
-def api(method, data=None, files=None):
+def _tg_post(token, method, **kw):
+    """POST в Telegram Bot API. Ошибка связи — без ключа в тексте: адрес содержит bot<ключ>, а обрезанный ключ
+    GitHub в журнале не скрывает (проверка 16.11)."""
     import requests
+    try:
+        return requests.post('https://api.telegram.org/bot%s/%s' % (token, method), **kw)
+    except requests.RequestException as e:
+        raise RuntimeError('Telegram %s: %s' % (method, str(e).replace(token, '***'))) from None
+
+
+def api(method, data=None, files=None):
     for k in range(4):
-        r = requests.post('https://api.telegram.org/bot%s/%s' % (TOKEN, method), data=data or {}, files=files, timeout=120)
+        r = _tg_post(TOKEN, method, data=data or {}, files=files, timeout=120)
         j = r.json()
         if j.get('ok'):
             return j['result']
