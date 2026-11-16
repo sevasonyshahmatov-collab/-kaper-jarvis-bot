@@ -168,7 +168,7 @@ body[data-lg="nhl"]{--lgc:var(--nhl);--lgc2:var(--nhl-2)}
   /* имя соперника целиком: до двух строк, значок турнира (ЛЧ) — под именем, а не «Бав…» (09.11) */
   .g .op{display:grid;grid-template-columns:28px minmax(0,1fr);column-gap:10px;row-gap:3px;align-items:center}
   .g .op .em{grid-row:1/span 2}.g .op .cupb{grid-column:2;justify-self:start;height:18px;font-size:10px}
-  .g .op span:not(.cupb){white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.15;overflow-wrap:normal;hyphens:auto;padding-bottom:1px}
+  .g .op span:not(.cupb){white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.15;overflow-wrap:normal;hyphens:manual;padding-bottom:1px}
   .g .op{font-size:15.5px}
   .g .smp{grid-area:m;justify-self:end}
   .g.fut{grid-template-columns:62px 26px minmax(0,1fr) auto;grid-template-areas:"d h o o" "k k k m";row-gap:8px}
