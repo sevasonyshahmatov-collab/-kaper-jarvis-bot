@@ -414,3 +414,11 @@ body.fc .mx-tg .btn,body.fc .mx-tg .btn span{color:#071225;font-weight:800;font-
 @media (min-width:900px){.mx-h2h{grid-template-columns:repeat(3,minmax(0,1fr))}}
 /* личные встречи с эмблемами: без жёлтого кружка — победитель и так виден (яркая эмблема), владелец 14.11 */
 .mx-h2h span.lg.w::before{display:none}
+
+/* 16.11 (телефон): вместо цепочки «Главная › Хоккей › Прогноз на сегодня: КХЛ › матч» в две строки — одна ссылка назад.
+   Полная цепочка остаётся в разметке и в schema.org BreadcrumbList (для поиска), прячется только на узком экране. */
+@media (max-width:620px){
+  .mx-crumbs .fc-crumbs>*{display:none}
+  .mx-crumbs .fc-crumbs>a:last-of-type{display:inline-flex;align-items:center;gap:6px;padding:8px 0;min-height:40px}
+  .mx-crumbs .fc-crumbs>a:last-of-type::before{content:"←";font-weight:700}
+}
