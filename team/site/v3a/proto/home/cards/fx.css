@@ -1,0 +1,16 @@
+/* Главная, карточки «Хоккей» и «Футбол» (владелец 16.11): пар от игроков и прожектор при наведении. Логика — fx.js. */
+/* пар: canvas поверх игрока, чуть выше карточки (голова выступает из рамки) */
+.fx-steam{position:absolute;left:-15%;top:-40%;width:130%;height:100%;pointer-events:none;
+  transform:translateZ(48px) translate(calc(var(--ry)*.25cqw),calc(var(--rx)*-.25cqw))}
+/* прожектор: затемнение первого экрана с «окном» вокруг карточки и луч сверху; карточки — выше слоя */
+.hm .mg-deck{position:relative;z-index:3}
+.fx-spot{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .8s ease;
+  background:radial-gradient(calc(var(--fw)*.9) calc(var(--fh)*.8) at var(--fx) var(--fy),rgba(2,5,12,0) 0,rgba(2,5,12,0) 45%,rgba(2,5,12,.74) 100%)}
+.fx-spot::before{content:"";position:absolute;top:0;left:calc(var(--fx) - var(--fw));width:calc(var(--fw)*2);height:calc(var(--ft) + var(--fh)*.75);
+  background:linear-gradient(180deg,rgba(255,243,210,.30),rgba(255,243,210,.10) 65%,rgba(255,243,210,0));
+  clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);filter:blur(10px);mix-blend-mode:screen}
+.hm.fx-on .fx-spot{opacity:1}
+.mg-deck .card{transition:filter .8s ease}
+.mg-deck .card.fx-dim{filter:brightness(.45) saturate(.75)}
+.mg-deck .card.fx-lit{filter:brightness(1.1)}
+@media (prefers-reduced-motion:reduce){.fx-spot,.mg-deck .card{transition:none}}
