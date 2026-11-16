@@ -702,8 +702,42 @@ def channel_view(site, D):
         p3 = {key(P['league'], m['h'], m['a'], m['d']): m.get('p3') for m in P['matches']}   # шансы модели — и до поста
         allx = [dict(y, p3=p3.get(key(P['league'], y['h'], y['a'], y['d']))) for y in P.get('all') or []]
         out.append(dict(P, matches=sorted(ms, key=lambda m: m['d']), all=allx))
+    out += orphan_days(pub, out, key)
     print('SITE прогнозы из канала: постов %d, на сайте %d' % (len(pub), sum(len(P['matches']) for P in out)), flush=True)
     return out
+
+
+def orphan_days(pub, out, key):
+    """Посты за дни, по которым у сайта нет данных (16.11: сборка падала 13–16.11, файлы data/<лига>-<день>.json не сохранились,
+    а план за прошедший день пустой — расписание даёт только предстоящие матчи). Матч показываем прямо по посту: ставка, кэф,
+    итог и счёт в посте есть; без данных модели — как матч «пост есть, у модели прогноза не было». Дни, где у лиги есть хоть
+    один матч в данных, не трогаем (иначе разное написание команд дало бы дубли)."""
+    lim = (today() - timedelta(days=KEEP_DAYS)).isoformat()
+    have = {(P['league'], P['day']) for P in out if P['matches'] or P.get('all')}
+    if not have:
+        return []
+    lim = max(lim, min(d for _, d in have))        # только пропуски после запуска сайта (23.10), не посты до него
+    used = {key(P['league'], m['h'], m['a'], m['d']) for P in out for m in P['matches']}
+    add = {}
+    for x in pub:
+        try:
+            dt = datetime.strptime(x['d'][:16], '%Y-%m-%d %H:%M')
+        except (KeyError, ValueError):
+            continue
+        lg = x.get('lg')
+        day = (dt - timedelta(hours=12)).date().isoformat() if lg == 'nhl' else dt.date().isoformat()   # НХЛ: ночь — к вечеру накануне
+        if lg not in LG or day < lim or (lg, day) in have or key(lg, x['h'], x['a'], x['d']) in used:
+            continue
+        m = dict(h=x['h'], a=x['a'], d=x['d'][:16], pick=x['bet'], odds=x.get('kef'), p=None, post=x['id'], form={})
+        if x.get('r'):
+            m.update(res=x['r'], score=x.get('sc'))
+        add.setdefault((lg, day), []).append(m)
+    res = [dict(day=day, league=lg, matches=sorted(ms, key=lambda m: m['d']), all=[], yday=[], stats={}, skipped=0)
+           for (lg, day), ms in sorted(add.items())]
+    if res:
+        print('SITE дни без данных — матчи по постам: %s' % ', '.join('%s %s (%d)' % (P['league'], P['day'], len(P['matches']))
+                                                               for P in res), flush=True)
+    return res
 
 
 def not_found(base):
