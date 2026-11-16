@@ -1,7 +1,10 @@
 # Безопасность 03.11 (решение владельца «да» в чате «Сайт»): переписать историю открытого репозитория сайта —
 # во всех коммитах data/*.json без полей модели у матчей без поста в канале, личная почта в авторе → noreply.
-# Перед этим — резервная копия всей истории (git bundle) в ветку backup/site-history-<день> этого ЗАКРЫТОГО
-# репозитория и в артефакт на 90 дней. Запуск только вручную, с подтверждением. Скрипт — team/site/security/scrub_history.py.
+# Перед этим — резервная копия всей истории (git bundle) в ветку backup/site-history-<день> ОТДЕЛЬНОГО ЗАКРЫТОГО репозитория.
+# Проверка 16.11: этот репозиторий открытый — копия в нём (ветка и артефакт) раскрывала неопубликованные прогнозы.
+# Теперь копия — только в закрытый репозиторий: переменная SITE_BACKUP_REPO (владелец/имя) и секрет SITE_BACKUP_TOKEN
+# (fine-grained, Contents: write только на него). Не заданы или репозиторий не закрытый — запуск останавливается до чистки.
+# Запуск только вручную, с подтверждением. Скрипт — team/site/security/scrub_history.py.
 name: Сайт — чистка истории
 
 on:
@@ -13,7 +16,7 @@ on:
         default: ''
 
 permissions:
-  contents: write          # только для ветки с резервной копией в этом репозитории
+  contents: read           # в этот (открытый) репозиторий ничего не пишем
 
 concurrency:
   group: site              # общий с site.yml: сборка сайта не пишет в репозиторий во время чистки
@@ -26,7 +29,23 @@ jobs:
     env:
       SITE_REPO: ${{ vars.SITE_REPO || 'sevasonyshahmatov-collab/sevasonyshahmatov-collab.github.io' }}
     steps:
+      - name: Нужен закрытый репозиторий для копии
+        env:
+          BACKUP_REPO: ${{ vars.SITE_BACKUP_REPO }}
+          BACKUP_TOKEN: ${{ secrets.SITE_BACKUP_TOKEN }}
+        run: |
+          if [ -z "$BACKUP_REPO" ] || [ -z "$BACKUP_TOKEN" ]; then
+            echo "::error::Нужен закрытый репозиторий для копии — задайте переменную SITE_BACKUP_REPO (владелец/имя) и секрет SITE_BACKUP_TOKEN. В этот открытый репозиторий копию больше не кладём."
+            exit 1
+          fi
+          [[ "$BACKUP_REPO" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || { echo "::error::SITE_BACKUP_REPO — нужно «владелец/имя»"; exit 1; }
+          [ "$BACKUP_REPO" != "$GITHUB_REPOSITORY" ] || { echo "::error::SITE_BACKUP_REPO — не этот открытый репозиторий"; exit 1; }
+          priv=$(GH_TOKEN="$BACKUP_TOKEN" gh api "repos/$BACKUP_REPO" --jq .private) || { echo "::error::нет доступа к $BACKUP_REPO по SITE_BACKUP_TOKEN"; exit 1; }
+          [ "$priv" = true ] || { echo "::error::$BACKUP_REPO не закрытый — копию туда не кладём"; exit 1; }
+          echo "копия пойдёт в закрытый $BACKUP_REPO"
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -39,7 +58,10 @@ jobs:
           echo "OLD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
           echo "OLD_TREE=$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_ENV"
           echo "коммитов: $(git rev-list --all --count), ветки: $(git branch -a | tr -d ' *' | tr '\n' ' ')"
-      - name: Резервная копия
+      - name: Резервная копия (в закрытый репозиторий)
+        env:
+          BACKUP_REPO: ${{ vars.SITE_BACKUP_REPO }}
+          BACKUP_TOKEN: ${{ secrets.SITE_BACKUP_TOKEN }}
         run: |
           d=$(TZ=Europe/Moscow date +%Y%m%d-%H%M)
           git -C site bundle create "$GITHUB_WORKSPACE/site-before.bundle" --all
@@ -47,13 +69,10 @@ jobs:
           mkdir bk && cd bk && git init -q -b main && cp ../site-before.bundle .
           printf 'Резервная копия истории %s до чистки 03.11 (head %s).\nВосстановить: git clone site-before.bundle\n' "$SITE_REPO" "$OLD" > README.txt
           git add . && git -c user.name=jarvis-site-bot -c user.email=jarvis-site-bot@users.noreply.github.com commit -qm "Резервная копия сайта до чистки истории ($OLD)"
-          git push -q "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "main:refs/heads/backup/site-history-$d"
-          echo "резервная копия: ветка backup/site-history-$d"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: site-before-bundle
-          path: site-before.bundle
-          retention-days: 90
+          git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$BACKUP_TOKEN" | base64 -w0)" \
+            push -q "https://github.com/$BACKUP_REPO.git" "main:refs/heads/backup/site-history-$d"
+          echo "резервная копия: $BACKUP_REPO, ветка backup/site-history-$d (артефактом не выкладываем)"
+          cd .. && rm -rf bk site-before.bundle
       - name: Почистить историю
         run: |
           python team/site/security/scrub_history.py site --check || true
