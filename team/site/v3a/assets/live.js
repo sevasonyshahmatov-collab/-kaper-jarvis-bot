@@ -130,7 +130,13 @@ function fromKhl(x, arr) {
     const key = String(e.game_state_key || '');
     if (key === 'finished') return m ? {k: 'final', hg: +m[1], ag: +m[2], st: ''} : null;
     if (/not|wait|announce|future|schedul|cancel|postpon|prepar/i.test(key)) return null;
-    const p = num(e.period);
+    /* период — по счёту периодов из ответа КХЛ (17.11: поле period означает другое, при 0:3 показывало «Буллиты»):
+       текущий — последний, у которого уже есть счёт; овертайм и буллиты — только при равном счёте */
+    const sc = e.scores || {}, PK = ['first_period', 'second_period', 'third_period', 'overtime', 'bullitt'];
+    let p = 0;
+    PK.forEach((k, i) => { if (sc[k] != null && String(sc[k]).trim() !== '') p = i + 1; });
+    if (!p) { const q = num(e.period); p = q && q > 0 && q <= 3 ? q : 0; }
+    if (p >= 4 && m && +m[1] !== +m[2]) p = 3;
     const tm = clk(e.game_time || e.current_time || e.period_time || e.time || e.timer || '');
     if (/break|pause|intermission|перерыв/i.test(key)) return {k: 'live', hg: m ? +m[1] : 0, ag: m ? +m[2] : 0, st: 'Перерыв'};
     const txt = p === 4 ? 'Овертайм' + (tm ? ', ' + tm : '') : p >= 5 ? 'Буллиты' : p > 0 ? p + '-й период' + (tm ? ', ' + tm : '') : 'Идёт';
