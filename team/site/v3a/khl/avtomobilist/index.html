@@ -13,7 +13,7 @@
 <script>/* палитра как на /hockey/: ?theme=arena (по умолчанию) | a | b | c; команда — ?id=<slug эмблемы> */
 (()=>{const t=new URLSearchParams(location.search).get('theme'),d=document.documentElement;if(/^(arena|a|b|c)$/.test(t||''))d.dataset.theme=t;
 document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a1220',b:'#0b2a84',c:'#e3eff9'}[d.dataset.theme]||'#071225'})();</script>
-<script>(function(){var m=[0,"avtomobilist"];if(m)document.write('<link rel="preload" as="script" href="../assets/data/club/'+m[1].toLowerCase()+'.js">')})()</script>
+<script>(function(){var m=[0,"avtomobilist"];if(m)document.write('<link rel="preload" as="script" href="/assets/data/club/'+m[1].toLowerCase()+'.js">')})()</script>
 <link rel="preload" as="script" href="../assets/vendor/gsap.min.js" media="(min-width: 621px)">
 <link rel="preload" as="script" href="../assets/vendor/SplitText.min.js" media="(min-width: 621px)">
 <link rel="stylesheet" href="../assets/v3a.css">
@@ -92,9 +92,9 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <footer><p id="foot"></p></footer>
 <a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Получать прогнозы — бесплатно</span><span aria-hidden="true">›</span></a>
 
-<script src="../assets/data/teams-lite.js"></script>
-<script>(function(){var m=[0,"avtomobilist"];if(m)document.write('<script src="../assets/data/club/'+m[1].toLowerCase()+'.js"><\/script>')})()</script>
-<script src="../assets/data/clubs.js"></script>
+<script src="/assets/data/teams-lite.js"></script>
+<script>(function(){var m=[0,"avtomobilist"];if(m)document.write('<script src="/assets/data/club/'+m[1].toLowerCase()+'.js"><\/script>')})()</script>
+<script src="/assets/data/clubs.js"></script>
 <script src="../assets/club/themes.js"></script>
 <script src="../assets/nav.js"></script>
 <script src="../assets/footer.js"></script>
