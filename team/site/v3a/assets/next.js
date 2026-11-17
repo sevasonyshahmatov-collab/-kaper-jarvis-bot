@@ -4,6 +4,11 @@
 (()=>{
 const SRC=(document.currentScript&&document.currentScript.src)||new URL('assets/next.js',location.href).href;
 const U=p=>new URL('../'+p,SRC).href;
+/* ближайший матч ведёт на страницу этого матча (владелец 17.11), а не в «Выбрать матч»; в черновике страницы может не быть —
+   data-ml: та же страница на основном сайте (обработчик в v3a.js) */
+const mrel=m=>(window.JV&&JV.matchPage&&m&&m.lg&&m.t&&m.h&&m.a)?JV.matchPage('',m.lg,m.t,m.h,m.a):'';
+const mhref=m=>{const r=mrel(m);return r?U(r):U('matches.html'+(sport?'?s='+(sport==='hockey'?'h':'f'):''))};
+const mml=m=>{const r=mrel(m);return r?' data-ml="'+esc(location.origin+'/'+r)+'"':''};
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const sport=document.documentElement.dataset.sport||'';
 const lgq=new URLSearchParams(location.search).get('lg')||(location.pathname.match(/\/(khl|nhl|epl|laliga|seriea|bundesliga|ligue1|rpl|ucl|uel)\//)||[])[1]||'';
@@ -21,7 +26,7 @@ function draw(){
  const when=m?(m.t.slice(0,10)===MSK?'сегодня':m.t.slice(0,10)===tm?'завтра':+m.t.slice(8,10)+'.'+m.t.slice(5,7))+', '+m.t.slice(11,16)+' МСК':'';
  const s=document.createElement('section');s.className='nxs';s.setAttribute('aria-labelledby','nxs-h');
  s.innerHTML=`<div class="wrap"><h2 id="nxs-h">Что дальше</h2><div class="nxs-g">
-  ${m?`<a class="nxs-m" href="${esc(U('matches.html'+(sport?'?s='+(sport==='hockey'?'h':'f'):'')))}"><small>Ближайший матч · ${esc(LG[m.lg]||'')}</small><b class="nxs-vs"><span>${logo(m,m.h)}${esc(m.hn)}</span><i aria-hidden="true">—</i><span>${esc(m.an)}${logo(m,m.a)}</span></b><span>${esc(when)} · расчёт модели →</span></a>`:''}
+  ${m?`<a class="nxs-m" href="${esc(mhref(m))}"${mml(m)}><small>Ближайший матч · ${esc(LG[m.lg]||'')}</small><b class="nxs-vs"><span>${logo(m,m.h)}${esc(m.hn)}</span><i aria-hidden="true">—</i><span>${esc(m.an)}${logo(m,m.a)}</span></b><span>${esc(when)} · расчёт модели →</span></a>`:''}
   <a class="nxs-f" href="${esc(U(fc))}"><small>Списком</small><b>Прогноз на сегодня</b><span>все матчи дня с выводом модели →</span></a></div></div>`;
  const f=document.querySelector('footer.jvf')||document.querySelector('footer');(f&&f.parentNode?f.parentNode.insertBefore(s,f):document.body.appendChild(s))}
 try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('next.css',SRC).href;document.head.appendChild(l)}catch(e){}
