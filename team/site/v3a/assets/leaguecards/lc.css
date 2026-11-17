@@ -101,3 +101,6 @@
 .lcard.is-flip .face.front{visibility:hidden}
 .lcard.is-flip .face.back{visibility:visible}
 @media (prefers-reduced-motion:reduce){.lcard .face{transition:none}}
+
+/* 17.11: вся карточка — ссылка на страницу лиги; кнопку не показываем */
+.lcard{cursor:pointer}.lcard .front a.open{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}

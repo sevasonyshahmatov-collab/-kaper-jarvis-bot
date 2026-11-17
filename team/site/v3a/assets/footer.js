@@ -23,7 +23,7 @@ f.innerHTML=`<div class="wrap"><div class="jvf-top">
   <div class="jvf-brand"><a class="jvf-logo" href="${esc(U('index.html'))}" aria-label="JARVIS, на главную"><span>JARVIS</span></a>
    <p>Прогнозы на хоккей и футбол по расчёту, а не наугад. Бесплатно.</p>
    <div class="jvf-soc" data-social="row"><a class="jvf-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Telegram @jarvibet</span></a></div>
-   <button class="jvf-inst" id="jvf-inst" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14"/></svg><span>Установить на экран</span></button>
+   <button class="jvf-inst" id="jvf-inst" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/> <path d="M7 11l5 5l5 -5"/> <path d="M12 4l0 12"/></svg><span>Установить на экран</span></button>
    <p class="jvf-ios" id="jvf-ios" hidden></p></div>
   <nav class="jvf-mini" aria-label="Главные ссылки">${MINI.map(l=>`<a href="${esc(U(l[1]))}">${esc(l[0])}</a>`).join('')}</nav>
   <nav class="jvf-cols" aria-label="Разделы сайта">${COLS.map(c=>`<div><b>${esc(c[0])}</b>${c[1].map(l=>`<a href="${esc(U(l[1]))}">${esc(l[0])}</a>`).join('')}</div>`).join('')}</nav>

@@ -8,7 +8,7 @@
 const VER='jv-6262998009',ROOT=new URL('./',self.location).href,CACHE=VER+'|'+ROOT,IMG='jv-img|'+ROOT;
 const CORE=['index.html','hockey/index.html','football/index.html','matches.html','results.html','offline.html',
  'assets/v3a.css','assets/nav.css','assets/home.css','assets/footer.css','assets/nav.js','assets/footer.js','assets/v3a.js',
- 'data/today.js','data/lines.js','data/model.js','data/results-lite.js','favicon.svg','icon-192.png'];
+ 'data/today.js','data/lines.js','data/model.js','data/results-lite.js','favicon.svg?v=3','icon-192.png?v=3'];
 self.addEventListener('install',e=>{self.skipWaiting();
  e.waitUntil(caches.open(CACHE).then(c=>Promise.all(CORE.map(u=>c.add(new Request(ROOT+u,{cache:'reload'})).catch(()=>{})))))});
 self.addEventListener('activate',e=>e.waitUntil(caches.keys()

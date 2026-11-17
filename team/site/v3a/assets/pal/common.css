@@ -98,8 +98,8 @@ html[data-pal] .dk-bgfx::after{content:"";position:absolute;inset:0;z-index:5;po
   background:radial-gradient(120% 100% at 50% 40%,color-mix(in srgb,var(--paper) 52%,transparent) 30%,color-mix(in srgb,var(--paper) 86%,transparent) 100%)}
 html[data-pal] .dk-tx{background:
   radial-gradient(120% 100% at 50% 45%,transparent 45%,color-mix(in srgb,var(--board) 70%,transparent) 100%),
-  repeating-linear-gradient(45deg,color-mix(in srgb,var(--ink) 4.5%,transparent) 0 1px,transparent 1px 3px),
-  repeating-linear-gradient(-45deg,color-mix(in srgb,var(--board) 10%,transparent) 0 1px,transparent 1px 3px)}
+  linear-gradient(transparent,transparent),
+  linear-gradient(transparent,transparent)}
 html[data-pal] .dk-card::after{background:var(--board)}
 html[data-pal] .dk-cf{background:
   radial-gradient(90% 55% at 50% 0,color-mix(in srgb,var(--ink) 9%,transparent),transparent 72%),
@@ -119,8 +119,8 @@ html[data-pal] .dk-ctop{background:
   linear-gradient(104deg,var(--h1) 0%,var(--h1) 30%,color-mix(in srgb,var(--h1) 50%,var(--h2)) 50%,var(--h2) 70%,var(--h2) 100%)}
 html[data-pal] [data-card="3"] .dk-ctop{background:
   linear-gradient(180deg,color-mix(in srgb,var(--board) 36%,transparent),color-mix(in srgb,var(--board) 54%,transparent)),
-  repeating-linear-gradient(45deg,color-mix(in srgb,var(--ink) 5%,transparent) 0 1px,transparent 1px 3px),
-  repeating-linear-gradient(-45deg,color-mix(in srgb,var(--board) 12%,transparent) 0 1px,transparent 1px 3px),
+  linear-gradient(transparent,transparent),
+  linear-gradient(transparent,transparent),
   linear-gradient(100deg,var(--h1) 0%,color-mix(in srgb,var(--h1) 50%,var(--h2)) 50%,var(--h2) 100%)}
 html[data-pal] [data-card="3"] .dk-cbot{background:linear-gradient(180deg,var(--card-hi),var(--board));border-top-color:color-mix(in srgb,var(--ink) 40%,transparent)}
 html[data-pal] [data-card="1"] .dk-em,html[data-pal] [data-card="2"] .dk-em{box-shadow:0 0 0 3px color-mix(in srgb,var(--ink) 18%,transparent),0 0 44px 6px color-mix(in srgb,var(--ink) 22%,transparent),0 10px 20px -8px var(--shadow)}

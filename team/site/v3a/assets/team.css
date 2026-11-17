@@ -189,7 +189,7 @@ body[data-lg="nhl"]{--lgc:var(--nhl);--lgc2:var(--nhl-2)}
   --rule:color-mix(in srgb,var(--con) 14%,transparent); --rule-2:color-mix(in srgb,var(--con) 18%,transparent);
   --ice:var(--cacc); --sport:var(--cacc); --crest-bg:#eef3fa; --crest-pad:1;
   color:var(--ink);overflow:hidden;isolation:isolate;
-  background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--con) 4%,transparent) 0 2px,transparent 2px 16px),
+  background:linear-gradient(transparent,transparent),
     linear-gradient(125deg,var(--c1) 0%,var(--c2) 55%,var(--c3) 100%)}
 body.on-light .tmhero.hero{--card:rgba(255,255,255,.34);--card-hi:rgba(255,255,255,.45)}
 .tmhero .wrap{position:relative;z-index:1}
@@ -212,7 +212,7 @@ body.on-light .stand tr.me td{color:var(--con)}
 /* живой mesh-градиент клуба (assets/clubbg.js): холст под эмблемой и текстом, «джерси»-полоски поверх */
 .tmbg{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block}
 .tmhero.has-bg::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
-  background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--con) 4%,transparent) 0 2px,transparent 2px 16px)}
+  background:linear-gradient(transparent,transparent)}
 
 /* ── сводка матчей и раздел «Игроки» (03.11) ── */
 .gsum{list-style:none;margin:0 0 18px;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;background:var(--sep);border-radius:8px;overflow:hidden}
@@ -483,8 +483,8 @@ body .g.h2g.nx{grid-template-columns:110px 32px minmax(0,1fr) auto}
 /* «Следующий матч»: градиент клубов как у карточек «Матчи дня», стык по центру колонки с датой (--mx из team.js) */
 .nmatch.grad{color:#fff;background:
   linear-gradient(180deg,rgba(4,8,18,.4),rgba(4,8,18,.56)),
-  repeating-linear-gradient(45deg,rgba(255,255,255,.05) 0 1px,transparent 1px 3px),
-  repeating-linear-gradient(-45deg,rgba(0,0,0,.12) 0 1px,transparent 1px 3px),
+  linear-gradient(transparent,transparent),
+  linear-gradient(transparent,transparent),
   linear-gradient(100deg,var(--h1) 0%,var(--h1) calc(var(--mx,50%) - 26%),color-mix(in srgb,var(--h1) 50%,var(--h2)) var(--mx,50%),var(--h2) calc(var(--mx,50%) + 26%),var(--h2) 100%)}
 .nmatch.grad :is(.nmdt b,.nmdt small,.nmteams b,.nmteams span){color:#fff}
 .nmatch.grad .nmside .sl{color:rgba(255,255,255,.78)}

@@ -1,25 +1,25 @@
 <!doctype html>
 <html lang="ru" data-theme="a" data-v="1">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8"><script>/*тема: «Ночная арена» по умолчанию; ?bg=0 — старая*/(function(){var d=document.documentElement;try{var q=new URLSearchParams(location.search).get("bg");if(q!==null)sessionStorage.setItem("jv-bg",/^[abcn]$/.test(q)?q:"0");var b=sessionStorage.getItem("jv-bg");if(b===null)b="n";if(b&&b!=="0")d.dataset.bg=b}catch(e){d.dataset.bg="n"}})()</script>
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Колода матчей дня: КХЛ, НХЛ и футбол | JARVIS</title>
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#0a1220">
+<meta name="theme-color" content="#060b1a">
 <script>/* вид спорта для шапки: ?s=h (хоккей) | ?s=f (футбол) */
 (()=>{const s=new URLSearchParams(location.search).get('s');if(s==='h'||s==='f')document.documentElement.dataset.sport=s==='h'?'hockey':'football'})();</script>
 <link rel="stylesheet" href="assets/v3a.css">
 <link rel="stylesheet" href="assets/nav.css">
 <link rel="stylesheet" href="assets/deck.css">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.svg?v=3" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png?v=3" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=3">
 <link rel="manifest" href="site.webmanifest">
 <script src="assets/efir/efir-loader.js"></script>
 <script src="assets/palettes.js"></script>
 <link rel="stylesheet" href="assets/live.css">
-<link rel="preload" as="fetch" crossorigin href="data/deckbg/index.json">   <!-- фон матча — запрос сразу (09.11, скорость) -->
+<link rel="preload" as="fetch" crossorigin href="/data/deckbg/index.json">   <!-- фон матча — запрос сразу (09.11, скорость) -->
 <!--seo:begin-->
 <meta name="description" content="Матчи ближайших дней карточками: время, клубы, вероятности исходов по модели. Листайте колоду по лигам.">
 <link rel="canonical" href="https://jarvibet.example/matches.html">
@@ -99,14 +99,14 @@
 
 <script src="assets/nav.js"></script>
 <script src="assets/footer.js"></script>
-<script src="data/today.js"></script>
-<script src="data/lines.js"></script>
-<script src="data/model.js"></script>
-<script src="data/matchlinks.js"></script>
+<script src="/data/today.js"></script>
+<script src="/data/lines.js"></script>
+<script src="/data/model.js"></script>
+<script src="/data/matchlinks.js"></script>
 <script src="assets/lines.js"></script>
-<script src="assets/data/teams-lite.js"></script>
-<script src="football/data/football-lite.js"></script>
-<script src="assets/data/clubs.js"></script>
+<script src="/assets/data/teams-lite.js"></script>
+<script src="/football/data/football-lite.js"></script>
+<script src="/assets/data/clubs.js"></script>
 <script src="assets/deck.js"></script>
 <script src="assets/live.js" defer></script>
 </body>

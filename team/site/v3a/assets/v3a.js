@@ -51,16 +51,30 @@ JV.NHL_FULL={nhl_car:'Каролина|Харрикейнз',minnesota:'Минн
 {const NHL_EN={"nhl_car":"carolina","nhl_edm":"edmonton","minnesota":"minnesota","nhl_bos":"boston","nhl_vgk":"vegas","nhl_mtl":"montreal","nhl_tbl":"tampa-bay","nhl_njd":"new-jersey","nhl_uta":"utah","dallas":"dallas","nhl_col":"colorado","nhl_ott":"ottawa","nhl_fla":"florida","nhl_tor":"toronto","nhl_sea":"seattle","nhl_buf":"buffalo","nhl_nsh":"nashville","nhl_nyr":"rangers","nhl_det":"detroit","nhl_wsh":"washington","nhl_nyi":"islanders","nhl_stl":"st-louis","nhl_ana":"anaheim","nhl_sjs":"san-jose","nhl_cgy":"calgary","nhl_wpg":"winnipeg","nhl_cbj":"columbus","nhl_pit":"pittsburgh","nhl_phi":"philadelphia","nhl_lak":"los-angeles","nhl_chi":"chicago","nhl_van":"vancouver"};
  JV.mslug=(lg,id)=>lg==='nhl'?(NHL_EN[id]||String(id).replace(/^nhl_/,'').replace(/_/g,'-')):String(id).replace(/_/g,'-');
  JV.matchPage=(root,lg,day,h,a)=>`${root}${lg}/${String(day).slice(0,10)}-${JV.mslug(lg,h)}-${JV.mslug(lg,a)}/index.html`;}
+
+
+/* раскрытая карточка матча (17.11, владелец: «уходит за экран, приходится листать»): плавно подвести её верх под шапку */
+JV.showCard=li=>{if(!li)return;requestAnimationFrame(()=>{const hd=document.querySelector('.hd'),off=(hd?Math.max(0,hd.getBoundingClientRect().bottom):0)+12;
+ const top=li.getBoundingClientRect().top;if(Math.abs(top-off)<8)return;scrollTo({top:Math.max(0,scrollY+top-off),behavior:JV.RM?'auto':'smooth'})})};
+/* «Свернуть матч» внизу раскрытой карточки (17.11): закрывает карточку и возвращает к её началу, если оно ушло вверх */
+document.addEventListener('click',e=>{const x=e.target.closest&&e.target.closest('.xclose');if(!x)return;const li=x.closest('.match'),h=li&&li.querySelector('.mhead');if(!h)return;
+ li.classList.remove('open');h.setAttribute('aria-expanded','false');const r=h.getBoundingClientRect();if(r.top<70)h.scrollIntoView({behavior:JV.RM?'auto':'smooth',block:'center'});h.focus({preventScroll:true})});
+/* ссылка на страницу матча (17.11): в черновике страница может ещё не существовать — тогда открываем её на основном сайте */
+{const VROOT=new URL('../',(document.currentScript&&document.currentScript.src)||location.href).href,SROOT=location.origin+'/';
+ JV.matchHref=(lg,day,h,a)=>JV.matchPage(VROOT,lg,day,h,a);
+ JV.matchLink=(lg,day,h,a,txt)=>`<a class="xgo" href="${JV.matchPage(VROOT,lg,day,h,a)}" data-ml="${JV.matchPage(SROOT,lg,day,h,a)}">${txt||'Страница матча'}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>`;
+ if(VROOT!==SROOT)document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[data-ml]');if(!a||e.defaultPrevented||e.button||e.metaKey||e.ctrlKey||e.shiftKey)return;
+  e.preventDefault();fetch(a.href,{method:'HEAD'}).then(r=>{location.href=r.ok?a.href:a.dataset.ml}).catch(()=>{location.href=a.dataset.ml})})}
 /* есть ли страница матча: по списку data/matchlinks.js (его пишет seo/build_match.py), без пробного запроса — раньше HEAD давал 404 в консоли (11.11) */
 JV.matchPageOk=(root,href)=>new Promise(res=>{const ok=()=>res(Object.values(window.JV_MATCHLINKS||{}).includes(String(href).slice(root.length)));
- if(window.JV_MATCHLINKS)return ok();const s=document.createElement('script');s.src=root+'data/matchlinks.js';s.onload=ok;s.onerror=()=>res(false);document.head.appendChild(s)});
+ if(window.JV_MATCHLINKS)return ok();const s=document.createElement('script');s.src='/data/matchlinks.js';s.onload=ok;s.onerror=()=>res(false);document.head.appendChild(s)});
 /* «Напомнить о матче»: событие для календаря телефона (.ics, сигнал за 15 мин); t — «ГГГГ-ММ-ДД ЧЧ:ММ» МСК (09.11) */
 JV.ics=(title,t,min)=>{const st=new Date(Date.parse(String(t).slice(0,16).replace(' ','T')+':00+03:00'));if(isNaN(st))return '';
  const f=d=>d.toISOString().replace(/[-:]/g,'').slice(0,15)+'Z',en=new Date(st.getTime()+(min||150)*6e4);
  const s=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//JARVIS//match//RU','BEGIN:VEVENT','UID:'+f(st)+'-'+title.length+'@jarvis','DTSTAMP:'+f(st),'DTSTART:'+f(st),'DTEND:'+f(en),
   'SUMMARY:'+title,'DESCRIPTION:Расчёт модели — на сайте JARVIS. Прогнозы дня — в Telegram @jarvibet.','BEGIN:VALARM','TRIGGER:-PT15M','ACTION:DISPLAY','DESCRIPTION:'+title,'END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
  return 'data:text/calendar;charset=utf-8,'+encodeURIComponent(s)};
-JV.BELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
+JV.BELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/> <path d="M9 17v1a3 3 0 0 0 6 0v-1"/></svg>';
 
 /* ── split-flap ─────────────────────────────────────────────── */
 const CH='АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЭЮЯ0123456789';
@@ -110,9 +124,11 @@ JV.ticker=function(el,items){
 
 /* ── фон: разметка поля и льда на canvas ────────────────────── */
 JV.field=function(kind){
+  /* 17.11 — варианты фона (?bg=a|b|c, ставит nav.js): a и b — без разметки на canvas; c — разметка чёткая (до 2,5× плотности), статичная, без пунктиров и сетки */
+  const BG=doc.dataset.bg||'';if(BG==='a'||BG==='b'||BG==='n')return;
   const cv=document.createElement('canvas');cv.id='field';cv.setAttribute('aria-hidden','true');document.body.prepend(cv);
   const g=cv.getContext('2d');let W=0,H=0,D=1,raf=0,last=0;
-  const size=()=>{D=Math.min(1.5,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*D;cv.height=H*D;g.setTransform(D,0,0,D,0,0);draw(performance.now())};
+  const size=()=>{D=Math.min(BG==='c'?2.5:1.5,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*D;cv.height=H*D;g.setTransform(D,0,0,D,0,0);draw(performance.now())};
   /* цвета разметки — из CSS-переменных темы (--fld-*), чтобы лёд читался на любом фоне */
   const cs=getComputedStyle(doc),V=(n,d)=>cs.getPropertyValue(n).trim()||d;
   let ink=V('--fld','rgba(16,22,31,.085)'),ink2=V('--fld-2','rgba(16,22,31,.05)'),fPitch=V('--fld-pitch','rgba(22,112,74,.028)'),
@@ -140,11 +156,12 @@ JV.field=function(kind){
     LT={ink,ink2,red:fRed,blue:fBlue,run:fRun,run2:fRun2};
   function draw(now){
     g.clearRect(0,0,W,H);
-    if(AR){const l=JV.lit,P=l<.5?DK:LT;g.globalAlpha=Math.min(1,Math.abs(l-.5)*2+.15);ink=P.ink;ink2=P.ink2;fRed=P.red;fBlue=P.blue;fRun=P.run;fRun2=P.run2}const sy=scrollY*.12,t=now*.00004;
+    if(AR){const l=JV.lit,P=l<.5?DK:LT;g.globalAlpha=Math.min(1,Math.abs(l-.5)*2+.15);ink=P.ink;ink2=P.ink2;fRed=P.red;fBlue=P.blue;fRun=P.run;fRun2=P.run2}const sy=scrollY*.12,t=BG==='c'?0:now*.00004;
     const L=Math.max(W,H*1.3)*1.25,dx=Math.sin(t)*W*.05,ang=-.08+Math.sin(t*.7)*.025;
     if(kind==='hockey')rink(W*.52+dx,H*.5-sy%(H*1.4)+H*.2,L,ang);
     else if(kind==='mix'){pitch(W*.7+dx,H*.55-sy*.6,L*.9,ang);rink(W*.18-dx,H*.38-sy*.4,L*.62,-ang*1.4)}
     else pitch(W*.52+dx,H*.5-sy%(H*1.4)+H*.2,L,ang);
+    if(BG==='c')return;
     // «тактические» пунктиры — медленные дуги розыгрышей
     g.save();g.setLineDash([2,10]);g.lineWidth=1.6;g.lineCap='round';
     runs.forEach((r,i)=>{const p=now*r.s+r.a,x0=W*(.08+.2*i),y0=H*r.y+Math.sin(p)*30;
@@ -156,7 +173,7 @@ JV.field=function(kind){
   const loop=now=>{raf=requestAnimationFrame(loop);if(now-last<33)return;last=now;draw(now)};
   addEventListener('resize',()=>{clearTimeout(size.t);size.t=setTimeout(size,120)});
   size();
-  if(!RM){raf=requestAnimationFrame(loop);document.addEventListener('visibilitychange',()=>{cancelAnimationFrame(raf);if(!document.hidden)raf=requestAnimationFrame(loop)})}
+  if(!RM&&BG!=='c'){raf=requestAnimationFrame(loop);document.addEventListener('visibilitychange',()=>{cancelAnimationFrame(raf);if(!document.hidden)raf=requestAnimationFrame(loop)})}
   else addEventListener('scroll',()=>requestAnimationFrame(()=>draw(0)),{passive:true});
 };
 
@@ -214,6 +231,11 @@ function arena(){
   if(doc.dataset.theme!=='arena'){JV.lit=1;return}
   const hero=document.querySelector('.hero'),hd=document.getElementById('hd');if(!hero)return;
   const Z={arena:[7,18,37],p1:[214,226,238],p2:[236,238,232],p2b:[221,232,242],p3:[239,233,219]};
+  const BG=doc.dataset.bg||'';   /* 17.11 — варианты фона: a — чистый светлый, b — тёмная арена на всю страницу, c — светлый лёд */
+  if(BG==='a')Z.p1=Z.p2=Z.p2b=Z.p3=[244,246,250];
+  if(BG==='b'){Z.p1=[9,20,40];Z.p2=Z.p2b=[7,16,32];Z.p3=[10,22,44]}
+  if(BG==='n')Z.arena=Z.p1=Z.p2=Z.p2b=Z.p3=[5,9,20];   /* «Ночная арена»: фон рисует nav.css слоями света, цвет страницы один */
+  if(BG==='c'){Z.p1=Z.p2b=[232,240,248];Z.p2=[240,244,249];Z.p3=[236,241,247]}
   if(doc.dataset.col==='1'){Z.p1=Z.p2b=Z.p3=Z.p2}   /* вариант 1: после первого экрана один светлый фон */
   if(doc.dataset.hero==='2')Z.arena=Z.p1;   /* афиша (hero3): у неё свой тёмный фон, который сам растворяется книзу — общий фон страницы не мигает из тёмного в светлый */
   const zones=()=>[{el:hero,c:Z.arena},...[...document.querySelectorAll('[data-zone]')].map(el=>({el,c:Z[el.dataset.zone]||Z.p2}))];
@@ -229,6 +251,7 @@ function arena(){
     if(i===0)lit=dn<Wn?.5-dn/Wn*.5:0;else if(i===1&&up<Wu)lit=.5+up/Wu*.5;else lit=1;
     if(i===0&&lit>0){const g=Math.min(1,scrollY/(vh*.25));lit*=g;col=mix(Z.arena,col,g)}  /* черновик 14.11: пока не прокрутили — первый экран чёткий (на большом мониторе лига/клуб открывались «мутными», --lit ≈ .36) */
     if(RM)lit=lit<.5?0:1,col=lit?col:Z.arena;
+    if(BG==='b'||BG==='n')lit=0;
     lit=Math.round(lit*100)/100;JV.lit=lit;
     const cs=`rgb(${col.join(',')})`;if(cs!==lastC){doc.style.setProperty('--bgc',cs);lastC=cs}
     if(lit!==lastLit){doc.style.setProperty('--lit',lit);doc.classList.toggle('lit',lit>=.5);lastLit=lit}

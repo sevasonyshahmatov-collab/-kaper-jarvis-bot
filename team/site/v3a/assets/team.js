@@ -11,6 +11,7 @@ const f=(v,d=2)=>(+v).toFixed(d).replace('.',',');
 const plural=(n,a,b,c)=>{const k=n%100,j=n%10;return k>10&&k<20?c:j===1?a:j>1&&j<5?b:c};
 const LG={khl:{name:'КХЛ'},nhl:{name:'НХЛ'}};
 const lgp=lg=>`<span class="lgp ${lg}"><img src="../assets/lg/${lg}.webp" alt=""></span>`;
+const EMHI=s=>/^(nhl_[a-z]+|dallas|minnesota)$/.test(s); /* для этих клубов есть чёткие эмблемы 768 px в em/l/ */
 const em=(s,cls='em',big)=>`<img class="${cls}" src="../assets/em/${big?'':'s/'}${esc(s)}.webp" alt="" loading="lazy" width="64" height="64">`;
 const nm=s=>D.names[s]||s;
 // ссылки на страницы клубов: data-href — v3a.js при ?theme= переписывает href у «index.html», возвращаем id после него
@@ -86,7 +87,7 @@ document.title=`${T.name} — матчи сезона, место в табли�
 {const st=document.body.style;[['--c1',CP.stops[0]],['--c2',CP.stops[1]],['--c3',CP.stops[2]],['--con',CP.text],['--cacc',CP.acc],['--team',CP.accL],['--cbase',CP.base]].forEach(([k,v])=>st.setProperty(k,v));
  document.body.classList.toggle('on-light',CP.text!=='#ffffff');
  const m=document.querySelector('meta[name=theme-color]');if(m)m.content=CP.stops[0];
- const wm=document.createElement('img');wm.className='tmwm';wm.src=`../assets/em/${ID}.webp`;wm.alt='';wm.setAttribute('aria-hidden','true');document.querySelector('.tmhero').prepend(wm)}
+ const wm=document.createElement('img');wm.className='tmwm'+(EMHI(ID)?'':' lo');wm.src=EMHI(ID)?`../assets/em/l/${ID}.webp`:`../assets/em/${ID}.webp`;wm.alt='';wm.setAttribute('aria-hidden','true');document.querySelector('.tmhero').prepend(wm)}
 document.body.dataset.lg=lg;
 /* ── клубная тема (03.11): у клуба из списка — свой фон каждой секции, файлы assets/club/<id>.css (+ .js при нужде) ── */
 const CLUB_THEMES={nhl_fla:{css:1,bg:1}};
@@ -101,7 +102,7 @@ if(CLUB_THEMES[ID]){const th=CLUB_THEMES[ID];document.body.classList.add('club',
  if(th.bg)clubBg()}
 else if(CS){/* общий движок assets/club/theme.css: переменные клуба из assets/club/themes.js */
  const b=document.body,u=p=>`url(${new URL('../assets/'+p,document.baseURI).href})`;b.classList.add('club','club-g','club-'+ID);
- [['--k-dk',CS.dk],['--k-a1',CS.a1],['--k-a2',CS.a2],['--k-ac',CS.ac],['--k-em',u('em/'+ID+'.webp')],['--k-mA',u('club/m/'+CS.m[0]+'.svg')],['--k-mB',u('club/m/'+(CS.m[1]||CS.m[0])+'.svg')]].forEach(([k,v])=>b.style.setProperty(k,v));
+ [['--k-dk',CS.dk],['--k-a1',CS.a1],['--k-a2',CS.a2],['--k-ac',CS.ac],['--k-em',u((EMHI(ID)?'em/l/':'em/')+ID+'.webp')],['--k-mA',u('club/m/'+CS.m[0]+'.svg')],['--k-mB',u('club/m/'+(CS.m[1]||CS.m[0])+'.svg')]].forEach(([k,v])=>b.style.setProperty(k,v));if(!EMHI(ID))b.classList.add('em-lo');
  if(!CS.m[1])b.classList.add('nomB');
  if(CS.bg)clubBg()}
 const played=T.games.filter(g=>g.gf!=null),future=T.games.filter(g=>g.gf==null);
@@ -490,9 +491,9 @@ else{
 document.getElementById('foot').textContent=`Данные ${asOf}${hasSample?', часть — пример':''} · © JARVIS, @jarvibet`;
 // v3a.js (keepTheme) при ?theme= обрезает «?id=» у ссылок на index.html — возвращаем после него
 document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('a[data-href]').forEach(a=>a.setAttribute('href',a.dataset.href)));
-fetch('../hockey/data/pid/'+encodeURIComponent(ID)+'.json').then(r=>r.ok?r.json():null).then(m=>{if(!m)return;Object.assign(PID,m);linkPn(document)}).catch(()=>{});
+fetch((window.JVD||(u=>u))('../hockey/data/pid/'+encodeURIComponent(ID)+'.json')).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;Object.assign(PID,m);linkPn(document)}).catch(()=>{});
 /* фото лидеров в плашке «Игроки» — из данных раздела «Игроки» (подгружаются после страницы) */
-fetch('../hockey/data/players/'+encodeURIComponent(ID)+'.json').then(r=>r.ok?r.json():null).then(by=>{if(!by)return;
+fetch((window.JVD||(u=>u))('../hockey/data/players/'+encodeURIComponent(ID)+'.json')).then(r=>r.ok?r.json():null).then(by=>{if(!by)return;
  document.querySelectorAll('.plcard .pav').forEach(el=>{const u=by[el.dataset.n];if(u){const im=new Image();im.alt='';im.onload=()=>{el.textContent='';el.appendChild(im)};im.src=u}});
  document.querySelectorAll('.plead .lph').forEach(el=>{const u=by[el.dataset.n];if(u){const im=new Image();im.alt='';im.decoding='async';im.onload=()=>{el.appendChild(im);el.closest('li').classList.add('has-ph')};im.src=u}})}).catch(()=>{});
 })();

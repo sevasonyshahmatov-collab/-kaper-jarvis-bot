@@ -9,7 +9,7 @@ html[data-hh="9"] .hero>.wrap:not(.h9){display:none}
 .h9 .btn-tg{color:var(--signal-ink,#1a1400)}
 .h9-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .h9-bg::after{content:"";position:absolute;inset:0;opacity:.06;
- background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.4 -.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+ background-image:none}
 .h9-rink{position:absolute;left:50%;top:50%;width:max(100%,1180px);height:100%;transform:translate(-50%,-50%);color:rgba(255,255,255,.08)}
 .h9-in{position:relative;z-index:1;max-width:var(--max);margin:0 auto;padding:clamp(32px,4vw,56px) var(--m);display:grid;grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);gap:clamp(24px,4vw,56px);align-items:center}
 .h9-l{min-width:0}

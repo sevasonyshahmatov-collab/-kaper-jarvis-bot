@@ -96,8 +96,8 @@ html.lit .hb *{animation-play-state:paused}
   repeating-linear-gradient(90deg,#0f3a2e 0 7.5%,#0a281f 7.5% 15%),#0a281f;
   -webkit-mask-image:linear-gradient(180deg,transparent 4%,#000 46%);mask-image:linear-gradient(180deg,transparent 4%,#000 46%)}
 .hb[data-v="5"] .mow{position:absolute;inset:0;opacity:.7;background:
-  repeating-linear-gradient(0deg,rgba(190,240,215,.022) 0 1px,transparent 1px 4px),
-  repeating-linear-gradient(90deg,rgba(0,0,0,.05) 0 1px,transparent 1px 3px);
+  linear-gradient(transparent,transparent),
+  linear-gradient(transparent,transparent);
   -webkit-mask-image:linear-gradient(180deg,transparent 4%,#000 46%);mask-image:linear-gradient(180deg,transparent 4%,#000 46%)}
 .hb[data-v="5"] .cloud{position:absolute;left:-35vw;top:18%;width:70vw;height:70%;border-radius:50%;filter:blur(60px);
   background:radial-gradient(closest-side,rgba(3,10,14,.62),transparent);animation:hb-cloud 15s ease-in-out infinite alternate}

@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="ru" data-sport="hockey" data-theme="arena">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8"><script>/*тема: «Ночная арена» по умолчанию; ?bg=0 — старая*/(function(){var d=document.documentElement;try{var q=new URLSearchParams(location.search).get("bg");if(q!==null)sessionStorage.setItem("jv-bg",/^[abcn]$/.test(q)?q:"0");var b=sessionStorage.getItem("jv-bg");if(b===null)b="n";if(b&&b!=="0")d.dataset.bg=b}catch(e){d.dataset.bg="n"}})()</script>
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Хоккей: матчи КХЛ и НХЛ и прогнозы модели | JARVIS</title>
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#071225">
+<meta name="theme-color" content="#060b1a">
 <script>/* палитра: ?theme=arena (по умолчанию: «Трансляция с арены» — тёмная арена, при прокрутке включают свет) | a «ночной лёд» | b кобальт | c светлый лёд */
 (()=>{const t=new URLSearchParams(location.search).get('theme'),d=document.documentElement;if(/^(arena|a|b|c)$/.test(t||''))d.dataset.theme=t;
 document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a1220',b:'#0b2a84',c:'#e3eff9'}[d.dataset.theme]||'#071225'})();</script>
@@ -27,9 +27,9 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 @media (max-width:980px){#honest .honest{grid-template-columns:1fr}}
 .kt{position:relative;height:16px;display:block}.kt span{position:absolute;transform:translateX(-50%)}.kt span:first-child{transform:none}.kt span:last-child{transform:translateX(-100%)}
 </style>
-<link rel="icon" href="../favicon.svg" type="image/svg+xml">
-<link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="icon" href="../favicon.svg?v=3" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png?v=3" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png?v=3">
 <link rel="manifest" href="../site.webmanifest">
 <script src="../assets/efir/efir-loader.js"></script>
 <script src="../assets/palettes.js"></script>
@@ -161,12 +161,12 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <script src="../assets/v3a.js"></script>
 <script src="../assets/particles.js" defer></script>
 <script src="../assets/titles.js" defer></script>
-<script src="../assets/data/teams-lite.js"></script>
+<script src="/assets/data/teams-lite.js"></script>
 <script src="../assets/em/plates.js"></script>
-<script src="../data/today.js"></script>
-<script src="../data/lines.js"></script>
-<script src="../data/model.js"></script>
-<script src="../data/posts.js"></script>
+<script src="/data/today.js"></script>
+<script src="/data/lines.js"></script>
+<script src="/data/model.js"></script>
+<script src="/data/posts.js"></script>
 <script src="../assets/lines.js"></script>
 <script>
 (()=>{
@@ -245,7 +245,7 @@ const card=m=>{const md=m.md,ln=m.ln,mo=md?[md.p1,md.x,md.p2]:null,i=mo?mo.index
  return `<div class="face">${tm(m.h,m.hn,'хозяева')}<div class="vs"><span aria-hidden="true">—</span><time>${esc(m.t.slice(11))}</time></div>${tm(m.a,m.an,'гости')}</div>
  ${md?`<div class="bet lv-${lvl(p)}"><span class="bl">Расчёт модели</span><strong>${esc(word)}</strong><span class="k num" aria-label="${kk?'кэф линии':'линии нет'}">${kk?f1(kk,2):'—'}</span>
   <span class="pm"><em><i style="--w:${Math.round(p*100)}%"></i></em><b class="num">${Math.round(p*100)} % по модели</b></span></div>`:'<div class="bet lv-lo"><span class="bl">Расчёт модели</span><strong>Расчёта на этот матч пока нет</strong></div>'}
- <p class="why">${why.map(x=>`<span>${esc(x)}</span>`).join(' ')}</p>`};
+ <p class="why">${why.map(x=>`<span>${esc(x)}</span>`).join(' ')}</p><p class="hgo">${JV.matchLink(m.lg,m.t,m.h,m.a,'Разбор матча')}</p>`};
 /* отсчёт: «32 ч 44 мин 05 с»; меняется только та часть, что изменилась */
 cdv.innerHTML=['h','m','s'].map((u,i)=>`<span class="cu" data-u="${u}"><b></b><small>${['ч','мин','с'][i]}</small></span>`).join('');
 const cu=[...cdv.querySelectorAll('.cu b')],cdWord=document.createElement('b');cdWord.className='cdw';cdv.appendChild(cdWord);
@@ -312,17 +312,17 @@ const CLUBJS={};
 function loadH2H(li,m){const T=TD[m.h];if(!T||T.h2h){fitLast(li);return}
  const done=()=>{const box=li.querySelector('.x-h2h');if(box)box.innerHTML=h2hBox(m);fitLast(li)};
  if(CLUBJS[m.h]){CLUBJS[m.h].then(done);return}
- CLUBJS[m.h]=new Promise(r=>{const sc=document.createElement('script');sc.src='../assets/data/club/'+encodeURIComponent(m.h)+'.js';sc.onload=sc.onerror=r;document.head.append(sc)});CLUBJS[m.h].then(done)}
+ CLUBJS[m.h]=new Promise(r=>{const sc=document.createElement('script');sc.src='/assets/data/club/'+encodeURIComponent(m.h)+'.js';sc.onload=sc.onerror=r;document.head.append(sc)});CLUBJS[m.h].then(done)}
 function back(m){const {A,B,h2h}=det(m);
  const last=t=>`<div class="l3"><h5>${CS(t.slug)}${esc(t.name)}</h5><ul>${t.g.slice(0,12).map(g=>{const r=rOf(g),wl=g.gf>g.ga?'w':'l',xt=g.x==='Б'?'по буллитам':'в овертайме';return `<li><b class="rs ${wl}${g.x?' x':''}" title="${g.x?(wl==='w'?'победа ':'поражение ')+xt:RESF[r]}">${wl==='w'?'В':'П'}</b><span class="op">${CS(g.o)}${esc(nmS(g.o))}</span><span class="sc num"><b>${g.gf}:${g.ga}</b><small>${g.x?esc(g.x):''}</small></span><span class="d">${dd(g.d)}</span></li>`}).join('')||'<li class="none">Нет данных</li>'}</ul></div>`;
  const form=t=>`<div class="fm"><span>${CS(t.slug)}${esc(t.name)}</span><span class="dots" aria-label="форма: ${esc(t.g.slice(0,5).reverse().map(g=>(rOf(g)==='w'?'победа над ':'поражение от ')+nmS(g.o)+' '+g.gf+':'+g.ga).join(', '))}">${t.g.slice(0,5).reverse().map(g=>{const r=rOf(g),o=nmS(g.o),sc=`${g.gf}:${g.ga}`,ex=g.x?(g.x==='Б'?' по буллитам':' в овертайме'):'',tt=r==='w'?`Победа над ${o} ${sc}${ex}`:`Поражение от ${o} ${sc}${ex}`;return `<i class="${r}" title="${esc(tt)}"><img src="../assets/em/s/${esc(g.o)}.webp" alt="" loading="lazy"></i>`}).join('')}</span></div>`;
  const h2hHTML=h2hBox(m);
- return `<div class="xd">${JVL.why(m)}
+ return `<div class="xd">${JV.matchLink(m.lg,m.t,m.h,m.a)}${JVL.why(m)}
   <section class="xb x-last"><h4>Последние матчи</h4><div class="two">${last(A)}${last(B)}</div></section>
   <section class="xb x-h2h">${h2hHTML}</section>
   <section class="xb x-stat"><h4>Статистика команды <span class="note">сезон 2026/27</span></h4><table class="st"><thead><tr><th></th><th>${CS(A.slug)}<span>${esc(A.name)}</span></th><th>${CS(B.slug)}<span>${esc(B.name)}</span></th></tr></thead>
    <tbody>${A.st.map((r,i)=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${B.st[i]?B.st[i][1]:'—'}</td></tr>`).join('')}</tbody></table></section>
-  </div>`}
+  <button type="button" class="xclose">${(window.JVI||(()=>''))('up')}Свернуть матч</button></div>`}
 function row(m){const L=LG[m.lg];
  return `<li class="match ${m.lg}"><button class="mhead" type="button" aria-expanded="false">
   <div class="mt"><time>${esc(m.t.slice(11))}</time><span class="cd" data-t="${esc(m.t)}"></span><span class="lvslot" data-lv data-lv-lg="${esc(m.lg)}" data-lv-t="${esc(m.t.replace(' ','T'))}:00+03:00" data-lv-h="${esc(m.h)}" data-lv-a="${esc(m.a)}" data-lv-hn="${esc(m.hn)}" data-lv-an="${esc(m.an)}"></span></div>
@@ -332,14 +332,14 @@ function row(m){const L=LG[m.lg];
   <div class="mbody"><div>${''}</div></div></li>`}
 /* ближайшие 5, остальные — по кнопке «Показать все N матчей» (задание 14.11, п. 4) */
 const LIM=6;let shownN=LIM,curL='all';const moreB=document.getElementById('moreM');
-moreB.addEventListener('click',()=>{shownN=1e9;render(curL,true)});
+moreB.addEventListener('click',()=>{if(shownN>=1e9){render(curL);document.getElementById('matches').scrollIntoView({behavior:RM?'auto':'smooth',block:'start'});return}shownN=1e9;render(curL,true)});
 function render(l,more){if(!more)shownN=LIM;curL=l;const sel=(l==='all'?D:D.filter(m=>m.lg===l)).slice(0,shownN),all=(l==='all'?D:D.filter(m=>m.lg===l)).length;
- moreB.hidden=all<=shownN;moreB.textContent=`Показать все ${all} ${plural(all,'матч','матча','матчей')}`;
+ moreB.hidden=all<=LIM;moreB.textContent=shownN>=all?'Свернуть список':`Показать все ${all} ${plural(all,'матч','матча','матчей')}`;
  ltabs.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.l===l));
  let html='',prev='';sel.forEach(m=>{const d=JVL.gday(m.t);if(d!==prev){prev=d;html+=`<li class="dayh" aria-hidden="true">${dayLabel(d)}</li>`}html+=row(m)});
  list.innerHTML=html||'<li class="note" style="padding:18px 4px">Матчей в этой лиге нет.</li>';
  list.querySelectorAll('.match').forEach((li,i)=>{const b=li.querySelector('.mhead'),body=li.querySelector('.mbody>div');
-  b.addEventListener('click',e=>{const tl=e.target.closest('.tl[data-href]');if(tl){location.href=tl.dataset.href;return}if(!body.innerHTML)body.innerHTML=back(sel[i]);requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o);if(o){fitLast(li);loadH2H(li,sel[i])}})})});
+  b.addEventListener('click',e=>{const tl=e.target.closest('.tl[data-href]');if(tl&&e.target!==tl){location.href=tl.dataset.href;return}if(!body.innerHTML)body.innerHTML=back(sel[i]);requestAnimationFrame(()=>{const o=li.classList.toggle('open');b.setAttribute('aria-expanded',o);if(o){fitLast(li);loadH2H(li,sel[i]);JV.showCard&&JV.showCard(li)}})})});
  if(!RM&&!more)list.querySelectorAll('.match').forEach((li,i)=>li.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:500,delay:Math.min(i,12)*55,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}));
  requestAnimationFrame(()=>list.querySelectorAll('.match').forEach(li=>li.classList.add('in')));tick()}
 /* «Последние матчи»: столько строк, сколько влезает в квадрат рядом с расчётом модели (на узком экране — 5) */
@@ -363,7 +363,7 @@ LeagueCards.mount(document.getElementById('lcdeck'),Object.entries(LG).map(([id,
 })();
 </script>
 <script src="../assets/live.js" defer></script>
-<script src="../data/results-lite.js"></script>
+<script src="/data/results-lite.js"></script>
 <script src="../assets/results-strip.js"></script>
 </body>
 </html>

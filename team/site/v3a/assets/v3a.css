@@ -115,7 +115,7 @@ html{scrollbar-color:var(--ink-3) var(--paper-2)}
 /* ── фон: canvas с разметкой + бумага ───────────────────────── */
 #field{position:fixed;inset:0;width:100vw;height:100lvh;z-index:-2;pointer-events:none}
 body::after{content:"";position:fixed;inset:-50%;z-index:-1;pointer-events:none;opacity:var(--grain-op);mix-blend-mode:var(--grain-blend);
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .1 0 0 0 0 .1 0 0 0 0 .1 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E")}
+  background-image:none}
 @media (prefers-reduced-motion:no-preference){body::after{animation:grain 1.2s steps(4) infinite}}
 @keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}100%{transform:translate(0,0)}}
 
@@ -757,7 +757,7 @@ h1 .ln{display:block} /* «ХОККЕЙ:» и «КХЛ И НХЛ» — всег�
 .lgtab.khl{background:radial-gradient(90% 120% at 100% 0%,rgba(255,255,255,.10),transparent 60%),linear-gradient(120deg,#071d58 0%,var(--khl-a) 35%,var(--khl-b) 100%);box-shadow:inset 0 -6px 0 var(--khl-r)}
 .lgtab.nhl{background:radial-gradient(90% 120% at 100% 0%,rgba(255,255,255,.14),transparent 60%),linear-gradient(120deg,#07080a 0%,#1d2228 45%,#4c5560 100%);box-shadow:inset 0 -6px 0 var(--nhl-s)}
 .lgtab::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
-  background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,transparent 1px 72px)} /* фактура: разметка льда */
+  background-image:linear-gradient(transparent,transparent)} /* фактура: разметка льда */
 .lgtab .lgbg{position:absolute;right:-9%;top:50%;height:155%;width:auto;max-width:none;transform:translateY(-50%) rotate(-8deg);opacity:.2;pointer-events:none;transition:transform .6s var(--out),opacity .4s ease}
 .lgtab .lgtx{position:relative;display:grid;gap:6px}
 .lgtab .lgn{font:800 clamp(54px,5.4vw,84px)/.9 var(--display);text-transform:uppercase;letter-spacing:-.01em}
@@ -1257,3 +1257,21 @@ html body .pp-ln>div{padding-bottom:14px}
   html .js [data-rv]>*,html.js [data-rv]>*{opacity:1!important;transform:none!important;transition:none!important}
   html.ppa .ppa-w{opacity:1!important}html.ppa .ppa-w.ppa-in{animation:none!important}
 }
+/* 17.11: в команду ведут только название и эмблема; кнопка «Страница матча» в раскрытой карточке */
+.team.tl{cursor:inherit}
+.team.tl>*{cursor:pointer}
+.team.tl:hover span{text-decoration:none}
+.team.tl>span:hover{text-decoration:underline;text-underline-offset:3px}
+.xd>.xgo{grid-column:1/-1;justify-self:start;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 16px;border-radius:999px;background:#0b1220;color:#fff;font:700 14px/1 var(--display);text-decoration:none;transition:transform .15s ease}
+.xd>.xgo svg{width:16px;height:16px}
+.xd>.xgo:hover{transform:translateX(2px)}
+.xd>.xgo:active{transform:scale(.97)}
+.hgo{display:flex;justify-content:center;margin:10px 0 0}
+.hgo .xgo{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 18px;border-radius:999px;background:linear-gradient(180deg,#fff,#dfe8ff);color:#060b1a;font:700 14px/1 var(--display);text-decoration:none;transition:transform .15s ease}
+.hgo .xgo svg{width:16px;height:16px}.hgo .xgo:hover{transform:translateX(2px)}.hgo .xgo:active{transform:scale(.97)}
+
+/* «Свернуть матч» внизу раскрытой карточки (17.11) */
+.xd>.xclose{grid-column:1/-1;justify-self:center;display:inline-flex;align-items:center;gap:6px;min-height:40px;margin-top:4px;padding:0 18px;border:0;border-radius:999px;cursor:pointer;background:#e9eef7;color:#0b1220;font:700 14px/1 var(--display);transition:background .15s ease,transform .15s ease}
+.xd>.xclose:hover{background:#dde5f2}.xd>.xclose:active{transform:scale(.97)}
+.xd>.xclose .jvi{width:16px;height:16px}
+.xd>.xclose:focus-visible{outline:2px solid var(--signal,#2563eb);outline-offset:2px}

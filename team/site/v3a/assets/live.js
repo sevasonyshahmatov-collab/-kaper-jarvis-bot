@@ -33,7 +33,7 @@ const toks = s => norm(s).split(/[^a-z0-9]+/).filter(w => w && !STOP.has(w));
 let SEARCH = null, searchP = null;
 function loadSearch() {
   if (searchP) return searchP;
-  searchP = fetch(BASE + '../data/search.json').then(r => r.ok ? r.json() : Promise.reject()).then(D => {
+  searchP = fetch('/data/search.json').then(r => r.ok ? r.json() : Promise.reject()).then(D => {
     SEARCH = {}; D.c.forEach(r => { SEARCH[r[1] + ':' + r[0]] = {en: r[4] || '', al: r[5] || ''}; });
   }).catch(() => { SEARCH = {}; });
   return searchP;

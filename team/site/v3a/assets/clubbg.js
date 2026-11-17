@@ -43,7 +43,7 @@ void main(){
  vec3 col=vec3(0.);float ws=0.;
  for(int i=0;i<4;i++){float d=distance(q,P[i]);float w=1./(pow(d,2.2)+.035);col+=uC[i]*w;ws+=w;}
  col/=ws;
- col+=(hash(gl_FragCoord.xy+fract(uT*7.)*91.)-.5)*.035;   // зерно
+ // зерно убрано: давало «пиксели»
  gl_FragColor=vec4(col,1.);
 }`;
 function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);return gl.getShaderParameter(x,gl.COMPILE_STATUS)?x:(console.warn('clubbg:',gl.getShaderInfoLog(x)),null)}
@@ -55,7 +55,7 @@ const lp=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(lp);gl.vertexAt
 const uRes=gl.getUniformLocation(pr,'uRes'),uT=gl.getUniformLocation(pr,'uT');
 gl.uniform3fv(gl.getUniformLocation(pr,'uC'),new Float32Array(COLS.flat()));
 
-const SCALE=Math.min(innerWidth,innerHeight)<620?.45:.6;
+const SCALE=document.documentElement.dataset.bg==='n'?Math.min(1,devicePixelRatio||1):Math.min(innerWidth,innerHeight)<620?.45:.6;
 function size(){const r=hero.getBoundingClientRect();cv.width=Math.max(2,Math.round(r.width*SCALE));cv.height=Math.max(2,Math.round(r.height*SCALE));gl.viewport(0,0,cv.width,cv.height);gl.uniform2f(uRes,cv.width,cv.height)}
 const t0=performance.now();let raf=0,vis=true,lastDraw=0;
 function draw(now){gl.uniform1f(uT,RM?12:(now-t0)/1000+12);gl.drawArrays(gl.TRIANGLES,0,3)}

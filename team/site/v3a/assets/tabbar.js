@@ -17,11 +17,11 @@ try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('ta
 if(!window.JV_SOCIAL&&!document.querySelector('script[src*="social.js"]')){const s=document.createElement('script');s.src=new URL('social.js',SRC).href;s.defer=true;document.head.appendChild(s)}
 
 const I={
- home:'<path d="M3.5 11 12 4l8.5 7"/><path d="M6 9.5V20h4.5v-5.5h3V20H18V9.5"/>',
+ home:'<path d="M5 12l-2 0l9 -9l9 9l-2 0"/> <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/> <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/>',
  h:'<ellipse cx="12" cy="9" rx="7.5" ry="3"/><path d="M4.5 9v4c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V9"/>',
- f:'<circle cx="12" cy="12" r="8.5"/><path d="m12 7.6 3.6 2.6-1.4 4.2H9.8l-1.4-4.2z"/><path d="M12 3.5v4.1M20.2 9.6l-4.6.6M17 19.2l-2.8-4.8M7 19.2l2.8-4.8M3.8 9.6l4.6.6"/>',
- res:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
- more:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'
+ f:'<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/> <path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55z"/> <path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/>',
+ res:'<path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/> <path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/> <path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/> <path d="M4 20h14"/>',
+ more:'<path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/> <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/> <path d="M19 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>'
 };
 const ic=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[k]}</svg>`;
 const T=[['home','Главная','index.html'],['h','Хоккей','hockey/index.html'],['f','Футбол','football/index.html'],['res','Итоги','results.html']];
@@ -32,14 +32,14 @@ bar.innerHTML=T.map(([k,n,h])=>`<a class="tb-i" href="${esc(U(h))}"${cur===k?' a
 /* «Ещё» (переделано 15.11, владелец: «панель стрёмная и неудобная»): список строк как в настройках телефона —
    иконка · название · стрелка; группы по смыслу (общее, Хоккей, Футбол, Сайт); заголовок и крестик сверху, поиск — строкой */
 const RI={
- cal:'<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
- star:'<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.9z"/>',
- trend:'<path d="M3.5 17l5.5-5.5 4 4L20.5 8"/><path d="M15 8h5.5v5.5"/>',
- vs:'<path d="M7 7h12l-3-3M17 17H5l3 3"/>',
- ppl:'<circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="17" cy="9.5" r="2.4"/><path d="M15.8 14.6c2.3.1 4 1.6 4.6 4.4"/>',
- me:'<path d="M12 20.5s-7.5-4.3-7.5-10A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.9c0 5.7-7.5 10-7.5 10z"/>',
- model:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 15.5V12M12 15.5V8.5M16 15.5v-5"/>',
- book:'<path d="M5 4.5h10.5A3.5 3.5 0 0 1 19 8v11.5H8.5A3.5 3.5 0 0 1 5 16z"/><path d="M5 16a3.5 3.5 0 0 1 3.5-3.5H19"/>'
+ cal:'<path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"/> <path d="M16 3v4"/> <path d="M8 3v4"/> <path d="M4 11h16"/> <path d="M11 15h1"/> <path d="M12 15v3"/>',
+ star:'<path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"/>',
+ trend:'<path d="M3 17l6 -6l4 4l8 -8"/> <path d="M14 7l7 0l0 7"/>',
+ vs:'<path d="M7 10h14l-4 -4"/> <path d="M17 14h-14l4 4"/>',
+ ppl:'<path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/> <path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/> <path d="M16 3.13a4 4 0 0 1 0 7.75"/> <path d="M21 21v-2a4 4 0 0 0 -3 -3.85"/>',
+ me:'<path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/>',
+ model:'<path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/> <path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"/> <path d="M9 17v-5"/> <path d="M12 17v-1"/> <path d="M15 17v-3"/>',
+ book:'<path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0"/> <path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0"/> <path d="M3 6l0 13"/> <path d="M12 6l0 13"/> <path d="M21 6l0 13"/>'
 };
 const ri=k=>`<svg class="tbs-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${RI[k]}</svg>`;
 const chev='<svg class="tbs-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg>';
@@ -49,9 +49,9 @@ const grp=(t,rows)=>`<section class="tbs-sec">${t?`<h3 class="tbs-t">${t}</h3>`:
 const sh=document.createElement('div');sh.className='tbs-wrap';sh.hidden=true;
 sh.innerHTML=`<div class="tbs-bg"></div><div class="tbs" id="tb-sheet" role="dialog" aria-modal="true" aria-labelledby="tbs-title" tabindex="-1">
  <div class="tbs-grip" aria-hidden="true"><i></i></div>
- <div class="tbs-head"><b id="tbs-title">Разделы</b><button type="button" class="tbs-x" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+ <div class="tbs-head"><b id="tbs-title">Разделы</b><button type="button" class="tbs-x" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6l-12 12"/> <path d="M6 6l12 12"/></svg></button></div>
  <div class="tbs-in">
-  <button type="button" class="tbs-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><span>Найти клуб, игрока или матч</span></button>
+  <button type="button" class="tbs-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/> <path d="M21 21l-6 -6"/></svg><span>Найти клуб, игрока или матч</span></button>
   ${grp('',[row('cal','Матчи дня','matches.html'),row('star','Прогноз на сегодня','forecast.html')])}
   ${grp('Хоккей',[row('trend','Тренды','hockey/trends.html','hockey'),row('vs','Сравнение клубов','hockey/compare.html','hockey'),row('ppl','Игроки','hockey/players.html','hockey')])}
   ${grp('Футбол',[row('trend','Тренды','football/trends.html','football'),row('vs','Сравнение клубов','football/compare.html','football'),row('ppl','Игроки','football/players.html','football')])}

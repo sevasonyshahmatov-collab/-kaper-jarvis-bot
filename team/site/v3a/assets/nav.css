@@ -246,3 +246,309 @@ body[data-only="ucl"] .board-top{min-height:45px}
 #hd nav.seg{display:none!important}
 /* телефон: название клуба в липкой шапке — целиком, в две строки, без троеточия (15.11) */
 @media (max-width:720px){.sb-id b{white-space:normal;overflow:visible;text-overflow:clip;font-size:14px;line-height:1.05;max-width:120px;text-wrap:balance}}
+
+/* ══ 17.11 — новая шапка: разделы единым «пультом», активный пункт залит, выпадающие списки карточкой, кнопки-значки одного вида ══ */
+.hd{border-bottom:1px solid color-mix(in srgb,var(--ink) 9%,transparent)}
+.gnav{gap:2px;padding:4px;border-radius:var(--rc,12px);background:color-mix(in srgb,var(--ink) 6%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 8%,transparent)}
+.gnav>a,.gnav .gdd>a{padding:10px 14px;font:700 15px/1 var(--display);letter-spacing:.005em;border-radius:max(2px,calc(var(--rc,12px) - 3px));color:var(--ink-2);transition:background .18s ease,color .18s ease}
+.gnav>a:hover,.gnav .gdd:hover>a,.gnav .gdd:focus-within>a,.gnav .gdd.open>a{background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}
+.gnav>a[aria-current],.gnav .gdd.on>a,.gnav .gdd.on:hover>a{background:var(--ink);color:var(--paper)}
+.gnav>a[aria-current]::after,.gnav .gdd.on>a::after{display:none}
+.gnav a:focus-visible{outline:2px solid var(--sport);outline-offset:2px}
+.hd .hdrow.hd-c1 .gnav>a,.hd .hdrow.hd-c1 .gnav .gdd>a{padding:10px 11px}
+.hd .hdrow.hd-c2 .gnav>a,.hd .hdrow.hd-c2 .gnav .gdd>a{padding:10px 8px;font-size:14px}
+@media (min-width:1367px) and (max-width:1500px){.gnav>a,.gnav .gdd>a{padding:10px 11px;font-size:15px}}
+.hd .gdd .cr{opacity:.6}
+/* выпадающий список */
+.gdd-m{top:calc(100% + 12px);left:-4px;min-width:260px;padding:8px;border-radius:var(--rc,14px);
+  background:color-mix(in srgb,var(--paper-2,#14264a) 94%,transparent);-webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3);
+  border:1px solid color-mix(in srgb,var(--ink) 13%,transparent);box-shadow:inset 0 2px 0 var(--sport),0 28px 50px -22px rgba(0,0,0,.6),0 6px 16px -10px rgba(0,0,0,.35);transform:translateY(-6px)}
+.gdd-m::before{content:"";position:absolute;left:0;right:0;top:-16px;height:16px}
+.gnav .gdd-m a{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 12px;border-radius:max(2px,calc(var(--rc,12px) - 4px));font:600 15px/1.15 var(--display);color:var(--ink-2);white-space:nowrap;transition:background .15s ease,color .15s ease,padding .15s ease}
+.gnav .gdd-m a::after{content:"→";position:static;display:block;width:auto;height:auto;background:none;font-weight:700;opacity:0;transform:translateX(-6px);transition:opacity .15s ease,transform .15s ease}
+.gnav .gdd-m a:hover,.gnav .gdd-m a:focus-visible{background:color-mix(in srgb,var(--ink) 9%,transparent);color:var(--ink)}
+.gnav .gdd-m a:hover::after,.gnav .gdd-m a:focus-visible::after{opacity:.7;transform:none}
+.gnav .gdd-m a[aria-current]{background:color-mix(in srgb,var(--sport) 16%,transparent);color:var(--ink);box-shadow:inset 3px 0 0 var(--sport)}
+.gnav .gdd-m a[aria-current]::after{display:block}
+.gdd-m.wide{min-width:500px;padding:10px}
+.gcols{gap:10px;padding-bottom:0;margin-bottom:0;border-bottom:0}
+.gdd-m.wide:has(.gcols + a) .gcols{padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid var(--rule)}
+.gcol{padding:6px;border-radius:max(2px,calc(var(--rc,12px) - 2px));background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.gnav .gcol a{padding:9px 10px;font-size:14px}
+.gnav .gcol a.gch{justify-content:flex-start;gap:10px;margin-bottom:4px;padding:8px 10px 10px;font:800 17px/1 var(--display);color:var(--ink);border-bottom:1px solid color-mix(in srgb,var(--ink) 10%,transparent);border-radius:0}
+.gnav .gcol a.gch::after{margin-left:auto}
+.gnav .gcol a.gch:hover{background:none}
+.gnav .gcol a.gch[aria-current]{background:none;box-shadow:none;border-bottom-color:var(--sport)}
+.gch .gli{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:7px;background:#0b0d12;box-shadow:0 0 0 1px rgba(255,255,255,.14)}
+.gch .gli img{width:20px;height:20px;object-fit:contain}
+/* кнопки-значки: «Мой JARVIS» и поиск — одного вида с «пультом» */
+.hd .hd-me,.hd .sbtn{height:42px;min-height:42px;border-radius:var(--rc,12px);background:color-mix(in srgb,var(--ink) 6%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink-2);transition:background .18s ease,color .18s ease}
+.hd .hd-me{padding:0 12px}
+.hd .hd-me:hover,.hd .sbtn:hover{background:color-mix(in srgb,var(--ink) 11%,transparent);color:var(--ink)}
+.hd .hd-me[aria-current]{color:var(--signal)}
+.hd .sbtn kbd{border-color:color-mix(in srgb,var(--ink) 22%,transparent);color:var(--ink-3)}
+@media (min-width:1101px){.hd .sbtn{margin-left:0}.hd .wrap.hdrow{gap:10px}.hd .gnav{margin-right:6px}}
+.hd .btn-tg{min-height:42px;border-radius:var(--rc,12px);font-weight:800;box-shadow:0 8px 18px -10px color-mix(in srgb,var(--signal) 80%,transparent)}
+.hd .mbtn{min-height:42px;border-radius:var(--rc,12px);background:color-mix(in srgb,var(--ink) 6%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 8%,transparent)}
+/* вторая полоса — вкладки страницы: тонкая линия по нижней кромке, активная — яркая */
+.subbar{border-top:0;background:color-mix(in srgb,var(--ink) 3.5%,transparent)}
+.subbar .nav{gap:0}
+.subbar .nav a{padding:15px 14px;font:600 15px/1 var(--display);color:var(--ink-3);transition:color .18s ease,background .18s ease}
+.subbar .nav a:hover{color:var(--ink);background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.subbar .nav a.on{color:var(--ink);font-weight:700}
+.subbar .nav .bar{bottom:0;height:2px;border-radius:0;box-shadow:0 0 12px var(--sport)}
+/* меню ☰ (планшет и узкий экран): пункты строками со стрелкой, группы — карточками */
+.mpanel{padding-top:12px;padding-bottom:20px}
+.mpanel .mgrp>a,.mpanel .msub a,.mpanel .mme{border-bottom:0;border-radius:var(--rc,10px);padding:0 12px;min-height:46px;font-size:17px;justify-content:flex-start}
+.mpanel .mgrp>a::after,.mpanel .msub a::after{content:"›";margin-left:auto;font-weight:600;color:var(--ink-3)}
+.mpanel .mgrp>a:hover,.mpanel .msub a:hover{background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.mpanel a[aria-current]{background:color-mix(in srgb,var(--sport) 14%,transparent);box-shadow:inset 3px 0 0 var(--sport)}
+.mpanel .msub{margin:6px 0;padding:4px 4px 6px;border:0;border-radius:var(--rc,12px);background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.mpanel .msub b{padding:12px 12px 6px;font-size:12px}
+.mpanel .msub a{padding-left:12px;font-size:16px}
+.mpanel .mtg::after{display:none}
+.mpanel .mtg{justify-content:center;min-height:50px;font-size:17px}
+@media (prefers-reduced-motion:reduce){.gnav a,.gdd-m,.gdd-m a,.gdd-m a::after{transition:none}}
+@media (max-width:1100px){.hd .sbtn ~ .btn-tg{margin-left:0}}
+
+/* 17.11 — ревью анимаций: выпадающий список раскрывается «от пункта» сильной ease-out кривой, отклик на нажатие у пунктов */
+.gdd-m{transform-origin:16% 0;transform:translateY(-6px) scale(.98);transition:opacity .18s cubic-bezier(.23,1,.32,1),transform .18s cubic-bezier(.23,1,.32,1),visibility 0s .18s}
+.gdd:hover .gdd-m,.gdd:focus-within .gdd-m,.gdd.open .gdd-m{transform:none;transition:opacity .18s cubic-bezier(.23,1,.32,1),transform .18s cubic-bezier(.23,1,.32,1)}
+.gnav>a:active,.gnav .gdd>a:active,.hd .sbtn:active,.hd .hd-me:active,.hd .btn-tg:active{transform:scale(.97)}
+.gnav>a,.gnav .gdd>a{transition:background .18s ease,color .18s ease,transform .16s cubic-bezier(.23,1,.32,1)}
+
+/* ══ 17.11 — motion.js: подложка активной кнопки (Tab pill) и наклон плашек (Parallax ticket) ══ */
+.has-pill{position:relative}
+.mpill{position:absolute;left:0;top:0;z-index:0;width:0;list-style:none;margin:0;padding:0;border-radius:max(2px,calc(var(--rc,12px) - 3px));background:var(--ink);
+  pointer-events:none;opacity:0;will-change:transform,width;box-shadow:0 6px 14px -8px rgba(0,0,0,.5);transition:opacity .15s ease}
+.has-pill>:not(.mpill){position:relative;z-index:1}
+.has-pill>a,.has-pill>button,.has-pill>.gdd>a,.has-pill>li>a{background:none!important;box-shadow:none!important;color:var(--ink-2)!important}
+.has-pill .pill-on.pill-on.pill-on{color:var(--paper)!important}
+.gnav.has-pill .gdd{z-index:1}.gnav.has-pill .gdd:hover,.gnav.has-pill .gdd:focus-within,.gnav.has-pill .gdd.open{z-index:2}
+/* наклон: пока карточку ведёт скрипт, CSS-переходы transform выключены (иначе каждое обновление «догоняется» переходом и вязнет) */
+.tilting,.tilting>.wm,.tilting>.wms,.tilting>.no,.tilting>.cut{transition:none!important;will-change:transform}
+.tilting{z-index:2}
+.tglare{position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:inherit;opacity:var(--g,0);
+  background:radial-gradient(circle at var(--gx,50%) var(--gy,30%),rgba(255,255,255,.30),rgba(255,255,255,.09) 32%,transparent 60%)}
+
+/* магнитная кнопка: transform ведёт motion.js — CSS-переход transform выключаем, остальное (фон, тень) оставляем */
+.magn{transition:background-color .2s ease,box-shadow .2s ease,color .2s ease!important;will-change:transform}
+.magn>*{will-change:transform}
+
+/* ══ 17.11 — варианты фона (?bg=a|b|c) ══
+   Общее: без «плёночного» зерна; у «a» и «b» нет нарисованной разметки льда (v3a.js её не создаёт). */
+html[data-bg]{--grain-op:0}
+html[data-bg] body::after{display:none!important;animation:none!important}
+/* a — «Чистый»: после тёмного первого экрана ровный светлый фон, белые карточки, мягкие цветные пятна света */
+html[data-bg="a"] [data-zone]{--paper:#f4f6fa;--paper-2:#e9edf4;--paper-3:#dde3ec;--card:#ffffff;--card-hi:#ffffff;--ink-3:#566274;--rule:#e2e7ef;--rule-2:#cfd6e1}
+html[data-bg="a"] body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:var(--lit,1);
+  background:radial-gradient(42% 46% at 92% 8%,rgba(40,120,255,.10),transparent 70%),radial-gradient(40% 44% at 4% 92%,rgba(0,190,220,.08),transparent 70%),radial-gradient(34% 30% at 60% 55%,rgba(255,196,60,.05),transparent 70%)}
+html[data-bg="a"] [data-zone] :is(.lgm,.lgst li,.ltab,.lgtbl,.nxs-g a){box-shadow:0 1px 0 rgba(16,24,40,.04),0 10px 24px -18px rgba(16,24,40,.25)}
+/* b — «Арена»: тёмный фон на всю страницу; прожекторы остаются на первом экране и уезжают при прокрутке, ниже — глубокий синий с мягким светом */
+html[data-bg="b"] [data-zone],html[data-bg="b"] .nxs{--paper:#0a1428;--paper-2:#14264a;--paper-3:#1e3460;--card:#101d38;--card-hi:#16284a;
+  --ink:#eaf3ff;--ink-2:#b8c9e4;--ink-3:#8fa6cc;--rule:#1e3460;--rule-2:#2c4675;--ice:#3ee0ff;--sport:#3ee0ff;--crest-bg:#eef3fa;--shadow:rgba(0,0,0,.6);color:var(--ink)}
+html[data-bg="b"][data-theme="arena"] .arena-bg{position:absolute;height:120vh;opacity:1;-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
+html[data-bg="b"] body::before{content:"";position:fixed;inset:0;z-index:-4;pointer-events:none;
+  background:radial-gradient(50% 44% at 96% 30%,rgba(62,224,255,.10),transparent 70%),radial-gradient(46% 42% at 0% 78%,rgba(47,107,255,.14),transparent 70%),linear-gradient(180deg,#0a1a38,#071225 60%,#060e1d)}
+html[data-bg="b"][data-theme="arena"] body{background:#071225}
+html[data-bg="b"][data-theme="arena"] :is(.lghero,.tmhero)+.sec{background:none}
+html[data-bg="b"][data-theme="arena"] #matches .wrap>:not(.period),html[data-bg="b"][data-theme="arena"] .hero+.sec:not(#matches)>.wrap{opacity:1!important}
+html[data-bg="b"] [data-zone]+[data-zone]{box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+html[data-bg="b"] .nxs{border-top-color:rgba(255,255,255,.08)}
+/* c — «Лёд»: светлый холодный фон, разметка катка тонкая и чёткая, неподвижная */
+html[data-bg="c"][data-theme="arena"]{--fld:rgba(16,60,120,.07);--fld-2:rgba(16,40,80,0);--fld-red:rgba(196,48,59,.13);--fld-blue:rgba(15,90,166,.13)}
+html[data-bg="c"] [data-zone]{--paper:#e8f0f8;--paper-2:#dbe6f1;--paper-3:#cddbe9;--card:#f7fafd;--card-hi:#ffffff;--ink-3:#4f5d6c}
+html[data-bg="c"] body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:var(--lit,1);
+  background:radial-gradient(60% 50% at 50% 0%,rgba(255,255,255,.75),transparent 70%),radial-gradient(50% 40% at 100% 100%,rgba(120,170,230,.16),transparent 70%)}
+/* варианты фона: карточки матчей */
+html[data-bg="a"] [data-zone] .match,html[data-bg="c"] [data-zone] .match{background:#fff!important;box-shadow:0 1px 0 rgba(16,24,40,.05),0 12px 26px -20px rgba(16,24,40,.3)!important}
+html[data-bg="b"][data-theme="arena"] [data-zone] .match{background:var(--card)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)!important;color:var(--ink)}
+html[data-bg="b"][data-theme="arena"] [data-zone] .match:hover{background:var(--card-hi)!important}
+html[data-bg="b"] [data-zone] :is(.ltab,.lgconf,.lgm,.lgst li,.lgbar,.lgbar li,.sec-head h2,.lgempty){color:var(--ink)}
+html[data-bg="b"] [data-zone] :is(.ltab th,.lgst span,.lgst em,.lgm .when small){color:var(--ink-3)}
+html[data-bg="b"] [data-zone] .ltab thead th{border-bottom-color:rgba(255,255,255,.35)}
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+   17.11 — «НОЧНАЯ АРЕНА» (?bg=n) — новая визуальная система вместо плоских светлых заливок.
+   Идея: страница — это арена ночью. Глубина строится светом, а не линиями:
+   1) дальний слой — поля насыщенного света (ультрамарин льда, циан табло, красный фонарь за воротами, фиолет трибун);
+      он чуть «отстаёт» от прокрутки (scroll-driven CSS), поэтому панели читаются как висящие над ним;
+   2) мелкий неподвижный шум поверх — убирает ступеньки на тёмных градиентах (то, что на мониторе выглядит как «пиксели»);
+   3) у каждого раздела свой цвет света сверху и светящаяся кромка;
+   4) содержимое — на стеклянных панелях: полупрозрачная заливка, блик по верхней грани, цветная тень в глубину.
+   Футбол — та же система в зелёно-изумрудном свете. Разметка льда на canvas и «плёночное» зерно выключены (v3a.js).
+   ══════════════════════════════════════════════════════════════════════════════════════════════════════════════ */
+html[data-bg="n"]{--n-base:#050914;--n-a:#1a3cff;--n-b:#22e1ff;--n-c:#ff2e4d;--n-d:#7a3cff;--n-sport:#22e1ff}
+html[data-bg="n"][data-sport="football"]{--n-a:#00a862;--n-b:#3df5a6;--n-c:#ffb400;--n-d:#0b6cff;--n-sport:#3df5a6}
+html[data-bg="n"],html[data-bg="n"] [data-zone],html[data-bg="n"] .hero,html[data-bg="n"] .hd,html[data-bg="n"] .nxs,html[data-bg="n"] main.pl{
+  --paper:#060b1a;--paper-2:#101b3d;--paper-3:#1a2a5c;--card:#0e1734;--card-hi:#152250;
+  --ink:#f2f6ff;--ink-2:#bcc8ec;--ink-3:#8796c6;--rule:rgba(160,185,255,.14);--rule-2:rgba(160,185,255,.28);
+  --ice:var(--n-b);--sport:var(--n-sport);--crest-bg:#eef3fa;--shadow:rgba(0,4,24,.7);color:var(--ink)}
+html[data-bg="n"] body,html[data-bg="n"][data-theme] body,html[data-bg="n"][data-white] body{background:var(--n-base)!important;color:var(--ink)}
+/* 1) свет */
+html[data-bg="n"] body::before{content:"";position:fixed;left:0;right:0;top:-12vh;height:136vh;z-index:-4;pointer-events:none;opacity:1;
+  background:
+   radial-gradient(58% 46% at 10% 6%,color-mix(in srgb,var(--n-a) 70%,transparent),transparent 72%),
+   radial-gradient(40% 36% at 98% 20%,color-mix(in srgb,var(--n-b) 30%,transparent),transparent 72%),
+   radial-gradient(52% 44% at 94% 96%,color-mix(in srgb,var(--n-c) 34%,transparent),transparent 72%),
+   radial-gradient(50% 48% at 2% 86%,color-mix(in srgb,var(--n-d) 44%,transparent),transparent 72%),
+   radial-gradient(36% 30% at 52% 52%,color-mix(in srgb,var(--n-a) 16%,transparent),transparent 74%),
+   linear-gradient(180deg,#091238,#050914 52%,#03050d)}
+@supports (animation-timeline:scroll()){@media (prefers-reduced-motion:no-preference){
+  html[data-bg="n"] body::before{animation:nDrift linear both;animation-timeline:scroll(root)}}}
+@keyframes nDrift{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,-10vh,0)}}
+/* 2) шум против полос */
+html[data-bg="n"] body::after{content:""!important;display:block!important;position:fixed!important;inset:0!important;z-index:-3!important;pointer-events:none;animation:none!important;transform:none!important;opacity:.55!important;mix-blend-mode:soft-light;
+  background:none}
+html[data-bg="n"][data-theme="arena"] .arena-bg{position:absolute;height:118vh;opacity:.9;background:none;mix-blend-mode:screen;-webkit-mask-image:linear-gradient(#000 62%,transparent);mask-image:linear-gradient(#000 62%,transparent)}
+/* шапка — стекло */
+html[data-bg="n"] .hd,html[data-bg="n"][data-theme="arena"] .hd{background:rgba(6,11,28,.62)!important;-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);border-bottom-color:rgba(160,190,255,.14);box-shadow:0 18px 40px -30px rgba(0,6,40,.9)}
+html[data-bg="n"] .subbar{background:rgba(120,150,255,.05)}
+/* 3) разделы: свой свет сверху и светящаяся кромка */
+html[data-bg="n"] [data-zone],html[data-bg="n"][data-theme="arena"] :is(.lghero,.tmhero)+.sec{--zc:var(--n-a);
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--zc) 60%,#fff) 30%,color-mix(in srgb,var(--zc) 60%,#fff) 70%,transparent) top/100% 1px no-repeat,
+   radial-gradient(46% 100% at 22% 0%,color-mix(in srgb,var(--zc) 30%,transparent),transparent 74%) top/100% 620px no-repeat!important}
+html[data-bg="n"] [data-zone="p2"],html[data-bg="n"] [data-zone="p2b"]{--zc:var(--n-d)}
+html[data-bg="n"] [data-zone="p3"]{--zc:var(--n-c)}
+html[data-bg="n"] .nxs{border-top:0;background:linear-gradient(90deg,transparent,rgba(170,195,255,.4) 30%,rgba(170,195,255,.4) 70%,transparent) top/100% 1px no-repeat}
+html[data-bg="n"][data-theme="arena"] #matches .wrap>:not(.period),html[data-bg="n"][data-theme="arena"] .hero+.sec:not(#matches)>.wrap{opacity:1!important}
+html[data-bg="n"] .lghero::before,html[data-bg="n"] .lghero::after{-webkit-mask-image:linear-gradient(#000 64%,transparent);mask-image:linear-gradient(#000 64%,transparent)}
+html[data-bg="n"] .sec-head h2,html[data-bg="n"] .pl-hero h1,html[data-bg="n"] .nxs h2{color:var(--ink);text-shadow:0 0 44px color-mix(in srgb,var(--zc,var(--n-a)) 70%,transparent)}
+/* 4) стеклянные панели */
+html[data-bg="n"] :is(.lgtbl,.lgm,.lgst li,.match,.nxs-g a,.lb,.pl-ctrl,.lgbar){
+  background:linear-gradient(158deg,rgba(150,180,255,.115),rgba(150,180,255,.04) 60%)!important;border:0!important;color:var(--ink);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(160,190,255,.10),0 30px 46px -30px rgba(0,8,50,.95),0 2px 0 rgba(0,0,0,.25)!important;
+  -webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5)}
+html[data-bg="n"] .lgbar{padding:18px 20px 16px;border-radius:var(--rc,14px);margin-top:12px}
+html[data-bg="n"] .lgst{gap:10px;background:none}html[data-bg="n"] .lgst li{border-radius:var(--rc,14px)}
+html[data-bg="n"] .lgtbl{border-radius:var(--rc,14px);overflow:hidden}
+html[data-bg="n"] :is(.ltab,.lgpt){background:none!important;color:var(--ink)}
+html[data-bg="n"] .ltab :is(td,th){border-color:rgba(160,190,255,.10)}
+html[data-bg="n"] .ltab thead th{color:var(--ink-3);border-bottom:1px solid rgba(170,200,255,.34)}
+html[data-bg="n"] .ltab tbody tr:hover td{background:rgba(150,180,255,.07)}
+html[data-bg="n"] .ltab td.pt{color:#fff;text-shadow:0 0 18px color-mix(in srgb,var(--n-b) 70%,transparent)}
+html[data-bg="n"] :is(.lgconf,.lgm,.lgm a,.lgst li,.lgbar,.lgbar li,.lgempty,.ltab a){color:var(--ink)}
+html[data-bg="n"] :is(.lgst span,.lgst em,.lgm .when small,.dayh,.lkey li){color:var(--ink-3)}
+html[data-bg="n"] .lgm{border-radius:var(--rc,12px);transition:transform .18s cubic-bezier(.23,1,.32,1),box-shadow .18s ease}
+@media (hover:hover) and (pointer:fine){html[data-bg="n"] :is(.lgm,.match,.nxs-g a):hover{background:linear-gradient(158deg,rgba(160,190,255,.2),rgba(150,180,255,.07) 60%)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.26),inset 0 0 0 1px color-mix(in srgb,var(--n-b) 45%,transparent),0 30px 50px -28px color-mix(in srgb,var(--n-a) 70%,#000)!important}}
+html[data-bg="n"] .lgm .s{color:#fff}
+/* пульты и подложка активной кнопки — светящиеся */
+html[data-bg="n"] :is(.gnav,.lgsw,.pl-tabs,.pl-lgsw,.lghero .chips){background:rgba(150,180,255,.08);box-shadow:inset 0 0 0 1px rgba(160,190,255,.14)}
+html[data-bg="n"] .mpill{background:linear-gradient(180deg,#fff,#dfe8ff);box-shadow:0 0 0 1px rgba(255,255,255,.5),0 8px 26px -6px color-mix(in srgb,var(--n-b) 80%,transparent)}
+html[data-bg="n"] .has-pill .pill-on.pill-on.pill-on{color:#060b1a!important}
+/* плитки клубов и карточки лидеров: цветная тень в глубину вместо серой */
+html[data-bg="n"] :is(.clb,.pod){box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 34px 50px -30px color-mix(in srgb,var(--kb) 85%,#000),0 0 0 1px rgba(255,255,255,.06)}
+/* страницы игроков: тёмные вместо белых */
+html[data-bg="n"][data-white]{--grain-op:0}
+html[data-bg="n"] .lrh{background:rgba(150,180,255,.06);border-bottom-color:rgba(160,190,255,.16)}
+html[data-bg="n"] .lr{border-top-color:rgba(160,190,255,.10)}
+html[data-bg="n"] .lr .c.pt.on{background:linear-gradient(180deg,#fff,#dfe8ff);color:#060b1a;box-shadow:0 6px 20px -6px color-mix(in srgb,var(--n-b) 70%,transparent)}
+html[data-bg="n"] .lr .frm i{background:rgba(160,190,255,.16)}
+html[data-bg="n"] .lr .frm i.g{background:color-mix(in srgb,var(--kb) 55%,#fff)}
+html[data-bg="n"] .lr::before{background:color-mix(in srgb,var(--kb) 70%,#fff)}
+html[data-bg="n"] .pl-row :is(select,input){background-color:rgba(150,180,255,.08);border-color:rgba(160,190,255,.24);color:var(--ink)}
+html[data-bg="n"] .pl-row select option{background:#0e1734;color:#f2f6ff}
+html[data-bg="n"] .pl-kicker{color:var(--n-b)}
+html[data-bg="n"] .pl-more{background:linear-gradient(180deg,#fff,#dfe8ff);color:#060b1a}
+html[data-bg="n"] .pr:not(.k){background:linear-gradient(158deg,rgba(150,180,255,.115),rgba(150,180,255,.04) 60%);border-color:rgba(160,190,255,.12)}
+/* «Ночная арена»: плашки матчей дня — белые, текст тёмный (владелец 17.11: нужен контраст) */
+html[data-bg="n"] .match.match,html[data-bg="n"][data-theme="arena"] [data-zone] .match.match{
+  --paper:#ffffff;--paper-2:#eef2f8;--paper-3:#dfe6f0;--card:#f3f6fb;--card-hi:#ffffff;--ink:#0b1220;--ink-2:#3a4658;--ink-3:#5d6773;--rule:#dfe5ee;--rule-2:#c9d2df;--ice:#0f5aa6;--sport:#0f5aa6;--shadow:rgba(8,16,40,.3);
+  background:#fff!important;color:#0b1220!important;-webkit-backdrop-filter:none;backdrop-filter:none;
+  box-shadow:inset 0 1px 0 #fff,0 30px 46px -28px rgba(0,8,50,.9),0 0 0 1px rgba(255,255,255,.5)!important}
+html[data-bg="n"] .match.match:hover{background:#fff!important;box-shadow:inset 0 1px 0 #fff,0 34px 50px -26px color-mix(in srgb,var(--n-a) 80%,#000),0 0 0 2px color-mix(in srgb,var(--n-b) 70%,#fff)!important}
+
+/* ══ «Ночная арена»: контраст по всему сайту (проверка 17.11) ══
+   1) у разделов свои жёстко заданные тёмные оттенки текста (.sec{--ink-3:#414d5c} и т. п.) — на тёмном фоне не читались: задаём светлые на всех контейнерах;
+   2) «светлые островки» — блоки, у которых фон остаётся белым (плашки матчей, таблица и список игр клуба, результаты ЛЧ…): внутри них текст тёмный. */
+html[data-bg="n"] :is(main,section,article,.sec,.lgsec,.wrap):not(.n-light):not(.n-light *){--ink:#f2f6ff!important;--ink-2:#c3cef0!important;--ink-3:#9aa9d8!important}
+/* светлые и тёмные «островки» размечает motion.js по фактическому цвету фона блока (.n-light / .n-dark) — так контраст держится на любой странице */
+html[data-bg="n"] body .n-light.n-light.n-light.n-light{--ink:#0b1220!important;--ink-2:#3a4658!important;--ink-3:#5d6773!important;--paper:#fff;--paper-2:#eef2f8;--paper-3:#dfe6f0;--card:#f3f6fb;--card-hi:#fff;--rule:#dfe5ee;--rule-2:#c9d2df;--ice:#0f5aa6;--sport:#0f5aa6;color:#0b1220}
+html[data-bg="n"] body .n-dark.n-dark.n-dark.n-dark.n-dark{--ink:#f2f6ff!important;--ink-2:#c3cef0!important;--ink-3:#a9b7e2!important;--rule:rgba(160,185,255,.14);--rule-2:rgba(160,185,255,.28);color:#f2f6ff}
+/* кнопки */
+html[data-bg="n"] .btn-ink{background:linear-gradient(180deg,#fff,#dfe8ff)!important;color:#060b1a!important}
+html[data-bg="n"] :is(.lgmore,.more2,.mt-all) .btn-line{background:rgba(150,180,255,.08);border-color:rgba(170,200,255,.45);color:#f2f6ff}
+/* вкладки-фильтры (лиги на главных разделов) */
+html[data-bg="n"] .tabs:not(.lgsw) .tab{background:rgba(150,180,255,.10);color:#f2f6ff;box-shadow:inset 0 0 0 1px rgba(160,190,255,.14)}
+html[data-bg="n"] .tabs:not(.lgsw) .tab .c{color:#9aa9d8}
+html[data-bg="n"] .tabs:not(.lgsw) .tab[aria-selected="true"]{background:linear-gradient(180deg,#fff,#dfe8ff);color:#060b1a}
+html[data-bg="n"] .tabs:not(.lgsw) .tab[aria-selected="true"] .c{color:#4a566c}
+/* целые разделы со светлой заливкой (главная, итоги) — в «Ночной арене» без своей заливки: виден общий фон */
+html[data-bg="n"] .n-clear{background:none!important}
+
+/* Ночная арена: страница клуба — светлые «бумажные» секции переводим в ночь, карточки остаются белыми с тёмным текстом */
+html[data-bg="n"] .club-g :is(#table,#players,#picks){--paper:#0a1128;--paper-2:#121b3a;--paper-3:#1a2448;--ink:#f2f6ff;--ink-2:#c3cef0;--ink-3:#9aa9d8}
+html[data-bg="n"] .club-g #table::before{background:linear-gradient(180deg,color-mix(in srgb,var(--k-a1) 40%,#0a1128),#0a1128 60%)}
+html[data-bg="n"] .club-g #table::after{background:var(--k-em) no-repeat right -16vw top 46% / min(62vw,900px) auto;opacity:.07}
+html[data-bg="n"] .club-g #players::before{background:radial-gradient(60% 50% at 86% 10%,color-mix(in srgb,var(--k-a1) 30%,transparent),transparent 70%),linear-gradient(180deg,#0a1128,#070d20)}
+html[data-bg="n"] .club-g #picks::before{background:linear-gradient(180deg,#070d20,#0a1128)}
+html[data-bg="n"] .club-g #games::after{background:#0a1128}
+html[data-bg="n"] .club-g :is(.tmtable,.stg,.formbox,.plead,.plwrap,.pks,.pkempty){--ink:#0b1220;--ink-2:#3a4658;--ink-3:#5d6773;color:#0b1220}
+html[data-bg="n"] .n-dark .lo b.num{color:#ff6b7f}
+html[data-bg="n"] .rs.ot{background:#4a5a86!important;color:#fff!important}
+/* «инверсные» активные кнопки (фон = --ink): в ночи фон светлый, текст тёмный */
+html[data-bg="n"] :is(.rs-fg button[aria-pressed="true"],.nmha.h,.cmp-tabs button[aria-selected="true"],.fc-sw a[aria-current="page"],.md-sw a[aria-current],.tstep.on):not(.n-light *){color:#060b1a!important}
+html[data-bg="n"] .n-light :is(.rs-fg button[aria-pressed="true"],.nmha.h,.cmp-tabs button[aria-selected="true"],.fc-sw a[aria-current="page"],.md-sw a[aria-current],.tstep.on){color:#fff!important}
+
+/* Ночная арена, v2: без линий и полос — только плавные переходы света */
+html[data-bg="n"] :is(.h3bg::before,.h3bg i){display:none!important}
+html[data-bg="n"] .h3bg::before{display:none!important}
+html[data-bg="n"] [data-zone],html[data-bg="n"][data-theme="arena"] :is(.lghero,.tmhero)+.sec{
+  background:radial-gradient(55% 50% at 24% 50%,color-mix(in srgb,var(--zc) 22%,transparent),transparent 100%) 0 -120px/100% 900px no-repeat!important}
+html[data-bg="n"] .nxs{background:none}
+html[data-bg="n"] .lgtab::before{background-image:none!important}
+html[data-bg="n"] :is(.tmhero,.tmhero::after,.nmatch.grad){background-image:none}
+html[data-bg="n"] .tmhero::after{display:none}
+html[data-bg="n"] :is(.sec-head h2,.pl-hero h1,.nxs h2),html[data-bg="n"] :is(.sec-head h2,.pl-hero h1,.nxs h2) *{text-shadow:none!important}
+/* внутренняя плашка «Расчёт модели» на белой карточке матча */
+html[data-bg="n"] .match.match .qv{background:linear-gradient(180deg,#eef3fb,#e6edf8)!important;border:1px solid #d6e0ef;box-shadow:inset 0 1px 0 #fff}
+/* без засветов при наведении: никаких бликов и светлых подложек */
+.tglare{display:none!important}
+@media (hover:hover) and (pointer:fine){
+ html[data-bg="n"] :is(.lgm,.nxs-g a):hover{background:linear-gradient(158deg,rgba(150,180,255,.115),rgba(150,180,255,.04) 60%)!important}
+ html[data-bg="n"] .match.match:hover{box-shadow:inset 0 1px 0 #fff,0 34px 50px -26px rgba(0,8,50,.95),0 0 0 1px rgba(255,255,255,.5)!important}}
+html[data-bg="n"] .cmpleg b{text-shadow:none;filter:brightness(1.9) saturate(.85)}
+
+/* Единый стиль иконок (17.11): все контурные иконки 24×24 — одна толщина линии и скругления, как в наборе Tabler */
+svg[viewBox="0 0 24 24"][stroke="currentColor"],svg[viewBox="0 0 24 24"] [stroke="currentColor"]{stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.jvi{width:1.1em;height:1.1em;flex:none;vertical-align:-.18em}
+h5>.jvi{margin-right:6px;opacity:.75}
+.tsec-h h2 .tsi{width:.9em;height:.9em;margin-right:8px;vertical-align:-.08em;color:var(--tc,currentColor)}
+.rres .jvi{margin-right:5px}
+.rs-legs .jvi{width:14px;height:14px;margin-right:3px;vertical-align:-2px}
+.rres:has(>.jvi){display:inline-flex;align-items:center;gap:5px;white-space:nowrap}.rres .jvi{margin:0}
+h5:has(>.jvi){display:flex;align-items:center;gap:6px}h5>.jvi{margin:0}
+
+/* Ночная арена (17.11, владелец: «никаких полос — плавный градиент»): полосы со своей сплошной заливкой переходят в общий фон */
+html[data-bg="n"] .ticker{background:linear-gradient(180deg,rgba(6,11,28,.55),rgba(6,11,28,0))!important;border:0!important;box-shadow:none!important}
+html[data-bg="n"] .hd,html[data-bg="n"][data-theme="arena"] .hd{border-bottom:0!important;box-shadow:0 14px 30px -24px rgba(0,4,24,.9)!important}
+html[data-bg="n"] .subbar{border:0!important;background:none!important}
+html[data-bg="n"] #subscribe.sub{background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--sport,#3b6cff) 10%,transparent) 30%,color-mix(in srgb,var(--sport,#3b6cff) 10%,transparent) 70%,transparent)!important;border:0!important;box-shadow:none!important}
+html[data-bg="n"] .jvf{background:linear-gradient(180deg,transparent,rgba(4,8,20,.75) 160px,rgba(4,8,20,.9))!important;border-top:0!important}
+html[data-bg="n"] .hd,html[data-bg="n"][data-theme="arena"] .hd{background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}
+html[data-bg="n"] .hd::after{content:"";position:absolute;left:0;right:0;top:0;height:calc(100% + 56px);z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(6,11,28,.8),rgba(6,11,28,.6) calc(100% - 56px),rgba(6,11,28,0));
+  -webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);
+  -webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 56px),transparent)}
+html[data-bg="n"] .hd::before{background:rgba(6,11,28,.8)!important}
+html[data-bg="n"] .h3bg{-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 110px,#000 72%,transparent)!important;mask-image:linear-gradient(180deg,transparent 0,#000 110px,#000 72%,transparent)!important}
+
+/* Ночная арена (17.11, владелец: «никаких стыков нигде — только плавный градиент»): у разделов нет своего фона и подложек;
+   цвет страницы задаёт один общий градиент body::before. Карточки, фото и шапки лиг — как были. */
+html[data-bg="n"] :is([data-zone],section,.sec,.lgsec,.tmsec,.nxs,.sub,.jvf,main,.wrap-bg,.more2,.mt-all,.tbl-link,.pf-sec,.hero:not(.lghero):not(.tmhero)){background:transparent!important;background-image:none!important;border-top-color:transparent!important;border-bottom-color:transparent!important;box-shadow:none!important}
+html[data-bg="n"] :is([data-zone],section,.sec,.lgsec,.tmsec,.nxs,.sub,.jvf):not(.lghero):not(.tmhero)::before,
+html[data-bg="n"] :is([data-zone],section,.sec,.lgsec,.tmsec,.nxs,.sub,.jvf):not(.lghero):not(.tmhero)::after{background:none!important;background-image:none!important;-webkit-mask:none!important;mask:none!important;box-shadow:none!important;border:0!important}
+html[data-bg="n"] .tmhero{background-color:transparent!important;-webkit-mask-image:linear-gradient(180deg,#000 75%,transparent);mask-image:linear-gradient(180deg,#000 75%,transparent)}
+html[data-bg="n"] #honest .wrap.n-dark,html[data-bg="n"] #honest .n-dark.wrap{border-radius:24px;border:1px solid rgba(160,190,255,.12)}
+html[data-bg="n"] .dk-bgfx{-webkit-mask-image:linear-gradient(180deg,transparent,#000 12%,#000 70%,transparent);mask-image:linear-gradient(180deg,transparent,#000 12%,#000 70%,transparent)}
+html[data-bg="n"] .mx-field{-webkit-mask-image:linear-gradient(180deg,transparent,#000 14%,#000 82%,transparent);mask-image:linear-gradient(180deg,transparent,#000 14%,#000 82%,transparent)}
+html[data-bg="n"] .pp-stick{-webkit-mask-image:linear-gradient(180deg,#000 70%,transparent);mask-image:linear-gradient(180deg,#000 70%,transparent)}
+
+/* «Навыки» игрока (17.11, владелец: «плохо видно»): в ночной теме — светлая сетка, яркий контур, заметная заливка */
+html[data-bg="n"] .pp-sk .gr{stroke:rgba(190,210,255,.22)}
+html[data-bg="n"] .pp-sk polygon.gr:last-of-type{stroke:rgba(190,210,255,.5)}
+html[data-bg="n"] .pp-sk .vv{fill:color-mix(in srgb,color-mix(in srgb,var(--kb,#3b78e0) 45%,#7fd8ff) 32%,transparent);stroke:color-mix(in srgb,var(--kb,#3b78e0) 35%,#9fe4ff);stroke-width:3.5;filter:drop-shadow(0 0 10px rgba(120,210,255,.45))}
+html[data-bg="n"] .pp-sk .dt{fill:#fff;stroke:color-mix(in srgb,var(--kb,#3b78e0) 35%,#9fe4ff);stroke-width:3}
+html[data-bg="n"] .pp-sk .ax{fill:#b9c7f0}
+html[data-bg="n"] .pp-sk .vl{fill:#fff}

@@ -14,6 +14,7 @@ const LGS={khl:{name:'КХЛ',full:'Континентальная хоккей�
 const P=new URLSearchParams(location.search),LG=(P.get('lg')||'').toLowerCase(),L=LGS[LG],THEME=P.get('theme');
 const tq=/^(arena|a|b|c)$/.test(THEME||'')?`&theme=${THEME}`:'';
 const lgp=k=>`<span class="lgp ${k}"><img src="../assets/lg/${k}.webp" alt=""></span>`;
+const EMHI=s=>/^(nhl_[a-z]+|dallas|minnesota)$/.test(s); /* для этих клубов есть чёткие эмблемы 768 px в em/l/ */
 const em=s=>`<img class="em" src="../assets/em/s/${esc(s)}.webp" alt="" loading="lazy" width="64" height="64">`;
 const thref=s=>`../team/index.html?id=${encodeURIComponent(s)}${tq}`;
 const MON=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'],WD=['вс','пн','вт','ср','чт','пт','сб'];
@@ -28,6 +29,7 @@ if(!L){
  document.querySelectorAll('.lgsec').forEach(e=>{e.hidden=true;e.removeAttribute('data-zone')});document.querySelector('.nav').hidden=true;return;
 }
 document.title=`${L.name} — таблица, матчи, бомбардиры · JARVIS`;
+document.documentElement.dataset.lg=LG; /* 17.11: свой фон шапки у каждой лиги (league.css) */
 const TM=Object.entries(D.teams).filter(([,t])=>t.lg===LG).map(([id,t])=>({id,...t}));
 const byName=Object.fromEntries(TM.map(t=>[t.name,t.id])),nm=s=>(D.teams[s]||{}).name||s;
 const ABBR={};TM.forEach(t=>{ABBR[LG==='nhl'?(t.id.startsWith('nhl_')?t.id.slice(4).toUpperCase():t.id==='minnesota'?'MIN':t.id==='dallas'?'DAL':t.id.toUpperCase()):t.id]=t.id});
@@ -55,7 +57,7 @@ function build(SE,PL){
   <ul class="facts" aria-label="Коротко" data-rv>
    <li><b class="num">${TM.length}</b><span>${plural(TM.length,'клуб','клуба','клубов')} в лиге</span></li>
    <li><b class="num">${M.length}</b><span>${plural(M.length,'матч сыгран','матча сыграно','матчей сыграно')} в сезоне</span></li>
-   <li><b class="num">${gpMax}<small style="font-size:max(11px,.42em);color:var(--ink-3)"> / ${L.gm}</small></b><span>игр у лидера по числу матчей</span></li>
+   <li><b class="num">${gpMax}<small style="font-size:max(11px,.42em);color:var(--ink-3)"> / ${L.gm}</small></b><span>игр у лидера по числу матчей</span><i class="fbar" aria-hidden="true"><i style="width:${Math.min(100,Math.round(gpMax/L.gm*100))}%"></i></i></li>
    <li><b class="num">${list.length}</b><span>${plural(list.length,'матч','матча','матчей')} в ближайшие 3 дня</span></li></ul>
   <ul class="chips" aria-label="Другие лиги" data-rv>${Object.keys(LGS).map(k=>`<li><a href="league.html?lg=${k}${tq}"${k===LG?' aria-current="page"':''}>${lgp(k)}${LGS[k].name}</a></li>`).join('')}</ul>`;
 
@@ -72,6 +74,16 @@ function build(SE,PL){
   else $('tbBody').innerHTML=tbl(TM.slice().sort((a,b)=>b.pts-a.pts||b.w-a.w||a.gp-b.gp||(b.gf-b.ga)-(a.gf-a.ga)),false);
   $('tbKey').innerHTML=mode==='conf'?'<li><i style="background:#0d7a48"></i>Плей-офф</li>':''};
  $('tbSw').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b||b.dataset.m===mode)return;mode=b.dataset.m;$('tbSw').querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x===b));draw()});draw();
+
+ /* 17.11 — «Клубы»: плитки в цветах клуба (assets/club/jersey.js), по местам в лиге; ведут на страницу клуба */
+ {const JY=window.JV_JERSEY,all=TM.slice().sort((a,b)=>b.pts-a.pts||b.w-a.w||a.gp-b.gp||(b.gf-b.ga)-(a.gf-a.ga));
+  const fm=t=>String(t.form||'').slice(-5).split('').map(c=>`<i class="${c==='В'?'w':c==='П'?'l':'d'}"></i>`).join('');
+  $('clubsBox').innerHTML=`<div class="sec-head" data-rv><h2>Клубы</h2></div>
+   <ul class="clubs">${all.map((t,i)=>{const v=JY&&JY.vars(t.id)||`--kb:${esc((t.colors||[])[0]||'#1d2a44')};--kbm:${esc((t.colors||[])[0]||'#1d2a44')};--ks:#fff;--kt:#fff;--ko:#fff;--ko2:rgba(255,255,255,.78);--kx:#fff`;
+    return `<li><a class="clb" href="${thref(t.id)}" style="${v}"><img class="wm" src="../assets/em/${EMHI(t.id)?'l/':''}${esc(t.id)}.webp" alt="" aria-hidden="true" loading="lazy"><i class="wms" aria-hidden="true" style="--em:url('../assets/em/${esc(t.id)}.webp')"></i>
+     <span class="cpl"><b>${i+1}</b><small>${esc(t.conf||'')}</small></span>
+     <b class="cnm">${esc(t.name)}</b><span class="cst"><b>${t.pts}</b> ${plural(t.pts,'очко','очка','очков')} · ${t.gp} ${plural(t.gp,'игра','игры','игр')}</span>
+     <span class="cfm" aria-label="Последние матчи">${fm(t)}</span></a></li>`}).join('')}</ul>`}
 
  /* строки матчей */
  const row=(m,fut)=>{const hw=!fut&&m.gf>m.ga,aw=!fut&&m.ga>m.gf,left=fut?JV.left(m.t):0;
@@ -105,34 +117,15 @@ function build(SE,PL){
     <div class="bar" role="img" aria-label="Основное время ${rp} %, овертайм ${op} %, буллиты ${sp} %"><i class="h" style="flex:${reg||.0001}">${rp>=8?rp+'%':''}</i><i class="o" style="flex:${ot||.0001}">${op>=16?op+'%':''}</i><i class="d" style="flex:${so||.0001}">${sp>=16?sp+'%':''}</i></div>
     <ul><li style="--k:#1d7a45">Основное время: ${rp}%</li><li style="--k:#b8761a">Овертайм: ${op}%</li><li style="--k:#6b7585">Буллиты: ${sp}%</li></ul></div>`}
 
- /* игроки */
- const ini=n=>{const w=String(n).replace(/[^\p{L}\s'-]/gu,'').split(/[\s-]+/).filter(Boolean);return ((w[0]||'')[0]||'').toUpperCase()+((w.length>1?w[1]:'')[0]||'').toUpperCase()};
- const PS=(PL.players||[]).map(p=>{const s=p.s||[0,0,0,0];  /* lgp_<лига>.json: итоги уже посчитаны в daily/split.py */
-  return {n:p.n,t:LG==='nhl'?ABBR[p.t]:p.t,img:p.img,gp:p.gp||0,g:s[0],a:s[1],sog:s[2],pim:s[3],toi:p.toi}}).filter(p=>p.t&&D.teams[p.t]);
- const who=(p,big)=>`<span class="pc"><span class="av">${esc(ini(p.n))}${p.img?`<img src="${esc(JV_KPH(p.img))}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:''}</span><span><b>${esc(p.n)}</b><a href="${thref(p.t)}">${em(p.t)}<span>${esc(nm(p.t))}</span></a></span></span>`;
- let sortK='pts';
- const SK=[['pts','По очкам'],['g','По голам'],['a','По передачам']];
- const withP=PS.map(p=>({...p,pts:p.g+p.a}));
- $('playersBox').innerHTML=`
-  <div class="sec-head" data-rv><h2>Бомбардиры и лидеры</h2></div>
-  <div class="lgsw tabs" role="tablist" id="plSw" aria-label="Сортировка">${SK.map(([k,t])=>`<button class="tab" role="tab" type="button" data-k="${k}" aria-selected="${k===sortK}">${t}</button>`).join('')}</div>
-  <div class="lgpgrid"><div class="tabscroll" id="plTop"></div>
-  <div class="lgcard" id="plMore"></div></div>
-  <a class="btn btn-ink lgall" href="../hockey/${L.all}">Все игроки ${L.name} →</a>`;
- const top=()=>{const r=withP.slice().sort((a,b)=>b[sortK]-a[sortK]||b.pts-a.pts||b.g-a.g||a.gp-b.gp).slice(0,15);
-  const th=(k,t)=>`<th class="${k===sortK?'on':''}${k==='gp'?' hm':''}">${t}</th>`;
-  $('plTop').innerHTML=`<table class="lgpt"><thead><tr><th>#</th><th>Игрок</th>${th('gp','И')}${th('g','Г')}${th('a','П')}${th('pts','О')}</tr></thead><tbody>${r.map((p,i)=>`<tr><td class="r">${i+1}</td><td class="pl">${who(p)}</td><td class="hm">${p.gp}</td><td class="${sortK==='g'?'on':''}">${p.g}</td><td class="${sortK==='a'?'on':''}">${p.a}</td><td class="${sortK==='pts'?'on':''}">${p.pts}</td></tr>`).join('')}</tbody></table>`;
-  $('plTop').querySelectorAll('.av img').forEach(i=>i.addEventListener('error',()=>i.remove()))};
- $('plSw').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b||b.dataset.k===sortK)return;sortK=b.dataset.k;$('plSw').querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x===b));top()});top();
- const mini=(title,arr,val,sub)=>`<div data-rv><h3>${title}</h3><ol class="lgpl">${arr.map((p,i)=>`<li><span class="r num">${i+1}</span><span class="av">${esc(ini(p.n))}${p.img?`<img src="${esc(JV_KPH(p.img))}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:''}</span><span class="who"><b>${esc(p.n)}</b><a href="${thref(p.t)}">${em(p.t)}<span>${esc(nm(p.t))}</span></a></span><span class="val num">${val(p)}<small>${sub(p)}</small></span></li>`).join('')}</ol></div>`;
- const toiL=PS.filter(p=>p.toi&&p.gp>=5).sort((a,b)=>b.toi-a.toi).slice(0,10);
- const first=LG==='nhl'?mini('Броски по воротам · топ-10',PS.slice().sort((a,b)=>b.sog-a.sog||a.gp-b.gp).slice(0,10),p=>p.sog,p=>`за ${p.gp} ${plural(p.gp,'игру','игры','игр')}`)
-  :(L2=>L2.length?mini('Штрафные минуты · топ-10',L2,p=>p.pim,p=>`за ${p.gp} ${plural(p.gp,'игру','игры','игр')}`):'')(PS.filter(p=>p.pim>0).sort((a,b)=>b.pim-a.pim||a.gp-b.gp).slice(0,10));  /* нет данных о штрафах (КХЛ) — блок не показываем (владелец 14.11) */
- $('plMore').innerHTML=first+mini('Время на льду · топ-10',toiL,p=>{const t=Math.round(p.toi*60);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')},p=>'в среднем за игру');
- $('plMore').querySelectorAll('.av img').forEach(i=>i.addEventListener('error',()=>i.remove()));
+ /* блок «Бомбардиры и лидеры» убран со страницы лиги (владелец 17.11): игроки — на отдельной странице «Игроки» */
+ /* 17.11: цифры шапки «набегают» при появлении */
+ if(!matchMedia('(prefers-reduced-motion:reduce)').matches)document.querySelectorAll('#hero .facts b.num').forEach(b=>{const n=b.firstChild;if(!n||n.nodeType!==3)return;const to=parseInt(n.nodeValue,10);if(!(to>0))return;
+  const t0=performance.now(),D=900;const tick=t=>{const k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);n.nodeValue=String(Math.round(to*e));if(k<1)requestAnimationFrame(tick)};n.nodeValue='0';requestAnimationFrame(tick)});
  JV.reveal();JV.fitWords('.lgname h1,.sec-head h2');
+ /* страница строится после загрузки данных — якорь из адреса (#clubs, #next…) докручиваем сами */
+ if(location.hash.length>1){const t=document.getElementById(location.hash.slice(1));if(t)setTimeout(()=>t.scrollIntoView(),60)}
 }
-fetch('data/lgp_'+LG+'.json').then(r=>r.json()).then(d=>build({[LG]:d.se},d))
+fetch((window.JVD||(u=>u))('data/lgp_'+LG+'.json')).then(r=>r.json()).then(d=>build({[LG]:d.se},d))
  .catch(e=>{console.error(e);$('hero').innerHTML='<p class="lgempty">Данные загрузить не удалось.</p>'});
 })();
 
@@ -140,4 +133,4 @@ fetch('data/lgp_'+LG+'.json').then(r=>r.json()).then(d=>build({[LG]:d.se},d))
 for(const t of [50,400,1200])setTimeout(()=>{dispatchEvent(new Event("resize"));dispatchEvent(new Event("scroll"))},t);
 
 /* вкладка «Игроки» в полосе разделов ведёт на страницу всех игроков лиги, а не к блоку на этой странице (владелец 13.11) */
-(()=>{try{const go=()=>document.querySelectorAll('a[href="#players"]').forEach(a=>{if(a.parentElement.querySelector('a[href="#table"]'))a.setAttribute('href',/[?&]lg=nhl/.test(location.search)?'players.html':'players_khl.html')});go();addEventListener('load',go)}catch(e){}})();
+(()=>{try{const go=()=>document.querySelectorAll('a[data-pl]').forEach(a=>{if(a.parentElement.querySelector('a[href="#table"]'))a.setAttribute('href',/[?&]lg=nhl/.test(location.search)?'players.html':'players_khl.html')});go();addEventListener('load',go)}catch(e){}})();

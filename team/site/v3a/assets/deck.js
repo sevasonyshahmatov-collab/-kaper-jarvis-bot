@@ -140,7 +140,7 @@ function teamRow(m,s,n){const st=standing(m,s),T=team(m,s);
 function pl(n,f){n=Math.abs(n)%100;const a=n%10;return n>10&&n<20?f[2]:a>1&&a<5?f[1]:a===1?f[0]:f[2]}
 
 /* страница матча по понятному адресу (генерирует seo/build_match.py → data/matchlinks.js) */
-function matchLink(m){const u=(window.JV_MATCHLINKS||{})[m.key||`${m.lg}|${String(m.t||'').slice(0,10)}|${m.h}|${m.a}`];return u?`<a class="dk-mpage" href="${esc(u)}">Страница матча: форма, личные встречи, расчёт ›</a>`:''}
+function matchLink(m){const u=(window.JV_MATCHLINKS||{})[m.key||`${m.lg}|${String(m.t||'').slice(0,10)}|${m.h}|${m.a}`];return u?`<a class="dk-mpage" href="${esc(u)}" data-ml="/${esc(u)}">Страница матча: форма, личные встречи, расчёт ›</a>`:''}
 function infoHtml(m){const {ln,md}=info(m);let h='';
   const t=String(m.t||'');
   h+=`<div class="dk-ihead"><img class="dk-lgwm" src="assets/lg/${esc(LGLOGO[m.lg]||m.lg+'.webp')}" alt="" aria-hidden="true" onerror="this.remove()"><p class="dk-ik">О встрече</p><h2 class="dk-ih">${esc(m.hn)} — ${esc(m.an)}<small>${esc(lgFull(m))} · ${esc(dayLabel(t))}, ${esc(t.slice(11,16))} МСК${m.arena&&m.arena.name?' · '+esc(m.arena.name)+(m.arena.city?', '+esc(m.arena.city):''):''}</small></h2>${matchLink(m)}</div>`;
@@ -168,7 +168,7 @@ function renderInfo(animate){
   const m=list[cur];
   const put=()=>{infoEl.innerHTML=m?infoHtml(m):'<p class="dk-empty">Матчей в этом окне нет.</p>';infoEl.scrollTop=0;infoEl.classList.remove('sw');const b=$('dk-more');if(b)b.onclick=()=>openPanel()};
   /* футбольные клубы: игры сезона лежат в файле клуба — подгружаем при выборе матча и дорисовываем форму */
-  if(m&&!isH(m)&&!(team(m,m.h)||{}).games){const k=m.key;Promise.all([m.h,m.a].map(x=>loadScript(`football/data/club/${encodeURIComponent(x)}.js`))).then(()=>{if(list[cur]&&list[cur].key===k&&!infoEl.classList.contains('sw'))put()})}
+  if(m&&!isH(m)&&!(team(m,m.h)||{}).games){const k=m.key;Promise.all([m.h,m.a].map(x=>loadScript((window.JVD||(u=>u))(`football/data/club/${encodeURIComponent(x)}.js`)))).then(()=>{if(list[cur]&&list[cur].key===k&&!infoEl.classList.contains('sw'))put()})}
   clearTimeout(swTimer);
   if(animate&&!root.classList.contains('rm')){infoEl.classList.add('sw');swTimer=setTimeout(put,190)}else put()}
 
@@ -201,7 +201,7 @@ function pickPair(m){
 const bgL=[...document.querySelectorAll('.dk-bg')];let bgCur=-1,bgKey='';
 /* картинки фона: data/deckbg/<ключ>.webp (тот же код, что у баннеров Telegram, см. daily/deck_bg.py); нет файла — CSS-фон по цветам клубов */
 let BGIDX=null,bgSeq=0;
-const bgUrl=m=>{const e=BGIDX&&BGIDX[m.key];return e?`data/deckbg/${e.f}${mqM.matches?'-m':''}.webp`:null};
+const bgUrl=m=>{const e=BGIDX&&BGIDX[m.key];return e?`/data/deckbg/${e.f}${mqM.matches?'-m':''}.webp`:null};
 const bgPre=i=>{const m=list[i];const u=m&&bgUrl(m);if(u){const im=new Image();im.src=u}};
 function applyBg(dir){const m=list[cur];if(!m||m.key===bgKey)return;bgKey=m.key;
   const [a,b]=pickPair(m),mix=[(a[0]+b[0])/2%360,Math.min(.6,(a[1]+b[1])/2),Math.min(.3,(a[2]+b[2])/2-.02)];
@@ -218,7 +218,7 @@ function applyBg(dir){const m=list[cur];if(!m||m.key===bgKey)return;bgKey=m.key;
     bgCur=(bgCur+1)%2;
     bgPre(cur+1);bgPre(cur-1)};
   if(url){const im=new Image();if(bgCur<0)im.fetchPriority='high';im.onload=()=>show(url);im.onerror=()=>show(null);im.src=url}else show(null)}
-try{fetch('data/deckbg/index.json').then(r=>r.ok?r.json():null).then(j=>{if(j&&j.bg){BGIDX=j.bg;bgKey='';applyBg(0);deck.querySelectorAll('.dk-card').forEach((el,k)=>list[k]&&cardVars(el,list[k]))}}).catch(()=>{})}catch(e){}
+try{fetch('/data/deckbg/index.json').then(r=>r.ok?r.json():null).then(j=>{if(j&&j.bg){BGIDX=j.bg;bgKey='';applyBg(0);deck.querySelectorAll('.dk-card').forEach((el,k)=>list[k]&&cardVars(el,list[k]))}}).catch(()=>{})}catch(e){}
 
 /* ── переключение ── */
 let lockUntil=0;
@@ -312,9 +312,9 @@ const loaded={};
 function loadScript(src){return loaded[src]||(loaded[src]=new Promise(res=>{const s=document.createElement('script');s.src=src;s.onload=()=>res(true);s.onerror=()=>res(false);document.head.appendChild(s)}))}
 function loadDetail(m){
   const sl=[m.h,m.a];
-  if(isH(m))return Promise.all([...sl.map(s=>loadScript(`assets/data/club/${encodeURIComponent(s)}.js`)),
-    ...sl.map(s=>fetch(`hockey/data/players/${encodeURIComponent(s)}.json`).then(r=>r.ok?r.json():{}).catch(()=>({})))]).then(r=>({ph:[r[2]||{},r[3]||{}]}));
-  return Promise.all(sl.map(s=>loadScript(`football/data/club/${encodeURIComponent(s)}.js`))).then(()=>({ph:[{},{}]}))}
+  if(isH(m))return Promise.all([...sl.map(s=>loadScript((window.JVD||(u=>u))(`assets/data/club/${encodeURIComponent(s)}.js`))),
+    ...sl.map(s=>fetch((window.JVD||(u=>u))(`hockey/data/players/${encodeURIComponent(s)}.json`)).then(r=>r.ok?r.json():{}).catch(()=>({})))]).then(r=>({ph:[r[2]||{},r[3]||{}]}));
+  return Promise.all(sl.map(s=>loadScript((window.JVD||(u=>u))(`football/data/club/${encodeURIComponent(s)}.js`)))).then(()=>({ph:[{},{}]}))}
 
 /* шестиугольник силы: наложение двух команд */
 function axesFor(m){

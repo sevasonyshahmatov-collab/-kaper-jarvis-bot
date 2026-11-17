@@ -42,6 +42,6 @@ H.mount=(N,hero,M,S)=>{
  hero.append(root);
  /* страницы матчей: адреса из data/matchlinks.js; пока файл не пришёл, плитка ведёт на список «Матчи» ниже */
  const link=()=>{const L=window.JV_MATCHLINKS||{};root.querySelectorAll('a[data-key]').forEach(a=>{const u=L[a.dataset.key];if(u)a.href='../'+u})};
- if(window.JV_MATCHLINKS)link();else{const s=document.createElement('script');s.src=BASE+'../../data/matchlinks.js';s.onload=link;document.head.append(s)}
+ if(window.JV_MATCHLINKS)link();else{const s=document.createElement('script');s.src='/data/matchlinks.js';s.onload=link;document.head.append(s)}
 };
 })();

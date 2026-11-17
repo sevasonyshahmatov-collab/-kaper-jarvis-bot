@@ -46,7 +46,7 @@ const lv=m=>`data-lv data-lv-lg="${e(m.lg)}" data-lv-t="${e(m.t.replace(' ','T')
 function card1(m){
  const pr=m.pr;
  const bar=pr?`<div class="bar">${pr.map((p,i)=>p==null?'':`<i class="${i===m.bi?'on':''}" style="flex:${Math.max(p,.06)}"><b>${pc(p)}%</b><small>${OUT[i]}${kef(m,i)?' · '+kef(m,i):''}</small></i>`).join('')}</div>`:'<div class="bar none">расчёт скоро</div>';
- return `<li class="${m.hockey?'hk':'fb'}"><a href="${m.page}" data-fb="${m.href}"><div class="main">
+ return `<li class="${m.hockey?'hk':'fb'}"><a href="${m.page}" data-fb="${m.href}" data-ml="/${m.page.replace(/^(\.\.?\/)+/,'')}"><div class="main">
    <div class="fo">
     <span class="tm">${crest(m.hc,'cr')}<b>${e(m.hn)}</b></span>
     <span class="mid" ${lv(m)}><time>${when(m)}</time><em>${e(m.lgn)}</em></span>

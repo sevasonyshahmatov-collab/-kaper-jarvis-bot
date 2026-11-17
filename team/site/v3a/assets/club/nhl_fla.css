@@ -31,7 +31,7 @@
   clip-path:polygon(0 0,100% clamp(28px,5vw,80px),100% 100%,0 100%);
   background:
     linear-gradient(176deg,transparent 0 clamp(14px,2.4vw,40px),var(--fla-red) 0 calc(clamp(14px,2.4vw,40px) + 10px),var(--fla-gold) 0 calc(clamp(14px,2.4vw,40px) + 14px),transparent 0) top/100% 220px no-repeat,
-    repeating-linear-gradient(135deg,rgba(255,255,255,.035) 0 2px,transparent 2px 18px),
+    linear-gradient(transparent,transparent),
     radial-gradient(70% 50% at 100% 0,rgba(200,16,46,.28),transparent 70%),
     radial-gradient(60% 40% at 0 100%,rgba(185,151,91,.14),transparent 70%),
     var(--fla-navy)}
@@ -53,7 +53,7 @@
 .club-nhl_fla #players::before{top:0;bottom:0;z-index:-2;
   background:
     radial-gradient(circle at 86% 15%,rgba(255,196,120,.55) 0 clamp(70px,9vw,140px),rgba(255,170,110,.18) calc(clamp(70px,9vw,140px) + 2px),transparent clamp(180px,22vw,340px)),
-    repeating-linear-gradient(180deg,transparent 0 22px,rgba(18,120,130,.07) 22px 24px) bottom/100% 46% no-repeat,
+    linear-gradient(transparent,transparent) bottom/100% 46% no-repeat,
     linear-gradient(180deg,#f7efe2 0%,#fbe7d2 26%,#f4ecdf 52%,#e2f0ee 100%)}
 .club-nhl_fla #players::after{top:0;height:min(48vw,620px);
   background:url(nhl_fla_palm.svg) no-repeat right -2vw top -1vw / min(56vw,760px) auto;opacity:.11}

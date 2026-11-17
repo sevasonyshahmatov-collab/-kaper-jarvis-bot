@@ -97,9 +97,9 @@ const row=p=>{
   <span class="rmt">${title}<small>${p.d.slice(11,16)!=='00:00'?p.d.slice(11,16)+' МСК':''}${pm}</small></span>
   <span class="rbet">${tag}${bet}</span>
   <span class="rkef"><i>кэф </i>${p.kef?num(p.kef):'—'}</span><span class="rsc">${esc(p.sc||'')}</span>
-  <span class="rres ${p.r||'n'}">${p.r?RES[p.r]:'Без итога'}</span>
+  <span class="rres ${p.r||'n'}">${p.r?(window.JVI||(()=>''))({w:'ok',l:'no',p:'ret'}[p.r]||'')+RES[p.r]:'Без итога'}</span>
   <a class="rpost" href="${esc(safeUrl(p.url))}" target="_blank" rel="noopener">Пост №${esc(p.id)}</a>
-  ${ex?`<ul class="rs-legs">${p.legs.map(l=>`<li><b>${tm(l.he,l.h)} — ${tm(l.ae,l.a)}${l.sc?' '+esc(l.sc):''}</b><span>${esc(l.bet)}${l.kef?' · '+num(l.kef):''}</span>${l.r?`<span class="${l.r}">${l.r==='w'?'зашло':l.r==='l'?'не зашло':'возврат'}</span>`:''}</li>`).join('')}</ul>`:''}</li>`};
+  ${ex?`<ul class="rs-legs">${p.legs.map(l=>`<li><b>${tm(l.he,l.h)} — ${tm(l.ae,l.a)}${l.sc?' '+esc(l.sc):''}</b><span>${esc(l.bet)}${l.kef?' · '+num(l.kef):''}</span>${l.r?`<span class="${l.r}">${(window.JVI||(()=>''))({w:'ok',l:'no',p:'ret'}[l.r]||'')}${l.r==='w'?'зашло':l.r==='l'?'не зашло':'возврат'}</span>`:''}</li>`).join('')}</ul>`:''}</li>`};
 const draw=()=>{
  const rows=D.picks.filter(pass),w=rows.filter(p=>p.r==='w').length,l=rows.filter(p=>p.r==='l').length;
  $('#rs-count').textContent=rows.length?`Найдено ${rows.length}: зашло ${w}, не зашло ${l}`+(rows.filter(p=>p.r==='p').length?`, возврат ${rows.filter(p=>p.r==='p').length}`:'')+(rows.filter(p=>!p.r).length?`, без итога ${rows.filter(p=>!p.r).length}`:''):'По таким условиям прогнозов нет.';

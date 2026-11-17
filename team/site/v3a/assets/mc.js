@@ -41,5 +41,5 @@ const go=()=>{
  const after=document.getElementById('mt-form');const ref=after?after.closest('section'):document.querySelector('main>.mx-info');
  if(ref)ref.after(sec);else document.getElementById('main').appendChild(sec);
 };
-if(window.JV_TEAMS)go();else{const s=document.createElement('script');s.src=base.replace(/nav\.js.*$/,'data/teams-lite.js');s.onload=go;document.head.appendChild(s)}
+if(window.JV_TEAMS)go();else{const s=document.createElement('script');s.src=(window.JVD||(u=>u))(base.replace(/nav\.js.*$/,'data/teams-lite.js'));s.onload=go;document.head.appendChild(s)}
 })();

@@ -60,7 +60,7 @@ function drawClubs(){
   cnt.hidden=!fav.length;cnt.textContent=fav.length?fav.length+' '+(fav.length%10===1&&fav.length%100!==11?'клуб':fav.length%10>=2&&fav.length%10<=4&&(fav.length%100<10||fav.length%100>=20)?'клуба':'клубов'):'';
   if(!fav.length){
     const pop=POP.map(k=>C[k]).filter(Boolean);
-    box.innerHTML=`<div class="me-empty"><div class="me-star" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.8l2.7 5.9 6.4.7-4.8 4.3 1.4 6.3L12 16.7l-5.7 3.3 1.4-6.3L2.9 9.4l6.4-.7z"/></svg></div>
+    box.innerHTML=`<div class="me-empty"><div class="me-star" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"/></svg></div>
       <h3>Здесь пока пусто</h3>
       <p>Выберите клубы, за которыми следите, — мы соберём их ближайшие матчи и результаты. Звёздочка «В избранное» есть и на странице каждого клуба.</p>
       <ul class="me-pop" aria-label="Популярные клубы">${pop.map(c=>`<li><button type="button" class="me-pb" data-k="${esc(key(c))}">${img(c)}<span><b>${esc(c.ru)}</b><small>${esc(LG[c.lg]||c.lg)}</small></span><i aria-hidden="true">+</i></button></li>`).join('')}</ul></div>`;
@@ -123,7 +123,7 @@ cl.addEventListener('click',()=>{
 });
 
 /* ── загрузка данных ── */
-fetch('../data/search.json',{cache:'default'}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(D=>{
+fetch('/data/search.json',{cache:'default'}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(D=>{
   D.c.forEach(r=>{C[r[1]+':'+r[0]]={id:r[0],s:r[1],lg:r[2],ru:r[3],en:r[4],al:r[5]||''}});
   M=D.m.map(r=>{const h=C[r[1]+':'+r[2]],a=C[r[1]+':'+r[3]];return h&&a?{ms:ms(r[0]),h,a,sc:r[4]||'',cup:r[5]||''}:null}).filter(Boolean);
   ready=true;draw();document.dispatchEvent(new Event('jv:rows'));

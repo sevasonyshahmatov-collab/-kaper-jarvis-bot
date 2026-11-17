@@ -44,7 +44,7 @@ const crest=c=>U((c.s==='h'?'assets/em/s/':'assets/fc/')+c.id+'.webp');
 function load(){
   if(IDX)return Promise.resolve(IDX);
   if(loading)return loading;
-  loading=fetch(U('data/search.json'),{cache:'default'}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(D=>{
+  loading=fetch('/data/search.json',{cache:'default'}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(D=>{
     const W=(ru,en,al)=>{const o=[];for(const x of words(ru))o.push([x,0]);for(const x of words(en))o.push([x,1]);for(const x of words(al))o.push([x,2]);return o};
     const C={};const clubs=D.c.map(r=>{const c={id:r[0],s:r[1],lg:r[2],ru:r[3],en:r[4],w:W(r[3],r[4],r[5])};C[r[1]+r[0]]=c;return c});
     const leagues=D.l.map(r=>({s:r[0],id:r[1],ru:r[2],en:r[3],url:r[5],w:W(r[2],r[3],r[4])}));
@@ -83,12 +83,12 @@ function search1(raw){
 }
 
 /* ---- интерфейс ---- */
-const LUPA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>';
+const LUPA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/> <path d="M21 21l-6 -6"/></svg>';
 const row=hd.querySelector('.hdrow');if(!row)return;
 /* кнопку рисует nav.js сразу (без сдвига шапки); если её нет — создаём */
 let sb=row.querySelector('.sbtn');
 if(!sb){sb=document.createElement('button');sb.type='button';sb.className='sbtn';sb.setAttribute('aria-label','Поиск по сайту');sb.setAttribute('aria-haspopup','dialog');sb.setAttribute('aria-expanded','false');
-sb.innerHTML=LUPA+'<kbd aria-hidden="true">/</kbd>';
+sb.innerHTML=LUPA+'<span class="sb-t">Поиск</span><kbd aria-hidden="true">/</kbd>';
 const anchor=row.querySelector('.btn-tg')||row.querySelector('.mbtn');row.insertBefore(sb,anchor)}
 
 const box=document.createElement('div');box.className='jsq';box.hidden=true;box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');box.setAttribute('aria-label','Поиск');
@@ -107,12 +107,14 @@ const dt=d=>{const t=NOW().slice(0,10),y=new Date(Date.now()+(new Date().getTime
 const img=c=>`<img src="${esc(crest(c))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
 const tcode=p=>!p.c?'':p.lg==='khl'?p.c.id:p.c.id==='minnesota'?'MIN':p.c.id==='dallas'?'DAL':p.c.id.replace(/^nhl_/,'').toUpperCase();
 const LGN={khl:'КХЛ',nhl:'НХЛ',epl:'АПЛ',laliga:'Ла Лига',seriea:'Серия А',bundesliga:'Бундеслига',ligue1:'Лига 1',rpl:'РПЛ',ucl:'ЛЧ',uel:'ЛЕ'};
-const li=(href,html,cls)=>`<a class="sp-i ${cls||''}" role="option" id="spo${items.push(href)-1}" href="${esc(safeUrl(href))}" tabindex="-1">${html}</a>`;
+const li=(href,html,cls,ml)=>`<a class="sp-i ${cls||''}" role="option" id="spo${items.push(href)-1}" href="${esc(safeUrl(href))}"${ml?` data-ml="${esc(safeUrl(ml))}"`:''} tabindex="-1">${html}</a>`;
+/* матч ведёт на страницу матча (17.11); в черновике её может не быть — data-ml: та же страница на основном сайте */
+const mpage=m=>{const lg=m.cup||m.h.lg,J=window.JV;if(!J||!J.matchPage)return null;const rel=J.matchPage('',lg,m.d,m.h.id,m.a.id);return{href:U(rel),ml:location.origin+'/'+rel}};
 function draw(r){
   items=[];cur=-1;
   const g=(t,a,f)=>a.length?`<div class="sp-g" role="group" aria-label="${t}"><h3>${t}</h3>${a.map(f).join('')}</div>`:'';
   const out=g('Клубы',r.clubs,c=>li(U(pg(c)),`${img(c)}<span class="sp-t"><b>${esc(c.ru)}</b><small>${esc(c.en&&c.en!==c.ru?c.en+' · ':'')}${SP[c.s]} · ${esc(LGN[c.lg]||c.lg)}</small></span>`))
-   +g('Матчи',r.matches,m=>li((window.JV&&JV.matchPage)?U(JV.matchPage('',m.cup||m.h.lg,m.d,m.h.id,m.a.id)):U(pg(m.h)),`<span class="sp-vs">${img(m.h)}${img(m.a)}</span><span class="sp-t"><b>${esc(m.h.ru)} — ${esc(m.a.ru)}</b><small>${esc(dt(m.d))} МСК${m.sc?' · '+esc(m.sc):''}${m.cup?' · '+esc(LGN[m.cup]||m.cup):''} · ${SP[m.s]}</small></span>`))
+   +g('Матчи',r.matches,m=>{const P=mpage(m);return li(P?P.href:U(pg(m.h)),`<span class="sp-vs">${img(m.h)}${img(m.a)}</span><span class="sp-t"><b>${esc(m.h.ru)} — ${esc(m.a.ru)}</b><small>${esc(dt(m.d))} МСК${m.sc?' · '+esc(m.sc):''}${m.cup?' · '+esc(LGN[m.cup]||m.cup):''} · ${SP[m.s]}</small></span>`,'',P&&P.ml)})
    +g('Лиги',r.leagues,l=>li(U(l.url),`<span class="sp-lg">${l.s==='h'?'ХК':'ФК'}</span><span class="sp-t"><b>${esc(l.ru)}</b><small>${SP[l.s]} · таблица и матчи</small></span>`))
    +g('Игроки',r.players,p=>li(U(p.id!=null?'hockey/player.html?lg='+p.lg+'&id='+encodeURIComponent(p.id):(p.lg==='nhl'?'hockey/players.html':'hockey/players_khl.html')+'?team='+encodeURIComponent(tcode(p))+'&q='+encodeURIComponent(p.n)),`<span class="sp-lg">${esc(p.n.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase())}</span><span class="sp-t"><b>${esc(p.n)}</b><small>${esc(p.c?p.c.ru:'')} · ${p.lg==='nhl'?'НХЛ':'КХЛ'}</small></span>`));
   res.innerHTML=out||`<p class="sp-empty">Ничего не нашли. Попробуйте название клуба или лиги.</p>`;
@@ -133,12 +135,43 @@ function mark(i){
   cur=(i+all.length)%all.length;all.forEach((a,k)=>a.classList.toggle('on',k===cur));
   inp.setAttribute('aria-activedescendant',all[cur].id);all[cur].scrollIntoView({block:'nearest'});
 }
+
+/* ---- «Command button» (по мотивам DesignBookmark Motion, 17.11): кнопка в шапке пружинисто раскрывается в поле поиска,
+   подписи сменяются через размытие, результаты выпадают под полем. Только широкий экран; на телефоне — прежний полноэкранный поиск. ---- */
+const WIDE=()=>matchMedia('(min-width:761px)').matches,CALM=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
+const form=box.querySelector('form'),fLupa=form.querySelector('svg');
+const cbx=document.createElement('div');cbx.className='cbx';cbx.hidden=true;
+cbx.innerHTML=`<span class="cbx-a" aria-hidden="true">${LUPA}<span>Поиск</span><kbd>/</kbd></span><span class="cbx-b">${LUPA}<span class="cbx-in"></span><button type="button" class="cbx-esc" aria-label="Закрыть поиск">Esc</button></span>`;
+document.body.appendChild(cbx);
+let inl=false,raf=0;
+function spring(from,to,done){cancelAnimationFrame(raf);
+  if(CALM()){cbx.style.width=to+'px';done&&done();return}
+  let x=from,v=0,last=performance.now();const K=420,C=30;   /* жёсткость/затухание: ~0,4 с, перелёт ~1 % */
+  const tick=t=>{let dt=Math.min(.032,(t-last)/1000);last=t;
+    for(let i=0;i<4;i++){const a=-K*(x-to)-C*v;v+=a*dt/4;x+=v*dt/4}
+    cbx.style.width=x.toFixed(2)+'px';
+    if(Math.abs(x-to)<.3&&Math.abs(v)<4){cbx.style.width=to+'px';done&&done();return}
+    raf=requestAnimationFrame(tick)};raf=requestAnimationFrame(tick)}
+function inlineOpen(){
+  const r=sb.getBoundingClientRect();if(!r.width)return false;
+  inl=true;box.classList.add('inl');
+  const W=Math.max(r.width,Math.min(460,r.right-24));
+  Object.assign(cbx.style,{top:r.top+'px',right:(innerWidth-r.right)+'px',height:r.height+'px',width:r.width+'px'});
+  const pn=box.querySelector('.sp-pn');Object.assign(pn.style,{top:(r.bottom+10)+'px',right:(innerWidth-r.right)+'px',width:Math.min(560,r.right-24)+'px'});
+  cbx.querySelector('.cbx-in').appendChild(inp);cbx.hidden=false;sb.style.visibility='hidden';
+  requestAnimationFrame(()=>cbx.classList.add('on'));spring(r.width,W);return true}
+function inlineClose(){
+  if(!inl)return;inl=false;box.classList.remove('inl');cbx.classList.remove('on');
+  const r=sb.getBoundingClientRect();
+  spring(parseFloat(cbx.style.width)||r.width,r.width,()=>{if(inl)return;cbx.hidden=true;sb.style.visibility='';fLupa.after(inp)})}
+cbx.addEventListener('click',e=>{if(e.target.closest('.cbx-esc')){close();return}if(!inl)return;inp.focus()});
+addEventListener('resize',()=>{if(inl)close(false)});
 function open(){
   if(!box.hidden)return;opener=document.activeElement;box.hidden=false;sb.setAttribute('aria-expanded','true');
-  document.documentElement.classList.add('sp-lock');load().catch(()=>{});run();setTimeout(()=>{inp.focus();inp.select()},0);
+  if(!(WIDE()&&inlineOpen()))document.documentElement.classList.add('sp-lock');load().catch(()=>{});run();setTimeout(()=>{inp.focus();inp.select()},0);
 }
 function close(back){
-  if(box.hidden)return;box.hidden=true;sb.setAttribute('aria-expanded','false');document.documentElement.classList.remove('sp-lock');
+  if(box.hidden)return;box.hidden=true;sb.setAttribute('aria-expanded','false');document.documentElement.classList.remove('sp-lock');inlineClose();
   try{if(box.contains(document.activeElement))document.activeElement.blur();if(back!==false&&opener&&opener!==document.body&&opener.focus)opener.focus()}catch(e){}
 }
 sb.addEventListener('click',e=>{e.stopPropagation();box.hidden?open():close()});
@@ -148,7 +181,8 @@ box.addEventListener('click',e=>{
   const a=e.target.closest('a.sp-i');if(a)remember(inp.value);
 });
 inp.addEventListener('input',run);
-box.querySelector('form').addEventListener('submit',e=>{e.preventDefault();const a=res.querySelectorAll('a.sp-i')[cur<0?0:cur];if(a){remember(inp.value);location.href=a.href}});
+inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&inl){e.preventDefault();form.requestSubmit?form.requestSubmit():form.dispatchEvent(new Event('submit',{cancelable:true}))}});
+box.querySelector('form').addEventListener('submit',e=>{e.preventDefault();const a=res.querySelectorAll('a.sp-i')[cur<0?0:cur];if(a){remember(inp.value);if(a.dataset.ml&&window.fetch)fetch(a.href,{method:'HEAD'}).then(r=>{location.href=r.ok?a.href:a.dataset.ml}).catch(()=>{location.href=a.dataset.ml});else location.href=a.href}});
 addEventListener('keydown',e=>{
   const t=e.target,typing=t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable);
   if((e.key==='k'||e.key==='K'||e.key==='л'||e.key==='Л')&&(e.ctrlKey||e.metaKey)){e.preventDefault();box.hidden?open():close();return}
@@ -156,7 +190,7 @@ addEventListener('keydown',e=>{
   if(e.key==='Escape'){e.preventDefault();close()}
   else if(e.key==='ArrowDown'){e.preventDefault();mark(cur+1)}
   else if(e.key==='ArrowUp'){e.preventDefault();mark(cur<0?-1:cur-1)}
-  else if(e.key==='Tab'){const f=[...box.querySelectorAll('input,button')].filter(x=>x.offsetParent);if(f.length){const i=f.indexOf(document.activeElement);if(e.shiftKey&&i<=0){e.preventDefault();f[f.length-1].focus()}else if(!e.shiftKey&&i===f.length-1){e.preventDefault();f[0].focus()}}}
+  else if(e.key==='Tab'){const f=[...cbx.querySelectorAll('input,button'),...box.querySelectorAll('input,button')].filter(x=>x.offsetParent);if(f.length){const i=f.indexOf(document.activeElement);if(e.shiftKey&&i<=0){e.preventDefault();f[f.length-1].focus()}else if(!e.shiftKey&&i===f.length-1){e.preventDefault();f[0].focus()}}}
 });
 /* адрес вида ?q=… (SearchAction в разметке главной): открыть поиск с этим запросом */
 /* открываем, только если по запросу что-то есть: иначе чужой текст из ссылки повис бы на настоящем сайте (проверка безопасности 16.11) */

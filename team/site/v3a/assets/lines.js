@@ -60,15 +60,15 @@ function why(m,opt={}){const {ln,md}=m;if(!md)return '<p class="none">Расчё
  const full=['победа '+names[0],'ничья в основное время','победа '+names[1]],rows=['П1','Х','П2'].map((l,i)=>bar(l,mo[i],fl&&(i!==1||ln.x)?fl[i]:null,mo[i]===mx,full[i])).join('');
  let totals='';
  if(md.totals){const ent=Object.entries(md.totals).sort((a,b)=>a[0]-b[0]);
-  totals=`<div class="wsub"><h5>Тотал матча: вероятность «больше»</h5>${ent.map(([t,p])=>bar('ТБ '+f1(t),p,ln&&ln.tot===+t?fairTot(ln):null,false)).join('')}
+  totals=`<div class="wsub"><h5>${(window.JVI||(()=>''))('tot')}Тотал матча: вероятность «больше»</h5>${ent.map(([t,p])=>bar('ТБ '+f1(t),p,ln&&ln.tot===+t?fairTot(ln):null,false)).join('')}
 </div>`}
- else if(md.over!=null){totals=`<div class="wsub"><h5>Тотал ${f1(md.tot)}</h5>${bar('ТБ '+f1(md.tot),md.over,ln&&ln.tot===md.tot?fairTot(ln):null,false)}${bar('ТМ '+f1(md.tot),1-md.over,null,false)}
+ else if(md.over!=null){totals=`<div class="wsub"><h5>${(window.JVI||(()=>''))('tot')}Тотал ${f1(md.tot)}</h5>${bar('ТБ '+f1(md.tot),md.over,ln&&ln.tot===md.tot?fairTot(ln):null,false)}${bar('ТМ '+f1(md.tot),1-md.over,null,false)}
    ${md.btts!=null?bar('Обе забьют',md.btts,null,false):''}</div>`}
- const fin=md.w1!=null&&md.w2!=null?`<div class="wsub"><h5>Итоговая победа, с овертаймом и буллитами</h5>${bar(names[0],md.w1,ln&&ln.fin1&&ln.fin2?(1/ln.fin1)/(1/ln.fin1+1/ln.fin2):null,md.w1>md.w2)}${bar(names[1],md.w2,null,md.w2>md.w1)}</div>`:'';
+ const fin=md.w1!=null&&md.w2!=null?`<div class="wsub"><h5>${(window.JVI||(()=>''))('win')}Итоговая победа, с овертаймом и буллитами</h5>${bar(names[0],md.w1,ln&&ln.fin1&&ln.fin2?(1/ln.fin1)/(1/ln.fin1+1/ln.fin2):null,md.w1>md.w2)}${bar(names[1],md.w2,null,md.w2>md.w1)}</div>`:'';
  const lam=md.lam?`<p class="xlam"><b>Ожидаемые голы:</b> ${esc(names[0])} <b class="num">${f2(md.lam[0])}</b> — ${esc(names[1])} <b class="num">${f2(md.lam[1])}</b>, вместе <b class="num">${f2(md.lam[0]+md.lam[1])}</b>.</p>`:'';
  const po=postOf(m),pl=po?`<p class="qpl">На этот матч вышел прогноз в канале: <b>${esc(po.bet)}</b>${po.kef?`, кэф <b class="num">${f2(po.kef)}</b>`:''}. <a href="${esc(safeUrl(po.url))}" target="_blank" rel="noopener">Открыть пост №${+po.id} →</a></p>`:'';
  return `<section class="xb x-model"><h4>Расчёт модели${md.t?` <span class="note">от ${esc(hhmm(md.t))} МСК</span>`:md.ver==='poisson-v1'?' <span class="note">по голам сезона</span>':''}</h4>
-  <div class="wgrid"><div class="wsub"><h5>Исход в основное время</h5>${rows}${ln?'':'<p class="note">Линии на матч пока нет.</p>'}</div>
+  <div class="wgrid"><div class="wsub"><h5>${(window.JVI||(()=>''))('outcome')}Исход в основное время</h5>${rows}${ln?'':'<p class="note">Линии на матч пока нет.</p>'}</div>
   ${totals}${fin}</div>${pl}${lam}${dvHtml(ln,md)?`<p class="qd">${dvHtml(ln,md)}</p>`:''}
   </section>`}
 

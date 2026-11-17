@@ -19,7 +19,7 @@
 .lgtab.bundesliga{background:radial-gradient(90% 120% at 100% 0%,rgba(255,255,255,.12),transparent 60%),linear-gradient(120deg,#7d0711 0%,#c8101e 45%,#e0343f 100%);box-shadow:inset 0 -6px 0 #fff}
 .lgtab.ligue1{background:radial-gradient(90% 120% at 100% 0%,rgba(255,255,255,.12),transparent 60%),linear-gradient(120deg,#06142e 0%,#0b1d3f 45%,#1b3a7a 100%);box-shadow:inset 0 -6px 0 #dae025}
 .lgtab.rpl{background:radial-gradient(90% 120% at 100% 0%,rgba(255,255,255,.12),transparent 60%),linear-gradient(120deg,#0a2053 0%,#12306f 45%,#1d4aa0 100%);box-shadow:inset 0 -6px 0 #e8452c}
-.lgtab::before{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.045) 0 36px,transparent 36px 72px)} /* фактура: полосы газона */
+.lgtab::before{background-image:linear-gradient(transparent,transparent)} /* фактура: полосы газона */
 .lgtab[aria-selected="true"]{box-shadow:inset 0 -6px 0 var(--bar,#fff),0 0 0 3px var(--paper),0 0 0 6px var(--bar,#0d7a48)}
 .lgtab.epl{--bar:#00c96a}.lgtab.laliga{--bar:#ff4b44}.lgtab.seriea{--bar:#2fb8ff}.lgtab.bundesliga{--bar:#c8101e}.lgtab.ligue1{--bar:#1b3a7a}.lgtab.rpl{--bar:#e8452c}
 .leagues.six{grid-template-columns:repeat(3,minmax(0,1fr))}

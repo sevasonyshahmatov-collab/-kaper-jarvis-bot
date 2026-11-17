@@ -1,3 +1,18 @@
+/* 17.11 — варианты фона для сравнения: ?bg=a|b|c в адресе (запоминается на время вкладки, ?bg=0 — вернуть обычный). Стили — nav.css, разметка льда — v3a.js */
+(()=>{const d=document.documentElement;try{const q=new URLSearchParams(location.search).get('bg');if(q!==null)sessionStorage.setItem('jv-bg',/^[abcn]$/.test(q)?q:'0');let b=sessionStorage.getItem('jv-bg');if(b===null)b='n';if(b&&b!=='0')d.dataset.bg=b;else delete d.dataset.bg}catch(e){d.dataset.bg='n'}})(); /* 17.11: «Ночная арена» — основная тема */
+/* единый набор иконок сайта (17.11): Tabler Icons, MIT, https://tabler.io/icons — контур 1,75 px, скругления.
+   JVI('имя','класс') → <svg>; нет имени — пустая строка */
+/* данные разделов (17.11): черновик берёт свежие файлы основного сайта — бот обновляет их там. JVD(адрес) → тот же файл без /draft/;
+   свои файлы черновика (фото КХЛ hockey/data/kph) не трогаем */
+window.JVD=u=>{try{const a=new URL(u,location.href),m=a.pathname.match(/^(.*)\/draft\/((?:hockey|football|assets)\/data\/(?!kph\/).*)$/);if(a.origin!==location.origin||!m)return u;a.pathname=m[1]+'/'+m[2];return a.href}catch(e){return u}};
+window.JVI=(()=>{const P={"up": "<path d=\"M6 15l6 -6l6 6\"/>", "ok": "<path d=\"M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\"/> <path d=\"M9 12l2 2l4 -4\"/>", "no": "<path d=\"M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\"/> <path d=\"M10 10l4 4m0 -4l-4 4\"/>", "ret": "<path d=\"M9 14l-4 -4l4 -4\"/> <path d=\"M5 10h11a4 4 0 1 1 0 8h-1\"/>", "streak": "<path d=\"M12 12c2 -2.96 0 -7 -1 -8c0 3.038 -1.773 4.741 -3 6c-1.226 1.26 -2 3.24 -2 5a6 6 0 1 0 12 0c0 -1.532 -1.056 -3.94 -2 -5c-1.786 3 -2.791 3 -4 2z\"/>", "pl": "<path d=\"M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0\"/> <path d=\"M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2\"/>", "tot": "<path d=\"M7 3l0 18\"/> <path d=\"M10 6l-3 -3l-3 3\"/> <path d=\"M20 18l-3 3l-3 -3\"/> <path d=\"M17 21l0 -18\"/>", "btts": "<path d=\"M7 10h14l-4 -4\"/> <path d=\"M17 14h-14l4 4\"/>", "goals": "<path d=\"M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\"/> <path d=\"M12 7a5 5 0 1 0 5 5\"/> <path d=\"M13 3.055a9 9 0 1 0 7.941 7.945\"/> <path d=\"M15 6v3h3l3 -3h-3v-3z\"/> <path d=\"M15 9l-3 3\"/>", "cor": "<path d=\"M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1 -7 0a5 5 0 0 0 -7 0v-9z\"/> <path d=\"M5 21v-7\"/>", "wl": "<path d=\"M5 12l-2 0l9 -9l9 9l-2 0\"/> <path d=\"M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7\"/> <path d=\"M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6\"/>", "ot": "<path d=\"M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\"/> <path d=\"M12 12l3 2\"/> <path d=\"M12 7v5\"/>", "cs": "<path d=\"M11.46 20.846a12 12 0 0 1 -7.96 -14.846a12 12 0 0 0 8.5 -3a12 12 0 0 0 8.5 3a12 12 0 0 1 -.09 7.06\"/> <path d=\"M15 19l2 2l4 -4\"/>", "outcome": "<path d=\"M7 20l10 0\"/> <path d=\"M6 6l6 -1l6 1\"/> <path d=\"M12 3l0 17\"/> <path d=\"M9 12l-3 -6l-3 6a3 3 0 0 0 6 0\"/> <path d=\"M21 12l-3 -6l-3 6a3 3 0 0 0 6 0\"/>", "win": "<path d=\"M8 21l8 0\"/> <path d=\"M12 17l0 4\"/> <path d=\"M7 4l10 0\"/> <path d=\"M17 4v8a5 5 0 0 1 -10 0v-8\"/> <path d=\"M5 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M19 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/>", "model": "<path d=\"M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2\"/> <path d=\"M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z\"/> <path d=\"M9 17v-5\"/> <path d=\"M12 17v-1\"/> <path d=\"M15 17v-3\"/>"};
+ return (n,c)=>P[n]?`<svg class="jvi${c?' '+c:''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`:''})();
+/* 17.11 — фото игроков КХЛ, вырезанные заранее (hockey/data/kph/<папка>_<номер>.webp, без белого фона и каймы; список готовых — kph/index.js).
+   Есть готовый файл — показываем его, нет (новый игрок) — как раньше: фото с khl.ru и фильтр #jvko. Определяем раньше остальных скриптов страницы.
+   ?v=N — при переобработке фото номер увеличиваем: sw.js хранит картинки «навсегда» по адресу, без смены адреса посетитель увидит старую копию. */
+(()=>{const S=document.currentScript&&document.currentScript.src;if(!S||document.documentElement.dataset.sport==='football')return;
+ try{if(document.readyState==='loading')document.write('<script src="'+new URL('../hockey/data/kph/index.js',S).href+'"><\/script>')}catch(e){}
+ window.JV_KPH=u=>{const m=/khl\.ru\/img\/teamplayers_db\/(\d+)\/(\d+)\.jpg/.exec(u||''),I=window.JV_KPH_IDX;return m&&I&&I[m[1]+'_'+m[2]]?new URL('../hockey/data/kph/'+m[1]+'_'+m[2]+'.webp?v=2',S).href:u}})();
 /* Фото игроков КХЛ с www.khl.ru — на белом фоне. Владелец 14.11: «чтобы ни у кого сзади не было белого фона». Вырезать фон у себя
    нельзя (khl.ru не отдаёт фото нашим серверам), поэтому белое делается прозрачным прямо при показе: SVG-фильтр #jvko
    (CSS в v3a.css: img[src*="khl.ru/img/teamplayers_db"]). Пиксели не читаются скриптом — работает и с чужими картинками. */
@@ -29,7 +44,7 @@ const SECTIONS={};
   document.documentElement.classList.add('nav2');
   /* «Игроки» — отдельная страница всех игроков лиги, а не прокрутка к блоку на странице лиги (владелец 13.11) */
   const PLP={khl:'hockey/players_khl.html',nhl:'hockey/players.html'};
-  const LS=(lg,base)=>[['Таблица и клубы','#table'],['Матчи','#next'],['Результаты','#results'],['Игроки','#players'],['Статистика','#stats']].map(([n,h])=>['',n,h==='#players'&&PLP[lg]?PLP[lg]:base+lg+h]);
+  const LS=(lg,base)=>[['Клубы','#clubs'],['Матчи','#next'],['Результаты','#results'],['Игроки','#players'],['Статистика','#stats']].map(([n,h])=>['',n,h==='#players'&&PLP[lg]?PLP[lg]:base+lg+h]);
   const FL=[['epl','АПЛ'],['laliga','Ла Лига'],['seriea','Серия А'],['bundesliga','Бундеслига'],['ligue1','Лига 1'],['rpl','РПЛ']];
   SECTIONS.hockey=[['m','Матчи','hockey/index.html',[['m','Ближайшие матчи','hockey/index.html'],['fc','Прогноз на сегодня — списком','hockey/forecast-khl.html']]],
     ['lg','Лиги','hockey/league.html?lg=khl',[['khl','КХЛ','hockey/league.html?lg=khl',LS('khl','hockey/league.html?lg=')],['nhl','НХЛ','hockey/league.html?lg=nhl',LS('nhl','hockey/league.html?lg=')]]],
@@ -67,10 +82,10 @@ const link=(s,cur)=>`<a href="${esc(U(s[2]))}"${cur===s[0]?' aria-current="page"
 const has=(s,cur)=>s[0]===cur||!!s[3]&&s[3].some(x=>has(x,cur));
 const inG=(s,cur)=>!!s[3]&&has(s,cur);
 const CARET='<svg class="cr" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const col=(x,cur)=>`<div class="gcol"><a class="gch" href="${esc(U(x[2]))}"${cur===x[0]?' aria-current="page"':''}>${esc(x[1])}</a>${x[3].map(y=>`<a href="${esc(U(y[2]))}">${esc(y[1])}</a>`).join('')}</div>`;
+const col=(x,cur)=>`<div class="gcol"><a class="gch" href="${esc(U(x[2]))}"${cur===x[0]?' aria-current="page"':''}>${/^(khl|nhl)$/.test(x[0])?`<span class="gli" aria-hidden="true"><img src="${esc(U('assets/lg/'+x[0]+'.webp'))}" alt=""></span>`:''}${esc(x[1])}</a>${x[3].map(y=>`<a href="${esc(U(y[2]))}">${esc(y[1])}</a>`).join('')}</div>`;
 const top=(s,cur)=>{if(!s[3])return link(s,cur);const cols=s[3].filter(x=>x[3]),rest=s[3].filter(x=>!x[3]);
   return `<div class="gdd${inG(s,cur)?' on':''}"><a href="${esc(U(s[2]))}" aria-haspopup="true"${inG(s,cur)?' aria-current="true"':''}>${esc(s[1])}${CARET}</a><div class="gdd-m${cols.length?' wide':''}${!cols.length&&rest.length>5?' grid':''}">${cols.length?`<div class="gcols">${cols.map(x=>col(x,cur)).join('')}</div>`:''}${rest.map(x=>link(x,cur)).join('')}</div></div>`};
-const STAR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.8l2.7 5.9 6.4.7-4.8 4.3 1.4 6.3L12 16.7l-5.7 3.3 1.4-6.3L2.9 9.4l6.4-.7z"/></svg>';
+const STAR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"/></svg>';
 const TG='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.5ZM8.3 13.2l9.6-6c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-5Z"/></svg>';
 
 /* page-local меню-якоря: забираем до перерисовки */
@@ -91,11 +106,11 @@ hd.innerHTML=`<div class="wrap hdrow">
   </nav>
   ${sec?`<nav class="gnav" aria-label="Разделы сайта">${sec.map(s=>top(s,act)).join('')}</nav>`:'<span class="gnav-sp"></span>'}
   <a class="hd-me" href="${esc(U('me/index.html'))}"${file==='index.html'&&dir==='me'?' aria-current="page"':''} title="Мой JARVIS — избранные клубы">${STAR}<span>Мой JARVIS</span></a>
-  <button type="button" class="sbtn" aria-label="Поиск по сайту" aria-haspopup="dialog" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><kbd aria-hidden="true">/</kbd></button>
+  <button type="button" class="sbtn" aria-label="Поиск по сайту" aria-haspopup="dialog" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/> <path d="M21 21l-6 -6"/></svg><span class="sb-t">Поиск</span><kbd aria-hidden="true">/</kbd></button>
   <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener" aria-label="Получать прогнозы в Telegram — бесплатно">${TG}<span>Получать прогнозы<span class="tl"> — бесплатно</span></span></a>
   <button type="button" class="mbtn" id="mbtn" aria-expanded="false" aria-controls="mpanel"><span class="mi" aria-hidden="true"></span><span class="mt">Меню</span></button>
 </div>
-<div class="mpanel" id="mpanel" hidden>${mseg}<a class="mme" href="${esc(U('me/index.html'))}">${STAR}<span>Мой JARVIS</span></a><button type="button" class="msearch" id="msearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><span>Поиск: клуб, игрок, матч</span></button>${panel}<a class="mtg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Получать прогнозы — бесплатно</span></a></div>`;
+<div class="mpanel" id="mpanel" hidden>${mseg}<a class="mme" href="${esc(U('me/index.html'))}">${STAR}<span>Мой JARVIS</span></a><button type="button" class="msearch" id="msearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/> <path d="M21 21l-6 -6"/></svg><span>Поиск: клуб, игрок, матч</span></button>${panel}<a class="mtg" href="https://t.me/jarvibet" target="_blank" rel="noopener">${TG}<span>Получать прогнозы — бесплатно</span></a></div>`;
 /* на телефоне в шапке место отдано кнопке подписки: переключатель спорта и поиск живут в меню */
 /* шапка всегда в одну строку (09.11: на 1440–1920 px кнопка уезжала за край): если не влезает — компактнее по шагам, в крайнем случае пункты в «Меню» */
 {const row=hd.querySelector('.hdrow'),L=['hd-c1','hd-c2','hd-c3'];
@@ -107,10 +122,12 @@ hd.innerHTML=`<div class="wrap hdrow">
 hd.querySelectorAll('.gdd>a').forEach(a=>a.addEventListener('click',e=>{if(matchMedia('(hover:none)').matches){const g=a.parentNode;if(!g.classList.contains('open')){e.preventDefault();hd.querySelectorAll('.gdd.open').forEach(x=>x.classList.remove('open'));g.classList.add('open')}}}));
 document.addEventListener('click',e=>{if(!e.target.closest('.gdd'))hd.querySelectorAll('.gdd.open').forEach(x=>x.classList.remove('open'))});
 /* поиск (assets/search.js + search.css) — единственная точка подключения */
-try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('search.css',SRC).href;document.head.appendChild(l);
-  const s=document.createElement('script');s.src=new URL('search.js',SRC).href;s.defer=true;document.head.appendChild(s)}catch(e){}
+try{const l=document.createElement('link');l.rel='stylesheet';l.href=new URL('search.css?v=3',SRC).href;document.head.appendChild(l);
+  const s=document.createElement('script');s.src=new URL('search.js?v=3',SRC).href;s.defer=true;document.head.appendChild(s)}catch(e){}
 /* нижняя панель разделов на телефоне + «одна жёлтая кнопка» (assets/tabbar.js, 14.11) — тоже одна точка подключения */
 try{const s=document.createElement('script');s.src=new URL('tabbar.js',SRC).href;document.head.appendChild(s)}catch(e){}
+/* движение плашек и активных кнопок (assets/motion.js, 17.11) — одна точка подключения */
+try{const s=document.createElement('script');s.src=new URL('motion.js',SRC).href;document.head.appendChild(s)}catch(e){}
 
 /* вторая полоса — якоря страницы */
 let sub=null;
@@ -165,7 +182,7 @@ const box=document.querySelector('.mx-info .wrap');if(!box)return;
 let row=box.querySelector('.mt-rem');
 if(!row){row=document.createElement('div');row.className='mt-rem';box.appendChild(row)}
 const b=document.createElement('button');b.type='button';b.className='mt-share';
-b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/></svg><span>Поделиться матчем</span>';
+b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/> <path d="M7 9l5 -5l5 5"/> <path d="M12 4l0 12"/></svg><span>Поделиться матчем</span>';
 const lab=b.lastChild,say=t=>{lab.textContent=t;setTimeout(()=>{lab.textContent='Поделиться матчем'},2200)};
 b.addEventListener('click',()=>{
  const url=location.origin+location.pathname,title=(document.querySelector('h1')||{}).textContent||document.title;

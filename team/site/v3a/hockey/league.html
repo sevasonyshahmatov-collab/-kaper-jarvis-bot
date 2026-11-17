@@ -1,24 +1,24 @@
 <!doctype html>
 <html lang="ru" data-sport="hockey" data-theme="arena">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8"><script>/*тема: «Ночная арена» по умолчанию; ?bg=0 — старая*/(function(){var d=document.documentElement;try{var q=new URLSearchParams(location.search).get("bg");if(q!==null)sessionStorage.setItem("jv-bg",/^[abcn]$/.test(q)?q:"0");var b=sessionStorage.getItem("jv-bg");if(b===null)b="n";if(b&&b!=="0")d.dataset.bg=b}catch(e){d.dataset.bg="n"}})()</script>
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>КХЛ и НХЛ: таблица, матчи и бомбардиры | JARVIS</title>
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#071225">
+<meta name="theme-color" content="#060b1a">
 <script>(()=>{const t=new URLSearchParams(location.search).get('theme'),d=document.documentElement;if(/^(arena|a|b|c)$/.test(t||''))d.dataset.theme=t;
 document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a1220',b:'#0b2a84',c:'#e3eff9'}[d.dataset.theme]||'#071225'})();</script>
-<script>/* данные лиги — запрос сразу, не после всех скриптов (09.11, скорость) */(function(){var m=/[?&]lg=(nhl)/i.exec(location.search);document.write('<link rel="preload" as="fetch" crossorigin href="data/lgp_'+(m?'nhl':'khl')+'.json">')})()</script>
+<script>/* данные лиги — запрос сразу, не после всех скриптов (09.11, скорость) */(function(){var m=/[?&]lg=(nhl)/i.exec(location.search);document.write('<link rel="preload" as="fetch" crossorigin href="/hockey/data/lgp_'+(m?'nhl':'khl')+'.json">')})()</script>
 <link rel="preload" as="script" href="../assets/vendor/gsap.min.js" media="(min-width: 621px)">
 <link rel="preload" as="script" href="../assets/vendor/SplitText.min.js" media="(min-width: 621px)">
 <link rel="stylesheet" href="../assets/v3a.css">
 <link rel="stylesheet" href="../assets/nav.css">
 <link rel="stylesheet" href="../assets/football.css">
 <link rel="stylesheet" href="../assets/league.css">
-<link rel="icon" href="../favicon.svg" type="image/svg+xml">
-<link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="icon" href="../favicon.svg?v=3" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png?v=3" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png?v=3">
 <link rel="manifest" href="../site.webmanifest">
 <script src="../assets/efir/efir-loader.js"></script>
 <script src="../assets/palettes.js"></script>
@@ -43,7 +43,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
       <a href="../football/index.html">Футбол</a>
     </nav>
     <nav class="nav" aria-label="Разделы">
-      <a href="#table">Таблица</a><a href="#next">Матчи</a><a href="#results">Результаты</a><a href="#players">Игроки</a><a href="#stats">Статистика</a>
+      <a href="#table">Таблица</a><a href="#next">Матчи</a><a href="#results">Результаты</a><a href="players_khl.html" data-pl>Игроки</a><a href="#stats">Статистика</a><a href="#clubs">Клубы</a>
     </nav>
     <a class="btn btn-tg" href="https://t.me/jarvibet" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 3.2 2.9 10.4c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.6-1.4ZM9.4 13.3l9-5.7-7.2 6.6-.3 3.2-1.5-4.1Z"/></svg><span>@jarvibet</span></a>
   </div>
@@ -63,20 +63,21 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <section class="sec lgsec" id="results" data-zone="p1">
   <div class="wrap" id="resultsBox"></div>
 </section>
-<section class="sec lgsec" id="players" data-zone="p2">
-  <div class="wrap" id="playersBox"></div>
-</section>
 <section class="sec lgsec" id="stats" data-zone="p3">
   <div class="wrap" id="statsBox"></div>
+</section>
+<section class="sec lgsec" id="clubs" data-zone="p1">
+  <div class="wrap" id="clubsBox"></div>
 </section>
 </main>
 
 <a class="tgbar" id="tgbar" href="https://t.me/jarvibet" target="_blank" rel="noopener"><span>Получать прогнозы — бесплатно</span><span aria-hidden="true">›</span></a>
 
-<script src="../assets/data/teams-lite.js"></script>
+<script src="/assets/data/teams-lite.js"></script>
 <script src="../assets/nav.js"></script>
 <script src="../assets/footer.js"></script>
 <script src="../assets/v3a.js"></script>
+<script src="../assets/club/jersey.js"></script>
 <script src="../assets/league-hockey.js"></script>
 <script src="../assets/titles.js" defer></script>
 </body>

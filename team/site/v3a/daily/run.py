@@ -180,6 +180,11 @@ def step_seo():
     return sh([PY, os.path.join(C.V3A, 'seo', 'build_seo.py')], cwd=C.REPO).strip().split('\n')[-1]
 
 
+def step_head():
+    """seo/head_fix.py: тема «Ночная арена» с первого кадра, цвет строки браузера, версия иконок — во всех страницах (после seo)."""
+    return sh([PY, os.path.join(C.V3A, 'seo', 'head_fix.py')], cwd=C.REPO).strip().split('\n')[-1]
+
+
 def step_check():
     t = C.jload(os.path.join(C.V3A, 'assets', 'data', 'teams.json'), {})
     games = [g for x in (t.get('teams') or {}).values() for g in x['games']]
@@ -200,7 +205,7 @@ def step_check():
 STEPS = [('teamcode', step_teamcode), ('live', step_live), ('hockey_season', step_hockey_season), ('foot_raw', step_foot_raw),
          ('foot_build', step_foot_build), ('foot_lineups', step_foot_lineups), ('foot_photos', step_foot_photos),
          ('foot_players', step_foot_players), ('foot_trends', step_foot_trends), ('nhl_players', step_nhl_players),
-         ('khl_players', step_khl_players), ('hk_photos', step_hk_photos), ('lines_model', step_lines_model), ('teams_build', step_teams_build), ('split', step_split), ('deck_bg', step_deck_bg), ('results', step_results), ('search', step_search), ('seo', step_seo), ('check', step_check)]
+         ('khl_players', step_khl_players), ('hk_photos', step_hk_photos), ('lines_model', step_lines_model), ('teams_build', step_teams_build), ('split', step_split), ('deck_bg', step_deck_bg), ('results', step_results), ('search', step_search), ('seo', step_seo), ('head', step_head), ('check', step_check)]
 
 
 def write_log():

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ru" data-sport="football" data-theme="arena">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8"><script>/*тема: «Ночная арена» по умолчанию; ?bg=0 — старая*/(function(){var d=document.documentElement;try{var q=new URLSearchParams(location.search).get("bg");if(q!==null)sessionStorage.setItem("jv-bg",/^[abcn]$/.test(q)?q:"0");var b=sessionStorage.getItem("jv-bg");if(b===null)b="n";if(b&&b!=="0")d.dataset.bg=b}catch(e){d.dataset.bg="n"}})()</script>
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <base href="../../football/">
@@ -9,7 +9,7 @@
 <script>document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest('a[href^="#"]');if(!a)return;var id=decodeURIComponent(a.getAttribute("href").slice(1)),t=id&&document.getElementById(id);if(!t)return;e.preventDefault();t.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth"});try{history.replaceState(null,"",location.pathname+location.search+"#"+id)}catch(x){}},true);</script>
 <title>Хетафе: матчи, таблица и прогнозы модели, Ла Лига</title>
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#071225">
+<meta name="theme-color" content="#060b1a">
 <script>(()=>{const c=new URLSearchParams(location.search).get("ctx");if(c==="ucl"||c==="uel")document.documentElement.dataset.theme=c})();</script>
 <script>(function(){var m=[0,"getafe"];if(m)document.write('<link rel="preload" as="script" href="data/club/'+m[1].toLowerCase()+'.js">')})()</script>
 <link rel="preload" as="script" href="../assets/vendor/gsap.min.js" media="(min-width: 621px)">
@@ -19,9 +19,9 @@
 <link rel="stylesheet" href="../assets/team.css">
 <link rel="stylesheet" href="../assets/football.css">
 <link rel="stylesheet" href="../assets/ucl.css">
-<link rel="icon" href="../favicon.svg" type="image/svg+xml">
-<link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="icon" href="../favicon.svg?v=3" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png?v=3" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png?v=3">
 <link rel="manifest" href="../site.webmanifest">
 <script src="../assets/efir/efir-loader.js"></script>
 <script src="../assets/palettes.js"></script>

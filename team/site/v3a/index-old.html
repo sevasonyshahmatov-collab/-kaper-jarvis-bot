@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="ru" data-theme="a">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8"><script>/*тема: «Ночная арена» по умолчанию; ?bg=0 — старая*/(function(){var d=document.documentElement;try{var q=new URLSearchParams(location.search).get("bg");if(q!==null)sessionStorage.setItem("jv-bg",/^[abcn]$/.test(q)?q:"0");var b=sessionStorage.getItem("jv-bg");if(b===null)b="n";if(b&&b!=="0")d.dataset.bg=b}catch(e){d.dataset.bg="n"}})()</script>
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>JARVIS: прогнозы на хоккей и футбол по собственной модели</title>
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#0a1220">
+<meta name="theme-color" content="#060b1a">
 <script>/* вариант первого экрана: ?v=1 (ночная арена, по умолчанию) или ?v=2 (газетный, светлый); палитра: ?theme=a|b|c */
 (()=>{const q=new URLSearchParams(location.search),v=q.get('v')==='2'?2:1,t=q.get('theme')||(v===2?'c':''),d=document.documentElement;d.dataset.v=v;if(/^[abc]$/.test(t||''))d.dataset.theme=t;
 document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84',c:'#e3eff9'}[d.dataset.theme]||'#0a1220'})();</script>
@@ -15,9 +15,9 @@ document.querySelector('meta[name=theme-color]').content={a:'#0a1220',b:'#0b2a84
 <link rel="stylesheet" href="assets/home.css">
 <link rel="stylesheet" href="assets/obj.css">
 <style>.soon{background:var(--card);border:1px solid var(--rule-2);border-radius:14px;padding:clamp(20px,3vw,32px);display:grid;gap:12px;justify-items:start;max-width:640px}.soon b{font:800 30px/1 var(--display);color:var(--signal)}[data-theme=c] .soon b{color:var(--ink)}.soon p{margin:0;color:var(--ink-2)}</style>
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.svg?v=3" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png?v=3" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=3">
 <link rel="manifest" href="site.webmanifest">
 <script src="assets/efir/efir-loader.js"></script>
 <script src="assets/palettes.js"></script>

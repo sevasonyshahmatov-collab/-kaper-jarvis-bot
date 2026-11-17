@@ -176,3 +176,214 @@ body{--sep:color-mix(in srgb,var(--ink) 13%,transparent)}
   .lgpgrid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:32px;align-items:start}
   .lgpgrid #plMore{margin-top:0;grid-template-columns:1fr}
 }
+
+/* ══ 17.11 — шапка лиги: переключатель лиг справа от «назад», цифры сезона — карточками, вкладки единым «пультом» ══ */
+.lghero{padding-bottom:clamp(36px,4.4vw,68px)}
+[data-theme] .lghero>.wrap,.lghero>.wrap{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"crumb" "row" "facts" "chips";align-items:center;column-gap:16px;align-content:start;row-gap:0}
+/* хоккей: лиг две — переключатель в верхней строке справа; футбол: лиг много — лентой под цифрами */
+[data-sport="hockey"] .lghero>.wrap{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"crumb chips" "row row" "facts facts"}
+[data-sport="football"] .lghero .chips{justify-self:start;max-width:100%;margin-top:14px;overflow-x:auto;scrollbar-width:none}
+[data-sport="football"] .lghero .chips a{white-space:nowrap}
+.lghero .crumb{grid-area:crumb;justify-self:start;margin-bottom:0;padding:9px 14px 9px 10px;font-size:14px;border-radius:var(--rc,10px);
+  background:color-mix(in srgb,var(--ink) 7%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 10%,transparent);transition:background .18s ease,color .18s ease}
+.lghero .crumb:hover{text-decoration:none;background:color-mix(in srgb,var(--ink) 13%,transparent)}
+.lghero .lgrow,.lghero>.wrap>.lgname{grid-area:row;margin-top:clamp(22px,3vw,40px)}
+.lghero .facts{grid-area:facts}
+.lghero .chips{grid-area:chips;margin:0;flex-wrap:nowrap;gap:2px;padding:4px;border-radius:var(--rc,12px);
+  background:color-mix(in srgb,var(--ink) 7%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 10%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.lghero .chips a{padding:6px 14px 6px 6px;font:700 15px/1 var(--display);background:none;color:var(--ink-2);border-radius:max(2px,calc(var(--rc,12px) - 3px))}
+.lghero .chips a:hover{background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}
+.lghero .chips a[aria-current]{background:var(--ink);color:var(--paper)}
+.lghero .chips .lgp{--s:18px}
+.lgbig{box-shadow:0 24px 40px -22px rgba(0,0,0,.7)}
+.lgname .tmlg{margin-bottom:12px;font:700 13px/1.3 var(--display);letter-spacing:.12em;text-transform:uppercase;color:color-mix(in srgb,var(--sport) 70%,var(--ink))}
+.lghero .facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:clamp(26px,3.2vw,44px)}
+.lghero .facts li{position:relative;display:grid;align-content:start;gap:10px;padding:20px 20px 18px;border-radius:var(--rc,14px);overflow:hidden;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--ink) 10%,transparent),color-mix(in srgb,var(--ink) 4%,transparent));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 12%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.lghero .facts li::before{content:"";position:absolute;left:20px;top:0;width:34px;height:3px;background:var(--sport)}
+.lghero .facts b{font:900 clamp(34px,3.4vw,52px)/.95 var(--display);letter-spacing:-.02em}
+.lghero .facts li>span{font:500 14px/1.3 var(--display);color:var(--ink-2)}
+.lghero .facts .fbar{display:block;height:4px;margin-top:2px;border-radius:2px;background:color-mix(in srgb,var(--ink) 14%,transparent);overflow:hidden}
+.lghero .facts .fbar i{display:block;height:100%;background:var(--sport);border-radius:2px}
+@media (max-width:900px){
+  [data-sport="hockey"] .lghero>.wrap{grid-template-columns:minmax(0,1fr);grid-template-areas:"crumb" "row" "facts" "chips"}
+  .lghero .facts{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .lghero .facts li{padding:16px 14px 14px;gap:8px}.lghero .facts li::before{left:14px}
+  .lghero .chips{justify-self:start;margin-top:16px}
+  .lghero .crumb{min-height:40px}
+}
+/* вкладки в разделах («По конференциям / Вся лига», сортировка игроков) — одним блоком, выбранная залита */
+.lgsw{display:inline-flex;flex-wrap:nowrap;max-width:100%;gap:2px;padding:4px;margin:0 0 20px;border-radius:var(--rc,12px);
+  background:color-mix(in srgb,var(--ink) 6%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 8%,transparent)}
+.lgsw .tab{padding:10px 16px;font:700 15px/1 var(--display);background:none;color:var(--ink-2);border-radius:max(2px,calc(var(--rc,12px) - 3px));white-space:nowrap}
+.lgsw .tab:hover{background:color-mix(in srgb,var(--ink) 9%,transparent);color:var(--ink)}
+.lgsw .tab[aria-selected="true"]{background:var(--ink);color:var(--paper);box-shadow:0 6px 14px -8px rgba(0,0,0,.5)}
+
+/* 17.11 — у каждой лиги свой фон шапки (league-hockey.js ставит <html data-lg>): НХЛ — графит, серебро и холодный лёд;
+   КХЛ — синий с красным, цвета эмблемы. Акцент карточек и подписи — в тон. */
+.lghero{position:relative;isolation:isolate}
+.lghero::before,.lghero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+html[data-lg="nhl"] .lghero{--lga:#c9d6e6}
+html[data-lg="khl"] .lghero{--lga:#ff4a5c}
+html[data-lg="nhl"] .lghero::before{background:
+  radial-gradient(60% 90% at 88% 0%,rgba(214,226,240,.20),transparent 62%),
+  radial-gradient(50% 80% at 0% 100%,rgba(120,150,190,.16),transparent 60%),
+  linear-gradient(180deg,rgba(9,11,16,.90),rgba(13,17,25,.82) 55%,rgba(8,10,15,.94))}
+html[data-lg="nhl"] .lghero::after{opacity:.5;background:linear-gradient(transparent,transparent);
+  -webkit-mask-image:linear-gradient(90deg,transparent 30%,#000);mask-image:linear-gradient(90deg,transparent 30%,#000)}
+html[data-lg="khl"] .lghero::before{background:
+  radial-gradient(55% 95% at 92% 8%,rgba(226,30,54,.42),transparent 62%),
+  radial-gradient(60% 90% at 4% 96%,rgba(20,96,230,.40),transparent 62%),
+  linear-gradient(120deg,rgba(6,24,74,.86),rgba(8,20,58,.72) 55%,rgba(52,8,24,.80))}
+html[data-lg="khl"] .lghero::after{background:linear-gradient(115deg,transparent 0 61%,rgba(255,255,255,.07) 61% 61.5%,transparent 61.5% 64%,rgba(226,30,54,.20) 64% 67%,transparent 67%)}
+html[data-lg] .lghero .facts li::before,html[data-lg] .lghero .facts .fbar i{background:var(--lga)}
+html[data-lg] .lgname .tmlg{color:var(--lga)}
+
+/* 17.11 — футбольные лиги: фон шапки в цветах лиги (league-foot.js ставит <html data-lg>) */
+html[data-lg="epl"] .lghero{--c1:#3d195b;--c2:#00ff85}
+html[data-lg="laliga"] .lghero{--c1:#3a1418;--c2:#ff4b44}
+html[data-lg="seriea"] .lghero{--c1:#0f3d91;--c2:#2fb8ff}
+html[data-lg="bundesliga"] .lghero{--c1:#8f0c16;--c2:#ffffff}
+html[data-lg="ligue1"] .lghero{--c1:#0b1d3f;--c2:#dae025}
+html[data-lg="rpl"] .lghero{--c1:#12306f;--c2:#e8452c}
+html[data-lg="ucl"] .lghero{--c1:#06164a;--c2:#7fb2ff}
+html[data-lg="uel"] .lghero{--c1:#3a2206;--c2:#ff8a1f}
+html[data-sport="football"][data-lg] .lghero{--lga:var(--c2)}
+html[data-sport="football"][data-lg] .lghero::before{background:
+  radial-gradient(55% 95% at 92% 6%,color-mix(in srgb,var(--c2) 30%,transparent),transparent 62%),
+  radial-gradient(60% 90% at 4% 96%,color-mix(in srgb,var(--c1) 85%,transparent),transparent 64%),
+  linear-gradient(120deg,color-mix(in srgb,var(--c1) 70%,rgba(5,8,15,.9)),rgba(6,10,20,.80) 60%,color-mix(in srgb,var(--c1) 45%,rgba(5,8,15,.92)))}
+html[data-sport="football"][data-lg] .lghero::after{background:linear-gradient(115deg,transparent 0 61%,rgba(255,255,255,.06) 61% 61.5%,transparent 61.5% 64%,color-mix(in srgb,var(--c2) 16%,transparent) 64% 67%,transparent 67%)}
+/* 17.11 — движение в шапке лиги: свет на фоне медленно «дышит», полосы плывут, эмблема лиги парит и по ней пробегает блик */
+.lghero{overflow:hidden}
+.lgbig{position:relative;overflow:hidden}
+.lgbig::after{content:"";position:absolute;top:-20%;bottom:-20%;left:-60%;width:45%;transform:skewX(-20deg);pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.38),transparent)}
+.lgbig img{position:relative}
+@media (prefers-reduced-motion:no-preference){
+  html[data-lg] .lghero::before{inset:-8%;animation:lgGlow 14s ease-in-out infinite alternate}
+  html[data-lg] .lghero::after{inset:0 -20%;animation:lgSlide 18s linear infinite alternate}
+  .lgbig{animation:lgFloat 5.5s ease-in-out infinite}
+  .lgbig::after{animation:lgShine 5.5s ease-in-out infinite}
+  .lgbig img{animation:lgPulse 5.5s ease-in-out infinite}
+  .lghero .facts .fbar i{transform-origin:0 50%;animation:lgBar 1.1s cubic-bezier(.23,1,.32,1) .25s both}
+  .lghero .facts li{transition:transform .2s ease,box-shadow .2s ease}
+  .lghero .facts li:hover{transform:translateY(-3px);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lga,var(--sport)) 55%,transparent),0 18px 30px -22px rgba(0,0,0,.7)}
+}
+@keyframes lgGlow{0%{transform:translate3d(-2%,-1%,0) scale(1)}100%{transform:translate3d(3%,2%,0) scale(1.08)}}
+@keyframes lgSlide{0%{transform:translate3d(-6%,0,0)}100%{transform:translate3d(6%,0,0)}}
+@keyframes lgFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-7px) rotate(-1.2deg)}}
+@keyframes lgPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes lgShine{0%,55%{transform:translateX(-160%) skewX(-20deg)}85%,100%{transform:translateX(330%) skewX(-20deg)}}
+@keyframes lgBar{from{transform:scaleX(0)}to{transform:none}}
+
+/* ══ 17.11 — раздел «Клубы»: плитки в цветах клуба ══ */
+.clubs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.clubs li{min-width:0}
+.clb{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto 1fr auto auto;grid-template-areas:"pl em" "nm nm" "st st" "fm fm";align-items:end;gap:6px 10px;min-height:206px;padding:16px 16px 14px 30px;
+  border-radius:var(--rc,16px);color:var(--ko);text-decoration:none;
+  background:linear-gradient(118deg,transparent 0 60%,color-mix(in srgb,var(--ks) 16%,transparent) 60% 72%,transparent 72%),linear-gradient(150deg,var(--kb) 0,var(--kb) 48%,var(--kbm) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 18px 30px -22px color-mix(in srgb,var(--kb) 70%,#000);transition:transform .2s cubic-bezier(.23,1,.32,1),box-shadow .2s ease}
+.clb::before{content:"";position:absolute;z-index:-1;left:-12px;top:-6px;bottom:-6px;width:32px;transform:skewX(-8deg);background:linear-gradient(90deg,var(--ks) 0 12px,var(--kt) 12px 16px,var(--ks) 16px 20px,transparent 20px)}
+.clb .wm{position:absolute;z-index:-1;right:-34px;bottom:-34px;width:170px;height:170px;object-fit:contain;opacity:.14;pointer-events:none;transition:transform .35s cubic-bezier(.23,1,.32,1)}
+.clb .cpl{grid-area:pl;align-self:start;display:flex;align-items:baseline;gap:7px;font:900 34px/1 var(--display);letter-spacing:-.02em}
+.clb .cpl small{font:700 11px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--ko2)}
+.clb .cem{grid-area:em;align-self:start;display:grid;place-items:center;width:64px;height:64px;border-radius:var(--rc,14px);background:#fff;box-shadow:0 0 0 1px rgba(11,18,34,.10),0 8px 16px -8px rgba(0,0,0,.5);transition:transform .25s cubic-bezier(.23,1,.32,1)}
+.clb .cem img{width:46px;height:46px;object-fit:contain}
+.clb .cnm{grid-area:nm;align-self:end;font:900 21px/1.08 var(--display);letter-spacing:-.005em;text-wrap:balance}
+.clb .cst{grid-area:st;font:600 13px/1.2 var(--display);color:var(--ko2);white-space:nowrap}
+.clb .cst b{font-weight:900;font-size:15px;color:var(--ko)}
+.clb .cfm{grid-area:fm;display:flex;gap:4px;align-items:center}
+.clb .cfm i{width:8px;height:8px;border-radius:50%;background:color-mix(in srgb,var(--ko) 38%,transparent)}
+.clb .cfm i.w{background:#2fd27a;box-shadow:0 0 0 1.5px rgba(0,0,0,.25)}
+.clb .cfm i.l{background:#ff5766;box-shadow:0 0 0 1.5px rgba(0,0,0,.25)}
+.clb:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+@media (hover:hover){.clb:hover{transform:translateY(-5px);box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 26px 36px -22px color-mix(in srgb,var(--kb) 80%,#000)}
+  .clb:hover .cem{transform:scale(1.08) rotate(-3deg)}.clb:hover .wm{transform:scale(1.12) rotate(-6deg)}}
+@media (max-width:620px){.clubs{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .clb{min-height:170px;padding:12px 12px 12px 24px}
+  .clb .cpl{font-size:26px}.clb .cpl small{font-size:10px}.clb .cem{width:48px;height:48px}.clb .cem img{width:34px;height:34px}.clb .cnm{font-size:17px}.clb .cst{font-size:12px}}
+@media (prefers-reduced-motion:reduce){.clb,.clb .cem,.clb .wm{transition:none}}
+
+/* 17.11 — плитка клуба: по эмблеме на фоне бежит блик (по очереди у плиток; при наведении — сразу) */
+.clb .wms{position:absolute;z-index:-1;right:-34px;bottom:-34px;width:170px;height:170px;pointer-events:none;-webkit-mask:var(--em) center/contain no-repeat;mask:var(--em) center/contain no-repeat;
+  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.2) 45%,rgba(255,255,255,.9) 50%,rgba(255,255,255,.2) 55%,transparent 60%) 130% 0/320% 100% no-repeat}
+@media (prefers-reduced-motion:no-preference){
+  .clb .wms{animation:clbShine 7s cubic-bezier(.4,0,.2,1) infinite}
+  .clubs li:nth-child(3n+2) .wms{animation-delay:1.2s}.clubs li:nth-child(3n) .wms{animation-delay:2.4s}
+  .clb:hover .wms{animation-duration:1.6s;animation-delay:0s}
+}
+@keyframes clbShine{0%{background-position:130% 0}30%,100%{background-position:-40% 0}}
+
+/* 17.11 — плитка клуба: одна эмблема — крупная, непрозрачная (белый квадратик с дублем убран, владелец). Тонкая светлая обводка,
+   чтобы эмблема в цвет фона (Тампа, Торонто, Динамо…) не сливалась с плиткой */
+.clb{grid-template-areas:"pl pl" "nm nm" "st st" "fm fm";min-height:216px}
+.clb .wm,.clb .wms{right:12px;top:12px;bottom:auto;width:128px;height:128px}
+.clb .wm{z-index:0;opacity:1;filter:drop-shadow(1.5px 0 0 rgba(255,255,255,.85)) drop-shadow(-1.5px 0 0 rgba(255,255,255,.85)) drop-shadow(0 1.5px 0 rgba(255,255,255,.85)) drop-shadow(0 -1.5px 0 rgba(255,255,255,.85)) drop-shadow(0 10px 14px rgba(0,0,0,.35))}
+.clb .wms{z-index:1}
+.clb .cpl,.clb .cnm,.clb .cst,.clb .cfm{position:relative;z-index:2}
+.clb .cnm{max-width:100%;text-shadow:0 1px 10px color-mix(in srgb,var(--kb) 80%,transparent)}
+@media (hover:hover){.clb:hover .wm{transform:scale(1.08) rotate(-4deg)}}
+@media (max-width:620px){.clb{min-height:178px}.clb .wm,.clb .wms{right:8px;top:8px;width:92px;height:92px}}
+.clb .cpl{flex-direction:column;align-items:flex-start;gap:5px;max-width:calc(100% - 132px)}
+@media (max-width:620px){.clb .cpl{max-width:calc(100% - 96px)}}
+/* 17.11 (2) — эмблема крупная и непрозрачная, но лежит ПОД текстом (владелец): справа снизу, частично за краем плитки;
+   под подписями — затемнение в цвет клуба, чтобы название и очки читались поверх эмблемы */
+.clb .wm,.clb .wms{top:auto;right:-26px;bottom:-22px;width:200px;height:200px}
+.clb::after{content:"";position:absolute;z-index:1;inset:0;pointer-events:none;
+  background:linear-gradient(to top,color-mix(in srgb,var(--kb) 96%,transparent) 0,color-mix(in srgb,var(--kb) 78%,transparent) 26%,transparent 58%),linear-gradient(to right,color-mix(in srgb,var(--kb) 70%,transparent) 0,transparent 55%)}
+.clb .wms{z-index:1}
+.clb .cpl{max-width:none}
+.clb .cnm,.clb .cst{text-shadow:0 1px 2px color-mix(in srgb,var(--kb) 90%,transparent),0 0 14px var(--kb)}
+@media (max-width:620px){.clb .wm,.clb .wms{top:auto;right:-20px;bottom:-16px;width:150px;height:150px}.clb .cpl{max-width:none}}
+/* 17.11 (3) — эмблема на том же месте, что в первом варианте плитки (правый нижний угол, частично за краем), но крупнее и непрозрачная;
+   затемнение под подписями лёгкое — только у нижней кромки */
+.clb .wm,.clb .wms{top:auto;right:-34px;bottom:-34px;width:200px;height:200px}
+.clb::after{background:linear-gradient(to top,color-mix(in srgb,var(--kb) 82%,transparent) 0,color-mix(in srgb,var(--kb) 45%,transparent) 22%,transparent 46%)}
+@media (max-width:620px){.clb .wm,.clb .wms{top:auto;right:-26px;bottom:-26px;width:150px;height:150px}}
+
+/* ══ 17.11 — правки по ревью анимаций (.claude/skills/review-animations) ══
+   блик эмблемы лиги и плиток — transform вместо left/background-position; на плитках блик не крутится постоянно у всех 20–32 штук,
+   а пробегает при наведении (на сенсорных экранах — редкий фоновый); наведение — только для мыши; отклик на нажатие */
+:root{--ease-out:cubic-bezier(.23,1,.32,1)}
+.lgbig::after{left:0;transform:translateX(-160%) skewX(-20deg);will-change:transform}
+.lghero .facts .fbar i{animation-duration:.6s}
+.lghero .facts li:hover{transform:none;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 12%,transparent)}
+.clb .wms{animation:none}
+.clb:hover .wms{animation:none}
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+  .lghero .facts li:hover{transform:translateY(-3px);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lga,var(--sport)) 55%,transparent),0 18px 30px -22px rgba(0,0,0,.7)}
+  .clb:hover .wms::before{transform:translateX(300%);transition:transform .7s var(--ease-out)}
+}
+@media (hover:none) and (prefers-reduced-motion:no-preference){
+  .clb .wms::before{animation:wmSweepT 9s cubic-bezier(.4,0,.2,1) infinite}
+  .clubs li:nth-child(3n+2) .wms::before{animation-delay:3s}.clubs li:nth-child(3n) .wms::before{animation-delay:6s}
+}
+@keyframes wmSweepT{0%{transform:translateX(-120%)}22%,100%{transform:translateX(300%)}}
+.clb{transition:transform .2s var(--ease-out),box-shadow .2s ease}
+.clb:active{transform:scale(.98)}
+.lgsw .tab{transition:background .18s ease,color .18s ease,transform .16s var(--ease-out)}
+.lgsw .tab:active,.lghero .chips a:active{transform:scale(.97)}
+/* полоса блика внутри маски эмблемы (на страницах лиг players.css не подключён — задаём здесь) */
+.clb .wms{background:none;overflow:hidden}
+.clb .wms::before{content:"";position:absolute;top:0;bottom:0;left:0;width:55%;transform:translateX(-120%);
+  background:linear-gradient(105deg,transparent 0,rgba(255,255,255,.2) 28%,rgba(255,255,255,.9) 50%,rgba(255,255,255,.2) 72%,transparent 100%)}
+
+/* Плитки клубов v3: только цвета клуба, без косых полос и жёстких кромок (на экране давали «лесенку»/пиксели) */
+.clb{background:radial-gradient(90% 80% at 100% 100%,color-mix(in srgb,var(--ks) 22%,transparent),transparent 70%),linear-gradient(155deg,color-mix(in srgb,var(--kb) 88%,#fff) 0%,var(--kb) 38%,var(--kbm) 100%)}
+.clb::before{display:none}
+.clb .wm{filter:drop-shadow(0 8px 16px rgba(0,0,0,.35))}
+/* полосы возвращены, но со сглаженными краями (переход 1px вместо жёсткой кромки) */
+.clb::before{display:block;background:linear-gradient(90deg,var(--ks) 0 11.5px,var(--kt) 12.5px 15.5px,var(--ks) 16.5px 19.5px,transparent 20.5px)}
+.clb{background:linear-gradient(118deg,transparent 0 59%,color-mix(in srgb,var(--ks) 16%,transparent) 61% 71%,transparent 73%),radial-gradient(90% 80% at 100% 100%,color-mix(in srgb,var(--ks) 22%,transparent),transparent 70%),linear-gradient(155deg,color-mix(in srgb,var(--kb) 88%,#fff) 0%,var(--kb) 38%,var(--kbm) 100%)}
+
+/* Клубы на телефоне (17.11, владелец: «листать все клубы с телефона очень долго»): два ряда, лента листается вбок */
+@media (max-width:620px){
+  .clubs{grid-template-columns:none;grid-template-rows:repeat(2,auto);grid-auto-flow:column;grid-auto-columns:44vw;gap:8px;
+    overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scroll-padding-left:16px;
+    margin:0 -16px;padding:4px 16px 10px;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+  .clubs::-webkit-scrollbar{display:none}
+  .clubs>li{scroll-snap-align:start}
+  .clubs .clb{min-height:150px}
+}

@@ -14,7 +14,7 @@ function html(l){
  const pl=l.photo?`<img class="pl${l.photoCls?' '+l.photoCls:''}" src="${l.photo}" alt="" draggable="false">`:`<img class="pl emb${l.photoCls?' '+l.photoCls:''}" src="${l.club}" alt="" draggable="false">`;
  const grid=l.clubs.map(c=>`<a href="${c.href}" title="${esc(c.n)}" aria-label="${esc(c.n)}: страница команды"><img src="${c.src}" alt="" loading="lazy" width="64" height="64"></a>`).join('');
  const n=l.clubs.length;
- return `<div class="lcard ${l.id}" id="lg-${l.id}" tabindex="0" role="group" aria-roledescription="карточка" aria-label="${esc(l.name)}: нажми, чтобы увидеть клубы" data-lg="${l.id}" style="--cols:${l.cols}">
+ return `<div class="lcard ${l.id}" id="lg-${l.id}" tabindex="0" role="group" aria-roledescription="карточка" aria-label="${esc(l.name)}: открыть страницу лиги" data-lg="${l.id}" style="--cols:${l.cols}">
  <div class="shd"></div>
  <div class="tilt"><div class="flip">
   <div class="face front">
@@ -45,8 +45,10 @@ function mount(el,leagues){
   /* оборот на телефоне: значки не влезли — затухание снизу, пока не долистали (подсказка «есть ещё») */
   const cg=c.querySelector('.cg'),more=()=>{if(cg)cg.classList.toggle('more',cg.scrollHeight-cg.clientHeight-cg.scrollTop>4)};
   if(cg){cg.addEventListener('scroll',more,{passive:true});addEventListener('resize',more)}
-  c.addEventListener('click',e=>{if(e.target.closest('a'))return;flip(!c.classList.contains('is-flip'));more()});
-  c.addEventListener('keydown',e=>{if(e.target!==c)return;if(e.key==='Enter'||e.key===' '){e.preventDefault();flip(!c.classList.contains('is-flip'));more()}else if(e.key==='Escape')flip(false)});
+  /* 17.11 (владелец): нажатие на карточку — сразу страница лиги, без переворота и без кнопки */
+  const go=()=>{const a=c.querySelector('.front a.open');if(a)location.href=a.href};
+  c.addEventListener('click',e=>{if(e.target.closest('a'))return;go()});
+  c.addEventListener('keydown',e=>{if(e.target!==c)return;if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}else if(e.key==='Escape')flip(false)});
   if(RM)return;
   const rect=()=>{s.rect=c.getBoundingClientRect()};
   const move=e=>{

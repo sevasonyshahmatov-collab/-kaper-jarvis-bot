@@ -22,7 +22,7 @@ const F=window.JVFav={
   clear(){mem=[];try{localStorage.clear()}catch(e){}try{sessionStorage.clear()}catch(e){}emit()},
   onchange(f){subs.push(f)},
   sync:()=>sync(),
-  btn:(s,id,cls)=>`<button type="button" class="favbtn${cls?' '+cls:''}" data-fav="${s}:${id}" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.7 5.9 6.4.7-4.8 4.3 1.4 6.3L12 16.7l-5.7 3.3 1.4-6.3L2.9 9.4l6.4-.7z"/></svg><span></span></button>`
+  btn:(s,id,cls)=>`<button type="button" class="favbtn${cls?' '+cls:''}" data-fav="${s}:${id}" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"/></svg><span></span></button>`
 };
 /* состояние всех кнопок страницы */
 function sync(){

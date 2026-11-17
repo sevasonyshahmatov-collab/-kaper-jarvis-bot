@@ -295,7 +295,7 @@ function render(){
       if(ST.type!=='all'&&ST.type!==c[0])continue;
       const L=list.filter(t=>t.cat===c[0]&&!used.has(t.id));if(!L.length)continue;
       const all=ST.type!=='all'||ST.open[c[0]]||L.length<=PER+1,shown=all?L:L.slice(0,PER);
-      html+=`<li class="tsec c-${c[0]}" id="t-${c[0]}"><div class="tsec-h"><h2>${esc(c[1])}<span class="num">${L.length}</span></h2><p>${esc(c[2])}</p></div>
+      html+=`<li class="tsec c-${c[0]}" id="t-${c[0]}"><div class="tsec-h"><h2>${(window.JVI||(()=>''))(c[0],'tsi')}${esc(c[1])}<span class="num">${L.length}</span></h2><p>${esc(c[2])}</p></div>
 <ul class="tlist">${shown.map(t=>row(t,false)).join('')}</ul>${L.length>shown.length?`<button type="button" class="tsec-more" data-open="${c[0]}">Ещё ${L.length-shown.length} · ${esc(c[1].toLowerCase())}</button>`:''}</li>`;
     }
     $('#more').hidden=true;
@@ -340,7 +340,7 @@ if(!FB){   // игроков хоккея читаем отдельно: фай�
   S.abbr={};Object.keys(S.teams).forEach(s=>{if(S.teams[s].lg==='nhl')S.abbr[ab(s)]=s});
   // S.abbr: аббревиатура → slug; в игроках НХЛ p.t — аббревиатура, поэтому для byTeam нужен обратный поиск
   const get=u=>fetch(u).then(r=>r.ok?r.json():Promise.reject()).then(j=>j.players.map(p=>(p.log=p.log.map(r=>[r[0],'',r[1],r[2],r[3],r[4],r[5],r[6]]),p)));
-  Promise.allSettled([get('data/plite_nhl.json'),get('data/plite_khl.json')]).then(([n,k])=>{
+  Promise.allSettled([get((window.JVD||(u=>u))('data/plite_nhl.json')),get((window.JVD||(u=>u))('data/plite_khl.json'))]).then(([n,k])=>{
     if(n.status==='fulfilled')S.nhl=n.value;if(k.status==='fulfilled')S.khl=k.value;
     if(S.nhl||S.khl){build();render()}
   });

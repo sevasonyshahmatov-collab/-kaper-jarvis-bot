@@ -139,3 +139,12 @@
   .pp.k.x .pp-hs div{flex:1;padding:0 6px}
   .pp.k.x .pp-hs span{font-size:11px;letter-spacing:.03em}
 }
+
+/* название клуба на фоне (17.11, владелец): по контуру букв периодически проходит белая линия слева направо */
+.pp.k.x .pp-wm.pp-wm-line{-webkit-text-stroke-color:rgba(255,255,255,.95);
+  -webkit-mask-image:linear-gradient(100deg,transparent 0 38%,#000 50%,transparent 62% 100%);mask-image:linear-gradient(100deg,transparent 0 38%,#000 50%,transparent 62% 100%);
+  -webkit-mask-size:320% 100%;mask-size:320% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:100% 0;mask-position:100% 0;filter:drop-shadow(0 0 6px rgba(255,255,255,.55))}
+@media (prefers-reduced-motion:no-preference){.pp.k.x .pp-wm.pp-wm-line{animation:wmLine 8s cubic-bezier(.45,0,.25,1) 1.2s infinite}}
+@media (prefers-reduced-motion:reduce){.pp.k.x .pp-wm.pp-wm-line{display:none}}
+@keyframes wmLine{0%{-webkit-mask-position:100% 0;mask-position:100% 0}45%,100%{-webkit-mask-position:0 0;mask-position:0 0}}

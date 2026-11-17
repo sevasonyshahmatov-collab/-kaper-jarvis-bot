@@ -309,7 +309,7 @@ html.efir .ef-stage .wedge{position:absolute;top:0;bottom:0;width:52%;will-chang
 html.efir .ef-stage .wedge--h{left:0;clip-path:polygon(0 0,100% 0,calc(100% - var(--sk)) 100%,0 100%);background:linear-gradient(90deg,var(--hd) 0%,var(--hd) 22%,var(--hb) 100%);animation:efWH .8s var(--ef-ease) both}
 html.efir .ef-stage .wedge--a{right:0;clip-path:polygon(var(--sk) 0,100% 0,100% 100%,0 100%);background:linear-gradient(270deg,var(--ad) 0%,var(--ad) 22%,var(--ab) 100%);animation:efWA .8s var(--ef-ease) both}
 html.efir .ef-stage .wedge::before{content:"";position:absolute;inset:0;background:#fff;-webkit-mask:var(--mot) 62% 50%/auto 92% no-repeat;mask:var(--mot) 62% 50%/auto 92% no-repeat;opacity:.1}
-html.efir .ef-stage .wedge::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-78deg,rgba(255,255,255,.05) 0 2px,transparent 2px 22px)}
+html.efir .ef-stage .wedge::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent,transparent)}
 @keyframes efWH{from{transform:translateX(-108%)}}@keyframes efWA{from{transform:translateX(108%)}}
 html.efir .ef-stage__big{position:absolute;top:2%;z-index:1;font:900 clamp(54px,12.5vw,190px)/.9 var(--ef-d);letter-spacing:-.04em;color:rgba(255,255,255,.14);-webkit-text-stroke:1px rgba(255,255,255,.3);white-space:nowrap;pointer-events:none;text-transform:uppercase;max-width:50%;overflow:hidden;animation:efUp .9s .3s var(--ef-ease) both}
 html.efir .ef-stage__big--h{left:1.5%}html.efir .ef-stage__big--a{right:1.5%}

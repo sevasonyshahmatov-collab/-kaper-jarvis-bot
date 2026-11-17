@@ -40,12 +40,17 @@ $('hero').innerHTML=`
  </div>
  <ul class="facts" aria-label="Коротко" data-rv>
   <li><b class="num">${ids.length}</b><span>${plural(ids.length,'клуб','клуба','клубов')} в ${CUP?'общем этапе':'лиге'}</span></li>
-  <li><b class="num">${gpMax}<small style="font-size:max(11px,.42em);color:var(--ink-3)"> / ${tours}</small></b><span>${CUP?'сыграно туров общего этапа':'сыграно туров из '+tours}</span></li>
+  <li><b class="num">${gpMax}<small style="font-size:max(11px,.42em);color:var(--ink-3)"> / ${tours}</small></b><span>${CUP?'сыграно туров общего этапа':'сыграно туров из '+tours}</span><i class="fbar" aria-hidden="true"><i style="width:${Math.min(100,Math.round(gpMax/tours*100))}%"></i></i></li>
   <li><b class="num">${M.length}</b><span>${plural(M.length,'матч сыгран','матча сыграно','матчей сыграно')} в сезоне</span></li>
   <li><b class="num" id="fUp">—</b><span id="fUpl">матчей в ближайшие 7 дней</span></li>
  </ul>
  <ul class="chips" aria-label="Другие лиги" data-rv>${KEYS.map(k=>`<li><a href="league.html?lg=${esc(k)}"${k===LG?' aria-current="page"':''}>${LGP(k)}${esc(D.leagues[k].name)}</a></li>`).join('')}</ul>`;
 JV.fitWords('.lgname h1');   /* длинное название лиги — без разрыва слова (09.11) */
+document.documentElement.dataset.lg=LG; /* 17.11: свой фон шапки у каждой лиги (league.css) */
+/* 17.11: цифры шапки «набегают» при появлении */
+if(!matchMedia('(prefers-reduced-motion:reduce)').matches)document.querySelectorAll('#hero .facts b.num').forEach(b=>{const n=b.firstChild;if(!n||n.nodeType!==3)return;const to=parseInt(n.nodeValue,10);if(!(to>0))return;
+ const t0=performance.now(),D=900;const tick=t=>{const k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);n.nodeValue=String(Math.round(to*e));if(k<1)requestAnimationFrame(tick)};n.nodeValue='0';requestAnimationFrame(tick)});
+
 
 /* ── таблица: общая / дома / в гостях ── */
 const ZONE={epl:[[1,4,'z1','Лига чемпионов'],[5,5,'z2','Лига Европы'],[18,20,'z4','Вылет']],laliga:[[1,4,'z1','Лига чемпионов'],[5,6,'z2','Лига Европы'],[18,20,'z4','Вылет']],
@@ -61,6 +66,16 @@ function rowsFor(mode){
    o.gp++;o.gf+=g.gf;o.ga+=g.ga;if(g.gf>g.ga){o.w++;o.pts+=3}else if(g.gf===g.ga){o.d++;o.pts++}else o.l++});return o});
  r.sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga)||b.gf-a.gf||(T[a.id].n<T[b.id].n?-1:1));
  r.forEach((o,i)=>o.place=i+1);return r}
+/* 17.11 — «Клубы»: плитки в цветах клуба (цвета из данных), по местам; ведут на страницу клуба */
+{const hx=c=>/^#?[0-9a-f]{6}$/i.test(String(c||''))?'#'+String(c).replace('#',''):'',lum=h=>{const n=parseInt(h.slice(1),16);return .299*(n>>16)+.587*(n>>8&255)+.114*(n&255)};
+ const rows=ids.map(s=>({...(plRow[s]||{place:99,gp:0,pts:0}),id:s})).sort((a,b)=>a.place-b.place);
+ const fm=s=>(T[s]?T[s].games:[]).filter(g=>sel(g)&&played(g)).slice(-5).map(g=>`<i class="${g.gf>g.ga?'w':g.gf<g.ga?'l':'d'}"></i>`).join('');
+ $('clubsBox').innerHTML=`<div class="sec-head" data-rv><h2>Клубы</h2></div>
+  <ul class="clubs">${rows.map(t=>{const c=(T[t.id]||{}).c||[],kb=hx(c[0])||'#1d2a44',ks=hx(c[1])||'#ffffff',lt=lum(kb)>165,ko=lt?'#10161f':'#ffffff';
+   return `<li><a class="clb" href="${tref(t.id)}" style="--kb:${kb};--kbm:color-mix(in srgb,${kb} 74%,#000);--ks:${ks};--kt:${ko};--ko:${ko};--ko2:${lt?'rgba(16,22,31,.72)':'rgba(255,255,255,.8)'};--kx:${ks}"><img class="wm" src="../assets/fc/l/${encodeURIComponent(t.id)}.webp" alt="" aria-hidden="true" loading="lazy" onerror="this.onerror=null;this.src='../assets/fc/${encodeURIComponent(t.id)}.webp'"><i class="wms" aria-hidden="true" style="--em:url('../assets/fc/${encodeURIComponent(t.id)}.webp')"></i>
+    <span class="cpl"><b>${t.place<99?t.place:'—'}</b><small>место</small></span>
+    <b class="cnm">${esc(nm(t.id))}</b><span class="cst"><b>${t.pts}</b> ${plural(t.pts,'очко','очка','очков')} · ${t.gp} ${plural(t.gp,'матч','матча','матчей')}</span>
+    <span class="cfm" aria-label="Последние матчи">${fm(t.id)}</span></a></li>`}).join('')}</ul>`}
 let mode='all';
 const MODES=[['all','Общая'],['home','Дома'],['away','В гостях']];
 $('tableBox').innerHTML=`
@@ -128,30 +143,11 @@ function mrow(m,fut){const hw=!fut&&m.gf>m.ga,aw=!fut&&m.ga>m.gf,left=fut?JV.lef
    <div class="bar" role="img" aria-label="Победы хозяев ${hp} %, ничьи ${dp} %, победы гостей ${ap} %"><i class="h" style="flex:${hw||.0001}">${hp>=16?hp+'%':''}</i><i class="d" style="flex:${dr||.0001}">${dp>=16?dp+'%':''}</i><i class="a" style="flex:${aw||.0001}">${ap>=16?ap+'%':''}</i></div>
    <ul><li style="--k:#1d7a45">Победы хозяев: ${hp}% (${hw})</li><li style="--k:#6b7585">Ничьи: ${dp}% (${dr})</li><li style="--k:#1c63c4">Победы гостей: ${ap}% (${aw})</li></ul></div>`}
 
-/* ── игроки: бомбардиры и карточки (данные подгружаем отдельно: файл тяжёлый) ── */
-const pbox=$('playersBox');
-pbox.innerHTML=`
- <div class="sec-head" data-rv><h2>Бомбардиры и карточки</h2></div>
- <div class="lgcard" id="plCols"><div><h3>Бомбардиры</h3><p class="lgempty">Загружаем игроков…</p></div></div>`;
-const ini=n=>{const w=String(n).replace(/[^\p{L}\s'-]/gu,'').split(/[\s-]+/).filter(Boolean);return ((w[0]||'')[0]||'').toUpperCase()+((w.length>1?w[w.length-1]:'')[0]||'').toUpperCase()};
-const loadJS=src=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.body.appendChild(s)});
-Promise.all([loadJS('data/pl/'+LG+'.js'),fetch('data/headshots.json').then(r=>r.ok?r.json():{}).catch(()=>({}))]).then(([,ph])=>{
- const all=(window.JV_PLAYERS&&JV_PLAYERS.players||[]).filter(p=>p.lg===LG);
- const photo=p=>ph[p.id]&&ph[p.id].ok?`<img src="data/ph/${encodeURIComponent(p.id)}.webp" alt="" loading="lazy" onerror="this.remove()">`:'';  /* свои копии портретов (как на странице «Игроки»), не с Wikimedia */
- const who=p=>`<span class="av">${esc(ini(p.n))}${photo(p)}</span><span class="who"><b>${esc(p.n)}</b><a href="${tref(p.t)}">${CI(p.t)}<span>${esc(nm(p.t))}</span></a></span>`;
- const sc=all.filter(p=>p.G>0).sort((a,b)=>b.G-a.G||a.pen-b.pen||(a.n<b.n?-1:1)).slice(0,15);
- const cd=all.filter(p=>p.y+p.r>0).sort((a,b)=>(b.y+b.r*2)-(a.y+a.r*2)||b.r-a.r||(a.n<b.n?-1:1)).slice(0,10);
- $('plCols').innerHTML=`
-  <div data-rv><h3>Бомбардиры · топ-15</h3>${sc.length?`<ol class="lgpl">${sc.map((p,i)=>`<li><span class="r num">${i+1}</span>${who(p)}<span class="val num">${p.G}<small>${p.pen?`с пенальти ${p.pen}`:'голов'}${p.sg?` · в ${p.sg[0]} из ${p.sg[1]}`:''}</small></span></li>`).join('')}</ol>`:'<p class="lgempty">Голов пока нет.</p>'}</div>
-  <div data-rv><h3>Карточки · топ-10</h3>${cd.length?`<ol class="lgpl">${cd.map((p,i)=>`<li><span class="r num">${i+1}</span>${who(p)}<span class="val cds"><span class="cd num"><i></i>${p.y}</span>${p.r?`<span class="cd r num"><i></i>${p.r}</span>`:''}</span></li>`).join('')}</ol>`:'<p class="lgempty">Карточек пока нет.</p>'}</div>`;
- $('plCols').querySelectorAll('.av img').forEach(i=>i.addEventListener('error',()=>i.remove()));
- JV.reveal($('plCols'));
- /* ссылка «Все игроки лиги» скрыта до готовности портретов (владелец 04.11) */
-}).catch(()=>{$('plCols').innerHTML='<p class="lgempty">Игроков загрузить не удалось.</p>'});
+/* блок «Бомбардиры и карточки» убран со страницы лиги (владелец 17.11): игроки — на отдельной странице «Игроки» */
 })();
 
 /* пересчитать «свет арены» после отрисовки (иначе герой бледный до первой прокрутки) */
 for(const t of [50,400,1200])setTimeout(()=>{dispatchEvent(new Event("resize"));dispatchEvent(new Event("scroll"))},t);
 
 /* вкладка «Игроки» в полосе разделов ведёт на страницу игроков этой лиги (players.html?lg=…), а не к блоку на этой странице (владелец 13.11) */
-(()=>{try{const lg=(new URLSearchParams(location.search).get('lg')||'').toLowerCase(),go=()=>document.querySelectorAll('a[href="#players"]').forEach(a=>{if(a.parentElement.querySelector('a[href="#table"]'))a.setAttribute('href','players.html'+(/^[a-z0-9]{2,12}$/.test(lg)?'?lg='+lg:''))});go();addEventListener('load',go)}catch(e){}})();
+(()=>{try{const lg=(new URLSearchParams(location.search).get('lg')||'').toLowerCase(),go=()=>document.querySelectorAll('a[data-pl]').forEach(a=>{if(a.parentElement.querySelector('a[href="#table"]'))a.setAttribute('href','players.html'+(/^[a-z0-9]{2,12}$/.test(lg)?'?lg='+lg:''))});go();addEventListener('load',go)}catch(e){}})();

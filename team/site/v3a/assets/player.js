@@ -32,7 +32,7 @@ const radar=sk=>{if(!sk||sk.length<3)return'';const n=sk.length,R=120,C=170,pt=(
  const lab=sk.map(([nm,v],i)=>{const[x,y]=pt(i,R+30),an=Math.abs(x-C)<8?'middle':x>C?'start':'end';return`<text x="${x.toFixed(1)}" y="${(y-6).toFixed(1)}" text-anchor="${an}" class="ax">${esc(nm)}</text><text x="${x.toFixed(1)}" y="${(y+14).toFixed(1)}" text-anchor="${an}" class="vl">${v}</text>`}).join('');
  return `<section class="pp-sec" aria-labelledby="h-k"><h2 id="h-k">Навыки</h2><div class="pp-sk"><svg viewBox="-120 0 580 345" role="img" aria-label="${esc(sk.map(([a,v])=>a+' '+v).join(', '))}">${grid}<polygon class="vv" points="${val}"/>${sk.map(([,v],i)=>{const[x,y]=pt(i,R*Math.max(.04,Math.min(1,(v-45)/55)));return`<circle class="dt" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5"/>`}).join('')}${lab}</svg></div></section>`};
 if(!ID){err('Не указан игрок.');return}
-fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).then(P=>{
+fetch((window.JVD||(u=>u))(`data/pp/${LG}/${ID}.json`)).then(r=>{if(!r.ok)throw 0;return r.json()}).then(P=>{
  const T=TT[P.t]||{},col=shade((T.colors||[])[0]);
  const log=P.log||[],nhl=LG==='nhl',N=log.length;
  const G=log.reduce((s,r)=>s+r[3],0),A=log.reduce((s,r)=>s+r[4],0);
@@ -59,7 +59,7 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
  const photo=P.img?`<img class="ph" src="${esc(JV_KPH(P.img))}" referrerpolicy="no-referrer" alt="${esc(P.n)}" onerror="this.parentNode.classList.add('nop');this.remove()">`:'';
  let html=`<article class="pp-hero" aria-label="${esc(P.n)}">
   ${P.no!=null?`<span class="pp-no" aria-hidden="true">${esc(P.no)}</span>`:''}
-  <span class="pp-wm" aria-hidden="true">${esc(tn(P.t))}</span><img class="pp-ghost" src="${em(P.t)}" alt="" aria-hidden="true" onerror="this.remove()">
+  <span class="pp-wm" aria-hidden="true">${esc(tn(P.t))}</span><span class="pp-wm pp-wm-line" aria-hidden="true">${esc(tn(P.t))}</span><img class="pp-ghost" src="${em(P.t)}" alt="" aria-hidden="true" onerror="this.remove()">
   <div class="pp-txt">
    <p class="pp-crumbs"><a href="${teamHref}" title="Страница клуба"><img src="${em(P.t)}" alt="" onerror="this.remove()"><span>${esc(tn(P.t))}</span></a><a class="lg" href="league.html?lg=${LG}" title="Страница лиги">${lgName}</a><a class="lg" href="compare.html?t=players&a=${LG}-${ID}" title="Сравнить с другим игроком">Сравнить</a></p>
    <p class="pp-pos">${esc(POS[P.pos]||P.pos||'')}${P.no!=null?' · №'+esc(P.no):''}</p>
@@ -123,7 +123,7 @@ fetch(`data/pp/${LG}/${ID}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}).th
  draw(mkList[0].k);
  nextMatch(P);
  /* место в лиге под цифрой (12.11, по образцу nhl.com): итоги всех игроков лиги — hockey/data/lgp_<лига>.json */
- fetch(`data/lgp_${LG}.json`).then(r=>r.ok?r.json():null).then(d=>{
+ fetch((window.JVD||(u=>u))(`data/lgp_${LG}.json`)).then(r=>r.ok?r.json():null).then(d=>{
   /* 13.11: считаем среди тех, кто сыграл хотя бы четверть матчей лидера по играм (не меньше 5) — без игроков на пару матчей;
      у самого игрока с меньшим числом игр плашки нет */
   const every=(d&&d.players)||[];if(every.length<50)return;
@@ -144,7 +144,7 @@ function nextMatch(P){
  if(past(nx)){
   const T=((window.JV_TODAY||{}).matches||[]).filter(m=>(m.h===P.t||m.a===P.t)&&Date.parse(m.t.replace(' ','T')+':00+03:00')>Date.now()-3*3600e3).sort((a,b)=>a.t<b.t?-1:1)[0];
   if(T){nextMatch(Object.assign({},P,{nx:{d:T.t,h:T.h===P.t,o:T.h===P.t?T.a:T.h}}));return}
-  if(!window.JV_TODAY&&!P._lt){const s=document.createElement('script');s.src='../data/today.js';s.onload=s.onerror=()=>nextMatch(Object.assign({},P,{_lt:1}));document.head.appendChild(s);return}
+  if(!window.JV_TODAY&&!P._lt){const s=document.createElement('script');s.src='/data/today.js';s.onload=s.onerror=()=>nextMatch(Object.assign({},P,{_lt:1}));document.head.appendChild(s);return}
   nx=null;
  }
  if(!nx){box.innerHTML='<p class="hint" style="margin:0">Ближайший матч клуба пока не объявлен.</p>';return}
@@ -153,9 +153,9 @@ function nextMatch(P){
  box.innerHTML=`<div class="vs"><a class="cl" href="../team/index.html?id=${encodeURIComponent(nx.o)}"><img src="${em(nx.o)}" alt="" onerror="this.remove()"></a>
   <a class="cl" href="../team/index.html?id=${encodeURIComponent(nx.o)}"><b>${nx.h?'Дома':'В гостях'} — ${esc(tn(nx.o))}</b><span>${when}</span></a></div><div id="nxl"></div>`;
  const load=src=>new Promise(ok=>{const s=document.createElement('script');s.src=src;s.onload=s.onerror=()=>ok();document.head.appendChild(s)});
- load('../data/today.js').then(()=>{
+ load('/data/today.js').then(()=>{
   const m=((window.JV_TODAY||{}).matches||[]).find(x=>x.key===key);if(!m)return;
-  return Promise.all([load('../data/lines.js'),load('../data/model.js')]).then(()=>{
+  return Promise.all([load('/data/lines.js'),load('/data/model.js')]).then(()=>{
    const ln=(window.JV_LINES||{})[key],md=(window.JV_MODEL||{})[key];if(!ln&&!md)return;
    const f2=v=>v==null?'—':(+v).toFixed(2),pc=v=>v==null?'—':Math.round(v*100)+'%';
    const hn=tn(hs),an=tn(as);let h='';
