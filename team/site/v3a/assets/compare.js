@@ -104,7 +104,8 @@ function clubView(a,b){perI=0;
     return `<section class="cmp-g"><h2><span>Ближайшая встреча</span></h2><ul class="cmp-h2h"><li><div><time>${ddmm(u.t)}</time><span>${esc(hn)}${em(u.h,24)}</span><b>${esc(u.t.slice(11))}</b><span>${em(u.a,24)}${esc(an)}</span></div></li></ul>
      <p class="cmp-note">Время московское. ${esc(hn)} играет дома.</p></section>`};
   const form=ok(A.l10)&&ok(B.l10)?panels(win(A.l10,B.l10),fpanel('a',ea,A.name,dots(last(A)),A.l10,'очков в 10 последних матчах'),fpanel('b',eb,B.name,dots(last(B)),B.l10,'очков в 10 последних матчах')):'';
-  const body=(A.axes&&B.axes&&A.lg===B.lg?radar(AX,A.axes,B.axes,ea+esc(A.name),eb+esc(B.name),'Сильные стороны'):'')
+  const RAD=A.axes&&B.axes&&A.lg===B.lg?radar(AX,A.axes,B.axes,ea+esc(A.name),eb+esc(B.name),'Сильные стороны'):'';
+  const body=''
   +group('Сезон',[tiles([['Очки за матч',pg(A,'pts'),pg(B,'pts'),{d:2}],['Забивает за матч',pg(A,'gf'),pg(B,'gf'),{d:2}],['Пропускает за матч',pg(A,'ga'),pg(B,'ga'),{d:2,low:1}]]),
     row('Победы, %',A.gp?A.w/A.gp*100:null,B.gp?B.w/B.gp*100:null),FB?row('Ничьи',A.d,B.d,{flat:1}):'',FB?row('Поражения',A.l,B.l,{low:1}):'',row('Матчей сыграно',A.gp,B.gp,{flat:1})])
   +group('Дом и выезд',[venue(),row('Голов в матче в среднем',A.tr&&A.tr.tot,B.tr&&B.tr.tot,{d:2,flat:1})])
@@ -114,15 +115,15 @@ function clubView(a,b){perI=0;
      :`<p class="cmp-note">${A.lg===B.lg?'В этом сезоне ещё не играли.':'Клубы из разных лиг — между собой не играют.'}</p>`}
    ${next?`<p class="cmp-note">Следующая встреча — ${ddmm(next.d)} в ${esc(next.d.slice(11))} МСК, ${next.h?esc(A.name):esc(B.name)} дома.</p>`:''}</section>`);
   const subt=t=>`${esc(LGN[t.lg]||'')}${t.conf?' · '+esc(t.conf):''}, ${t.place}-е место`;
-  return head(a,b,A.name,B.name,subt(A),subt(B),em(a,72),em(b,72),TEAMURL(a),TEAMURL(b),body)+body+(A.lg!==B.lg?'<p class="cmp-note">Оба клуба играют в Лиге чемпионов. Оценки 0–100 считаются внутри своей лиги, поэтому для клубов из разных лиг их не показываем.</p>':'')}
+  return head(a,b,A.name,B.name,subt(A),subt(B),em(a,72),em(b,72),TEAMURL(a),TEAMURL(b),body,RAD)+body+(A.lg!==B.lg?'<p class="cmp-note">Оба клуба играют в Лиге чемпионов. Оценки 0–100 считаются внутри своей лиги, поэтому для клубов из разных лиг их не показываем.</p>':'')}
 
-function head(a,b,na,nb,sa,sb,ia,ib,ua,ub,body){
+function head(a,b,na,nb,sa,sb,ia,ib,ua,ub,body,rad){
   /* 17.11 (v3, владелец: «другой вариант, на всю ширину»): разворот — экран пополам, каждая половина в цвете своей стороны,
      огромная эмблема у края, имя прижато к краю; по центральной оси — счёт по показателям */
   const A=cnt(body||'','a'),B=cnt(body||'','b'),D=cnt(body||'','d'),N=A+B+D;
   const side=(k,n,s,i,u)=>`<a class="sx-side ${k}" href="${esc(u)}"><span class="sx-bg" aria-hidden="true">${i}</span><span class="sx-em">${i}</span><b>${esc(n)}</b><small>${s}</small></a>`;
   return `<div class="sx-hero${A>B?' w-a':B>A?' w-b':''}">${side('a',na,sa,ia,ua)}${side('b',nb,sb,ib,ub)}
-   ${N?`<div class="sx-spine"><b class="a">${A}</b><i aria-hidden="true"></i><b class="b">${B}</b><small>${A===B?'поровну':'впереди '+esc(A>B?na:nb)}<br>по ${Math.max(A,B)} из ${N} показателей${D?', равны '+D:''}</small></div>`:''}</div>`}
+   ${rad?`<div class="sx-spine sx-rad">${(/<svg[\s\S]*<\/svg>/.exec(rad)||[''])[0]}<p class="sx-radh">${/Оценки/.test(rad)?'Оценки игрока':'Шестиугольник силы'}</p></div>`:N?`<div class="sx-spine"><b class="a">${A}</b><i aria-hidden="true"></i><b class="b">${B}</b><small>${A===B?'поровну':'впереди '+esc(A>B?na:nb)}<br>по ${Math.max(A,B)} из ${N} показателей</small></div>`:''}</div>`}
 
 /* ── игроки ── */
 const POS={C:'центр',L:'левый нападающий',R:'правый нападающий',D:'защитник',F:'нападающий',G:'вратарь'};
@@ -144,7 +145,8 @@ function playerView(xa,xb,PA,PB,SK){perI=0;
   const cols=S=>`<span class="cmp-cols">${S.L5.map(r=>{const v=r[3]+r[4];return `<i class="${v?'':'z'}" style="--h:${Math.round(v/mx*100)}%" title="${esc(ddmm(r[0])+' '+((TT[r[1]]||{}).name||r[1])+': '+r[3]+'+'+r[4])}"><b>${v}</b><small>${ddmm(r[0])}</small></i>`}).join('')}</span>`;
   const e=(k)=>[A.e?A.e[k]:null,B.e?B.e[k]:null];
   const names=A.sk.map(s=>s[0]),skv=(S,n)=>{const f=S.sk.find(s=>s[0]===n);return f?f[1]:null};
-  const body=(names.length&&B.sk.length?radar(names,names.map(n=>skv(A,n)),names.map(n=>skv(B,n)),em(ta,22)+esc(PA.n),em(tb,22)+esc(PB.n),'Оценки игрока'):'')
+  const RAD=names.length&&B.sk.length?radar(names,names.map(n=>skv(A,n)),names.map(n=>skv(B,n)),em(ta,22)+esc(PA.n),em(tb,22)+esc(PB.n),'Оценки игрока'):'';
+  const body=''
   +group('Сезон',[tiles([['Очки (гол + пас)',A.P,B.P],['Голы',A.G,B.G],['Передачи',A.A,B.A]]),row('Очков за матч',A.ppg,B.ppg,{d:2}),
     row('Матчей',A.N,B.N,{flat:1}),row('Матчей с очками',A.hit,B.hit),row('Плюс-минус',A.pm,B.pm,{f:x=>(x>0?'+':x<0?'−':'')+Math.abs(x)}),row('Штраф, мин',A.pim,B.pim,{low:1})])
   +group('Броски и время',[row('Броски в створ',A.sog,B.sog),row('Бросков за матч',A.spg,B.spg,{d:1}),row('Реализация бросков, %',A.shp,B.shp,{d:1}),
@@ -156,7 +158,7 @@ function playerView(xa,xb,PA,PB,SK){perI=0;
   +(window.JV_PCT?JV_PCT.duel(PA,PB,em(ta,20)+esc(PA.n),em(tb,20)+esc(PB.n),xa.lg!==xb.lg):'')
   +(names.length&&B.sk.length?group('Оценки по цифрам, 0–100 в своей лиге',names.map(n=>row(n,skv(A,n),skv(B,n)))):'')
   +(xa.lg!==xb.lg?'<p class="cmp-note">Игроки из разных лиг: уровень соперников разный, оценки считаются внутри своей лиги.</p>':'');
-  return head(ta,tb,PA.n,PB.n,sub(PA,ta),sub(PB,tb),img(PA,ta),img(PB,tb),url(xa),url(xb),body)+body}
+  return head(ta,tb,PA.n,PB.n,sub(PA,ta),sub(PB,tb),img(PA,ta),img(PB,tb),url(xa),url(xb),body,RAD)+body}
 
 /* ── выбор и адрес ── */
 const HINT={clubs:[FB?'Арсенал, Зенит…':'СКА, Каролина…','Клуб'],players:['McDavid, Rempal…','Игрок']};

@@ -295,3 +295,26 @@ html,body{overflow-x:clip}
 .cmp-fp p{margin:0;display:flex;align-items:baseline;gap:10px}.cmp-fp.b p{flex-direction:row-reverse}
 .cmp-vc .ln{background:none!important;border:0!important;box-shadow:none!important}
 @media (max-width:720px){.cmp-row .ba{margin-right:6px}.cmp-row .bb{margin-left:6px}}
+
+/* шестиугольник силы — в центре разворота (17.11, владелец: «вместо 10-3 — шестиугольник силы») */
+.sx-hero{min-height:clamp(380px,40vw,600px)}
+.sx-spine.sx-rad{width:clamp(300px,30vw,480px);gap:4px;pointer-events:auto}
+.sx-rad svg{width:100%;height:auto;overflow:visible;filter:drop-shadow(0 10px 30px rgba(0,0,0,.55))}
+.sx-rad .rd-grid polygon{fill:rgba(4,6,13,.55);stroke:rgba(220,230,255,.22)}
+.sx-rad .rd-grid polygon:not(:last-of-type){fill:none}
+.sx-rad .rd-grid line{stroke:rgba(220,230,255,.18)}
+.sx-rad .rd-grid text{fill:#fff;font:800 12.5px var(--display);paint-order:stroke;stroke:rgba(4,6,13,.85);stroke-width:3px}
+.sx-rad .rd-a{fill:color-mix(in srgb,var(--sa) 34%,transparent);stroke:var(--sa);stroke-width:3}
+.sx-rad .rd-b{fill:color-mix(in srgb,var(--sb) 30%,transparent);stroke:var(--sb);stroke-width:3}
+.sx-rad .rd-da{fill:var(--sa)}.sx-rad .rd-db{fill:var(--sb)}
+.sx-radh{margin:0;padding:5px 12px;border-radius:8px;background:rgba(4,6,13,.7);font:800 12px/1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:rgba(235,242,255,.85)}
+.sx-side.a{padding-right:clamp(170px,17vw,260px)}.sx-side.b{padding-left:clamp(170px,17vw,260px)}
+@media (max-width:720px){
+  .sx-hero{min-height:0;grid-template-rows:auto auto}
+  .sx-side{padding-bottom:18px}
+  .sx-side.a{padding-right:20px}.sx-side.b{padding-left:20px}
+  .sx-spine.sx-rad{position:relative;left:auto;top:auto;transform:none;grid-column:1/-1;width:auto;max-width:360px;margin:0 auto 14px;justify-self:center}
+}
+.sx-side b{font-size:clamp(24px,3.3vw,60px)!important;overflow-wrap:normal!important;word-break:normal;hyphens:none}
+@media (max-width:720px){.sx-side b{font-size:clamp(18px,5.6vw,28px)!important}.sx-spine.sx-rad{padding:0 44px;max-width:400px;box-sizing:border-box}}
+@media (max-width:720px){.sx-spine.sx-rad{flex-direction:column!important;align-items:center}.sx-spine.sx-rad svg{max-width:100%}}
