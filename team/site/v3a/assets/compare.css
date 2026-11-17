@@ -174,3 +174,141 @@
 .cmp-in input{text-align:center}
 .cmp-in ul{text-align:left}
 .cmp-hint{margin:12px 0 0;font:500 14.5px/1.4 var(--display);color:var(--ink-3);text-align:center}
+
+/* ═════ Сравнение v2 (17.11, владелец: «выглядит очень просто — переделай, сильно отличной») ═════
+   Идея — «вбрасывание»: шапка делится по диагонали на цвета сторон, в центре шайба и табло арены; блоки — как отрезки матча;
+   показатели — «весы»: подпись в центре, полосы от центра в стороны. Цвета сторон — --ca / --cb (из цветов клубов). */
+.cmp-top{text-align:center}
+.cmp-top h1{font-size:clamp(34px,5.4vw,64px);letter-spacing:.02em;margin-bottom:14px}
+.cmp-tabs{margin:0 auto}
+.cmp-pick{margin:18px auto 0;grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr)}
+.cmp-x{display:grid;place-items:center;width:44px;height:44px;margin:auto;border-radius:50%;font:900 0/1 var(--display);background:radial-gradient(circle at 35% 30%,#3a4254,#0b0f18 70%);box-shadow:0 6px 14px -6px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.18)}
+.cmp-x::after{content:"VS";font:900 13px/1 var(--display);letter-spacing:.06em;color:#fff}
+.cmp-in input{text-align:center;border-radius:14px}
+.cmp-in[data-s="a"] input{box-shadow:inset 4px 0 0 var(--ca,#5ab8ff)}
+.cmp-in[data-s="b"] input{box-shadow:inset -4px 0 0 var(--cb,#e9eef7)}
+.cmp-hint{text-align:center}
+.cmp-ver{display:none}
+
+/* шапка-противостояние */
+.fo{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1fr) minmax(170px,auto) minmax(0,1fr);align-items:center;gap:10px;
+  margin:6px 0 30px;padding:clamp(26px,4vw,44px) clamp(14px,3vw,36px) clamp(30px,4vw,48px);border-radius:28px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,0) 40%),#0a1022;box-shadow:0 30px 60px -36px rgba(0,0,0,.9),inset 0 0 0 1px rgba(255,255,255,.08)}
+.fo::before,.fo::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+.fo::before{background:radial-gradient(80% 120% at 0% 50%,color-mix(in srgb,var(--ca,#5ab8ff) 55%,transparent),transparent 70%);clip-path:polygon(0 0,56% 0,44% 100%,0 100%)}
+.fo::after{background:radial-gradient(80% 120% at 100% 50%,color-mix(in srgb,var(--cb,#e9eef7) 50%,transparent),transparent 70%);clip-path:polygon(56% 0,100% 0,100% 100%,44% 100%)}
+.fo-s{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;color:#fff;text-decoration:none;min-width:0}
+.fo-em{display:grid;place-items:center;width:clamp(96px,11vw,148px);aspect-ratio:1;border-radius:50%;background:#fff;
+  box-shadow:0 0 0 6px color-mix(in srgb,var(--c) 70%,transparent),0 0 60px -6px color-mix(in srgb,var(--c) 80%,transparent),0 20px 30px -16px rgba(0,0,0,.8)}
+.fo-s.a{--c:var(--ca,#5ab8ff)}.fo-s.b{--c:var(--cb,#e9eef7)}
+.fo-em img{width:72%!important;height:72%!important;object-fit:contain}
+.fo-em img.cmp-ph,.fo-em .cmp-ph{width:100%!important;height:100%!important;border-radius:50%;object-fit:cover}
+.fo-s b{font:900 clamp(22px,2.8vw,38px)/1.05 var(--display);letter-spacing:-.01em;text-wrap:balance;text-shadow:0 2px 18px rgba(0,0,0,.5)}
+.fo-s small{font:600 14px/1.3 var(--text);color:rgba(235,242,255,.78)}
+.fo-s:hover b{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:2px}
+.fo-mid{display:flex;flex-direction:column;align-items:center;gap:12px}
+.fo-vs{display:grid;place-items:center;width:62px;height:62px;border-radius:50%;font:900 18px/1 var(--display);letter-spacing:.06em;color:#fff;
+  background:radial-gradient(circle at 35% 28%,#454d60,#05070d 72%);box-shadow:0 10px 22px -8px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.22),0 0 0 3px rgba(255,255,255,.08)}
+.fo-board{display:flex;align-items:center;gap:6px;padding:10px 16px;border-radius:14px;background:#04060c;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),inset 0 6px 16px rgba(0,0,0,.8),0 14px 30px -18px rgba(0,0,0,.9)}
+.fo-board b{min-width:1.3em;text-align:center;font:900 clamp(34px,4.4vw,54px)/1 var(--display);font-variant-numeric:tabular-nums;color:#ffd23f;text-shadow:0 0 14px rgba(255,190,40,.55)}
+.fo-board i{font:900 30px/1 var(--display);color:rgba(255,210,63,.5);font-style:normal}
+.fo.w-a .fo-board b.b,.fo.w-b .fo-board b.a{color:rgba(255,210,63,.42);text-shadow:none}
+.fo-cap{margin:0;text-align:center;font:800 15px/1.3 var(--display);color:#fff}.fo-cap small{font:500 13px/1.3 var(--text);color:rgba(235,242,255,.7)}
+.fo-bar{position:absolute;left:0;right:0;bottom:0;height:6px;display:flex}
+.fo-bar u{display:block;height:100%}.fo-bar u:nth-child(1){background:var(--ca,#5ab8ff)}.fo-bar u:nth-child(2){background:rgba(255,255,255,.25)}.fo-bar u:nth-child(3){background:var(--cb,#e9eef7)}
+@media (max-width:720px){
+  .fo{grid-template-columns:1fr 1fr;grid-template-areas:"a b" "m m";row-gap:18px}
+  .fo-s.a{grid-area:a}.fo-s.b{grid-area:b}.fo-mid{grid-area:m}
+  .fo::before{clip-path:polygon(0 0,54% 0,46% 100%,0 100%)}.fo::after{clip-path:polygon(54% 0,100% 0,100% 100%,46% 100%)}
+  .fo-vs{position:absolute;top:clamp(48px,14vw,70px);left:50%;transform:translateX(-50%);width:46px;height:46px;font-size:14px}
+}
+
+/* блоки — как отрезки матча */
+.cmp-g{position:relative;margin:0 0 22px;padding:clamp(18px,2.4vw,28px);border-radius:24px;background:linear-gradient(180deg,rgba(150,180,255,.07),rgba(150,180,255,.02));box-shadow:inset 0 0 0 1px rgba(160,190,255,.12)}
+.cmp-g>h2{display:flex;align-items:center;flex-wrap:wrap;gap:10px 14px;margin:0 0 18px;font:900 clamp(20px,2.2vw,28px)/1.1 var(--display);color:var(--ink)}
+.cmp-g>h2 .per{order:-1;flex-basis:100%;font:800 12px/1 var(--display);font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:#ffd23f}
+.cmp-g>h2 .cmp-sc{margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:10px;background:#04060c;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.cmp-sc b{font:900 18px/1 var(--display);font-variant-numeric:tabular-nums}.cmp-sc b.a{color:var(--ca,#5ab8ff)}.cmp-sc b.b{color:var(--cb,#e9eef7)}.cmp-sc i{color:rgba(255,255,255,.4);font-style:normal}
+
+/* показатели — «весы» */
+.cmp-row{display:grid!important;grid-template-columns:72px minmax(0,1fr) minmax(120px,190px) minmax(0,1fr) 72px;align-items:center;gap:10px;padding:9px 0;border-top:1px solid rgba(160,190,255,.08)}
+.cmp-row:first-of-type{border-top:0}
+.cmp-row .v{font:900 20px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.cmp-row .va{text-align:right}.cmp-row .vb{text-align:left}
+.cmp-row .l{text-align:center;font:600 14px/1.25 var(--text);color:var(--ink-2)}
+.cmp-row .ba,.cmp-row .bb{display:flex;height:10px;border-radius:6px;background:rgba(160,190,255,.08);overflow:hidden}
+.cmp-row .ba{justify-content:flex-end}
+.cmp-row .ba u,.cmp-row .bb u{display:block;height:100%;border-radius:6px;opacity:.42;transition:width .6s cubic-bezier(.23,1,.32,1)}
+.cmp-row .ba u{background:var(--ca,#5ab8ff)}.cmp-row .bb u{background:var(--cb,#e9eef7)}
+.cmp-row.w-a .ba u,.cmp-row.w-b .bb u{opacity:1;box-shadow:0 0 14px -2px currentColor}
+.cmp-row.w-a .ba u{color:var(--ca,#5ab8ff)}.cmp-row.w-b .bb u{color:var(--cb,#e9eef7)}
+.cmp-row.w-a .va{color:var(--ca,#5ab8ff)}.cmp-row.w-b .vb{color:var(--cb,#e9eef7)}
+.cmp-row.w-a .vb,.cmp-row.w-b .va{opacity:.6}
+.cmp-row.flat .ba u,.cmp-row.flat .bb u{opacity:.3}
+.cmp-row>.bar{display:none}
+@media (max-width:620px){
+  .cmp-row{grid-template-columns:52px minmax(0,1fr) 52px;grid-template-areas:"va l vb" "ba ba bb";row-gap:7px}
+  .cmp-row .va{grid-area:va}.cmp-row .vb{grid-area:vb}.cmp-row .l{grid-area:l;font-size:13px}
+  .cmp-row .ba{grid-area:ba;grid-column:1/2;grid-column-end:3;margin-right:50%}.cmp-row .bb{grid-area:bb}
+  .cmp-row{grid-template-areas:"va l vb" "ba ba bb"}
+  .cmp-row .ba{grid-column:1/3;width:auto}.cmp-row .bb{grid-column:3/4}
+}
+
+/* главные цифры — табло-дуэли */
+.cmp-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px}
+.cmp-tile{display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 12px;border-radius:18px;background:#05080f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.cmp-tile>span{font:700 12px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.cmp-tile p{display:flex;align-items:center;gap:14px;margin:0}
+.cmp-tile p b{font:900 clamp(26px,3vw,38px)/1 var(--display);font-variant-numeric:tabular-nums;color:rgba(235,242,255,.45)}
+.cmp-tile p b:first-child::after{content:":";margin-left:14px;color:rgba(255,255,255,.25)}
+.cmp-tile.w-a p b:first-child{color:var(--ca,#5ab8ff);text-shadow:0 0 18px color-mix(in srgb,var(--ca,#5ab8ff) 60%,transparent)}
+.cmp-tile.w-b p b:last-child{color:var(--cb,#e9eef7);text-shadow:0 0 18px color-mix(in srgb,var(--cb,#e9eef7) 60%,transparent)}
+.cmp-tile.w-d p b{color:#fff}
+
+/* форма — шайбы */
+.cmp-dots{display:flex;gap:6px}
+.cmp-dots i{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;font:900 12px/1 var(--display);font-style:normal;color:#fff;
+  background:radial-gradient(circle at 35% 30%,#3d4456,#07090f 72%);box-shadow:0 0 0 2px var(--r,#888),0 6px 10px -6px rgba(0,0,0,.8)}
+.cmp-dots i.fd-w{--r:#2fd27a}.cmp-dots i.fd-l{--r:#ff5766}.cmp-dots i.fd-o{--r:#f5b941}.cmp-dots i.fd-d{--r:#9aa9d8}
+.cmp-fp{border-radius:18px!important;background:#05080f!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)!important}
+.cmp-fp.a{box-shadow:inset 4px 0 0 var(--ca,#5ab8ff),inset 0 0 0 1px rgba(255,255,255,.08)!important}
+.cmp-fp.b{box-shadow:inset -4px 0 0 var(--cb,#e9eef7),inset 0 0 0 1px rgba(255,255,255,.08)!important}
+
+/* дом и выезд */
+.cmp-vc{border-radius:18px!important;background:#05080f!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)!important}
+.cmp-vc .ln.a i u{background:var(--ca,#5ab8ff)!important}.cmp-vc .ln.b i u{background:var(--cb,#e9eef7)!important}
+
+/* очные встречи — хронология с табло в центре */
+.cmp-h2h{position:relative;display:grid;gap:10px;margin:0;padding:0 0 0 22px;list-style:none}
+.cmp-h2h::before{content:"";position:absolute;left:6px;top:8px;bottom:8px;width:2px;background:linear-gradient(var(--ca,#5ab8ff),var(--cb,#e9eef7));border-radius:2px;opacity:.6}
+.cmp-h2h li{position:relative}
+.cmp-h2h li::before{content:"";position:absolute;left:-21px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.12)}
+.cmp-h2h li>a,.cmp-h2h li>div{display:grid!important;grid-template-columns:64px minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#05080f;color:var(--ink);text-decoration:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.cmp-h2h li>a:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
+.cmp-h2h time{font:700 13px/1 var(--display);color:var(--ink-3)}
+.cmp-h2h span{display:flex;align-items:center;gap:8px;font:700 15px/1.2 var(--display);min-width:0}
+.cmp-h2h span:nth-of-type(1){justify-content:flex-end;text-align:right}
+.cmp-h2h b{padding:6px 10px;border-radius:8px;background:#000;font:900 20px/1 var(--display);color:#ffd23f;font-variant-numeric:tabular-nums;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.cmp-h2h b small{font-size:11px;color:rgba(255,210,63,.7);margin-left:3px}
+@media (max-width:620px){.cmp-h2h li>a,.cmp-h2h li>div{grid-template-columns:1fr auto 1fr;grid-template-areas:"t t t" "h s a"}.cmp-h2h time{grid-area:t}}
+
+/* сильные стороны: многоугольники крупнее, подписи светлее */
+.cmp-rad .cmp-radb svg{max-width:520px;margin:0 auto;display:block}
+.cmp-rad .rd-a{fill:color-mix(in srgb,var(--ca,#5ab8ff) 30%,transparent);stroke:var(--ca,#5ab8ff);stroke-width:2.6}
+.cmp-rad .rd-b{fill:color-mix(in srgb,var(--cb,#e9eef7) 26%,transparent);stroke:var(--cb,#e9eef7);stroke-width:2.6}
+.cmp-rad .rd-grid polygon,.cmp-rad .rd-grid line{stroke:rgba(190,210,255,.18);fill:none}
+.cmp-rad .rd-grid text{fill:#c3cef0;font:700 12px var(--display)}
+
+/* табло-дуэли: две цифры в строку через двоеточие, без старых подчёркиваний */
+.cmp-tile{display:flex!important;border:0!important}
+.cmp-tile p{display:flex!important;align-items:center;justify-content:center;gap:12px!important}
+.cmp-tile p b{display:inline-block;padding:0!important;box-shadow:none!important;border-radius:0!important;font-weight:900!important;font-size:clamp(26px,3vw,38px)!important}
+.cmp-tile p b:first-child::after{content:none}
+.cmp-tile p b+b::before{content:":";margin-right:12px;color:rgba(255,255,255,.25)}
+.cmp-tile.w-a p b:first-child{box-shadow:none!important}.cmp-tile.w-b p b+b{box-shadow:none!important}
+@media (max-width:620px){
+  .cmp-row{grid-template-columns:48px minmax(0,1fr) minmax(0,1fr) 48px!important;grid-template-areas:"va l l vb" "ba ba bb bb"!important}
+  .cmp-row .va{grid-area:va!important}.cmp-row .vb{grid-area:vb!important}.cmp-row .l{grid-area:l!important}
+  .cmp-row .ba{grid-area:ba!important;grid-column:auto!important;margin:0!important}.cmp-row .bb{grid-area:bb!important;grid-column:auto!important}
+}
