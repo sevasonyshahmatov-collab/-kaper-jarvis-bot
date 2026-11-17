@@ -59,7 +59,7 @@ function tiles(items){const t=items.map(([l,a,b,o])=>{o=o||{};if(!ok(a)||!ok(b))
 const chip=s=>{const a=cnt(s,'a'),b=cnt(s,'b');return a+b?`<span class="cmp-sc" title="В скольких показателях блока впереди каждая сторона"><b class="a">${a}</b><i>:</i><b class="b">${b}</b></span>`:''};
 /* блоки — как отрезки матча (17.11): хоккей — периоды и овертайм, футбол — таймы и доп. время */
 const PER=FB?['1-й тайм','2-й тайм','Доп. время','Серия пенальти','После матча','Разбор']:['1-й период','2-й период','3-й период','Овертайм','Буллиты','После матча'];let perI=0;
-const group=(h,rows)=>{rows=rows.filter(Boolean);const s=rows.join('');return rows.length?`<section class="cmp-g"><h2><em class="per">${PER[Math.min(perI++,PER.length-1)]}</em><span>${esc(h)}</span>${chip(s)}</h2>${s}</section>`:''};
+const group=(h,rows)=>{rows=rows.filter(Boolean);const s=rows.join('');return rows.length?`<section class="cmp-g"><h2><span>${esc(h)}</span>${chip(s)}</h2>${s}</section>`:''};
 const dots=a=>`<span class="cmp-dots">${a.map(x=>`<i class="fd-${x.c}" title="${esc(x.t)}">${esc(x.s)}</i>`).join('')}</span>`;
 /* общий итог под карточками сторон */
 function verdict(html,na,nb){const a=cnt(html,'a'),b=cnt(html,'b'),d=cnt(html,'d');if(!(a+b))return '';
@@ -101,7 +101,7 @@ function clubView(a,b){perI=0;
     return `<div class="cmp-ven">${card('Дома','home')}${card('В гостях','away')}</div>`};
   /* футбол: ближайшая встреча из расчёта модели (JV_FOOT.up) */
   const fbNext=()=>{const u=(JF.up||[]).find(m=>(m.h===a&&m.a===b)||(m.h===b&&m.a===a));if(!u)return '';const hn=TT[u.h].name,an=TT[u.a].name;
-    return `<section class="cmp-g"><h2><em class="per">${PER[Math.min(perI++,PER.length-1)]}</em><span>Ближайшая встреча</span></h2><ul class="cmp-h2h"><li><div><time>${ddmm(u.t)}</time><span>${esc(hn)}${em(u.h,24)}</span><b>${esc(u.t.slice(11))}</b><span>${em(u.a,24)}${esc(an)}</span></div></li></ul>
+    return `<section class="cmp-g"><h2><span>Ближайшая встреча</span></h2><ul class="cmp-h2h"><li><div><time>${ddmm(u.t)}</time><span>${esc(hn)}${em(u.h,24)}</span><b>${esc(u.t.slice(11))}</b><span>${em(u.a,24)}${esc(an)}</span></div></li></ul>
      <p class="cmp-note">Время московское. ${esc(hn)} играет дома.</p></section>`};
   const form=ok(A.l10)&&ok(B.l10)?panels(win(A.l10,B.l10),fpanel('a',ea,A.name,dots(last(A)),A.l10,'очков в 10 последних матчах'),fpanel('b',eb,B.name,dots(last(B)),B.l10,'очков в 10 последних матчах')):'';
   const body=(A.axes&&B.axes&&A.lg===B.lg?radar(AX,A.axes,B.axes,ea+esc(A.name),eb+esc(B.name),'Сильные стороны'):'')
@@ -110,20 +110,19 @@ function clubView(a,b){perI=0;
   +group('Дом и выезд',[venue(),row('Голов в матче в среднем',A.tr&&A.tr.tot,B.tr&&B.tr.tot,{d:2,flat:1})])
   +group('Форма',[form])
   +(A.axes&&B.axes&&A.lg===B.lg?group('Сильные стороны по цифрам, 0–100 в своей лиге',AX.map((n,i)=>row(n,A.axes[i],B.axes[i]))):'')
-  +(FB?fbNext():`<section class="cmp-g"><h2><em class="per">${PER[Math.min(perI++,PER.length-1)]}</em><span>Очные встречи в сезоне</span></h2>${h2h.length?`<p class="cmp-note">${esc(A.name)} — ${wa} ${wa===1?'победа':wa>=2&&wa<=4?'победы':'побед'}, ${esc(B.name)} — ${h2h.length-wa}.</p><ul class="cmp-h2h">${h2h.reverse().map(m=>{const u=link(m),inner=`<time>${ddmm(m.d)}</time><span>${esc(TT[m.h].name)}${em(m.h,24)}</span><b>${m.sh}:${m.sa}${m.x?' <small>'+esc(m.x)+'</small>':''}</b><span>${em(m.w,24)}${esc(TT[m.w].name)}</span>`;return `<li>${u?`<a href="${esc(u)}">${inner}</a>`:`<div>${inner}</div>`}</li>`}).join('')}</ul>`
+  +(FB?fbNext():`<section class="cmp-g"><h2><span>Очные встречи в сезоне</span></h2>${h2h.length?`<p class="cmp-note">${esc(A.name)} — ${wa} ${wa===1?'победа':wa>=2&&wa<=4?'победы':'побед'}, ${esc(B.name)} — ${h2h.length-wa}.</p><ul class="cmp-h2h">${h2h.reverse().map(m=>{const u=link(m),inner=`<time>${ddmm(m.d)}</time><span>${esc(TT[m.h].name)}${em(m.h,24)}</span><b>${m.sh}:${m.sa}${m.x?' <small>'+esc(m.x)+'</small>':''}</b><span>${em(m.w,24)}${esc(TT[m.w].name)}</span>`;return `<li>${u?`<a href="${esc(u)}">${inner}</a>`:`<div>${inner}</div>`}</li>`}).join('')}</ul>`
      :`<p class="cmp-note">${A.lg===B.lg?'В этом сезоне ещё не играли.':'Клубы из разных лиг — между собой не играют.'}</p>`}
    ${next?`<p class="cmp-note">Следующая встреча — ${ddmm(next.d)} в ${esc(next.d.slice(11))} МСК, ${next.h?esc(A.name):esc(B.name)} дома.</p>`:''}</section>`);
   const subt=t=>`${esc(LGN[t.lg]||'')}${t.conf?' · '+esc(t.conf):''}, ${t.place}-е место`;
   return head(a,b,A.name,B.name,subt(A),subt(B),em(a,72),em(b,72),TEAMURL(a),TEAMURL(b),body)+body+(A.lg!==B.lg?'<p class="cmp-note">Оба клуба играют в Лиге чемпионов. Оценки 0–100 считаются внутри своей лиги, поэтому для клубов из разных лиг их не показываем.</p>':'')}
 
 function head(a,b,na,nb,sa,sb,ia,ib,ua,ub,body){
-  /* 17.11: «вбрасывание» — экран делится по диагонали на цвета сторон, в центре шайба и табло: в скольких показателях впереди */
+  /* 17.11 (v3, владелец: «другой вариант, на всю ширину»): разворот — экран пополам, каждая половина в цвете своей стороны,
+     огромная эмблема у края, имя прижато к краю; по центральной оси — счёт по показателям */
   const A=cnt(body||'','a'),B=cnt(body||'','b'),D=cnt(body||'','d'),N=A+B+D;
-  const side=(k,n,s,i,u)=>`<a class="fo-s ${k}" href="${esc(u)}"><span class="fo-em">${i}</span><b>${esc(n)}</b><small>${s}</small></a>`;
-  const lead=A===B?'Поровну':'Впереди — '+esc(A>B?na:nb);
-  return `<div class="fo${A>B?' w-a':B>A?' w-b':''}">${side('a',na,sa,ia,ua)}
-   <div class="fo-mid"><span class="fo-vs" aria-hidden="true">VS</span>${N?`<div class="fo-board" role="img" aria-label="${esc(na)} впереди в ${A}, ${esc(nb)} — в ${B} из ${N} показателей"><b class="a">${A}</b><i>:</i><b class="b">${B}</b></div><p class="fo-cap">${lead}<br><small>показателей из ${N}${D?', равны — '+D:''}</small></p>`:''}</div>
-   ${side('b',nb,sb,ib,ub)}${N?`<i class="fo-bar" aria-hidden="true"><u style="flex:${A}"></u><u style="flex:${D}"></u><u style="flex:${B}"></u></i>`:''}</div>`}
+  const side=(k,n,s,i,u)=>`<a class="sx-side ${k}" href="${esc(u)}"><span class="sx-bg" aria-hidden="true">${i}</span><span class="sx-em">${i}</span><b>${esc(n)}</b><small>${s}</small></a>`;
+  return `<div class="sx-hero${A>B?' w-a':B>A?' w-b':''}">${side('a',na,sa,ia,ua)}${side('b',nb,sb,ib,ub)}
+   ${N?`<div class="sx-spine"><b class="a">${A}</b><i aria-hidden="true"></i><b class="b">${B}</b><small>${A===B?'поровну':'впереди '+esc(A>B?na:nb)}<br>по ${Math.max(A,B)} из ${N} показателей${D?', равны '+D:''}</small></div>`:''}</div>`}
 
 /* ── игроки ── */
 const POS={C:'центр',L:'левый нападающий',R:'правый нападающий',D:'защитник',F:'нападающий',G:'вратарь'};
