@@ -112,7 +112,7 @@ function draw(r){
   items=[];cur=-1;
   const g=(t,a,f)=>a.length?`<div class="sp-g" role="group" aria-label="${t}"><h3>${t}</h3>${a.map(f).join('')}</div>`:'';
   const out=g('Клубы',r.clubs,c=>li(U(pg(c)),`${img(c)}<span class="sp-t"><b>${esc(c.ru)}</b><small>${esc(c.en&&c.en!==c.ru?c.en+' · ':'')}${SP[c.s]} · ${esc(LGN[c.lg]||c.lg)}</small></span>`))
-   +g('Матчи',r.matches,m=>li(U(pg(m.h)),`<span class="sp-vs">${img(m.h)}${img(m.a)}</span><span class="sp-t"><b>${esc(m.h.ru)} — ${esc(m.a.ru)}</b><small>${esc(dt(m.d))} МСК${m.sc?' · '+esc(m.sc):''}${m.cup?' · '+esc(LGN[m.cup]||m.cup):''} · ${SP[m.s]}</small></span>`))
+   +g('Матчи',r.matches,m=>li((window.JV&&JV.matchPage)?U(JV.matchPage('',m.cup||m.h.lg,m.d,m.h.id,m.a.id)):U(pg(m.h)),`<span class="sp-vs">${img(m.h)}${img(m.a)}</span><span class="sp-t"><b>${esc(m.h.ru)} — ${esc(m.a.ru)}</b><small>${esc(dt(m.d))} МСК${m.sc?' · '+esc(m.sc):''}${m.cup?' · '+esc(LGN[m.cup]||m.cup):''} · ${SP[m.s]}</small></span>`))
    +g('Лиги',r.leagues,l=>li(U(l.url),`<span class="sp-lg">${l.s==='h'?'ХК':'ФК'}</span><span class="sp-t"><b>${esc(l.ru)}</b><small>${SP[l.s]} · таблица и матчи</small></span>`))
    +g('Игроки',r.players,p=>li(U(p.id!=null?'hockey/player.html?lg='+p.lg+'&id='+encodeURIComponent(p.id):(p.lg==='nhl'?'hockey/players.html':'hockey/players_khl.html')+'?team='+encodeURIComponent(tcode(p))+'&q='+encodeURIComponent(p.n)),`<span class="sp-lg">${esc(p.n.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase())}</span><span class="sp-t"><b>${esc(p.n)}</b><small>${esc(p.c?p.c.ru:'')} · ${p.lg==='nhl'?'НХЛ':'КХЛ'}</small></span>`));
   res.innerHTML=out||`<p class="sp-empty">Ничего не нашли. Попробуйте название клуба или лиги.</p>`;
