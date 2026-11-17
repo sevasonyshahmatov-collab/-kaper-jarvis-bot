@@ -194,10 +194,26 @@ def skills(lg, players, tgf=None):
             for r, (_, k) in enumerate(sc):
                 val = top[r] if r < 3 and N >= 30 else min(cap, curve(1 - r / max(1, N - 1)))
                 rat.setdefault(k, {})[name] = int(round(val))
+    # Эталоны владельца (17.11): «интеллект у Кучерова — самый высокий в хоккее: 99, остальные — относительно него;
+    # у Макдэвида — 90». Эталонным игрокам — их оценка; остальные по этой оси — не выше 91, порядок по статистике сохраняется.
+    for name, fixed in ANCHOR.get(lg, {}).items():
+        if not any(str(k) in fixed for k in rat):
+            continue
+        for k, v in rat.items():
+            if name not in v:
+                continue
+            if str(k) in fixed:
+                v[name] = fixed[str(k)]
+            elif v[name] >= 90:
+                v[name] = int(round(88 + (v[name] - 90) * 0.5))
     for k, v in rat.items():
         if len(v) == len(AX):
             out[k] = [[name, v[name]] for name in AX]
     return out
+
+
+# эталоны владельца по осям навыков: id игрока в лиге -> оценка (НХЛ: 8476453 — Кучеров, 8478402 — Макдэвид)
+ANCHOR = {'nhl': {'Интеллект': {'8476453': 99, '8478402': 90}}}
 
 
 def pct_ranks(lg, players):
