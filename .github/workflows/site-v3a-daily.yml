@@ -49,6 +49,25 @@ jobs:
       - name: Конвейер данных
         if: env.PUBLISH_ONLY != 'yes' && env.DRAFT != 'true'
         run: python team/site/v3a/daily/run.py
+      # фото футболистов из API-Football (17.11): только когда подошла дата из football/data/as_next.txt и есть ключ;
+      # обработка фото (rembg) ставится только в этом случае; ключ — лишь в этом шаге, в лог не выводится
+      - uses: actions/cache@v4
+        if: env.PUBLISH_ONLY != 'yes' && env.DRAFT != 'true'
+        with:
+          path: ~/.u2net
+          key: rembg-u2net-human-seg-v1
+      - name: Фото футболистов (API-Football)
+        if: env.PUBLISH_ONLY != 'yes' && env.DRAFT != 'true'
+        continue-on-error: true
+        timeout-minutes: 25
+        env:
+          APISPORTS_KEY: ${{ secrets.APISPORTS_KEY }}
+          AS_BUDGET: '900'
+        run: |
+          if python team/site/v3a/football/players_apisports.py --due; then
+            pip install -q "opencv-python-headless<5" rembg onnxruntime
+            python team/site/v3a/football/players_apisports.py
+          else echo "фото футболистов: рано или нет ключа"; fi
       - name: Закоммитить данные
         if: always() && env.PUBLISH_ONLY != 'yes' && env.DRAFT != 'true'
         env:
