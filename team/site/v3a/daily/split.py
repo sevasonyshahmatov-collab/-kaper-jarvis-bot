@@ -208,16 +208,19 @@ def skills(lg, players, tgf=None):
             ea = {}
         if len(ea) >= 100:
             # игроки из рейтинга игры — с навыками при любом числе матчей (Барков, Демидов после травм и т. п.)
+            # 18.11 владелец: этим игрокам (мало матчей) — цифры NHL 27 минус 1 по всем навыкам
+            few = set()
             for k in raw:
                 if k not in rat and str(k) in ea:
                     rat[k] = {}
+                    few.add(k)
             for k, v in rat.items():
                 e = ea.get(str(k))
                 if e and all(name in e for name in AX):
                     r = {name: int(round(e[name])) for name in AX}
                     best = max(r.values())
                     for name in AX:
-                        v[name] = max(40, min(99, r[name] - (1 if r[name] == best else 2)))
+                        v[name] = max(40, min(99, r[name] - (1 if (r[name] == best or k in few) else 2)))
                     ea_ids.add(k)
                 else:
                     for name in AX:
