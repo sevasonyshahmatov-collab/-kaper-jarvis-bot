@@ -207,6 +207,10 @@ def skills(lg, players, tgf=None):
         except Exception:  # noqa: BLE001
             ea = {}
         if len(ea) >= 100:
+            # игроки из рейтинга игры — с навыками при любом числе матчей (Барков, Демидов после травм и т. п.)
+            for k in raw:
+                if k not in rat and str(k) in ea:
+                    rat[k] = {}
             for k, v in rat.items():
                 e = ea.get(str(k))
                 if e and all(name in e for name in AX):
