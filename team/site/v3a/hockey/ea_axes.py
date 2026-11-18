@@ -20,7 +20,7 @@ URL = 'https://www.ea.com/games/nhl/ratings?page=%d'
 AX = {'Катание': {'speed': 2, 'acceleration': 2, 'agility': 1},
       'Бросок': {'wristshotAccuracy': 1, 'wristshotPower': 1, 'slapshotAccuracy': 1, 'slapshotPower': 1},
       'Руки': {'deking': 1, 'puckControl': 1, 'handeye': 1},
-      'Интеллект': {'offensiveAwareness': 1, 'passing': 1},
+      'Передачи': {'passing': 1},
       'Оборона': {'defensiveAwareness': 2, 'stickChecking': 1, 'shotBlocking': 1}}
 
 
