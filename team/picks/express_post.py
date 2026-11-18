@@ -25,6 +25,8 @@ ORDER = ['КХЛ', 'НХЛ', 'Футбол']
 
 
 def _k(v):
+    if not isinstance(v, (int, float)):  # кэфа нет в линии — прочерк
+        return '—'
     return ('%.2f' % v).replace('.', ',')
 
 
