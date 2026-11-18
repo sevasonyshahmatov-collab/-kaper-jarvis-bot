@@ -194,42 +194,33 @@ def skills(lg, players, tgf=None):
             for r, (_, k) in enumerate(sc):
                 val = top[r] if r < 3 and N >= 30 else min(cap, curve(1 - r / max(1, N - 1)))
                 rat.setdefault(k, {})[name] = int(round(val))
-    # 18.11 (владелец: «возьми данные по аналогии с игрой НХЛ — там хорошо статистика расписана»): у игроков, которые есть в
-    # рейтингах игры EA NHL (300 лучших, hockey/data/nhl_ea.json, собирает hockey/ea_axes.py), порядок и разрывы по оси —
-    # из игры, шкала — наша строгая: лучший своей группы — 99, середина этих ~260 игроков (≈ 80-й процентиль лиги) — 72,
-    # «чужая» группа (защитник в атаке, нападающий в обороне) — не выше 93. Остальным — оценка по статистике, не выше 82.
+    # 18.11 (владелец: «возьми рейтинги из NHL 27 и убавь все пункты кроме самых больших на 2, а у самого лучшего аспекта
+    # на 1»): у игроков из рейтингов игры EA NHL 27 (300 лучших, hockey/data/nhl_ea.json, собирает hockey/ea_axes.py) оценка —
+    # среднее атрибутов игры по оси (округлено); лучший навык игрока — минус 1, остальные — минус 2. Эталоны ниже к ним
+    # не применяются. Остальным игрокам — оценка по статистике, не выше 80 (ниже почти всех игроков из рейтингов игры).
+    ea_ids = set()
     if lg == 'nhl':
         try:
             ea = load(os.path.join(V3A, 'hockey', 'data', 'nhl_ea.json')).get('p', {})
         except Exception:  # noqa: BLE001
             ea = {}
         if len(ea) >= 100:
-            for name in AX:
-                og = 'D' if name == 'Оборона' else 'F'
-                own = sorted(v[name] for k, v in ea.items() if k.isdigit() and int(k) in raw and raw[int(k)]['grp'] == og)
-                if len(own) < 30:
-                    continue
-                top, med = own[-1], own[len(own) // 2]
-                K = (99 - 72) / max(0.5, top - med)
-                sc = []
-                for k, v in rat.items():
-                    if name not in v:
-                        continue
-                    e = ea.get(str(k))
-                    if e and name in e:
-                        r = 99 - (top - e[name]) * K
-                        if raw[k]['grp'] != og:
-                            r = min(r, 88)
-                        sc.append((r, k))
-                    else:
-                        v[name] = min(v[name], 82)
-                # «99 — один на ось»: места 1–3 — не выше 99 / 96 / 93, 4–7 — не выше 91, дальше — не выше 89
-                for i, (r, k) in enumerate(sorted(sc, reverse=True)):
-                    cap = (99, 96, 93)[i] if i < 3 else (91 if i < 7 else 89)
-                    rat[k][name] = int(round(max(50, min(cap, r))))
+            for k, v in rat.items():
+                e = ea.get(str(k))
+                if e and all(name in e for name in AX):
+                    r = {name: int(round(e[name])) for name in AX}
+                    best = max(r.values())
+                    for name in AX:
+                        v[name] = max(40, min(99, r[name] - (1 if r[name] == best else 2)))
+                    ea_ids.add(k)
+                else:
+                    for name in AX:
+                        if name in v:
+                            v[name] = min(v[name], 80)
     # Эталоны владельца (17.11): «интеллект у Кучерова — самый высокий в хоккее: 99, остальные — относительно него;
     # у Макдэвида — 90». Эталонным игрокам — их оценка; остальные по этой оси — не выше 91, порядок по статистике сохраняется.
-    for name, fixed in ANCHOR.get(lg, {}).items():
+    # 18.11: при рейтингах игры (ea_ids) эталоны не применяются — владелец выбрал цифры игры.
+    for name, fixed in ({} if ea_ids else ANCHOR.get(lg, {})).items():
         if not any(str(k) in fixed for k in rat):
             continue
         for k, v in rat.items():
