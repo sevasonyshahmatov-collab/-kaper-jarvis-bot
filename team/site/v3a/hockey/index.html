@@ -116,7 +116,7 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <section class="kup-promo" id="kupon"><div class="wrap">
   <div class="kpb"><div class="kpb-t"><b>Не знаете, на что поставить?</b><span>Назовите желаемый кэф — модель соберёт купон из самых вероятных событий и покажет его шанс.</span></div>
    <a class="kpb-go" href="kupon.html">Собрать купон</a>
-   <div class="kpb-q"><small>Или сразу на кэф</small><nav aria-label="Собрать купон на кэф"><a href="kupon.html?want=2">2</a><a href="kupon.html?want=3">3</a><a href="kupon.html?want=5">5</a><a href="kupon.html?want=10">10</a></nav></div></div>
+   <div class="kpb-em" id="kpb-em" aria-hidden="true"></div></div>
 </div></section>
 
 <section class="sec" id="leagues" data-zone="p2">
@@ -164,6 +164,10 @@ document.querySelector('meta[name=theme-color]').content={arena:'#071225',a:'#0a
 <script src="../assets/particles.js" defer></script>
 <script src="../assets/titles.js" defer></script>
 <script src="/assets/data/teams-lite.js"></script>
+<script>/* баннер купона: справа — 5 случайных эмблем клубов КХЛ и НХЛ, новые при каждом открытии страницы (владелец 18.11) */
+(function(){var L="admiral,akbars,amur,avangard,avtomobilist,barys,cska,dallas,dinamo_minsk,dinamo_msk,lada,lokomotiv,metallurg,minnesota,neftekhimik,nhl_ana,nhl_bos,nhl_buf,nhl_car,nhl_cbj,nhl_cgy,nhl_chi,nhl_col,nhl_det,nhl_edm,nhl_fla,nhl_lak,nhl_mtl,nhl_njd,nhl_nsh,nhl_nyi,nhl_nyr,nhl_ott,nhl_phi,nhl_pit,nhl_sea,nhl_sjs,nhl_stl,nhl_tbl,nhl_tor,nhl_uta,nhl_van,nhl_vgk,nhl_wpg,nhl_wsh,salavat,severstal,shanghai,sibir,ska,sochi,spartak,torpedo,traktor".split(","),b=document.getElementById("kpb-em");if(!b)return;
+ for(var i=L.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=L[i];L[i]=L[j];L[j]=t}
+ b.innerHTML=L.slice(0,5).map(function(id,k){return '<span style="--k:'+k+'"><img src="../assets/em/'+id+'.webp" alt="" loading="lazy" decoding="async"></span>'}).join("")})()</script>
 <script src="../assets/em/plates.js"></script>
 <script src="/data/today.js"></script>
 <script src="/data/lines.js"></script>

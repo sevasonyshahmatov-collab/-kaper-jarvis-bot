@@ -27,3 +27,18 @@
 @media (max-width:900px){.kup-promo .kpb{grid-template-columns:minmax(0,1fr);justify-items:start}.kup-promo .kpb-go{justify-self:start}.kup-promo .kpb-q{justify-self:start;justify-items:start}}
 @media (max-width:420px){.kup-promo .kpb-q a{min-width:56px;height:56px;font-size:21px}}
 @media (max-width:640px){.kup-promo .kpb b{font-size:24px}.kup-promo .kpb span{font-size:15px}.kup-promo .kpb-q,.kup-promo .kpb-q nav{width:100%}.kup-promo .kpb-q nav a{flex:1;min-width:0}}
+
+/* 18.11 владелец: справа вместо кнопок кэфа — случайные эмблемы клубов (меняются при каждом открытии) */
+.kup-promo .kpb-em{justify-self:end;position:relative;width:min(100%,340px);height:150px}
+.kup-promo .kpb-em span{position:absolute;width:var(--s,84px);height:var(--s,84px);border-radius:50%;background:#f3f6fb;display:grid;place-items:center;
+  box-shadow:0 16px 30px -16px rgba(0,0,0,.75),0 0 0 3px rgba(255,214,90,.28);animation:kpbF 6s ease-in-out infinite;animation-delay:calc(var(--k) * -1.2s)}
+.kup-promo .kpb-em img{width:72%;height:72%;object-fit:contain}
+.kup-promo .kpb-em span:nth-child(1){--s:96px;left:4%;top:28px;rotate:-8deg}
+.kup-promo .kpb-em span:nth-child(2){--s:78px;left:30%;top:0;rotate:6deg}
+.kup-promo .kpb-em span:nth-child(3){--s:104px;left:46%;top:44px;rotate:-4deg;z-index:2}
+.kup-promo .kpb-em span:nth-child(4){--s:70px;right:2%;top:6px;rotate:9deg}
+.kup-promo .kpb-em span:nth-child(5){--s:64px;right:6%;bottom:0;rotate:-10deg}
+@keyframes kpbF{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@media (prefers-reduced-motion:reduce){.kup-promo .kpb-em span{animation:none}}
+@media (max-width:900px){.kup-promo .kpb-em{justify-self:center;height:130px;width:300px}}
+@media (max-width:420px){.kup-promo .kpb-em{width:100%;transform:scale(.9)}}

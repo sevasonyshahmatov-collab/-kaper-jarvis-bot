@@ -225,3 +225,18 @@ addEventListener('hashchange',()=>{id=decodeURIComponent(location.hash.slice(1))
 (function(){if(!document.querySelector('main>.mx-hero')||!/\/(epl|laliga|seriea|bundesliga|ligue1|rpl|ucl|uel)\//.test(location.pathname))return;
 const b=(document.currentScript&&document.currentScript.src)||new URL('assets/nav.js',location.href).href;
 const s=document.createElement('script');s.src=new URL('fmc.js',b).href;document.head.appendChild(s)})();
+
+/* 18.11 владелец: «шестиугольники — в цвета клубов». Пара цветов для двух клубов: акцент клуба из /assets/data/clubs.js
+   (JV_CLUBS[id][2]); если цвета соперников похожи — у гостей берётся второй цвет клуба (осветлённый) или запасной. */
+window.JVPair=function(a,b,da,db){
+  const C=window.JV_CLUBS||{},hex=s=>{const m=/^#?([0-9a-f]{6})$/i.exec(s||'');if(!m)return null;const n=parseInt(m[1],16);return[n>>16,n>>8&255,n&255]},
+   d=(x,y)=>Math.hypot(x[0]-y[0],x[1]-y[1],x[2]-y[2]),lum=x=>(.2126*x[0]+.7152*x[1]+.0722*x[2])/255,
+   sat=x=>{const mx=Math.max(...x),mn=Math.min(...x);return mx?(mx-mn)/mx:0},
+   toh=x=>'#'+x.map(v=>Math.round(v).toString(16).padStart(2,'0')).join(''),
+   lift=x=>{let y=x.slice();for(let i=0;i<12&&lum(y)<.3;i++)y=y.map(v=>v+(255-v)*.12);return y},
+   /* варианты клуба: основной, второй, акцент — осветлённые для тёмного фона; сначала самые насыщенные (цвет клуба, а не бледный) */
+   opts=id=>(C[id]||[]).map(hex).filter(Boolean).map(lift).map(x=>({x,s:sat(x)+(lum(x)>.92?-.2:0)})).sort((p,q)=>q.s-p.s);
+  const A=opts(a),B=opts(b),ca=A.length?A[0].x:hex(da);
+  let cb=(B.find(o=>!ca||d(o.x,ca)>=110)||{}).x;
+  if(!cb){const f=hex(db);cb=f&&ca&&d(f,ca)>=110?f:(ca&&d(hex('#ffffff'),ca)>=110?hex('#ffffff'):hex('#4cc2ff'))}
+  return [ca?toh(ca):da,cb?toh(cb):db]};

@@ -136,7 +136,8 @@ function standing(m,s){
   return null}
 function teamRow(m,s,n){const st=standing(m,s),T=team(m,s);
   const sub=st?`${st.pl}-е место · ${st.pts} ${pl(st.pts,['очко','очка','очков'])} · ${st.gp} ${pl(st.gp,['матч','матча','матчей'])}`:(T?'':'нет данных по клубу');
-  return `<div class="dk-trow"><img class="em" src="${emUrl(m,s)}" alt="" onerror="this.outerHTML='<span class=ph></span>'"><div><b>${esc(n)}</b><small>${esc(sub)}${st&&st.sub?' · '+esc(st.sub):''}</small></div>${formHtml(m,s)}</div>`}
+  /* строка — ссылка на страницу клуба (владелец 18.11) */
+  return `<a class="dk-trow" href="${clubHref(m,s)}" title="Страница клуба: ${esc(n)}"><img class="em" src="${emUrl(m,s)}" alt="" onerror="this.outerHTML='<span class=ph></span>'"><div><b>${esc(n)}<i class="dk-go" aria-hidden="true">›</i></b><small>${esc(sub)}${st&&st.sub?' · '+esc(st.sub):''}</small></div>${formHtml(m,s)}</a>`}
 function pl(n,f){n=Math.abs(n)%100;const a=n%10;return n>10&&n<20?f[2]:a>1&&a<5?f[1]:a===1?f[0]:f[2]}
 
 /* страница матча по понятному адресу (генерирует seo/build_match.py → data/matchlinks.js) */
@@ -322,6 +323,8 @@ function axesFor(m){
   const a=FB.teams[m.h],b=FB.teams[m.a];if(!a||!b)return null;
   if((m.lg==='ucl'||m.lg==='uel')&&FB.axesCup){const ca=a.cx&&a.cx[m.lg],cb=b.cx&&b.cx[m.lg];if(ca&&cb&&ca.axes&&cb.axes&&!ca.est&&!cb.est)return {names:FB.axesCup,a:ca.axes,b:cb.axes,cup:true}}
   if(a.axes&&b.axes&&FB.axes)return {names:FB.axes,a:a.axes,b:b.axes};return null}
+/* цвета пары клубов (владелец 18.11: шестиугольник, лидеры и форма — в цветах клубов) */
+const PC=m=>isH(m)&&window.JVPair?JVPair(m.h,m.a,'#ffc21a','#4cc2ff'):['var(--dk-ca,#ffc21a)',isH(m)?'var(--dk-cb,#4cc2ff)':'var(--dk-cb,#3dd68c)'];
 function radarHtml(m){const ax=axesFor(m);if(!ax)return '';
   let names=ax.names,A=ax.a,B=ax.b;
   if(ax.cup&&names.length===A.length+1){names=names.slice(1)}
@@ -331,7 +334,7 @@ function radarHtml(m){const ax=axesFor(m);if(!ax)return '';
   const rings=[25,50,75,100].map(k=>`<polygon class="rg" points="${Array.from({length:n},(_,i)=>pt(i,k).map(x=>x.toFixed(1)).join(',')).join(' ')}"/>`).join('');
   const spokes=Array.from({length:n},(_,i)=>{const p=pt(i,100);return `<line class="ra" x1="${C}" y1="${C}" x2="${p[0].toFixed(1)}" y2="${p[1].toFixed(1)}"/>`}).join('');
   const labs=Array.from({length:n},(_,i)=>{const a=-Math.PI/2+i*2*Math.PI/n,x=C+(R+26)*Math.cos(a),y=C+(R+18)*Math.sin(a);return `<text class="rl" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${esc(names[i])}</text>`}).join('');
-  const cA='var(--dk-ca,#ffc21a)',cB=isH(m)?'var(--dk-cb,#4cc2ff)':'var(--dk-cb,#3dd68c)';
+  const [cA,cB]=PC(m);
   return `<section class="dk-sec"><h3>Сила команд</h3>
    <div class="dk-leg"><span style="--c:${cA}">${esc(m.hn)}</span><span style="--c:${cB}">${esc(m.an)}</span></div>
    <svg class="dk-radar" viewBox="-10 -4 320 308" role="img" aria-label="Шестиугольник силы: ${esc(m.hn)} и ${esc(m.an)}">${rings}${spokes}
@@ -362,12 +365,12 @@ function leadersOf(m,s,ph){
 function leadersHtml(m,d){
   const A=leadersOf(m,m.h,d.ph[0]),B=leadersOf(m,m.a,d.ph[1]);if(!A&&!B)return '';
   const col=(s,n,L,c)=>L?`<div><h4 style="--c:${c}"><i></i>${esc(n)}</h4><ul class="dk-ld">${L.map(p=>`<li>${p.img?`<img src="${esc(JV_KPH(p.img))}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<span class=ph></span>'">`:`<span class="ph">${esc(p.n.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span>`}<div><b>${esc(p.n)}</b>${p.sub?`<small>${esc(p.sub)}</small>`:''}</div><strong title="${p.u}">${p.v}</strong></li>`).join('')}</ul></div>`:'';
-  return `<section class="dk-sec"><h3>${isH(m)?'Лидеры по очкам (гол + передача)':'Лучшие бомбардиры клуба в лиге'}</h3><div class="dk-two">${col(m.h,m.hn,A,'var(--dk-ca,#ffc21a)')}${col(m.a,m.an,B,isH(m)?'var(--dk-cb,#4cc2ff)':'var(--dk-cb,#3dd68c)')}</div></section>`}
+  return `<section class="dk-sec"><h3>${isH(m)?'Лидеры по очкам (гол + передача)':'Лучшие бомбардиры клуба в лиге'}</h3><div class="dk-two">${col(m.h,m.hn,A,PC(m)[0])}${col(m.a,m.an,B,PC(m)[1])}</div></section>`}
 
 /* последние 5 матчей */
 function lastHtml(m){const fa=formOf(m,m.h),fb=formOf(m,m.a);if(!fa&&!fb)return '';
   const col=(s,n,f,c)=>f?`<div><h4 style="--c:${c}"><i></i>${esc(n)}</h4><ul class="dk-lg5">${f.slice().reverse().map(x=>`<li class="${x.r}"><span><small>${shortDate(x.d)}</small>${x.h?'':''}${esc(nameOf(m,x.o))}</span><b>${x.gf}:${x.ga}${x.x?' '+esc(x.x):''}</b></li>`).join('')}</ul></div>`:'';
-  return `<section class="dk-sec"><h3>Последние 5 матчей</h3><div class="dk-two">${col(m.h,m.hn,fa,'var(--dk-ca,#ffc21a)')}${col(m.a,m.an,fb,isH(m)?'var(--dk-cb,#4cc2ff)':'var(--dk-cb,#3dd68c)')}</div></section>`}
+  return `<section class="dk-sec"><h3>Последние 5 матчей</h3><div class="dk-two">${col(m.h,m.hn,fa,PC(m)[0])}${col(m.a,m.an,fb,PC(m)[1])}</div></section>`}
 
 function linksHtml(m){return `<section class="dk-sec"><h3>Страницы сайта</h3><div class="dk-links">
   <a href="${clubHref(m,m.h)}">${esc(m.hn)}</a><a href="${clubHref(m,m.a)}">${esc(m.an)}</a><a href="${lgHref(m)}">${esc(lgFull(m))}</a></div></section>`}

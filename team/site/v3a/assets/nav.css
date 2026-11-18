@@ -587,5 +587,13 @@ html[data-bg="n"] .ticker li{color:#f2f6ff}
 html[data-bg="n"] .ticker time,html[data-bg="n"] .ticker .k{color:#ffd54d}
 html[data-bg="n"] .ticker li::after{background:rgba(220,232,255,.45)}
 /* затемнение-«хвост» шапки не ложится на бегущую строку, пока страница вверху (строка была блёклой и размытой) */
-html[data-bg="n"].has-tb .hd:not(.stuck)::after{height:100%;-webkit-mask-image:none;mask-image:none;background:rgba(6,11,28,.62)}
+html[data-bg="n"].has-tb:has(.ticker li) .hd:not(.stuck)::after{height:100%;-webkit-mask-image:none;mask-image:none;background:rgba(6,11,28,.62)}
 html[data-bg="n"] .ticker{background:linear-gradient(180deg,rgba(6,11,28,.62),rgba(6,11,28,.3) 70%,rgba(6,11,28,0))!important}
+
+/* 18.11 владелец: «синий у шапки слишком контрастирует с цветными фонами — попробовать тёмный; видна переходная линия».
+   Шапка — нейтральное тёмное стекло без синевы; затемнение уходит вниз плавно и длиннее (без заметной границы). */
+html[data-bg="n"] .hd::after{height:calc(100% + 80px)!important;background:linear-gradient(180deg,rgba(4,5,9,.78) 0,rgba(4,5,9,.62) calc(100% - 80px),rgba(4,5,9,.34) calc(100% - 50px),rgba(4,5,9,.12) calc(100% - 20px),rgba(4,5,9,0))!important;-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 80px),rgba(0,0,0,.6) calc(100% - 40px),transparent)!important;mask-image:linear-gradient(180deg,#000 calc(100% - 80px),rgba(0,0,0,.6) calc(100% - 40px),transparent)!important}
+html[data-bg="n"] .hd::before{background:rgba(4,5,9,.78)!important}
+html[data-bg="n"].has-tb:has(.ticker li) .hd:not(.stuck)::after{height:100%!important;-webkit-mask-image:none!important;mask-image:none!important;background:rgba(4,5,9,.66)!important}
+html[data-bg="n"] .ticker{background:linear-gradient(180deg,rgba(4,5,9,.66),rgba(4,5,9,.3) 70%,rgba(4,5,9,0))!important}
+html[data-bg="n"] .hd .gnav,html[data-bg="n"] .hd .sbtn,html[data-bg="n"] .hd .fav-btn{background-color:rgba(255,255,255,.05)}
