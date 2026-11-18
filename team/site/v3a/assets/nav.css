@@ -597,3 +597,8 @@ html[data-bg="n"] .hd::before{background:rgba(4,5,9,.78)!important}
 html[data-bg="n"].has-tb:has(.ticker li) .hd:not(.stuck)::after{height:100%!important;-webkit-mask-image:none!important;mask-image:none!important;background:rgba(4,5,9,.66)!important}
 html[data-bg="n"] .ticker{background:linear-gradient(180deg,rgba(4,5,9,.66),rgba(4,5,9,.3) 70%,rgba(4,5,9,0))!important}
 html[data-bg="n"] .hd .gnav,html[data-bg="n"] .hd .sbtn,html[data-bg="n"] .hd .fav-btn{background-color:rgba(255,255,255,.05)}
+/* 18.11 владелец: «текст размытый, плохо видно шапку, когда пролистываешь вниз». При прокрутке (.stuck) шапка — плотная
+   тёмная полоса с размытием только внутри себя; ниже — мягкая тень без размытия, текст страницы под ней не мылится. */
+html[data-bg="n"] .hd.stuck::after{height:100%!important;-webkit-mask-image:none!important;mask-image:none!important;
+  background:rgba(4,5,9,.9)!important;-webkit-backdrop-filter:blur(16px) saturate(1.4)!important;backdrop-filter:blur(16px) saturate(1.4)!important;
+  box-shadow:0 10px 22px -4px rgba(4,5,9,.65),0 22px 40px -10px rgba(4,5,9,.45)!important}

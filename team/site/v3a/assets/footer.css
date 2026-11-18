@@ -64,3 +64,7 @@ html body footer.jvf .jvf-bot{border-top-color:#1c2840}
 .jvf-safe{display:grid;gap:6px;margin-top:clamp(20px,3vw,30px);padding:14px 16px;border-radius:12px;background:rgba(255,190,60,.07);border:1px solid rgba(255,190,60,.25)}
 html body footer.jvf .jvf-safe p{margin:0;font-size:13.5px;line-height:1.45;color:#c9d3e3}
 html body footer.jvf .jvf-safe b{color:#ffd27a}
+
+/* подписи к фото — в подвале (18.11) */
+footer.jvf .jvf-credit{margin:10px 0 0;font-size:12.5px;line-height:1.45;color:#8f9cb4}
+footer.jvf .jvf-credit a{color:inherit;text-decoration:underline;text-underline-offset:2px}

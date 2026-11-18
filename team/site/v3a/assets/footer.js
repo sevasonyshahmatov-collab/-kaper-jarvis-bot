@@ -31,6 +31,8 @@ f.innerHTML=`<div class="wrap"><div class="jvf-top">
  <div class="jvf-safe"><p><b>Единственный канал — @jarvibet.</b> Платных подписок, VIP и «договорных матчей» нет. Мы не пишем первыми в личные сообщения и не просим денег.</p><p>18+. Аналитика, не призыв делать ставки. Выигрыш не гарантирован.</p><p class="jvf-fake" hidden></p></div>
  <div class="jvf-bot"><p class="jvf-data">Данные: ESPN, НХЛ, приложение КХЛ. Линии и расчёт обновляются дважды в день.</p><span class="jvf-slot"></span><span class="jvf-age" title="Сайт только для совершеннолетних">18+</span></div></div>`;
 if(keep){keep.className='jvf-note';f.querySelector('.jvf-slot').replaceWith(keep)}
+/* подписи к фото (лицензии CC BY-SA) — в подвал сайта, а не под карточками (владелец 18.11) */
+{const cr=document.getElementById('lccredit');if(cr){cr.removeAttribute('id');cr.className='jvf-credit';const b=f.querySelector('.jvf-bot');if(b)b.after(cr);else f.appendChild(cr)}}
 if(old)old.replaceWith(f);else document.body.appendChild(f);
 /* «Что дальше» в конце страниц лиг, трендов, игроков, клубов и итогов (14.11, п. 8). Не нужен на главной, в разделах
    Хоккей / Футбол, «Матчах дня», «Прогнозе на сегодня» и на странице матча — там свой следующий шаг */

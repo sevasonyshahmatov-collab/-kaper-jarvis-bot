@@ -59,3 +59,29 @@
 .kup-promo .kpb span{display:block;font-size:clamp(16px,1.35vw,20px);line-height:1.5;max-width:34ch;margin:0 auto}
 .kup-promo .kpb-go{font-size:clamp(19px,1.6vw,24px);padding:clamp(20px,1.9vw,28px) clamp(34px,3.2vw,52px);box-shadow:0 18px 36px -14px rgba(255,194,26,.75)}
 @media (max-width:900px){.kup-promo .kpb{justify-items:center;text-align:center}.kup-promo .kpb-go{justify-self:center}.kup-promo .kpb-em{justify-self:center}}
+/* 18.11 владелец: «логотипы ещё больше» */
+@media (min-width:901px){.kup-promo .kpb{grid-template-columns:minmax(0,1.05fr) auto minmax(0,1.25fr);min-height:clamp(220px,19vw,280px)}}
+.kup-promo .kpb-em{width:min(100%,520px);height:240px}
+.kup-promo .kpb-em span:nth-child(1){--s:160px;left:0;top:44px}
+.kup-promo .kpb-em span:nth-child(2){--s:128px;left:25%;top:-6px}
+.kup-promo .kpb-em span:nth-child(3){--s:172px;left:41%;top:62px}
+.kup-promo .kpb-em span:nth-child(4){--s:122px;right:0;top:0}
+.kup-promo .kpb-em span:nth-child(5){--s:112px;right:2%;bottom:-6px}
+@media (max-width:900px){.kup-promo .kpb-em{height:220px;width:min(100%,440px)}
+  .kup-promo .kpb-em span:nth-child(1){--s:130px}.kup-promo .kpb-em span:nth-child(2){--s:104px}.kup-promo .kpb-em span:nth-child(3){--s:140px;top:56px}.kup-promo .kpb-em span:nth-child(4){--s:100px}.kup-promo .kpb-em span:nth-child(5){--s:94px}}
+/* 18.11 владелец: «сделай ровно» — текст кнопки строго по центру (старое правило .kup-promo a делило ссылку на 2 колонки) */
+.kup-promo .kpb a.kpb-go{display:inline-flex;align-items:center;justify-content:center;text-align:center;grid-template-columns:none;gap:0;line-height:1}
+@media (min-width:901px){.kup-promo .kpb{grid-template-columns:minmax(0,1.2fr) auto minmax(0,1.2fr)}.kup-promo .kpb b{font-size:clamp(28px,2.7vw,42px)}}
+/* эмблемы — ровным рядом с лёгким шагом по высоте, без наложений */
+.kup-promo .kpb-em{display:flex;align-items:center;justify-content:center;gap:clamp(4px,1vw,14px);height:auto;min-height:200px;width:100%}
+.kup-promo .kpb-em span{position:static;flex:none;rotate:0deg}
+.kup-promo .kpb-em span:nth-child(n){--s:clamp(76px,7.4vw,118px)}
+.kup-promo .kpb-em span:nth-child(odd){margin-top:-34px}.kup-promo .kpb-em span:nth-child(even){margin-top:34px}
+.kup-promo .kpb-em span:nth-child(3){--s:clamp(90px,8.8vw,138px)}
+@media (max-width:900px){.kup-promo .kpb-em{min-height:160px}.kup-promo .kpb-em span:nth-child(n){--s:clamp(58px,17vw,92px)}.kup-promo .kpb-em span:nth-child(3){--s:clamp(66px,20vw,108px)}
+  .kup-promo .kpb-em span:nth-child(odd){margin-top:-24px}.kup-promo .kpb-em span:nth-child(even){margin-top:24px}}
+@media (min-width:901px){.kup-promo .kpb{grid-template-columns:minmax(0,1.1fr) auto minmax(0,1.4fr)}
+  .kup-promo .kpb-em{overflow:visible;gap:clamp(4px,.8vw,12px)}
+  .kup-promo .kpb-em span:nth-child(n){--s:clamp(58px,5.3vw,96px)}.kup-promo .kpb-em span:nth-child(3){--s:clamp(68px,6.3vw,112px)}}
+@media (min-width:901px){.kup-promo .kpb-em span:nth-child(n){--s:clamp(70px,6.9vw,112px)}.kup-promo .kpb-em span:nth-child(3){--s:clamp(82px,8vw,128px)}.kup-promo .kpb-em span:nth-child(5){display:none}}
+@media (min-width:901px){.kup-promo .kpb-em{gap:clamp(2px,.6vw,10px)}.kup-promo .kpb-em span:nth-child(n){--s:clamp(76px,7.4vw,118px)}.kup-promo .kpb-em span:nth-child(3){--s:clamp(90px,8.6vw,136px)}}
