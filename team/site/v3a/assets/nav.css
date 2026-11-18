@@ -552,3 +552,18 @@ html[data-bg="n"] .pp-sk .vv{fill:color-mix(in srgb,color-mix(in srgb,var(--kb,#
 html[data-bg="n"] .pp-sk .dt{fill:#fff;stroke:color-mix(in srgb,var(--kb,#3b78e0) 35%,#9fe4ff);stroke-width:3}
 html[data-bg="n"] .pp-sk .ax{fill:#b9c7f0}
 html[data-bg="n"] .pp-sk .vl{fill:#fff}
+
+/* 18.11 владелец: «верни цветное оформление в цветах клубов у всех команд, сейчас только шапка в цветах клуба».
+   Страница клуба в «Ночной арене»: вся страница — один плавный фон в цветах клуба (без стыков между разделами):
+   свет акцента клуба сверху слева и снизу справа, второй цвет — справа и снизу слева, основа — тёмный цвет клуба. */
+html[data-bg="n"] body.club-g{background:color-mix(in srgb,var(--k-dk) 60%,#03050d)!important}
+html[data-bg="n"] body.club-g::before{
+  background:
+   radial-gradient(62% 50% at 6% 4%,color-mix(in srgb,var(--k-a1) 72%,transparent),transparent 72%),
+   radial-gradient(48% 42% at 98% 18%,color-mix(in srgb,var(--k-a2) 58%,transparent),transparent 72%),
+   radial-gradient(56% 48% at 94% 96%,color-mix(in srgb,var(--k-a1) 46%,transparent),transparent 72%),
+   radial-gradient(54% 50% at 0% 86%,color-mix(in srgb,var(--k-a2) 52%,transparent),transparent 72%),
+   radial-gradient(40% 34% at 50% 52%,color-mix(in srgb,var(--k-a1) 18%,transparent),transparent 74%),
+   linear-gradient(180deg,color-mix(in srgb,var(--k-dk) 82%,#050914),color-mix(in srgb,var(--k-dk) 60%,#03050d) 55%,color-mix(in srgb,var(--k-dk) 44%,#02040a))!important}
+/* тёмные карточки и полосы на клубной странице — с оттенком клуба, а не синие */
+html[data-bg="n"] body.club-g :is(.tmsec,[data-zone]){--card:color-mix(in srgb,var(--k-dk) 55%,#0b1226);--card-hi:color-mix(in srgb,var(--k-dk) 45%,#141d3a);--rule:color-mix(in srgb,var(--k-a1) 22%,transparent)}
