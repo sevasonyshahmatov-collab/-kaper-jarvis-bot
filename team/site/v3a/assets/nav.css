@@ -602,3 +602,9 @@ html[data-bg="n"] .hd .gnav,html[data-bg="n"] .hd .sbtn,html[data-bg="n"] .hd .f
 html[data-bg="n"] .hd.stuck::after{height:100%!important;-webkit-mask-image:none!important;mask-image:none!important;
   background:rgba(4,5,9,.9)!important;-webkit-backdrop-filter:blur(16px) saturate(1.4)!important;backdrop-filter:blur(16px) saturate(1.4)!important;
   box-shadow:0 10px 22px -4px rgba(4,5,9,.65),0 22px 40px -10px rgba(4,5,9,.45)!important}
+
+/* 18.11 владелец: подпись BETA у логотипа */
+.hd .logo.lg2 .beta{margin-left:12px;align-self:center;font:800 10.5px/1 var(--display);letter-spacing:.14em;padding:4px 6px 4px 7px;border-radius:5px;
+  color:#ffd54d;border:1px solid rgba(255,213,77,.55);background:rgba(255,213,77,.08);text-transform:uppercase;transform:translateY(-1px)}
+@media (max-width:420px){.hd .logo.lg2 .beta{margin-left:8px;font-size:9px;padding:3px 4px 3px 5px}}
+@media (max-width:350px){.hd .logo.lg2 .beta{display:none}}

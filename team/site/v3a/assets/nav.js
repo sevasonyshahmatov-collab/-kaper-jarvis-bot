@@ -99,7 +99,7 @@ const panel=(sec?[sec]:[SECTIONS.hockey,SECTIONS.football]).map((list,i)=>{
   return `<div class="mgrp">${name?`<b>${name}</b>`:''}${list.map(s=>s[3]?`<div class="msub"><b>${esc(s[1])}</b>${s[3].map(x=>link(x,sec?act:'')).join('')}</div>`:link(s,sec?act:'')).join('')}</div>`}).join('');
 
 hd.innerHTML=`<div class="wrap hdrow">
-  <div class="logo lg2"><a class="lw" href="${esc(U('index.html'))}" aria-label="JARVIS — выбор: хоккей или футбол">JARVIS</a>${LSEC?`<s aria-hidden="true">|</s><a href="${esc(U(sport+'/index.html'))}" aria-label="${sport==='hockey'?'Хоккей':'Футбол'} — главная раздела"><em class="ls-${LSEC[1]}">${esc(LSEC[0])}</em></a>`:''}</div>
+  <div class="logo lg2"><a class="lw" href="${esc(U('index.html'))}" aria-label="JARVIS — выбор: хоккей или футбол">JARVIS</a>${LSEC?`<s aria-hidden="true">|</s><a href="${esc(U(sport+'/index.html'))}" aria-label="${sport==='hockey'?'Хоккей':'Футбол'} — главная раздела"><em class="ls-${LSEC[1]}">${esc(LSEC[0])}</em></a>`:''}<span class="beta" title="Сайт в бета-версии: дорабатываем и проверяем">BETA</span></div>
   <nav class="seg" aria-label="Вид спорта">
     <a href="${esc(U('hockey/index.html'))}"${sport==='hockey'?' aria-current="true"':''}>Хоккей</a>
     <a href="${esc(U('football/index.html'))}"${sport==='football'?' aria-current="true"':''}>Футбол</a>
