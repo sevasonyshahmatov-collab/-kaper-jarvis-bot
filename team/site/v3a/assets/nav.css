@@ -567,3 +567,25 @@ html[data-bg="n"] body.club-g::before{
    linear-gradient(180deg,color-mix(in srgb,var(--k-dk) 82%,#050914),color-mix(in srgb,var(--k-dk) 60%,#03050d) 55%,color-mix(in srgb,var(--k-dk) 44%,#02040a))!important}
 /* тёмные карточки и полосы на клубной странице — с оттенком клуба, а не синие */
 html[data-bg="n"] body.club-g :is(.tmsec,[data-zone]){--card:color-mix(in srgb,var(--k-dk) 55%,#0b1226);--card-hi:color-mix(in srgb,var(--k-dk) 45%,#141d3a);--rule:color-mix(in srgb,var(--k-a1) 22%,transparent)}
+
+/* 18.11 владелец: значок «/» на кнопке поиска убрать (горячая клавиша «/» работает как прежде) */
+.hd .sbtn kbd{display:none!important}
+
+/* 18.11 владелец: «линия блеклая — выделить в рамочку; не нравится синий засвет».
+   Бегущая строка: коэффициенты — в рамке, светлее; без синей подсветки снизу. Общий фон: верхний синий свет приглушён. */
+html[data-bg="n"] .ticker .kq{color:#eef3ff;font-weight:700;font-size:14px;padding:5px 9px;border-radius:7px;border:1px solid rgba(220,232,255,.34);background:rgba(220,232,255,.08);letter-spacing:.01em}
+html[data-bg="n"] .ticker{background:rgba(6,10,22,.55)!important}
+html[data-bg="n"] body::before{
+  background:
+   radial-gradient(58% 46% at 10% 6%,color-mix(in srgb,var(--n-a) 30%,transparent),transparent 72%),
+   radial-gradient(40% 36% at 98% 20%,color-mix(in srgb,var(--n-b) 18%,transparent),transparent 72%),
+   radial-gradient(52% 44% at 94% 96%,color-mix(in srgb,var(--n-c) 30%,transparent),transparent 72%),
+   radial-gradient(50% 48% at 2% 86%,color-mix(in srgb,var(--n-d) 36%,transparent),transparent 72%),
+   linear-gradient(180deg,#070c22,#050914 52%,#03050d)}
+html[data-bg="n"] .ticker,html[data-bg="n"] .ticker .track{opacity:1!important;filter:none!important}
+html[data-bg="n"] .ticker li{color:#f2f6ff}
+html[data-bg="n"] .ticker time,html[data-bg="n"] .ticker .k{color:#ffd54d}
+html[data-bg="n"] .ticker li::after{background:rgba(220,232,255,.45)}
+/* затемнение-«хвост» шапки не ложится на бегущую строку, пока страница вверху (строка была блёклой и размытой) */
+html[data-bg="n"].has-tb .hd:not(.stuck)::after{height:100%;-webkit-mask-image:none;mask-image:none;background:rgba(6,11,28,.62)}
+html[data-bg="n"] .ticker{background:linear-gradient(180deg,rgba(6,11,28,.62),rgba(6,11,28,.3) 70%,rgba(6,11,28,0))!important}

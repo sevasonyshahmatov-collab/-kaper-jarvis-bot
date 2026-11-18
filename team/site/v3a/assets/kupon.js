@@ -439,6 +439,8 @@ skin();
 /* вход с других страниц: kupon.html?m=<лига|день|хозяева|гости> — матч сразу раскрыт и на экране */
 let FOCUS='';try{const k=new URLSearchParams(location.search).get('m');if(k&&BY[k]&&!started(BY[k])){S.open[k]=true;FOCUS=k}}catch(e){}
 paint();
+/* вход с баннера «Не знаете, на что поставить?»: kupon.html?want=3 — купон на этот кэф собирается сразу (владелец 18.11) */
+try{const w=num(new URLSearchParams(location.search).get('want')||'');if(w>=1.2&&w<=500){$('kp-want').value=fk(w).replace(/,00$/,'');auto(w);history.replaceState(null,'',location.pathname+location.hash)}}catch(e){}
 if(FOCUS){const el=document.querySelector('.kp-m[data-key="'+CSS.escape(FOCUS)+'"]');if(el)setTimeout(()=>el.scrollIntoView({block:'start'}),60)}
 setInterval(()=>{if(!document.hidden&&!document.activeElement.matches('input'))paint()},6e4);
 })();

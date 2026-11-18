@@ -7,3 +7,23 @@
 .kup-promo span{font-size:16px;line-height:1.45;color:#b8c9e4}
 .kup-promo i{font:800 17px/1 var(--display);font-style:normal;padding:15px 22px;border-radius:999px;background:var(--signal,#ffc21a);color:var(--signal-ink,#1a1400);white-space:nowrap}
 @media (max-width:640px){.kup-promo a{grid-template-columns:1fr}.kup-promo i{justify-self:start}}
+
+/* 18.11 владелец: баннер больше, кнопка ближе к центру, справа — быстрый выбор кэфа (kupon.html?want=N) */
+.kup-promo .kpb{display:grid;grid-template-columns:minmax(0,1.35fr) auto minmax(0,1fr);gap:20px clamp(24px,4vw,56px);align-items:center;min-height:clamp(170px,16vw,230px);
+  padding:clamp(26px,3vw,44px) clamp(22px,3.2vw,48px);border-radius:20px;color:#eaf3ff;position:relative;overflow:hidden;
+  background:radial-gradient(70% 120% at 100% 50%,rgba(255,194,26,.16),transparent 60%),linear-gradient(110deg,#14275a,#0f1c40 55%,#151a2e);border:1px solid rgba(255,194,26,.28)}
+.kup-promo .kpb b{display:block;font:800 clamp(24px,2.8vw,38px)/1.1 var(--display);margin-bottom:10px}
+.kup-promo .kpb span{font-size:16px;line-height:1.5;color:#c3d2ec}
+.kup-promo .kpb-go{justify-self:center;font:800 18px/1 var(--display);padding:18px 30px;border-radius:999px;background:var(--signal,#ffc21a);color:var(--signal-ink,#1a1400);text-decoration:none;white-space:nowrap;box-shadow:0 14px 30px -14px rgba(255,194,26,.7);transition:transform .2s}
+.kup-promo .kpb-go:hover{transform:translateY(-2px)}
+.kup-promo .kpb-q{justify-self:end;display:grid;gap:12px;justify-items:end}
+.kup-promo .kpb-q small{font:700 13px/1 var(--display);color:#c3d2ec;letter-spacing:.02em}
+.kup-promo .kpb-q nav{display:flex;gap:10px}
+.kup-promo .kpb-q a{display:grid;place-items:center;min-width:64px;height:64px;padding:0 12px;border-radius:14px;font:800 24px/1 var(--display);color:#fff;text-decoration:none;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,214,90,.42);transition:background .2s,transform .2s}
+.kup-promo .kpb-q a::before{content:"×";font-size:16px;margin-right:2px;color:#ffd54d}
+.kup-promo .kpb-q a{display:inline-flex;align-items:center;justify-content:center;gap:1px}
+.kup-promo .kpb-q a:hover{background:rgba(255,194,26,.18);transform:translateY(-2px)}
+@media (max-width:900px){.kup-promo .kpb{grid-template-columns:minmax(0,1fr);justify-items:start}.kup-promo .kpb-go{justify-self:start}.kup-promo .kpb-q{justify-self:start;justify-items:start}}
+@media (max-width:420px){.kup-promo .kpb-q a{min-width:56px;height:56px;font-size:21px}}
+@media (max-width:640px){.kup-promo .kpb b{font-size:24px}.kup-promo .kpb span{font-size:15px}.kup-promo .kpb-q,.kup-promo .kpb-q nav{width:100%}.kup-promo .kpb-q nav a{flex:1;min-width:0}}
