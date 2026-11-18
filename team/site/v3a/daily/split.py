@@ -194,6 +194,39 @@ def skills(lg, players, tgf=None):
             for r, (_, k) in enumerate(sc):
                 val = top[r] if r < 3 and N >= 30 else min(cap, curve(1 - r / max(1, N - 1)))
                 rat.setdefault(k, {})[name] = int(round(val))
+    # 18.11 (владелец: «возьми данные по аналогии с игрой НХЛ — там хорошо статистика расписана»): у игроков, которые есть в
+    # рейтингах игры EA NHL (300 лучших, hockey/data/nhl_ea.json, собирает hockey/ea_axes.py), порядок и разрывы по оси —
+    # из игры, шкала — наша строгая: лучший своей группы — 99, середина этих ~260 игроков (≈ 80-й процентиль лиги) — 72,
+    # «чужая» группа (защитник в атаке, нападающий в обороне) — не выше 93. Остальным — оценка по статистике, не выше 82.
+    if lg == 'nhl':
+        try:
+            ea = load(os.path.join(V3A, 'hockey', 'data', 'nhl_ea.json')).get('p', {})
+        except Exception:  # noqa: BLE001
+            ea = {}
+        if len(ea) >= 100:
+            for name in AX:
+                og = 'D' if name == 'Оборона' else 'F'
+                own = sorted(v[name] for k, v in ea.items() if k.isdigit() and int(k) in raw and raw[int(k)]['grp'] == og)
+                if len(own) < 30:
+                    continue
+                top, med = own[-1], own[len(own) // 2]
+                K = (99 - 72) / max(0.5, top - med)
+                sc = []
+                for k, v in rat.items():
+                    if name not in v:
+                        continue
+                    e = ea.get(str(k))
+                    if e and name in e:
+                        r = 99 - (top - e[name]) * K
+                        if raw[k]['grp'] != og:
+                            r = min(r, 88)
+                        sc.append((r, k))
+                    else:
+                        v[name] = min(v[name], 82)
+                # «99 — один на ось»: места 1–3 — не выше 99 / 96 / 93, 4–7 — не выше 91, дальше — не выше 89
+                for i, (r, k) in enumerate(sorted(sc, reverse=True)):
+                    cap = (99, 96, 93)[i] if i < 3 else (91 if i < 7 else 89)
+                    rat[k][name] = int(round(max(50, min(cap, r))))
     # Эталоны владельца (17.11): «интеллект у Кучерова — самый высокий в хоккее: 99, остальные — относительно него;
     # у Макдэвида — 90». Эталонным игрокам — их оценка; остальные по этой оси — не выше 91, порядок по статистике сохраняется.
     for name, fixed in ANCHOR.get(lg, {}).items():
@@ -213,7 +246,8 @@ def skills(lg, players, tgf=None):
 
 
 # эталоны владельца по осям навыков: id игрока в лиге -> оценка (НХЛ: 8476453 — Кучеров, 8478402 — Макдэвид)
-ANCHOR = {'nhl': {'Интеллект': {'8476453': 99, '8478402': 90}}}
+# 17.11 «скорость 99 — у Макдэвида и Маккиннона, у остальных ниже» (8477492 — Маккиннон)
+ANCHOR = {'nhl': {'Интеллект': {'8476453': 99, '8478402': 90}, 'Катание': {'8478402': 99, '8477492': 99}}}
 
 
 def pct_ranks(lg, players):
