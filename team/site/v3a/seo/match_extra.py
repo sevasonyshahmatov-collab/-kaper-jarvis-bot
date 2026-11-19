@@ -158,7 +158,7 @@ class Extra:
             elif r.get('same'):
                 tiles.append(('', '0', 'км перелёт', 'прошлый матч — на этой же арене'))
             ti = ''.join('<li class="%s"><b class="num">%s</b><span>%s</span>%s</li>'
-                         % (c, esc(v), esc(lbl), ('<small>%s</small>' % esc(sub)) if sub else '') for c, v, lbl, sub in tiles)
+                         % (c, esc(v), esc(lbl), '<small>%s</small>' % esc(sub)) for c, v, lbl, sub in tiles)   # пустая подпись тоже: у всех плашек одна высота, цифры в один ряд
             cards.append('<div class="mq-card"><h3>%s<em>%s</em></h3><ul class="mq-tiles">%s</ul>'
                          '<p class="mq-prev">Прошлый матч: %s.%s, %s — %s%s</p></div>'
                          % (self.head(m, tid, from_dir), 'хозяева' if r['home'] else 'гости', ti,
