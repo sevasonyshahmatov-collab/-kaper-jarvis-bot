@@ -6,7 +6,7 @@
 # Запуск: publish_draft.sh <папка макета v3a> <папка draft/ в копии репозитория сайта>
 set -euo pipefail
 src="${1%/}"; dst="${2%/}"
-case "$dst" in */draft) ;; *) echo "папка назначения должна оканчиваться на /draft: $dst"; exit 1;; esac
+case "$dst" in */draft|*/dev) ;; *) echo "папка назначения должна оканчиваться на /draft или /dev: $dst"; exit 1;; esac
 here="$(cd "$(dirname "$0")" && pwd)"
 stage="$(mktemp -d)"; trap 'rm -rf "$stage"' EXIT
 bash "$here/publish_new.sh" "$src" "$stage/new" >/dev/null

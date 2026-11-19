@@ -119,7 +119,9 @@ jobs:
           [ -n "$SITE_TOKEN" ] || { echo "SITE_TOKEN не задан — new/ не обновлена"; exit 0; }
           # владелец 13.11: новый сайт — главный (в корне), для поиска пока закрыт (noindex). Включается сам, когда site.yml в main
           # умеет метку .v3a-root (не даёт старому сайту заменить главную); до этого — по-прежнему в new/
-          if [ "$TO" = draft ]; then bash team/site/v3a/daily/publish_draft.sh team/site/v3a _site/draft; root=draft
+          # 19.11: черновик чата дополнений — своя папка dev/ (draft/ занимает чат аудита и перезаписывает её своими сборками)
+          ddir=draft; [[ "$GITHUB_REF_NAME" == *draft-odds* ]] && ddir=dev
+          if [ "$TO" = draft ]; then bash team/site/v3a/daily/publish_draft.sh team/site/v3a "_site/$ddir"; root=draft
           elif [ "$TO" != live ]; then echo "не публикую ($TO)"; exit 0
           else git fetch -q --depth=1 origin main && root=$(git show FETCH_HEAD:.github/workflows/site.yml | grep -c 'v3a-root' || true); fi
           if [ "$root" = draft ]; then :
@@ -129,7 +131,7 @@ jobs:
           git config user.name "jarvis-site-bot"; git config user.email "jarvis-site-bot@users.noreply.github.com"
           git add -A
           git diff --cached --quiet && { echo "новый сайт не изменился"; exit 0; }
-          git commit -q -m "$([ "$TO" = draft ] && echo 'Черновик сайта (draft/)' || echo 'Новый сайт'): обновление $(TZ=Europe/Moscow date '+%d.%m %H:%M') МСК"
+          git commit -q -m "$([ "$TO" = draft ] && echo "Черновик сайта (${ddir:-draft}/)" || echo 'Новый сайт'): обновление $(TZ=Europe/Moscow date '+%d.%m %H:%M') МСК"
           for i in 1 2 3 4 5; do
             # site.yml пишет в тот же репозиторий (другие папки) — подтянуть его коммиты и повторить
             # токен — только здесь: через заголовок для одной команды, на диск (_site/.git/config) не пишется
