@@ -66,7 +66,7 @@ function frame(t){
  const a=t/1000;
  S.forEach(s=>{
   let tx=s.tx,ty=s.ty,tmx=s.tmx,tmy=s.tmy;
-  if(!s.ptr){if(TOUCHJV||LITE()){tx=0;ty=0;tmx=50;tmy=50;if(Math.abs(s.rx)<.02&&Math.abs(s.ry)<.02&&Math.abs(s.s-s.ts)<.002)return}else{ty=Math.sin(a*.5+s.ph)*7;tx=Math.cos(a*.37+s.ph)*4;tmx=50+ty/MAX*45;tmy=50-tx/MAX*45}}   /* телефон: без покачивания в простое (владелец 15.11 «дёрганый») */
+  if(!s.ptr){if(true){   /* 19.11 владелец: голография статичная — в покое карточки не качаются, наклон и блик только под курсором (скорость на ПК) */tx=0;ty=0;tmx=50;tmy=50;if(Math.abs(s.rx)<.02&&Math.abs(s.ry)<.02&&Math.abs(s.s-s.ts)<.002)return}else{ty=Math.sin(a*.5+s.ph)*7;tx=Math.cos(a*.37+s.ph)*4;tmx=50+ty/MAX*45;tmy=50-tx/MAX*45}}   /* телефон: без покачивания в простое (владелец 15.11 «дёрганый») */
   const k=s.ptr?.14:.06;
   s.rx+=(tx-s.rx)*k;s.ry+=(ty-s.ry)*k;s.mx+=(tmx-s.mx)*k;s.my+=(tmy-s.my)*k;s.s+=(s.ts-s.s)*.12;
   const st=s.el.style;
