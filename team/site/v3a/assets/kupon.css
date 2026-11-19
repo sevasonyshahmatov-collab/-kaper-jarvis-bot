@@ -685,6 +685,13 @@ body.kb4{background:#07102a}
 .kp-alg button:hover{border-color:var(--ink-3);color:var(--ink)}
 .kp-alg button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--signal-ink,#1a1400)}
 .kp-alg small{font:500 13px/1.2 var(--text);color:var(--ink-3);margin-left:4px}
+/* за какие дни и сколько событий собирать (владелец 19.11): отдельная строка под полем кэфа, по центру */
+.kp-opts{grid-column:1/-1;display:flex;flex-wrap:wrap;justify-content:center;gap:10px 22px;padding-top:12px;border-top:1px solid var(--rule)}
+.kp-opts[hidden]{display:none}
+.kp-alg.kp-og{width:auto;flex:0 1 auto;max-width:100%;min-width:0;flex-wrap:wrap;justify-content:center}
+@media (max-width:760px){.kp-alg.kp-og{width:100%}}
+.kp-og>span{font:600 13px/1.2 var(--display);color:var(--ink-3);margin-right:2px}
+.kp-og button{min-width:40px;text-align:center}
 @media (pointer:coarse){.kp-alg button{min-height:44px;min-width:56px;display:inline-flex;align-items:center;justify-content:center}} /* палец: зона нажатия 44 px (аудит 19.11) */
 .kp-want input{flex:1 1 150px;width:auto;min-width:0}
 @media (max-width:760px){.kp-want{max-width:none}}
