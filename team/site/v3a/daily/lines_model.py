@@ -376,6 +376,14 @@ def main():
         del lines[k]
     for k in [k for k in model if k.split('|')[1] < today]:
         del model[k]
+    # в публичные данные сайта названия букмекеров не попадают (правило канала; аудит 19.11): источник — нейтральным кодом
+    NEUTRAL = {'fonbet': 'line1', 'pinnacle': 'line2'}
+    for rows in (list(lines.values()), list(model.values()), today_rows):
+        for r in rows:
+            if isinstance(r, dict):
+                for f in ('src', 'tot_src', 'line'):
+                    if r.get(f) in NEUTRAL:
+                        r[f] = NEUTRAL[r[f]]
     today_rows.sort(key=lambda r: (r['t'], r['key']))
     C.jsave(os.path.join(C.DATA, 'lines.json'), lines, 'JV_LINES')
     C.jsave(os.path.join(C.DATA, 'model.json'), model, 'JV_MODEL')

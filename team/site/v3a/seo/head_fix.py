@@ -6,6 +6,9 @@
   2) <meta name="theme-color"> — цвет новой темы;
   3) ссылки на иконки (favicon.svg, favicon-32.png, apple-touch-icon.png) — с версией ?v=3: браузеры и sw.js держат
      картинки по адресу, без версии осталась бы старая иконка.
+  4) <meta http-equiv="Content-Security-Policy"> — базовая защита (аудит 19.11): запрет плагинов (object-src),
+     подмены <base> чужим адресом (base-uri) и отправки форм на чужие сайты (form-action). Скрипты и картинки не ограничивает —
+     ничего на страницах не ломает.
 Повторный запуск ничего не меняет. Папки proto/ и данных не трогает."""
 import os, re, sys
 
@@ -13,6 +16,7 @@ V3A = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SNIP = ('<script>/*тема: «Ночная арена» по умолчанию; ?bg=0 — старая*/(function(){var d=document.documentElement;try{'
         'var q=new URLSearchParams(location.search).get("bg");if(q!==null)sessionStorage.setItem("jv-bg",/^[abcn]$/.test(q)?q:"0");'
         'var b=sessionStorage.getItem("jv-bg");if(b===null)b="n";if(b&&b!=="0")d.dataset.bg=b}catch(e){d.dataset.bg="n"}})()</script>')
+CSP = ('<meta http-equiv="Content-Security-Policy" content="object-src \'none\'; base-uri \'self\'; form-action \'self\'">')
 THEME = '#060b1a'
 ICON_VER = '3'
 SKIP = ('proto', 'data', '.git', 'node_modules')
@@ -28,6 +32,10 @@ def fix(s):
         m = CHARSET.search(s)
         if m:
             s = s[:m.end()] + SNIP + s[m.end():]
+    if 'Content-Security-Policy' not in s:
+        m = CHARSET.search(s)
+        if m:
+            s = s[:m.end()] + CSP + s[m.end():]
     s = TCOLOR.sub('<meta name="theme-color" content="%s">' % THEME, s)
     s = ICON.sub(lambda m: '%s?v=%s"' % (m.group(1), ICON_VER), s)
     return s

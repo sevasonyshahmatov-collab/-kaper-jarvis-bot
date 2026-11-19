@@ -670,6 +670,7 @@ body.kb4{background:#07102a}
 /* подбор по желаемому кэфу */
 .kp-filt[hidden]{display:none}
 .kp-want{display:flex;gap:8px;align-items:stretch}
+.kp-18{display:block;margin-top:8px;color:var(--ink-3);font-size:13px;line-height:1.4}
 .kp-want input{width:170px;font-size:20px;padding:12px 14px;background:var(--paper);border:2px solid var(--rule-2)}
 .kp-want input:focus{border-color:var(--acc);outline:0}
 .kp-want input::placeholder{font-weight:600;font-size:15px;color:var(--ink-3)}

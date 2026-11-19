@@ -24,7 +24,7 @@ const crest=(src,cls)=>`<img class="${cls}" src="${String(src).replace(/\/em\/(?
 const kef=(m,i)=>{const ln=m.ln;if(!ln)return '';const v=[ln.p1,ln.x,ln.p2][i];return v?f2(v):''};
 const OUT=['П1','Х','П2'];
 const pick=m=>m.pr?{o:OUT[m.bi],p:pc(m.best),k:kef(m,m.bi),who:m.bi===1?'ничья':m.bi===0?m.hn:m.an}:null;
-const when=m=>m.day==='сегодня'?m.hm:`${m.hm}<small>${e(m.day)}</small>`;
+const when=m=>m.day==='сегодня'?e(m.hm):`${e(m.hm)}<small>${e(m.day)}</small>`;
 
 /* 1 — лицом к лицу: эмблемы крупно, полоса шансов модели П1 / Х / П2, кэф под своим исходом.
    Наведение (владелец 08.11): матч расширяется в своём ряду, соседи сужаются; справа — подробности. Касание на телефоне — раскрыть, второе — перейти. */
@@ -46,7 +46,7 @@ const lv=m=>`data-lv data-lv-lg="${e(m.lg)}" data-lv-t="${e(m.t.replace(' ','T')
 function card1(m){
  const pr=m.pr;
  const bar=pr?`<div class="bar">${pr.map((p,i)=>p==null?'':`<i class="${i===m.bi?'on':''}" style="flex:${Math.max(p,.06)}"><b>${pc(p)}%</b><small>${OUT[i]}${kef(m,i)?' · '+kef(m,i):''}</small></i>`).join('')}</div>`:'<div class="bar none">расчёт скоро</div>';
- return `<li class="${m.hockey?'hk':'fb'}"><a href="${m.page}" data-fb="${m.href}" data-ml="/${m.page.replace(/^(\.\.?\/)+/,'')}"><div class="main">
+ return `<li class="${m.hockey?'hk':'fb'}"><a href="${e(m.page)}" data-fb="${e(m.href)}" data-ml="/${e(m.page.replace(/^(\.\.?\/)+/,''))}"><div class="main">
    <div class="fo">
     <span class="tm">${crest(m.hc,'cr')}<b>${e(m.hn)}</b></span>
     <span class="mid" ${lv(m)}><time>${when(m)}</time><em>${e(m.lgn)}</em></span>
@@ -76,7 +76,7 @@ function wire1(){
 /* 2 — билеты: корешок со временем, команды, справа исход модели крупно */
 function v2(){
  return `<ul class="mt2">${L.map(m=>{const p=pick(m);
-  return `<li class="${m.hockey?'hk':'fb'}"><a href="${m.href}">
+  return `<li class="${m.hockey?'hk':'fb'}"><a href="${e(m.href)}">
    <div class="stub"><time>${when(m)}</time><em>${e(m.lgn)}</em></div>
    <div class="body">
     <span class="tm">${crest(m.hc,'cr')}<b>${e(m.hn)}</b></span>
@@ -90,7 +90,7 @@ function v2(){
 function v3(){
  const g=[];L.forEach(m=>{const k=m.day+' '+m.hm;let x=g.find(y=>y.k===k);if(!x)g.push(x={k,m,list:[]});x.list.push(m)});
  return `<ol class="mt3">${g.map(x=>`<li><time>${x.m.hm}${x.m.day!=='сегодня'?`<small>${e(x.m.day)}</small>`:''}</time><div class="slot">${x.list.map(m=>{const p=pick(m);
-  return `<a class="ch ${m.hockey?'hk':'fb'}" href="${m.href}">
+  return `<a class="ch ${m.hockey?'hk':'fb'}" href="${e(m.href)}">
    <span class="crs">${crest(m.hc,'cr')}${crest(m.ac,'cr')}</span>
    <span class="nm"><b>${e(m.hn)}</b><b>${e(m.an)}</b></span>
    ${p?`<span class="pk"><b>${p.p}%</b><small>${p.o}${p.k?' · '+p.k:''}</small></span>`:''}
