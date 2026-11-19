@@ -15,7 +15,8 @@ self.addEventListener('install',e=>{self.skipWaiting();
  e.waitUntil(caches.open(CACHE).then(c=>Promise.all(CORE.map(u=>c.add(new Request(ROOT+u,{cache:'reload'})).catch(()=>{})))))});
 self.addEventListener('activate',e=>e.waitUntil(caches.keys()
  .then(ks=>Promise.all(ks.filter(k=>k.startsWith('jv-')&&(!k.includes('|')||k.endsWith('|'+ROOT))&&k!==CACHE&&k!==IMG).map(k=>caches.delete(k)))).then(trim).then(()=>self.clients.claim())));
-let tLast=0;const trimSoon=()=>{const n=Date.now();if(n-tLast<15e3)return;tLast=n;return trim()};
+/* обрезка не чаще раза в 15 с; пропущенная — догоняющая через 15 с (аудит 19.11, круг 3) */
+let tLast=0,tLate=0;const trimSoon=()=>{const n=Date.now();if(n-tLast<15e3){if(!tLate)tLate=setTimeout(()=>{tLate=0;tLast=Date.now();trim()},15e3);return}tLast=n;return trim()};
 const IMG_MAX=800,trim=()=>caches.open(IMG).then(c=>c.keys().then(ks=>Promise.all(ks.slice(0,Math.max(0,ks.length-IMG_MAX)).map(k=>c.delete(k))))).catch(()=>{});
 /* запись в кэш; для картинок — сразу и обрезка до IMG_MAX (аудит 19.11, круг 2); done — обещание записи для waitUntil */
 const put=(req,res,to,done)=>{if(res&&res.ok&&res.type==='basic'){const cp=res.clone(),w=caches.open(to||CACHE).then(c=>c.put(req,cp)).then(()=>to===IMG?trimSoon():0).catch(()=>{});if(done)done(w)}return res};

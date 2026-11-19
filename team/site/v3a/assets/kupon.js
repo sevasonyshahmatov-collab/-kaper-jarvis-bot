@@ -18,7 +18,7 @@ const fp=p=>p<=0?'0 %':p<.01?'меньше 1 %':p>.99&&p<1?'больше 99 %':M
 const fm=x=>Math.round(x).toLocaleString('ru-RU');
 const LEG=/^[a-z]+(:[\w.+-]+)+$/,ODD=s=>/^\d{1,3}([.,]\d{1,2})?$/.test(String(s))&&num(s)>1&&num(s)<=50;   /* событие и кэф из ссылки или памяти — только такого вида */
 const num=s=>{const v=parseFloat(String(s).replace(',','.'));return isFinite(v)?v:NaN};
-function oneIn(p){if(p<=0)return '';if(p>=.9)return 'по модели около 9 раз из 10';const n=1/p;
+function oneIn(p){if(p<=0)return '';if(p>=.9)return 'по модели примерно '+Math.min(99,Math.round(p*100))+' раз из 100';const n=1/p;
   if(n<1.8){const k=Math.round(p*10);return 'примерно '+k+' раз'+(k>1&&k<5?'а':'')+' из 10'}
   return 'примерно 1 раз из '+Math.round(n)}
 
@@ -351,7 +351,7 @@ function auto(target){
   if(last){legs.push(last.x);k*=last.x.odd}
   S.legs=legs.map(l=>({k:l.k,o:l.o}));S.odds={};S.mode='x';keep();paint();
   toast(k<target*.9?'Матчей мало: получился кэф '+fk(k)+' вместо '+fk(target):'Собран '+(legs.length>1?'экспресс из '+legs.length+' '+plural(legs.length,'события','событий','событий'):'ординар')+' с кэфом '+fk(k));
-  if(matchMedia('(max-width:1023px)').matches){S.sheet=true;paintSlip()}
+  if(matchMedia('(max-width:1023px)').matches)openSheet(document.activeElement)
 }
 function autoGo(){const i=$('kp-want'),v=num(i.value);
   if(!(v>=1.2&&v<=500)){toast('Введите кэф от 1,2 до 500');i.focus();return}
@@ -403,6 +403,10 @@ function save(){const c=calc(),sv=saved(),d=new Date();
     info:('0'+d.getDate()).slice(-2)+'.'+('0'+(d.getMonth()+1)).slice(-2)+' · '+(S.mode==='x'||c.n<2?'кэф '+fk(c.k)+' · шанс '+fp(c.p):c.G.map(g=>g.m.hn).join(', ')),data:dump()});
   try{localStorage.setItem(LS_SAVED,JSON.stringify(sv.slice(0,12)));toast('Купон сохранён на этом устройстве')}catch(e){toast('Не удалось сохранить')}paintSlip()}
 
+/* мобильный лист купона (аудит 19.11, круг 3): одно открытие для полоски и автоподбора — фокус внутрь, удержание (Tab выше), возврат туда, откуда открыли */
+let sheetFrom=null;
+function openSheet(from){sheetFrom=from&&from!==document.body?from:null;S.sheet=true;paintSlip();/* сначала «Закрыть»: Enter не должен попасть на «Очистить» */const sl=$('kp-slip'),f=sl.querySelector('[data-act="close"]')||sl.querySelector('button:not([data-act="clear"]),input');if(f)setTimeout(()=>{try{f.focus({preventScroll:true})}catch(x){}},0)}
+function closeSheet(){S.sheet=false;paintSlip();const to=sheetFrom&&sheetFrom.isConnected?sheetFrom:$('kp-bar');sheetFrom=null;try{if(to&&!to.hidden)to.focus({preventScroll:true})}catch(x){}}
 /* ---------- события интерфейса ---------- */
 /* перерисовка списка заменяет кнопки — возвращаем фокус на такую же кнопку (клавиатура, аудит 19.11) */
 function refocus(b){if(b.isConnected)return;try{const ar=b.closest('[data-key]'),k=ar&&ar.dataset.key;
@@ -423,10 +427,10 @@ document.addEventListener('click',e=>{
   if(d.mode){S.mode=d.mode;keep();paintSlip();return}
   if(d.load){const s=saved()[+d.load];if(s){load(s.data);keep();paint();toast(S.legs.length?'Купон загружен':'Матчи этого купона уже сыграны')}return}
   if(d.del){const sv=saved();sv.splice(+d.del,1);try{localStorage.setItem(LS_SAVED,JSON.stringify(sv))}catch(x){}paintSlip();return}
-  if(b.id==='kp-bar'){S.sheet=true;paintSlip();/* мобильный лист купона: фокус внутрь, по закрытии — обратно на полоску (аудит 19.11) */const f=$('kp-slip').querySelector('button,input');if(f)f.focus({preventScroll:true});return}
+  if(b.id==='kp-bar'){openSheet(b);return}
   switch(d.act){
     case 'clear':S.legs=[];S.odds={};S.link=false;keep();paint();break;
-    case 'close':S.sheet=false;paintSlip();try{$('kp-bar').focus({preventScroll:true})}catch(x){}break;
+    case 'close':closeSheet();break;
     case 'tg':telegram();break;case 'copy':copy();break;case 'img':image();break;case 'save':save();break}
 });
 document.addEventListener('input',e=>{const t=e.target;
@@ -437,7 +441,10 @@ function refreshNumbers(c){const st=$('kp-stake'),pos=st&&document.activeElement
   paintSum(c);if(pos!==null){const n=$('kp-stake');n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}
   c.G.forEach(g=>{const i=document.querySelector('input[data-odd="'+CSS.escape(g.key)+'"]'),s=i&&i.closest('li').querySelector('.kp-src');
     if(s)s.textContent=g.user?'ваш кэф':g.isLine?'кэф из линии':'расчётный кэф по модели — впишите свой'})}
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='kp-want'){autoGo();return}if(e.key==='Escape'&&S.sheet){S.sheet=false;paintSlip();try{$('kp-bar').focus({preventScroll:true})}catch(x){}}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='kp-want'){e.preventDefault();autoGo();return}if(e.key==='Escape'&&S.sheet){closeSheet();return}
+  /* открытый мобильный лист: Tab и Shift+Tab ходят только внутри него */
+  if(e.key==='Tab'&&S.sheet&&document.documentElement.classList.contains('kp-open')){const f=[...$('kp-slip').querySelectorAll('button,input,a[href],select,textarea')].filter(x=>!x.disabled&&x.offsetParent);if(!f.length)return;
+    const i=f.indexOf(document.activeElement);if(e.shiftKey&&i<=0){e.preventDefault();f[f.length-1].focus()}else if(!e.shiftKey&&(i===-1||i===f.length-1)){e.preventDefault();f[0].focus()}}});
 
 /* ---------- запуск ---------- */
 try{load(localStorage.getItem(LS_CUR))}catch(e){}
