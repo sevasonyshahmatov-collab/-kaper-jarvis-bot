@@ -685,6 +685,7 @@ body.kb4{background:#07102a}
 .kp-alg button:hover{border-color:var(--ink-3);color:var(--ink)}
 .kp-alg button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--signal-ink,#1a1400)}
 .kp-alg small{font:500 13px/1.2 var(--text);color:var(--ink-3);margin-left:4px}
+@media (pointer:coarse){.kp-alg button{min-height:44px;min-width:56px;display:inline-flex;align-items:center;justify-content:center}} /* палец: зона нажатия 44 px (аудит 19.11) */
 .kp-want input{flex:1 1 150px;width:auto;min-width:0}
 @media (max-width:760px){.kp-want{max-width:none}}
 

@@ -36,7 +36,7 @@ function barcode(seed){
 const row=m=>{
  const k=m.ln?[m.ln.p1,m.ln.x,m.ln.p2][m.bi]:null;
  const lab=m.bi===0?'П1':m.bi===1?'Х':'П2';
- return `<div class="pr-r pr-m${m.best>=.6?' hi':''}"><time>${m.hm}</time><span class="tm">${e(m.hn)} — ${e(m.an)}</span><span class="pk"><b>${lab} ${H.pct(m.best)}%</b><i>${k?H.f2(k):'—'}</i></span></div>`;
+ return `<div class="pr-r pr-m${m.best>=.6?' hi':''}"><time>${e(m.hm)}</time><span class="tm">${e(m.hn)} — ${e(m.an)}</span><span class="pk"><b>${lab} ${H.pct(m.best)}%</b><i>${k?H.f2(k):'—'}</i></span></div>`;
 };
 let html=`<div class="pr-r pr-top"><b>JARVIS · ПРОТОКОЛ · ${ddmm}</b><span>прогнозы по расчёту модели</span></div>`;
 let gk='';

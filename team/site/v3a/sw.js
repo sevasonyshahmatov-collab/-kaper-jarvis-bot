@@ -15,15 +15,17 @@ self.addEventListener('install',e=>{self.skipWaiting();
  e.waitUntil(caches.open(CACHE).then(c=>Promise.all(CORE.map(u=>c.add(new Request(ROOT+u,{cache:'reload'})).catch(()=>{})))))});
 self.addEventListener('activate',e=>e.waitUntil(caches.keys()
  .then(ks=>Promise.all(ks.filter(k=>k.startsWith('jv-')&&(!k.includes('|')||k.endsWith('|'+ROOT))&&k!==CACHE&&k!==IMG).map(k=>caches.delete(k)))).then(trim).then(()=>self.clients.claim())));
+let tLast=0;const trimSoon=()=>{const n=Date.now();if(n-tLast<15e3)return;tLast=n;return trim()};
 const IMG_MAX=800,trim=()=>caches.open(IMG).then(c=>c.keys().then(ks=>Promise.all(ks.slice(0,Math.max(0,ks.length-IMG_MAX)).map(k=>c.delete(k))))).catch(()=>{});
-const put=(req,res,to)=>{if(res&&res.ok&&res.type==='basic'){const cp=res.clone();caches.open(to||CACHE).then(c=>c.put(req,cp)).catch(()=>{})}return res};
+/* запись в кэш; для картинок — сразу и обрезка до IMG_MAX (аудит 19.11, круг 2); done — обещание записи для waitUntil */
+const put=(req,res,to,done)=>{if(res&&res.ok&&res.type==='basic'){const cp=res.clone(),w=caches.open(to||CACHE).then(c=>c.put(req,cp)).then(()=>to===IMG?trimSoon():0).catch(()=>{});if(done)done(w)}return res};
 /* сверка с сервером (ETag): свежий файл, если он поменялся; навигацию заново не собрать с другими настройками — её как есть */
 const net=req=>req.mode==='navigate'?fetch(req):fetch(req,{cache:'no-cache'});
 const STATIC=/\.(?:webp|png|jpe?g|svg|gif|avif|ico|woff2?)$/i;
 self.addEventListener('fetch',e=>{
  const req=e.request;if(req.method!=='GET')return;
  const u=new URL(req.url);if(u.origin!==self.location.origin||!u.href.startsWith(ROOT)||req.headers.has('range'))return;
- if(STATIC.test(u.pathname)){const fresh=fetch(req).then(r=>put(req,r,IMG));e.waitUntil(fresh.catch(()=>{}));
+ if(STATIC.test(u.pathname)){let w;const fresh=fetch(req).then(r=>put(req,r,IMG,x=>w=x));e.waitUntil(fresh.then(()=>w).catch(()=>{}));
   e.respondWith(caches.open(IMG).then(c=>c.match(req)).then(hit=>hit||fresh));return}
  /* переходы с параметрами в адресе в копию не кладём: иначе ссылками со случайными ?… можно раздувать кэш посетителя (16.11) */
  e.respondWith(net(req).then(r=>req.mode==='navigate'&&u.search?r:put(req,r)).catch(()=>caches.open(CACHE).then(c=>c.match(req).then(hit=>hit||(req.mode==='navigate'?c.match(req,{ignoreSearch:true}):undefined)))

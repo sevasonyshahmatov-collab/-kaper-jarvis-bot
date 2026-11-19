@@ -21,19 +21,19 @@ function pair(m,big){
 }
 function tile(m,i){
  const k=m.ln&&m.bi>=0?[m.ln.p1,m.ln.x,m.ln.p2][m.bi]:null;
- return `<a class="cw-t" style="--i:${i}" href="${m.href}" aria-label="${e(m.hn)} — ${e(m.an)}, ${m.hm} МСК">
+ return `<a class="cw-t" style="--i:${i}" href="${e(m.href)}" aria-label="${e(m.hn)} — ${e(m.an)}, ${e(m.hm)} МСК">
   ${pair(m)}
   <span class="nm">${e(m.hn)}<i>—</i>${e(m.an)}</span>
-  <span class="meta">${m.hm}, ${m.day==='сегодня'?m.lgn:m.day}</span>
+  <span class="meta">${e(m.hm)}, ${m.day==='сегодня'?m.lgn:m.day}</span>
   <span class="pk"><b>${H.pct(m.best)}<small>%</small></b><span>${m.bi===1?'ничья':e(m.who)}${k?`<br>кэф ${H.f2(k)}`:''}</span></span></a>`;
 }
 function big(m){
  const cells=[['П1',m.pr[0]],['Х',m.pr[1]],['П2',m.pr[2]]].filter(c=>c[1]!=null&&!(c[0]==='Х'&&m.hockey&&!(m.ln&&m.ln.x)));
- return `<a class="cw-t cw-hero" style="--i:0" href="${m.href}" aria-label="Матч дня: ${e(m.hn)} — ${e(m.an)}">
+ return `<a class="cw-t cw-hero" style="--i:0" href="${e(m.href)}" aria-label="Матч дня: ${e(m.hn)} — ${e(m.an)}">
   <span class="tag">Матч дня</span>
   ${pair(m,true)}
   <span class="nm">${e(m.hn)}<i>—</i>${e(m.an)}</span>
-  <span class="meta">${m.hm}, ${m.day==='сегодня'?m.lgn:m.day+', '+m.lgn}</span>
+  <span class="meta">${e(m.hm)}, ${m.day==='сегодня'?m.lgn:m.day+', '+m.lgn}</span>
   <span class="nums">${cells.map((c,j)=>`<span class="${(c[0]==='П1'&&m.bi===0)||(c[0]==='Х'&&m.bi===1)||(c[0]==='П2'&&m.bi===2)?'on':''}"><small>${c[0]}</small><b>${H.pct(c[1])}<em>%</em></b></span>`).join('')}</span></a>`;
 }
 $('wall').innerHTML=(hero&&hero.md?big(hero):'')+tiles.map((m,i)=>tile(m,i+1)).join('');

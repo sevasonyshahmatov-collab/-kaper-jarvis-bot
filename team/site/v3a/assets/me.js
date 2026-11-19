@@ -72,7 +72,9 @@ function drawClubs(){
       <p class="me-cn">${n?`Ближайший матч: <b>${n.h===c?'дома с':'в гостях у'} ${esc(opp.ru)}</b><br><span>${esc(dayLabel(n.ms).toLowerCase())}, ${esc(fmtTime(n.ms))}</span>`:'Ближайшего матча в данных пока нет'}</p>
       ${F.btn(c.s,c.id,'favbtn-ico').replace('class="favbtn','data-name="'+esc(c.ru)+'" class="favbtn')}</li>`}).join('')}</ul>`;
 }
-$('clubsBox').addEventListener('click',e=>{const b=e.target.closest('.me-pb');if(b){const k=b.dataset.k;F.add(k[0],k.slice(2))}});
+$('clubsBox').addEventListener('click',e=>{const b=e.target.closest('.me-pb');if(b){const k=b.dataset.k;F.add(k[0],k.slice(2));
+  /* кнопка исчезает при перерисовке — фокус на карточку добавленного клуба (клавиатура, аудит 19.11) */
+  setTimeout(()=>{if(b.isConnected)return;const l=[...document.querySelectorAll('#clubsBox .me-cl')].pop();try{(l||qEl).focus({preventScroll:true})}catch(x){}},0)}});
 
 /* ── строка матча ── */
 function row(m,fav){

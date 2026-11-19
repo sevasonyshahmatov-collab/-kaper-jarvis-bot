@@ -160,10 +160,10 @@ function inlineOpen(){
   const pn=box.querySelector('.sp-pn');Object.assign(pn.style,{top:(r.bottom+10)+'px',right:(innerWidth-r.right)+'px',width:Math.min(560,r.right-24)+'px'});
   cbx.querySelector('.cbx-in').appendChild(inp);cbx.hidden=false;sb.style.visibility='hidden';
   requestAnimationFrame(()=>cbx.classList.add('on'));spring(r.width,W);return true}
-function inlineClose(){
+function inlineClose(to){
   if(!inl)return;inl=false;box.classList.remove('inl');cbx.classList.remove('on');
   const r=sb.getBoundingClientRect();
-  spring(parseFloat(cbx.style.width)||r.width,r.width,()=>{if(inl)return;cbx.hidden=true;sb.style.visibility='';fLupa.after(inp)})}
+  spring(parseFloat(cbx.style.width)||r.width,r.width,()=>{if(inl)return;cbx.hidden=true;sb.style.visibility='';fLupa.after(inp);try{if(to)to.focus({preventScroll:true})}catch(e){}})}
 cbx.addEventListener('click',e=>{if(e.target.closest('.cbx-esc')){close();return}if(!inl)return;inp.focus()});
 addEventListener('resize',()=>{if(inl)close(false)});
 function open(){
@@ -171,8 +171,11 @@ function open(){
   if(!(WIDE()&&inlineOpen()))document.documentElement.classList.add('sp-lock');load().catch(()=>{});run();setTimeout(()=>{inp.focus();inp.select()},0);
 }
 function close(back){
-  if(box.hidden)return;box.hidden=true;sb.setAttribute('aria-expanded','false');document.documentElement.classList.remove('sp-lock');inlineClose();
-  try{if(box.contains(document.activeElement))document.activeElement.blur();if(back!==false&&opener&&opener!==document.body&&opener.focus)opener.focus()}catch(e){}
+  if(box.hidden)return;const wasInl=inl;box.hidden=true;sb.setAttribute('aria-expanded','false');inp.removeAttribute('aria-activedescendant');document.documentElement.classList.remove('sp-lock');
+  const to=back!==false&&opener&&opener!==document.body&&opener.focus?opener:null;
+  /* широкий поиск: кнопка скрыта, пока поле сворачивается — фокус вернём, когда она снова видна (аудит 19.11, круг 2) */
+  inlineClose(to);
+  try{if((box.contains(document.activeElement)||cbx.contains(document.activeElement))&&!wasInl)document.activeElement.blur();if(to&&!wasInl)to.focus()}catch(e){}
 }
 sb.addEventListener('click',e=>{e.stopPropagation();box.hidden?open():close()});
 box.addEventListener('click',e=>{

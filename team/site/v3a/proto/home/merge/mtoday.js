@@ -89,7 +89,7 @@ function v2(){
 /* 3 — табло по времени: слева час, справа матчи этого часа плитками */
 function v3(){
  const g=[];L.forEach(m=>{const k=m.day+' '+m.hm;let x=g.find(y=>y.k===k);if(!x)g.push(x={k,m,list:[]});x.list.push(m)});
- return `<ol class="mt3">${g.map(x=>`<li><time>${x.m.hm}${x.m.day!=='сегодня'?`<small>${e(x.m.day)}</small>`:''}</time><div class="slot">${x.list.map(m=>{const p=pick(m);
+ return `<ol class="mt3">${g.map(x=>`<li><time>${e(x.m.hm)}${x.m.day!=='сегодня'?`<small>${e(x.m.day)}</small>`:''}</time><div class="slot">${x.list.map(m=>{const p=pick(m);
   return `<a class="ch ${m.hockey?'hk':'fb'}" href="${e(m.href)}">
    <span class="crs">${crest(m.hc,'cr')}${crest(m.ac,'cr')}</span>
    <span class="nm"><b>${e(m.hn)}</b><b>${e(m.an)}</b></span>

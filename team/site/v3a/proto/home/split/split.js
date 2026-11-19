@@ -29,7 +29,7 @@ let lastIn=-1e9,ptr={x:-999,y:-999},vis=true,side='';
  $('td-list').innerHTML=rows.map(m=>{
   const k=m.ln&&m.bi>=0?[m.ln.p1,m.ln.x,m.ln.p2][m.bi]:null;
   const p=m.md?`<b class="${m.best>=.6?'hi':''}">${Hm.pct(m.best)}<small>%</small></b>`:'';
-  return `<li class="${m.hockey?'ih':'if'}"><a href="${m.href}"><time>${m.hm}<small>${m.day==='сегодня'?m.lgn:m.day}</small></time>
+  return `<li class="${m.hockey?'ih':'if'}"><a href="${e(m.href)}"><time>${e(m.hm)}<small>${m.day==='сегодня'?m.lgn:m.day}</small></time>
    <span class="nm"><span><img src="${m.hc}" alt="" loading="lazy">${e(m.hn)}</span><span><img src="${m.ac}" alt="" loading="lazy">${e(m.an)}</span></span>
    <span class="pk">${p}${m.md?(m.bi===1?'ничья':e(m.who))+(k?', кэф '+Hm.f2(k):''):'расчёт скоро'}</span></a></li>`}).join('')||'<li class="td-soon">Матчей пока нет</li>';
 })();

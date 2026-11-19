@@ -43,7 +43,8 @@ if(old)old.replaceWith(f);else document.body.appendChild(f);
 /* ── «Установить на экран» и работа без интернета (идеи 37–38) ──
    sw.js лежит в корне сайта; на file:// и в старых браузерах ничего не делаем. ?sw=off — снять регистрацию (для отладки). */
 try{if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
- if(/[?&]sw=off(?:&|$)/.test(location.search))navigator.serviceWorker.getRegistration(U('')).then(r=>{if(!r)return;const sc=r.scope;r.unregister();caches.keys().then(ks=>ks.filter(k=>k.endsWith('|'+sc)).forEach(k=>caches.delete(k)))}).catch(()=>{});
+ if(/[?&]sw=off(?:&|$)/.test(location.search))navigator.serviceWorker.getRegistration(U('')).then(r=>{const sc=U('');if(!r||r.scope!==sc)return;/* только своя область: на /draft/ не снимать воркер корня */
+  return r.unregister().then(()=>caches.keys()).then(ks=>Promise.all(ks.filter(k=>k.endsWith('|'+sc)).map(k=>caches.delete(k))))}).catch(()=>{});
  else addEventListener('load',()=>navigator.serviceWorker.register(U('sw.js'),{scope:U('')}).catch(()=>{}))}}catch(e){}
 const ib=f.querySelector('#jvf-inst'),ih=f.querySelector('#jvf-ios');let dp=null;
 const alone=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;

@@ -52,7 +52,7 @@ function href(m){
 }
 const crest=(src,cls='')=>`<span class="cr ${cls}"><img src="${src}" alt="" draggable="false" loading="lazy" onerror="this.style.display='none'"></span>`;
 const lgLogo=lg=>`${R}assets/lg/${lg}.webp`;
-const when=m=>`${m.day==='сегодня'?'сегодня':m.day}, ${m.hm} МСК`;
+const when=m=>`${m.day==='сегодня'?'сегодня':m.day}, ${e(m.hm)} МСК`;
 const kf=m=>m.ln&&m.bi>=0?[m.ln.p1,m.ln.x,m.ln.p2][m.bi]:null;
 const side=m=>m.bi===1?'Ничья':m.who;
 function flip(card){
@@ -119,7 +119,7 @@ function wireFlip(card){
   return `<div class="xtc mc ${m.hockey?'ice':'pitch'}" role="button" tabindex="0" aria-pressed="false" style="--i:${Math.min(i,8)}" aria-label="${e(m.hn)} — ${e(m.an)}, ${e(when(m))}">
   <div class="shd"></div><div class="tilt"><div class="flip">
    <div class="face front"><div class="art"><i class="holo"></i><i class="holo2"></i></div><div class="frame"></div>
-    <div class="mc-top"><span class="lgn"><img src="${lgLogo(m.lg)}" alt="" onerror="this.style.display='none'">${e(m.lgn)}</span><time>${m.hm}</time></div>
+    <div class="mc-top"><span class="lgn"><img src="${lgLogo(m.lg)}" alt="" onerror="this.style.display='none'">${e(m.lgn)}</span><time>${e(m.hm)}</time></div>
     <div class="mc-cr">${crest(m.hc)}${crest(m.ac)}</div>
     <p class="mc-nm"><span>${e(m.hn)}</span><span>${e(m.an)}</span></p>
     <div class="mc-bot">${md?`<strong class="num">${p0(m.best)}<small>%</small></strong><span>${m.bi===1?'ничья':e(side(m))}</span>${kv?`<em class="odd">кэф <b class="num">${f2(kv)}</b></em>`:''}`:'<span class="soon">расчёт скоро</span>'}</div>

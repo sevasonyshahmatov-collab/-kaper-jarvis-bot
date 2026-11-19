@@ -18,7 +18,7 @@ const fp=p=>p<=0?'0 %':p<.01?'меньше 1 %':p>.99&&p<1?'больше 99 %':M
 const fm=x=>Math.round(x).toLocaleString('ru-RU');
 const LEG=/^[a-z]+(:[\w.+-]+)+$/,ODD=s=>/^\d{1,3}([.,]\d{1,2})?$/.test(String(s))&&num(s)>1&&num(s)<=50;   /* событие и кэф из ссылки или памяти — только такого вида */
 const num=s=>{const v=parseFloat(String(s).replace(',','.'));return isFinite(v)?v:NaN};
-function oneIn(p){if(p<=0)return '';if(p>=.9)return 'почти наверняка';const n=1/p;
+function oneIn(p){if(p<=0)return '';if(p>=.9)return 'по модели около 9 раз из 10';const n=1/p;
   if(n<1.8){const k=Math.round(p*10);return 'примерно '+k+' раз'+(k>1&&k<5?'а':'')+' из 10'}
   return 'примерно 1 раз из '+Math.round(n)}
 
@@ -175,7 +175,7 @@ function dump(){return {legs:S.legs,odds:S.odds,stake:S.stake,mode:S.mode}}
 function keep(){try{localStorage.setItem(LS_CUR,JSON.stringify(dump()))}catch(e){}}
 function saved(){try{const v=JSON.parse(localStorage.getItem(LS_SAVED));return Array.isArray(v)?v.filter(s=>s&&typeof s==='object'&&typeof s.name==='string'&&typeof s.info==='string'&&s.data&&typeof s.data==='object').slice(0,12):[]}catch(e){return []}}
 /* перед заменой купона по ссылке (#k=, ?want) прежний купон не теряем — кладём в «Сохранённые» (аудит 19.11) */
-function stash(){if(!S.legs.length)return false;const sv=saved(),d=dump();if(sv.some(s=>JSON.stringify(s.data.legs)===JSON.stringify(d.legs)))return false;
+function stash(){if(!S.legs.length)return false;const sv=saved(),d=dump();const js=JSON.stringify(d);if(sv.some(s=>JSON.stringify(s.data)===js))return false;
   sv.unshift({name:'Прежний купон · '+S.legs.length+' '+plural(S.legs.length,'событие','события','событий'),info:'сохранён перед открытием ссылки',data:d});
   try{localStorage.setItem(LS_SAVED,JSON.stringify(sv.slice(0,12)));return true}catch(e){return false}}
 /* ссылка на купон: #k=<ключ матча>~<событие>,<событие>@<кэф>;… */
@@ -184,7 +184,7 @@ function fromHash(){const h=location.hash.replace(/^#/,'');if(h.slice(0,2)!=='k=
   const legs=[],odds={};
   try{decodeURIComponent(h.slice(2)).split(';').forEach(part=>{const [key,rest]=part.split('~');if(!rest||!BY[key])return;
     const [ids,odd]=rest.split('@');ids.split(',').forEach(o=>{if(LEG.test(o))legs.push({k:key,o})});if(odd&&ODD(odd))odds[key]=odd})}catch(e){return false}
-  if(!legs.length)return false;if(JSON.stringify(legs)!==JSON.stringify(S.legs.map(l=>({k:l.k,o:l.o}))))fromHash.kept=stash();load({legs,odds,stake:S.stake,mode:'x'});S.link=true;return true}
+  if(!legs.length)return false;if(JSON.stringify([legs,odds,'x'])!==JSON.stringify([S.legs.map(l=>({k:l.k,o:l.o})),S.odds,S.mode]))fromHash.kept=stash();load({legs,odds,stake:S.stake,mode:'x'});S.link=true;return true}
 
 function byMatch(){const out=[],ix={};
   S.legs.forEach(l=>{if(!(l.k in ix)){ix[l.k]=out.length;out.push({key:l.k,m:BY[l.k],ids:[]})}out[ix[l.k]].ids.push(l.o)});
@@ -410,7 +410,7 @@ function refocus(b){if(b.isConnected)return;try{const ar=b.closest('[data-key]')
   const n=document.querySelector((k?'[data-key="'+CSS.escape(k)+'"] ':'')+'button'+at);if(n)n.focus({preventScroll:true})}catch(e){}}
 document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;const d=b.dataset;
-  if(d.o&&d.k){toggle(d.k,d.o);return}
+  if(d.o&&d.k){toggle(d.k,d.o);refocus(b);return}
   if(d.skin){S[d.skin]=+d.v;try{localStorage.setItem('jv_kupon_'+d.skin,d.v)}catch(x){}skin();paintList();return}
   if(d.fold){FOLD[d.fold]=!FOLD[d.fold];paintList();refocus(b);return}
   if(d.more){S.open[d.more]=!S.open[d.more];paintList();refocus(b);return}
@@ -423,10 +423,10 @@ document.addEventListener('click',e=>{
   if(d.mode){S.mode=d.mode;keep();paintSlip();return}
   if(d.load){const s=saved()[+d.load];if(s){load(s.data);keep();paint();toast(S.legs.length?'Купон загружен':'Матчи этого купона уже сыграны')}return}
   if(d.del){const sv=saved();sv.splice(+d.del,1);try{localStorage.setItem(LS_SAVED,JSON.stringify(sv))}catch(x){}paintSlip();return}
-  if(b.id==='kp-bar'){S.sheet=true;paintSlip();return}
+  if(b.id==='kp-bar'){S.sheet=true;paintSlip();/* мобильный лист купона: фокус внутрь, по закрытии — обратно на полоску (аудит 19.11) */const f=$('kp-slip').querySelector('button,input');if(f)f.focus({preventScroll:true});return}
   switch(d.act){
     case 'clear':S.legs=[];S.odds={};S.link=false;keep();paint();break;
-    case 'close':S.sheet=false;paintSlip();break;
+    case 'close':S.sheet=false;paintSlip();try{$('kp-bar').focus({preventScroll:true})}catch(x){}break;
     case 'tg':telegram();break;case 'copy':copy();break;case 'img':image();break;case 'save':save();break}
 });
 document.addEventListener('input',e=>{const t=e.target;
@@ -437,7 +437,7 @@ function refreshNumbers(c){const st=$('kp-stake'),pos=st&&document.activeElement
   paintSum(c);if(pos!==null){const n=$('kp-stake');n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}
   c.G.forEach(g=>{const i=document.querySelector('input[data-odd="'+CSS.escape(g.key)+'"]'),s=i&&i.closest('li').querySelector('.kp-src');
     if(s)s.textContent=g.user?'ваш кэф':g.isLine?'кэф из линии':'расчётный кэф по модели — впишите свой'})}
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='kp-want'){autoGo();return}if(e.key==='Escape'&&S.sheet){S.sheet=false;paintSlip()}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='kp-want'){autoGo();return}if(e.key==='Escape'&&S.sheet){S.sheet=false;paintSlip();try{$('kp-bar').focus({preventScroll:true})}catch(x){}}});
 
 /* ---------- запуск ---------- */
 try{load(localStorage.getItem(LS_CUR))}catch(e){}

@@ -1,7 +1,7 @@
 /* JARVIS v3a — живой счёт (assets/live.js). Кэфов здесь нет. */
 .lv{display:inline-flex;align-items:center;gap:8px 10px;flex-wrap:wrap;font:600 13px/1.2 var(--display,system-ui);color:var(--ink-2,#3b4552);margin-top:6px}
 
-.lv-tag{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:6px;background:var(--red,#d7263d);color:#fff;font-weight:800;font-size:11px;letter-spacing:.08em}
+.lv-tag{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:6px;background:#c8102e;color:#fff;font-weight:800;font-size:11px;letter-spacing:.08em}
 .lv-tag::before{content:"";width:6px;height:6px;border-radius:50%;background:#fff}
 .lv-final .lv-tag{background:var(--ink-3,#5d6773)}
 .lv-final .lv-tag::before{display:none}

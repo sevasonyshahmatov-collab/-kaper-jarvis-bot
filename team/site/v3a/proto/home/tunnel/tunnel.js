@@ -166,8 +166,8 @@ function data(){
   const cells=[['П1',m.pr[0]],['Х',m.pr[1]],['П2',m.pr[2]]].filter(c=>c[1]!=null&&!(c[0]==='Х'&&m.hockey&&!(m.ln&&m.ln.x)));
   const tops=[0,1,2].map(j=>m.bi===j);
   const bar=[['П1',m.pr[0],0],['Х',m.pr[1],1],['П2',m.pr[2],2]].filter(c=>c[1]!=null&&!(c[0]==='Х'&&m.hockey&&!(m.ln&&m.ln.x)));
-  return `<a class="row ${m.hockey?'h':'f'}" style="--i:${i}" href="${m.href}" aria-label="${e(m.hn)} — ${e(m.an)}, ${m.hm} МСК">
-   <span class="tm">${m.hm}<small>${m.day==='сегодня'?m.lgn:m.day}</small></span>
+  return `<a class="row ${m.hockey?'h':'f'}" style="--i:${i}" href="${e(m.href)}" aria-label="${e(m.hn)} — ${e(m.an)}, ${e(m.hm)} МСК">
+   <span class="tm">${e(m.hm)}<small>${m.day==='сегодня'?m.lgn:m.day}</small></span>
    <span class="tt"><span class="cr"><img src="${m.hc}" alt="" width="40" height="40" loading="lazy"><img src="${m.ac}" alt="" width="40" height="40" loading="lazy"></span><span class="nm">${e(m.hn)}<i>—</i>${e(m.an)}</span></span>
    <span class="br"><span class="bar">${bar.map(c=>`<span class="${c[2]===m.bi?'top':''}" style="flex:${Math.max(c[1],.04)}"></span>`).join('')}</span><span class="pc">${bar.map(c=>`<span>${c[0]} <b>${Hm.pct(c[1])}%</b></span>`).join('')}</span></span>
    <span class="pk">${Hm.pct(m.best)}<small>%</small><span>${m.bi===1?'ничья':e(m.who)}${k?` · кэф ${Hm.f2(k)}`:''}</span></span></a>`;

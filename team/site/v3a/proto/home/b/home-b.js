@@ -14,9 +14,9 @@ function row(m,i){
  const bar=pr?`<div class="rk-pb" role="img" aria-label="Победа хозяев ${H.pct(pr[0])} %, ничья ${H.pct(pr[1])} %, победа гостей ${H.pct(pr[2])} %">${seg('c1',pr[0])}${seg('c0',pr[1])}${seg('c2',pr[2])}</div>`:'<div class="rk-pb none">Расчёт скоро</div>';
  const k=m.ln&&m.bi>=0?[m.ln.p1,m.ln.x,m.ln.p2][m.bi]:null;
  const rank=s==='p'&&pr?`<b class="rk-n">${i+1}</b>`:'<b class="rk-n"></b>';
- return `<li class="${m.best>=.6?'top':''}"><a href="${m.href}">
+ return `<li class="${m.best>=.6?'top':''}"><a href="${e(m.href)}">
   ${rank}
-  <time>${m.hm}<small>${m.day==='сегодня'?m.lgn:m.day+', '+m.lgn}</small></time>
+  <time>${e(m.hm)}<small>${m.day==='сегодня'?m.lgn:m.day+', '+m.lgn}</small></time>
   <span class="rk-tm"><span><img src="${m.hc}" alt="" width="26" height="26" loading="lazy">${e(m.hn)}</span><span><img src="${m.ac}" alt="" width="26" height="26" loading="lazy">${e(m.an)}</span></span>
   ${bar}
   <span class="rk-pk">${pr?`<b>${H.pct(m.best)}<small>%</small></b><small>${m.bi===1?'ничья':e(m.who)}${k?`, кэф ${H.f2(k)}`:''}</small>`:''}</span>
