@@ -1,5 +1,22 @@
 /* 17.11 — варианты фона для сравнения: ?bg=a|b|c в адресе (запоминается на время вкладки, ?bg=0 — вернуть обычный). Стили — nav.css, разметка льда — v3a.js */
 (()=>{const d=document.documentElement;try{const q=new URLSearchParams(location.search).get('bg');if(q!==null)sessionStorage.setItem('jv-bg',/^[abcn]$/.test(q)?q:'0');let b=sessionStorage.getItem('jv-bg');if(b===null)b='n';if(b&&b!=='0')d.dataset.bg=b;else delete d.dataset.bg}catch(e){d.dataset.bg='n'}})(); /* 17.11: «Ночная арена» — основная тема */
+/* 19.11 «лёгкий режим» (владелец: «на рабочем компьютере сайт тормозит, на домашнем летает»). Если устройство не тянет
+   эффекты — html.lite: без размытий, без живого фона клуба, зацикленные анимации останавливаются после одного круга.
+   Решение запоминается (localStorage jv-lite); ?lite=1 / ?lite=0 — включить / выключить вручную.
+   Замер: 1,5 с после загрузки и первые 1,5 с прокрутки; средняя частота кадров ниже 32 — включаем. */
+(()=>{const d=document.documentElement,K='jv-lite';let v=null;
+ try{const q=new URLSearchParams(location.search).get('lite');if(q==='1'||q==='0')localStorage.setItem(K,q);v=localStorage.getItem(K)}catch(e){}
+ if(v==='1')d.classList.add('lite');
+ if(v==='0'||v==='1'||!('requestAnimationFrame' in window))return;
+ const on=()=>{if(d.classList.contains('lite'))return;d.classList.add('lite');try{localStorage.setItem(K,'1')}catch(e){}document.dispatchEvent(new Event('jv-lite'))};
+ const probe=(ms,cb)=>{let n=0,t0=0;const f=t=>{if(!t0)t0=t;n++;if(t-t0<ms)requestAnimationFrame(f);else cb(n/((t-t0)/1000))};requestAnimationFrame(f)};
+ let slow=0;const judge=fps=>{if(fps<32)slow++;if(slow>=1&&fps<32)on()};
+ addEventListener('load',()=>setTimeout(()=>{if(!document.hidden)probe(1500,judge)},800),{once:true});
+ /* прокрутка: считаем только кадры, пока страница едет (до 200 мс после события прокрутки); решение по 0,7 с такой езды (или по 0,35 с, если прокрутка закончилась раньше) */
+ let ls=0,acc=0,fr=0,lt=0,act=false,done=false;
+ const sl=t=>{if(done)return;if(t-ls<200){if(lt){acc+=t-lt;fr++}lt=t;if(acc>=700){done=true;judge(fr/(acc/1000));return}requestAnimationFrame(sl)}else{lt=0;act=false;if(acc>=350){done=true;judge(fr/(acc/1000))}}};
+ addEventListener('scroll',()=>{if(done)return;ls=performance.now();if(!act){act=true;requestAnimationFrame(sl)}},{passive:true});
+})();
 /* единый набор иконок сайта (17.11): Tabler Icons, MIT, https://tabler.io/icons — контур 1,75 px, скругления.
    JVI('имя','класс') → <svg>; нет имени — пустая строка */
 /* данные разделов (17.11): черновик берёт свежие файлы основного сайта — бот обновляет их там. JVD(адрес) → тот же файл без /draft/;

@@ -608,3 +608,27 @@ html[data-bg="n"] .hd.stuck::after{height:100%!important;-webkit-mask-image:none
   color:#ffd54d;border:1px solid rgba(255,213,77,.55);background:rgba(255,213,77,.08);text-transform:uppercase;transform:translateY(-1px)}
 @media (max-width:420px){.hd .logo.lg2 .beta{margin-left:8px;font-size:9px;padding:3px 4px 3px 5px}}
 @media (max-width:350px){.hd .logo.lg2 .beta{display:none}}
+
+/* 19.11 скорость (рабочий ПК владельца тормозил, домашний — нет): размытие «матового стекла» под шапкой и на карточках
+   пересчитывается в каждом кадре прокрутки и душит слабую видеокарту. Шапка и карточки — плотный тон без размытия
+   (на гладком фоне разницы почти не видно). Размытие остаётся только у открытых меню и поиска. */
+html[data-bg="n"] .hd::after,html[data-bg="n"] .hd.stuck::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html[data-bg="n"] .hd.stuck::after{background:rgba(4,5,9,.94)!important}
+html[data-bg="n"] .hd:not(.stuck)::after{background:linear-gradient(180deg,rgba(4,5,9,.86) 0,rgba(4,5,9,.72) calc(100% - 80px),rgba(4,5,9,.36) calc(100% - 50px),rgba(4,5,9,.12) calc(100% - 20px),rgba(4,5,9,0))!important}
+html[data-bg="n"] main :is(*,*::before,*::after):not(.cbx):not(.sp-pn):not(.gdd-m),html[data-bg="n"] :is(.nxs,.nxs *,.dk-info,.dk-filter,.dk-arr,.dk-scrim){-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html[data-bg="n"] .dk-info{background-color:rgba(10,14,28,.9)}
+html[data-bg="n"] :is(.dk-filter,.dk-arr){background-color:rgba(10,14,28,.78)}
+/* лёгкий режим (html.lite, nav.js): без размытий нигде, без анимации фона, зацикленные анимации — один круг и стоп */
+html.lite :is(*,*::before,*::after){-webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation-iteration-count:1!important}
+html.lite body::before{animation:none!important;transform:none!important}
+html.lite .ticker .track{animation-iteration-count:infinite!important}
+/* 19.11 скорость: пустой слой «шума» на всю страницу (фон давно убран) смешивался в каждом кадре — убран;
+   лучи прожекторов на фоне лиг и клубов — неподвижны (покачивание огромных размытых лучей стоило 2/3 кадров на ПК) */
+html[data-bg="n"] body::after{display:none!important}
+html[data-bg="n"] .arena-bg,html[data-bg="n"] .arena-bg *{animation:none!important}
+/* лёгкий режим: главная — без движения и смешивания слоёв в фоне */
+html.lite :is(.hm-bg,.hm-bg *,.hm-bg *::before,.hm-bg *::after,.arena-bg,.arena-bg *){animation:none!important;mix-blend-mode:normal!important}
+html.lite .hm-bg::before,html.lite .arena-bg{mix-blend-mode:normal!important}
+/* 19.11 скорость: фон страницы больше не «плывёт» при прокрутке (nDrift, scroll-timeline) — сдвиг огромного слоя
+   на каждый кадр прокрутки съедал до 2/3 кадров на ПК без мощной видеокарты; глазом сдвиг был почти незаметен */
+html[data-bg="n"] body::before{animation:none!important;transform:none!important}

@@ -12,7 +12,7 @@ const cs=getComputedStyle(document.body),v=n=>cs.getPropertyValue(n).trim();
 const C1=v('--c1'),C2=v('--c2'),C3=v('--c3'),ACC=v('--cacc'),TXT=v('--con')||'#ffffff';
 if(!C1||!C3)return;
 /* телефон (малый экран + касание) — как при prefers-reduced-motion: один статичный кадр, без постоянной анимации (04.11, скорость) */
-const RM=matchMedia('(prefers-reduced-motion: reduce)').matches||(Math.min(innerWidth,innerHeight)<620&&matchMedia('(pointer: coarse)').matches);
+const RM=document.documentElement.classList.contains('lite')||matchMedia('(prefers-reduced-motion: reduce)').matches||(Math.min(innerWidth,innerHeight)<620&&matchMedia('(pointer: coarse)').matches);
 const rgb=h=>{h=h.replace('#','');if(h.length===3)h=h.replace(/(.)/g,'$1$1');const n=parseInt(h,16);return [n>>16&255,n>>8&255,n&255]};
 const mix=(a,b,t)=>a.map((x,i)=>x+(b[i]-x)*t);
 const lum=c=>{const l=c.map(x=>{x/=255;return x<=.03928?x/12.92:((x+.055)/1.055)**2.4});return .2126*l[0]+.7152*l[1]+.0722*l[2]};
@@ -55,7 +55,9 @@ const lp=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(lp);gl.vertexAt
 const uRes=gl.getUniformLocation(pr,'uRes'),uT=gl.getUniformLocation(pr,'uT');
 gl.uniform3fv(gl.getUniformLocation(pr,'uC'),new Float32Array(COLS.flat()));
 
-const SCALE=document.documentElement.dataset.bg==='n'?Math.min(1,devicePixelRatio||1):Math.min(innerWidth,innerHeight)<620?.45:.6;
+/* 19.11 скорость: фон — плавный градиент, при растяжении из малого разрешения разницы не видно; полное разрешение тормозило
+   слабые компьютеры (рабочий ПК владельца). Лёгкий режим (html.lite, см. nav.js) — один статичный кадр. */
+const SCALE=Math.min(innerWidth,innerHeight)<620?.3:.38;
 function size(){const r=hero.getBoundingClientRect();cv.width=Math.max(2,Math.round(r.width*SCALE));cv.height=Math.max(2,Math.round(r.height*SCALE));gl.viewport(0,0,cv.width,cv.height);gl.uniform2f(uRes,cv.width,cv.height)}
 const t0=performance.now();let raf=0,vis=true,lastDraw=0;
 function draw(now){gl.uniform1f(uT,RM?12:(now-t0)/1000+12);gl.drawArrays(gl.TRIANGLES,0,3)}
@@ -66,6 +68,7 @@ size();draw(performance.now());hero.classList.add('has-bg');
 if('ResizeObserver' in window)new ResizeObserver(()=>{size();draw(performance.now())}).observe(hero);
 if('IntersectionObserver' in window)new IntersectionObserver(es=>{vis=es[0].isIntersecting;kick()}).observe(hero);
 document.addEventListener('visibilitychange',kick);
+document.addEventListener('jv-lite',()=>{cancelAnimationFrame(raf);raf=0;vis=false});   /* лёгкий режим включился — замираем на текущем кадре */
 cv.addEventListener('webglcontextlost',e=>{e.preventDefault();cancelAnimationFrame(raf);cv.remove();hero.classList.remove('has-bg')});
 kick();
 })();

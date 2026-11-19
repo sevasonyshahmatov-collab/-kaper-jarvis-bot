@@ -60,11 +60,13 @@ S.forEach(s=>{
 addEventListener('resize',()=>S.forEach(s=>{s.rect=null}));
 addEventListener('scroll',()=>S.forEach(s=>{s.rect=null}),{passive:true});
 const TOUCHJV=matchMedia('(hover:none),(pointer:coarse)').matches;
+/* лёгкий режим (html.lite, nav.js): без покачивания в покое — наклон только под курсором */
+const LITE=()=>document.documentElement.classList.contains('lite');let VIS=true,RAF=false;
 function frame(t){
  const a=t/1000;
  S.forEach(s=>{
   let tx=s.tx,ty=s.ty,tmx=s.tmx,tmy=s.tmy;
-  if(!s.ptr){if(TOUCHJV){tx=0;ty=0;tmx=50;tmy=50;if(Math.abs(s.rx)<.02&&Math.abs(s.ry)<.02&&Math.abs(s.s-s.ts)<.002)return}else{ty=Math.sin(a*.5+s.ph)*7;tx=Math.cos(a*.37+s.ph)*4;tmx=50+ty/MAX*45;tmy=50-tx/MAX*45}}   /* телефон: без покачивания в простое (владелец 15.11 «дёрганый») */
+  if(!s.ptr){if(TOUCHJV||LITE()){tx=0;ty=0;tmx=50;tmy=50;if(Math.abs(s.rx)<.02&&Math.abs(s.ry)<.02&&Math.abs(s.s-s.ts)<.002)return}else{ty=Math.sin(a*.5+s.ph)*7;tx=Math.cos(a*.37+s.ph)*4;tmx=50+ty/MAX*45;tmy=50-tx/MAX*45}}   /* телефон: без покачивания в простое (владелец 15.11 «дёрганый») */
   const k=s.ptr?.14:.06;
   s.rx+=(tx-s.rx)*k;s.ry+=(ty-s.ry)*k;s.mx+=(tmx-s.mx)*k;s.my+=(tmy-s.my)*k;s.s+=(s.ts-s.s)*.12;
   const st=s.el.style;
@@ -73,10 +75,14 @@ function frame(t){
   st.setProperty('--hi',(.2+.6*Math.min(1,Math.hypot(s.rx,s.ry)/MAX)).toFixed(2));
   st.setProperty('--s',s.s.toFixed(3));
  });
- requestAnimationFrame(frame);
+ if(VIS&&!document.hidden)requestAnimationFrame(frame);else RAF=false;
 }
 if(RM)S.forEach(s=>{const st=s.el.style;st.setProperty('--mx',38);st.setProperty('--my',30);st.setProperty('--hi',.5)});
-else requestAnimationFrame(frame);
+else{RAF=true;requestAnimationFrame(frame);
+ /* 19.11 скорость: карточки не пересчитываются вне экрана и на скрытой вкладке (раньше — каждый кадр всегда) */
+ const go=()=>{if(!RAF&&VIS&&!document.hidden){RAF=true;requestAnimationFrame(frame)}};
+ if('IntersectionObserver' in window&&S.length){const io=new IntersectionObserver(es=>{VIS=es.some(e=>e.isIntersecting);go()});S.forEach(s=>io.observe(s.el))}
+ document.addEventListener('visibilitychange',go);S.forEach(s=>s.el.addEventListener('pointerenter',go))}
 
 /* раздача: рубашкой вверх и переворот */
 if(!RM&&window.gsap){
