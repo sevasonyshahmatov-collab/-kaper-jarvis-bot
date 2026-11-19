@@ -423,7 +423,12 @@ const NARROW=matchMedia('(max-width:1023px)');
 function modal(){const sl=$('kp-slip');if(!sl)return;const on=document.documentElement.classList.contains('kp-open')&&NARROW.matches;
   if(on){sl.setAttribute('role','dialog');sl.setAttribute('aria-modal','true')}else{sl.removeAttribute('role');sl.removeAttribute('aria-modal')}
   if(on){for(let n=sl;n&&n!==document.body;n=n.parentElement)for(const x of n.parentElement.children)if(x!==n&&x.tagName!=='SCRIPT'&&!x.inert){x.inert=true;x.dataset.kpInert='1'}}
-  else document.querySelectorAll('[data-kp-inert]').forEach(x=>{x.inert=false;delete x.dataset.kpInert})}
+  else document.querySelectorAll('[data-kp-inert]').forEach(x=>{x.inert=false;delete x.dataset.kpInert});
+  /* смена ширины при открытом листе (аудит 19.11, круг 5): фокус не должен остаться на скрытом/заблокированном элементе */
+  if(on!==modal.was){const a=document.activeElement,lost=!a||a===document.body||!a.offsetParent;
+    if(on&&!sl.contains(a)){const f=sl.querySelector('[data-act="close"]')||sl.querySelector('button:not([data-act="clear"]),input');if(f)try{f.focus({preventScroll:true})}catch(x){}}
+    else if(!on&&modal.was!==undefined&&lost){const f=[...sl.querySelectorAll('button,input')].find(x=>x.offsetParent)||(sheetFrom&&sheetFrom.isConnected&&sheetFrom.offsetParent?sheetFrom:null);if(f)try{f.focus({preventScroll:true})}catch(x){}}}
+  modal.was=on}
 try{NARROW.addEventListener('change',modal)}catch(e){}
 let sheetFrom=null;
 function openSheet(from){sheetFrom=from&&from!==document.body?from:null;S.sheet=true;paintSlip();/* сначала «Закрыть»: Enter не должен попасть на «Очистить» */const sl=$('kp-slip'),f=sl.querySelector('[data-act="close"]')||sl.querySelector('button:not([data-act="clear"]),input');if(f)setTimeout(()=>{try{f.focus({preventScroll:true})}catch(x){}},0)}
