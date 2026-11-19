@@ -387,3 +387,14 @@ html[data-sport="football"][data-lg] .lghero::after{background:linear-gradient(1
   .clubs>li{scroll-snap-align:start}
   .clubs .clb{min-height:150px}
 }
+/* 19.11 (владелец): строка матча — клик по центру ведёт на матч, по эмблеме и названию — на клуб.
+   Ссылка на матч растянута на всю строку под ссылками клубов; ссылка клуба — только по ширине эмблемы и названия. */
+.lgm{position:relative}
+.lgm .lgm-go{position:absolute;inset:0;z-index:0;border-radius:inherit}
+.lgm.go>:not(.lgm-go){position:relative;z-index:1;pointer-events:none}
+.lgm.go>.t{pointer-events:auto}
+.lgm .t{justify-self:start;max-width:100%}
+.lgm .t.a{justify-self:end}
+.lgm.go{transition:background .18s ease,box-shadow .18s ease}
+.lgm.go:has(.lgm-go:hover){background:color-mix(in srgb,var(--card) 82%,var(--ink));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 22%,transparent)}
+.lgm .lgm-go:focus-visible{outline:2px solid var(--signal);outline-offset:2px}

@@ -966,6 +966,18 @@ CD_JS = ('<script>/* отсчёт до начала (вид 2) */(function(){var
          'e.textContent="через "+(d?d+" дн "+h+" ч":h?h+" ч "+mi+" мин":mi+" мин")}f();setInterval(f,30000)})();</script>\n')
 
 
+_EXTRA = None
+
+
+def pre_blocks():
+    """Блоки «перед матчем» для хоккея (seo/match_extra.py) — один объект на запуск: читает файлы игроков один раз."""
+    global _EXTRA
+    if _EXTRA is None or _EXTRA.B is not B:
+        import match_extra
+        _EXTRA = match_extra.Extra(B, crest)
+    return _EXTRA
+
+
 def match_page(m):
     rel = m['rel']
     from_dir = os.path.dirname(rel)
@@ -1059,7 +1071,9 @@ def match_page(m):
             ink = lambda c: '#141a24' if _lum(c.lstrip('#')) > .55 else '#ffffff'  # noqa: E731
             cols = (bgc[0], bgc[1], ink(bgc[0]), ink(bgc[1]))
         top, info = v2_top(m, from_dir, fin, name, h1b, dm, wd, ar_txt, crumbs, rel, cols)
-        body = top + v2_model(m, fin, pre, cols) + v2_mstats(m, fin, from_dir) + info + prev + v2_form(m, from_dir) + v2_h2h(m, from_dir) + table_block(m, from_dir) + other_matches(m, from_dir) + links
+        xb = pre_blocks().blocks(m, from_dir)   # 19.11: «Отдых и дорога», «Кто в форме», «Дома и в гостях», «Вратари» (seo/match_extra.py)
+        body = (top + v2_model(m, fin, pre, cols) + v2_mstats(m, fin, from_dir) + info + prev + xb['rest'] + v2_form(m, from_dir) + xb['hot']
+                + xb['ha'] + xb['gk'] + v2_h2h(m, from_dir) + table_block(m, from_dir) + other_matches(m, from_dir) + links)
     else:
         body = top + mdl + prev + form_block(m, from_dir) + h2h_block(m) + table_block(m) + other_matches(m, from_dir) + links
     js = '<script>window.JV_ACT=%s;</script>\n' % json.dumps('khl' if lg == 'khl' else 'nhl' if lg == 'nhl' else 'ucl' if lg == 'ucl' else '' if sport == 'hockey' else 'lg')
