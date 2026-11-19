@@ -62,6 +62,11 @@ document.addEventListener('click',e=>{const x=e.target.closest&&e.target.closest
 /* ссылка на страницу матча (17.11): в черновике страница может ещё не существовать — тогда открываем её на основном сайте */
 {const VROOT=new URL('../',(document.currentScript&&document.currentScript.src)||location.href).href,SROOT=location.origin+'/';
  JV.matchHref=(lg,day,h,a)=>JV.matchPage(VROOT,lg,day,h,a);
+ /* строка матча на странице лиги (владелец 19.11): клик по центру — на матч, по названию клуба — на клуб.
+    Есть страница матча (data/matchlinks.js) — на неё; нет, а матч ещё впереди — на карточку в «Матчах» (matches.html?k=…). */
+ JV.rowGo=(lg,day,h,a,label,fut)=>{const k=`${lg}|${String(day).slice(0,10)}|${h}|${a}`,u=(window.JV_MATCHLINKS||{})[k],t=String(label||'').replace(/[&<>"']/g,'');
+  if(u)return `<a class="lgm-go" href="${VROOT}${u}" data-ml="${SROOT}${u}" aria-label="Страница матча: ${t}"></a>`;
+  return fut?`<a class="lgm-go" href="${VROOT}matches.html?k=${encodeURIComponent(k)}" aria-label="Матч: ${t}"></a>`:''};
  JV.matchLink=(lg,day,h,a,txt)=>`<a class="xgo" href="${JV.matchPage(VROOT,lg,day,h,a)}" data-ml="${JV.matchPage(SROOT,lg,day,h,a)}">${txt||'Страница матча'}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>`;
  if(VROOT!==SROOT)document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[data-ml]');if(!a||e.defaultPrevented||e.button||e.metaKey||e.ctrlKey||e.shiftKey)return;
   e.preventDefault();fetch(a.href,{method:'HEAD'}).then(r=>{location.href=r.ok?a.href:a.dataset.ml}).catch(()=>{location.href=a.dataset.ml})})}

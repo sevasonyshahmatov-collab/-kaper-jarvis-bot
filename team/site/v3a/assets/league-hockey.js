@@ -88,7 +88,8 @@ function build(SE,PL){
  /* строки матчей */
  const row=(m,fut)=>{const hw=!fut&&m.gf>m.ga,aw=!fut&&m.ga>m.gf,left=fut?JV.left(m.t):0;
   const when=fut?`${esc(m.t.slice(11))}${left<=0?'<small class="live">идёт</small>':''}`:`${dd(m.d)}<small>${esc(m.d.slice(11))}</small>`;
-  return `<li class="lgm"><span class="when num">${when}</span><a class="t" href="${thref(m.h)}">${em(m.h)}<span class="${hw?'w':''}">${esc(nm(m.h))}</span></a>
+  const go=JV.rowGo?JV.rowGo(LG,fut?m.t:m.d,m.h,m.a,nm(m.h)+' — '+nm(m.a),fut):'';
+  return `<li class="lgm${go?' go':''}">${go}<span class="when num">${when}</span><a class="t" href="${thref(m.h)}">${em(m.h)}<span class="${hw?'w':''}">${esc(nm(m.h))}</span></a>
    <span class="s num${fut?' vs':''}">${fut?'—':m.gf+':'+m.ga+(m.x?`<small>${m.x==='Б'?'буллиты':'овертайм'}</small>`:'')}</span>
    <a class="t a" href="${thref(m.a)}">${em(m.a)}<span class="${aw?'w':''}">${esc(nm(m.a))}</span></a></li>`};
  let html='',prev='';list.slice(0,40).forEach(m=>{const dk=m.t.slice(0,10);if(dk!==prev){prev=dk;const d=day(m.t);html+=`<li class="dayh" aria-hidden="true">${d.wd}, ${d.d} ${d.mon}</li>`}html+=row(m,true)});
