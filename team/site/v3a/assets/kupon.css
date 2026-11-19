@@ -692,6 +692,11 @@ body.kb4{background:#07102a}
 @media (max-width:760px){.kp-alg.kp-og{width:100%}}
 .kp-og>span{font:600 13px/1.2 var(--display);color:var(--ink-3);margin-right:2px}
 .kp-og button{min-width:40px;text-align:center}
+/* число событий вводится, как кэф (владелец 19.11) */
+.kp-anl{gap:8px}
+.kp-anl input{width:64px;font:800 18px/1 var(--display);text-align:center;padding:8px 6px;border-radius:10px;background:var(--paper);border:2px solid var(--rule-2);color:var(--ink)}
+.kp-anl input:focus{border-color:var(--acc);outline:0}
+.kp-anl input::placeholder{font-weight:700;font-size:14px;color:var(--ink-3);opacity:.8}
 @media (pointer:coarse){.kp-alg button{min-height:44px;min-width:56px;display:inline-flex;align-items:center;justify-content:center}} /* палец: зона нажатия 44 px (аудит 19.11) */
 .kp-want input{flex:1 1 150px;width:auto;min-width:0}
 @media (max-width:760px){.kp-want{max-width:none}}

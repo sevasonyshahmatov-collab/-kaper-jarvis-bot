@@ -342,8 +342,6 @@ function paintOpts(){const all=HM.filter(m=>grid(m.key)&&!started(m)),days=[...n
   const b=(k,v,t,on)=>'<button type="button" data-'+k+'="'+v+'" aria-pressed="'+on+'">'+t+'</button>';
   $('kp-ad').innerHTML='<span>Дни:</span>'+b('ad','','Все',!S.ad)+days.map(d=>b('ad',d,esc(dayName(d).split(',')[0]),S.ad===d)).join('');
   $('kp-ad').hidden=days.length<2;
-  const mx=Math.min(8,new Set(all.filter(m=>!S.ad||gameDay(m)===S.ad).map(m=>m.key)).size);if(S.an>mx)S.an=0;
-  $('kp-an').innerHTML='<span>Событий:</span>'+b('an',0,'Сам',!S.an)+Array.from({length:mx},(_,i)=>b('an',i+1,i+1,S.an===i+1)).join('');
   $('kp-opts').hidden=!all.length}
 function auto(target){
   const ms=visible().filter(m=>(!S.alg||m.lg===S.alg)&&(!S.ad||gameDay(m)===S.ad));if(!ms.length){toast('Нет матчей для подбора'+(S.alg?' '+LG[S.alg]:'')+(S.ad?' — '+dayName(S.ad).split(',')[0].toLowerCase():''));return}
@@ -365,7 +363,11 @@ function auto(target){
   toast(few+(k<target*.9&&!few?'Матчей мало: получился кэф '+fk(k)+' вместо '+fk(target):'Собран '+(legs.length>1?'экспресс из '+legs.length+' '+plural(legs.length,'события','событий','событий'):'ординар')+' с кэфом '+fk(k)));
   if(matchMedia('(max-width:1023px)').matches)openSheet(document.activeElement)
 }
-function autoGo(){const i=$('kp-want'),v=num(i.value);
+function autoGo(){const ai=$('kp-an'),av=ai?ai.value.trim():'';
+  /* число событий: пусто — модель решает сама; иначе целое 1–15 */
+  if(av&&!/^\d{1,2}$/.test(av)||av&&(+av<1||+av>15)){toast('Событий — от 1 до 15 или оставьте пустым');ai.focus();return}
+  S.an=av?+av:0;
+  const i=$('kp-want'),v=num(i.value);
   if(!(v>=1.2&&v<=500)){toast('Введите кэф от 1,2 до 500');i.focus();return}
   auto(v)}
 const plural=(n,a,b,c)=>n%10===1&&n%100!==11?a:n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?b:c;
@@ -443,7 +445,6 @@ document.addEventListener('click',e=>{
   if('day' in d){S.day=d.day;paintList();refocus(b);return}
   if(d.act==='auto'){autoGo();return}
   if('ad' in d&&b.closest('#kp-ad')){S.ad=d.ad;paintOpts();refocus(b);return}
-  if('an' in d&&b.closest('#kp-an')){S.an=+d.an;paintOpts();refocus(b);return}
   if(d.alg){S.alg=S.alg===d.alg?'':d.alg;document.querySelectorAll('[data-alg]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.alg===S.alg));$('kp-alg-n').textContent=S.alg?'только '+LG[S.alg]:'КХЛ и НХЛ вместе';return}
   if(d.mode){S.mode=d.mode;keep();paintSlip();return}
   if(d.load){const s=saved()[+d.load];if(s){load(s.data);keep();paint();toast(S.legs.length?'Купон загружен':'Матчи этого купона уже сыграны')}return}
@@ -462,7 +463,7 @@ function refreshNumbers(c){const st=$('kp-stake'),pos=st&&document.activeElement
   paintSum(c);if(pos!==null){const n=$('kp-stake');n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}
   c.G.forEach(g=>{const i=document.querySelector('input[data-odd="'+CSS.escape(g.key)+'"]'),s=i&&i.closest('li').querySelector('.kp-src');
     if(s)s.textContent=g.user?'ваш кэф':g.isLine?'кэф из линии':'расчётный кэф по модели — впишите свой'})}
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='kp-want'){e.preventDefault();autoGo();return}if(e.key==='Escape'&&S.sheet){closeSheet();return}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.target.id==='kp-want'||e.target.id==='kp-an')){e.preventDefault();autoGo();return}if(e.key==='Escape'&&S.sheet){closeSheet();return}
   /* открытый мобильный лист: Tab и Shift+Tab ходят только внутри него */
   if(e.key==='Tab'&&S.sheet&&document.documentElement.classList.contains('kp-open')){const f=[...$('kp-slip').querySelectorAll('button,input,a[href],select,textarea')].filter(x=>!x.disabled&&x.offsetParent);if(!f.length)return;
     const i=f.indexOf(document.activeElement);if(e.shiftKey&&i<=0){e.preventDefault();f[f.length-1].focus()}else if(!e.shiftKey&&(i===-1||i===f.length-1)){e.preventDefault();f[0].focus()}}});
