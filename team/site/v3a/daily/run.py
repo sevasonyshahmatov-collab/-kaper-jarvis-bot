@@ -14,7 +14,6 @@
   nhl_players, khl_players  игроки лиг → hockey/data/*.json;  hk_photos — их фото к себе (hockey/data/ph/)
   lines_model   линии и вероятности модели → data/lines.json, model.json, today.json
   teams_build   team/build_data.py → assets/data/teams.json/js (без примеров, где есть настоящие данные; линии из lines.json)
-  odds          hockey/odds_build.py: «Где закончат сезон» — шансы на плей-офф и места → hockey/data/odds_khl.json, odds_nhl.json
   split         daily/split.py: нарезка тяжёлых данных на лёгкие файлы (teams-lite, club/<slug>, football-lite, games, pl/*, plite_*) — для скорости на телефоне
   deck_bg       daily/deck_bg.py: фоны «Колоды матчей» тем же кодом, что баннеры Telegram (render/poster.py) → data/deckbg/*.webp + index.json
   search        search/build_index.py (без сети, после пересборки данных) → data/search.json
@@ -150,11 +149,6 @@ def step_teams_build():
                    lambda: sh([PY, os.path.join(C.V3A, 'team', 'build_data.py'), C.LIVE], cwd=C.REPO).strip().split('\n')[-1], 0.7)
 
 
-def step_odds():
-    """«Где закончат сезон» (19.11): hockey/odds_build.py — 10 000 розыгрышей остатка регулярки КХЛ и НХЛ → hockey/data/odds_<лига>.json."""
-    return sh([PY, os.path.join(HK, 'odds_build.py')], cwd=C.REPO, timeout=900).strip().split('\n')[-1]
-
-
 def step_split():
     import split
     return split.main()
@@ -211,7 +205,7 @@ def step_check():
 STEPS = [('teamcode', step_teamcode), ('live', step_live), ('hockey_season', step_hockey_season), ('foot_raw', step_foot_raw),
          ('foot_build', step_foot_build), ('foot_lineups', step_foot_lineups), ('foot_photos', step_foot_photos),
          ('foot_players', step_foot_players), ('foot_trends', step_foot_trends), ('nhl_players', step_nhl_players),
-         ('khl_players', step_khl_players), ('hk_photos', step_hk_photos), ('lines_model', step_lines_model), ('teams_build', step_teams_build), ('odds', step_odds), ('split', step_split), ('deck_bg', step_deck_bg), ('results', step_results), ('search', step_search), ('seo', step_seo), ('head', step_head), ('check', step_check)]
+         ('khl_players', step_khl_players), ('hk_photos', step_hk_photos), ('lines_model', step_lines_model), ('teams_build', step_teams_build), ('split', step_split), ('deck_bg', step_deck_bg), ('results', step_results), ('search', step_search), ('seo', step_seo), ('head', step_head), ('check', step_check)]
 
 
 def write_log():

@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import common as C  # noqa: E402
 
 
-def khl_schedule(days=21, pages=40):
+def khl_schedule(days=21):
     sys.path.insert(0, os.path.join(C.TEAMCODE, 'team', 'picks'))
     import khl_data as K  # noqa: E402
     boot = K.get('data.json')
@@ -17,7 +17,7 @@ def khl_schedule(days=21, pages=40):
     t0 = int(C.now_msk().replace(hour=0, minute=0, second=0, microsecond=0).timestamp())
     t1 = t0 + days * 86400
     rows = []
-    for page in range(1, pages):
+    for page in range(1, 40):
         q = ('events_v2.json?order_direction=asc&page=%d&q%%5Bstart_at_gt_time_from_unixtime%%5D=%d'
              '&q%%5Bstart_at_lt_time_from_unixtime%%5D=%d&stage_id=%s' % (page, t0, t1, stage))
         arr = K.get(q)
@@ -54,14 +54,6 @@ def main():
                 s['khl'][h]['games'].append({'d': d, 'o': a, 'h': 1, 'gf': None, 'ga': None})
                 s['khl'][a]['games'].append({'d': d, 'o': h, 'h': 0, 'gf': None, 'ga': None})
         note += '; расписание КХЛ: %d матчей' % len(sched)
-        # 19.11: полное расписание до конца регулярки — для блока «Где закончат сезон» (hockey/odds_build.py); season.json не трогаем
-        try:
-            rest = khl_schedule(days=200, pages=80)
-            if rest:
-                C.jsave(os.path.join(C.V3A, 'team', 'khl_rest.json'), [[d, h, a] for d, h, a in rest])
-            note += '; до конца сезона: %d' % len(rest)
-        except Exception as e:  # noqa: BLE001
-            note += '; до конца сезона НЕ получено: %r' % e
         if not sched:
             note += ' (пусто)'
     except Exception as e:  # noqa: BLE001
