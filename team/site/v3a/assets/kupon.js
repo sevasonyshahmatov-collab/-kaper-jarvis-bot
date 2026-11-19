@@ -315,6 +315,7 @@ function paintSlip(){
   const bar=$('kp-bar');bar.hidden=!c.n;
   if(c.n)bar.innerHTML='<span><b>Купон</b><em>'+c.events+'</em></span>'+(c.bad?'<span class="w">проверьте события</span>':S.mode==='x'?'<span>шанс <b>'+fp(c.p)+'</b></span><span>кэф <b>'+fk(c.k)+'</b></span>':'<span>ординары: <b>'+c.n+'</b></span>')+'<i>Открыть</i>';
   document.documentElement.classList.toggle('kp-open',S.sheet&&!!c.n);if(!c.n)S.sheet=false;
+  modal();
 }
 function paintSum(c){c=c||calc();const el=$('kp-sum');if(!el)return;el.style.setProperty('--p',Math.round((S.mode==='s'&&c.n>1?c.sAny:c.p)*100));
   const stake='<label class="kp-stake"><span>Сумма'+(S.mode==='s'&&c.n>1?' на каждую':'')+'</span><input type="text" inputmode="decimal" id="kp-stake" value="'+esc(S.stake)+'" aria-label="Сумма ставки"></label>';
@@ -404,6 +405,13 @@ function save(){const c=calc(),sv=saved(),d=new Date();
   try{localStorage.setItem(LS_SAVED,JSON.stringify(sv.slice(0,12)));toast('Купон сохранён на этом устройстве')}catch(e){toast('Не удалось сохранить')}paintSlip()}
 
 /* мобильный лист купона (аудит 19.11, круг 3): одно открытие для полоски и автоподбора — фокус внутрь, удержание (Tab выше), возврат туда, откуда открыли */
+/* узкий экран: открытый лист — модальное окно для экранного диктора (role=dialog, aria-modal), всё вокруг — inert (аудит 19.11, круг 4) */
+const NARROW=matchMedia('(max-width:1023px)');
+function modal(){const sl=$('kp-slip');if(!sl)return;const on=document.documentElement.classList.contains('kp-open')&&NARROW.matches;
+  if(on){sl.setAttribute('role','dialog');sl.setAttribute('aria-modal','true')}else{sl.removeAttribute('role');sl.removeAttribute('aria-modal')}
+  if(on){for(let n=sl;n&&n!==document.body;n=n.parentElement)for(const x of n.parentElement.children)if(x!==n&&x.tagName!=='SCRIPT'&&!x.inert){x.inert=true;x.dataset.kpInert='1'}}
+  else document.querySelectorAll('[data-kp-inert]').forEach(x=>{x.inert=false;delete x.dataset.kpInert})}
+try{NARROW.addEventListener('change',modal)}catch(e){}
 let sheetFrom=null;
 function openSheet(from){sheetFrom=from&&from!==document.body?from:null;S.sheet=true;paintSlip();/* сначала «Закрыть»: Enter не должен попасть на «Очистить» */const sl=$('kp-slip'),f=sl.querySelector('[data-act="close"]')||sl.querySelector('button:not([data-act="clear"]),input');if(f)setTimeout(()=>{try{f.focus({preventScroll:true})}catch(x){}},0)}
 function closeSheet(){S.sheet=false;paintSlip();const to=sheetFrom&&sheetFrom.isConnected?sheetFrom:$('kp-bar');sheetFrom=null;try{if(to&&!to.hidden)to.focus({preventScroll:true})}catch(x){}}
