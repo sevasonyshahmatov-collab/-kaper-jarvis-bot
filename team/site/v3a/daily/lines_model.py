@@ -384,6 +384,8 @@ def main():
                 for f in ('src', 'tot_src', 'line'):
                     if r.get(f) in NEUTRAL:
                         r[f] = NEUTRAL[r[f]]
+                if isinstance(r.get('alt'), dict):
+                    r['alt'] = {NEUTRAL.get(k, k): v for k, v in r['alt'].items()}
     today_rows.sort(key=lambda r: (r['t'], r['key']))
     C.jsave(os.path.join(C.DATA, 'lines.json'), lines, 'JV_LINES')
     C.jsave(os.path.join(C.DATA, 'model.json'), model, 'JV_MODEL')
