@@ -209,7 +209,8 @@ function calc(){const G=byMatch(),n=G.length,stake=Math.max(0,num(S.stake)||0);
   return r}
 
 /* ---------- отрисовка ---------- */
-const emb=id=>'<img class="kp-em" src="../assets/em/'+esc(id)+'.webp" alt="" width="28" height="28" loading="lazy" onerror="this.style.visibility=\'hidden\'">';
+/* маленькая эмблема — из em/s/ (128 px, аудит 20.11: 384 px для 28 px лишние); нет уменьшенной — полная, нет и её — скрыть */
+const emb=id=>'<img class="kp-em" src="../assets/em/s/'+esc(id)+'.webp" alt="" width="28" height="28" loading="lazy" onerror="if(!this.dataset.f){this.dataset.f=1;this.src=\'../assets/em/'+esc(id)+'.webp\'}else this.style.visibility=\'hidden\'">';
 /* на кнопке крупно кэф (владелец 15.11), мелко — шанс модели; кэф из линии — как есть, расчётный по модели — со знаком ≈ */
 const KF=(p,lo)=>lo?fk(lo):p>0?'<s>≈</s>'+fk(Math.min(999,1/p)):'—';
 function btn(m,id){const p=prob(m.key,[id]),lo=lineOdd(m.key,id),on=has(m.key,id),val=lo&&p*lo>=1.03;

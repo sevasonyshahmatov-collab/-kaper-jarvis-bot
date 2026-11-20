@@ -12,17 +12,17 @@
 /* шапка без клубной формы (у хоккея — club/jersey.js): эмблема бледным фоном, итоги сезона строкой */
 .fpp .pp-ghost{display:block;position:absolute;z-index:-1;right:20%;top:50%;height:130%;aspect-ratio:1;object-fit:contain;transform:translate(50%,-50%);opacity:.13;filter:grayscale(1) brightness(2);pointer-events:none}
 .fpp .pp-hs{display:flex;margin:22px 0 0;padding:0}
-.fpp .pp-hs div{padding:0 22px;border-left:1px solid rgba(255,255,255,.25);text-align:center}
+.fpp .pp-hs div{padding:0 22px;border-left:1px solid rgba(255,255,255,.25);text-align:center;display:flex;flex-direction:column-reverse;align-items:center} /* dt (подпись) идёт до dd (число) по правилам HTML, на экране число сверху (аудит 20.11) */
 .fpp .pp-hs div:first-child{padding-left:0;border-left:0}
-.fpp .pp-hs b{display:block;font:900 clamp(28px,3.4vw,44px)/1 var(--display);font-variant-numeric:tabular-nums}
-.fpp .pp-hs span{display:block;margin-top:6px;font:700 12px/1 var(--display);letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+.fpp .pp-hs dd{margin:0;display:block;font:900 clamp(28px,3.4vw,44px)/1 var(--display);font-variant-numeric:tabular-nums}
+.fpp .pp-hs dt{display:block;margin-top:6px;font:700 12px/1 var(--display);letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.75)}
 .fpp .pp-txt{padding-bottom:clamp(18px,3vw,32px)}
-@media (max-width:640px){.fpp .pp-hs{margin-top:14px}.fpp .pp-hs div{padding:0 9px}.fpp .pp-hs b{font-size:23px}.fpp .pp-hs span{font-size:9px;letter-spacing:.04em}.fpp .pp-ghost{right:22%;height:100%}}
+@media (max-width:640px){.fpp .pp-hs{margin-top:14px}.fpp .pp-hs div{padding:0 9px}.fpp .pp-hs dd{font-size:23px}.fpp .pp-hs dt{font-size:9px;letter-spacing:.04em}.fpp .pp-ghost{right:22%;height:100%}}
 /* Черновик 14.11: на телефоне цифры не уходят под фото (три главные — четвёртая есть в «Сезоне» ниже), подписи от 11 px;
    бледная эмблема целиком внутри шапки, ниже плашек — круговая надпись не обрезается краем и не спорит с плашками */
 @media (max-width:640px){
   .fpp .pp-hs div:nth-child(n+4){display:none}
-  .fpp .pp-hs div{padding:0 9px}.fpp .pp-hs div:first-child{padding-left:0}.fpp .pp-hs span{font-size:11px;letter-spacing:.02em}
+  .fpp .pp-hs div{padding:0 9px}.fpp .pp-hs div:first-child{padding-left:0}.fpp .pp-hs dt{font-size:11px;letter-spacing:.02em}
   .fpp .pp-ghost{right:25%;top:60%;height:54%;opacity:.09}
   .fpp .pp-txt{padding-right:12px}
 }

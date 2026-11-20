@@ -363,7 +363,7 @@ render('all');setInterval(tick,1000);
 /* лиги и клубы: две коллекционные карточки (assets/leaguecards), на обороте — эмблемы клубов */
 const TQ=(t=>/^(arena|a|b|c)$/.test(t||'')?'&theme='+t:'')(new URLSearchParams(location.search).get('theme'));
 /* черновик 14.11: КХЛ — Виноградов (КХЛ-2), НХЛ — Малкин (НХЛ-2): выбор владельца 14.11 */
-const LCP={khl:{photo:'../assets/leaguecards/var/khl-vinogradov.webp',photoCls:'',club:'../assets/em/torpedo.webp',cols:8},nhl:{photo:'../assets/leaguecards/var/nhl-malkin.webp',photoCls:'',club:'../assets/em/nhl_pit.webp',cols:8}};
+const LCP={khl:{photo:'../assets/leaguecards/var/khl-vinogradov.webp',photoCls:'',club:'../assets/em/torpedo.webp',cols:8},nhl:{photo:'../assets/leaguecards/var/nhl-malkin.webp',photoSm:'../assets/leaguecards/var/nhl-malkin-720.webp',photoW:1192,photoCls:'',club:'../assets/em/nhl_pit.webp',cols:8}};
 LeagueCards.mount(document.getElementById('lcdeck'),Object.entries(LG).map(([id,l])=>{const n=cnt(id),list=id==='khl'?KHL_CLUBS:NHL_CLUBS;
  return {id,name:l.name,cnt:`${n} ${plural(n,'матч','матча','матчей')} в ближайшие дни`,href:`league.html?lg=${id}${TQ}`,logo:LGI(id),...LCP[id],
   pl:k=>plural(k,'клуб','клуба','клубов'),clubs:list.map(([cn,slug])=>({n:cn,src:`../assets/em/s/${slug}.webp`,href:`../team/index.html?id=${slug}${TQ}`}))}}));

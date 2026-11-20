@@ -53,7 +53,7 @@ fetch((window.JVD||(u=>u))(`data/pp/${ID}.json`)).then(r=>{if(!r.ok)throw 0;retu
    <h1>${small?esc(small)+' ':''}<b${String(big).length>9?` style="--fz:${(9/String(big).length).toFixed(3)}"`:''}>${esc(big)}</b></h1>
    <p class="pp-sub">${G} ${pl(G,'гол','гола','голов')} и ${A} ${pl(A,'передача','передачи','передач')} в ${N} ${pl(N,'матче','матчах','матчах')} сезона</p>
    <p class="pp-meta">${pos?`<span>${esc(pos)}</span>`:''}<span>${esc(lgs.map(lgn).join(', ')||lgn(P.lg))}, сезон ${esc(F.season||'')}</span></p>
-   <dl class="pp-hs" aria-label="Сезон: ${N} ${pl(N,'матч','матча','матчей')}, ${G} голов, ${A} передач"><div><b>${N}</b><span>${pl(N,'матч','матча','матчей')}</span></div><div><b>${G}</b><span>голы</span></div><div><b>${A}</b><span>передачи</span></div><div><b>${SoT}</b><span>в створ</span></div></dl>
+   <dl class="pp-hs" aria-label="Сезон: ${N} ${pl(N,'матч','матча','матчей')}, ${G} голов, ${A} передач"><div><dt>${pl(N,'матч','матча','матчей')}</dt><dd>${N}</dd></div><div><dt>голы</dt><dd>${G}</dd></div><div><dt>передачи</dt><dd>${A}</dd></div><div><dt>в створ</dt><dd>${SoT}</dd></div></dl>
   </div>
   <div class="pp-photo nop"><span class="pp-ini" aria-hidden="true">${esc(ini)}</span>${P.ph===0?'':`<img class="ph" src="${(window.JVD||(u=>u))(`data/ph/${encodeURIComponent(ID)}.webp`)}" alt="${esc(P.n)}" onload="this.parentNode.classList.remove('nop')" onerror="this.remove()">`}</div>
  </article>
