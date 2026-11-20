@@ -37,7 +37,7 @@
 - «Котировки, экспрессы и футбол — 31.10» — `session_01GakKTNbyX5zH6HJccD73MM` (продолжение чата руководителя 30.10; передача `HANDOFF_LEAD_3110_2.md`).
 - «Фонбет: точные котировки в прогнозы» — `session_01GakKTMi4rfkUTSnNm6Te7h` (Opus; итог — `docs/handoff/FONBET.md`).
 - Диспетчер JARVIS (служебный, не трогать) — `session_01GakKTMs4qribwLbphL4zbs`; на Б — «Диспетчер JARVIS Б» `session_01MtLSohbrUjwrmnARtLVyAg`.
-- «Актуальный, 19.11» — `session_01GakKTR11fMZhTd3qw9Lsmf`; «Неактуальный, до 19.11» — `session_01GakKTQrKnc8aER56W6W9hm` (бывший «Актуальный, 18.11»; прошлый «Неактуальный, до 18.11» `session_01GakKTMisyTpcEBm4ZnqzEt`).
+- «Актуальный, 20.11» — `session_01GakKTPvCvTBNeJDCbVjKUA`; «Неактуальный, до 20.11» — `session_01GakKTR11fMZhTd3qw9Lsmf`; «Неактуальный, до 19.11» — `session_01GakKTQrKnc8aER56W6W9hm` (бывший «Актуальный, 18.11»; прошлый «Неактуальный, до 18.11» `session_01GakKTMisyTpcEBm4ZnqzEt`).
 - «Актуальный, 13.11» — `session_01GakKTP7q8tvhkpSuxx8o58`; «Неактуальный, до 13.11» — `session_01GakKTNegz5WS9oNEL7Audf`; «Неактуальный, до 12.11» — `session_01GakKTPUz7idLNAANmozcuT` (прошлый «Неактуальный, до 11.11» `session_01GakKTQ3QWVJwmU2Wbq4d6f`).
 - «Актуальный, 05.11» — `session_01GakKTMVChPSCHKahwutt2x` (руководитель, хоккей+футбол; прошлый «Неактуальный, до 05.11» `session_01GakKTNerAENXKCc5YfKssr`).
 - «Хоккей — Актуальный, 01.11» — `session_01GakKTM49pdcfF9qcUixdTy` (старый, Неактуальный).
@@ -64,6 +64,7 @@
 7. По желанию: syntx.ai в разрешённые домены.
 
 ## События (новые сверху, ≤10)
+- 20.11 06:15 · А · открыт «Актуальный, 20.11» (`session_01GakKTPvCvTBNeJDCbVjKUA`); прошлый «Актуальный, 19.11» переименован в «Неактуальный, до 20.11»; разовых напоминаний нет; передачи за 20.11 на месте; письмо владельцу — `team/out/2026-11-20/morning_lead.json`.
 - 20.11 05:50 · А · передача футбола за 19.11 написана новым чатом: `docs/handoff/HANDOFF_FOOT_2011.md` (по NOW/LOG/git log; реплик владельца про футбол нет, матчей не было).
 - 20.11 05:45 · А · передача хоккея за 19.11 написана новым чатом: `docs/handoff/HANDOFF_LEAD_2011.md` (по NOW/LOG/INBOX/git log; реплик владельца в чате 19.11 нет); строка в CLAUDE.md обновлена.
 - 20.11 05:25 · А · по просьбе владельца экспресс 1911-e10 = e7 с ИТБ 1,5 Тампы вместо ИТБ Эдмонтона (кэф владельца 1,24), общий 1,91; run 44659653028.
