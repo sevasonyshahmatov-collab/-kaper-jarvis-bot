@@ -484,7 +484,13 @@ skin();
 let FOCUS='';try{const k=new URLSearchParams(location.search).get('m');if(k&&BY[k]&&!started(BY[k])){S.open[k]=true;FOCUS=k}}catch(e){}
 paint();
 /* вход с баннера «Не знаете, на что поставить?»: kupon.html?want=3 — купон на этот кэф собирается сразу (владелец 18.11) */
-try{const w=num(new URLSearchParams(location.search).get('want')||'');if(w>=1.2&&w<=500){$('kp-want').value=fk(w).replace(/,00$/,'');const kept=stash();auto(w);if(kept)setTimeout(()=>toast('Прежний купон — в «Сохранённых»'),2700);history.replaceState(null,'',location.pathname+location.hash)}}catch(e){}
+/* ссылка автоподбора: ?want=<кэф>, по желанию &day=YYYY-MM-DD|today|tomorrow (игровой день) и &n=<1–15> — число событий (аудит 19.11, круг 6) */
+try{const q=new URLSearchParams(location.search),w=num(q.get('want')||'');if(w>=1.2&&w<=500){
+  const dq=q.get('day')||'',nq=q.get('n')||'',td=gameDay({t:new Date(Date.now()+3*36e5).toISOString().slice(0,16).replace('T',' ')});
+  const dd=dq==='today'?td:dq==='tomorrow'?mskDay(Date.parse(td+'T12:00:00+03:00')+864e5):/^\d{4}-\d\d-\d\d$/.test(dq)?dq:'';
+  if(dd&&HM.some(m=>gameDay(m)===dd)){S.ad=dd;paintOpts()}
+  if(/^\d{1,2}$/.test(nq)&&+nq>=1&&+nq<=15){S.an=+nq;$('kp-an').value=nq}
+  $('kp-want').value=fk(w).replace(/,00$/,'');const kept=stash();auto(w);if(kept)setTimeout(()=>toast('Прежний купон — в «Сохранённых»'),2700);history.replaceState(null,'',location.pathname+location.hash)}}catch(e){}
 if(FOCUS){const el=document.querySelector('.kp-m[data-key="'+CSS.escape(FOCUS)+'"]');if(el)setTimeout(()=>el.scrollIntoView({block:'start'}),60)}
 setInterval(()=>{if(!document.hidden&&!document.activeElement.matches('input'))paint()},6e4);
 })();
