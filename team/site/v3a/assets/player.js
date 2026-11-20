@@ -76,9 +76,9 @@ fetch((window.JVD||(u=>u))(`data/pp/${LG}/${ID}.json`)).then(r=>{if(!r.ok)throw 
   ${log.slice(-5).reverse().map(r=>{const sc=r[8],w=sc&&sc[0]>sc[1];return `<tr><td class="d">${ddmm(r[0])}</td><td><a class="op" href="../team/index.html?id=${encodeURIComponent(r[1])}"><img src="${em(r[1])}" alt="" loading="lazy" onerror="this.remove()"><span>${r[2]?'':''}${esc(tn(r[1]))}</span></a></td><td class="n">${r[3]}</td><td class="n">${r[4]}</td><td class="n"><b>${r[3]+r[4]}</b></td>${nhl?`<td class="n br">${r[5]??'—'}</td><td class="n tm">${mmss(r[6])}</td>`:''}<td class="n sc">${sc?`<span class="sc5"><i class="${w?'w':'l'}">${w?'В':'П'}</i><b>${sc[0]}:${sc[1]}</b><small>${sc[2]?esc(sc[2]):''}</small></span>`:'—'}</td></tr>`}).join('')}
   </tbody></table></div></section>`:''}
  <section class="pp-sec" id="s-mk" aria-labelledby="h-m"><h2 id="h-m">В скольких матчах</h2>
-  <table class="pp-mk"><thead><tr><th scope="col">Рынок</th><th scope="col">Сезон</th><th scope="col">Последние 10</th><th scope="col">Дома</th><th scope="col">В гостях</th></tr></thead><tbody>
+  <div class="pp-mkw" tabindex="0" role="region" aria-label="Рынки игрока — таблицу можно листать вбок"><table class="pp-mk"><thead><tr><th scope="col">Рынок</th><th scope="col">Сезон</th><th scope="col">Последние 10</th><th scope="col">Дома</th><th scope="col">В гостях</th></tr></thead><tbody>
   ${mkList.map(m=>`<tr><th scope="row">${m.n}</th>${cell(hit(log,m,1))}${cell(hit(L10,m))}${cell(HM.length?hit(HM,m):[0,0])}${cell(AW.length?hit(AW,m):[0,0])}</tr>`).join('')}
-  </tbody></table></section>
+  </tbody></table></div></section>
  <section class="pp-sec" id="s-form" aria-labelledby="h-f"><h2 id="h-f">Форма</h2>
   <div class="pp-tabs" id="tabs" role="group" aria-label="Рынок графика">${mkList.map((m,i)=>`<button type="button" data-k="${m.k}" aria-pressed="${!i}">${m.n}</button>`).join('')}</div>
   <div class="pp-chart" id="chart" role="img" aria-label="Форма по последним матчам"></div></section>

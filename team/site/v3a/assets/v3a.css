@@ -1280,3 +1280,11 @@ html body .pp-ln>div{padding-bottom:14px}
 .xd>.xclose:hover{background:#dde5f2}.xd>.xclose:active{transform:scale(.97)}
 .xd>.xclose .jvi{width:16px;height:16px}
 .xd>.xclose:focus-visible{outline:2px solid var(--signal,#2563eb);outline-offset:2px}
+/* проверка ширин 20.11: на 360 px карточка матча в шапке хоккея/футбола вылезала за край на ~22 px (длинные названия,
+   «Автомобилист»). Узкие телефоны: отступы карточки и названия команд чуть меньше; карточка не шире колонки. */
+.hero .bcol{grid-template-columns:minmax(0,1fr)}
+.hero .board{min-width:0}
+@media (max-width:374px){
+  .hero .board{padding-left:12px;padding-right:12px}
+  .hero .board .face .tm>span:last-child{font-size:15px}
+}

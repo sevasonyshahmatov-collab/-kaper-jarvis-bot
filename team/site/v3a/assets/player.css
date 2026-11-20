@@ -33,6 +33,9 @@ body{background:var(--paper);color:var(--ink)}
 .pp-tile b{font:900 clamp(26px,4vw,34px)/1 var(--display);font-variant-numeric:tabular-nums}
 /* рынки */
 .pp-mk{width:100%;border-collapse:separate;border-spacing:0 6px}
+/* узкий экран: таблица шире экрана — листается вбок внутри своей обёртки, а не обрезается (проверка ширин 20.11) */
+.pp-mkw{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.pp-mkw:focus-visible{outline:2px solid var(--acc,#ffc21a);outline-offset:2px}
 .pp-mk th{font:700 12px/1.2 var(--display);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);text-align:left;padding:0 10px 2px}
 .pp-mk td,.pp-mk tbody th{background:var(--card);padding:10px;font:600 15px/1.2 var(--display);vertical-align:middle}
 .pp-mk tbody th{font:800 16px/1.2 var(--display);letter-spacing:0;text-transform:none;color:var(--ink);border-radius:var(--rc,12px) 0 0 var(--rc,12px)}

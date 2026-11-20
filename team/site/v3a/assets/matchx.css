@@ -487,3 +487,20 @@ html:not([data-theme="arena"]) .mq-tiles li.warn b{color:#9a6a00}
   .mq-ha thead th:not(:first-child),.mq-ha td{width:31%}
   .mq-g .so,.mq-g .no{display:none}
 }
+/* проверка ширин 20.11: на 360–414 px в шапке матча длинное название гостей («Автомобилист») и эмблема вылезали за край.
+   Средняя колонка уже (дата переносится), колонки команд не шире своей доли, название чуть мельче на узких экранах. */
+@media (max-width:440px){
+  .mx-stage{gap:6px}
+  .mx-mid{min-width:0;max-width:112px}
+  .mx-when,.mx-mid *{white-space:normal;text-align:center;text-wrap:balance}
+  .mx-team{grid-template-columns:minmax(0,1fr)}
+  .mx-team b{font-size:clamp(13px,3.9vw,17px)}
+  .mx-crest{width:min(84px,100%)}
+}
+/* проверка ширин 20.11: «Куда дальше» на 360 px — карточка клуба с длинным названием шире колонки («Автомобилист» обрезан) */
+.mx-go li,.mx-go a,.mx-go b{min-width:0}
+@media (max-width:400px){
+  .mx-go a{padding:14px 12px}
+  .mx-go b{font-size:14px;gap:7px}
+  .mx-go b img{width:22px;height:22px;flex:none}
+}
