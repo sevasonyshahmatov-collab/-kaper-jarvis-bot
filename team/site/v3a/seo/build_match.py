@@ -356,7 +356,7 @@ def preview_text(m):
 # ───────────────────────── блоки страницы матча ─────────────────────────
 def team_link(m, side, from_dir):
     tid, name = (m['h'], m['hn']) if side == 'h' else (m['a'], m['an'])
-    em = B.emblem(m['sport'], tid, from_dir)
+    em = B.emblem(m['sport'], tid, from_dir, small=True)
     img = '<img src="%s" alt="" width="40" height="40" loading="lazy">' % esc(em) if em else ''
     return '<a class="mt-tm" href="%s">%s<span>%s</span></a>' % (esc(B.club_href(m['sport'], tid, from_dir)), img, esc(name))
 
@@ -438,7 +438,7 @@ def other_matches(m, from_dir):
         return ''
     pre = '../' * B.depth(from_dir)
     def em(tid, nm):   # эмблемы клубов в «Других матчах» (владелец 09.11)
-        e = B.emblem(m['sport'], tid, from_dir)
+        e = B.emblem(m['sport'], tid, from_dir, small=True)
         return ('<img src="%s" alt="" width="36" height="36" loading="lazy">' % esc(e)) if e else '<i class="mt-oe0">%s</i>' % esc(nm[:2])
     lis = ''.join('<li><a href="%s"><span class="mt-oe">%s%s</span><b><span>%s</span> — <span>%s</span></b><small>%s МСК</small></a></li>'
                   % (esc(pre + x['rel']), em(x['h'], x['hn']), em(x['a'], x['an']), esc(x['hn']), esc(x['an']), esc(x['t'][11:16])) for x in same[:8])
@@ -625,7 +625,7 @@ def model_stub(m, pre, odds=''):
 
 def crest(m, tid, from_dir, px=28):
     """Эмблема клуба рядом с названием (правило владельца 11.11: логотип у названия команды — везде, где рядом он ещё не стоит)."""
-    em = B.emblem(m['sport'], tid, from_dir)
+    em = B.emblem(m['sport'], tid, from_dir, small=px <= 40)
     return ('<img class="mx-em" src="%s" alt="" width="%d" height="%d" loading="lazy">' % (esc(em), px, px)) if em else ''
 
 
@@ -806,7 +806,7 @@ def v2_form(m, from_dir):
         for g in gs:
             o = outcome(g)
             ot = (' ' + g['x']) if isinstance(g.get('x'), str) and g['x'] else ''
-            em = B.emblem(m['sport'], g['o'], from_dir)
+            em = B.emblem(m['sport'], g['o'], from_dir, small=True)
             on = names.get(g['o'], g['o'])
             pic = ('<img src="%s" alt="" width="34" height="34" loading="lazy">' % esc(em)) if em else '<i>%s</i>' % esc(on[:2])
             lis.append('<li class="r-%s" title="%s, %s, %s: %d:%d%s"><b aria-label="%s, соперник %s">%s<em>%s</em></b><span>%d:%d</span></li>'

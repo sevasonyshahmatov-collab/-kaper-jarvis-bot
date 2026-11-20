@@ -40,7 +40,7 @@ function wm(q,w){
 let IDX=null,loading=null;
 const SP={h:'Хоккей',f:'Футбол'};
 const pg=(c)=>c.s==='h'?'team/index.html?id='+encodeURIComponent(c.id):'football/team.html?id='+encodeURIComponent(c.id);
-const crest=c=>U((c.s==='h'?'assets/em/s/':'assets/fc/')+c.id+'.webp');
+const crest=c=>U((c.s==='h'?'assets/em/s/':'assets/fc/s/')+c.id+'.webp');
 function load(){
   if(IDX)return Promise.resolve(IDX);
   if(loading)return loading;
@@ -104,7 +104,7 @@ const remember=q=>{q=q.trim();if(q.length<2)return;try{const a=[q].concat(recent
 const dt=d=>{const t=NOW().slice(0,10),y=new Date(Date.now()+(new Date().getTimezoneOffset()+180)*6e4);const dd=d.slice(8,10)+'.'+d.slice(5,7);
   const tm=d.slice(11,16);const diff=Math.round((Date.parse(d.slice(0,10))-Date.parse(t))/864e5);
   return(diff===0?'сегодня':diff===1?'завтра':diff===-1?'вчера':dd)+', '+tm};
-const img=c=>`<img src="${esc(crest(c))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
+const img=c=>`<img src="${esc(crest(c))}" alt="" loading="lazy" onerror="if(!this.dataset.f&&/\/(em|fc)\/s\//.test(this.src)){this.dataset.f=1;this.src=this.src.replace(/\/(em|fc)\/s\//,'/$1/')}else this.style.visibility='hidden'">`;
 const tcode=p=>!p.c?'':p.lg==='khl'?p.c.id:p.c.id==='minnesota'?'MIN':p.c.id==='dallas'?'DAL':p.c.id.replace(/^nhl_/,'').toUpperCase();
 const LGN={khl:'КХЛ',nhl:'НХЛ',epl:'АПЛ',laliga:'Ла Лига',seriea:'Серия А',bundesliga:'Бундеслига',ligue1:'Лига 1',rpl:'РПЛ',ucl:'ЛЧ',uel:'ЛЕ'};
 const li=(href,html,cls,ml)=>`<a class="sp-i ${cls||''}" role="option" id="spo${items.push(href)-1}" href="${esc(safeUrl(href))}"${ml?` data-ml="${esc(safeUrl(ml))}"`:''} tabindex="-1">${html}</a>`;

@@ -34,7 +34,7 @@ const h2h=(a,b)=>(D.h2h[[a,b].sort().join('|')]||[]).slice().sort((x,y)=>x.d<y.d
 /* форма «В Н П» в виде кружков с эмблемой соперника */
 const dots=(s,n=5)=>{const g=gamesOf(s).slice(0,n).reverse();
  return `<span class="dots" aria-label="форма: ${esc(g.map(x=>RESF[rOf(x)]+' '+nm(x.o)+' '+x.gf+':'+x.ga).join(', '))}">${g.map(x=>{const r=rOf(x),o=nm(x.o),sc=`${x.gf}:${x.ga}`;
-  return `<i class="${r}" title="${esc((r==='w'?'Победа над ':r==='d'?'Ничья с ':'Поражение от ')+o+' '+sc)}"><img src="${crest(x.o)}" alt="" loading="lazy"></i>`}).join('')}</span>`};
+  return `<i class="${r}" title="${esc((r==='w'?'Победа над ':r==='d'?'Ничья с ':'Поражение от ')+o+' '+sc)}"><img src="${crest(x.o).replace('/fc/','/fc/s/')}" alt="" loading="lazy" onerror="if(!this.dataset.f){this.dataset.f=1;this.src=this.src.replace('/fc/s/','/fc/')}else this.remove()"></i>`}).join('')}</span>`};
 /* шестиугольник силы: перенесён с хоккейной страницы команды, подписи осей — футбольные */
 function radar(series,ax){
  const W=366,H=420,r=142,c=W/2,cy=H/2+4,pt=(i,x)=>[c+r*x/100*Math.sin(Math.PI*i/3),cy-r*x/100*Math.cos(Math.PI*i/3)];

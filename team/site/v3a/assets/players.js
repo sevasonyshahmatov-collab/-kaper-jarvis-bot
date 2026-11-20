@@ -7,6 +7,7 @@
 const M=window.JV_PLAYERS_META||window.JV_PLAYERS,D={...M,players:M.players||[]},$=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const crest=s=>`../assets/fc/${encodeURIComponent(s)}.webp`;
+const crestS=s=>`../assets/fc/s/${encodeURIComponent(s)}.webp`;   /* мелкие (до 40 px), аудит 20.11 */
 // портреты «как в НХЛ» (голова и плечи, без фона): data/ph/<id>.webp, список готовых — data/headshots.json (players_headshots.py);
 // нет портрета — инициалы (фото Commons напрямую больше не показываем)
 let PH={};
@@ -16,7 +17,7 @@ const col=T=>{const c=Array.isArray(T.c)?T.c[0]:T.c;return /^#?[0-9a-f]{6}$/i.te
 // фото игрока (ESPN); нет фото — инициалы на цвете клуба; эмблема — значком в углу
 // светлый цвет клуба (белый «Осер» и т.п.) — инициалы тёмные
 const lite=h=>{const m=/^#([0-9a-f]{6})$/i.exec(h);if(!m)return false;const n=parseInt(m[1],16);return (0.299*(n>>16)+0.587*(n>>8&255)+0.114*(n&255))>170};
-const avatar=(p,T)=>`<div class="av${lite(col(T))?' lite':''}" style="--c:${col(T)}">${photo(p.id)?`<img class="ph" src="${photo(p.id)}" alt="" loading="lazy" onerror="this.remove()">`:''}<img class="bd" src="${crest(p.t)}" alt="" loading="lazy"></div>`;
+const avatar=(p,T)=>`<div class="av${lite(col(T))?' lite':''}" style="--c:${col(T)}">${photo(p.id)?`<img class="ph" src="${photo(p.id)}" alt="" loading="lazy" onerror="this.remove()">`:''}<img class="bd" src="${crestS(p.t)}" alt="" loading="lazy" onerror="if(!this.dataset.f){this.dataset.f=1;this.src=this.src.replace('/fc/s/','/fc/')}else this.remove()"></div>`;
 const LGN={...D.leagues};
 const URLT=new URLSearchParams(location.search).get('team')||'';
 const LU=!!D.lu;
@@ -63,7 +64,7 @@ function render(){
     return `<article class="pod fb pod${i+1}" role="listitem" style="--kb:${hex};--ko:${lt?'#10161f':'#fff'};--ko2:${lt?'rgba(16,22,31,.72)':'rgba(255,255,255,.78)'}"><img class="wm" src="${crest(p.t).replace('/fc/','/fc/l/')}" alt="" aria-hidden="true" loading="lazy" onerror="if(!this.dataset.f){this.dataset.f=1;this.src=this.src.replace('/fc/l/','/fc/')}else this.remove()"><i class="wms" aria-hidden="true" style="--em:url('${crest(p.t)}')"></i>
       ${photo(p.id)?`<img class="cut" src="${photo(p.id)}" alt="" loading="lazy" onerror="this.remove()">`:''}
       <span class="prk"><b>${i+1}</b><small>место</small></span>
-      <div class="pnm"><b><a href="player.html?id=${encodeURIComponent(p.id)}" title="Профиль игрока">${esc(p.n)}</a></b><span><img class="te" src="${crest(p.t)}" alt="" loading="lazy" onerror="this.remove()">${esc(T.n||'')}${p.pos?' · '+esc(p.pos):''}</span></div>
+      <div class="pnm"><b><a href="player.html?id=${encodeURIComponent(p.id)}" title="Профиль игрока">${esc(p.n)}</a></b><span><img class="te" src="${crestS(p.t)}" alt="" loading="lazy" onerror="if(!this.dataset.f){this.dataset.f=1;this.src=this.src.replace('/fc/s/','/fc/')}else this.remove()">${esc(T.n||'')}${p.pos?' · '+esc(p.pos):''}</span></div>
       <dl class="pst"><div class="on"><dt>${MKN[st.m]||''}</dt><dd>${h[0]}<small style="font-size:.5em;font-weight:700;opacity:.6"> из ${h[1]}</small></dd></div>${extra.filter(e=>e[1]!=null).map(e=>`<div><dt>${e[0]}</dt><dd>${e[1]}</dd></div>`).join('')}</dl>
     </article>`}).join('');
   $('list').innerHTML=(podN?`<div class="podium">${pod}</div>`:'')+view.slice(podN).map((x,i0)=>{const i=i0+podN,p=x.p,T=D.teams[p.t]||{},h=x.h,pc=Math.round(100*h[0]/h[1]);
@@ -78,7 +79,7 @@ function render(){
       <div class="hit" aria-label="${h[0]} из ${h[1]} ${LU?'сыгранных матчей':'матчей'}"><b>${h[0]}<small>из ${h[1]}</small></b><div class="bar"><i style="width:${pc}%"></i></div></div>
       <div class="strip" aria-label="Последние 10 матчей">${strip}</div>
       <div class="ha">${LU?`Дома <b>${p.mh[st.m][0]}/${p.mh[st.m][1]}</b> · В гостях <b>${p.ma[st.m][0]}/${p.ma[st.m][1]}</b>`:st.m==='sg'?`Дома <b>${p.home[0]}/${p.home[1]}</b> · В гостях <b>${p.away[0]}/${p.away[1]}</b>`:`Карточка в ${pc}% матчей`}</div>
-      <div class="nx">${nx?`<img src="${crest(p.nx.o)}" alt="" loading="lazy"><span>Далее: <b>${esc(nx.n)}</b><br>${p.nx.h?'дома':'в гостях'}, ${p.nx.d.slice(8,10)}.${p.nx.d.slice(5,7)}</span>`:''}</div>
+      <div class="nx">${nx?`<img src="${crestS(p.nx.o)}" alt="" loading="lazy" onerror="if(!this.dataset.f){this.dataset.f=1;this.src=this.src.replace('/fc/s/','/fc/')}else this.remove()"><span>Далее: <b>${esc(nx.n)}</b><br>${p.nx.h?'дома':'в гостях'}, ${p.nx.d.slice(8,10)}.${p.nx.d.slice(5,7)}</span>`:''}</div>
     </article>`}).join('');
   $('list').classList.toggle('first',!render.shown);render.shown=1;   /* появление — только при первом показе (ревью анимаций 17.11) */
   $('more').hidden=L.length<=st.lim}

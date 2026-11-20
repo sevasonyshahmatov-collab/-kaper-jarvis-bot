@@ -114,9 +114,15 @@ def club_href(sport, slug, from_dir):
     return (pre + 'football/team.html?id=' + slug) if from_dir == '' else 'team.html?id=' + slug
 
 
-def emblem(sport, slug, from_dir):
+def emblem(sport, slug, from_dir, small=False):
+    """small=True — эмблема не крупнее 40 px: уменьшенная копия …/s/ (128 px), если она есть (аудит 20.11, вес страниц)."""
     pre = '../' * depth(from_dir)
     rel = ('assets/em/%s.webp' if sport == 'hockey' else 'assets/fc/%s.webp') % slug
+    if small:
+        rs = rel.replace('.webp', '').rsplit('/', 1)
+        rs = '%s/s/%s.webp' % (rs[0], rs[1])
+        if os.path.exists(os.path.join(ROOT, rs)):
+            return pre + rs
     return pre + rel if os.path.exists(os.path.join(ROOT, rel)) else None
 
 
@@ -199,7 +205,7 @@ def lv_attrs(m):
 
 def match_li(m, sport, d_out):
     def team(slug, name):
-        em = emblem(sport, slug, d_out)
+        em = emblem(sport, slug, d_out, small=True)
         img = '<img src="%s" alt="" width="28" height="28" loading="lazy">' % esc(em) if em else '<span class="fc-noem"></span>'
         return '<a class="fc-tm" href="%s">%s<span>%s</span></a>' % (esc(club_href(sport, slug, d_out)), img, esc(name))
     ar = ''

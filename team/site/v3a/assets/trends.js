@@ -25,7 +25,7 @@ const when=d=>{const day=d.slice(0,10),t=d.slice(11,16);
 /* ── настройки по виду спорта ──────────────────────────────── */
 const CFG=FB?{
   lgs:['epl','laliga','seriea','bundesliga','ligue1','rpl','ucl','uel'],
-  em:s=>'../assets/fc/'+s+'.webp', team:s=>'team.html?id='+s,
+  em:s=>'../assets/fc/s/'+s+'.webp', team:s=>'team.html?id='+s,
   /* темы страницы (владелец 10.11: «всё сплошным текстом — разбить по категориям») */
   cats:[['streak','Серии','победы и поражения подряд',['streak']],['pl','Игроки','кто забивает матч за матчем',['pl']],
     ['tot','Тоталы','больше или меньше 2,5 гола',['tb','tm']],['btts','Обе забьют','голы в обе стороны',['btts']],
@@ -210,7 +210,7 @@ if(Q.get('type')&&CFG.cats.some(c=>c[0]===Q.get('type')))ST.type=Q.get('type');
 const PER=4; /* строк в теме до «Ещё» */
 const PAGE=30;
 const lgp=id=>`<span class="lgp ${id==='nhl'?'nhl':id==='khl'?'khl':''}"><img src="../assets/lg/${id}.webp" alt=""></span>`;
-const crest=(slug,cls)=>`<img src="${CFG.em(slug)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
+const crest=(slug,cls)=>`<img src="${CFG.em(slug)}" alt="" loading="lazy" onerror="if(!this.dataset.f&&/\/(em|fc)\/s\//.test(this.src)){this.dataset.f=1;this.src=this.src.replace(/\/(em|fc)\/s\//,'/$1/')}else this.style.visibility='hidden'">`;
 const link=(slug,name)=>`<a href="${CFG.team(slug)}">${esc(name)}</a>`;
 const dots=seq=>`<span class="sdots" role="img" aria-label="Последние матчи: ${seq.map(x=>x===1?'да':x===2?'ничья':'нет').join(', ')}">${seq.map(x=>`<i class="${x===1?'h':x===2?'d':'m'}"></i>`).join('')}</span>`;
 

@@ -39,7 +39,7 @@ SMALL = 128
 
 def build_small():
     n = 0
-    for sub in ('em',):   # fc/ (футбол) — уже 192 px и ~10 КБ, копии не нужны
+    for sub in ('em', 'fc'):   # fc/ (футбол, 192 px) — тоже: на страницах игроков и матчей их по 20–30 штук размером 20–32 px (аудит 20.11)
         src = os.path.join(os.path.dirname(DST), sub)
         dst = os.path.join(src, 's')
         os.makedirs(dst, exist_ok=True)
@@ -50,7 +50,10 @@ def build_small():
             out = os.path.join(dst, name)
             if os.path.exists(out) and os.path.getmtime(out) >= os.path.getmtime(p):
                 continue
-            Image.open(p).convert('RGBA').resize((SMALL, SMALL), Image.LANCZOS).save(out, 'WEBP', quality=92, method=6, exact=True)
+            im = Image.open(p).convert('RGBA')
+            k = min(1.0, SMALL / max(im.size))      # пропорции сохраняем (у части футбольных эмблем не квадрат)
+            q = (85, 90) if sub == 'fc' else (92, 100)   # футбольные исходники уже сжаты: при 92 копия почти не легче
+            im.resize((max(1, round(im.width * k)), max(1, round(im.height * k))), Image.LANCZOS).save(out, 'WEBP', quality=q[0], alpha_quality=q[1], method=6, exact=True)
             n += 1
         for p in glob.glob(os.path.join(dst, '*.webp')):      # копии эмблем, которых больше нет
             if os.path.basename(p) not in have:

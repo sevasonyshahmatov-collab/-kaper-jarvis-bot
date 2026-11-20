@@ -16,7 +16,7 @@ const LG={khl:'КХЛ',nhl:'НХЛ',epl:'АПЛ',laliga:'Ла Лига',seriea:'
 const isH=lg=>lg==='khl'||lg==='nhl';
 const fc=sport==='hockey'?(lgq==='nhl'?'hockey/forecast-nhl.html':'hockey/forecast-khl.html'):sport==='football'?'football/forecast-'+(LG[lgq]&&!isH(lgq)&&lgq!=='ucl'&&lgq!=='uel'?lgq:'epl')+'.html':'forecast.html';
 /* 17.11: эмблемы клубов рядом с названиями в «Ближайшем матче» (хоккей — assets/em/s, футбол — assets/fc) */
-const logo=(m,id)=>id&&/^[\w-]+$/.test(id)?`<img src="${esc(U((isH(m.lg)?'assets/em/s/':'assets/fc/')+id+'.webp'))}" alt="" width="40" height="40" loading="lazy" onerror="this.remove()">`:'';
+const logo=(m,id)=>id&&/^[\w-]+$/.test(id)?`<img src="${esc(U((isH(m.lg)?'assets/em/s/':'assets/fc/s/')+id+'.webp'))}" alt="" width="40" height="40" loading="lazy" onerror="if(!this.dataset.f&&/\/(em|fc)\/s\//.test(this.src)){this.dataset.f=1;this.src=this.src.replace(/\/(em|fc)\/s\//,'/$1/')}else this.remove()">`:'';
 function draw(){
  const T=window.JV_TODAY||{},now=Date.now(),at=t=>Date.parse(String(t).replace(' ','T')+':00+03:00');
  let L=(T.matches||[]).filter(m=>at(m.t)>now-15*60e3).sort((a,b)=>a.t<b.t?-1:1);
