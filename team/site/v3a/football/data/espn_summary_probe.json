@@ -1,5 +1,5 @@
 {
- "event": "401879805",
+ "event": "401882805",
  "top_keys": [
   "boxscore",
   "broadcasts",
@@ -13,6 +13,7 @@
   "leaders",
   "meta",
   "news",
+  "odds",
   "pickcenter",
   "rosters",
   "seasonseries",
@@ -31,15 +32,15 @@
  "roster0": {
   "active": true,
   "starter": true,
-  "jersey": "84",
+  "jersey": "1",
   "athlete": {
-   "id": "3108309",
-   "uid": "s:600~a:3108309",
-   "guid": "444d7bfb-aaa9-3d33-a86b-cf68af39446b",
-   "lastName": "Petrov",
-   "fullName": "Artem Petrov",
-   "displayName": "Artem Petrov",
-   "shortName": "A. Petrov",
+   "id": "222375",
+   "uid": "s:600~a:222375",
+   "guid": "db877e27-6e30-6c82-5760-06f766ad33a3",
+   "lastName": "Simón",
+   "fullName": "Unai Simón",
+   "displayName": "Unai Simón",
+   "shortName": "U. Simón",
    "links": [
     {
      "language": "en-US",
@@ -48,7 +49,7 @@
       "desktop",
       "athlete"
      ],
-     "href": "https://www.espn.com/soccer/player/_/id/3108309/artem-petrov",
+     "href": "https://www.espn.com/soccer/player/_/id/222375/unai-simon",
      "text": "Player Card",
      "shortText": "Player Card",
      "isExternal": false,
@@ -57,7 +58,7 @@
    ],
    "jerseyImages": [
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/rus.1/events/401879805/athletes/3108309/jersey.png?darkMode=false",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/esp.1/events/401882805/athletes/222375/jersey.png?darkMode=false",
      "rel": [
       "full",
       "default"
@@ -66,7 +67,7 @@
      "height": 1440
     },
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/rus.1/events/401879805/athletes/3108309/jersey.png?darkMode=true",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/esp.1/events/401882805/athletes/222375/jersey.png?darkMode=true",
      "rel": [
       "full",
       "dark"
@@ -155,8 +156,8 @@
     "shortDisplayName": "GA",
     "description": "The number of goals allowed by the goalkeeper.",
     "abbreviation": "GA",
-    "value": 0.0,
-    "displayValue": "0"
+    "value": 1.0,
+    "displayValue": "1"
    },
    {
     "name": "saves",
@@ -164,8 +165,8 @@
     "shortDisplayName": "SV",
     "description": "The number of times a goalkeeper makes a save.",
     "abbreviation": "SV",
-    "value": 6.0,
-    "displayValue": "6"
+    "value": 2.0,
+    "displayValue": "2"
    },
    {
     "name": "shotsFaced",
@@ -217,15 +218,15 @@
  "roster_sub": {
   "active": true,
   "starter": false,
-  "jersey": "11",
+  "jersey": "34",
   "athlete": {
-   "id": "407302",
-   "uid": "s:600~a:407302",
-   "guid": "7a22154b-0963-36df-83e0-d26721f90c18",
-   "lastName": "Ajasa",
-   "fullName": "Ibraheem Ajasa",
-   "displayName": "Ibraheem Ajasa",
-   "shortName": "I. Ajasa",
+   "id": "3106512",
+   "uid": "s:600~a:3106512",
+   "guid": "949b17f3-56c2-3d5e-af23-52f21f7fdca1",
+   "lastName": "Vizcay Hurtado",
+   "fullName": "Jesús Vizcay Hurtado",
+   "displayName": "Jesús Vizcay Hurtado",
+   "shortName": "J. Vizcay Hurtado",
    "links": [
     {
      "language": "en-US",
@@ -234,7 +235,7 @@
       "desktop",
       "athlete"
      ],
-     "href": "https://www.espn.com/soccer/player/_/id/407302/ibraheem-ajasa",
+     "href": "https://www.espn.com/soccer/player/_/id/3106512/jesus-vizcay-hurtado",
      "text": "Player Card",
      "shortText": "Player Card",
      "isExternal": false,
@@ -243,7 +244,7 @@
    ],
    "jerseyImages": [
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/rus.1/events/401879805/athletes/407302/jersey.png?darkMode=false",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/esp.1/events/401882805/athletes/3106512/jersey.png?darkMode=false",
      "rel": [
       "full",
       "default"
@@ -252,7 +253,7 @@
      "height": 1440
     },
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/rus.1/events/401879805/athletes/407302/jersey.png?darkMode=true",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/esp.1/events/401882805/athletes/3106512/jersey.png?darkMode=true",
      "rel": [
       "full",
       "dark"
@@ -267,7 +268,7 @@
    "displayName": "Substitute",
    "abbreviation": "SUB"
   },
-  "subbedIn": false,
+  "subbedIn": true,
   "subbedOut": false,
   "formationPlace": "0",
   "media": {},
@@ -278,8 +279,8 @@
     "shortDisplayName": "APP",
     "description": "The number of times a player has made an appearance in a match.",
     "abbreviation": "APP",
-    "value": 0.0,
-    "displayValue": "0"
+    "value": 1.0,
+    "displayValue": "1"
    },
    {
     "name": "foulsCommitted",
@@ -323,8 +324,8 @@
     "shortDisplayName": "SUBIN",
     "description": "The number of times a player has come on a sub in a match.",
     "abbreviation": "SUB",
-    "value": 0.0,
-    "displayValue": "0"
+    "value": 1.0,
+    "displayValue": "1"
    },
    {
     "name": "yellowCards",
@@ -398,40 +399,75 @@
     "value": 0.0,
     "displayValue": "0"
    }
+  ],
+  "subbedInFor": {
+   "jersey": "8",
+   "athlete": {
+    "id": "291616",
+    "displayName": "Oihan Sancet",
+    "links": [
+     {
+      "language": "en-US",
+      "rel": [
+       "playercard",
+       "desktop",
+       "athlete"
+      ],
+      "href": "https://www.espn.com/soccer/player/_/id/291616/oihan-sancet",
+      "text": "Player Card",
+      "shortText": "Player Card",
+      "isExternal": false,
+      "isPremium": false
+     }
+    ]
+   }
+  },
+  "plays": [
+   {
+    "clock": {
+     "displayValue": "85'"
+    },
+    "scoringPlay": false,
+    "substitution": true,
+    "redCard": false,
+    "yellowCard": false,
+    "penaltyKick": false,
+    "ownGoal": false
+   }
   ]
  },
  "keyEvent_sub": {
-  "id": "55408117",
+  "id": "55412376",
   "type": {
    "id": "76",
    "text": "Substitution",
    "type": "substitution"
   },
-  "text": "Maksim Vityugov (Krylia Sovetov) Substitution at 67'",
-  "shortText": "Maksim Vityugov Substitution",
+  "text": "Substitution, Espanyol. Tyrhys Dolan replaces Pere Milla.",
+  "shortText": "Tyrhys Dolan Substitution",
   "period": {
    "number": 2
   },
   "clock": {
-   "value": 3997.0,
-   "displayValue": "67'"
+   "value": 3406.0,
+   "displayValue": "57'"
   },
   "scoringPlay": false,
   "team": {
-   "id": "3850",
-   "displayName": "Krylia Sovetov"
+   "id": "88",
+   "displayName": "Espanyol"
   },
   "participants": [
    {
     "athlete": {
-     "id": "320362",
-     "displayName": "Maksim Vityugov"
+     "id": "306520",
+     "displayName": "Tyrhys Dolan"
     }
    },
    {
     "athlete": {
-     "id": "341266",
-     "displayName": "Kirill Stolbov"
+     "id": "196914",
+     "displayName": "Pere Milla"
     }
    }
   ],
@@ -439,13 +475,13 @@
    "id": "38",
    "description": "SA.ENVOY"
   },
-  "wallclock": "2026-11-20T17:56:28Z",
+  "wallclock": "2026-11-20T21:16:44Z",
   "shootout": false
  },
  "parsed": {
-  "3852": [
+  "93": [
    [
-    "3108309",
+    "222375",
     1,
     94,
     0,
@@ -456,18 +492,18 @@
     0
    ],
    [
-    "284596",
+    "159317",
     1,
-    94,
+    85,
     0,
     0,
     0,
-    1,
+    0,
     0,
     0
    ],
    [
-    "290009",
+    "217225",
     1,
     94,
     0,
@@ -478,10 +514,10 @@
     0
    ],
    [
-    "310961",
+    "133768",
     1,
     94,
-    0,
+    1,
     0,
     0,
     2,
@@ -489,130 +525,130 @@
     0
    ],
    [
-    "281336",
+    "362572",
     1,
-    80,
+    69,
     0,
     0,
     0,
-    0,
+    1,
     0,
     0
    ],
    [
-    "276821",
+    "291616",
+    1,
+    85,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "388805",
+    1,
+    61,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "318785",
+    1,
+    69,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "214412",
     1,
     94,
-    2,
-    0,
-    0,
-    2,
-    0,
-    0
-   ],
-   [
-    "228337",
-    1,
-    89,
-    0,
-    0,
-    0,
+    5,
     3,
     0,
+    4,
+    1,
     0
    ],
    [
-    "303874",
+    "312146",
     1,
-    78,
-    1,
-    1,
-    0,
-    1,
-    0,
-    0
-   ],
-   [
-    "291934",
-    1,
-    77,
-    2,
-    2,
-    0,
-    1,
-    0,
-    0
-   ],
-   [
-    "297302",
-    1,
-    89,
+    94,
     5,
     1,
-    1,
+    0,
     2,
     0,
     0
    ],
    [
-    "318252",
+    "209579",
     1,
     94,
     1,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "381032",
-    0,
-    5,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "352866",
-    0,
-    16,
-    1,
     1,
     0,
+    1,
+    0,
+    0
+   ],
+   [
+    "3106512",
+    0,
+    9,
+    0,
+    0,
+    0,
     0,
     0,
     0
    ],
    [
-    "381462",
+    "276996",
     0,
-    17,
+    25,
     1,
     0,
     0,
-    2,
-    0,
-    0
-   ],
-   [
-    "362600",
-    0,
-    14,
-    0,
-    0,
-    0,
     0,
     0,
     0
    ],
    [
-    "322844",
+    "388803",
     0,
-    5,
+    25,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "157708",
+    0,
+    33,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0
+   ],
+   [
+    "403371",
+    0,
+    9,
     0,
     0,
     0,
@@ -621,9 +657,9 @@
     0
    ]
   ],
-  "3850": [
+  "88": [
    [
-    "361282",
+    "307419",
     1,
     94,
     0,
@@ -634,142 +670,98 @@
     0
    ],
    [
-    "185726",
+    "133259",
     1,
     94,
     0,
     0,
     0,
-    0,
+    1,
     0,
     0
    ],
    [
-    "195368",
+    "346210",
+    1,
+    85,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "323737",
     1,
     94,
+    0,
+    0,
+    0,
     2,
-    0,
-    0,
     1,
-    0,
     0
    ],
    [
-    "288910",
+    "3111255",
     1,
-    94,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "264122",
-    1,
-    78,
-    1,
-    0,
-    0,
-    1,
-    0,
-    0
-   ],
-   [
-    "305084",
-    1,
-    67,
-    2,
-    0,
-    0,
-    1,
-    0,
-    0
-   ],
-   [
-    "311528",
-    1,
-    94,
+    85,
     2,
     1,
     0,
+    2,
+    0,
+    0
+   ],
+   [
+    "310682",
+    1,
+    94,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "260242",
+    1,
+    94,
+    0,
+    0,
+    0,
+    4,
+    0,
+    0
+   ],
+   [
+    "383900",
+    1,
+    65,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "401377",
+    1,
+    65,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "318773",
+    1,
+    94,
     3,
-    0,
-    0
-   ],
-   [
-    "256118",
-    1,
-    94,
-    0,
-    0,
-    0,
-    3,
-    0,
-    0
-   ],
-   [
-    "331068",
-    1,
-    67,
-    3,
-    1,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "341266",
-    1,
-    67,
-    1,
-    1,
-    0,
-    2,
-    0,
-    0
-   ],
-   [
-    "302063",
-    1,
-    67,
-    2,
-    1,
-    0,
-    3,
-    0,
-    0
-   ],
-   [
-    "409252",
-    0,
-    27,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "289923",
-    0,
-    16,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "212348",
-    0,
-    27,
-    2,
     2,
     0,
     0,
@@ -777,9 +769,9 @@
     0
    ],
    [
-    "320362",
-    0,
-    27,
+    "196914",
+    1,
+    57,
     0,
     0,
     0,
@@ -788,12 +780,56 @@
     0
    ],
    [
-    "363855",
+    "367946",
     0,
-    27,
+    29,
     0,
     0,
     0,
+    1,
+    0,
+    0
+   ],
+   [
+    "260243",
+    0,
+    9,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "260902",
+    0,
+    9,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "361468",
+    0,
+    29,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "306520",
+    0,
+    37,
+    0,
+    0,
+    1,
     0,
     0,
     0
