@@ -1,7 +1,6 @@
 {
- "event": "401879240",
+ "event": "401879805",
  "top_keys": [
-  "article",
   "boxscore",
   "broadcasts",
   "commentary",
@@ -14,7 +13,6 @@
   "leaders",
   "meta",
   "news",
-  "odds",
   "pickcenter",
   "rosters",
   "seasonseries",
@@ -33,15 +31,15 @@
  "roster0": {
   "active": true,
   "starter": true,
-  "jersey": "1",
+  "jersey": "84",
   "athlete": {
-   "id": "301425",
-   "uid": "s:600~a:301425",
-   "guid": "83b92ff7-5bb8-3a8e-8f0d-42e292cba669",
-   "lastName": "Lammens",
-   "fullName": "Senne Lammens",
-   "displayName": "Senne Lammens",
-   "shortName": "S. Lammens",
+   "id": "3108309",
+   "uid": "s:600~a:3108309",
+   "guid": "444d7bfb-aaa9-3d33-a86b-cf68af39446b",
+   "lastName": "Petrov",
+   "fullName": "Artem Petrov",
+   "displayName": "Artem Petrov",
+   "shortName": "A. Petrov",
    "links": [
     {
      "language": "en-US",
@@ -50,7 +48,7 @@
       "desktop",
       "athlete"
      ],
-     "href": "https://www.espn.com/soccer/player/_/id/301425/senne-lammens",
+     "href": "https://www.espn.com/soccer/player/_/id/3108309/artem-petrov",
      "text": "Player Card",
      "shortText": "Player Card",
      "isExternal": false,
@@ -59,7 +57,7 @@
    ],
    "jerseyImages": [
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879240/athletes/301425/jersey.png?darkMode=false",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/rus.1/events/401879805/athletes/3108309/jersey.png?darkMode=false",
      "rel": [
       "full",
       "default"
@@ -68,7 +66,7 @@
      "height": 1440
     },
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879240/athletes/301425/jersey.png?darkMode=true",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/rus.1/events/401879805/athletes/3108309/jersey.png?darkMode=true",
      "rel": [
       "full",
       "dark"
@@ -157,8 +155,8 @@
     "shortDisplayName": "GA",
     "description": "The number of goals allowed by the goalkeeper.",
     "abbreviation": "GA",
-    "value": 4.0,
-    "displayValue": "4"
+    "value": 0.0,
+    "displayValue": "0"
    },
    {
     "name": "saves",
@@ -166,8 +164,8 @@
     "shortDisplayName": "SV",
     "description": "The number of times a goalkeeper makes a save.",
     "abbreviation": "SV",
-    "value": 3.0,
-    "displayValue": "3"
+    "value": 6.0,
+    "displayValue": "6"
    },
    {
     "name": "shotsFaced",
@@ -219,15 +217,15 @@
  "roster_sub": {
   "active": true,
   "starter": false,
-  "jersey": "7",
+  "jersey": "11",
   "athlete": {
-   "id": "231167",
-   "uid": "s:600~a:231167",
-   "guid": "a0bc8cc9-2c37-180e-316d-6759b97dae5b",
-   "lastName": "Mount",
-   "fullName": "Mason Mount",
-   "displayName": "Mason Mount",
-   "shortName": "M. Mount",
+   "id": "407302",
+   "uid": "s:600~a:407302",
+   "guid": "7a22154b-0963-36df-83e0-d26721f90c18",
+   "lastName": "Ajasa",
+   "fullName": "Ibraheem Ajasa",
+   "displayName": "Ibraheem Ajasa",
+   "shortName": "I. Ajasa",
    "links": [
     {
      "language": "en-US",
@@ -236,7 +234,7 @@
       "desktop",
       "athlete"
      ],
-     "href": "https://www.espn.com/soccer/player/_/id/231167/mason-mount",
+     "href": "https://www.espn.com/soccer/player/_/id/407302/ibraheem-ajasa",
      "text": "Player Card",
      "shortText": "Player Card",
      "isExternal": false,
@@ -245,7 +243,7 @@
    ],
    "jerseyImages": [
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879240/athletes/231167/jersey.png?darkMode=false",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/rus.1/events/401879805/athletes/407302/jersey.png?darkMode=false",
      "rel": [
       "full",
       "default"
@@ -254,7 +252,7 @@
      "height": 1440
     },
     {
-     "href": "https://stitcher.espn.com/sports/soccer/leagues/eng.1/events/401879240/athletes/231167/jersey.png?darkMode=true",
+     "href": "https://stitcher.espn.com/sports/soccer/leagues/rus.1/events/401879805/athletes/407302/jersey.png?darkMode=true",
      "rel": [
       "full",
       "dark"
@@ -269,7 +267,7 @@
    "displayName": "Substitute",
    "abbreviation": "SUB"
   },
-  "subbedIn": true,
+  "subbedIn": false,
   "subbedOut": false,
   "formationPlace": "0",
   "media": {},
@@ -280,8 +278,8 @@
     "shortDisplayName": "APP",
     "description": "The number of times a player has made an appearance in a match.",
     "abbreviation": "APP",
-    "value": 1.0,
-    "displayValue": "1"
+    "value": 0.0,
+    "displayValue": "0"
    },
    {
     "name": "foulsCommitted",
@@ -325,8 +323,8 @@
     "shortDisplayName": "SUBIN",
     "description": "The number of times a player has come on a sub in a match.",
     "abbreviation": "SUB",
-    "value": 1.0,
-    "displayValue": "1"
+    "value": 0.0,
+    "displayValue": "0"
    },
    {
     "name": "yellowCards",
@@ -397,78 +395,43 @@
     "shortDisplayName": "SHOT",
     "description": "The number of shots attempted.",
     "abbreviation": "SHOT",
-    "value": 3.0,
-    "displayValue": "3"
-   }
-  ],
-  "subbedInFor": {
-   "jersey": "18",
-   "athlete": {
-    "id": "193297",
-    "displayName": "Youri Tielemans",
-    "links": [
-     {
-      "language": "en-US",
-      "rel": [
-       "playercard",
-       "desktop",
-       "athlete"
-      ],
-      "href": "https://www.espn.com/soccer/player/_/id/193297/youri-tielemans",
-      "text": "Player Card",
-      "shortText": "Player Card",
-      "isExternal": false,
-      "isPremium": false
-     }
-    ]
-   }
-  },
-  "plays": [
-   {
-    "clock": {
-     "displayValue": "66'"
-    },
-    "scoringPlay": false,
-    "substitution": true,
-    "redCard": false,
-    "yellowCard": false,
-    "penaltyKick": false,
-    "ownGoal": false
+    "value": 0.0,
+    "displayValue": "0"
    }
   ]
  },
  "keyEvent_sub": {
-  "id": "55102305",
+  "id": "55408117",
   "type": {
    "id": "76",
    "text": "Substitution",
    "type": "substitution"
   },
-  "text": "Substitution, Manchester United. Ayden Heaven replaces Harry Maguire.",
-  "shortText": "Ayden Heaven Substitution",
+  "text": "Maksim Vityugov (Krylia Sovetov) Substitution at 67'",
+  "shortText": "Maksim Vityugov Substitution",
   "period": {
    "number": 2
   },
   "clock": {
-   "value": 2700.0,
-   "displayValue": "45'"
+   "value": 3997.0,
+   "displayValue": "67'"
   },
   "scoringPlay": false,
   "team": {
-   "id": "360",
-   "displayName": "Manchester United"
+   "id": "3850",
+   "displayName": "Krylia Sovetov"
   },
   "participants": [
    {
     "athlete": {
-     "id": "356044",
-     "displayName": "Ayden Heaven"
+     "id": "320362",
+     "displayName": "Maksim Vityugov"
     }
    },
    {
     "athlete": {
-     "id": "157073",
-     "displayName": "Harry Maguire"
+     "id": "341266",
+     "displayName": "Kirill Stolbov"
     }
    }
   ],
@@ -476,15 +439,15 @@
    "id": "38",
    "description": "SA.ENVOY"
   },
-  "wallclock": "2026-11-08T17:35:33Z",
+  "wallclock": "2026-11-20T17:56:28Z",
   "shootout": false
  },
  "parsed": {
-  "360": [
+  "3852": [
    [
-    "301425",
+    "3108309",
     1,
-    99,
+    94,
     0,
     0,
     0,
@@ -493,20 +456,9 @@
     0
    ],
    [
-    "157073",
+    "284596",
     1,
-    45,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "340206",
-    1,
-    99,
+    94,
     0,
     0,
     0,
@@ -515,10 +467,21 @@
     0
    ],
    [
-    "238902",
+    "290009",
     1,
-    66,
+    94,
+    0,
+    0,
+    0,
     1,
+    1,
+    0
+   ],
+   [
+    "310961",
+    1,
+    94,
+    0,
     0,
     0,
     2,
@@ -526,54 +489,43 @@
     0
    ],
    [
-    "239350",
+    "281336",
     1,
-    99,
-    1,
+    80,
     0,
-    1,
-    4,
     0,
-    0
-   ],
-   [
-    "124091",
-    1,
-    99,
-    6,
-    1,
-    1,
-    3,
+    0,
+    0,
     0,
     0
    ],
    [
-    "328466",
+    "276821",
     1,
-    99,
-    1,
-    1,
+    94,
+    2,
+    0,
     0,
     2,
     0,
     0
    ],
    [
-    "193297",
+    "228337",
     1,
-    66,
+    89,
+    0,
+    0,
+    0,
     3,
-    1,
-    0,
-    0,
     0,
     0
    ],
    [
-    "271170",
+    "303874",
     1,
-    83,
-    3,
+    78,
+    1,
     1,
     0,
     1,
@@ -581,10 +533,10 @@
     0
    ],
    [
-    "259902",
+    "291934",
     1,
-    99,
-    3,
+    77,
+    2,
     2,
     0,
     1,
@@ -592,99 +544,88 @@
     0
    ],
    [
-    "291630",
+    "297302",
     1,
-    66,
-    3,
+    89,
+    5,
     1,
-    0,
     1,
+    2,
     0,
     0
    ],
    [
-    "231167",
-    0,
-    33,
-    3,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "366781",
-    0,
-    33,
+    "318252",
     1,
+    94,
     1,
-    1,
+    0,
+    0,
     0,
     0,
     0
    ],
    [
-    "276327",
+    "381032",
+    0,
+    5,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "352866",
     0,
     16,
     1,
     1,
     0,
-    1,
+    0,
     0,
     0
    ],
    [
-    "356044",
+    "381462",
     0,
-    54,
-    0,
-    0,
-    0,
+    17,
     1,
-    1,
+    0,
+    0,
+    2,
+    0,
     0
    ],
    [
-    "358180",
+    "362600",
     0,
-    33,
+    14,
     0,
     0,
     0,
-    1,
+    0,
+    0,
+    0
+   ],
+   [
+    "322844",
+    0,
+    5,
+    0,
+    0,
+    0,
+    0,
     0,
     0
    ]
   ],
-  "362": [
+  "3850": [
    [
-    "265958",
+    "361282",
     1,
-    99,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0
-   ],
-   [
-    "251100",
-    1,
-    99,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "204679",
-    1,
-    99,
+    94,
     0,
     0,
     0,
@@ -693,9 +634,9 @@
     0
    ],
    [
-    "281125",
+    "185726",
     1,
-    99,
+    94,
     0,
     0,
     0,
@@ -704,120 +645,76 @@
     0
    ],
    [
-    "281121",
+    "195368",
     1,
-    99,
-    0,
-    0,
-    0,
+    94,
     2,
     0,
-    0
-   ],
-   [
-    "162843",
-    1,
-    71,
-    1,
-    1,
-    1,
-    1,
-    0,
-    0
-   ],
-   [
-    "174550",
-    1,
-    78,
-    1,
-    1,
-    0,
-    4,
-    0,
-    0
-   ],
-   [
-    "250936",
-    1,
-    99,
-    1,
-    0,
     0,
     1,
     0,
     0
    ],
    [
-    "308524",
+    "288910",
     1,
-    86,
-    2,
+    94,
     1,
-    1,
+    0,
+    0,
     0,
     0,
     0
    ],
    [
-    "386992",
+    "264122",
     1,
     78,
     1,
     0,
     0,
-    0,
+    1,
     0,
     0
    ],
    [
-    "382839",
+    "305084",
     1,
-    71,
+    67,
+    2,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    "311528",
+    1,
+    94,
+    2,
+    1,
+    0,
     3,
-    2,
-    0,
-    0,
     0,
     0
    ],
    [
-    "388522",
-    0,
-    21,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "401451",
-    0,
-    13,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   [
-    "366248",
-    0,
-    28,
-    0,
-    0,
-    0,
+    "256118",
     1,
+    94,
+    0,
+    0,
+    0,
+    3,
     0,
     0
    ],
    [
-    "152469",
-    0,
-    28,
-    2,
+    "331068",
+    1,
+    67,
+    3,
     1,
     0,
     0,
@@ -825,9 +722,75 @@
     0
    ],
    [
-    "301524",
+    "341266",
+    1,
+    67,
+    1,
+    1,
     0,
-    21,
+    2,
+    0,
+    0
+   ],
+   [
+    "302063",
+    1,
+    67,
+    2,
+    1,
+    0,
+    3,
+    0,
+    0
+   ],
+   [
+    "409252",
+    0,
+    27,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "289923",
+    0,
+    16,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "212348",
+    0,
+    27,
+    2,
+    2,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "320362",
+    0,
+    27,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    "363855",
+    0,
+    27,
     0,
     0,
     0,
