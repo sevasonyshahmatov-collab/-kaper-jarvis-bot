@@ -1225,5 +1225,28 @@ def run():
             if mo.group(1) < cut_old or mo.group(1) >= cut_win:
                 shutil.rmtree(os.path.join(base, e))
                 removed += 1
+    # архив: страницы прошедших матчей (старше PAST_DAYS, моложе KEEP_DAYS) больше не пересобираются — при смене адреса
+    # сайта (день домена) в них остались бы заглушка и старый адрес. Переписываем только адреса; noindex у архива остаётся (20.11).
+    import seo_config as CFG
+    swap = [('https://jarvibet.example', B.ORIGIN), ('https://sevasonyshahmatov-collab.github.io', CFG.PUBLIC_ORIGIN)]
+    swap = [(a, b) for a, b in swap if a != b]
+    fixed = 0
+    if swap:
+        for lg in B.LG_ALL:
+            base = os.path.join(B.ROOT, lg)
+            if not os.path.isdir(base):
+                continue
+            for e in os.listdir(base):
+                rel = '%s/%s/index.html' % (lg, e)
+                if not re.match(r'^\d{4}-\d\d-\d\d-', e) or os.path.dirname(rel) in made or not os.path.isfile(os.path.join(B.ROOT, rel)):
+                    continue
+                with open(os.path.join(B.ROOT, rel), encoding='utf-8') as f:
+                    t = f.read()
+                n = t
+                for a, b in swap:
+                    n = n.replace(a + '/', b + '/').replace(a + '"', b + '"')
+                if n != t:
+                    B.wr(rel, n)
+                    fixed += 1
     nr = folder_redirects()
-    return 'матчей %d, клубов %d, удалено старых %d, переадресаций папок %d' % (nm, nc, removed, nr)
+    return 'матчей %d, клубов %d, удалено старых %d, архив: адреса обновлены %d, переадресаций папок %d' % (nm, nc, removed, fixed, nr)

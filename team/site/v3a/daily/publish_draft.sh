@@ -10,7 +10,11 @@ case "$dst" in */draft) ;; *) echo "папка назначения должна
 here="$(cd "$(dirname "$0")" && pwd)"
 stage="$(mktemp -d)"; trap 'rm -rf "$stage"' EXIT
 bash "$here/publish_new.sh" "$src" "$stage/new" >/dev/null
-rm -f "$stage/new/404.html"
+rm -f "$stage/new/404.html" "$stage/new/robots.txt" "$stage/new/sitemap.xml"
+# черновик никогда не индексируется: после открытия поиска страницы сайта без noindex — черновику вписываем (20.11)
+{ find "$stage/new" -name '*.html' -print0 | xargs -0 grep -L 'name="robots"' || true; } | while IFS= read -r f; do
+  sed -i '0,/<head[^>]*>/s//&<meta name="robots" content="noindex">/' "$f"
+done
 mkdir -p "$dst"
 rsync -a --delete "$stage/new/" "$dst/"
 echo "draft/: $(find "$dst" -type f | wc -l) файлов, $(du -sm "$dst" | cut -f1) МБ"

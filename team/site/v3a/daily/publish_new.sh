@@ -18,7 +18,7 @@ rsync -a --delete --delete-excluded \
   --exclude='/proto/home/*' --exclude='/proto/*' \
   --exclude='/assets/leaguecards/cand/' --exclude='/preview/' --exclude='/concepts/' --exclude='/vote/' --exclude='/daily/' --exclude='/seo/' \
   --exclude='/index-old.html' --exclude='/assets/herovid/src/' \
-  --exclude='/robots.txt' --exclude='/sitemap.xml' \
+  $( [ "${SITE_INDEXING_OPEN:-}" = 1 ] || printf '%s ' "--exclude=/robots.txt" "--exclude=/sitemap.xml" ) \
   --exclude='/football/data/as_*' --exclude='*_skipped.json' \
   "$src/" "$dst/"
 echo "new/: $(find "$dst" -type f | wc -l) файлов, $(du -sm "$dst" | cut -f1) МБ"

@@ -26,7 +26,8 @@ done
 : > "$stage/mine"
 skipped=0
 while IFS= read -r f; do
-  if [ -e "$dst/$f" ] && [ "$f" != index.html ] && [ "$f" != 404.html ] && ! grep -qxF "$f" "$old_list"; then
+  own=0; case "$f" in index.html|404.html) own=1;; robots.txt|sitemap.xml) [ "${SITE_INDEXING_OPEN:-}" = 1 ] && own=1;; esac   # день домена: robots/sitemap — нового сайта
+  if [ -e "$dst/$f" ] && [ $own = 0 ] && ! grep -qxF "$f" "$old_list"; then
     echo "пропуск (файл старого сайта): $f"; skipped=$((skipped+1)); continue
   fi
   echo "$f" >> "$stage/mine"

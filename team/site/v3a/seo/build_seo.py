@@ -85,7 +85,11 @@ SPORT_RU = {'hockey': 'Хоккей', 'football': 'Футбол'}
 
 
 def url(rel):
-    return ORIGIN + '/' + rel.lstrip('/')
+    # …/index.html → …/ : один адрес у страницы, без дубля «/» и «/index.html» (подготовка к домену 20.11)
+    rel = rel.lstrip('/')
+    if rel == 'index.html' or rel.endswith('/index.html'):
+        rel = rel[:-len('index.html')]
+    return ORIGIN + '/' + rel
 
 
 def ru_date(d):
@@ -697,9 +701,11 @@ def build_sitemap(extra_ld_pages):
 
 def build_robots():
     closed = 'User-agent: *\nDisallow: /\n'
-    opened = 'User-agent: *\nAllow: /\n\nSitemap: %s\n' % url('sitemap.xml')
+    # старые разделы прежнего сайта и служебные переадресации — не для поиска (день домена, п. 9; черновик закрыт своим noindex)
+    old = ''.join('Disallow: /%s/\n' % d for d in ('old', 'new', 'app', 'stats', 'trendy', 'prognozy'))
+    opened = 'User-agent: *\n%sAllow: /\n\nSitemap: %s\n' % (old, url('sitemap.xml'))
     if OPEN:
-        txt = ('# Сайт открыт для поиска (SITE_INDEXING_OPEN=1, решение владельца). Закрыть: вернуть INDEXING_OPEN=False в seo/seo_config.py.\n' + opened
+        txt = ('# Сайт открыт для поиска (SITE_INDEXING_OPEN=1, решение владельца). Закрыть: удалить переменную репозитория SITE_INDEXING_OPEN (или INDEXING_OPEN=False в seo/seo_config.py).\n' + opened
                + '\n# --- закрытая версия (для отката) ---\n' + ''.join('# ' + l + '\n' if l else '#\n' for l in closed.strip().split('\n')))
     else:
         txt = ('# Сайт пока закрыт от поиска: домена нет, макет. Страницы тоже с meta robots noindex.\n' + closed

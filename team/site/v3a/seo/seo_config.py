@@ -11,9 +11,10 @@ INDEXING_OPEN     False: на всех страницах meta robots noindex, r
 """
 import os
 
-SITE_ORIGIN = os.environ.get('SITE_ORIGIN', 'https://jarvibet.example').rstrip('/')
-PUBLIC_ORIGIN = os.environ.get('SITE_PUBLIC_ORIGIN', SITE_ORIGIN if 'jarvibet.example' not in SITE_ORIGIN
-                               else 'https://sevasonyshahmatov-collab.github.io').rstrip('/')
+# пустая переменная (не задана в настройках репозитория) = значение по умолчанию (20.11, подготовка к домену)
+SITE_ORIGIN = (os.environ.get('SITE_ORIGIN') or 'https://jarvibet.example').rstrip('/')
+PUBLIC_ORIGIN = (os.environ.get('SITE_PUBLIC_ORIGIN') or (SITE_ORIGIN if 'jarvibet.example' not in SITE_ORIGIN
+                  else 'https://sevasonyshahmatov-collab.github.io')).rstrip('/')
 INDEXING_OPEN = os.environ.get('SITE_INDEXING_OPEN', '0') == '1'
 SITE_NAME = 'JARVIS'
 TELEGRAM = 'https://t.me/jarvibet'

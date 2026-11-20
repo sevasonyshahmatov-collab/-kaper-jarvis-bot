@@ -33,6 +33,10 @@ jobs:
     timeout-minutes: 60
     env:
       SITE_REPO: ${{ vars.SITE_REPO }}
+      # день домена (docs/handoff/SITE_DOMAIN_DAY.md): адрес и открытие для поиска — переменные репозитория,
+      # без правок кода. Не заданы — заглушка и noindex, как сейчас.
+      SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
+      SITE_INDEXING_OPEN: ${{ vars.SITE_INDEXING_OPEN }}
       PUBLISH_ONLY: ${{ github.event.inputs.publish_only }}
       # черновик (14.11): ветка-черновик или draft=yes — данные не собираем, публикуем только папку draft/ (живые страницы не трогаем)
       DRAFT: ${{ github.event.inputs.draft == 'yes' || contains(github.ref_name, 'draft') }}

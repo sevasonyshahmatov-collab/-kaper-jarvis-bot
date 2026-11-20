@@ -7,7 +7,7 @@
    при смене VER не пропадают: показываем копию сразу и тихо сверяем с сервером (если картинку заменили — в следующий раз будет новая);
    в кэше картинок не больше IMG_MAX штук, лишние старые удаляются.
    Данные и страницы запрашиваются с cache:'no-cache' — сверка с сервером, мимо 10-минутного кэша браузера. */
-const VER='jv-6262998009',ROOT=new URL('./',self.location).href,CACHE=VER+'|'+ROOT,IMG='jv-img|'+ROOT;
+const VER='jv-ea378eeaf8',ROOT=new URL('./',self.location).href,CACHE=VER+'|'+ROOT,IMG='jv-img|'+ROOT;
 const CORE=['index.html','hockey/index.html','football/index.html','matches.html','results.html','offline.html',
  'assets/v3a.css','assets/nav.css','assets/home.css','assets/footer.css','assets/nav.js','assets/footer.js','assets/v3a.js',
  'data/today.js','data/lines.js','data/model.js','data/results-lite.js','favicon.svg?v=3','icon-192.png?v=3'];
