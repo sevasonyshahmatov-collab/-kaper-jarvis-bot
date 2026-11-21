@@ -40,6 +40,16 @@ if(old)old.replaceWith(f);else document.body.appendChild(f);
  const skip=/\/\d{4}-\d\d-\d\d-[^/]+\/(index\.html)?$/.test(pth)||/^(matches|forecast.*|404|offline|model|glossary|photo-credits)\.html$/.test(fl)||(fl==='index.html'&&(!sp||/\/(hockey|football)\/(index\.html)?$/.test(pth)))&&!/\/team\/(index\.html)?$/.test(pth);
  const want=/^(results|league|trends|player|players.*|team|ucl|compare)\.html$/.test(fl)||/\/team\/(index\.html)?$/.test(pth)||(sp&&/\/(khl|nhl|epl|laliga|seriea|bundesliga|ligue1|rpl|ucl|uel)\/[^/]+\/(index\.html)?$/.test(pth));
  if(want&&!skip)try{const s=document.createElement('script');s.src=new URL('next.js',SRC).href;s.defer=true;document.head.appendChild(s)}catch(e){}}
+/* ── Быстрые переходы (владелец 21.11): Chrome и Edge заранее готовят страницу, на которую навели курсор или нажали пальцем, —
+   переход без пустого экрана. Купон и «Моё» только скачиваются заранее (они сами что-то сохраняют при открытии).
+   В лайт-режиме и при экономии трафика не включаем. */
+try{const c=navigator.connection,d=document.documentElement;
+ if(HTMLScriptElement.supports&&HTMLScriptElement.supports('speculationrules')&&!d.classList.contains('lite')&&!(c&&c.saveData)&&/^https?:$/.test(location.protocol)){
+  const own={href_matches:U('*')},no='[target=_blank],[download],a[href*="sw="],a[href*="kupon"],a[href*="/me/"],a[href^="me/"]';
+  const s=document.createElement('script');s.type='speculationrules';
+  s.textContent=JSON.stringify({prerender:[{where:{and:[own,{not:{selector_matches:no}}]},eagerness:'moderate'}],
+   prefetch:[{where:{and:[own,{selector_matches:'a[href*="kupon"],a[href*="/me/"],a[href^="me/"]'},{not:{selector_matches:'a[href*="sw="]'}}]},eagerness:'moderate'}]});
+  document.head.appendChild(s)}}catch(e){}
 /* ── «Установить на экран» и работа без интернета (идеи 37–38) ──
    sw.js лежит в корне сайта; на file:// и в старых браузерах ничего не делаем. ?sw=off — снять регистрацию (для отладки). */
 try{if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){

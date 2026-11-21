@@ -1288,3 +1288,9 @@ html body .pp-ln>div{padding-bottom:14px}
   .hero .board{padding-left:12px;padding-right:12px}
   .hero .board .face .tm>span:last-child{font-size:15px}
 }
+
+/* Переходы между страницами без пустого экрана (владелец 21.11): браузер держит старую страницу, пока новая не готова,
+   и мягко сменяет за 0,15 с (Chrome, Edge, Safari 18+; остальные — как раньше). Тема «Эфир» задаёт свои переходы. */
+@view-transition{navigation:auto}
+html:not(.efir)::view-transition-old(root),html:not(.efir)::view-transition-new(root){animation-duration:.15s}
+@media (prefers-reduced-motion:reduce){html:not(.efir)::view-transition-old(root),html:not(.efir)::view-transition-new(root){animation:none}}
