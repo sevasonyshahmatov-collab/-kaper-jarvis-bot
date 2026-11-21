@@ -37,7 +37,7 @@
 - «Котировки, экспрессы и футбол — 31.10» — `session_01GakKTNbyX5zH6HJccD73MM` (продолжение чата руководителя 30.10; передача `HANDOFF_LEAD_3110_2.md`).
 - «Фонбет: точные котировки в прогнозы» — `session_01GakKTMi4rfkUTSnNm6Te7h` (Opus; итог — `docs/handoff/FONBET.md`).
 - Диспетчер JARVIS (служебный, не трогать) — `session_01GakKTMs4qribwLbphL4zbs`; на Б — «Диспетчер JARVIS Б» `session_01MtLSohbrUjwrmnARtLVyAg`.
-- «Актуальный, 20.11» — `session_01GakKTPvCvTBNeJDCbVjKUA`; «Неактуальный, до 20.11» — `session_01GakKTR11fMZhTd3qw9Lsmf`; «Неактуальный, до 19.11» — `session_01GakKTQrKnc8aER56W6W9hm` (бывший «Актуальный, 18.11»; прошлый «Неактуальный, до 18.11» `session_01GakKTMisyTpcEBm4ZnqzEt`).
+- «Актуальный, 21.11» — `session_01GakKTQzsEdryQv4ax8QmbP`; «Неактуальный, до 21.11» — `session_01GakKTPvCvTBNeJDCbVjKUA`; «Неактуальный, до 20.11» — `session_01GakKTR11fMZhTd3qw9Lsmf`; «Неактуальный, до 19.11» — `session_01GakKTQrKnc8aER56W6W9hm` (бывший «Актуальный, 18.11»; прошлый «Неактуальный, до 18.11» `session_01GakKTMisyTpcEBm4ZnqzEt`).
 - «Актуальный, 13.11» — `session_01GakKTP7q8tvhkpSuxx8o58`; «Неактуальный, до 13.11» — `session_01GakKTNegz5WS9oNEL7Audf`; «Неактуальный, до 12.11» — `session_01GakKTPUz7idLNAANmozcuT` (прошлый «Неактуальный, до 11.11» `session_01GakKTQ3QWVJwmU2Wbq4d6f`).
 - «Актуальный, 05.11» — `session_01GakKTMVChPSCHKahwutt2x` (руководитель, хоккей+футбол; прошлый «Неактуальный, до 05.11» `session_01GakKTNerAENXKCc5YfKssr`).
 - «Хоккей — Актуальный, 01.11» — `session_01GakKTM49pdcfF9qcUixdTy` (старый, Неактуальный).
@@ -64,6 +64,7 @@
 7. По желанию: syntx.ai в разрешённые домены.
 
 ## События (новые сверху, ≤10)
+- 21.11 06:15 · А · открыт «Актуальный, 21.11» (`session_01GakKTQzsEdryQv4ax8QmbP`); прошлый переименован в «Неактуальный, до 21.11» (`session_01GakKTPvCvTBNeJDCbVjKUA`); разовых напоминаний нет; передачи за 21.11 на месте; письмо — `team/out/2026-11-21/morning_lead.json`.
 - 21.11 05:50 · А · передача футбола за 20.11 написана новым чатом: `docs/handoff/HANDOFF_FOOT_2111.md` (по NOW/LOG/git log; реплик владельца в чате 20.11 нет).
 - 21.11 05:45 · А · передача хоккея за 20.11 написана новым чатом: `docs/handoff/HANDOFF_LEAD_2111.md` (по NOW/LOG/INBOX/git log; реплик владельца в чате 20.11 нет); строка в CLAUDE.md обновлена.
 - 21.11 04:50 · А · прогнозы КХЛ 21.11: 2 поста 2111-1 (Нефтехимик—Спартак ТБ 4,5 1,60), 2111-2 (Сочи—СКА фора Сочи +1,5 1,83); в субботу в КХЛ 2 матча; данные run 1483, отправка run 1484 (3 сообщения, ошибок нет); ниже порога — 0. PICKS: + 2011-1, 2011-5.
