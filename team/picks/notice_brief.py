@@ -28,7 +28,7 @@ with tarfile.open(fileobj=buf, mode='w:gz') as t:
         if os.path.exists(p):
             t.add(p, arcname=n)
 b = base64.b64encode(buf.getvalue()).decode()
-step = 3500
+step = max(3500, -(-len(b) // 10))  # GitHub отдаёт не больше 10 пометок на шаг
 parts = [b[i:i + step] for i in range(0, len(b), step)] or ['']
 for i, s in enumerate(parts):
     print('::notice title=PB_%d/%d::%s' % (i + 1, len(parts), s), flush=True)
